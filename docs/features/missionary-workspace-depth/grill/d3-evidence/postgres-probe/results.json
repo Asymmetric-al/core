@@ -1,0 +1,221 @@
+{
+  "recorded_at": "2026-10-16T05:08:18.983792+00:00",
+  "scope": "Selected source-exact FK mechanics in an isolated PostgreSQL fixture; not a full migration replay, deployed catalog, Supabase Auth/API/JWT or authorization qualification.",
+  "cases": 6,
+  "cases_passed": 6,
+  "assertions": 18,
+  "assertions_passed": 18,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "18d968600fb2b7a381f86e6da7a34e5ccc308c19baa9271aa7d3d1141483526a",
+    "run.py": "cdd7bdcb582f0b304597a7d30a4ebcf9ca8e44798b2d1af0840315e696fd83ae",
+    "sources.json": "036f5d17b890d786c335853cb7b6692b6862e1c525e35de66a31ec88a50eb914"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "results": [
+    {
+      "name": "unblocked_auth_delete_cascades_profile_missionary_and_profile_keyed_task",
+      "role": "d3_deleter",
+      "steps": [
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000001')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000001')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000001')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000001');",
+          "expected_stdout": "1:1:1:1",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "1:1:1:1",
+          "stderr": "",
+          "passed": true
+        },
+        {
+          "sql": "DELETE FROM auth.users WHERE id='00000000-0000-0000-0000-000000000001';",
+          "expected_stdout": "",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "passed": true
+        },
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000001')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000001')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000001')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000001');",
+          "expected_stdout": "0:0:0:0",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "0:0:0:0",
+          "stderr": "",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "donor_primary_association_blocks_profile_delete_and_preserves_cascade_candidates",
+      "role": "d3_deleter",
+      "steps": [
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000002')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000002')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000002')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000002')||':'||(SELECT count(*) FROM public.donors WHERE id='00000000-0000-0000-0000-000000000002');",
+          "expected_stdout": "1:1:1:1:1",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "1:1:1:1:1",
+          "stderr": "",
+          "passed": true
+        },
+        {
+          "sql": "DELETE FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000002';",
+          "expected_stdout": null,
+          "expected_sqlstate": "23503",
+          "exit_code": 3,
+          "stdout": "",
+          "stderr": "ERROR:  23503: update or delete on table \"profiles\" violates foreign key constraint \"donors_missionary_id_fkey\" on table \"donors\"\nDETAIL:  Key (id)=(00000000-0000-0000-0000-000000000002) is still referenced from table \"donors\".\nSCHEMA NAME:  public\nTABLE NAME:  donors\nCONSTRAINT NAME:  donors_missionary_id_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2612",
+          "passed": true
+        },
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000002')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000002')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000002')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000002')||':'||(SELECT count(*) FROM public.donors WHERE id='00000000-0000-0000-0000-000000000002');",
+          "expected_stdout": "1:1:1:1:1",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "1:1:1:1:1",
+          "stderr": "",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "fund_blocks_auth_delete_and_entire_cascade_is_rolled_back",
+      "role": "d3_deleter",
+      "steps": [
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000003')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000003')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000003')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000003')||':'||(SELECT count(*) FROM public.funds WHERE id='00000000-0000-0000-0000-000000000003');",
+          "expected_stdout": "1:1:1:1:1",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "1:1:1:1:1",
+          "stderr": "",
+          "passed": true
+        },
+        {
+          "sql": "DELETE FROM auth.users WHERE id='00000000-0000-0000-0000-000000000003';",
+          "expected_stdout": null,
+          "expected_sqlstate": "23503",
+          "exit_code": 3,
+          "stdout": "",
+          "stderr": "ERROR:  23503: update or delete on table \"missionaries\" violates foreign key constraint \"funds_missionary_id_fkey\" on table \"funds\"\nDETAIL:  Key (id)=(00000000-0000-0000-0000-000000000003) is still referenced from table \"funds\".\nSCHEMA NAME:  public\nTABLE NAME:  funds\nCONSTRAINT NAME:  funds_missionary_id_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2612",
+          "passed": true
+        },
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000003')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000003')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000003')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000003')||':'||(SELECT count(*) FROM public.funds WHERE id='00000000-0000-0000-0000-000000000003');",
+          "expected_stdout": "1:1:1:1:1",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "1:1:1:1:1",
+          "stderr": "",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "donation_blocks_auth_delete_and_entire_cascade_is_rolled_back",
+      "role": "d3_deleter",
+      "steps": [
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000004')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000004')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000004')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000004')||':'||(SELECT count(*) FROM public.donations WHERE id='00000000-0000-0000-0000-000000000004');",
+          "expected_stdout": "1:1:1:1:1",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "1:1:1:1:1",
+          "stderr": "",
+          "passed": true
+        },
+        {
+          "sql": "DELETE FROM auth.users WHERE id='00000000-0000-0000-0000-000000000004';",
+          "expected_stdout": null,
+          "expected_sqlstate": "23503",
+          "exit_code": 3,
+          "stdout": "",
+          "stderr": "ERROR:  23503: update or delete on table \"missionaries\" violates foreign key constraint \"donations_missionary_id_fkey\" on table \"donations\"\nDETAIL:  Key (id)=(00000000-0000-0000-0000-000000000004) is still referenced from table \"donations\".\nSCHEMA NAME:  public\nTABLE NAME:  donations\nCONSTRAINT NAME:  donations_missionary_id_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2612",
+          "passed": true
+        },
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000004')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000004')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000004')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000004')||':'||(SELECT count(*) FROM public.donations WHERE id='00000000-0000-0000-0000-000000000004');",
+          "expected_stdout": "1:1:1:1:1",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "1:1:1:1:1",
+          "stderr": "",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "successful_missionary_delete_nulls_pledge_but_preserves_profile_keyed_task",
+      "role": "d3_deleter",
+      "steps": [
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000005')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000005')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000005')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000005')||':'||(SELECT count(*) FROM public.donor_pledges WHERE id='00000000-0000-0000-0000-000000000005');SELECT missionary_id IS NULL FROM public.donor_pledges WHERE id='00000000-0000-0000-0000-000000000005';",
+          "expected_stdout": "1:1:1:1:1\nf",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "1:1:1:1:1\nf",
+          "stderr": "",
+          "passed": true
+        },
+        {
+          "sql": "DELETE FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000005';",
+          "expected_stdout": "",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "passed": true
+        },
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000005')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000005')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000005')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000005')||':'||(SELECT count(*) FROM public.donor_pledges WHERE id='00000000-0000-0000-0000-000000000005');SELECT missionary_id IS NULL FROM public.donor_pledges WHERE id='00000000-0000-0000-0000-000000000005';",
+          "expected_stdout": "1:1:0:1:1\nt",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "1:1:0:1:1\nt",
+          "stderr": "",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "auth_delete_retains_note_author_and_text_but_only_nulls_log_profile_fk",
+      "role": "d3_deleter",
+      "steps": [
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000006')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000006')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000006')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000006')||':'||(SELECT count(*) FROM public.crm_notes WHERE id='00000000-0000-0000-0000-000000000006')||':'||(SELECT count(*) FROM public.crm_command_logs WHERE id='00000000-0000-0000-0000-000000000006');SELECT author_profile_id='00000000-0000-0000-0000-000000000006' AND author_name='Retained synthetic author' AND body='Retained synthetic body' AND linked_record_id='00000000-0000-0000-0000-000000000006' AND linked_record_label='Retained synthetic label' FROM public.crm_notes WHERE id='00000000-0000-0000-0000-000000000006'; SELECT actor_profile_id IS NULL, actor_user_id='00000000-0000-0000-0000-000000000006', command_payload='{\"retained\":\"synthetic\"}'::jsonb FROM public.crm_command_logs WHERE id='00000000-0000-0000-0000-000000000006';",
+          "expected_stdout": "1:1:1:1:1:1\nt\nf|t|t",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "1:1:1:1:1:1\nt\nf|t|t",
+          "stderr": "",
+          "passed": true
+        },
+        {
+          "sql": "DELETE FROM auth.users WHERE id='00000000-0000-0000-0000-000000000006';",
+          "expected_stdout": "",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "passed": true
+        },
+        {
+          "sql": "SELECT (SELECT count(*) FROM auth.users WHERE id='00000000-0000-0000-0000-000000000006')||':'||(SELECT count(*) FROM public.profiles WHERE id='00000000-0000-0000-0000-000000000006')||':'||(SELECT count(*) FROM public.missionaries WHERE id='00000000-0000-0000-0000-000000000006')||':'||(SELECT count(*) FROM public.missionary_tasks WHERE id='00000000-0000-0000-0000-000000000006')||':'||(SELECT count(*) FROM public.crm_notes WHERE id='00000000-0000-0000-0000-000000000006')||':'||(SELECT count(*) FROM public.crm_command_logs WHERE id='00000000-0000-0000-0000-000000000006');SELECT author_profile_id='00000000-0000-0000-0000-000000000006' AND author_name='Retained synthetic author' AND body='Retained synthetic body' AND linked_record_id='00000000-0000-0000-0000-000000000006' AND linked_record_label='Retained synthetic label' FROM public.crm_notes WHERE id='00000000-0000-0000-0000-000000000006'; SELECT actor_profile_id IS NULL, actor_user_id='00000000-0000-0000-0000-000000000006', command_payload='{\"retained\":\"synthetic\"}'::jsonb FROM public.crm_command_logs WHERE id='00000000-0000-0000-0000-000000000006';",
+          "expected_stdout": "0:0:0:0:1:1\nt\nt|t|t",
+          "expected_sqlstate": null,
+          "exit_code": 0,
+          "stdout": "0:0:0:0:1:1\nt\nt|t|t",
+          "stderr": "",
+          "passed": true
+        }
+      ],
+      "passed": true
+    }
+  ]
+}

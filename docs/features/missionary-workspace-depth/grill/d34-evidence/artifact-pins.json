@@ -1,0 +1,66 @@
+{
+  "artifacts": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-d34-expired-referral-history-adversarial-review.md",
+      "sha256": "f2f0fd6c768fe605e30a27de9a1b3c8e730c4d60a53f8b567a9b9df890a087d3"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-q34-expired-referral-history-research.md",
+      "sha256": "4c2e95a2d79b2e57ef944b6d86eefbcae7437639a6bc52e8205c762f993a7630"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/comparable-products.md",
+      "sha256": "333977cc9226a9224262aa98b7162be51b24a9cd1c02e97ddf132c638678ca58"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/counterexample-review.md",
+      "sha256": "95eee952b9eaa0599c729e043b47d5224e4316e1e670cc7c3e6e8db062de2bdb"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/cross-review-resolution.md",
+      "sha256": "3b8dc87937b852a28d0ce62ec2f0fc02dd48d5859889a28084804fbb510d5e8c"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/database-authorization.md",
+      "sha256": "5e77172885b01c3c5d39aa7e1b767281ab8cf89c5ed7ab44858b6317f8e8e97b"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/governance-and-lifecycle.md",
+      "sha256": "7b3cb7fc332dca8248e7835075cb48324add80fc0b63e9280e95cf04fe555c2d"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/history-counterexamples.json",
+      "sha256": "6234d205dc5b481291f1fd22a99679067a7b446e57b2b4fcdad7a6858abd3272"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/history-counterexamples.py",
+      "sha256": "561371d18104792e8ad9dd6d9f7c190a4645bc013b00bd342a41c706db791f95"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/model-readme.md",
+      "sha256": "4e439d429fc420696bab24929b662d4e48606f4202c7ec246f829dc343a76983"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/prior-evidence-sha256.json",
+      "sha256": "017e8fc19d1c530a9099c121cd70b2805d0cfa60aafbea91134ceb700f3f7ea6"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/q34-before-answer.txt",
+      "sha256": "cadb658b256d34fadc0e0dfff738cfac3bd7dba77dcf4f196bb2b082aa5e1a20"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/root-reproduction.json",
+      "sha256": "55adeb3578995676eb8b1a096bdf1b6f9d1e4b8755be161ef1a42b1a41e5e193"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/ux-and-primary-research.md",
+      "sha256": "2fcb41ed44ef2517cc30c17a798a9b7ef8c2e0c1cae71572e9eddc25d573de0e"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d34-evidence/verify-review.py",
+      "sha256": "582e2d33f2e38616adb7eaa2df07e0754fe18ff4ad95eb082b847f9935dbf617"
+    }
+  ],
+  "date": "2026-10-18",
+  "scope": "D34 final review artifacts; evolving session and glossary checked by status rather than pinned"
+}

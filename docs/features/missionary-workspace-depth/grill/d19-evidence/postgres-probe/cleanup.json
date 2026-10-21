@@ -1,0 +1,13 @@
+{
+  "container": "phase28-d19-pg",
+  "container_id": "9b6eb6b171ec5f3f90163224ecb213e9ec76a6dc2c4d528ac3d9dccd4d53c4ef",
+  "volume_names": [
+    "fed10f1dfb3e9658821eb910908e9329ffa0bf2488b4cf3fafce2fc3657f7bb1"
+  ],
+  "stop_exit_code": 0,
+  "container_absent": true,
+  "volumes_absent": {
+    "fed10f1dfb3e9658821eb910908e9329ffa0bf2488b4cf3fafce2fc3657f7bb1": true
+  },
+  "verified_at": "2026-10-16T16:24:17.502874+00:00"
+}

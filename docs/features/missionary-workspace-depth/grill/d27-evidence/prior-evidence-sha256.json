@@ -1,0 +1,69 @@
+{
+  "scope": "D26 evidence preserved before D27 review; prior status flags remain historical",
+  "artifacts": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/artifact-pins.json",
+      "sha256": "f0874d41eab152ecaae587fe63833df593933eb307be128c64cba7aa364ab8ae"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/cross-review-resolution.md",
+      "sha256": "568515cadf17281177f32afd941e65ebb5305a8f5a738739778c80e61f260a75"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/database-and-authorization.md",
+      "sha256": "5c662ae47e698060ad47e86a9b6ab351bef3c8ce174b68b80d84c17426e1b1c0"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/disclosure-counterexamples.json",
+      "sha256": "d4588fbbffa55e54773d7f55d1b0af42567f7634a69c94e97c9b790a66e09c9e"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/disclosure-counterexamples.py",
+      "sha256": "f2da67e5658a84dedab461525f3a1361f86e88fd4848d79d96eedff1dccef5da"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/governance-and-task-ownership.md",
+      "sha256": "46965f8e71758a0fd08bdbfa8d11723081feba7345777296d62677332f32e53e"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/prior-evidence-sha256.json",
+      "sha256": "b86322cf1909561db3aeb0eee36288ed842157fef19337d30b3637eb73256e87"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/q26-before-answer.txt",
+      "sha256": "b783ac7a1b229b966510cd7aaf3285f9116e9828c64d7c7d8ed8fe8623d0c6ef"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/ratification-evidence-sha256.json",
+      "sha256": "b1ada49dd51806af938a8bc5f20e961c63a2753771d32615a6276d0c5e2515bf"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/review-verification-initial.json",
+      "sha256": "2b967736d5ade4dd8f66533f085cceecdc978f8c6f5df97610e1270d71e3620f"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/review-verification.json",
+      "sha256": "614f04ee263a4135b8db8520423af13d090464477fec0ca976440d127b22e5b8"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/root-reproduction.json",
+      "sha256": "a8b9126a2890e2b240253719ba28e05cf59cff44762ef2bf111b84fd3f82963d"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/technical-fetches.json",
+      "sha256": "299397c424724d53c1e9b362cfeec13f54b35221c1b3b0b7c4d2d6ea0e85a1e1"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/ux-and-primary-research.md",
+      "sha256": "1570c84da9536f7eb22cdeeb617dd24d690fd5800bf48b5ad18c86f96e869a42"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/verify-review-initial.py",
+      "sha256": "eda3dc4d7f2f0b4a6a9a23a237b5fe74ec4aea4b925dab329762a35e89ebc231"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d26-evidence/verify-review.py",
+      "sha256": "3e3f784958be29043c4d97cb446e4410a3b1e251d177b7d6ae97ed3225f7bbc9"
+    }
+  ]
+}

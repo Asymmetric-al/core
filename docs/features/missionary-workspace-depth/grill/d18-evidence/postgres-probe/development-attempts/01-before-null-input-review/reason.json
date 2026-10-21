@@ -1,0 +1,3 @@
+{
+  "reason": "34/34 existing assertions passed. Static review found nullable SQL arguments could make <> comparisons unknown. Explicit missing-input refusal and one grouped NULL-input case are added before final qualification. This is a fixture gap, not a Core finding."
+}

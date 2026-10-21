@@ -1,0 +1,717 @@
+{
+  "recorded_at": "2026-10-16T08:52:41.103110+00:00",
+  "scope": "Synthetic D8 lifecycle, current authorization and projection mechanics only; not Core/P12/Supabase/Auth/PostgREST/API qualification.",
+  "outcomes": 35,
+  "passed": 35,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "358e313f20964d70159f3cf6fa23040a4a472b6b7fedee247f0ff03284409f16",
+    "run.py": "b7183212b83fbc0f8b9175e0c9ca4d3fb2b308e2ec09025de1c5ae06741e1a40",
+    "sources.json": "7787b51444007b06415fb728705975c221834bc4068eb86908258e2c388f70ee"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "fixture_steps": [
+    {
+      "role": "gate_manager",
+      "sql": "UPDATE probe.subjects SET source_revision=2 WHERE tenant=1 AND id=10;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "gate_manager",
+      "sql": "UPDATE probe.subjects SET source_revision=1 WHERE tenant=1 AND id=10;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.revoke(1,4);",
+      "exit_code": 0,
+      "stdout": "revoked:4",
+      "stderr": ""
+    },
+    {
+      "role": "gate_manager",
+      "sql": "UPDATE probe.gates SET allowed=true,revision=revision+1 WHERE tenant=1;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "gate_manager",
+      "sql": "UPDATE probe.gates SET allowed=true,revision=revision+1 WHERE tenant=1;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "gate_manager",
+      "sql": "UPDATE probe.memberships SET active=false WHERE tenant=1 AND principal='coach_b';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "name": "pending_invitation_grants_no_projection",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.summary(1,10,'goals');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "wrong_human_cannot_accept_other_coach_invitation",
+      "role": "coach_b",
+      "counterexample": false,
+      "sql": "SELECT probe.accept(1,1);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "cross_tenant_argument_is_denied",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.accept(2,1);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "inactive_current_membership_cannot_accept",
+      "role": "coach_inactive",
+      "counterexample": false,
+      "sql": "SELECT probe.accept(1,10);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "expired_pending_invitation_cannot_accept",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.accept(1,9);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "other_tenant_coach_accepts_only_its_own_target",
+      "role": "coach_tenant_two",
+      "counterexample": false,
+      "sql": "SELECT probe.accept(2,1);SELECT probe.summary(2,30,'goals');",
+      "expected": "accepted:1\n1:9999",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:1\n1:9999",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "exact_human_accepts_one_invitation",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.accept(1,1);",
+      "expected": "accepted:1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "authorized_projection_before_aggregation",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.summary(1,10,'goals');",
+      "expected": "2:30",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "2:30",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "one_module_does_not_grant_other_module",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.summary(1,10,'tasks');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "one_missionary_target_does_not_grant_another",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.summary(1,20,'goals');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "second_coach_has_independent_resource_scope",
+      "role": "coach_b",
+      "counterexample": false,
+      "sql": "SELECT probe.accept(1,2);SELECT probe.summary(1,10,'tasks');",
+      "expected": "accepted:2\n1:7",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:2\n1:7",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "one_coach_can_hold_two_exact_resource_grants",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.accept(1,3);SELECT probe.summary(1,20,'goals');",
+      "expected": "accepted:3\n1:900",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:3\n1:900",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "second_coach_does_not_inherit_first_coach_resources",
+      "role": "coach_b",
+      "counterexample": false,
+      "sql": "SELECT probe.summary(1,20,'goals');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "coach_cannot_read_private_source_rows",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT * FROM probe.private_records;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table private_records\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "coach_cannot_read_projection_base_rows",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT * FROM probe.projection_rows;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table projection_rows\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "invoker_summary_view_still_needs_base_permissions",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT * FROM probe.invoker_summary;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table projection_rows\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "coach_raw_accept_or_target_rewrite_denied",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.invitations SET state='accepted',subject=20 WHERE tenant=1 AND id=9;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table invitations\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "forged_client_claim_does_not_widen_current_reader",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SET probe.old_claim='true'; SET app.tenant='2'; SET app.subject='20'; SELECT probe.summary(1,10,'tasks');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unsafe_aggregate_then_authorize_leaks_other_target_total",
+      "role": "coach_a",
+      "counterexample": true,
+      "sql": "SELECT probe.unsafe_aggregate(10,'goals');",
+      "expected": "3:930",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "3:930",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "stale_materialized_projection_is_unavailable_not_zero",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.summary(1,10,'goals');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "composite_source_fk_rejects_grant_target_substitution",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "UPDATE probe.grants SET subject=20 WHERE tenant=1 AND invitation=1;",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"grants\" violates foreign key constraint \"grants_tenant_invitation_subject_coach_fkey\"\nDETAIL:  Key (tenant, invitation, subject, coach)=(1, 1, 20, coach_a) is not present in table \"invitations\".\nSCHEMA NAME:  probe\nTABLE NAME:  grants\nCONSTRAINT NAME:  grants_tenant_invitation_subject_coach_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "composite_tenant_fk_rejects_cross_tenant_subject",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.invitations VALUES(1,12,30,'coach_a','missionary_a',ARRAY['goals'],'pending',1,1,'2100-01-01Z');",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"invitations\" violates foreign key constraint \"invitations_tenant_subject_fkey\"\nDETAIL:  Key (tenant, subject)=(1, 30) is not present in table \"subjects\".\nSCHEMA NAME:  probe\nTABLE NAME:  invitations\nCONSTRAINT NAME:  invitations_tenant_subject_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "audit_failure_rolls_back_acceptance_and_grant",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.accept(1,90);",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"audit\" violates check constraint \"audit_invitation_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.audit VALUES(p_tenant,p_id,'accepted',session_user)\"\nPL/pgSQL function accept(integer,integer) line 15 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  audit\nCONSTRAINT NAME:  audit_invitation_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true
+    },
+    {
+      "name": "failed_acceptance_has_no_partial_state",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "SELECT (SELECT state FROM probe.invitations WHERE tenant=1 AND id=90)||':'||(SELECT count(*) FROM probe.grants WHERE tenant=1 AND invitation=90)||':'||(SELECT count(*) FROM probe.audit WHERE tenant=1 AND invitation=90);",
+      "expected": "pending:0:0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "pending:0:0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "duplicate_accept_creates_one_grant_and_one_acceptance",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "coach_a",
+      "second_role": "coach_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.accept(1,4); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted:4\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.accept(1,4); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "accepted_history:4\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted:4\nFIRST_READY\n",
+        "second": "accepted_history:4\nSECOND_DONE\n",
+        "final": "accepted:1:1"
+      }
+    },
+    {
+      "name": "revoke_first_blocks_waiting_accept",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "coach_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.revoke(1,5); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "revoked:5\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.accept(1,5); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "revoked:5\nFIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n",
+        "final": "revoked:0:0"
+      }
+    },
+    {
+      "name": "accept_first_then_revoke_retains_history_without_access",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "coach_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.accept(1,6); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted:6\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.revoke(1,6); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "revoked:6\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted:6\nFIRST_READY\n",
+        "second": "revoked:6\nSECOND_DONE\n",
+        "final": "revoked:0:1"
+      }
+    },
+    {
+      "name": "organization_disable_first_blocks_invitation",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "gate_manager",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.invite(1,7,10,'coach_a',ARRAY['goals']); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n",
+        "final": "absent:0:0"
+      }
+    },
+    {
+      "name": "invite_first_then_org_off_keeps_pending",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "gate_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.invite(1,8,10,'coach_a',ARRAY['goals']); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "pending:8\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "pending:8\nFIRST_READY\n",
+        "second": "SECOND_DONE\n",
+        "final": "pending:0:0"
+      }
+    },
+    {
+      "name": "gate_A_B_A_cannot_replay_stale_invitation_evidence",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.accept(1,8);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "revoke_first_fences_waiting_summary_read",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "coach_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.revoke(1,1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "revoked:1\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.summary(1,10,'goals'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "revoked:1\nFIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n",
+        "final": "revoked:0:1"
+      }
+    },
+    {
+      "name": "read_first_completes_before_waiting_revocation",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "coach_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.summary(1,20,'goals'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "1:900\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.revoke(1,3); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "revoked:3\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "1:900\nFIRST_READY\n",
+        "second": "revoked:3\nSECOND_DONE\n",
+        "final": "revoked:0:1"
+      }
+    },
+    {
+      "name": "stale_claim_counterexample_contrasts_with_current_grant",
+      "role": "coach_a",
+      "counterexample": true,
+      "sql": "SET probe.old_claim='true'; SELECT probe.unsafe_claim_summary(10,'goals')||'|'||probe.summary(1,10,'goals');",
+      "expected": "2:30|unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "2:30|unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "current_membership_deactivation_fences_existing_grant",
+      "role": "coach_b",
+      "counterexample": false,
+      "sql": "SELECT probe.summary(1,10,'tasks');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "old_acceptance_retry_cannot_revive_revoked_grant",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT probe.accept(1,1);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    }
+  ]
+}

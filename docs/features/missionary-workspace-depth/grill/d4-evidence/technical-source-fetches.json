@@ -1,0 +1,80 @@
+[
+  {
+    "name": "pg-transactions",
+    "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+    "fetched_at": "2026-10-16T05:20:27.398980+00:00",
+    "status": 200,
+    "bytes": 47618,
+    "sha256": "32a32972bb04a3d539cbbc89914ff80573023bd900a8710a03bda487feb03000",
+    "excerpts": [
+      "y Control Home &nbsp; Next 13.2.&nbsp;Transaction Isolation # 13.2.1. Read Committed Isolation Level 13.2.2. Repeatable Read Isolation Level 13.2.3. Serializable Isolation Level The SQL standard defines four levels of transaction isolation. The most strict is Serializable, which is defined by the standard in a paragraph which says that any concurrent execution of a set of Serializable transactions is guaranteed to produce the same effect as running them one at a time in some order. The other thr",
+      " transaction uses this isolation level, a SELECT query (without a FOR UPDATE/SHARE clause) sees only data committed before the query began; it never sees either uncommitted data or changes committed by concurrent transactions during the query's execution. In effect, a SELECT query sees a snapshot of the database as of the instant the query begins to run. However, SELECT does see the effects of previous updates executed within its own transaction, even though they are not yet committed. Also note",
+      " of the row that is locked and returned to the client. INSERT with an ON CONFLICT DO UPDATE clause behaves similarly. In Read Committed mode, each row proposed for insertion will either insert or update. Unless there are unrelated errors, one of those two outcomes is guaranteed. If a conflict originates in another transaction whose effects are not yet visible to the INSERT , the UPDATE clause will affect that row, even though possibly no version of that row is conventionally visible to the comma"
+    ]
+  },
+  {
+    "name": "pg-row-locks",
+    "url": "https://www.postgresql.org/docs/17/explicit-locking.html",
+    "fetched_at": "2026-10-16T05:20:27.196341+00:00",
+    "status": 200,
+    "bytes": 46799,
+    "sha256": "ac8f5253bba1cbc0e358932019b94e013953dc3a7a0136a21e97fd47cdf9e0e5",
+    "excerpts": [
+      "ommand acquires a lock of this mode on all tables on which one of the FOR UPDATE , FOR NO KEY UPDATE , FOR SHARE , or FOR KEY SHARE options is specified (in addition to ACCESS SHARE locks on any other tables that are referenced without any explicit FOR ... locking option). ROW EXCLUSIVE ( RowExclusiveLock ) Conflicts with the SHARE , SHARE ROW EXCLUSIVE , EXCLUSIVE , and ACCESS EXCLUSIVE lock modes. The commands UPDATE , DELETE , INSERT , and MERGE acquire this lock mode on the target table (in ",
+      "-Level Locks 13.3.2. Row-Level Locks 13.3.3. Page-Level Locks 13.3.4. Deadlocks 13.3.5. Advisory Locks PostgreSQL provides various lock modes to control concurrent access to data in tables. These modes can be used for application-controlled locking in situations where MVCC does not give the desired behavior. Also, most PostgreSQL commands automatically acquire locks of appropriate modes to ensure that referenced tables are not dropped or modified in incompatible ways while the command executes. ",
+      "t of lock modes with which each conflicts (see Table&nbsp;13.2 ). Two transactions cannot hold locks of conflicting modes on the same table at the same time. (However, a transaction never conflicts with itself. For example, it might acquire ACCESS EXCLUSIVE lock and later acquire ACCESS SHARE lock on the same table.) Non-conflicting lock modes can be held concurrently by many transactions. Notice in particular that some lock modes are self-conflicting (for example, an ACCESS EXCLUSIVE lock canno"
+    ]
+  },
+  {
+    "name": "pg-policy",
+    "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+    "fetched_at": "2026-10-16T05:20:26.786670+00:00",
+    "status": 200,
+    "bytes": 46910,
+    "sha256": "4a75de7338882ab78829708c3c4de9caa309508f8ba7261702889e3d211139e1",
+    "excerpts": [
+      "RENT_USER | SESSION_USER } [, ...] ] [ USING ( using_expression ) ] [ WITH CHECK ( check_expression ) ] Description The CREATE POLICY command defines a new row-level security policy for a table. Note that row-level security must be enabled on the table (using ALTER TABLE ... ENABLE ROW LEVEL SECURITY ) in order for created policies to be applied. A policy grants the permission to select, insert, update, or delete rows that match the relevant policy expression. Existing table rows are checked aga",
+      "y policy for a table Synopsis CREATE POLICY name ON table_name [ AS { PERMISSIVE | RESTRICTIVE } ] [ FOR { ALL | SELECT | INSERT | UPDATE | DELETE } ] [ TO { role_name | PUBLIC | CURRENT_ROLE | CURRENT_USER | SESSION_USER } [, ...] ] [ USING ( using_expression ) ] [ WITH CHECK ( check_expression ) ] Description The CREATE POLICY command defines a new row-level security policy for a table. Note that row-level security must be enabled on the table (using ALTER TABLE ... ENABLE ROW LEVEL SECURITY )",
+      "e | PUBLIC | CURRENT_ROLE | CURRENT_USER | SESSION_USER } [, ...] ] [ USING ( using_expression ) ] [ WITH CHECK ( check_expression ) ] Description The CREATE POLICY command defines a new row-level security policy for a table. Note that row-level security must be enabled on the table (using ALTER TABLE ... ENABLE ROW LEVEL SECURITY ) in order for created policies to be applied. A policy grants the permission to select, insert, update, or delete rows that match the relevant policy expression. Exis"
+    ]
+  },
+  {
+    "name": "pg-partial-indexes",
+    "url": "https://www.postgresql.org/docs/17/indexes-partial.html",
+    "fetched_at": "2026-10-16T05:20:27.258136+00:00",
+    "status": 200,
+    "bytes": 26436,
+    "sha256": "7b008647d5adb8d2c444d8ded1f582c21e8740a7a2d6be3846784826439128c3",
+    "excerpts": [
+      " the index to be used in queries at all. The idea here is to create a unique index over a subset of a table, as in Example&nbsp;11.3 . This enforces uniqueness among the rows that satisfy the index predicate, without constraining those that do not. Example&nbsp;11.3.&nbsp;Setting up a Partial Unique Index Suppose that we have a table describing test outcomes. We wish to ensure that there is only one \u201c successful \u201d entry for a given subject and target combination, but there might be any number of",
+      "ing takes place at query planning time, not at run time. As a result, parameterized query clauses do not work with a partial index. For example a prepared query with a parameter might specify \u201c x &lt; ? \u201d which will never imply \u201c x &lt; 2 \u201d for all possible values of the parameter. A third possible use for partial indexes does not require the index to be used in queries at all. The idea here is to create a unique index over a subset of a table, as in Example&nbsp;11.3 . This enforces uniqueness ",
+      " table; the subset is defined by a conditional expression (called the predicate of the partial index). The index contains entries only for those table rows that satisfy the predicate. Partial indexes are a specialized feature, but there are several situations in which they are useful. One major reason for using a partial index is to avoid indexing common values. Since a query searching for a common value (one that accounts for more than a few percent of all the table rows) will not use the index"
+    ]
+  },
+  {
+    "name": "supabase-rls",
+    "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+    "fetched_at": "2026-10-16T05:20:26.441812+00:00",
+    "status": 200,
+    "bytes": 30344,
+    "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+    "excerpts": [
+      "); ``` #### INSERT policies You can specify insert policies with the `with check` clause. The `with check` expression ensures that any new row adheres to the policy constraints, so a user cannot create a row that belongs to someone else. ```sql create policy \"Users can create their own profile.\" on profiles for insert to authenticated with check ( (select auth.uid()) = user_id ); ``` #### UPDATE policies You can specify update policies by combining the `using` and `with check` expressions. The `",
+      "erlying tables when invoked by `anon` and `authenticated` by setting `security_invoker = true`. ```sql create view with(security_invoker = true) as select ``` In older versions of Postgres, protect your views by revoking access from the `anon` and `authenticated` roles, or by putting them in an unexposed schema. ## RLS reference These are the functions and patterns available inside a policy expression. ### Helper functions Supabase provides some helper functions that make it easier to write poli",
+      "thing that you store in the user's `raw_app_meta_data` column or the `raw_user_meta_data` column will be accessible using this function. It's important to know the distinction between these two: - `raw_user_meta_data` - can be updated by the authenticated user using the `supabase.auth.update()` function. It is not a good place to store authorization data. - `raw_app_meta_data` - cannot be updated by the user, so it's a good place to store authorization data. The `auth.jwt()` function is extremel"
+    ]
+  },
+  {
+    "name": "supabase-functions",
+    "url": "https://supabase.com/docs/guides/database/functions.md",
+    "fetched_at": "2026-10-16T05:20:26.385109+00:00",
+    "status": 200,
+    "bytes": 10713,
+    "sha256": "9fe4a331db51fc7b91139c9ac62de0765477fb04f25a6960d38b9c57bc8b486d",
+    "excerpts": [
+      "reate or replace function hello_world() returns text language plpgsql security definer set search_path = '' as $$ begin return 'hello world'; end; $$; ``` Prefer `security invoker`, which is also the default. When you use `security definer`, you must set the `search_path`. With an empty search path, `search_path = ''`, name the schema for every relation in the function body, such as `from public.table`. An empty search path limits the damage when the function can reach a schema you don't want th",
+      "tion hello_world() returns text language plpgsql security definer set search_path = '' as $$ begin return 'hello world'; end; $$; ``` Prefer `security invoker`, which is also the default. When you use `security definer`, you must set the `search_path`. With an empty search path, `search_path = ''`, name the schema for every relation in the function body, such as `from public.table`. An empty search path limits the damage when the function can reach a schema you don't want the calling user to rea",
+      "an restrict execution in two ways: 1. Revoke on a case-by-case basis. Revoke execute for the functions you want to protect, from both `public` and the role you're restricting: ```sql revoke execute on function public.hello_world from public; revoke execute on function public.hello_world from anon; ``` 2. Restrict execution by default, then grant access to the roles that need each function. To restrict every function that exists, revoke execute from both `public` and the role you want to restrict"
+    ]
+  }
+]

@@ -1,0 +1,804 @@
+{
+  "recorded_at": "2026-10-16T06:48:13.847068+00:00",
+  "scope": "Provisional synthetic D6 signup/confirmation mechanics; not ratified lifecycle policy, Core/P6 schema/API/provider, human/address-control or Supabase qualification.",
+  "outcomes": 34,
+  "passed": 34,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "c5cd07822a1c19e9f4ffea1710989554aae3cdc252217bfb52523c10348368f1",
+    "run.py": "62c536a99e9deeeb256b7ad82fb3d8ff041bf293a1fd34389aaee890c9a22212",
+    "sources.json": "ff3c2f4e290b6ab5fabdee33061a28b1626a3915695905cb472b423772f9efae"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "fixture_steps": [
+    {
+      "role": "public_submit",
+      "sql": "SELECT probe.intake(1,'newsletter','address-3',1,'purpose-stop');",
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.purposes SET purpose_allowed=false,purpose_revision=purpose_revision+1 WHERE tenant=1 AND purpose='newsletter';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.purposes SET purpose_allowed=true WHERE tenant=1 AND purpose='newsletter';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "public_submit",
+      "sql": "SELECT probe.intake(1,'newsletter','address-4',1,'expiry');",
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.attempts SET expires_at=clock_timestamp()-interval '1 second' WHERE tenant=1 AND attempt='expiry';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "public_submit",
+      "sql": "SELECT probe.intake(1,'newsletter','address-5',1,'address-revision');",
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.addresses SET address_revision=2 WHERE tenant=1 AND address_key='address-5';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "public_submit",
+      "sql": "SELECT probe.intake(1,'newsletter','address-6',1,'suppression');",
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.addresses SET suppressed=true WHERE tenant=1 AND address_key='address-6';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "withdrawal_authority",
+      "sql": "SELECT probe.withdraw(1,'newsletter','address-6');",
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.purposes SET intake_on=true WHERE tenant=1 AND purpose='newsletter';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.purposes SET intake_on=true WHERE tenant=1 AND purpose='newsletter';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "public_submit",
+      "sql": "SELECT probe.intake(1,'newsletter','address-9',1,'withdraw-first');",
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": ""
+    },
+    {
+      "role": "public_submit",
+      "sql": "SELECT probe.intake(1,'newsletter','address-10',1,'confirm-first');",
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": ""
+    },
+    {
+      "role": "public_submit",
+      "sql": "SELECT probe.intake(1,'newsletter','address-11',1,'double-confirm');",
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "name": "intake_atomically_creates_pending_evidence_and_intent",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.intake(1,'newsletter','address-1',1,'a');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-1'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-1');",
+        "expected": "pending:1:1|1|1|1",
+        "actual": "pending:1:1|1|1|1"
+      }
+    },
+    {
+      "name": "GET_lookup_does_not_confirm_or_mutate",
+      "role": "public_lookup",
+      "counterexample": false,
+      "sql": "SELECT probe.lookup_get(1,'newsletter','1cbbff2e-9bb8-4f47-aa9e-a5d61d1caedb');",
+      "expected": "confirmation page",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "confirmation page",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-1'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-1');",
+        "expected": "pending:1:1|1|1|1",
+        "actual": "pending:1:1|1|1|1"
+      }
+    },
+    {
+      "name": "same_attempt_retry_has_no_duplicate_confirmation_effect",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.intake(1,'newsletter','address-1',1,'a');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-1'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-1');",
+        "expected": "pending:1:1|1|1|1",
+        "actual": "pending:1:1|1|1|1"
+      }
+    },
+    {
+      "name": "attempt_key_cannot_be_rebound_to_another_address",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.intake(1,'newsletter','address-2',1,'a');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-2'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-2')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-2')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-2');",
+        "expected": "absent|0|0|0",
+        "actual": "absent|0|0|0"
+      }
+    },
+    {
+      "name": "confirmation_is_scoped_to_tenant_and_purpose",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(2,'newsletter','1cbbff2e-9bb8-4f47-aa9e-a5d61d1caedb');SELECT probe.confirm_post(1,'other-purpose','1cbbff2e-9bb8-4f47-aa9e-a5d61d1caedb');",
+      "expected": "processed\nprocessed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed\nprocessed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-1'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-1');",
+        "expected": "pending:1:1|1|1|1",
+        "actual": "pending:1:1|1|1|1"
+      }
+    },
+    {
+      "name": "explicit_confirmation_commits_one_confirmed_evidence",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(1,'newsletter','1cbbff2e-9bb8-4f47-aa9e-a5d61d1caedb');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-1'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-1');",
+        "expected": "confirmed:1:2|1|2|1",
+        "actual": "confirmed:1:2|1|2|1"
+      }
+    },
+    {
+      "name": "withdrawal_changes_consent_revision",
+      "role": "withdrawal_authority",
+      "counterexample": false,
+      "sql": "SELECT probe.withdraw(1,'newsletter','address-1');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-1'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-1');",
+        "expected": "withdrawn:1:3|1|3|1",
+        "actual": "withdrawn:1:3|1|3|1"
+      }
+    },
+    {
+      "name": "old_token_and_old_intake_receipt_cannot_reactivate",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(1,'newsletter','1cbbff2e-9bb8-4f47-aa9e-a5d61d1caedb');SELECT probe.intake(1,'newsletter','address-1',1,'a');",
+      "expected": "processed\nprocessed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed\nprocessed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-1'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-1');",
+        "expected": "withdrawn:1:3|1|3|1",
+        "actual": "withdrawn:1:3|1|3|1"
+      }
+    },
+    {
+      "name": "new_deliberate_signup_has_new_generation",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.intake(1,'newsletter','address-1',1,'b');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-1'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-1');",
+        "expected": "pending:2:4|2|4|2",
+        "actual": "pending:2:4|2|4|2"
+      }
+    },
+    {
+      "name": "old_generation_token_cannot_confirm_new_pending_generation",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(1,'newsletter','1cbbff2e-9bb8-4f47-aa9e-a5d61d1caedb');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-1'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-1');",
+        "expected": "pending:2:4|2|4|2",
+        "actual": "pending:2:4|2|4|2"
+      }
+    },
+    {
+      "name": "new_generation_requires_its_own_confirmation",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(1,'newsletter','20880861-95b4-4bed-8d80-4a4c8ddc6382');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-1'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-1')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-1');",
+        "expected": "confirmed:2:5|2|5|2",
+        "actual": "confirmed:2:5|2|5|2"
+      }
+    },
+    {
+      "name": "purpose_withdrawal_blocks_accepted_pending_confirmation",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(1,'newsletter','3b25cff1-fa6d-4793-b477-f2464ef4a470');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-3'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-3')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-3')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-3');",
+        "expected": "pending:1:1|1|1|1",
+        "actual": "pending:1:1|1|1|1"
+      }
+    },
+    {
+      "name": "purpose_reenable_does_not_revive_old_token_evidence",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(1,'newsletter','3b25cff1-fa6d-4793-b477-f2464ef4a470');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-3'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-3')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-3')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-3');",
+        "expected": "pending:1:1|1|1|1",
+        "actual": "pending:1:1|1|1|1"
+      }
+    },
+    {
+      "name": "expired_token_cannot_confirm",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(1,'newsletter','43596128-0874-45e8-8cca-4b795edf8e74');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-4'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-4')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-4')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-4');",
+        "expected": "pending:1:1|1|1|1",
+        "actual": "pending:1:1|1|1|1"
+      }
+    },
+    {
+      "name": "old_address_revision_token_cannot_confirm",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(1,'newsletter','ed173d14-762f-4a0d-b5f1-1e3b00bc7997');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-5'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-5')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-5')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-5');",
+        "expected": "pending:1:1|1|1|1",
+        "actual": "pending:1:1|1|1|1"
+      }
+    },
+    {
+      "name": "suppression_blocks_pending_confirmation",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(1,'newsletter','d011130b-82aa-460f-b5fa-7c496c18d59d');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-6'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-6')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-6')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-6');",
+        "expected": "pending:1:1|1|1|1",
+        "actual": "pending:1:1|1|1|1"
+      }
+    },
+    {
+      "name": "fresh_signup_does_not_clear_suppression_or_renew_generation",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.intake(1,'newsletter','address-6',1,'suppressed-resub');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-6'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-6')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-6')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-6');",
+        "expected": "withdrawn:1:2|1|2|1",
+        "actual": "withdrawn:1:2|1|2|1"
+      }
+    },
+    {
+      "name": "tenant_address_suppression_applies_to_other_purpose",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.intake(1,'other-purpose','address-6',1,'other-purpose-resub');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "expected": "t\n0",
+        "actual": "t\n0"
+      }
+    },
+    {
+      "name": "public_off_first_fences_fresh_intake",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "policy_manager",
+      "second_role": "public_submit",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.purposes SET intake_on=false WHERE tenant=1 AND purpose='newsletter'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.intake(1,'newsletter','address-7',1,'off-first'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "processed\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "second": "processed\nSECOND_DONE\n",
+        "final": "absent|0|0|0"
+      }
+    },
+    {
+      "name": "intake_first_commits_before_public_off",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "public_submit",
+      "second_role": "policy_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.intake(1,'newsletter','address-8',1,'intake-first'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "processed\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.purposes SET intake_on=false WHERE tenant=1 AND purpose='newsletter'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "processed\nFIRST_READY\n",
+        "final": "pending:1:1|1|1|1"
+      }
+    },
+    {
+      "name": "display_off_preserves_accepted_pending_confirmation",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(1,'newsletter','edef9609-3eb4-48b0-844f-3fbc15fc8d1d');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-8'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-8')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-8')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-8');",
+        "expected": "confirmed:1:2|1|2|1",
+        "actual": "confirmed:1:2|1|2|1"
+      }
+    },
+    {
+      "name": "display_off_does_not_unsubscribe_existing_confirmation",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.intake(1,'newsletter','address-8',1,'while-off');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-8'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-8')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-8')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-8');",
+        "expected": "confirmed:1:2|1|2|1",
+        "actual": "confirmed:1:2|1|2|1"
+      }
+    },
+    {
+      "name": "withdraw_first_fences_pending_confirmation",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "withdrawal_authority",
+      "second_role": "public_submit",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.withdraw(1,'newsletter','address-9'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "processed\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.confirm_post(1,'newsletter','c2230d3a-6fa7-44ab-9da3-5051b7808eae'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "processed\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "second": "processed\nSECOND_DONE\n",
+        "final": "withdrawn:1:2|1|2|1"
+      }
+    },
+    {
+      "name": "confirm_first_then_withdraw_stays_withdrawn",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "public_submit",
+      "second_role": "withdrawal_authority",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.confirm_post(1,'newsletter','b68afa55-afc9-4e33-8700-88dfbd4aaab8'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "processed\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.withdraw(1,'newsletter','address-10'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "processed\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "processed\nFIRST_READY\n",
+        "final": "withdrawn:1:3|1|3|1"
+      }
+    },
+    {
+      "name": "concurrent_duplicate_confirmation_one_effect",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "public_submit",
+      "second_role": "public_submit",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.confirm_post(1,'newsletter','8f084b2e-c0d2-4da2-8896-2452a7f556d0'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "processed\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.confirm_post(1,'newsletter','8f084b2e-c0d2-4da2-8896-2452a7f556d0'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "processed\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "processed\nFIRST_READY\n",
+        "second": "processed\nSECOND_DONE\n",
+        "final": "confirmed:1:2|1|2|1"
+      }
+    },
+    {
+      "name": "public_direct_source_mutation_is_denied",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "UPDATE probe.subscriptions SET state='confirmed' WHERE tenant=1;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table subscriptions\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "public_cannot_enumerate_source_rows",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT * FROM probe.subscriptions;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table subscriptions\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "lookup_role_cannot_execute_confirmation_command",
+      "role": "public_lookup",
+      "counterexample": false,
+      "sql": "SELECT probe.confirm_post(1,'newsletter','8f084b2e-c0d2-4da2-8896-2452a7f556d0');",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for function confirm_post\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "public_cross_tenant_intake_has_same_noncommittal_result",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.intake(2,'newsletter','tenant-two',1,'cross-tenant');",
+      "expected": "processed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "processed",
+      "stderr": "",
+      "passed": true,
+      "admin_readback": {
+        "expected": "1:1:pending",
+        "actual": "1:1:pending"
+      }
+    },
+    {
+      "name": "composite_intent_FK_rejects_cross_tenant_parent",
+      "role": "intent_writer",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.confirmation_intents VALUES(1,'tenant-two-attempt','newsletter','tenant-two',1,1,'synthetic');",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"confirmation_intents\" violates foreign key constraint \"confirmation_intents_tenant_attempt_purpose_address_key_ad_fkey\"\nDETAIL:  Key is not present in table \"attempts\".\nSCHEMA NAME:  probe\nTABLE NAME:  confirmation_intents\nCONSTRAINT NAME:  confirmation_intents_tenant_attempt_purpose_address_key_ad_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "composite_intent_FK_rejects_changed_purpose",
+      "role": "intent_writer",
+      "counterexample": false,
+      "sql": "UPDATE probe.confirmation_intents SET purpose='other-purpose' WHERE tenant=1 AND attempt='a';",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"confirmation_intents\" violates foreign key constraint \"confirmation_intents_tenant_attempt_purpose_address_key_ad_fkey\"\nDETAIL:  Key is not present in table \"attempts\".\nSCHEMA NAME:  probe\nTABLE NAME:  confirmation_intents\nCONSTRAINT NAME:  confirmation_intents_tenant_attempt_purpose_address_key_ad_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "intent_writer_RLS_hides_other_tenant",
+      "role": "intent_writer",
+      "counterexample": false,
+      "sql": "SELECT count(*) FROM probe.confirmation_intents WHERE tenant=2;",
+      "expected": "0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "intent_failure_rolls_back_source_attempt_and_evidence",
+      "role": "public_submit",
+      "counterexample": false,
+      "sql": "SELECT probe.intake(1,'newsletter','address-12',1,'fault');",
+      "expected": "processed",
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: synthetic confirmation intent failure\nCONTEXT:  PL/pgSQL function intent_fault() line 3 at RAISE\nSQL statement \"INSERT INTO probe.confirmation_intents VALUES(p_tenant,p_attempt,p_purpose,p_address,p_address_revision,next_gen,secret)\"\nPL/pgSQL function intake(integer,text,text,integer,text) line 26 at SQL statement\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true,
+      "admin_readback": {
+        "sql": "SELECT COALESCE((SELECT state||':'||generation||':'||consent_revision FROM probe.subscriptions WHERE tenant=1 AND purpose='newsletter' AND address_key='address-12'),'absent')||'|'||(SELECT count(*) FROM probe.attempts WHERE tenant=1 AND address_key='address-12')||'|'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND address_key='address-12')||'|'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1 AND address_key='address-12');",
+        "expected": "absent|0|0|0",
+        "actual": "absent|0|0|0"
+      }
+    },
+    {
+      "name": "accepted_pending_generations_have_one_evidence_and_intent",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "SELECT (SELECT count(*) FROM probe.attempts WHERE tenant=1)||':'||(SELECT count(*) FROM probe.evidence WHERE tenant=1 AND kind='pending')||':'||(SELECT count(*) FROM probe.confirmation_intents WHERE tenant=1);",
+      "expected": "10:10:10",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "10:10:10",
+      "stderr": "",
+      "passed": true
+    }
+  ]
+}

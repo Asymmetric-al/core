@@ -1,0 +1,1130 @@
+{
+  "recorded_at": "2026-10-16T15:44:34.499311+00:00",
+  "scope": "Synthetic D18 purpose binding, private suggestions, atomic budget reservation and deliberate source application mechanics only; not Core/P12/Supabase/Auth/PostgREST/provider qualification.",
+  "outcomes": 35,
+  "passed": 35,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "882db29388bc7a3b9c3b586176548140ef2d530c84fd676caee1e971dcc24c6e",
+    "run.py": "693b6c2d41729b6931e634e36242f7b4af733c63ea2bcf1b4aa37dc9edfb7273",
+    "sources.json": "70c6e59c0566b75f9b48904e4387f5a7a72df8dc5d117116441133c03748e6d8"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "fixture_steps": [
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,1,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,1,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(1,'dispatch');",
+      "exit_code": 0,
+      "stdout": "dispatched",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.manual_edit(1,2);",
+      "exit_code": 0,
+      "stdout": "edited",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,2,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,2,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.request_ai(2,1,'intent-2','neutral',1);",
+      "exit_code": 0,
+      "stdout": "reserved:2",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(2,'dispatch');",
+      "exit_code": 0,
+      "stdout": "dispatched",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(2,'ready',-1);",
+      "exit_code": 0,
+      "stdout": "ready",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,3,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,3,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.request_ai(3,1,'intent-3','neutral',1);",
+      "exit_code": 0,
+      "stdout": "reserved:3",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(3,'dispatch');",
+      "exit_code": 0,
+      "stdout": "dispatched",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(3,'ready',3600);",
+      "exit_code": 0,
+      "stdout": "ready",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,4,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,4,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,5,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,5,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,6,'missionary_b','newsletter',1); INSERT INTO probe.versions VALUES(1,6,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.purpose_budget SET ceiling=held+60 WHERE tenant=1 AND purpose='newsletter';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.purpose_budget SET ceiling=10000 WHERE tenant=1;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,7,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,7,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,8,'missionary_a','profile',1); INSERT INTO probe.versions VALUES(1,8,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.tenant_budget SET ceiling=held+60 WHERE tenant=1;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.tenant_budget SET ceiling=10000 WHERE tenant=1;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,9,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,9,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.request_ai(9,1,'unknown','neutral',1);",
+      "exit_code": 0,
+      "stdout": "reserved:7",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(7,'dispatch');",
+      "exit_code": 0,
+      "stdout": "dispatched",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(7,'unknown');",
+      "exit_code": 0,
+      "stdout": "unknown",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.tenant_budget SET ceiling=held WHERE tenant=1;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.tenant_budget SET ceiling=10000 WHERE tenant=1;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,10,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,10,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.request_ai(10,1,'intent-10','neutral',1);",
+      "exit_code": 0,
+      "stdout": "reserved:8",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(8,'dispatch');",
+      "exit_code": 0,
+      "stdout": "dispatched",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(8,'ready',3600);",
+      "exit_code": 0,
+      "stdout": "ready",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.gates SET allowed=true,revision=revision+1 WHERE tenant=1 AND actor='missionary_a' AND purpose='newsletter';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,11,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,11,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.request_ai(11,1,'intent-11','neutral',1);",
+      "exit_code": 0,
+      "stdout": "reserved:9",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(9,'dispatch');",
+      "exit_code": 0,
+      "stdout": "dispatched",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(9,'ready',3600);",
+      "exit_code": 0,
+      "stdout": "ready",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.gates SET allowed=true,revision=revision+1 WHERE tenant=1 AND actor='missionary_a' AND purpose='newsletter';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,12,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,12,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.request_ai(12,1,'intent-12','neutral',1);",
+      "exit_code": 0,
+      "stdout": "reserved:10",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(10,'dispatch');",
+      "exit_code": 0,
+      "stdout": "dispatched",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(10,'ready',3600);",
+      "exit_code": 0,
+      "stdout": "ready",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,13,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,13,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.request_ai(13,1,'intent-13','neutral',1);",
+      "exit_code": 0,
+      "stdout": "reserved:11",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(11,'dispatch');",
+      "exit_code": 0,
+      "stdout": "dispatched",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(11,'ready',3600);",
+      "exit_code": 0,
+      "stdout": "ready",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,14,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,14,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.request_ai(14,1,'intent-14','neutral',1);",
+      "exit_code": 0,
+      "stdout": "reserved:12",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(12,'dispatch');",
+      "exit_code": 0,
+      "stdout": "dispatched",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(12,'ready',3600);",
+      "exit_code": 0,
+      "stdout": "ready",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,30,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,30,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.request_ai(30,1,'intent-30','neutral',1);",
+      "exit_code": 0,
+      "stdout": "reserved:13",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(13,'dispatch');",
+      "exit_code": 0,
+      "stdout": "dispatched",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(13,'ready',2);",
+      "exit_code": 0,
+      "stdout": "ready",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.drafts VALUES(1,31,'missionary_a','newsletter',1); INSERT INTO probe.versions VALUES(1,31,1,'Synthetic original text'); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.request_ai(31,1,'intent-31','neutral',1);",
+      "exit_code": 0,
+      "stdout": "reserved:14",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(14,'dispatch');",
+      "exit_code": 0,
+      "stdout": "dispatched",
+      "stderr": ""
+    },
+    {
+      "role": "provider_worker",
+      "sql": "SELECT probe.observe_result(14,'ready',3600);",
+      "exit_code": 0,
+      "stdout": "ready",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.routes SET binding=4,revision=revision+1 WHERE tenant=1 AND purpose='newsletter';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "name": "request_pins_source_binding_and_reserves_atomically",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.request_ai(1,1,'first','neutral',1);",
+      "expected": "reserved:1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "reserved:1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "same_intent_retry_does_not_reserve_twice",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.request_ai(1,1,'first','neutral',1);",
+      "expected": "receipt:1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "receipt:1",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "1:60:1:0:0:1:0",
+        "after": "1:60:1:0:0:1:0"
+      }
+    },
+    {
+      "name": "same_intent_changed_voice_conflicts",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.request_ai(1,1,'first','warm',1);",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "other_actor_cannot_retrieve_request_receipt",
+      "role": "missionary_b",
+      "counterexample": false,
+      "sql": "SELECT probe.request_ai(1,1,'first','neutral',1);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "wrong_purpose_binding_not_substituted",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.request_ai(1,1,'wrong-purpose','neutral',2);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "tenant_binding_FK_rejects_cross_tenant_route",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.routes VALUES(2,'profile',2,true,1);",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"routes\" violates foreign key constraint \"routes_tenant_binding_purpose_fkey\"\nDETAIL:  Key (tenant, binding, purpose)=(2, 2, profile) is not present in table \"bindings\".\nSCHEMA NAME:  probe\nTABLE NAME:  routes\nCONSTRAINT NAME:  routes_tenant_binding_purpose_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "immutable_binding_cannot_replace_credential",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "UPDATE probe.bindings SET credential_revision=999 WHERE tenant=1 AND id=1;",
+      "expected": null,
+      "expected_sqlstate": "55000",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  55000: fixture immutable evidence\nCONTEXT:  PL/pgSQL function probe.immutable() line 1 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "ordinary_actor_has_no_raw_suggestion_body_read",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT * FROM probe.bodies;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table bodies\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "ordinary_actor_cannot_relabel_invocation",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.invocations SET actor='missionary_b' WHERE id=1;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table invocations\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "ready_result_keeps_original_draft_unchanged",
+      "role": "provider_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.observe_result(1,'ready');",
+      "expected": "ready",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "ready",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "owner_can_compare_private_live_suggestion",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.read_suggestion(1);",
+      "expected": "body:Synthetic suggested text 1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "body:Synthetic suggested text 1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "other_actor_cannot_read_private_suggestion",
+      "role": "missionary_b",
+      "counterexample": false,
+      "sql": "SELECT probe.read_suggestion(1);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "other_tenant_cannot_read_or_apply_suggestion",
+      "role": "other_tenant",
+      "counterexample": false,
+      "sql": "SELECT probe.read_suggestion(1); SELECT probe.apply_suggestion(1,1,'synthetic-digest-1','use');",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "missing_meaning_cannot_bypass_request_or_apply_checks",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.request_ai(1,1,'first',NULL,1); SELECT probe.apply_suggestion(1,1,NULL,'retry'); SELECT probe.apply_suggestion(1,NULL,'synthetic-digest-1','retry');",
+      "expected": "conflict\nconflict\nconflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict\nconflict\nconflict",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "1:60:1:0:1:3:0",
+        "after": "1:60:1:0:1:3:0"
+      }
+    },
+    {
+      "name": "use_creates_one_successor_audit_and_erases_body",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_suggestion(1,1,'synthetic-digest-1','use');",
+      "expected": "applied:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "applied:2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "different_retry_key_returns_same_acceptance_receipt",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_suggestion(1,1,'synthetic-digest-1','new-transport-key');",
+      "expected": "receipt:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "receipt:2",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "1:60:3:1:0:4:0",
+        "after": "1:60:3:1:0:4:0"
+      },
+      "newer_head": "3"
+    },
+    {
+      "name": "changed_digest_on_accepted_retry_conflicts",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_suggestion(1,1,'different-output','other-key');",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "expired_body_cannot_be_read",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.read_suggestion(2);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "expired_body_cannot_be_applied",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_suggestion(2,1,'synthetic-digest-2','use');",
+      "expected": "expired",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "expired",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "2:120:4:1:1:7:0",
+        "after": "2:120:4:1:1:7:0"
+      }
+    },
+    {
+      "name": "required_apply_audit_failure_rolls_back_body_and_source",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_suggestion(3,1,'synthetic-digest-3','FAIL_AUDIT');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"evidence\" violates check constraint \"evidence_safe_note_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.evidence VALUES(t,n,'applied',CASE WHEN transport_key='FAIL_AUDIT' THEN 'FAIL_AUDIT' ELSE 'safe-fixture-correlation' END)\"\nPL/pgSQL function apply_suggestion(bigint,integer,text,text) line 25 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  evidence\nCONSTRAINT NAME:  evidence_safe_note_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true,
+      "counts": {
+        "before": "3:180:5:1:2:10:0",
+        "after": "3:180:5:1:2:10:0"
+      }
+    },
+    {
+      "name": "reservation_audit_failure_rolls_back_budget",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.request_ai(4,1,'FAIL_AUDIT','neutral',1);",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"evidence\" violates check constraint \"evidence_safe_note_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.evidence VALUES(t,newid,'reserved',CASE WHEN key='FAIL_AUDIT' THEN 'FAIL_AUDIT' ELSE 'safe-fixture-correlation' END)\"\nPL/pgSQL function request_ai(integer,integer,text,text,integer) line 29 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  evidence\nCONSTRAINT NAME:  evidence_safe_note_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true,
+      "counts": {
+        "before": "3:180:6:1:2:10:0",
+        "after": "3:180:6:1:2:10:0"
+      }
+    },
+    {
+      "name": "concurrent_purpose_budget_one_reservation",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "missionary_b",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.request_ai(5,1,'purpose-A','neutral',1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "reserved:5\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.request_ai(6,1,'purpose-B','neutral',1); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "budget_purpose\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "reserved:5\nFIRST_READY\n",
+        "second": "budget_purpose\nSECOND_DONE\n",
+        "purpose_budget": "240:240"
+      }
+    },
+    {
+      "name": "concurrent_tenant_budget_across_purposes",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.request_ai(7,1,'tenant-A','neutral',1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "reserved:6\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.request_ai(8,1,'tenant-B','neutral',2); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "budget_tenant\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "reserved:6\nFIRST_READY\n",
+        "second": "budget_tenant\nSECOND_DONE\n",
+        "tenant_budget": "300:300"
+      }
+    },
+    {
+      "name": "unknown_outcome_cannot_be_blindly_redispatched",
+      "role": "provider_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.observe_result(7,'dispatch');",
+      "expected": "inspect",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "inspect",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "6:360:11:1:2:15:0",
+        "after": "6:360:11:1:2:15:0"
+      }
+    },
+    {
+      "name": "unknown_receipt_retains_reservation",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.request_ai(9,1,'unknown','neutral',1);",
+      "expected": "inspect:7",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "inspect:7",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unknown_hold_cannot_fund_new_blind_retry",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.request_ai(9,1,'unsafe-new-intent','neutral',1);",
+      "expected": "budget_tenant",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "budget_tenant",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "6:360:11:1:2:15:0",
+        "after": "6:360:11:1:2:15:0"
+      }
+    },
+    {
+      "name": "revoke_first_blocks_application",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "policy_manager",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1 AND actor='missionary_a' AND purpose='newsletter'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_suggestion(8,1,'synthetic-digest-8','use'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n",
+        "before": "7:420:12:1:3:18:0",
+        "after": "7:420:12:1:3:18:0"
+      }
+    },
+    {
+      "name": "revocation_blocks_body_and_prior_receipt",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.read_suggestion(1); SELECT probe.apply_suggestion(1,1,'synthetic-digest-1','use');",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "reenable_does_not_revive_old_suggestion",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.read_suggestion(8); SELECT probe.apply_suggestion(8,1,'synthetic-digest-8','use');",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "application_first_preserved_after_revoke",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "policy_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_suggestion(9,1,'synthetic-digest-9','use'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "applied:2\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1 AND actor='missionary_a' AND purpose='newsletter'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "applied:2\nFIRST_READY\n",
+        "second": "SECOND_DONE\n",
+        "applications": "1"
+      }
+    },
+    {
+      "name": "manual_edit_first_stales_suggestion_use",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.manual_edit(12,1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "edited\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_suggestion(10,1,'synthetic-digest-10','use'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "stale\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "edited\nFIRST_READY\n",
+        "second": "stale\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "use_first_conflicts_stale_manual_save",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_suggestion(11,1,'synthetic-digest-11','use'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "applied:2\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.manual_edit(13,1); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "stale\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "applied:2\nFIRST_READY\n",
+        "second": "stale\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "two_use_keys_one_successor",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_suggestion(12,1,'synthetic-digest-12','first-click'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "applied:2\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_suggestion(12,1,'synthetic-digest-12','second-click'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "receipt:2\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "applied:2\nFIRST_READY\n",
+        "second": "receipt:2\nSECOND_DONE\n",
+        "versions": "2"
+      }
+    },
+    {
+      "name": "expiry_during_target_wait_prevents_application",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.manual_edit(30,1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "edited\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second_sql": "SELECT probe.apply_suggestion(13,1,'synthetic-digest-13','use');",
+      "exit_code": 0,
+      "stdout": "expired",
+      "stderr": "",
+      "application_count": "0",
+      "head": "2"
+    },
+    {
+      "name": "new_binding_never_retargets_prior_suggestion",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.read_suggestion(14); SELECT probe.apply_suggestion(14,1,'synthetic-digest-14','use');",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "13:780:23:4:6:39:0",
+        "after": "13:780:23:4:6:39:0"
+      },
+      "final_send_count": 0,
+      "reservation_totals_equal_invocation_holds": true
+    }
+  ]
+}

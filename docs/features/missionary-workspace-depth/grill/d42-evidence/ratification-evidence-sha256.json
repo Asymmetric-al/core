@@ -1,0 +1,91 @@
+{
+  "scope": "All original D42 evidence plus exact mutable-document snapshots before explicit ratification. Previous programs remain frozen bytes and are not run or imported.",
+  "previous_current_artifact_hashes_verified": 16,
+  "unchanged_context_sha256": "8a156d88fd266e4ace62c218072652cffe78fab063ddb2a2367306860a98d7e6",
+  "files": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/auth-proof.md",
+      "sha256": "942fc83de9cb68f4102664b6f2218ef88b78e94664a03fc382bb92a17a440f14"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/behavior-model-results.json",
+      "sha256": "f69229b9b11f4d3ff1748cc57fe057d6eb9d783b17675cdd02b9509e749ad841"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/behavior-model.md",
+      "sha256": "f48e38e60969ba2e547c458e26ea382bc72573b36657e671dae0754a805d2850"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/behavior-model.py",
+      "sha256": "1bb4c826b91a25f02100dfa8840d1582e91ee0b38df16a7e3647fdc6b31af496"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/completeness-before-d42.txt",
+      "sha256": "6298fef21d6919c840330af8ea93f5013f9cfc3eb5377a4b72e53ed37751acad"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/completeness-before-ratification.txt",
+      "sha256": "2d8d39cac99326b611d40638253d1a018f87cb23ea18c8ae6215b3b29b3ea81a"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/context-before-d42.txt",
+      "sha256": "8bb7b4e24b1d2aa7939d2ffc22c6449a715de934edf20ec2e0d3562a2d63ad65"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/coverage-before-d42.txt",
+      "sha256": "4c265e37514dd5c966f48098de5599e1f34ad373294bacf19f6682b3eb4d2086"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/coverage-before-ratification.txt",
+      "sha256": "0e93fcb0a98fa602a50e5fdde834db95ee78650877943ada19802fa0fd9337da"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/database-authorization.md",
+      "sha256": "05111a88cd65a554bd9432f84eb6982d1b60be2e52604ba96bcd0feacc595e01"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/independent-review.md",
+      "sha256": "e122495b6fb085cde830935f78fce6edbfcb435178c18135dd96c006d2aa99a7"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/owner-reconciliation.md",
+      "sha256": "59834c217b1007f15bd56f704e8d586f221a5e6fa9f2cf483bee2e9869803c19"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/prior-evidence-sha256.json",
+      "sha256": "88f1672ef4ed22880898d004fe385a5bf368b346331eb443df0b4ff8ad155093"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/q42-before-answer.txt",
+      "sha256": "8b2f823be445d5fd872e35a789732d1e1da70005d521145d8c519ceb65fde49a"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/q42-before-ratification.txt",
+      "sha256": "95687a94edb884089bf6a01c3ac4536521f75c26ea9fef14ef0b4f7a76216d6a"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/review-before-ratification.txt",
+      "sha256": "0d4293fc52e9174854366ec8cebd41afb5c4f8c551cf04dca4b9f8b1606cd89f"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/session-before-d42.txt",
+      "sha256": "3a4643b6569bd4d54e8804c882b770d544bdd576f674f9988dfa72e92bed44a3"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/session-before-ratification.txt",
+      "sha256": "6ed1f69e89a967b964f5db06505814df76c6e395637559d19402e36e208abb23"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/ux-research.md",
+      "sha256": "71d52bbd6db3327aeac170a8b2216652482b85b34522bb584888dbb865eca217"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/verification.json",
+      "sha256": "54d2de38901733233a72acbab92b9aca97e9df2e6f6ac8510f46b2396b1b8812"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d42-evidence/verify-d42.py",
+      "sha256": "6b9cff9a385eb217b5c2b19b795d11ca6e65988ef1134a5e62c55a6e111e8b01"
+    }
+  ]
+}

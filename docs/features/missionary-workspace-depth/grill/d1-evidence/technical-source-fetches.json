@@ -1,0 +1,86 @@
+[
+  {
+    "id": "pg17-rls",
+    "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+    "bytes": 31181,
+    "sha256": "549fe56f4eedf6fba605c42d3b90522fb6fb431e55b64d16f4ff7e31f1ca80c0",
+    "fetched": true
+  },
+  {
+    "id": "pg17-policy",
+    "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+    "bytes": 46910,
+    "sha256": "4a75de7338882ab78829708c3c4de9caa309508f8ba7261702889e3d211139e1",
+    "fetched": true
+  },
+  {
+    "id": "pg17-view",
+    "url": "https://www.postgresql.org/docs/17/sql-createview.html",
+    "bytes": 38035,
+    "sha256": "d91c3a1a6e911b4323b26003cbb1db3015e4a35da400a23e6311f3eea27003c6",
+    "fetched": true
+  },
+  {
+    "id": "pg17-function",
+    "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+    "bytes": 51069,
+    "sha256": "785004cc71694c34b9d0a6b22e11681012a6a2d40862ff2ed61adc801f0bbb96",
+    "fetched": true
+  },
+  {
+    "id": "pg17-isolation",
+    "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+    "bytes": 47618,
+    "sha256": "32a32972bb04a3d539cbbc89914ff80573023bd900a8710a03bda487feb03000",
+    "fetched": true
+  },
+  {
+    "id": "supabase-rls",
+    "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+    "bytes": 30344,
+    "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+    "fetched": true
+  },
+  {
+    "id": "supabase-api",
+    "url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+    "bytes": 18172,
+    "sha256": "d2c47fd37a58003f294e11f47cdb05bdd2bb853f350c006a9e6a2c4249868e46",
+    "fetched": true
+  },
+  {
+    "id": "supabase-functions",
+    "url": "https://supabase.com/docs/guides/database/functions.md",
+    "bytes": 10713,
+    "sha256": "9fe4a331db51fc7b91139c9ac62de0765477fb04f25a6960d38b9c57bc8b486d",
+    "fetched": true
+  },
+  {
+    "id": "supabase-realtime-auth",
+    "url": "https://supabase.com/docs/guides/realtime/authorization.md",
+    "bytes": 12082,
+    "sha256": "3d06fdf9d3ea9b9db8898e1a58d49b29a23b7c81e7fc06094e3854b7ab0d2143",
+    "fetched": true
+  },
+  {
+    "id": "supabase-pg-patch",
+    "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+    "bytes": 246966,
+    "sha256": "39271b8d6769e5c3e72fca4548971f98007d240c06a50d5f69af34bd68b69270",
+    "fetched": true
+  },
+  {
+    "id": "supabase-realtime-lockdown",
+    "url": "https://supabase.com/changelog/realtime-schema-locked-down-against-modification",
+    "bytes": 83982,
+    "sha256": "d27b49fa7529ff036b1c499aebc95f928d4fd89c1dbafb72176fb91153d4f4f7",
+    "fetched": true
+  },
+  {
+    "id": "supabase-tls",
+    "url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+    "bytes": 87726,
+    "sha256": "00131ed2f98199bd6ffe58ba1ee16ffed46916df12991df76475afe35313bfa6",
+    "fetched": true
+  }
+]

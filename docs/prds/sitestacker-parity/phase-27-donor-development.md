@@ -612,7 +612,7 @@ Each story is independently verifiable against the named observable acceptance c
 191. **US27-Q14.** As a delivery owner, I want a confirmed test seam and independently verifiable stories, so that each delivered outcome has meaningful proof.
      Requirements: REQ27-Q14. Acceptance: AC27-Q14-01, AC27-Q14-02.
 
-192. **US27-Q15.** As an authorized operator, I want financial owner gates E7 and C-01, so that unresolved source policy cannot turn into invented financial truth.
+192. **US27-Q15.** As an authorized operator, I want financial owner gates E7 and C-01, so that unqualified source implementations cannot turn settled policy into invented financial truth.
      Requirements: REQ27-Q15. Acceptance: AC27-Q15-01, AC27-Q15-02.
 
 193. **US27-Q16.** As a delivery owner, I want truthful release evidence and a staff pilot, so that release readiness is supported by actual user and runtime evidence.
@@ -664,7 +664,7 @@ Each story is independently verifiable against the named observable acceptance c
 
 7. **UI composition.** The partnership header presents subject/ministry, current lifecycle, stage/list, responsible lead and next work. Requests show relevant terms, current review/response and next action. Appeals separate the recorded plan from Request-level board/outcomes and qualified finance. Briefs prioritize useful current source context; giving patterns stay secondary and absent when Off. Configuration lives with authorized tenant settings, not ordinary workflow clutter. A clean status line distinguishes saved source truth from pending synchronization. Loading/empty/denied/currently unavailable are different states. All consequential choices describe what changes and what stays independent before Save.
 
-8. **Integrations and security.** Required P9/P12/P13/P14/P15/P16/P6/P17 contracts are qualified before their dependent lanes activate; do not pull entire future phases into the dependency graph. Bind document/export and public projections only when admitted by their owners. E7 and C-01 remain exact unresolved owner gates, as defined in Q15; there is no guessed financial fallback. P28 reuses the same source with its permitted slice and voluntary interaction behavior. Native functionality is independent of P34/P42; optional DON-14–DON-16 and WS-18-CORE consume the same permanent source-purpose effects. SMS, directory, gift automation, applications, care and analytics remain with their owners.
+8. **Integrations and security.** Required P9/P12/P13/P14/P15/P16/P6/P17 contracts are qualified before their dependent lanes activate; do not pull entire future phases into the dependency graph. Bind document/export and public projections only when admitted by their owners. Phase 28 D48–D50 settles E7/C-01 policy; Q15 retains exact producer/adapter qualification with no guessed financial fallback. P28 reuses the same source with its permitted slice and voluntary interaction behavior. Native functionality is independent of P34/P42; optional DON-14–DON-16 and WS-18-CORE consume the same permanent source-purpose effects. SMS, directory, gift automation, applications, care and analytics remain with their owners.
 
 9. **Migration, rollout and operation.** Census existing data/provenance and reached placeholders before changing them. Deploy compatible readers/constraints before writers, use resumable effect-free backfills, fence incompatible old clients/jobs, and preserve accepted history/recovery when disabling. Unknown assignment provenance remains protected; old private notes remain private. Qualification records numeric operational envelopes and actual measured budgets, current provider/version, restore/replay evidence and named operating owners. No automatic stage migration, retroactive campaign policy, silent opt-in or destructive rollback is authorized.
 
@@ -695,7 +695,7 @@ Feature implementation, production data/provider changes, donor contact, automat
 - Automatic enrollment from record arrival, automatic stage progression, forced sequential stages or blocking stage guidance.
 - Financial posting/charging/commitment creation, receipt issuance, message dispatch or consent inferred from a Request, response, stage, appeal membership or drag.
 - General grant management, planned giving, document signing, visit booking, care/application decisions, or a new public/missionary product surface beyond the narrow qualified shared projection.
-- Resolution by P27 of E7 or C-01; these remain explicitly owned upstream. No alternate finance policy is silently chosen.
+- Independent finance policy invented by P27. Phase 28 D48–D50 reconciles E7/C-01 through P13/P15/P16; P27 consumes only their qualified adapters and current controls.
 
 ## Further Notes
 

@@ -11,6 +11,7 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
   { id: "skills-verify", script: "skills:verify" },
   { id: "verify-phase25-spec", script: "verify:phase25-spec" },
   { id: "verify-phase27-spec", script: "verify:phase27-spec" },
+  { id: "verify-phase28-spec", script: "verify:phase28-spec" },
   { id: "openspec-validate", script: "openspec:validate" },
   { id: "verify-openspec-deltas", script: "verify:openspec-deltas" },
   { id: "lint", script: "lint" },
@@ -99,6 +100,22 @@ describe("ci-preflight contract", () => {
     expect(phase25).toBeGreaterThanOrEqual(0);
     expect(phase27).toBe(phase25 + 1);
     expect(steps[phase27]).not.toMatch(/(?:^|\n)\s*(?:if|continue-on-error):/);
+  });
+
+  it("checks Phase 28 projections and evidence in the blocking integrity job", () => {
+    const steps = integritySteps();
+    const phase27 = steps.findIndex((step) =>
+      step.includes("run: bun run verify:phase27-spec"),
+    );
+    const phase28 = steps.findIndex((step) =>
+      step.includes("run: bun run verify:phase28-spec"),
+    );
+    expect(phase28).toBe(phase27 + 1);
+    expect(steps[phase28]).not.toMatch(/(?:^|\n)\s*(?:if|continue-on-error):/);
+    const scripts = JSON.parse(readFileSync("package.json", "utf8")).scripts;
+    expect(scripts["verify:phase28-spec"]).toContain("render-spec.mjs --check");
+    expect(scripts["verify:phase28-spec"]).toContain("verify-evidence.mjs");
+    expect(scripts["verify:phase28-spec"]).not.toContain("--write");
   });
 
   it("audits the primary workspace before any auxiliary checkout can duplicate its projects", () => {

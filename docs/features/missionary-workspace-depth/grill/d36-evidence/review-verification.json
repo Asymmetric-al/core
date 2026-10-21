@@ -1,0 +1,51 @@
+{
+  "current_document_hashes": {
+    "CONTEXT.md": "e41e0f7ec1ee8e1a6d4706ca270e2e4fbdd64f2e406c6417dd5a1da05d5093a4",
+    "docs/features/missionary-workspace-depth/grill/d36-evidence/comparable-periods.md": "d67d42ea25b8f2bbb408ba21f7a1e5759c6abeb7c8e21bd68392bda09f7cb13b",
+    "docs/features/missionary-workspace-depth/grill/d36-evidence/counterexample-review.md": "0523fd5281b7a4b3636d3074ed059eda9b4b2b0bdc8b85171252ec10ed0f455f",
+    "docs/features/missionary-workspace-depth/grill/d36-evidence/cross-review-resolution.md": "7e6daac4428fe3254f703656a8412e1bd05a77c8164af9f267968172d39876d1",
+    "docs/features/missionary-workspace-depth/grill/d36-evidence/database-policy-safety.md": "48c6955b7ca2c2826b63989328725595688be5166a6e3073d93dd37c1520138e",
+    "docs/features/missionary-workspace-depth/grill/d36-evidence/governance-temporal.md": "ec23fa9908e148aa70cbf2a82b4353ed2665b82abbe34923ae4ea0a975a6c449",
+    "docs/features/missionary-workspace-depth/grill/d36-evidence/model-readme.md": "dc3baad61d17e87898ee29adea29cfbf7995844de668cd7140f9355d3d12d842",
+    "docs/features/missionary-workspace-depth/grill/d36-evidence/ux-and-primary-research.md": "62df75b74bf8d7d5997542fc952bbc37cf6176de4240a5d68d946f733cf44ec2",
+    "docs/features/missionary-workspace-depth/grill/phase28-d36-configured-referral-period-adversarial-review.md": "cb445f6bee5957c077f727158a73e79fabbd96a5e639b10268dc1487cb171417",
+    "docs/features/missionary-workspace-depth/grill/phase28-q36-referral-window-policy-research.md": "28f768832d51c2b73bb4c0eac79b98e5de5b04e760a758393c066f2d56c65e4c",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "7747eebcbfb882aacaa7570d3f61d75b141a476e1e0778dd8975425f6c5ffd7a"
+  },
+  "current_pinned_files": 15,
+  "local_references": {
+    "anchors": 67,
+    "documents": 11,
+    "line_links": 92,
+    "links": 543
+  },
+  "model_evidence_read_only": {
+    "counterexample_families": 15,
+    "passed_outcome_assertions": 85,
+    "positive_controls": 6
+  },
+  "old_or_new_model_executions_by_this_verifier": 0,
+  "prior_evidence_files_verified": {
+    "d29": 20,
+    "d30": 19,
+    "d31": 19,
+    "d32": 25,
+    "d33": 23,
+    "d34": 20,
+    "d35": 25
+  },
+  "review": {
+    "acceptance_proofs": 40,
+    "categories": 22,
+    "material_findings": 18,
+    "required_clauses": 24
+  },
+  "scope": "Read-only D36 structure, traceability, local references and hashes; no runtime or model execution.",
+  "status": "passed",
+  "status_checks": {
+    "d35_remains_ratified": true,
+    "d36_amendments_await_ratification": true,
+    "no_q37_posed": true,
+    "q36_answered_a": true
+  }
+}

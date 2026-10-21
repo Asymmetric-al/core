@@ -1,0 +1,122 @@
+[
+  {
+    "name": "supabase-changelog",
+    "url": "https://supabase.com/changelog.md",
+    "final_url": "https://supabase.com/changelog.md",
+    "http_status": 200,
+    "bytes": 102319,
+    "sha256": "15b3d0d1a7dc3b3f2c0af4788e49acfdf2d2edbd2613f22de0705fa43b1cf58b",
+    "fetched_utc": "2026-10-16T07:53:14.056549+00:00",
+    "local_path": "/tmp/phase28-d7-primary/supabase-changelog.txt"
+  },
+  {
+    "name": "supabase-rls",
+    "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+    "final_url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+    "http_status": 200,
+    "bytes": 30344,
+    "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+    "fetched_utc": "2026-10-16T07:53:13.529909+00:00",
+    "local_path": "/tmp/phase28-d7-primary/supabase-rls.txt"
+  },
+  {
+    "name": "supabase-api",
+    "url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+    "final_url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+    "http_status": 200,
+    "bytes": 18172,
+    "sha256": "d2c47fd37a58003f294e11f47cdb05bdd2bb853f350c006a9e6a2c4249868e46",
+    "fetched_utc": "2026-10-16T07:53:13.560277+00:00",
+    "local_path": "/tmp/phase28-d7-primary/supabase-api.txt"
+  },
+  {
+    "name": "supabase-storage",
+    "url": "https://supabase.com/docs/guides/storage/security/access-control.md",
+    "final_url": "https://supabase.com/docs/guides/storage/security/access-control.md",
+    "http_status": 200,
+    "bytes": 4174,
+    "sha256": "0b9247db9368eb46e645dbfdd6846ef7e14367140599ea1d2e19afbd9a72d46d",
+    "fetched_utc": "2026-10-16T07:53:13.532382+00:00",
+    "local_path": "/tmp/phase28-d7-primary/supabase-storage.txt"
+  },
+  {
+    "name": "postgres-policy",
+    "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+    "final_url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+    "http_status": 200,
+    "bytes": 46910,
+    "sha256": "4a75de7338882ab78829708c3c4de9caa309508f8ba7261702889e3d211139e1",
+    "fetched_utc": "2026-10-16T07:53:15.280665+00:00",
+    "local_path": "/tmp/phase28-d7-primary/postgres-policy.txt"
+  },
+  {
+    "name": "postgres-constraints",
+    "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+    "final_url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+    "http_status": 200,
+    "bytes": 44707,
+    "sha256": "cce33512bf9c9dcc29db138e888b72710c8e38a1eff18e0c74afff1ff16f2f57",
+    "fetched_utc": "2026-10-16T07:53:15.403284+00:00",
+    "local_path": "/tmp/phase28-d7-primary/postgres-constraints.txt"
+  },
+  {
+    "name": "postgres-locks",
+    "url": "https://www.postgresql.org/docs/17/explicit-locking.html",
+    "final_url": "https://www.postgresql.org/docs/17/explicit-locking.html",
+    "http_status": 200,
+    "bytes": 46799,
+    "sha256": "ac8f5253bba1cbc0e358932019b94e013953dc3a7a0136a21e97fd47cdf9e0e5",
+    "fetched_utc": "2026-10-16T07:53:14.797071+00:00",
+    "local_path": "/tmp/phase28-d7-primary/postgres-locks.txt"
+  },
+  {
+    "name": "resend-idempotency",
+    "url": "https://resend.com/docs/dashboard/emails/idempotency-keys",
+    "final_url": "https://resend.com/docs/dashboard/emails/idempotency-keys",
+    "http_status": 200,
+    "bytes": 591493,
+    "sha256": "ecd54a5256d6dee8ff7123c42feb2bcbba233f78315b9f36c1460d8807b7853c",
+    "fetched_utc": "2026-10-16T07:53:14.872658+00:00",
+    "local_path": "/tmp/phase28-d7-primary/resend-idempotency.txt"
+  },
+  {
+    "name": "resend-scheduling",
+    "url": "https://resend.com/docs/dashboard/emails/schedule-email",
+    "final_url": "https://resend.com/docs/dashboard/emails/schedule-email",
+    "http_status": 200,
+    "bytes": 909767,
+    "sha256": "a16d2600a7cbab544c2087d97b22d01c3d6756821bc3bbb665a103ee1d36d139",
+    "fetched_utc": "2026-10-16T07:53:15.077630+00:00",
+    "local_path": "/tmp/phase28-d7-primary/resend-scheduling.txt"
+  },
+  {
+    "name": "45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+    "url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+    "final_url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+    "http_status": 200,
+    "bytes": 163464,
+    "sha256": "042107a9bb10fc88d2c2391b6c7786edb3504949829d40e4ddb90f5f463626ac",
+    "fetched_utc": "2026-10-16T07:55:36.805846+00:00",
+    "local_path": "/tmp/phase28-d7-primary/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically.html"
+  },
+  {
+    "name": "postgres-15-19-17-11-breaking-changes",
+    "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+    "final_url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+    "http_status": 200,
+    "bytes": 246966,
+    "sha256": "c77e355069e3e3c41ebf88cfa81723cf1d23b4e8e7df19733237742d43c750d1",
+    "fetched_utc": "2026-10-16T07:55:37.255556+00:00",
+    "local_path": "/tmp/phase28-d7-primary/postgres-15-19-17-11-breaking-changes.html"
+  },
+  {
+    "name": "cbc-tls-ciphers-deprecated",
+    "url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+    "final_url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+    "http_status": 200,
+    "bytes": 87726,
+    "sha256": "9668ee3530d550e55feb1e406e04f4d3e2fcd6bbecb457f6e3ac90f122713f98",
+    "fetched_utc": "2026-10-16T07:55:37.954666+00:00",
+    "local_path": "/tmp/phase28-d7-primary/cbc-tls-ciphers-deprecated.html"
+  }
+]

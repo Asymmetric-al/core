@@ -1,0 +1,41 @@
+{
+  "checked_at_utc": "2026-10-16T12:55:42.056457+00:00",
+  "kind": "research artifact consistency and local reference checks",
+  "counts": {
+    "clauses": 20,
+    "proofs": 22,
+    "concerns": 12,
+    "categories": 22
+  },
+  "local_references_checked": 271,
+  "local_heading_anchors_checked": 22,
+  "errors": [],
+  "founder_brief_sha256_unchanged": "464e3ceb675f1bd3926b0974b003e885ef1b115b5b516a37da3d84fbed8f1dcb",
+  "d15_corrected_decision_and_amendments_explicitly_ratified": true,
+  "q16_unanswered": true,
+  "probe_model_passed": 28,
+  "probe_and_governing_source_hashes_verified": true,
+  "sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d15-connected-email-adversarial-review.md": "07073ca10ea02ac1d502569f5e26ea31d6526a4a6f386fb60e6555f300c7be10",
+    "docs/features/missionary-workspace-depth/grill/phase28-q15-personal-email-connection-research.md": "3e78cac90590646bb0c447c79faebbc2cbd7c7cf8eabff0482e77ecb4d0d7dc8",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "f5a3644969e8494257172ae8e4ce442e496831838b7ed73ae7bb004813de9ebc",
+    "docs/features/missionary-workspace-depth/grill/phase28-q16-goal-authority-research.md": "391795692f526f954ec26e2d7d5b2d0beb8822c4db46d18b376b2d298cf169b9",
+    "docs/features/missionary-workspace-depth/grill/d15-evidence/current-source-and-ux.md": "781e75c2393b1ee3e12f602a41541df0a4fabbcb3be7029b964e614560fadcd0",
+    "docs/features/missionary-workspace-depth/grill/d15-evidence/database-lifecycle.md": "f7365fefe859b825e4f61c191a37108fa54cab398de3964a151351cf063aed58",
+    "docs/features/missionary-workspace-depth/grill/d15-evidence/owner-boundaries.md": "9cdb83167eb188e4287d788dbeb5d243312944a845e30850a1d2e309d4e80ee5",
+    "docs/features/missionary-workspace-depth/grill/d15-evidence/product-and-privacy.md": "0d43e58d1959ab5ff97307de0f63c52ee9657e4e2a33ca2aa14b68fc47b76a95",
+    "docs/features/missionary-workspace-depth/grill/d15-evidence/provider-email.md": "f2e2c702577c603a1e2dd1e0c4856ff1a0ea598aa38b41f86b57c576f28b70d3",
+    "docs/features/missionary-workspace-depth/grill/d15-evidence/technical-research.md": "75b5aad442becdda7b30fd64722277c03ff9055ced910c7cb6b39df39ffb9e31",
+    "CONTEXT.md": "8f155d6d0797a34885c14f22050c09b713f774a664539cae5595e6172f30ce4a",
+    "docs/features/missionary-workspace-depth/grill/d15-evidence/probe.py": "6f6f2a7f06a25e0a4e318f651a5e7ac3004d3025117f16cf77a3fabe8e82bdb4",
+    "docs/features/missionary-workspace-depth/grill/d15-evidence/probe-results.json": "0e9120d8393ed5bd0c540421b2f348a9290fb4721f48f690f64f266365c00e0d"
+  },
+  "not_proved": [
+    "application behavior",
+    "PostgreSQL/RLS/grants",
+    "actual concurrency/crash durability",
+    "OAuth/provider behavior",
+    "accessibility/usability",
+    "production performance"
+  ]
+}

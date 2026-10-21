@@ -1,0 +1,565 @@
+# Phase 28 D34 — limited expired-referral history without an archive workflow
+
+**Disposition: Accept with required amendments.**
+
+**The corrected decision and required amendments were explicitly ratified on October 18, 2026 Asia/Bangkok.**
+Reviewed October 18, 2026 UTC against
+`9cada8f3d8ab59db391d3fd20df77fcadeb09813` and its working tree. D33 remains
+ratified. This is a researched grill decision under the
+[founder boundary](phase28-founder-brief.md:21), not a formal PRD/ADR/OpenSpec,
+implementation, live permission change or release qualification. The next researched
+question is [Q35](phase28-q35-expired-referral-continuation-authority-research.md).
+
+## Exact corrected decision to record
+
+> **D34 — Limited expired-referral history, in the ordinary referral list.**
+> When the organization permits it and current source/privacy rules allow,
+> Maya can deliberately include eligible expired referrals in her existing
+> referral view. Active work remains the default. Each expired entry shows a
+> currently approved recognizable name or safe label, a clear **Expired** status
+> and the actual expiry date when known. The view explains that the referral's
+> follow-up window has ended and that contact details are not shown here.
+>
+> This is a small read-only history view. It does not expose contact details,
+> private referral context, the referrer's identity, notes, giving information or
+> another person's records. If no useful identifying label can currently be
+> disclosed, the entry is omitted from Maya's results and counts. An expired
+> referral does not remove any other access she independently still holds.
+>
+> The source must prove that the referral belonged to Maya's authorized referral
+> work before ordinary expiry, and current authority must expressly permit this
+> exact history and scope. Past membership, authorship, reassignment or possession
+> of a link is insufficient. This adds only a bounded expired-referral history
+> purpose to P9/P12; it does not widen the ordinary supporter or Party view.
+>
+> Opening history never continues a referral, restores contact permission,
+> changes its dates, extends retention, creates a task, logs an interaction or
+> sends anything. Continuing the referral remains a separate authorized decision.
+> Withdrawal, invalidation, privacy revocation and departure are not ordinary
+> expiry and do not grant this history right.
+>
+> Reuse the source record, existing organization permissions and shared list
+> controls. There is no new archive database, inbox, mandatory review, per-entry
+> approval or separate missionary setting. The source's retention, correction,
+> identity and current disclosure rules continue to apply. Source history is
+> preserved lawfully. D34 creates no indefinite-retention entitlement; readable
+> personal data follows qualified source retention and disposition rules.
+
+The founder's instruction to avoid complexity changes the delivery shape: a
+filter and truthful rows are sufficient. It does not justify keeping all contact
+fields readable after the governing access basis ends. The exact identifying
+field set and proof boundaries below make "limited" implementable without
+introducing a customizable history-permission builder.
+
+## Evidence, current behavior and strongest alternatives
+
+| Evidence class            | Verified finding and limit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Founder selection         | A permits limited expired-referral history; contact details/private context stay unavailable through it and continuation remains separate. The founder explicitly asks to challenge confusing complexity. This is product direction, not evidence of adoption or measured usability.                                                                                                                                                                                                                                                                          |
+| Governing conflict        | [P28 owner constraints](../../../prds/program-roadmap/owner-constraints.md:143) restrict ordinary Party enumeration to an active supporter/referral relationship. D34 needs the narrow P9/P12 exception above. Calling the screen History does not resolve this conflict.                                                                                                                                                                                                                                                                                     |
+| Existing source ownership | [P9 A4](../../../prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md:353), [referral owner constraint](../../../prds/program-roadmap/owner-constraints.md:81), [P12 actor](../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md:1552) and [purpose](../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md:1654) separate canonical relationships, source provenance, exact current permissions and contactability. They do not establish a complete deployed referral-expiry producer. |
+| Governing architecture    | [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md), [CRM Core](../../../../openspec/specs/crm-core/spec.md), [platform boundaries](../../../../openspec/specs/platform-boundaries/spec.md) and [principles](../../../../openspec/specs/platform-principles/spec.md) preserve native source truth and permission-first projections. [P27's CRM delta](../../../../openspec/changes/add-donor-development/specs/crm-core/spec.md) does not silently authorize this historical audience.                                               |
+| Disclosure policy         | [ADR-0211](../../../adr/0211-distinct-human-approval-for-projection-widening.md:16) requires distinct-human approval for actual projection-policy widening. This applies to qualification/configuration of the new exposure where required, not a second human approving every ordinary history read.                                                                                                                                                                                                                                                         |
+| Current source code       | The legacy missionary donor DTO includes contact fields, notes and activity; missing name falls back to email and unknown status becomes Active. Its query scopes by tenant and legacy missionary assignment. This is not a safe D34 projection. See [database review](d34-evidence/database-authorization.md) and the bounded implementation inspection below. These are static compatibility findings, not tested production exploits.                                                                                                                      |
+| Source gap                | The earlier [source investigation](phase28-relationship-finance-evidence.md:277) and fresh bounded searches did not establish a qualified exact referral-history producer. Its absence from searched paths does not prove repository-wide absence. The narrow source extension must be reconciled before activation, rather than emulated in the browser.                                                                                                                                                                                                     |
+| External documentation    | Current retrieval of official missionary/nonprofit/general CRM documentation supports separating current work and findable history. Full retained-contact access in some products is a counterexample to copy, not Core authority. See [comparison](d34-evidence/comparable-products.md) and [UX evidence](d34-evidence/ux-and-primary-research.md).                                                                                                                                                                                                          |
+| Product judgment          | An existing-list filter is simpler than an archive dashboard or repeated staff handoff while preserving orientation. No Core interview, controlled usability study, real assistive-technology run, hosted RLS inventory or production workload qualification was completed. Those limits remain explicit.                                                                                                                                                                                                                                                     |
+
+**Strongest simpler alternative — B, staff-assisted recovery.** Let the expired
+referral leave the workspace and have authorized staff help later. B avoids the
+new historical disclosure purpose and fits the current ordinary access boundary.
+It loses self-service recognition and adds a handoff; it remains the effective
+fallback wherever D34 is not qualified or allowed. It is preferable to a useless
+page of unnamed locked entries. Choosing A does not require building that page.
+
+**Retaining the complete contact** is simpler visually but conflicts with the
+selected privacy boundary. **A separate archive/renewal workflow** adds steps,
+state and administrative work without evidence that users need them. **Deleting
+the source** confuses presentation with lawful historical integrity. The permanent
+path is the existing list with a narrow, source-owned projection and ordinary
+current permissions. No new vendor, package or general policy engine is needed.
+
+The [Q34 research](phase28-q34-expired-referral-history-research.md) records why
+historical visibility precedes the separate continuation-actor choice. D34 does
+not settle that later choice or invent a universal expiry duration.
+
+## Whole user journey and clear UI
+
+| Moment                  | Maya or staff experience                                                                                                                                                                                                                                 | Required truth                                                                                                                                                                                  |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Organization setup      | Use existing permission controls for eligible expired-referral history. Show its scope and limited fields in staff language.                                                                                                                             | No automatic grant to all missionaries, default broad role or new permission hierarchy. An unqualified source is unavailable; approved policy widening follows ADR-0211.                        |
+| Ordinary day            | Existing referrals view opens to active work.                                                                                                                                                                                                            | No expired-referral dashboard card, overdue badge, performance penalty, mandatory cleanup task or reminder campaign.                                                                            |
+| Maya looks back         | She selects **Expired** in the ordinary referral status filter. A brief explanation appears once for that view.                                                                                                                                          | Only currently admitted rows, labels, dates and counts are fetched. This is an optional view choice, not consent or a new business event.                                                       |
+| Recognizing a referral  | A quiet row shows the approved recognizable display label, **Expired**, and a known expiry date.                                                                                                                                                         | No generic locked contact card, empty email/phone fields, hover-only explanation, fake date or clickable name leading to unauthorized Party detail.                                             |
+| Understanding the limit | Suggested copy: **“The follow-up window has ended. Contact details are not shown in this view.”**                                                                                                                                                        | Expired describes the referral window, not a person's interest, generosity, consent, relationship value or debt.                                                                                |
+| Needs more context      | A current independently permitted ordinary record remains available through its usual entry point. Existing generic help may be offered without naming inaccessible records.                                                                             | D34 neither supplies additional access nor blocks valid separate access. Do not promise a Continue, Restore, Contact or Request review action before its owning path is selected and qualified. |
+| Source changes          | Source corrections update permitted labels, dates or state. An item leaves this view only when it no longer qualifies, such as after withdrawal, qualified continuation or a privacy restriction. The UI reconciles without a hidden-record explanation. | Historic source evidence remains lawfully retained; losing a view is not deletion, source completion or an invitation to bypass restrictions.                                                   |
+| Weak connection         | Show **“Couldn’t load expired referrals. Try again.”** for a genuine authorized query failure. Preserve the selected filter, not forbidden content.                                                                                                      | Failure is not an empty success. Safe retry repeats a read and creates no work; delayed results cannot replace a newer tenant/context or restore revoked rows.                                  |
+| Staff assistance        | Existing authorized source/detail tools explain the source state and available actions.                                                                                                                                                                  | No second queue, mandatory approval, manual unmasking routine or direct-database repair is created by D34.                                                                                      |
+
+Use Core's exact Base UI/base-maia primitives and semantic Zinc-based tokens,
+as established by [shared UI instructions](../../../../packages/ui/AGENTS.md)
+and [configuration](../../../../packages/ui/components.json). Reuse the shared
+responsive list pattern; a non-actionable history row must not look like a
+button. Keyboard labels, visible focus, meaningful non-colour-only status,
+appropriate status announcements and readable phone reflow are required. Show
+international names/approved aliases without forcing Western first/last-name
+parts. Display source instants or date-only values under their actual precision
+and locale/timezone rules; missing dates remain unknown. Do not introduce maps,
+portraits, financial values or contact metadata merely to distinguish names.
+
+Same-name rows remain distinct source occurrences. Use only admitted dates or
+an existing permitted source reference if needed for disambiguation; never leak
+the referrer, location, email or a private note. No new public reference-number
+scheme or automatic merge is required. If authorized information cannot make an
+entry meaningfully recognizable, omit it from this reader's projection. A safe
+alias may be useful; a repeated **Restricted person** placeholder is not.
+
+These design choices are evidence-informed, not proved superior for every
+organization. Before release, intended missionaries and staff must demonstrate
+that they can find an eligible past referral, understand why contact details are
+absent, distinguish expiry from refusal/revocation, and avoid assuming a read
+reactivated it. A failed critical comprehension task changes the design before
+activation; it is not excused by a polished screenshot.
+
+## Source ownership, state and invariants
+
+| Authoritative fact                                                                                       | Owner                                     | D34 role                                                                                                      |
+| -------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Referral occurrence, recipient/work provenance, ordinary expiry, withdrawal, correction and continuation | P9 qualified referral source              | Read its effective current meaning; no new lifecycle or copied archive.                                       |
+| Party identity, merge and approved display identity                                                      | P4/P9, constrained by P10/P12             | Use exact lineage and currently permitted label; name equality and merge do not confer access.                |
+| Current actor, tenant, ministry/work scope, history purpose and fields                                   | P12 with P10/source floors                | Evaluate independently for every reached egress; historical recipient evidence is necessary but insufficient. |
+| Contactability, communication consent and dispatch                                                       | Existing P12/P6/P17 owners                | No new authority or effects from the history view.                                                            |
+| Cultivation, Requests and shared tasks                                                                   | P27/P9 and their source owners            | Expiry/history does not rewrite stage, close/reopen cultivation or complete/revive tasks.                     |
+| Retention, erasure, legal hold and source history                                                        | Existing applicable source/privacy owners | Keep structural evidence only as governed; no new permanent copy or self-renewing deadline.                   |
+| List membership, displayed counts and presentation                                                       | Derived D34 read projection               | Disposable, permission-filtered and rebuildable; never write authority.                                       |
+
+Invariants: one source referral identity retains its lawful lineage; each row
+must belong to the trusted tenant and exact currently admitted historical work
+scope; useful identity is disclosed only under the named purpose; no contact
+field is present in this projection; reads have no domain transition; expiry,
+withdrawal, revocation, retention and independent access retain distinct meaning.
+Multiple historically qualified recipients are not reduced to only the first
+recipient, but each needs current source-proved history admission. Creator,
+former membership and current assignee are not substitutes for that proof.
+
+| Effective case                                                                | D34 expired view                                       | Other source behavior                                                                         |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Current active referral                                                       | Absent from Expired                                    | Its active view/actions use their own authority.                                              |
+| Ordinary source-proved expiry; all history and label gates pass               | Minimal row may appear                                 | No contact permission or automatic next action.                                               |
+| Deadline passed but cleanup has not run                                       | Same decision from source-authoritative effective time | A stale stored active flag cannot extend authority.                                           |
+| No qualified expiry fact, unknown source state or failed authority check      | No asserted Expired row                                | Show an appropriate unavailable/error state when allowed; do not invent expiry from age.      |
+| Withdrawal, invalidation, privacy revocation, reassignment or departure alone | No new D34 eligibility                                 | Existing source obligations and separately authorized facts continue.                         |
+| Current history/label access or readable retention ends                       | No row, count, suggestion or revealing error           | Retained source evidence remains governed; it is not an ordinary readable archive.            |
+| Separate active supporter access survives                                     | D34 eligibility remains independently evaluated        | Do not remove current lawful supporter information or expose the protected old referral body. |
+| Qualified continuation or correction makes the source no longer expired       | Leaves the current Expired result                      | Preserve original history; only the owning command can establish continuation.                |
+
+## Exact required amendments
+
+These C clauses are ratified decision/design amendments for later authorized
+owner reconciliation. They are not new formal owner contracts in this turn.
+
+**C01 — Bounded product scope.** Offer optional, read-only expired-referral
+history within the ordinary referrals view when permitted. Keep Active as the
+initial view. Do not create a separate archive product, inbox, review obligation,
+missionary preference switch, or duplicate source store.
+
+**C02 — Explicit owner exception.** Amend the active-relationship-only workspace
+rule solely to permit the named, qualified P9/P12 minimal expired-referral
+history projection after ordinary expiry. It SHALL NOT widen Party enumeration,
+ordinary supporter DTOs, contact details, referral body, finance, coaching,
+newsletter audiences or another source purpose. Reconcile the exact owner
+constraint, P9/P12 contracts and OpenSpec projections together during the
+authorized specification transition. Until then, do not claim live authority.
+
+**C03 — Historical recipient and current scope.** The source SHALL prove that
+the exact referral belonged to this missionary's authorized referral work before
+expiry. The actor SHALL also hold current exact tenant, ministry/work-context,
+history and field authority. A valid prior handoff recipient may qualify;
+creation-time first-recipient exclusivity is not imposed. A new assignment,
+same email, prior membership, original creation, restored login or Party merge
+SHALL NOT manufacture proof or transfer another person's history. A referral
+without an identified ministry uses its qualified work scope; no dummy ministry
+or cultivation enrollment is required merely to read history.
+
+**C04 — Minimal fields and useful identification.** The closed projection SHALL
+contain only a currently approved recognizable display name or safe alias,
+source referral reference necessary to render it, Expired meaning, and permitted
+source-known dates/precision. A minimal existing reference may aid disambiguation
+only if admitted for this purpose. Exclude phone, email, addresses, portraits,
+location, referrer identity, free text, notes, relationship chains, interests,
+giving and communication history. Do not fall back from a missing name to email,
+private title, initials derived from a hidden name or raw identity keys. Omit an
+entry lacking useful safe identification from this reader's rows and counts.
+Register/classify the response family through the existing static field-policy
+source under [ADR-0209](../../../adr/0209-static-field-policies-and-subtract-only-projection.md:16).
+Conditional recipient/expiry/history rules belong to the shared source/resolver,
+not per-value policy expressions or an app-local allowlist.
+
+**C05 — Honest dates and presentation.** Prefer the actual expiry date for a
+simple row; use other already-permitted source dates only when needed to make
+the referral understandable. Unknown dates remain unknown. Respect date-only
+versus instant meaning, source timezone rules and localized formatting. Expired
+SHALL never be rendered as donor refusal, Never Ask, inactivity or lost support.
+Do not infer dates or status from loaded history, display age or rounded values.
+
+**C06 — Effective expiry belongs to the source.** The exact producer SHALL
+distinguish ordinary referral-window expiry from all other ended/ineligible
+states and evaluate relevant deadlines with authoritative current time.
+Cleanup lag, stale cached flags and transaction-start time SHALL NOT preserve
+past authority. If expiry was lawfully recorded without a precise date, retain
+that uncertainty; a missing deadline alone neither expires nor preserves a
+referral. D34 selects no numeric duration, renewal cadence or timer architecture.
+
+**C07 — Read-only lifecycle.** Viewing, searching, filtering and refreshing SHALL
+not mutate referral status/dates/retention, renew a window, create a follow-up,
+complete or reopen tasks, reopen cultivation, log an interaction, imply donor
+response or send anything. Ordinary security/read telemetry is not such a
+business effect. Continuation and mistaken-expiry correction remain deliberate
+owner commands with their own separately selected authority. Ordinary expiry
+and history filtering do not cancel independently valid promised/planned
+follow-up or unrelated current work; only the relevant source may end its own
+requirement under [ADR-0183](../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:622).
+
+**C08 — Independent access remains independent.** Evaluate ordinary current
+supporter/Party access separately. D34 denial SHALL NOT erase valid independent
+access; that access SHALL NOT reveal otherwise protected expired-referral
+context. A same-person match or shared list shell SHALL NOT union field rights
+between these purposes. No broad contact-card link is admitted by the history row.
+
+**C09 — Current disclosure, including delayed work.** Derive tenant and actor
+from trusted current server context, not caller fields. Revalidate source,
+history scope, classification, retention and permitted fields for every result
+at the qualified server disclosure-release boundary after waits. Revocation
+accepted before release must prevent unauthorized release. Later revocation
+cannot recall bytes already lawfully released, including an in-flight response,
+external copy or human memory. Controlled clients discard responses from an
+obsolete context/revision once the change is known and clear forbidden cached
+content under the qualified P12 rules. Use existing revision/egress mechanisms;
+no new authorization system is introduced.
+
+**C10 — Database and privileged-path equivalence.** Qualify grants, table/column
+access, views, functions/RPCs, search, storage and service-role routes against the
+same exact contract. A browser SELECT grant on a broad source table is not a
+field-limited projection. Tenant-aware relationships, non-null trusted scope,
+source identity and indexes must preserve source invariants; D34 creates no
+money column or mutation endpoint. Existing owner writes must enforce both the
+old-row predicate and allowed new state; a permitted update cannot move actor,
+tenant, recipient, source or disclosure into a forbidden state. Do not presume
+that omitted WITH CHECK or every SECURITY DEFINER function is itself a bypass:
+test the actual effective policy, grants and execution owner.
+
+**C11 — Lists are an authorization surface.** Filter eligible rows and fields
+before search, totals, suggestions, ordering and pagination are exposed. Search
+only admitted fields; matching a hidden phone/email/private note must reveal
+nothing. Scope opaque cursors to the trusted actor/context, query and qualified
+revision semantics; a cursor is not an access grant. Preserve P9 keyset pagination, deterministic
+page traversal and no accidental duplicate/omitted admitted rows under the
+source's documented consistency contract. Do not sort by hidden sensitive facts
+or report excluded-row counts.
+
+**C12 — All egress uses the same ceiling.** Apply the projection to page payloads,
+accessibility text, tooltips, URLs, client state, server caches, search indexes,
+Realtime, notifications, logs, traces, errors and generated artifacts. D34 adds
+no export, print list, AI, newsletter, external sync or unrestricted offline
+storage capability. Existing separately qualified purposes retain their own
+authority. Use P12-approved cache/revalidation/eviction rules; no public or
+cross-user positive cache, raw protected row events or persisted client roster.
+
+**C13 — Retention is not history visibility.** Existing qualified source
+retention/erasure/hold rules govern. An edge's retained structural history does
+not authorize permanent readable names or private context. A legal hold does
+not grant normal history visibility. Reading SHALL not reset any deadline;
+disabling access SHALL not delete source evidence. No duplicate content snapshot
+may survive in D34 after lawful source erasure. Restores must reapply current
+restrictions and erasure disposition before exposure. D27/D28 preparation
+retention is not imported into referrals.
+
+**C14 — Correction, duplicates and identity.** Resolve exact source lineage and
+current identity/privacy through existing owners. Corrected dates/status/labels,
+withdrawal and invalidation affect current eligibility without rewriting lawful
+history. A Party merge preserves referral occurrences and grants no winner's
+fields/history by implication. Duplicate-looking names/dates never merge
+referrals; multiple referrals to the same Party remain source-distinct. D34 is
+not an editor, generic Undo or a means of reviving invalid referrals.
+
+**C15 — Minimal understandable interface.** Reuse existing Referrals filter/list
+controls with Active default and a plainly named Expired view. Show only useful
+admitted fields, a textual state and appropriate dates. Explain the limit once
+per view rather than blanking out a full contact form. No alarm badge, required
+acknowledgment, per-row approval, full locked record or fabricated continuation
+CTA. Where no safe row qualifies, provide a normal non-revealing empty state;
+offer only independently qualified generic assistance.
+
+**C16 — Accessible and field-usable.** Preserve exact shared base-maia/Base UI
+components, semantic tokens, keyboard access, focus, status announcements and
+WCAG 2.2 AA outcomes. Prove 320 CSS-pixel reflow, zoom and non-colour status with
+the implemented controls, not a static mock. Use bounded data and honest loading,
+empty and error states on weak connections. Reading must not require a new
+donor field, email, address, English-only name or a desktop-only table.
+
+**C17 — Policy and races.** Organization control uses existing qualified
+permissions. Absence of explicit admission denies this purpose; rollout grants
+nothing by role. Actual projection-policy widening preserves ADR-0211, while
+ordinary eligible reads acquire no routine second approval. Revocation/narrowing
+stops future disclosure through the existing policy boundary and does not
+change other valid grants or source history. Concurrent expiry, read, correction,
+reassignment, retention and policy changes must obey current source/P12 ordering.
+Unknown outcomes cannot be guessed from the UI. D34 adds no new domain command
+or idempotency ledger for reads.
+
+**C18 — Failures and recovery.** Authority or source uncertainty SHALL fail closed
+without claiming a complete empty history. Distinguish an allowed query's
+temporary failure from no eligible results; do not use different denied/not-found
+errors as a record-existence oracle. An unreleased old response cannot bypass current authority; controlled clients
+apply C09 to obsolete results once a change is known. Retry reads safely through
+current authority. Rebuild a
+derived view from source truth; do not repair it by reopening the referral,
+extending expiry or restoring a personal-data snapshot.
+
+**C19 — Performance without invented scale.** Use bounded server pagination and
+index/selectivity evidence for tenant, exact eligible recipient/work scope and
+effective source state. Do not load all contacts then redact or scan all history
+in the browser. Resolve current authority without per-row network fan-out.
+Choose exact page bounds, query/latency budgets and workload sizes from existing
+shared contracts and measured production-shaped fixtures before release;
+test their boundary values and large-tenant fairness. No unmeasured throughput
+or latency promise is made by this decision.
+
+**C20 — Accountable operation and audit.** Reuse source/P12 owners and existing
+diagnostic tools. Security logs must explain policy/scope denial and projection
+failures with approved identifiers, revisions and reason codes, not copied names
+or referral bodies. Source lifecycle/correction and policy history remain
+durable business/security evidence; a list view is not a new referral event.
+An authorized operator must diagnose a missing eligible row without direct DB
+repair or an unrestricted staff preview. Named operating roles/signals below
+must have actual people assigned before activation.
+
+**C21 — Dependencies and delivery boundary.** Reuse P9/P4/P10/P12 sources and
+shared UI/API ownership; qualify the missing exact expiry/history producer and
+source retention before exposing D34. Native history must not depend on external
+CRM sync, Studio, AI, sending providers or a new service. A missing D34 capability
+withholds this view only, not independently safe missionary or staff work.
+
+**C22 — Retained data and rollout.** Inventory retained relationship sources,
+recipient provenance, expiry precision, identity mappings and privacy/retention
+rules. Do not reinterpret all ended edges, old imported statuses or an unknown
+status as eligible Expired history. Unproved rows remain undisclosed until
+lawfully resolved through the owner. Use an additive, denied-until-qualified
+projection rollout; old clients/routes and raw grants cannot expose broader data.
+Contain at this purpose, preserve source facts and existing explicit grants,
+and requalify restored/mixed-version deployments before opening reads.
+
+**C23 — Do not preselect downstream rights.** This decision does not choose who
+can continue an expired referral, how long its window lasts, what proves a new
+introduction, or a new retention period. Ordinary expiry is not consent expiry
+or a general cannot-pursue disposition. Those source/product decisions must be
+resolved explicitly where needed; no generic Continue button, auto-renewal,
+cross-ministry transfer or broader history follows from A.
+
+**C24 — Traceable proof.** Preserve this selected decision, glossary, exact owner
+exception and C/P identifiers through later authorized owner contracts,
+OpenSpec/design/tasks/tickets/implementation/tests/release evidence. Reconcile
+generated views with their source; do not rewrite historical evidence. Test
+observable privacy and user outcomes. Documentation, finite examples, vendor
+articles and a visually plausible mock SHALL NOT be called runtime qualification.
+
+## Consolidated adversarial findings
+
+Likelihood describes credible failure if the amendment is omitted, not measured
+incidence. Severity concerns user harm or architectural impact. Every finding
+states the failure, why it matters, evidence, effect on A and the exact permanent
+correction. Category coverage below maps independently to these findings.
+
+| ID  | What could go wrong and why it matters                                                                                                               | Severity / likelihood                          | Evidence or reasoning                                                                                                | Effect on A; permanent fix and exact language                                                                                                               |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F01 | A separate locked archive makes users search twice, confront unusable rows or assume they can resume/contact. It adds work without a proved benefit. | Medium / high if copied from full CRM archives | Founder simplicity instruction; MPDX filter pattern; [UX](d34-evidence/ux-and-primary-research.md).                  | Narrows presentation. Adopt C01/C15/C16, prove P01/P02/P31/P32. A is an existing-list view with no invented CTA or empty protected-contact form.            |
+| F02 | Expired history silently bypasses the active-relationship rule or grants full Party data. Names/existence can expose a sensitive relationship.       | Critical / high if ordinary DTO is reused      | Owner constraint :143, P12 purpose floor; current broad donor DTO.                                                   | Changes required owner contract, not the ordinary Party gate. Adopt C02/C04/C09/C10; P03–P09.                                                               |
+| F03 | Old membership, authorship, reassignment or a merge becomes perpetual access; conversely first-recipient-only rules lose legitimate prior handoffs.  | High / medium                                  | Distinct membership/source roles in P12; history proof not currently specified for referral.                         | Narrows audience to source-proved pre-expiry work plus exact current authority, C03/C08/C14; P05/P06/P16/P17.                                               |
+| F04 | Cleanup delay, stale Active status, transaction-start time or guessed expiry dates prolong access or fabricate history.                              | High / high without effective-time checks      | P9 time bounds; no qualified detailed producer; current status fallback is Active.                                   | Requires C05/C06/C09/C17 and P10–P13/P18. Source effective time wins; date uncertainty remains honest.                                                      |
+| F05 | Hidden names are exposed via email fallback/initials; generic redacted rows and counts still disclose existence and confuse users.                   | High / medium                                  | Current DTO name/email fallback; P12 field/egress rules; UX recognizability need.                                    | Changes minimal-field contract, C04/C05/C11; P04/P07–P09/P15. Omit unrecognizable unsafe entries, including their counts.                                   |
+| F06 | Search on phone/private notes, hidden sort fields or replayed cursors reveal restricted facts even when rows look redacted.                          | High / medium                                  | Query inference follows from predicates and ordering; P12 read scope includes enumeration.                           | Requires C11/C12/C19; P08/P09/P20/P29. Apply authority before search/count/pagination and use the same closed projection.                                   |
+| F07 | Revoked/withdrawn/invalidated/departed work is labelled ordinarily Expired and becomes recoverable; reading starts new follow-up.                    | High / medium                                  | Brief expiry/cannot-pursue distinction; P27 return does not revive children or permissions.                          | Narrows eligible state and makes reads effect-free, C06/C07/C14/C23; P10/P14/P18/P21.                                                                       |
+| F08 | Browser state, logs, Realtime, export or delayed responses retain fields after restriction or cross a tenant/context switch.                         | Critical / medium                              | P12 all-egress requirement; stale response/cached data hazard independent of UI.                                     | Requires C09/C12/C13/C18; P19/P20/P25/P26/P33. Current proof, scoped caches and retention-aware cleanup; no recall claim.                                   |
+| F09 | A service-role route, raw SELECT, definer/view or allowed owner update crosses field/tenant/recipient boundaries.                                    | Critical / medium                              | [Database review](d34-evidence/database-authorization.md); actual grants/RLS determine exposure.                     | Requires C10 and P22–P24. Qualify real roles, grants, old/new row states and every exposed route; do not rely on UI or policy-name assumptions.             |
+| F10 | Duplicate-looking referrals are collapsed, a Party merge reveals another person's history, or a corrected date/label silently changes meaning.       | High / medium                                  | Native P4/P9 identity and source lineage; weak matches are not identity.                                             | Requires C03/C05/C14 and P15–P18. Preserve exact occurrences/history and re-evaluate current disclosure through owners.                                     |
+| F11 | An error appears as no history, retry restores a stale view, or support repairs by reopening records. Users lose confidence and source truth.        | Medium / high with optimistic fallback         | Existing source gap and ordinary lost/late-response cases; W3C feedback guidance.                                    | Requires C18/C20; P19/P27/P28. Honest unavailable/error, effect-free retry, source-backed repair.                                                           |
+| F12 | A copied archive becomes a second source with drifting labels, dates and retention. Existing donor statuses leak into referral semantics.            | High / medium                                  | ADR-0001; current legacy donor model is not source-qualified referral history.                                       | Changes architecture, C01/C02/C14/C21. P03/P18/P28/P34 require one source and disposable view, not another ledger or new state machine.                     |
+| F13 | A new switch matrix, approval per row, review queue or forced contact resumption overcomplicates a small read feature.                               | Medium / high if "customizable" is overread    | No selected need for additional controls; ADR-0211 is policy widening, not routine read approval.                    | Narrows configuration, C01/C15/C17/C23; P01/P02/P30/P31. Reuse current permissions; preserve mandatory policy governance only where applicable.             |
+| F14 | Staff or developers assume A chooses renewal actors, expiry duration or a broader archived-contact right.                                            | High / medium                                  | Q34 expressly isolated visibility; exact referral lifecycle producer remains unqualified.                            | Changes traceability and dependency wording, C02/C21/C23/C24; P03/P14/P34/P36. Keep downstream choices explicit; gate this purpose, not all workspace work. |
+| F15 | Retained edge history is treated as permanent readable PII; history reads extend retention, or restores resurrect erased material.                   | High / medium                                  | P9 structural history versus current P10/P12 disclosure; D27/D28 belong to preparation.                              | Requires C13/C22; P25/P26/P33. Qualified retention and restore fences, no copied history body or borrowed deadline.                                         |
+| F16 | Upgrade backfills every old ended/imported row into Expired or new default grants expose historic names; rollback restores unsafe endpoints.         | Critical / medium                              | Legacy/no-producer gap and explicit retained-data requirement; old fresh-build assumptions are inapplicable.         | Requires C21/C22 and P33–P35. Census, exact provenance, no implicit grants, mixed-version/grant qualification and smallest-scope containment.               |
+| F17 | Large history scans and per-row auth calls degrade the list; missing proof/failed projections need recurring developer repair.                       | Medium / medium, volume dependent              | Existing bounded-query goals; no production workload measured here.                                                  | Requires C19/C20; P28/P29/P35. Bounded indexed source queries, owned diagnostics, measured budgets and named signals.                                       |
+| F18 | A well-written decision or finite model is mistaken for deployed security or proven clear UX; owner artifacts contradict one another.                | High / high if statuses are collapsed          | [Document authority](../../../ai/document-authority.md); current code/source gap and unperformed user/runtime tests. | Requires C24 and P31–P36. Preserve evidence classes, exact exception and proof chain; release only after actual owner and user outcomes pass.               |
+
+## Every requested review category
+
+| Category                                                     | Material concern?                             | Independent assessment and exact correction                                                                                                                                                                                                                                                                          |
+| ------------------------------------------------------------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Problem validity, necessity and alternatives                 | **Yes**                                       | F01/F14. Limited recognition has a plausible supported use; a dedicated archive is unnecessary. Staff recovery is the strongest no-new-view alternative. Keep only C01/C15/C23; do not claim measured preference.                                                                                                    |
+| Brittleness                                                  | **Yes**                                       | F03/F04/F05. Prior recipient, safe label and correct time cannot be inferred from ideal data. C03–C06/C09 with P05–P13 make uncertainty and current proof explicit.                                                                                                                                                  |
+| Technical debt                                               | **Yes**                                       | F12/F13. Reusing donor statuses/broad DTOs or adding an archive store creates durable divergence. C01/C02/C14/C21 keep source truth and shared presentation separate.                                                                                                                                                |
+| Edge cases                                                   | **Yes**                                       | F03–F07/F10/F15. Multiple referrals/handoffs, same names, unknown dates, delayed expiry, independent access, merges, withdrawal and retention are addressed individually in the state table and P05–P21/P25/P26.                                                                                                     |
+| Footguns                                                     | **Yes**                                       | F05/F07/F13/F14. Clickable names, locked full cards or Continue buttons can imply rights/effects that do not exist. C04/C07/C15/C23 remove those affordances.                                                                                                                                                        |
+| Tenant safety                                                | **Yes**                                       | F02/F03/F08/F09. Same user across organizations and reused cursors/caches can mix history. C03/C09–C12/C17 and P22/P24 ensure exact trusted scope.                                                                                                                                                                   |
+| Database, RLS and authorization safety                       | **Yes**                                       | F02/F09/F10. Inspect actual grants, service roles, views/RPCs, tenant FKs and permissible old/new state; money precision is not involved because no money is added. C10/P22–P24 are required, not inferred from legacy policies.                                                                                     |
+| Overengineering                                              | **Yes**                                       | F01/F12/F13. Separate storage, inbox, approval/workflow engine or switch hierarchy is unwarranted. C01/C15/C17/C21 keep the product to one existing-list projection.                                                                                                                                                 |
+| UX/UI and user friction                                      | **Yes**                                       | F01/F04/F05/F11. Expired must identify the referral window, rows must be useful, errors honest, and interaction optional/accessibly clear. C05/C15/C16/C18; P01/P02/P27/P31/P32. No donor/public checkout steps are added.                                                                                           |
+| Source of truth, ownership and domain invariants             | **Yes**                                       | F02/F04/F10/F12. P9 source state and P12 history authority must never be replaced by a list flag or archived copy. C02–C08/C14 and the ownership table establish the authoritative facts.                                                                                                                            |
+| Hidden coupling                                              | **Yes**                                       | F07/F12/F14. Contact-wide status, cultivation reopening, goal/coaching history or optional Studio cannot drive referral-history access. C07/C08/C13/C21/C23 explicitly separate them.                                                                                                                                |
+| Failure modes                                                | **Yes**                                       | F08/F11/F15. Query failure, late responses and restore can create stale disclosure or false absence. C09/C12/C13/C18; P19/P25–P28/P33. No business write or external success exists in this read path to replay.                                                                                                     |
+| Lifecycle, temporal correctness, concurrency and idempotency | **Yes**                                       | F03/F04/F07/F08. Authoritative effective expiry, policy changes and correction races matter; read retries must remain reads. C06/C07/C09/C17/C18; P10–P14/P18–P20. Do not add a command ledger to an effect-free query.                                                                                              |
+| Data integrity risks                                         | **Yes**                                       | F04/F10/F12/F15. Date guesses, merge shortcuts and archive duplication corrupt meaning or retained history. C05/C06/C13/C14; P11–P18/P25/P26.                                                                                                                                                                        |
+| Security and privacy risks                                   | **Yes**                                       | F02/F03/F05/F06/F08/F09/F15. Names, counts and history existence are sensitive; source erasure and current disclosure apply across egress. C03/C04/C09–C13/P04–P09/P19–P26.                                                                                                                                          |
+| Scalability and performance risks                            | **Yes**                                       | F06/F17. History growth and auth fan-out can make a harmless-looking filter expensive or leak excluded counts. C11/C19; P29 requires quantified measured budgets and boundaries before activation.                                                                                                                   |
+| Operational burden                                           | **Yes**                                       | F11/F13/F17. A new support queue or developer-only diagnosis creates recurring cost. C15/C18/C20/P28/P35 preserve existing owners and source-backed repair.                                                                                                                                                          |
+| Observability and auditability gaps                          | **Yes**                                       | F08/F11/F17/F18. Need PII-minimized security diagnostics distinct from real source history; view reads must not masquerade as interactions. C07/C12/C20/P21/P28/P35.                                                                                                                                                 |
+| Dependency and integration risks                             | **Yes**                                       | F12/F14/F16. Exact native producer/access qualification is missing; competitor full archives are not Core contracts. C02/C21/C22/P03/P34. No new runtime vendor or external webhook is introduced.                                                                                                                   |
+| Migration, rollout and upgrade risks                         | **Yes**                                       | F15/F16. Historic ended rows, imports, old clients and restore can widen exposure. C13/C22/P33–P35 prevent unproved backfill and preserve reversible purpose containment.                                                                                                                                            |
+| Testability, traceability and proof                          | **Yes**                                       | F14/F18. Exact fields, effect-free reads, scope and no-grant assertions must be falsifiable across real API/DB/UI. C24/P01–P36 preserve selected versus ratified/implemented/qualified status.                                                                                                                       |
+| Other development hazards                                    | **No additional material concern identified** | Checked financial precision, payment/webhook duplication, new vendor billing, AI classification, public/donor burden and new queues: D34 introduces none. Identity, retention, rollout, source/permission gaps and unsafe copy are already covered above; no speculative engine or compliance workflow is warranted. |
+
+## Acceptance criteria and release proof
+
+The following are required observable outcomes for the later implementation.
+Only the explicitly documented finite model/structural checks are performed in
+this review; the real-world acceptance suite is not claimed complete.
+
+| ID  | Falsifiable outcome                                                                                                                                                                                                                                                                                                                                                                           |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P01 | Ordinary referrals initially show Active. Expired is an optional existing-list view; no extra dashboard, inbox, unread count, review task or missionary setting is introduced.                                                                                                                                                                                                                |
+| P02 | An eligible expired row shows a useful approved label, clear textual state and actual known date/precision; it neither looks like a contact action nor displays locked contact fields or an unqualified Continue button.                                                                                                                                                                      |
+| P03 | The exact P9/P12 historical-purpose exception is reconciled with the active-relationship constraint and OpenSpec before activation; ordinary Party/contact grants remain unchanged.                                                                                                                                                                                                           |
+| P04 | Payload/DOM/accessibility-tree assertions prove no contact, private-referral, referrer, note, location, giving or hidden raw identity fields escape through D34.                                                                                                                                                                                                                              |
+| P05 | A source-proved eligible prior recipient with current exact history authority succeeds; creator-only, historical-membership-only, old-link-only and unrelated current-assignee cases fail.                                                                                                                                                                                                    |
+| P06 | A legitimately qualified prior handoff recipient may independently succeed; adding another current recipient or changing ministry does not automatically transfer historical access.                                                                                                                                                                                                          |
+| P07 | Hidden name with present email never uses email/initials/private text as fallback. A separately approved useful safe alias can qualify; no useful safe label means no row or count.                                                                                                                                                                                                           |
+| P08 | Searching hidden phone, email, referrer, location or note returns no distinguishing row/count/suggestion or application success/error/response-shape signal; only permitted search fields participate. Also satisfy P12 R7's denied/missing uniformity proof, including statistical p50/p99 timing checks; this review does not claim identical network timing or completed production tests. |
+| P09 | Ordering, page size, totals and reused/tampered/cross-context cursors reveal no excluded records or hidden sort value; deterministic authorized traversal works for tied names/dates.                                                                                                                                                                                                         |
+| P10 | At the effective source expiry boundary, a late cleanup job cannot preserve active disclosure or suppress qualified history merely because a cached flag lags.                                                                                                                                                                                                                                |
+| P11 | One instant before, at and after the source-defined deadline behaves as specified by the owner; date-only, timezone/DST, unknown date and valid recorded expiry without precise date remain truthful.                                                                                                                                                                                         |
+| P12 | Mere age, missing deadline, imported Expired text, an unknown legacy status or ended graph edge cannot establish ordinary source expiry/history entitlement.                                                                                                                                                                                                                                  |
+| P13 | A read that waits across expiry/retention/policy changes resolves at the qualified current disclosure boundary; transaction-start time alone cannot preserve old authority.                                                                                                                                                                                                                   |
+| P14 | Withdrawal, invalidation, consent revocation, assignment end or departure never becomes ordinary expiry admission. Reading restores no permission or referral action.                                                                                                                                                                                                                         |
+| P15 | Multiple referrals/same names remain distinct with admitted disambiguation only; no name/date heuristic merge or hidden detail is used to distinguish them.                                                                                                                                                                                                                                   |
+| P16 | Party merge/correction preserves referral lineage without gaining winner contact fields, another recipient's history or a different tenant's record.                                                                                                                                                                                                                                          |
+| P17 | D34 denial leaves independently authorized current supporter access available; that independent access does not expose otherwise protected old referral context.                                                                                                                                                                                                                              |
+| P18 | Qualified source correction/continuation changes current Expired membership without rewriting lawful history; an older response cannot restore the earlier label/state.                                                                                                                                                                                                                       |
+| P19 | Separate cases prove revocation before server disclosure-release, already lawfully released bytes, and client-known context/epoch changes. Unreleased responses recheck current authority; controlled clients discard known-obsolete results. Reauthentication restores only currently permitted data; no recall of already released bytes is claimed.                                        |
+| P20 | Search indexes, cache entries, Realtime and logs expose only admitted D34 information; no raw protected row stream or public/cross-principal positive cache exists.                                                                                                                                                                                                                           |
+| P21 | Compare source/domain state before and after repeated views/searches/refreshes: no expiry extension, retention reset, task, interaction, cultivation transition, notification or message is created. Independently valid promised/planned follow-up is not cancelled by expiry or the history filter.                                                                                         |
+| P22 | Real authenticated, service, operator and unauthenticated paths prove same-tenant exact-scope outcomes, negative guessed-ID/direct-table/RPC/view cases and trusted attribution.                                                                                                                                                                                                              |
+| P23 | Owner mutations cannot change permitted old rows into forbidden tenant/recipient/scope/disclosure states; prove effective USING/WITH CHECK/grants and definer/invoker behavior with actual deployed-role equivalents.                                                                                                                                                                         |
+| P24 | Same user in two tenants, overlapping ministries, concurrent role/context change and late pagination cannot cross scope, including counts, errors and cached results.                                                                                                                                                                                                                         |
+| P25 | Source retention/erasure removes readable derived personal data; structural retained/held evidence is not ordinary history access; viewing never extends retention.                                                                                                                                                                                                                           |
+| P26 | Restore/backups/rebuilt projections reapply current erasure/privacy/source revisions before serving and cannot resurrect deleted labels or broader old grants.                                                                                                                                                                                                                                |
+| P27 | Authorized query failure gives an honest recoverable error, not empty success; denied/not-found behavior cannot identify hidden records. Repeat reads create no effects.                                                                                                                                                                                                                      |
+| P28 | Authorized source/P12 owners can diagnose and repair missing eligible projection data through normal tools without copying private bodies or changing referral lifecycle to fix a view.                                                                                                                                                                                                       |
+| P29 | Measure named page/query/latency budgets against tenant-isolated realistic history, highly restricted rows, tied dates, large tenants and concurrent reads; assert exact bound and bound-plus-one behavior and no N+1 network fan-out.                                                                                                                                                        |
+| P30 | New deployment grants no purpose by role; actual projection-policy widening requires ADR-0211 approval, while ordinary qualified reads do not require per-row approval. Narrowing contains this purpose without deleting history or stopping independent work.                                                                                                                                |
+| P31 | Intended missionaries and staff can find eligible expired history, understand its restricted purpose and distinguish expiry from refusal/revocation without training prompts; a critical unsafe misunderstanding blocks activation.                                                                                                                                                           |
+| P32 | Real phone/320px reflow, zoom, keyboard, screen reader, non-colour status, international names, localized dates and interrupted loading pass the full implemented journey.                                                                                                                                                                                                                    |
+| P33 | Retained-data census and mixed-version/restore tests prove that old ended/imported/unknown-status records, clients and raw routes do not gain broader visibility; source records/history remain intact.                                                                                                                                                                                       |
+| P34 | Native history functions with Studio, AI and external providers unavailable; missing D34 producer/retention/current-authority qualification withholds only this purpose.                                                                                                                                                                                                                      |
+| P35 | Assigned owners demonstrate containment and recovery for each named signal below; actual workloads and numerical budgets are recorded before release, not claimed from this review.                                                                                                                                                                                                           |
+| P36 | Q34→D34→glossary→owner exception→authorized OpenSpec/design/tasks/tickets→implementation/tests/release can be traced without contradictory field/status/actor meaning or claiming a selected answer is already ratified or deployed.                                                                                                                                                          |
+
+## Ruthless synthesis and order
+
+1. **Before recording the corrected answer:** retain A, replace the implied
+   archive with one optional Expired view, explicitly record the narrow owner
+   exception, define useful identifying fields and omit unsafe/unrecognizable
+   entries. Separate ordinary expiry from every other ending and history from
+   continuation. These consequences are resolved in the corrected decision and
+   C01–C08/C15/C23; no further clarification is needed for this review.
+2. **Capture in the later authorized spec/design:** reconcile the exact P9
+   expiry/recipient/history producer and P12 purpose with the owner constraints,
+   P10 label/privacy rules and source retention. Preserve P27, contactability,
+   preparation and financial boundaries. Resolve the separately unselected
+   continuation actor/expiry policy when that frontier is reached. Do not invent
+   those answers or a second source while documenting this read feature.
+3. **Require before implementation activation:** one closed server projection,
+   current scope/time/retention checks, real grants/RLS/privileged-path proof,
+   safe search/count/cursor/cache behavior, retained-data/mixed-version tests,
+   scoped containment and actual phone/assistive/user-comprehension proof. The
+   missing exact source is a gate for D34, not a reason to block all independent
+   workspace work. No cosmetic demo or synthetic model substitutes for it.
+4. **Monitor only residual operating risks:** use the following named signals
+   after the prevention gates pass. These are proposed operational triggers,
+   not measured production failure rates. Actual responsible people must be
+   assigned to the owner roles before release.
+
+| Signal                                                                                                      | Threshold                                                                     | Accountable owner                                    | Required response                                                                                                                                                                                    |
+| ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unauthorized row/field/count/cursor or stale revoked disclosure                                             | Any 1 confirmed occurrence                                                    | P12 security owner with P9 source owner              | Contain the affected purpose/route, preserve minimized evidence, correct the boundary and requalify before reopening.                                                                                |
+| Wrong source disposition, lost lineage or read-created business effect                                      | Any 1 confirmed occurrence                                                    | P9 CRM/referral owner                                | Stop affected projection/action path, preserve lawful source truth, repair through the owner and add a regression case.                                                                              |
+| Critical misunderstanding: user believes history permits contact/continuation or expiry means donor refusal | Any 1 credible unsafe misunderstanding in pre-release or production feedback  | P28 product/UX owner                                 | Block or contain affected rollout, correct copy/affordance and retest the journey before expansion.                                                                                                  |
+| Blocking accessible/phone task                                                                              | Any 1 reproducible blocker                                                    | Shared UI accessibility owner with P28 surface owner | Stop affected activation, fix shared behavior and verify actual keyboard/assistive/phone flow.                                                                                                       |
+| Query/latency/workload budget breach                                                                        | Breach of the exact measured release budget in 3 consecutive 5-minute windows | API/SRE owner with P9 query owner                    | Inspect scoped query/authorization/load evidence, contain expensive reads as needed and correct without widening or dropping privacy checks. Numerical release budgets must exist before activation. |
+| Repeated projection/permission repair required for one incident                                             | 3 failed safe repair attempts, or any terminal repair failure                 | P9 operational owner with P12 support owner          | Stop repeated retries, route an owned exception through existing operations and fix the source/projection cause without direct data alteration.                                                      |
+
+No security, source identity, retention or safe-label guarantee is relegated to
+monitoring. No universal referral lifetime, retention duration, page size or
+throughput figure has been invented. This read feature introduces no mandatory
+review deadline, donation reconciliation SLA or donor-facing recovery message.
+
+## Evidence and verification limits
+
+Independent [governance/lifecycle](d34-evidence/governance-and-lifecycle.md),
+[database/authorization](d34-evidence/database-authorization.md),
+[UX](d34-evidence/ux-and-primary-research.md),
+[comparisons](d34-evidence/comparable-products.md) and
+[counterexamples](d34-evidence/counterexample-review.md) inform this review.
+The [original Q34](d34-evidence/q34-before-answer.txt) and all 23 D33 evidence
+files are preserved by [hash manifest](d34-evidence/prior-evidence-sha256.json).
+
+The new [finite model](d34-evidence/model-readme.md) passed **68 outcome
+assertions across 13 counterexample families and 4 positive controls**. Root
+read its source and independently executed only this new model once; the
+[reproduction](d34-evidence/root-reproduction.json) is byte-identical. It models
+finite ordered decisions with qualified fixture facts, not real locking,
+database enforcement or client/network behavior. Lawful recorded expiry without
+a precise date, no-ministry work scope and real error-versus-empty behavior
+remain explicit release cases, not modeled positives. Its release-boundary
+example does not recall bytes already emitted.
+
+[Cross-review resolution](d34-evidence/cross-review-resolution.md) records the
+material corrections and their exact clauses. The new read-only
+[original structural verification](d34-evidence/review-verification.json) checks the
+22 categories, 18 findings, 24 clauses, 36 proof obligations, current statuses,
+local references and preserved evidence; it executes no model or old verifier.
+
+No actual Core referral producer, real RLS/catalog, concurrency,
+retention/restore, browser, assistive-technology, user-study or production
+performance qualification is claimed. No earlier model/probe/verifier is rerun.
+No formal PRD/ADR/OpenSpec, implementation ticket, application/schema, live
+permission, external communication or GitHub state is changed.
+
+**Final disposition: Accept with required amendments.** Keep the selected limited
+history, make it a simple ordinary-list view and enforce the precise source and
+disclosure boundary. The founder has now explicitly ratified the corrected
+decision and all required amendments. The original answer review posed no Q35.
+
+## Explicit ratification
+
+On October 18, 2026 Asia/Bangkok, the founder instructed: **“Ratify this decision
+and amendment. Then continue with this phase 28 grill-with-docs session.”** This
+ratifies the exact corrected decision, C01–C24, P01–P36 and operational controls
+above as future requirements. The recorded outcome is an optional, minimal
+Expired view in the ordinary referral list, with the explicit narrow P9/P12
+history-purpose amendment, current source/privacy/retention authority, useful
+approved identification and no contact or continuation right. Independent access
+and valid promised follow-up remain intact. No new archive, queue, per-entry
+approval, continuation actor, universal expiry duration or retention period is
+selected.
+
+Ratification does not establish formal owner-contract integration, implementation,
+real source/authorization proof or activation. The founder's research-only
+boundary remains in force. The [pre-ratification review](d34-evidence/d34-before-ratification.txt)
+and [Q34 research](d34-evidence/q34-before-ratification.txt) preserve the original
+wording byte-for-byte. The [ratification manifest](d34-evidence/ratification-evidence-sha256.json)
+preserves all 15 original D34 evidence files plus both snapshots. The new
+[ratification verification](d34-evidence/ratification-verification.json) checks
+unchanged exact decision/C/P sections, current statuses, references and preserved
+evidence without executing an earlier model, probe or verifier. [Q35 research](phase28-q35-expired-referral-continuation-authority-research.md)
+addresses the next independent continuation-authority choice; it is unanswered.

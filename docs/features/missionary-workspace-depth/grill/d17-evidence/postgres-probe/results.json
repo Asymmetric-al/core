@@ -1,0 +1,1026 @@
+{
+  "recorded_at": "2026-10-16T13:53:49.651896+00:00",
+  "scope": "Synthetic D17 stable-source-ID import staging, row acceptance, leases and current-authority mechanics only; not Core/P12/Supabase/Auth/PostgREST/API qualification.",
+  "outcomes": 30,
+  "passed": 30,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "d79b6b3a85c0193f67808c8e117a46ede958d9deb3fcb584f9279992eb75f8f1",
+    "run.py": "392d2bfb602a3c2af6d5c00f6840ab10f299ce799dbb02d35a89af93cf7bf599",
+    "sources.json": "42c416d7425b9eda02a2c531faf494331912ca8bfe9d37c2bbad8cffc802bbd8"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "fixture_steps": [
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,1,10,'missionary_a',1,1,'preview'); INSERT INTO probe.plans SELECT 1,1,1,10,'same-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,1,10,1,'A','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic A\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,1,1); INSERT INTO probe.rows VALUES(1,1,10,2,'review','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic review\"}'::jsonb,'review',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,1,2); INSERT INTO probe.rows VALUES(1,1,10,3,'B','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic B\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,1,3); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,2,10,'missionary_a',2,1,'preview'); INSERT INTO probe.plans SELECT 1,2,2,10,'same-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,2,10,1,'old-plan','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic old-plan\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,2,1); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.plans SELECT tenant,20,session,workspace,byte_digest,2,source_namespace,authority_revision FROM probe.plans WHERE id=2; UPDATE probe.sessions SET current_plan=20,revision=2 WHERE id=2; COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(1,1,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(1,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,3,10,'missionary_a',3,1,'preview'); INSERT INTO probe.plans SELECT 1,3,3,10,'reordered-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,3,10,99,'A','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic A\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,3,99); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(3,3,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(3,99);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,4,10,'missionary_a',4,1,'preview'); INSERT INTO probe.plans SELECT 1,4,4,10,'same-bytes',2,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,4,10,1,'A','{\"email\": \"synthetic@example.invalid\", \"name\": \"Changed mapping\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,4,1); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(4,4,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(4,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,5,10,'missionary_a',5,1,'preview'); INSERT INTO probe.plans SELECT 1,5,5,10,'same-bytes',1,'different-source',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,5,10,1,'A','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic A\"}'::jsonb,'review',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,5,1); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(5,5,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(5,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(1,3);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.jobs SET lease_until=clock_timestamp()-interval '1 second' WHERE plan=1 AND row_number=3;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "worker_b",
+      "sql": "SELECT probe.claim(1,3);",
+      "exit_code": 0,
+      "stdout": "lease:2",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(1,2);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,6,10,'missionary_a',6,1,'preview'); INSERT INTO probe.plans SELECT 1,6,6,10,'same-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,6,10,1,'audit-fail','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic audit-fail\"}'::jsonb,'eligible',NULL,NULL,'FAIL_FIXTURE_AUDIT'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,6,1); INSERT INTO probe.rows VALUES(1,6,10,2,'after-failure','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic after-failure\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,6,2); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(6,6,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(6,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(6,2);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,7,10,'missionary_a',7,1,'preview'); INSERT INTO probe.plans SELECT 1,7,7,10,'same-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,7,10,1,'parallel','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic parallel\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,7,1); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,8,10,'missionary_a',8,1,'preview'); INSERT INTO probe.plans SELECT 1,8,8,10,'other-export',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,8,10,42,'parallel','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic parallel\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,8,42); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(7,7,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(8,8,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(7,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(8,42);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,9,10,'missionary_a',9,1,'preview'); INSERT INTO probe.plans SELECT 1,9,9,10,'same-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,9,10,1,'policy-off-first','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic policy-off-first\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,9,1); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(9,9,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(9,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.gates SET allowed=true,revision=revision+1 WHERE tenant=1 AND workspace=10 AND actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,10,10,'missionary_a',10,1,'preview'); INSERT INTO probe.plans SELECT 1,10,10,10,'same-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,10,10,1,'accept-before-off','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic accept-before-off\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,10,1); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(10,10,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(10,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.gates SET allowed=true,revision=revision+1 WHERE tenant=1 AND workspace=10 AND actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,11,10,'missionary_a',11,1,'preview'); INSERT INTO probe.plans SELECT 1,11,11,10,'same-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,11,10,1,'A','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic A\"}'::jsonb,'eligible',1,1,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,11,1); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(11,11,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(11,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,12,10,'missionary_a',12,1,'preview'); INSERT INTO probe.plans SELECT 1,12,12,10,'same-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,12,10,1,'A','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic A\"}'::jsonb,'eligible',1,2,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,12,1); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(12,12,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(12,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,13,10,'missionary_a',13,1,'preview'); INSERT INTO probe.plans SELECT 1,13,13,10,'same-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,13,10,1,'cancel-first','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic cancel-first\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,13,1); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(13,13,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(13,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,14,10,'missionary_a',14,1,'preview'); INSERT INTO probe.plans SELECT 1,14,14,10,'same-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,14,10,1,'accepted-before-cancel','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic accepted-before-cancel\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,14,1); INSERT INTO probe.rows VALUES(1,14,10,2,'unprocessed-after-cancel','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic unprocessed-after-cancel\"}'::jsonb,'eligible',NULL,NULL,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,14,2); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(14,14,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(14,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(14,2);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; INSERT INTO probe.sessions VALUES(1,17,10,'missionary_a',17,1,'preview'); INSERT INTO probe.plans SELECT 1,17,17,10,'same-bytes',1,'source-A',revision FROM probe.gates WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; INSERT INTO probe.rows VALUES(1,17,10,1,'A','{\"email\": \"synthetic@example.invalid\", \"name\": \"Synthetic A\"}'::jsonb,'eligible',1,3,'ok'); INSERT INTO probe.jobs(tenant,plan,row_number) VALUES(1,17,1); COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.approve(17,17,1);",
+      "exit_code": 0,
+      "stdout": "approved",
+      "stderr": ""
+    },
+    {
+      "role": "worker_a",
+      "sql": "SELECT probe.claim(17,1);",
+      "exit_code": 0,
+      "stdout": "lease:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.jobs SET lease_until=clock_timestamp()+interval '2 seconds' WHERE plan=17;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "name": "preview_has_no_business_effects",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.preview(1);",
+      "expected": "3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "ordinary_staff_cannot_read_private_preview",
+      "role": "staff_a",
+      "counterexample": false,
+      "sql": "SELECT probe.preview(1);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "ordinary_staff_has_no_raw_staging_select",
+      "role": "staff_a",
+      "counterexample": false,
+      "sql": "SELECT * FROM probe.rows;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table rows\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "reviewed_plan_mapping_is_immutable",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "UPDATE probe.plans SET mapping_version=2 WHERE id=1;",
+      "expected": null,
+      "expected_sqlstate": "55000",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  55000: immutable reviewed fixture facts\nCONTEXT:  PL/pgSQL function probe.immutable_history() line 1 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "superseded_preview_cannot_approve",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.approve(2,2,1);",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "plan_workspace_FK_prevents_cross_scope_row",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.rows VALUES(1,1,20,9,'cross','{}','eligible',NULL,NULL,'ok');",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"rows\" violates foreign key constraint \"rows_tenant_plan_workspace_fkey\"\nDETAIL:  Key (tenant, plan, workspace)=(1, 1, 20) is not present in table \"plans\".\nSCHEMA NAME:  probe\nTABLE NAME:  rows\nCONSTRAINT NAME:  rows_tenant_plan_workspace_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "accepted_row_co_commits_target_lineage_and_outcome",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(1,1,1);",
+      "expected": "accepted",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "same_row_retry_returns_recorded_outcome",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(1,1,1);",
+      "expected": "accepted",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted",
+      "stderr": "",
+      "passed": true,
+      "source_counts": {
+        "before": "1:1:1:1:0",
+        "after": "1:1:1:1:0"
+      }
+    },
+    {
+      "name": "reordered_reimport_uses_source_identity_not_row_number",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(3,99,1);",
+      "expected": "already_imported",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "already_imported",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "changed_mapping_payload_cannot_overwrite_existing",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(4,1,1);",
+      "expected": "needs_review",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "needs_review",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "new_source_namespace_requires_review_not_email_merge",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(5,1,1);",
+      "expected": "needs_review",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "needs_review",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unclaimed_worker_cannot_accept_row",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(1,3,0);",
+      "expected": "stale_lease",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "stale_lease",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "live_lease_cannot_be_stolen",
+      "role": "worker_b",
+      "counterexample": false,
+      "sql": "SELECT probe.claim(1,3);",
+      "expected": "busy",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "busy",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "old_worker_epoch_cannot_advance_outcome",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(1,3,1);",
+      "expected": "stale_lease",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "stale_lease",
+      "stderr": "",
+      "passed": true,
+      "source_counts": {
+        "before": "1:1:2:4:0",
+        "after": "1:1:2:4:0"
+      }
+    },
+    {
+      "name": "new_claim_accepts_once_after_expiry",
+      "role": "worker_b",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(1,3,2);",
+      "expected": "accepted",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "review_row_does_not_rollback_other_accepted_rows",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(1,2,1);",
+      "expected": "needs_review",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "needs_review",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "provenance_failure_rolls_back_only_current_row",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(6,1,1);",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"provenance\" violates check constraint \"provenance_note_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.provenance VALUES(p.tenant,p_plan,p_row,p.workspace,p.source_namespace,r.source_id,target_id,r.audit_note)\"\nPL/pgSQL function apply_row(integer,integer,integer) line 33 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  provenance\nCONSTRAINT NAME:  provenance_note_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true,
+      "source_counts": {
+        "before": "2:2:3:6:0",
+        "after": "2:2:3:6:0"
+      }
+    },
+    {
+      "name": "other_row_can_accept_after_one_row_failure",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(6,2,1);",
+      "expected": "accepted",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "two_runs_same_source_one_target",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "worker_a",
+      "second_role": "worker_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_row(7,1,1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_row(8,42,1); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "already_imported\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted\nFIRST_READY\n",
+        "second": "already_imported\nSECOND_DONE\n",
+        "before": "3:3:4:7:0",
+        "after": "4:4:6:9:0"
+      }
+    },
+    {
+      "name": "policy_off_first_blocks_row_accept",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "policy_manager",
+      "second_role": "worker_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_row(9,1,1); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n",
+        "before": "4:4:6:9:0",
+        "after": "4:4:6:9:0"
+      }
+    },
+    {
+      "name": "revoked_import_scope_blocks_preview_egress",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.preview(1);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "re_enable_does_not_revive_old_approved_plan",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(9,1,1);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "row_accept_first_then_policy_off",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "worker_a",
+      "second_role": "policy_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_row(10,1,1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1 AND workspace=10 AND actor='missionary_a'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted\nFIRST_READY\n",
+        "second": "SECOND_DONE\n",
+        "after": "5:5:7:10:0"
+      }
+    },
+    {
+      "name": "target_edit_first_conflicts_reviewed_row",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "worker_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.touch_target(1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "edited\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_row(11,1,1); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "target_conflict\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "edited\nFIRST_READY\n",
+        "second": "target_conflict\nSECOND_DONE\n",
+        "target_revision": 2
+      }
+    },
+    {
+      "name": "row_verify_first_then_target_edit",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "worker_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_row(12,1,1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "already_imported\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.touch_target(1); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "edited\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "already_imported\nFIRST_READY\n",
+        "second": "edited\nSECOND_DONE\n",
+        "target_revision": 3
+      }
+    },
+    {
+      "name": "cancel_first_blocks_later_accept",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "worker_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.cancel(13); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "cancelled\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_row(13,1,1); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "cancelled\nFIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n",
+        "before": "5:5:8:12:0",
+        "after": "5:5:8:12:0"
+      }
+    },
+    {
+      "name": "row_accept_first_then_cancel_preserves_it",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "worker_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_row(14,1,1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.cancel(14); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "cancelled\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted\nFIRST_READY\n",
+        "second": "cancelled\nSECOND_DONE\n",
+        "after": "6:6:9:13:0"
+      }
+    },
+    {
+      "name": "cancel_keeps_accepted_and_stops_unprocessed_row",
+      "role": "worker_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_row(14,2,1);",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true,
+      "source_counts": {
+        "before": "6:6:9:13:0",
+        "after": "6:6:9:13:0"
+      }
+    },
+    {
+      "name": "unsafe_file_row_keys_duplicate_and_rebind",
+      "role": "missionary_a",
+      "counterexample": true,
+      "sql": "WITH x(file,n,source) AS(VALUES('a',1,'A'),('a',2,'B'),('b',1,'B'),('b',2,'A')) SELECT count(DISTINCT file||n)::text||':'||count(DISTINCT source)||':'||(SELECT count(*) FROM x a JOIN x b USING(n) WHERE a.file='a' AND b.file='b' AND a.source<>b.source) FROM x;",
+      "expected": "4:2:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "4:2:2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "lease_expiry_during_target_wait_rolls_back_outcome",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "worker_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.touch_target(1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "edited\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second_sql": "SELECT probe.apply_row(17,1,1);",
+      "expected_sqlstate": "40001",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  40001: fixture lease expired before acceptance\nCONTEXT:  PL/pgSQL function apply_row(integer,integer,integer) line 34 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "before": "6:6:9:13:0",
+      "after": "6:6:9:13:0",
+      "job_done": "f",
+      "final_dark_effects": 0
+    }
+  ]
+}

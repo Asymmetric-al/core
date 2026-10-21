@@ -1,0 +1,175 @@
+{
+  "checked_at": "2026-10-18T15:14:51.423964+00:00",
+  "scope": "D49 selected earlier-gift campaign attribution, required review amendments and unanswered Q50; documentary proof only",
+  "checks": {
+    "only_scoped_existing_documents_changed": {
+      "passed": true,
+      "detail": [
+        "docs/features/missionary-workspace-depth/grill/phase28-completeness-adversarial-review.md",
+        "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md",
+        "docs/features/missionary-workspace-depth/grill/phase28-post-d46-amendment-reconciliation.md",
+        "docs/features/missionary-workspace-depth/grill/phase28-q49-campaign-remapping-history-research.md",
+        "docs/features/missionary-workspace-depth/grill/phase28-session.md"
+      ]
+    },
+    "evidence_unchanged": {
+      "passed": true,
+      "detail": {
+        "count": 790,
+        "mismatches": []
+      }
+    },
+    "formal_and_code_unchanged": {
+      "passed": true,
+      "detail": {
+        "count": 1655,
+        "mismatches": []
+      }
+    },
+    "ratified_completeness_clauses_unchanged": {
+      "passed": true,
+      "detail": {
+        "count": 20
+      }
+    },
+    "phase28-d42-verified-email-newsletter-signup-adversarial-review.md_unchanged": {
+      "passed": true,
+      "detail": "Entire document compared."
+    },
+    "phase28-d43-pending-newsletter-confirmation-adversarial-review.md_unchanged": {
+      "passed": true,
+      "detail": "Entire document compared."
+    },
+    "phase28-d48-tenant-correction-approval-decision.md_unchanged": {
+      "passed": true,
+      "detail": "Entire document compared."
+    },
+    "seven_founder_review_headings": {
+      "passed": true,
+      "detail": [
+        "What could go wrong with this answer?",
+        "What hidden assumptions are we making?",
+        "How does this affect the whole product?",
+        "How does this affect the end-user experience?",
+        "Does this follow modern best practices?",
+        "Does this fit Asym\u2019s existing repo and product direction?",
+        "Should we adjust the recommendation?"
+      ]
+    },
+    "all_22_categories_explicit": {
+      "passed": true,
+      "detail": {
+        "count": 22,
+        "categories": [
+          "Problem validity, necessity and alternatives",
+          "Brittleness",
+          "Technical debt",
+          "Edge cases",
+          "Footguns",
+          "Tenant safety",
+          "Database, RLS and authorization safety",
+          "Overengineering",
+          "UX/UI and user friction",
+          "Source of truth, ownership and invariants",
+          "Hidden coupling",
+          "Failure modes",
+          "Lifecycle, temporal correctness, concurrency and idempotency",
+          "Data integrity risks",
+          "Security and privacy risks",
+          "Scalability and performance risks",
+          "Operational burden",
+          "Observability and auditability gaps",
+          "Dependency and integration risks",
+          "Migration, rollout and upgrade risks",
+          "Testability, traceability and proof",
+          "Other development hazards"
+        ]
+      }
+    },
+    "nine_exact_review_amendments": {
+      "passed": true,
+      "detail": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09"
+      ]
+    },
+    "selected_vs_proposed_vs_unanswered_status": {
+      "passed": true,
+      "detail": "D49 selected; C01\u2013C09 reviewed; Q50 unanswered; no full E7 closure."
+    },
+    "material_amendments_present": {
+      "passed": true,
+      "detail": "Truthful correction, no-campaign reconciliation, cache version, source scope and original facts."
+    },
+    "recurring_and_temporal_scope_retained": {
+      "passed": true,
+      "detail": "Continuing commitment distinct from restart and explicit amendment; no timing/hierarchy overreach."
+    },
+    "six_official_external_sources_with_limits": {
+      "passed": true,
+      "detail": "Six current primary pages; access/update dates, excerpts and limits; exact alternative not overstated."
+    },
+    "ux_primary_sources_fetched": {
+      "passed": true,
+      "detail": {
+        "count": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ]
+      }
+    },
+    "local_links_and_cited_line_bounds": {
+      "passed": true,
+      "detail": {
+        "links_checked": 667,
+        "errors": []
+      }
+    },
+    "independent_document_review": {
+      "passed": true,
+      "detail": "Governance subagent reviewed final D49/Q50 and found no material correction; source claims and scope boundaries checked."
+    },
+    "no_previous_programs_executed": {
+      "passed": true,
+      "detail": "Fresh inline documentary checks only; no prior executable/model/checker imported or run; no runtime test or mutation."
+    }
+  },
+  "prior_document_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-completeness-adversarial-review.md": "862d953c547090544adbdd7badc219228f3ce550dc9f148a2a600e1ec465da8c",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md": "9062ecabfb10c90697ed816e4bc0226150ab950de6751719fb42ef558f73f4f4",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d46-amendment-reconciliation.md": "80cb99c95167c7fe6a5f3cb75e66526ad36d524edb1bdd8e803b717f3a9b7d9c",
+    "docs/features/missionary-workspace-depth/grill/phase28-q49-campaign-remapping-history-research.md": "3a546fdde555b5fec75f3937a40ea806ba527328ff77b6996bf69518c5e5dbc9",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "4ad724446b62ff12aba373fab3346d9b22e5d8c42f32c854b7a339b99772b3bd"
+  },
+  "current_artifact_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-completeness-adversarial-review.md": "99a4a1f8b3fd74c70b72574cfd3ff67b50fa348c7f0341e9ac47c9b6e75e79eb",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md": "cf0d59b6057d68a8165248820d4827a4ee2964cd8792dd506dce25273965f96e",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d46-amendment-reconciliation.md": "ef32a372be9e35f5ff37742b138f869ef3aa0e17966498751861dd42ebfc7e09",
+    "docs/features/missionary-workspace-depth/grill/phase28-q49-campaign-remapping-history-research.md": "38a1c4f01770bd81d7efdfe77d53be43dfd553d6d3d38781f0b1eec74a7c3752",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "1d4f9664224dfb706f891462fb850cf6243a856ba8c81f895f1f428c620bb0dc",
+    "docs/features/missionary-workspace-depth/grill/phase28-d49-preserve-earlier-campaign-attribution-decision.md": "42df4c52b02b58e97d4d0ee511e3f46560099f94e15735b8aeee3a04995d8c07",
+    "docs/features/missionary-workspace-depth/grill/phase28-q50-recurring-campaign-origin-research.md": "e646192349b2256cff2364e9921419a741f82b0696f7084320ed511a395a8929",
+    "docs/features/missionary-workspace-depth/grill/d49-evidence/external-research.md": "703149a960986b828d64eff9c3875a79f4c27ece4204cace9da4338a4ae1bc04",
+    "docs/features/missionary-workspace-depth/grill/d49-evidence/governance-review.md": "a3833a56fef8bff1af0e47350597a110ddfe19c2d0893ef6b060feae579111e3",
+    "docs/features/missionary-workspace-depth/grill/d49-evidence/ux-research.md": "759681256cf49deafbec9a6878cae9e796733d2d0fdc92ee92fcd069143f33aa",
+    "docs/features/missionary-workspace-depth/grill/d49-evidence/ux-source-1.txt": "2003c4c09031c684b7327f5923ce5da76fd5d0f4e03bbb6d676638fee2652301",
+    "docs/features/missionary-workspace-depth/grill/d49-evidence/ux-source-2.txt": "699ab6f41b51ec283ae9e7b6f5cc6029f549b39ba756f9054440a87703a8b959",
+    "docs/features/missionary-workspace-depth/grill/d49-evidence/ux-source-3.txt": "6fcbb1a95ca1f1ef3d74dc25a9e63e219116802d653d5e8c8f06d7177e3b1c29",
+    "docs/features/missionary-workspace-depth/grill/d49-evidence/ux-sources.json": "edd19c73950552648a086ff240fddd1536dad87951e58130853b645eedcf32fc"
+  },
+  "limits": [
+    "No formal owner specification, glossary or runtime code modified.",
+    "No hosted database/RLS, provider, migration, performance or representative-user qualification.",
+    "Official public docs reviewed; no authenticated competitor product testing.",
+    "D49 does not settle future recurring installments, exact event-time/hierarchy meaning or all E7 qualification."
+  ]
+}

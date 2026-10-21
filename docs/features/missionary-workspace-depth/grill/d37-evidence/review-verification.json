@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "scope": "Documentation structure, links, statuses and immutable evidence hashes only.",
+  "categories": 22,
+  "required_clauses": 16,
+  "future_acceptance_criteria": 24,
+  "checked_documents": 10,
+  "local_links": 546,
+  "line_references": 104,
+  "anchors": 61,
+  "pinned_d37_artifacts": 14,
+  "preserved_d36_evidence_files": 20,
+  "original_q37_preserved": true,
+  "prior_models_probes_or_verifiers_executed": false,
+  "runtime_ui_database_or_user_study_proof": false
+}

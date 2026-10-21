@@ -1,0 +1,132 @@
+[
+  {
+    "name": "changelog",
+    "url": "https://supabase.com/changelog.md",
+    "fetched_at": "2026-10-16T05:53:42.317573+00:00",
+    "status": 200,
+    "bytes": 102319,
+    "sha256": "15b3d0d1a7dc3b3f2c0af4788e49acfdf2d2edbd2613f22de0705fa43b1cf58b",
+    "local_raw": "/tmp/phase28-d5-primary/changelog.md"
+  },
+  {
+    "name": "supabase-rls",
+    "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+    "resolved_url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+    "fetched_at": "2026-10-16T05:53:40.457129+00:00",
+    "status": 200,
+    "bytes": 30344,
+    "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+    "local_raw": "/tmp/phase28-d5-primary/supabase-rls.raw",
+    "local_text": "/tmp/phase28-d5-primary/supabase-rls.txt"
+  },
+  {
+    "name": "supabase-columns",
+    "url": "https://supabase.com/docs/guides/database/postgres/column-level-security.md",
+    "resolved_url": "https://supabase.com/docs/guides/database/postgres/column-level-security.md",
+    "fetched_at": "2026-10-16T05:53:40.414199+00:00",
+    "status": 200,
+    "bytes": 4899,
+    "sha256": "92b072004509425cb24633fb1e653c7a457aa53a6891c4e3be06cb4a91a86f4e",
+    "local_raw": "/tmp/phase28-d5-primary/supabase-columns.raw",
+    "local_text": "/tmp/phase28-d5-primary/supabase-columns.txt"
+  },
+  {
+    "name": "supabase-functions",
+    "url": "https://supabase.com/docs/guides/database/functions.md",
+    "resolved_url": "https://supabase.com/docs/guides/database/functions.md",
+    "fetched_at": "2026-10-16T05:53:40.480643+00:00",
+    "status": 200,
+    "bytes": 10713,
+    "sha256": "9fe4a331db51fc7b91139c9ac62de0765477fb04f25a6960d38b9c57bc8b486d",
+    "local_raw": "/tmp/phase28-d5-primary/supabase-functions.raw",
+    "local_text": "/tmp/phase28-d5-primary/supabase-functions.txt"
+  },
+  {
+    "name": "supabase-api",
+    "url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+    "resolved_url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+    "fetched_at": "2026-10-16T05:53:40.468579+00:00",
+    "status": 200,
+    "bytes": 18172,
+    "sha256": "d2c47fd37a58003f294e11f47cdb05bdd2bb853f350c006a9e6a2c4249868e46",
+    "local_raw": "/tmp/phase28-d5-primary/supabase-api.raw",
+    "local_text": "/tmp/phase28-d5-primary/supabase-api.txt"
+  },
+  {
+    "name": "pg-policy",
+    "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+    "resolved_url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+    "fetched_at": "2026-10-16T05:53:42.228354+00:00",
+    "status": 200,
+    "bytes": 46910,
+    "sha256": "4a75de7338882ab78829708c3c4de9caa309508f8ba7261702889e3d211139e1",
+    "local_raw": "/tmp/phase28-d5-primary/pg-policy.raw",
+    "local_text": "/tmp/phase28-d5-primary/pg-policy.txt"
+  },
+  {
+    "name": "pg-grant",
+    "url": "https://www.postgresql.org/docs/17/sql-grant.html",
+    "resolved_url": "https://www.postgresql.org/docs/17/sql-grant.html",
+    "fetched_at": "2026-10-16T05:53:41.692557+00:00",
+    "status": 200,
+    "bytes": 37185,
+    "sha256": "64ca19d0a6ce68aa0332260b59902bd638e354d0f8cc8e95c8d1afe0347307f2",
+    "local_raw": "/tmp/phase28-d5-primary/pg-grant.raw",
+    "local_text": "/tmp/phase28-d5-primary/pg-grant.txt"
+  },
+  {
+    "name": "pg-isolation",
+    "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+    "resolved_url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+    "fetched_at": "2026-10-16T05:53:42.316975+00:00",
+    "status": 200,
+    "bytes": 47618,
+    "sha256": "32a32972bb04a3d539cbbc89914ff80573023bd900a8710a03bda487feb03000",
+    "local_raw": "/tmp/phase28-d5-primary/pg-isolation.raw",
+    "local_text": "/tmp/phase28-d5-primary/pg-isolation.txt"
+  },
+  {
+    "name": "pg-rls",
+    "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+    "resolved_url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+    "fetched_at": "2026-10-16T05:53:41.804827+00:00",
+    "status": 200,
+    "bytes": 31181,
+    "sha256": "549fe56f4eedf6fba605c42d3b90522fb6fb431e55b64d16f4ff7e31f1ca80c0",
+    "local_raw": "/tmp/phase28-d5-primary/pg-rls.raw",
+    "local_text": "/tmp/phase28-d5-primary/pg-rls.txt"
+  },
+  {
+    "name": "data-api-change",
+    "url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+    "resolved_url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+    "fetched_at": "2026-10-16T05:53:40.768608+00:00",
+    "status": 200,
+    "bytes": 163464,
+    "sha256": "dd04abd25fcf15c375249f0dddae1e4631c1ace02f1d9d101b2affba0321b62e",
+    "local_raw": "/tmp/phase28-d5-primary/data-api-change.raw",
+    "local_text": "/tmp/phase28-d5-primary/data-api-change.txt"
+  },
+  {
+    "name": "pg-minor-change",
+    "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+    "resolved_url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+    "fetched_at": "2026-10-16T05:53:41.587867+00:00",
+    "status": 200,
+    "bytes": 246966,
+    "sha256": "913f179a78e863bd1641ac627f8e158e6c770409c5ea65ec36ae0271ca5c1f67",
+    "local_raw": "/tmp/phase28-d5-primary/pg-minor-change.raw",
+    "local_text": "/tmp/phase28-d5-primary/pg-minor-change.txt"
+  },
+  {
+    "name": "tls-change",
+    "url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+    "resolved_url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+    "fetched_at": "2026-10-16T05:53:41.808552+00:00",
+    "status": 200,
+    "bytes": 87726,
+    "sha256": "c654e8a55f6c29168535263562b6076b6c8c53658e13136d0848542a8e6ddb96",
+    "local_raw": "/tmp/phase28-d5-primary/tls-change.raw",
+    "local_text": "/tmp/phase28-d5-primary/tls-change.txt"
+  }
+]

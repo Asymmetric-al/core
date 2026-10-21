@@ -1,0 +1,34 @@
+{
+  "artifacts": [
+    {
+      "bytes": 27368,
+      "sha256": "e9ad1b2f07aba883bad6b6e884af12f3267a0a42fac867135f7d0940cc2b0b34",
+      "snapshot": "initial-model.py.txt",
+      "source": "continuation-counterexamples.py"
+    },
+    {
+      "bytes": 11778,
+      "sha256": "72ad353a8486b523a3ceb489b5aedf9ac87e4ae8165d04996710c8c1040ce53c",
+      "snapshot": "initial-model.json",
+      "source": "continuation-counterexamples.json"
+    },
+    {
+      "bytes": 7167,
+      "sha256": "d4dbc49252b6e1acd1a948b203add69b39f58c54c2831f8e3cbb6e88a7dc343e",
+      "snapshot": "initial-model-readme.md",
+      "source": "model-readme.md"
+    },
+    {
+      "bytes": 10464,
+      "sha256": "b28ce385cd65758f8bf8095b32a66984385fe959534a28f7dab36fde90e16fe7",
+      "snapshot": "initial-counterexample-review.md",
+      "source": "counterexample-review.md"
+    }
+  ],
+  "original_counts": {
+    "counterexample_families": 15,
+    "passed_outcome_assertions": 102,
+    "positive_controls": 5
+  },
+  "purpose": "Byte-exact original D35 model artifacts before root-discovered time-only rejected-intent retry correction. No model executed."
+}

@@ -84,5 +84,9 @@ docs/prds/program-roadmap/source-2026-09-22/
 # Exact source hashes are retained in the formal Phase 27 source/publication manifests.
 docs/features/donor-development/grill/
 
+# Preserved Phase 28 grill decisions, captured probes and dated evidence.
+# Exact source hashes are retained in the formal Phase 28 source/publication manifests.
+docs/features/missionary-workspace-depth/grill/
+
 # Exact MIT upstream bytes used by refresh regression tests; provenance hashes are checked.
 tests/fixtures/skills/emil-upstream/

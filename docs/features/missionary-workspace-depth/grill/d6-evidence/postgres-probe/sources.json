@@ -1,0 +1,67 @@
+{
+  "fetched_at": "2026-10-16",
+  "scope": "PostgreSQL mechanics only; lifecycle policy is provisional, UUID fixture tokens do not qualify production token security or human/address proof.",
+  "sources": [
+    {
+      "id": "rls",
+      "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "raw_sha256": "549fe56f4eedf6fba605c42d3b90522fb6fb431e55b64d16f4ff7e31f1ca80c0",
+      "local_text": "/tmp/phase28-d6-rls.txt",
+      "text_sha256": "8e09cd6e88a959aa4f812b7e84147b893dbcfae833fa5cf52d083f3bc50da04a",
+      "section": "5.9 Row Security Policies",
+      "inspected_points": [
+        "RLS constrains rows and ordinary owners/bypass roles differ. The function executor is a nonowner and has no BYPASSRLS.",
+        "The public roles have no source table grants; one deliberate fixture intent writer exercises tenant RLS and composite integrity independently.",
+        "RLS is not an anti-enumeration timing/rate-control, HTTP method, token or human-intent proof."
+      ]
+    },
+    {
+      "id": "transactions",
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "raw_sha256": "32a32972bb04a3d539cbbc89914ff80573023bd900a8710a03bda487feb03000",
+      "local_text": "/tmp/phase28-d6-transactions.txt",
+      "text_sha256": "457bf019a88dba9800363f44afe2ea21fb9ecc1a835c715b06165f401af84d12",
+      "section": "13.2.1 Read Committed",
+      "inspected_points": [
+        "Conflicting updates/SELECT FOR UPDATE or SHARE wait and re-evaluate the updated row.",
+        "All fixture source writers lock purpose, then address, then subscription; five real overlapping transaction cases inspect the actual lock waits."
+      ]
+    },
+    {
+      "id": "atomicity",
+      "url": "https://www.postgresql.org/docs/17/tutorial-transactions.html",
+      "raw_sha256": "a99cbd8c8568a12bcca0d2650569de10da24eafece4fe8010d51a39868a51b40",
+      "local_text": "/tmp/phase28-d6-atomicity.txt",
+      "text_sha256": "860dee0213cf1bc236c79f4c4e88a40986af522749409ca88971019d283eb2a7",
+      "section": "3.4 Transactions",
+      "inspected_points": [
+        "Transactional updates commit as a unit or leave no partial effect on failure.",
+        "Injected failure during confirmation-intent insert rolls back the pending source, attempt and evidence. No crash/restart or provider-durability claim."
+      ]
+    },
+    {
+      "id": "constraints",
+      "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "raw_sha256": "cce33512bf9c9dcc29db138e888b72710c8e38a1eff18e0c74afff1ff16f2f57",
+      "local_text": "/tmp/phase28-d6-constraints.txt",
+      "text_sha256": "2aa857ee64c37a1bbd73b81246bc585a8e0b480a994af9c800f7d8461f36fe24",
+      "section": "5.5 Constraints, Foreign Keys",
+      "inspected_points": [
+        "Composite foreign keys bind corresponding columns and require matching referenced key shapes. NOT NULL prevents a missing component bypassing the check.",
+        "The intent FK binds tenant, attempt, purpose, address, address revision and generation; actual tests reject cross-tenant parent reference and same-tenant purpose relabeling."
+      ]
+    },
+    {
+      "id": "uuid",
+      "url": "https://www.postgresql.org/docs/17/functions-uuid.html",
+      "raw_sha256": "3d98f3ebd6f513bafc7e5b8d8f51a141ba10c0b02e0616ca388ee04c440e8302",
+      "local_text": "/tmp/phase28-d6-uuid.txt",
+      "text_sha256": "3d361c9f05fc7c3a86b5d4560453cd17871a367500b4c2d16363f873fc4459d4",
+      "section": "9.14 UUID Functions",
+      "inspected_points": [
+        "gen_random_uuid returns a version 4 random UUID. Used solely for isolated fixture tokens.",
+        "This test does not qualify a production token entropy budget, token delivery/storage policy, mailbox control, Auth identity or human action."
+      ]
+    }
+  ]
+}

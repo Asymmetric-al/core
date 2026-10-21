@@ -1,0 +1,98 @@
+# Q38 — one referral period or separate initial and continued periods
+
+Research and D37 ratification: **October 18, 2026 Asia/Bangkok**.
+Repository `9cada8f3d8ab59db391d3fd20df77fcadeb09813` and current research tree.
+The [corrected D37 decision and amendments](phase28-d37-starting-guide-research-and-design.md#explicit-ratification)
+are explicitly ratified. **Q38 is unanswered.** This is one product question
+under the [founder research boundary](phase28-founder-brief.md:21), not a new
+specification, runtime change or inferred period value.
+
+## The single choice
+
+Maya receives a new referral. The organization already chooses the follow-up
+period used when an eligible expired referral is deliberately continued.
+
+**Should new referrals use that same organization-set period, or a separately
+configured initial period?**
+
+- **A — One organization-set period (recommended).** Authorized staff set one
+  follow-up period for both new referrals and deliberately continued referrals.
+  Maya sees the applicable end date without choosing a date herself.
+- **B — Separate organization-set periods.** Authorized staff can set a different
+  period for a new referral and for a deliberately continued referral. Maya still
+  sees the applicable end date without choosing a date herself.
+
+A keeps one understandable setting and avoids a distinction without a demonstrated
+need. B is the strongest flexibility alternative: an organization may have a real
+reason to allow different windows for first follow-up and a later return. No
+research inspected here establishes that ministries generally need either rule.
+The recommendation is a simplicity judgment, not a measured ministry norm.
+
+Both choices preserve deliberate continuation, current permissions and existing
+accepted end dates. Neither automatically renews a referral, authorizes contact,
+changes the original introduction or extends data retention. The choice is the
+scope of organization configuration, not a number of days or the new-referral
+clock's start event.
+
+## Why this is open rather than a repeated question
+
+| Governing evidence                                                                                                                                                                                                                                              | Already settled                                                                                                                                                                                                         | Genuine remaining choice                                                                                                                                                                        |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [D36 corrected decision](phase28-d36-configured-referral-period-adversarial-review.md:16), [initial-period exclusion](phase28-d36-configured-referral-period-adversarial-review.md:48), [C01](phase28-d36-configured-referral-period-adversarial-review.md:231) | One organization-set finite period governs ordinary continuation by independently authorized staff and permitted missionaries. Maya does not choose a continuation date. Initial-referral scope is explicitly excluded. | Reuse that configured duration for initial windows, or maintain a distinct organization initial duration. A future answer must expressly resolve that scope; D36 is not silently reinterpreted. |
+| [D35 continuation decision](phase28-d35-referral-continuation-adversarial-review.md#exact-corrected-decision-to-record)                                                                                                                                         | Continuation is a deliberate source action, controlled by current tenant permission; the missionary control starts Off for new/unconfigured tenants. Staff authority remains independent.                               | Q38 changes neither actor authority nor the On/Off control. A period setting cannot enable continuation.                                                                                        |
+| [D34 history decision](phase28-d34-expired-referral-history-adversarial-review.md#exact-corrected-decision-to-record)                                                                                                                                           | Limited expired history is not contact access, continuation or retention authority.                                                                                                                                     | A shared duration cannot restore erased context or widen historical access.                                                                                                                     |
+| [Founder referral coverage](phase28-founder-brief.md:137), [native referral owner](../../../prds/program-roadmap/owner-constraints.md:81)                                                                                                                       | Source-linked referral provenance, expiry and deliberate continuation belong to native P9/P28 boundaries.                                                                                                               | These sources require expiry but do not supply a universal initial duration or choose one versus two settings.                                                                                  |
+| [CRM core](../../../../openspec/specs/crm-core/spec.md:14), [P12 current context](../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md:1552)                                                                                         | Native source commands and current scoped authority govern records, settings and disclosure.                                                                                                                            | No new permission, timer service, CRM or per-person configuration is needed to ask this choice.                                                                                                 |
+
+The broader frontier was checked before selecting this question. D7 already
+includes one-off newsletter scheduling, approved update reuse and qualified reply
+routing. D14 excludes attendee invitations from the selected connector scope;
+D15 is send-only and excludes inbox/reply synchronization. P27 already establishes
+voluntary managed work and qualified shared collaboration. Re-asking those as
+unsettled choices would obscure accepted scope. The initial-period distinction
+is an expressly retained unresolved branch, with a clear user consequence.
+
+## Fresh primary comparisons
+
+Both official pages were freshly opened on October 18, 2026 by the root reviewer
+and independently checked by the benchmark researcher. Publication/update dates
+are separate from retrieval; no authenticated vendor application was tested.
+
+| Source                                                                                                                | Documented fact                                                                                                           | Limit for this decision                                                                                                                                                                                                                      |
+| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [TntConnect — TNT Phase](https://www.tntware.com/tntconnect/help/en/pages/contacts_mpdphase.aspx), undated manual     | Distinguishes an expired referral from refusal or lack of response and suggests checking with the referrer where helpful. | It does not document an initial/continued duration, one shared setting, automatic expiry implementation or renewal calculation. Its fixed phase model and suggested referrer check do not override Core's adopted stages/continuation rules. |
+| [MPDX — Add Referrals to Contacts](https://help.mpdx.org/article/194-add-referrals-to-contacts), updated June 8, 2023 | Records the introducing connection/date and provides Recent and On Hand views.                                            | Recent's two weeks is a display filter; On Hand is status-based. Neither is an expiry or retention period, nor evidence for sharing initial/continued configuration.                                                                         |
+
+The comparisons support preserving provenance and explaining current work clearly.
+They do not settle A/B or justify inventing a default duration. No user interview,
+organizational policy survey or comparative outcome measurement is claimed.
+
+## User journey and implementation consequences
+
+Under A, staff maintain one **Referral follow-up period** with helper text saying
+it applies to new and deliberately continued referrals. Under B, the settings
+clearly distinguish **New referral period** and **Continued referral period**.
+Those are illustrative labels, not an accepted schema or new policy. In both,
+Maya sees the applicable end date in ordinary referral work and avoids a second
+date-entry decision. No routine per-person/project exceptions are bundled into
+this question.
+
+The selected answer's review must qualify the initial source event, late-recorded
+or imported introductions, original versus accepted dates, supported finite
+bounds, trusted settings and current source disclosure. Merely saving an old
+introduction now cannot silently be assumed to grant a fresh window. The exact
+initial anchor is **not selected here**, and no ready source producer is claimed.
+Continuation's ratified elapsed-day/acceptance semantics remain intact.
+
+Any configuration adoption or change must preserve already accepted windows and
+history, handle retained tenant settings deliberately, and apply the qualified
+new policy prospectively. A missing setting is not zero, infinity or permission
+to choose an invented fallback. Current consent/privacy/retention restrictions
+remain independently governing. Defaulting, migration, concurrency, retries and
+stale views are engineering obligations to reconcile after the scope choice,
+not numerical questions for the founder to guess.
+
+**Status:** Q38 remains unanswered. No D38, new accepted glossary term, formal
+owner amendment, implementation ticket, runtime/schema change, live setting or
+external communication is created. D37 ratification does not ratify D12's
+separate detailed amendments or answer Q38 by implication.

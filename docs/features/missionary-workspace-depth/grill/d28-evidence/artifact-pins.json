@@ -1,0 +1,45 @@
+{
+  "scope": "D28 supporting research, model and original evidence preserved for the completed answer review",
+  "artifacts": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/cross-review-resolution.md",
+      "sha256": "28fb7a1b383ddc402199d4633d64825fc852f61b7f68b48c40a208cfd6bdee73"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/database-and-authorization.md",
+      "sha256": "86799d2152360dfc3194cbb90cacad4d05a710242a0b2369f196c035d322eacf"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/governance-and-ownership.md",
+      "sha256": "bd09bd74e24912b6682121f5e3232118dd3245aacf470aaf498b716803814c0a"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/prior-evidence-sha256.json",
+      "sha256": "bc2fb9fa2dd60c50f849a20eed2f76e0af2f14d37d88d750084ffe5786405000"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/q28-before-answer.txt",
+      "sha256": "e4e8a0b47a5389130b9f7bcd1f83941d797a5619ea3b5d23f5289fb081354226"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/retention-counterexamples.json",
+      "sha256": "bda006f5805389830df2de41f1b4eb64ad0a8db0b4d3d14057cf7dfbeba52203"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/retention-counterexamples.py",
+      "sha256": "c8be2aabb6e0e0af003061280a6ec96c251aa41b0079d155dea1a82e8c934954"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/root-reproduction.json",
+      "sha256": "d3e9bd8788b58665ebe536fcf07cdaffe25c94bba0ed4ad406d0174ce9781b76"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/technical-fetches.json",
+      "sha256": "40ee7957db92bb139fcee44969fc470d7fd39de13ecc65295bce7b46176cbf81"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/ux-and-primary-research.md",
+      "sha256": "5ffe0048be835c67584451b0f45ee56ba49972ee9362d7846110124d11239c7a"
+    }
+  ]
+}

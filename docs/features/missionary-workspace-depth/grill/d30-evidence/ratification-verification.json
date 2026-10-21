@@ -1,0 +1,43 @@
+{
+  "kind": "D30 explicit ratification and Q31 unanswered continuation; documentation/provenance only",
+  "date_utc": "2026-10-18",
+  "passed": true,
+  "ratified": true,
+  "unchanged_d30_evidence_artifacts": 15,
+  "unchanged_d29_evidence_artifacts": 20,
+  "clauses_preserved_exactly": 24,
+  "proof_obligations_preserved_exactly": 32,
+  "findings": 18,
+  "category_count": 22,
+  "local_links_checked": 361,
+  "line_links_checked": 20,
+  "anchors_checked": 48,
+  "q31_posed": true,
+  "q31_answered": false,
+  "q32_posed": false,
+  "prior_models_or_database_probes_rerun": false,
+  "reviewed_documents": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-d30-one-time-need-follow-up-adversarial-review.md",
+      "sha256": "7e971b6349616c377eba9fba2a3f24b1c5aa674b8e7437d8713687a7d3acc472"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-q30-one-time-need-purpose-research.md",
+      "sha256": "85e86a488c17c9c555df53ec21e665d4cefd8502bda619c0631f2fa9b2578343"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-q31-above-commitment-minimum-research.md",
+      "sha256": "2d69e8571e894fcfcd6593ee455c9e8963650ce3abebf22af1c8d80b7cfa56e2"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-session.md",
+      "sha256": "f410a26d3f9c39ca8b26625f856a4fe65d8baa69cae12736756ec929e5d1f2e2"
+    }
+  ],
+  "limits": [
+    "Ratification does not implement, grant current authority, qualify or activate the source.",
+    "Original verification and semantic-model results remain unchanged historical evidence.",
+    "No live data/provider, formal spec, ticket or GitHub mutation."
+  ],
+  "errors": []
+}

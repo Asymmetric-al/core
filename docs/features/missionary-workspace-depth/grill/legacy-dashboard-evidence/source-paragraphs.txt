@@ -1,0 +1,531 @@
+P0001
+Final Feature Clarification Questions for Missionary Dashboard
+
+P0002
+Missionary Dashboard Questions
+
+P0003
+Missionary Feed & Social Engagement
+
+P0004
+Feed Privacy & Follower Logic: How will missionaries configure their “My Feed” visibility? Can they set their feed as public or private, and what is the default for security-sensitive fields? If private, what is the follow request process – do donors who have given to the missionary automatically gain access, or must they explicitly request to follow? How are follow requests approved or denied by the missionary, and is there a way to revoke a follower’s access later?
+
+P0005
+A: In the Missionary’s “My Feed” panel on their Missionary Dashboard there will be a sub-panel with settings and moderation. This is where they can choose the settings and moderation they want. Each option will be explained and the My Feed will also be explained with an understanding of how to use it.  
+
+P0006
+Here are the options for privacy: 
+
+P0007
+1.) Turned off where the whole thing is removed from their giving page and there is no mention or artifacts of having it off in their giving page. This is for people who just want to use it.
+
+P0008
+2.) Private - with three sub options 
+
+P0009
+	a.) Manually review and accept follow requests
+
+P0010
+	b.) Allow people who have donated to see your feed. 
+
+P0011
+3.) Allow anyone to see their feed. This will make it available to anyone whether or not the viewer is signed in or not. Totally public so anyone who goes to their donation page they will be able to see their feed. 
+
+P0012
+
+Here are options for content moderation:
+1.) Allow all comments (only people who you have approved to follow you can comment). If a commenter tries to make a comment without being signed in
+
+P0013
+2.) Approve comments manually. Requires the mission to be a full moderator and nothing gets posted for others to see without their explicit approval. 
+
+P0014
+3.) disable all comments and there is no mention or artifacts of having it off. People will still be able to view and react with like or prayer
+
+P0015
+
+
+P0016
+
+
+P0017
+Post Creation & Approval Workflow: What is the workflow for missionaries creating posts in their feed? Can they save drafts and publish when ready? If the organization requires admin approval of posts, how will that be indicated (e.g. posts marked “Pending Approval”) and what feedback do missionaries get upon submission? How are admins notified of pending posts and how do they approve them (and will the missionary see who approved and when)?
+Q: What is the workflow for missionaries creating posts in their feed? 
+A: It’s very similar to Instagram and the workflow with that but we allow for longer text that shows more like a Medium ( https://medium.com ) post to really feature their newsletter. With photos. So it will need to be mostly like instagram with features of Medium. Use both of these social media websites to get the workflow down. 
+
+P0018
+
+Q: Can they save drafts and publish when ready?
+A: Yes. 
+
+P0019
+
+Q: If the organization requires admin approval of posts, how will that be indicated (e.g. posts marked “Pending Approval”) and what feedback do missionaries get upon submission?
+A: It will show, awaiting [Tenant Name] admin approval, it will be posted as soon as it is approved –or something like this. Just use best practices here to make it clear and understandable. 
+
+P0020
+
+Q:  How are admins notified of pending posts and how do they approve them (and will the missionary see who approved and when)?
+A: But once it is posted, the admin who is responsible will be able to approve this should get an email or in app notification. The admin will approve it in their Mission Control Panel. Also , there they can decide how they want to be notified if a missionary has posted something that needs approval. Use best practices, or set an auto approval for 24 hours, so it gives the admin 24 hours to approve it, but if they don’t (they could be out sick, vacation, or sick)  
+
+
+
+P0021
+Engagement Features (Likes/“Prayers”): What donor engagement actions are supported on posts? We know donors can Like (❤️) and send a “Prayer” reaction (🙏). Is the like count visible to all users, and is the “prayed for” count visible only to the missionary (private acknowledgement)? How do we prevent donors from spamming these (e.g. one like/prayer per user per post)? Will missionaries see a list of which specific donors liked or prayed, or just aggregate counts?
+Q: What donor engagement actions are supported on posts?
+A: Prayer (Prayer hands), Like (Heart), and Fire (fire emoji)
+
+Q: Is the like count visible to all users, and is the “prayed for” count visible only to the missionary (private acknowledgement)? 
+A: Anyone can see the prayed for count. 
+
+Q: How do we prevent donors from spamming these (e.g. one like/prayer per user per post)? 
+A: We don’t need to worry about this. 
+
+Q: Will missionaries see a list of which specific donors liked or prayed, or just aggregate counts?
+A: In their engagement tab, they will see the list of who interacted with what and who commented in one long feed of chronological engagement. This is also where they can approve comments or followers (if they have selected to moderate their content.)
+
+
+
+P0022
+Comments & Interaction: Can donors comment on missionary posts directly in the feed? If so, will comments appear in chronological order or most recent first, and can threads or @mentioning be supported (likely not in v1)? How will missionaries be notified of new comments on their posts (e.g. in-app notification or email)? Also, can missionaries (or donors) reply to specific comments, or is it a flat comment thread per post?
+
+Q: Can donors comment on missionary posts directly in the feed?
+
+P0023
+A: Yes. Just like Instagram.
+
+Q: will comments appear in chronological order or most recent first, and can threads or @mentioning be supported (likely not in v1)?
+A: No @mentioning. The comments will just be in colonlogical order. 
+
+Q:How will missionaries be notified of new comments on their posts (e.g. in-app notification or email)? 
+A: In-Dashboard notification and emails (but they control their notification preferences in their dashboard settings so control this. Use best practices here.
+
+Q: can missionaries (or donors) reply to specific comments, or is it a flat comment thread per post?
+A: Yes, but just one layer threads so it doesn't get nested further by each comment. Just keep the rest of the replies to each other under that initial comment. Keep it simple, but use best practices. 
+
+
+
+
+P0024
+Donor Notifications & Digest Emails: How do donors receive updates about new posts? Will we implement per-missionary notification preferences (instant email per post, daily digest, weekly digest, or muted) as planned? Where in the UI can donors manage these settings (e.g. a settings icon on the missionary’s profile or in the donor’s preferences center)? Confirm that each tenant’s branding will be applied to these emails and that batching logic (e.g. group multiple posts into one email based on preference) is in place. How will in-app notifications work (a bell icon with real-time alerts for new posts when logged in)?
+
+Q: How do donors receive updates about new posts? Will we implement per-missionary notification preferences (instant email per post, daily digest, weekly digest, or muted) as planned?
+A:  The donor can decide how often they get notified and updated on their feed, as well as their donation receipts, notifications 
+
+P0025
+
+
+P0026
+
+
+P0027
+
+
+P0028
+
+
+P0029
+
+
+P0030
+Feed Discoverability & Sharing: For public feeds, can content be accessed by non-logged-in users? (E.g. if a missionary’s feed is public, can they share a link to a specific post or their feed page for anyone to view without login?) How will sharing be handled – will there be a “Share” button on posts that provides a public URL or social share options? If someone without permission attempts to view a private feed link, what is the user experience (prompt to log in and request access)? Also, will the missionary’s public profile page show a teaser of recent feed posts (e.g. latest 3 updates) to encourage people to follow or donate? If so, how do we handle this for private feeds (perhaps show a message like “This feed is private. Sign in to request access.”)?
+
+
+P0031
+A: Just use modern best practices. 
+
+P0032
+Content Moderation & Privacy Controls
+
+P0033
+Comment Moderation: What controls do missionaries have over comments on their posts? Can they delete or hide any comment on their own posts? If the tenant or missionary has enabled “comments require approval,” what is the process – do comments enter a pending state until the missionary approves them? How will missionaries review and approve/reject comments (inline on each post, or via a centralized comments management view)? Will donors be notified if their comment is rejected or removed, or does it simply disappear from their view?
+
+P0034
+A: Just use modern best practices. 
+
+P0035
+
+
+P0036
+Admin Oversight & Global Settings: What moderation capabilities exist for tenant admins? For example, can an admin set a tenant-wide policy that all posts require admin approval before publishing, or that comments are globally disabled or require approval? How do admins moderate content if needed – will there be an admin console to remove a post or comment that violates policies? Clarify how the system logs these actions for accountability (e.g. if an admin removes a post, is the missionary notified or is an audit log entry created?).
+
+P0037
+	A: Just use modern best practices. 
+
+P0038
+
+
+P0039
+Tagging & Content Categorization: Will the feed support any form of tagging or categorization of posts (for example, missionaries tagging posts as “Prayer Request”, “Newsletter”, or using hashtags)? This wasn’t explicitly mentioned, but if content tagging is planned, how would donors filter or search posts by tag? If not in V1, are there plans to introduce simple categorization to help missionaries organize updates (or for donors to see only certain types of updates)?
+
+P0040
+	A: Just use modern best practices. 
+
+P0041
+
+
+P0042
+Sensitive Missions and Privacy: How are we addressing scenarios where missionaries serve in security-sensitive locations and need extra privacy? For instance, can a missionary opt to hide or alias their personal details on public pages (e.g. use a pseudonym or only first name, no specific location mentioned) for safety? Should we allow certain posts to be marked “sensitive” so that they are not emailed or not shown publicly even if the feed is generally public? We need to ensure missionaries in closed countries can still use the update feed without putting themselves or locals at risk – what guidelines or features will support this (e.g. warnings about not posting identifiable data, or an admin setting to force those feeds to private by default)?
+
+P0043
+A: Just use modern best practices. 
+
+P0044
+
+
+P0045
+Media Content Moderation: Since missionaries can upload images and videos, are we implementing any checks or limits to ensure content is appropriate and doesn’t violate any policy (e.g. a file type/size check, virus scanning, or even a future content scanning for prohibited imagery)? We will have presigned URLs and private S3 storage for media – how do we ensure those links don’t leak sensitive media? (Confirm that we use short-lived signed URLs or CloudFront signed cookies and that direct listing of a bucket is impossible.) Also, will there be any manual review of media by admins or is it entirely on the missionary’s honor unless a donor reports an issue?
+
+P0046
+A: Just use modern best practices. 
+
+P0047
+Supporter Analytics & Financial Tracking
+
+P0048
+Dashboard Funding Metrics: What key funding metrics are displayed on the missionary’s dashboard home? We expect to show the missionary’s support raising progress – how is this calculated? (E.g. a “Support % vs Goal” where goal is the missionary’s personal budget target from CRM, and current support is the sum of recurring + average monthly one-time gifts.) Verify if this is a simple percentage or a detailed progress bar, and whether it updates in real-time with donations and pledges. Are we also showing year-to-date gift totals, monthly average, or comparisons to previous periods (as some systems do) to give context on trends?
+
+P0049
+A: Just use modern best practices. 
+
+P0050
+
+
+P0051
+Monthly Trends & Charts: Will missionaries be able to see giving trends over time (e.g. a chart of donations per month or a timeline of support level)? The spec mentions using Recharts – do we plan to include visual graphs such as a monthly donations bar chart or line graph for the past year, and perhaps a projection of recurring gifts forward? How will multi-currency be handled in these analytics if applicable (for missionaries receiving gifts in different currencies, or is everything standardized to the tenant’s base currency)?
+
+P0052
+A: Just use modern best practices. 
+
+P0053
+
+
+P0054
+New, Lapsed, and At-Risk Donors: How are we defining “new donors” and “at-risk donors” for the dashboard’s alerts? For example, is a “new donor” someone who gave their first gift in the last 30 days? Is an “at-risk” donor defined as a previously regular giver who hasn’t given in the last X months, or a recurring donation that failed or was canceled? Please clarify the criteria and whether these thresholds are configurable per tenant. How will these donors be surfaced – e.g. a list of names in a Donor Freshness widget with indicators for new or at-risk, possibly with the date of last gift?
+
+P0055
+A: Just use modern best practices. 
+
+P0056
+
+
+P0057
+Pledges and Commitments: If the CRM supports pledges (promised support) in addition to actual donations, how are those shown to the missionary? The spec mentions a Pledges board – will this be like a Kanban or list of pledge statuses (e.g. “Promised – not started”, “Active – on track”, “Lapsed – behind schedule”)? Can missionaries update or convert pledges to actual recurring donations from the dashboard (e.g. marking a pledge as fulfilled once the donor sets up a gift, or prompting to follow up)? We should verify how missionaries will use this: is it only informational (with data coming from CRM), or can they take actions such as sending a reminder or thank-you for a pledge through the interface?
+
+P0058
+A: Just use modern best practices. 
+
+P0059
+
+
+P0060
+True Account Balance (Income vs Expenses): The missionary dashboard will show the true fund balance (support account balance), factoring in donations (income) and organizational expenses/fees. How will this be presented? (e.g. a “True Balance” tile showing the current amount available in their account). Are we including a breakdown or at least the last updated date for that balance? Since this relies on finance data (LedgerEntries imported from QuickBooks/Xero or entered by finance staff), how real-time is it? Confirm the integration: are we syncing QuickBooks/Xero transactions automatically into our CRM so this balance updates frequently, or will it be updated via a nightly job or manual import? Missionaries will want to trust this number, so we should clarify how up-to-date it will be and if they can see details (like a link to view recent expense entries or a monthly finance report).
+
+P0061
+A: Just use modern best practices. 
+
+P0062
+
+
+P0063
+Multi-Designation Support: If a missionary is associated with multiple designations/funds (for example, they have a personal support fund and also manage a project or field fund), how do the dashboard analytics adapt? Can the missionary switch the view to see metrics for each fund separately or a combined overview? (The spec’s components suggest a designation selector for the FundingMeter – so a missionary could toggle between their personal fund and any project funds they “own”). We should confirm this behavior: does each fund have its own goal and progress percentage, and will all donor lists and tasks filter based on the selected fund or show combined data? Clearly delineating this will be important for missionaries who have more than one fundraising responsibility.
+
+P0064
+A: Just use modern best practices. 
+
+P0065
+Donor Management & Follow-Up Tasks
+
+P0066
+Donor List & Filtering: What will the “Donors” page or section show to the missionary? Likely a list/table of all donors who have given to that missionary’s designation(s). What columns and info are shown for each donor? (e.g. name, last gift date, total given, recurring status, maybe contact info or tags like “new” or “at-risk”). Will missionaries be able to filter or search their donors? For example, filter by last gift date range, by amount, or search by name. Considering some missionaries may have hundreds of supporters, confirm we’ll have at least basic search and sorting (and we’ll use efficient querying or virtualized lists for performance). Also, can this list be exported to CSV by the missionary if they want to do an offline analysis or import into another tool, or is export only via the CRM admin side?
+
+P0067
+A: Just use modern best practices. 
+
+P0068
+
+
+P0069
+Supporter Contact Info & Preferences: When viewing a donor in their list, what details can the missionary see about that donor? Do they get to see the donor’s email address, phone number, and mailing address for personal follow-ups? (In many systems, missionaries have access to contact info for their donors to send thank-you notes, etc., but we should ensure privacy compliance and that they only see what is necessary). Also, if a donor has asked to remain anonymous or not be contacted, how will that be indicated to the missionary to respect (e.g. a flag that this donor prefers no direct contact)? Are there any donors that might be hidden entirely (for example, if an org allows truly anonymous gifts)? We should clarify policy for showing donor PII in the missionary portal and ensure it aligns with donor consent.
+
+P0070
+A: Just use modern best practices. 
+
+P0071
+
+
+P0072
+Task Generation (Automated To-Dos): What kinds of tasks or reminders will the system generate for missionaries regarding donor activity? The spec suggests a task queue including items like “Send thanks to new donor X”, “Call to follow up with pledge Y”, “Credit card expiring for donor Z’s recurring gift,” etc. Please confirm the scope: will tasks be created for new donors (prompting a thank-you), for recurring gifts in decline/dunning (prompting reaching out or prayer), for pledges (prompting check-ins if a pledge hasn’t started or is ending), and for expiring cards (to possibly ask the donor to update)? How will these tasks be presented and managed? (e.g. a “Tasks” panel or page listing tasks with due dates). Can a missionary mark tasks as completed or snooze them, and will the system automatically remove tasks that are resolved (e.g. if a donor updates their card, the “card expiring” task should disappear)? We want to ensure this task system helps missionaries stay on top of their to-dos without becoming noise.
+
+P0073
+A: Just use modern best practices. 
+
+P0074
+
+
+P0075
+Quick Thank-You Actions: The donor list is said to have a “quick thank-you composer” – how will that work in practice? For example, will there be a button next to each donor (or each donation record) that opens an email template (using Unlayer) addressed to that donor to thank them for a recent gift? Clarify the UX: can a missionary select one or multiple donors (e.g. all new donors this week) and generate a batch of personalized thank-you emails? If using Unlayer templates for thank-yous, does the system automatically pull in donor name, gift amount, etc. via merge fields? Outline how much is automated vs. manual: the goal is to let missionaries easily send gratitude without leaving the dashboard. We should also ask if these thank-you communications are logged somewhere (for audit or for the missionary’s reference to see whom they have thanked and when).
+
+P0076
+A: Just use modern best practices. 
+
+P0077
+
+
+P0078
+Mailing Lists & Newsletters (MailChimp Integration): We know there is an integration to export donor lists to Mailchimp and design emails with Unlayer. How is this presented to the user? For instance, will the missionary have a “Newsletter” or “Email all Donors” function where they can compose a mass update. Confirm the flow: the spec mentions the missionary can design an email in the Thank You and Newsletter Composer (Unlayer) and either export that template to Mailchimp along with the list of their donors, or send it directly via SendGrid to selected donors. How will the missionary select recipients? (Possibly by applying filters on their donor list or just “all my donors” by default, with option to remove certain names). Will the system handle unsubscribes or communication preferences (for example, if a donor opted out of mass emails, ensure they aren’t included in the send list)? We should clarify if missionaries need admin approval to send mass emails or if it’s free for them to use (some orgs might want oversight of mass communications). Also, when sending via SendGrid directly, will the emails use the tenant’s domain and branding, and are they logged in the CRM (perhaps via BCC or activity records)?
+
+P0079
+A: Just use modern best practices. 
+
+P0080
+Communication & Newsletter Tools
+
+P0081
+Email Template Management: Will missionaries have access to pre-designed email templates for thank-yous or newsletters provided by the organization (tenant branding)? The spec suggests that templates with tenant branding can be shared to the missionary’s Unlayer editor. How will these be accessed – e.g. a template gallery or starter templates when composing a new email? And can missionaries save their own templates for reuse (for instance, a standard monthly update template they modify each time)?
+
+P0082
+A: Just use modern best practices. 
+
+P0083
+
+
+P0084
+Direct Send vs External Systems: When a missionary chooses to send an email to donors directly through the dashboard (via SendGrid), what safeguards and features exist? (For example, a preview step, or a confirmation before sending to say “This will be sent to 25 recipients”). Are emails sent one-by-one (per donor with personalization) or as a single BCC’d blast? We likely use single sends for personalization and better deliverability. If the missionary instead chooses to use Mailchimp (perhaps for more complex newsletter management), do we provide a smooth export? (E.g. “Export list & template” button that sends their donor emails to Mailchimp and copies the HTML). We should clarify the boundaries of these two options so missionaries know when to use each.
+
+P0085
+A: Just use modern best practices. 
+
+P0086
+
+
+P0087
+Communication Preferences & Compliance: How do we ensure donor communication preferences are respected in these tools? If a donor has unsubscribed from all missionary communications or indicated “do not email” in the CRM, will the portal prevent the missionary from including them in a mass email? We should ask how the system will handle opt-outs and if the missionary will be alerted that certain donors were excluded due to preferences. Additionally, will emails sent via the portal include the necessary unsubscribe links or physical mailing address for compliance (CAN-SPAM, GDPR) if they are mass newsletters? If the tenant requires that all bulk emails go through a certain system or include certain footers, we need to account for that in the design of this feature.
+
+P0088
+A: Just use modern best practices. 
+
+P0089
+
+
+P0090
+Integration with CRM Activities: When a missionary sends a one-off thank-you or a newsletter through the portal, will these actions be logged back in the CRM (TwentyCRM) as an activity record or note on the donor’s profile (e.g. “Thank-you email sent on Nov 20, 2025”)? This would be useful for audit and for others (like admin or coaches) to see what communications have gone out. If not automatically, do we expect missionaries to manually log communications anywhere, or will we forego that level of tracking in this portal phase?
+
+P0091
+A: Just use modern best practices. 
+
+P0092
+Profile & Public Page Management
+
+P0093
+Public Profile/Giving Page Editing: How can missionaries edit the content of their public-facing profile or project pages? We want them to be able to update their biography, ministry description, and other info shown to donors. Are we using a rich text editor within the dashboard for this (allowing formatting, links, maybe images), or integrating a headless CMS (the spec hints at a WordPress block editor integration)? Please clarify the editing interface: will it be a simple form with text fields for sections, or a more free-form page builder? We need to ensure consistency with the site’s style, so likely a structured editor is best. Also, is there a preview of how it will look to donors before they publish changes?
+
+P0094
+A: Just use modern best practices. 
+
+P0095
+
+
+P0096
+Profile and Cover Photos: What are the capabilities and constraints around uploading profile images and cover images for the missionary’s page? For example, do we provide cropping and positioning tools (to handle various aspect ratios) similar to modern social media? Should images be of a recommended size (we might provide guidelines or an indicator if the resolution is too low)? We also must store these in the multi-tenant storage – confirm that uploading a new profile/cover photo replaces the old one and that all images are stored under that tenant’s S3 path. Will the missionary see an immediate update on their public page after saving the new images (likely yes, possibly with cache invalidation via CloudFront)? Also, if a missionary does not upload a custom photo, will there be a default placeholder image or initial (to ensure the page still looks complete)?
+
+P0097
+A: Just use modern best practices. 
+
+P0098
+
+
+P0099
+Multiple Pages for Multiple Designations: How will the UI handle missionaries who “own” more than one giving page (for different designations/projects)? The spec mentions a “Giving Page” menu with sub-pages for each project they are the owner of. We need to confirm the design: e.g., under a section named “My Pages” or “Giving Pages,” they might see a list of pages they manage (Personal Support, Project XYZ, etc.) and can click each to edit content and images for that specific page. Is this how we’ll implement it? If so, should each page have its own profile and cover images and story content? (Likely yes.) We should also ask: if multiple missionaries are co-owners of a project fund, do both get access to edit that project page, and how do we avoid conflicts (perhaps not in MVP, but good to clarify)?
+
+P0100
+A: Just use modern best practices. 
+
+P0101
+
+
+P0102
+Social Media and External Links: Missionaries can enter their social media handles/links (FB, Instagram, Twitter/X, YouTube, TikTok, LinkedIn, etc.) and these will be displayed on their public page as icons. How many and which platforms do we support at launch (the main ones listed above, presumably)? Is the expectation that the missionary provides just a URL or handle and we auto-generate the icon link? We should confirm the list of supported social networks and any other links (personal blog/website?). Additionally, will these links be visible to anyone viewing the page, and are there any concerns about linking to external content (we likely just open in new tab and that’s it)?
+
+P0103
+A: Just use modern best practices. 
+
+P0104
+
+
+P0105
+Personal Information Update (CRM Sync): There is a “personal data” tab where missionaries can update their own contact information and preferences (for internal use). What fields will be editable here? Based on the spec, likely: primary address, secondary address, phone numbers, preferred communication apps (with an ability to select one or multiple like WhatsApp, Telegram, Signal, etc.), alternate email addresses, and emergency contact info. When the missionary updates this, will it write directly to the CRM’s contact record for them (so staff/admin can see the latest info)? Are there any fields that require verification or approval (for example, if they change their primary email which is also their login, do we handle re-verifying that email or updating it in Keycloak for SSO)? We should clarify the process for an email change especially, to ensure the user can still log in after – possibly we force a re-login or verification email to confirm. Also, will the missionary be able to update things like their password or 2FA in this profile area, or is that handled separately via the SSO system account settings?
+
+P0106
+A: Just use modern best practices. 
+
+P0107
+Security, Roles & Audit Trails
+
+P0108
+Role-Based Access Enforcement: How do we ensure that missionaries only see data relevant to them and their donors? Confirm that the portal will use the tenant ID and missionary’s user ID to filter all data (e.g. they cannot query donors or posts that aren’t theirs). Are there any scenarios where a missionary might have broader access (for example, a team leader who can see multiple missionaries’ support data)? Or do all missionaries essentially have the same role with respect to data access (one designation owner = one view)? If we anticipate future roles (like a coach or field leader viewing a subset of data), we should design with that in mind, but presumably in this phase, it’s one missionary = their own stuff only.
+
+P0109
+A: Just use modern best practices. 
+
+P0110
+
+
+P0111
+Audit Logging: Will user actions in the dashboard be logged for audit and support purposes? For instance, when a missionary publishes a post, approves a follower, deletes a comment, edits their profile, or sends an email, do we record these events with timestamps and user IDs? The plan mentions using OpenTelemetry and structured logs. While that’s an implementation detail, from a product standpoint we might consider if audit history needs to be visible anywhere (probably only admins, not the missionary themselves). For now, likely only backend logs. But if an issue arises (say a missionary says “a post disappeared” or “I did send that email”), having these logs is crucial. We should verify which key events will be logged and how long we retain those logs. Additionally, is there any interface for missionaries to see a history of their own actions (for example, “View my activity” showing what posts were removed by an admin or what data changes they made)? Not likely needed for MVP, but worth asking if we foresee the need.
+
+P0112
+A: Just use modern best practices. 
+
+P0113
+
+
+P0114
+Data Isolation & Tenant Keys: The platform uses a multi-tenant architecture (each organization has isolated data and its own Stripe/SendGrid keys). Are we ensuring that all content and media created by a missionary is tagged with the tenant and stored in the correct partition (e.g. tenant-specific S3 folder, database schema, etc.)? This is mostly a given, but the question is to confirm no feature (like the feed or file storage) will inadvertently mix tenant data. Also, when generating links (like receipt PDFs or feed media URLs), they should be tenant-scoped (which we plan via signed URLs under a tenant path). Are we covering all areas where data could leak? (For example, caching layers or CDN – ensure keys are unique per tenant to avoid one org’s user accessing another’s content by guessing a URL).
+
+P0115
+A: Just use modern best practices. 
+
+P0116
+
+
+P0117
+Permission for Donor Data Access: From a donor privacy perspective, confirm that missionaries cannot see financial details beyond what’s needed. Do missionaries see each gift amount and date per donor, or just aggregated info? Many support-raising tools do show gift history per donor. If we do, we should treat that carefully: perhaps missionaries can see the dates and amounts of each donation from their supporters (since that’s common in tools like MPDX, DonorElf). If so, ensure that’s only their donors. We might ask if there’s any data we should hide or anonymize at the donor’s request (for example, if a donor doesn’t want the amount disclosed to the missionary, which is rare in this context but conceivable). Essentially, confirm the level of financial detail missionaries get: full donation records vs. summary totals.
+
+P0118
+A: Just use modern best practices. 
+
+P0119
+
+
+P0120
+Content Security (XSS/Injection): The missionary dashboard allows input of rich text (profile page editor, possibly feed captions) – are we sanitizing content to prevent script injection or malicious links? This is more technical, but important for security since these inputs might be rendered to other users (donor portal viewing a feed post or public page). We intend to use a safe subset of HTML/markdown. Are there any restrictions we want to communicate to missionaries about what they can/can’t include in text (e.g. no external HTML embeds for videos – we’ll handle media through our uploader)? Ensuring clarity here will avoid security issues and broken pages.
+
+P0121
+A: Just use modern best practices. 
+
+P0122
+
+
+P0123
+SSO and Session Management: Since missionaries (and donors) log in via Keycloak SSO, do we have any product-level requirements around that? (For example, session timeout durations – spec notes 8-24h idle timeout – is that acceptable from UX perspective? Should users be able to stay logged in longer or use “remember me”?). Also, will missionaries have the ability to manage their own account security settings via the portal (or a link to Keycloak account management for things like changing password, setting up two-factor authentication, adding passkey login, etc.)? This might be handled outside the product UI, but we should ensure the user is not confused about how to change their login credentials if needed.
+
+P0124
+A: Just use modern best practices. 
+
+P0125
+
+
+P0126
+Compliance (GDPR/PIPEDA etc.): If a missionary (as a user of the system) wanted to export or delete their data, what is the process? Likely this is handled administratively (not a feature in the UI), but we should be prepared with an answer. More directly, since missionaries are staff, they probably wouldn’t delete their account except on leaving the organization, in which case an admin would disable them. So mainly, ensure we have data protection policies in place for user data. Also, confirm that all sensitive personal data (addresses, contacts, etc.) is transmitted and stored securely (TLS in transit, encrypted at rest as noted, etc.). This is mostly an internal guarantee, but good to double-check that nothing in the missionary portal would break those rules (e.g. if we integrate something like Google Maps for addresses or a third-party widget, do we expose data inadvertently?).
+
+P0127
+A: Just use modern best practices. 
+
+P0128
+Performance & Scalability Considerations
+
+P0129
+Large Donor Bases: How will the dashboard perform for missionaries with a very large number of supporters or posts? For instance, if a missionary has 1000+ donors in their list, are we using pagination or virtual scrolling to ensure the page remains fast? We have plans for TanStack Table (which supports virtualized lists) – confirm that this will be in place for donor lists and gift tables to avoid loading hundreds of rows at once. Similarly, for the feed: will only a certain number of posts load initially (e.g. the latest 10) with an “infinite scroll” to load older updates? We should verify our approach to avoid overwhelming the browser or the server with large queries.
+
+P0130
+A: Just use modern best practices. 
+
+P0131
+
+
+P0132
+Feed Media Optimization: The social feed introduces potentially heavy content (images, videos). What strategies are we using to keep performance and costs in check? For example, are we limiting video duration or file size for uploads (such as max 50 MB or 2 minutes), and will we perform server-side compression or transcoding for videos? The plan mentioned possibly using HLS for long videos or restricting to MP4/H.264 for simplicity. We should clarify the limits: maximum number of images per post, max video length/size, and whether videos will auto-play (which can affect performance). By default, will videos be user-click-to-play to save bandwidth, or auto-play muted like Instagram? These decisions impact both user experience and load times, especially on mobile.
+
+P0133
+A: Just use modern best practices. 
+
+P0134
+
+
+P0135
+Caching and Load Times: How are we ensuring fast load times for missionaries on their dashboard, given potentially data-heavy components (charts, lists, etc.)? Are we employing SSR (server-side rendering) for the main dashboard data so that initial load is quick? Which parts of the dashboard are deferred or lazy-loaded? (E.g. maybe the donor list or feed isn’t fetched until that tab is opened, etc.). We want to hit performance budgets (e.g. LCP ≤ 2.5s). Confirm the use of TanStack Query for caching data on the client – will it, for example, cache the donor list or feed so when a user navigates away and back, it doesn’t refetch immediately? Also, are we implementing any offline or background sync considerations, or will the portal simply require internet for every action (likely online-only, which is fine)? We might also consider using Next.js incremental static regeneration or edge caching for any data that is not user-specific – however, most missionary data is user-specific (except maybe the profile page content which could be cached publicly if the page is public).
+
+P0136
+A: Just use modern best practices. 
+
+P0137
+
+
+P0138
+Stress Testing Scenarios: Have we anticipated worst-case usage scenarios for missionaries? For example, if 100 missionaries simultaneously send out a newsletter to thousands of donors, can our email sending (via SendGrid API and our queues) handle the burst? Or if a missionary with a large support base has, say, 10,000 donations in history (like a long-tenured missionary), can our system handle generating an annual statement PDF for them or letting them scroll through history? While not directly a feature question, raising these scenarios now can prompt us to implement safeguards (like pagination, background processing for PDFs, etc., which we have in spec). We should ensure any feature that could be heavy (reports, data exports, etc.) is either limited or queued appropriately so it doesn’t time out in the UI. Are there any such features in the dashboard that we need to offload (for example, generating a custom report might be an admin task, not in the missionary portal, so probably not an issue here)?
+
+P0139
+A: Just use modern best practices. 
+
+P0140
+Additional Features & Future Enhancements
+
+P0141
+Peer-to-Peer Fundraising by Missionaries: Beyond the basic support raising, do we want to explore any peer-to-peer fundraising tools from the missionary side? For instance, can a missionary create a campaign or fundraising event and have donors join as fundraisers (similar to how Kindful/Bloomerang allows supporters to create peer campaigns)? This is likely out of scope for now, but if any future plans exist, we should note them. In the current context, perhaps not – missionaries typically raise for their own fund, not mobilize others to raise on their behalf, except maybe in short-term team fundraisers. Just verify that we’re focusing only on the personal support and project fundraising features for now.
+
+P0142
+A: Just use modern best practices. 
+
+P0143
+
+
+P0144
+Missionary Referral Program: DonorElf has a referral incentive for missionaries to bring others onto the platform. Are we considering any in-app referral links or incentives (not necessarily a public feature, but perhaps a note or link for missionaries to refer a friend in another org to use our system)? This might be more business-side and not appropriate in the missionary-facing UI unless we explicitly want to promote it. If we do, it could be a simple banner or link, but likely this is not a priority feature for the product itself.
+
+P0145
+A: No need
+
+P0146
+
+
+P0147
+QR Code for Profile Page: Would it be useful to provide missionaries with a ready-made QR code linking to their public giving page or feed? This could help them easily share their page in print newsletters or presentations. If we think this adds value, we could generate a QR code image in their dashboard that they can download or copy. It’s a minor feature but could enhance ease of sharing. Should we include this, or at least plan for it in the future?
+
+P0148
+A: yes
+
+P0149
+
+
+P0150
+Donor Milestone Recognition: How will the system handle recognizing loyal or significant donors to a missionary’s fund? For example, will missionaries be alerted if a donor hits a milestone (like 5 years of giving, or a cumulative amount threshold)? This could prompt personalized thank-yous. It’s not mentioned in the current spec, but is this something we want to incorporate to boost donor care? We might not have it at launch, but knowing the interest level can help – for instance, we could at least show the donor’s “first gift date” or “total given” on the donor detail, and the missionary can infer milestones. Or we could future-schedule a task “Donor X has been giving for one year this month – consider sending a thank-you anniversary note.” Clarify if any such features are expected or desired.
+
+P0151
+A: Just use modern best practices. 
+
+P0152
+
+
+P0153
+Mobile App or Offline Usage: While our portals are web-based and mobile-responsive, is there any plan or demand for a dedicated mobile app for missionaries for on-the-go access? Tools like MPDX and DonorElf do offer mobile apps. Our approach is a responsive Next.js site on Vercel – which should work in mobile browsers and could even be saved as a PWA. Should we test for PWA capability or native app wrap in the future? This question is to ensure we aren’t missing out on a key user expectation (the ability to quickly check support status or add a note from a phone). Even if not in scope now, knowing if it’s on the roadmap will guide some technical decisions (like ensuring offline support or using frameworks that ease a future mobile app development).
+
+P0154
+A: Not for V1 but in the future maybe. 
+
+P0155
+
+
+P0156
+Cross-Role Considerations: Some users might be both a missionary and a donor (e.g. a staff member who also supports another missionary). With the unified SSO, can a single user account have access to both portals depending on context? If so, how do we present that? (Perhaps out of scope for now, but maybe in the future we allow switching between “My Donor Portal” and “My Missionary Dashboard” for such users). Right now, likely they would log into each subdomain separately, but the system would recognize their roles. Just confirm that having dual roles is supported by Keycloak (with multiple roles in token) and that our front-end will at least not error in that case. If we aren’t addressing a UI for role-switching now, it’s fine, but the data model should allow a person to be both without duplicating accounts.
+
+P0157
+A: Just use modern best practices. 
+
+P0158
+
+
+P0159
+Support for Coaching/Management: Down the line, will a team leader or coach have a view of multiple missionaries’ progress (as MPDX has a coaching view)? This is more of an admin/leadership portal question, but since it ties into how we architect data access, it’s worth asking if we should keep that in mind. The current spec is missionary-focused, but if an org asks “Can my regional supervisor see all her staff’s dashboards?”, our platform might direct them to an admin console rather than the missionary portal. So likely not in the missionary portal itself. We can note this as an out-of-scope but potential future need (just to ensure we design APIs that could accommodate that).
+
+P0160
+A: yes, have a coach view. Just use modern best practices. 
+
+P0161
+
+
+P0162
+Other Overlooked Needs: Are there any other capabilities or pain points from existing tools (DonorElf, TntConnect, MPDX, etc.) that we haven’t covered? For example, MPDX emphasizes contact management and integrations (Google contacts, prayerletters.com, etc.) – do we foresee adding any contact import or sync features for missionaries, or will all donor data entry be handled by the org’s CRM? (We assume the latter: the missionary consumes data, doesn’t create donor contacts.) Also, some tools allow note-taking or task tagging (for instance, the missionary could add a note about a conversation with a donor). We haven’t included a notes feature – is that something to consider or explicitly defer? By ensuring we’re not missing a critical feature that missionaries expect from support-raising software, we can either include it or consciously exclude it with reasoning.
+
+P0163
+A: Just use modern best practices. 

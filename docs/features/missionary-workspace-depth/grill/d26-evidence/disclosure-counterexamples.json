@@ -1,0 +1,158 @@
+{
+  "scope": "Finite D26 contract examples, not SQL, RLS, HTTP, or runtime proof.\n\nDeliberately unsafe comparator trusts authorization captured before a read,\nresolves a series to its newest task, and returns unreviewed source wording.\nThe guarded comparator sketches a fresh release decision over one coherent state.\nThis is a design falsifier: implementing this Python does not implement D26.",
+  "negative_counterexamples": 9,
+  "positive_controls": 3,
+  "passed": true,
+  "cases": [
+    {
+      "name": "changed_source_wording_after_preview",
+      "expected_allowed": false,
+      "unsafe_releases": true,
+      "guarded_releases": false,
+      "unsafe_payload": {
+        "task": "task-1",
+        "description": "Unreviewed private wording",
+        "due": "2026-10-23",
+        "status": "planned"
+      },
+      "guarded_payload": null
+    },
+    {
+      "name": "selected_task_moved_to_different_scope",
+      "expected_allowed": false,
+      "unsafe_releases": true,
+      "guarded_releases": false,
+      "unsafe_payload": {
+        "task": "task-1",
+        "description": "Prepare my introduction",
+        "due": "2026-10-23",
+        "status": "planned"
+      },
+      "guarded_payload": null
+    },
+    {
+      "name": "recurrence_successor_resolved_from_series",
+      "expected_allowed": false,
+      "unsafe_releases": true,
+      "guarded_releases": false,
+      "unsafe_payload": {
+        "task": "task-2",
+        "description": "Prepare my introduction",
+        "due": "2026-10-30",
+        "status": "planned"
+      },
+      "guarded_payload": null
+    },
+    {
+      "name": "revoke_then_fresh_regrant_does_not_validate_old_receipt",
+      "expected_allowed": false,
+      "unsafe_releases": true,
+      "guarded_releases": false,
+      "unsafe_payload": {
+        "task": "task-1",
+        "description": "Prepare my introduction",
+        "due": "2026-10-23",
+        "status": "planned"
+      },
+      "guarded_payload": null
+    },
+    {
+      "name": "read_at_exact_expiry",
+      "expected_allowed": false,
+      "unsafe_releases": true,
+      "guarded_releases": false,
+      "unsafe_payload": {
+        "task": "task-1",
+        "description": "Prepare my introduction",
+        "due": "2026-10-23",
+        "status": "planned"
+      },
+      "guarded_payload": null
+    },
+    {
+      "name": "late_result_after_old_permission_query",
+      "expected_allowed": false,
+      "unsafe_releases": true,
+      "guarded_releases": false,
+      "unsafe_payload": {
+        "task": "task-1",
+        "description": "Prepare my introduction",
+        "due": "2026-10-23",
+        "status": "planned"
+      },
+      "guarded_payload": null
+    },
+    {
+      "name": "policy_off_on_does_not_revive_old_consent",
+      "expected_allowed": false,
+      "unsafe_releases": true,
+      "guarded_releases": false,
+      "unsafe_payload": {
+        "task": "task-1",
+        "description": "Prepare my introduction",
+        "due": "2026-10-23",
+        "status": "planned"
+      },
+      "guarded_payload": null
+    },
+    {
+      "name": "restored_old_text_does_not_restore_old_approval",
+      "expected_allowed": false,
+      "unsafe_releases": true,
+      "guarded_releases": false,
+      "unsafe_payload": {
+        "task": "task-1",
+        "description": "Prepare my introduction",
+        "due": "2026-10-23",
+        "status": "planned"
+      },
+      "guarded_payload": null
+    },
+    {
+      "name": "share_preview_before_expiry_commit_at_expiry",
+      "unsafe_committed_share": true,
+      "guarded_committed_share": false
+    },
+    {
+      "name": "same_occurrence_status_and_due_remain_live",
+      "expected_allowed": true,
+      "unsafe_releases": true,
+      "guarded_releases": true,
+      "unsafe_payload": {
+        "task": "task-1",
+        "description": "Prepare my introduction",
+        "due": null,
+        "status": "completed"
+      },
+      "guarded_payload": {
+        "task": "task-1",
+        "description": "Prepare my introduction",
+        "due": null,
+        "status": "completed"
+      }
+    },
+    {
+      "name": "ordinary_source_authorized_reopen_same_occurrence",
+      "expected_allowed": true,
+      "unsafe_releases": true,
+      "guarded_releases": true,
+      "unsafe_payload": {
+        "task": "task-1",
+        "description": "Prepare my introduction",
+        "due": "2026-10-23",
+        "status": "planned"
+      },
+      "guarded_payload": {
+        "task": "task-1",
+        "description": "Prepare my introduction",
+        "due": "2026-10-23",
+        "status": "planned"
+      }
+    },
+    {
+      "name": "release_precedes_revocation_no_recall_claim",
+      "historical_release_valid": true,
+      "later_access_allowed": false
+    }
+  ]
+}

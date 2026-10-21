@@ -1,0 +1,15 @@
+{
+  "scope": "Root independent reproduction of the frozen finite design model; not SQL/RLS/runtime/concurrency/provider proof",
+  "passed": true,
+  "script_sha256": "c8be2aabb6e0e0af003061280a6ec96c251aa41b0079d155dea1a82e8c934954",
+  "prior_result_sha256": "bda006f5805389830df2de41f1b4eb64ad0a8db0b4d3d14057cf7dfbeba52203",
+  "reproduced_result_sha256": "bda006f5805389830df2de41f1b4eb64ad0a8db0b4d3d14057cf7dfbeba52203",
+  "summary": {
+    "all_passed": true,
+    "assertions_passed": 139,
+    "positive_controls": 6,
+    "unsafe_alternatives": 15
+  },
+  "temporary_output": "/tmp/d28-root-retention-counterexamples.json",
+  "return_rule_status": "founder clarification pending; both branches are hypothetical and neither is selected here"
+}
