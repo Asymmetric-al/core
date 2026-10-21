@@ -12,7 +12,7 @@ permissions:
 
 env:
   BUN_VERSION: "1.4.3"
-  NODE_VERSION: "24.21.0"
+  NODE_VERSION: "24.22.0"
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
@@ -80,6 +80,8 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: ${{ env.BUN_VERSION }}
+      - name: Verify approved Node runtime
+        run: node scripts/verify/node-version.mjs
       - run: bun ci --no-cache --backend=copyfile
       - run: bun run skills:verify
       - run: bun run verify:phase25-spec

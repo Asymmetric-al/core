@@ -15,7 +15,7 @@ describe("setup script contracts", () => {
       const script = readScript(scriptPath);
 
       expect(script).toContain("Require-Command 'node'");
-      expect(script).toContain("Require-NodeVersion '20.9.0'");
+      expect(script).toContain("& bun run verify:node-version");
       expect(script).toContain("& bun run verify:bun-version");
       expect(script).toContain("& bun run skills:verify");
       expect(script).toContain("& supabase --version 2>&1");
@@ -32,11 +32,15 @@ describe("setup script contracts", () => {
 
     expect(script).toContain("require_cmd bun");
     expect(script).toContain("require_cmd node");
-    expect(script).toContain('require_node_version "20.9.0"');
+    expect(script).toContain(
+      'node "$ROOT_DIR/scripts/verify/node-version.mjs"',
+    );
     expect(script.indexOf("require_cmd node")).toBeLessThan(
       script.indexOf('bash "$ROOT_DIR/scripts/verify/bun-version.sh"'),
     );
-    expect(script.indexOf('require_node_version "20.9.0"')).toBeLessThan(
+    expect(
+      script.indexOf('node "$ROOT_DIR/scripts/verify/node-version.mjs"'),
+    ).toBeLessThan(
       script.indexOf('bash "$ROOT_DIR/scripts/verify/bun-version.sh"'),
     );
   });
@@ -56,7 +60,7 @@ describe("setup script contracts", () => {
       const script = readScript(scriptPath);
       const bunIndex = script.indexOf("Require-Command 'bun'");
       const nodeIndex = script.indexOf("Require-Command 'node'");
-      const nodeVersionIndex = script.indexOf("Require-NodeVersion '20.9.0'");
+      const nodeVersionIndex = script.indexOf("& bun run verify:node-version");
       const gitIndex = script.indexOf("Require-Command 'git'");
       const verifyBunIndex = script.indexOf("& bun run verify:bun-version");
 

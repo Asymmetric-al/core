@@ -22,7 +22,7 @@ concurrency:
 
 env:
   BUN_VERSION: "1.4.3"
-  NODE_VERSION: "24.21.0"
+  NODE_VERSION: "24.22.0"
 
 jobs:
   deploy:

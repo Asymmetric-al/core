@@ -7,6 +7,7 @@ import { getPreflightStages } from "../../../scripts/verify/ci-preflight.mjs";
 const PREFLIGHT_PATH = "scripts/verify/ci-preflight.mjs";
 
 const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
+  { id: "runtime", script: "verify:node-version" },
   { id: "format", script: "format:check" },
   { id: "skills-verify", script: "skills:verify" },
   { id: "verify-phase25-spec", script: "verify:phase25-spec" },
