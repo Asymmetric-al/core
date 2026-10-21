@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import {
   SAME_REPO_GUARD,
   SELF_HOSTED_LABELS,
+  analyzeSelfHostedForkSafety,
   assertMovedJobTimeoutMinutes,
   checkoutSteps,
   ciGateFailsClosedWhenHeavyNeedsSkippedOnFork,
@@ -21,8 +22,10 @@ import {
   findCiGatePolicyStep,
   findCiGateResultsStep,
   ifExpression,
+  isAlwaysExpression,
   isForkAwareRunsOnExpression,
   isHostedUbuntuLatest,
+  isSelfHostedJob,
   isSelfHostedRunsOn,
   jobRunsOn,
   loadWorkflowJobs,
@@ -191,7 +194,7 @@ describe("issue #2158 PR A — ci.yml acceptance", () => {
       });
 
     it("ci-gate uses if: always()", () => {
-      expect(ifExpression(jobs["ci-gate"])).toContain("always()");
+      expect(isAlwaysExpression(ifExpression(jobs["ci-gate"]))).toBe(true);
     });
 
     it("ci-gate needs include heavy jobs build and test-unit", () => {
@@ -269,6 +272,23 @@ describe("issue #2158 PR A — ci.yml acceptance", () => {
     it("ci-gate policy allows same-repo success when heavy jobs succeeded", () => {
       expect(ciGatePolicyPassesWhenSameRepoChecksSucceeded()).toBe(true);
     });
+  });
+
+  describe("fork safety: every self-hosted job, evaluated per event (Reviewer MAJOR)", () => {
+    const selfHosted = jobIds.filter((jobId) => isSelfHostedJob(jobs[jobId]));
+
+    it("auto-detected self-hosted jobs are exactly build and test-unit", () => {
+      expect(selfHosted).toEqual(["build", "test-unit"]);
+    });
+
+    for (const jobId of ["build", "test-unit"]) {
+      it(`${jobId}: fork events skip it or run on hosted ubuntu-* and fail closed; same-repo events resolve to exactly proxmox`, () => {
+        const report = analyzeSelfHostedForkSafety(jobs[jobId]);
+        expect(report.problems).toEqual([]);
+        expect(report.runsForSomeSameRepo).toBe(true);
+        expect(report.forkReachable).toBe(false);
+      });
+    }
   });
 
   describe("negative: fork-aware runs-on belongs in ci-integration, not ci.yml", () => {

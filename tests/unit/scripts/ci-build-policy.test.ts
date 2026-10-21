@@ -9,10 +9,11 @@ import {
   executeGateShellScript,
   findPrimaryShellGateStep,
   ifExpression,
+  isAlwaysExpression,
   loadWorkflowJobs,
   needsList,
   substituteNeedsExpressions,
-} from "../acceptance/issue-2158/workflow-yaml";
+} from "../helpers/workflow-yaml";
 
 describe("development compilation policy", () => {
   const development = { event: "pull_request", baseBranch: "develop" };
@@ -212,7 +213,7 @@ describe("ci-integration hosted gates require success from each heavy need (#215
 
       it("runs under if: always() and needs exactly its heavy jobs", () => {
         expect(job, `missing job ${gateId}`).toBeDefined();
-        expect(ifExpression(job)).toContain("always()");
+        expect(isAlwaysExpression(ifExpression(job))).toBe(true);
         expect([...needsList(job)].sort()).toEqual([...heavyNeeds].sort());
       });
 

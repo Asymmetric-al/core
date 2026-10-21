@@ -10,14 +10,18 @@ import { describe, expect, it } from "vitest";
 
 import {
   FORK_FAIL_MESSAGE,
+  analyzeSelfHostedForkSafety,
   assertMovedJobTimeoutMinutes,
   checkoutSteps,
   containsSameRepoGuard,
   hostedGateFailsClosedWhenHeavyNeedsSkipped,
+  forkRejectStepIndex,
   ifExpression,
+  isAlwaysExpression,
   isForkAwareRunsOnExpression,
   isHostedUbuntuLatest,
   isHostedUbuntuSlim,
+  isSelfHostedJob,
   isSelfHostedRunsOn,
   jobRunsOn,
   loadWorkflowJobs,
@@ -182,7 +186,9 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
 
   describe("(e) hosted gates fail closed when heavy needs skipped on fork", () => {
     it("e2e-smoke-gate uses if: always() and needs test-e2e-smoke", () => {
-      expect(ifExpression(jobs["e2e-smoke-gate"])).toContain("always()");
+      expect(isAlwaysExpression(ifExpression(jobs["e2e-smoke-gate"]))).toBe(
+        true,
+      );
       expect(needsList(jobs["e2e-smoke-gate"])).toEqual(["test-e2e-smoke"]);
     });
 
@@ -195,7 +201,9 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
     });
 
     it("integration-gate uses if: always() and needs migrate, smoke, e2e-smoke-gate", () => {
-      expect(ifExpression(jobs["integration-gate"])).toContain("always()");
+      expect(isAlwaysExpression(ifExpression(jobs["integration-gate"]))).toBe(
+        true,
+      );
       expect(needsList(jobs["integration-gate"])).toEqual([
         "migrate",
         "smoke",
@@ -227,6 +235,30 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
         expect(isSelfHostedRunsOn(jobRunsOn(jobs[jobId]))).toBe(true);
       }
     });
+  });
+
+  describe("fork safety: every self-hosted job, evaluated per event (Reviewer MAJOR)", () => {
+    const selfHosted = jobIds.filter((jobId) => isSelfHostedJob(jobs[jobId]));
+
+    it("auto-detected self-hosted jobs are exactly the moved jobs", () => {
+      expect(selfHosted).toEqual([...MOVED_JOBS].sort());
+    });
+
+    for (const jobId of MOVED_JOBS) {
+      const forkReachable = FORK_AWARE_REQUIRED.includes(
+        jobId as (typeof FORK_AWARE_REQUIRED)[number],
+      );
+      it(`${jobId}: fork events ${forkReachable ? "run on hosted ubuntu-* and fail closed at step 0" : "skip it"}; same-repo events resolve to exactly proxmox`, () => {
+        const report = analyzeSelfHostedForkSafety(jobs[jobId]);
+        expect(report.problems).toEqual([]);
+        expect(report.runsForSomeSameRepo).toBe(true);
+        expect(report.forkReachable).toBe(forkReachable);
+        expect(report.runsForEveryFork).toBe(forkReachable);
+        if (forkReachable) {
+          expect(forkRejectStepIndex(jobs[jobId])).toBe(0);
+        }
+      });
+    }
   });
 
   describe("fork fail message is exact (spec rev 3 required checks)", () => {
