@@ -11,26 +11,27 @@
  * records each `connect()` with the effective parameters and the fields a
  * `PG*` variable influenced.
  *
- * - (a) `user`, `host`, `options` or any other query parameter not on the
- *   allowlist: blocker before any connect attempt, no proof. The ruling says
- *   "a short allowlist" without listing it; these tests assume `sslmode` is on
- *   it (the control uses `?sslmode=require`, the Supabase default) and reject
- *   the driver-meaningful connection keys plus an unknown key. Parameters a
- *   reasonable allowlist might hold (`application_name`, `connect_timeout`,
- *   `sslrootcert`, ...) are deliberately not asserted either way.
+ * - (a) Any query parameter other than `sslmode` (the whole allowlist —
+ *   follow-up ruling 1, {@link https://github.com/Asymmetric-al/core/pull/2169#issuecomment-6311237350})
+ *   is a blocker before any connect attempt, no proof; that includes
+ *   `application_name`, `connect_timeout` and `sslrootcert`. The control uses
+ *   `?sslmode=require`.
  * - (b) A non-empty host is required, and PG* variables are never used: with
  *   every variable the driver reads set to a distinctive value, the effective
  *   connection is identical to the one without them, and no distinctive value
  *   reaches the connection or the output. A URL that leaves host, port or
- *   database to the driver's defaults is either rejected before connecting or
- *   connects without any PG* influence. Real subprocesses check the same with
- *   a TCP listener standing in for the PGHOST/PGPORT target.
+ *   database to the driver's defaults is rejected before connecting
+ *   (follow-up ruling 3: host, port, database and user must all come from the
+ *   URL), as is a Unix socket-path host (follow-up ruling 4). Real
+ *   subprocesses check the same with a TCP listener standing in for the
+ *   PGHOST/PGPORT target.
  * - (c) Both `session_user` and `current_user` must be the reader (incl. a
- *   SET ROLE session: current_user = reader, session_user = postgres).
+ *   SET ROLE session: current_user = reader, session_user = postgres); a
+ *   session_user failure names `session_user` (follow-up ruling 5).
  * - (d) Messages that say PG* variables are never used/read stay true.
- * - (f) PRIVILEGED_ROLES covers authenticated, pg_write_all_data,
- *   supabase_auth_admin and the other Supabase admin roles, statically and
- *   by behaviour.
+ * - (f) PRIVILEGED_ROLES covers authenticated, pg_read_all_data,
+ *   pg_write_all_data, dashboard_user and every supabase_*_admin role
+ *   (follow-up ruling 2), statically and by behaviour.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
@@ -206,6 +207,14 @@ describe("PR #2169 MAJOR-1 (a) — query parameters on the reader URL", () => {
     ["client_encoding", "client_encoding=SQL_ASCII"],
     ["fallback_application_name", "fallback_application_name=x"],
     ["unknown key", "acceptance_unknown_param=1"],
+    // Follow-up ruling 1: sslmode is the whole allowlist.
+    ["application_name", "application_name=acceptance"],
+    ["connect_timeout", "connect_timeout=5"],
+    ["sslrootcert", "sslrootcert=/tmp/acceptance-root.crt"],
+    ["sslcert", "sslcert=/tmp/acceptance.crt"],
+    ["sslkey", "sslkey=/tmp/acceptance.key"],
+    ["ssl", "ssl=true"],
+    ["uselibpqcompat", "uselibpqcompat=true"],
   ])(
     "rejects ?%s before connecting (blocker, no connect attempt, no proof)",
     async (_label, param) => {
@@ -256,20 +265,58 @@ describe("PR #2169 MAJOR-1 (b) — non-empty host; PG* variables are never used"
     },
   );
 
+  // Follow-up ruling 3: host, port, database and user must come from the URL.
   it.each([
     ["no port", () => poolerUrl("/postgres?sslmode=require")],
     ["no database", () => poolerUrl(":6543?sslmode=require")],
+    ["an empty database path", () => poolerUrl(":6543/?sslmode=require")],
     ["no port and no database", () => poolerUrl("?sslmode=require")],
+    [
+      "no user",
+      () =>
+        `postgresql://:${PASSWORD}@${POOLER_HOST}:6543/postgres?sslmode=require`,
+    ],
+    [
+      "no host",
+      () => `postgresql://${LOGIN}:${PASSWORD}@:6543/postgres?sslmode=require`,
+    ],
   ])(
-    "URL with %s and every PG* variable set: rejected before connecting, or connected with no PG* influence",
+    "URL with %s is rejected before connecting, with every PG* variable set (blocker, no connect attempt, no proof)",
     async (_label, url) => {
-      const pgEnv = distinctivePgEnv();
-      const run = await go({ ...pgEnv, DOCUMENT_CUTOVER_DATABASE_URL: url() });
-      if (fakePg.connectAttempts.length === 0) {
-        expectRejectedBeforeConnecting(run);
-      } else {
-        expectNoPgEnvInfluence(run, pgEnv);
-      }
+      const run = await go({
+        ...distinctivePgEnv(),
+        DOCUMENT_CUTOVER_DATABASE_URL: url(),
+      });
+      expectRejectedBeforeConnecting(run);
+    },
+  );
+
+  // Follow-up ruling 4: the host must be a network hostname or IP.
+  it.each([
+    [
+      "an encoded /var/run/postgresql host",
+      () =>
+        `postgresql://${LOGIN}:${PASSWORD}@%2Fvar%2Frun%2Fpostgresql:6543/postgres?sslmode=require`,
+    ],
+    [
+      "an encoded /tmp host",
+      () =>
+        `postgresql://${LOGIN}:${PASSWORD}@%2Ftmp:6543/postgres?sslmode=require`,
+    ],
+    [
+      "?host=/var/run/postgresql",
+      () =>
+        poolerUrl(":6543/postgres?sslmode=require&host=/var/run/postgresql"),
+    ],
+    [
+      "?host=%2Ftmp",
+      () => poolerUrl(":6543/postgres?sslmode=require&host=%2Ftmp"),
+    ],
+  ])(
+    "a Unix socket-path host (%s) is rejected before connecting",
+    async (_label, url) => {
+      const run = await go({ DOCUMENT_CUTOVER_DATABASE_URL: url() });
+      expectRejectedBeforeConnecting(run);
     },
   );
 
@@ -337,7 +384,8 @@ describe("PR #2169 MAJOR-1 (c) — session_user AND current_user must be the rea
       fakePg.currentRoleOverride = READER_ROLE;
     });
     expect(run.exitCode, run.output).not.toBe(0);
-    expect(run.output).toMatch(/session_user|session|postgres/i);
+    // Follow-up ruling 5: the message names `session_user` exactly.
+    expect(run.output).toContain("session_user");
     expect(run.stored).toEqual([]);
     expect(run.files).toEqual([]);
   });
@@ -355,6 +403,7 @@ describe("PR #2169 MAJOR-1 (c) — session_user AND current_user must be the rea
       fakePg.currentRoleOverride = READER_ROLE;
     });
     expect(run.exitCode, run.output).not.toBe(0);
+    expect(run.output).toContain("session_user");
     expect(run.stored).toEqual([]);
   });
 
@@ -416,7 +465,7 @@ describe("PR #2169 MAJOR-1 (d) — 'PG* variables are never used' stays true", (
   );
 });
 
-/** Ruling 5 (MINOR-4) plus the roles already required. */
+/** Ruling 5 (MINOR-4), follow-up ruling 2, plus the roles already required. */
 const REQUIRED_PRIVILEGED_ROLES = [
   "postgres",
   "service_role",
@@ -426,11 +475,14 @@ const REQUIRED_PRIVILEGED_ROLES = [
   "authenticated",
   "pg_write_all_data",
   "supabase_auth_admin",
-  // "other Supabase admin roles" (Acceptance's reading: the supabase_*_admin roles).
+  // Every supabase_*_admin role (follow-up ruling 2).
   "supabase_storage_admin",
   "supabase_functions_admin",
   "supabase_realtime_admin",
   "supabase_replication_admin",
+  // Follow-up ruling 2.
+  "pg_read_all_data",
+  "dashboard_user",
 ];
 
 describe("PR #2169 MINOR-4 (f) — PRIVILEGED_ROLES", () => {

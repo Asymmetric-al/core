@@ -93,8 +93,17 @@ Check on the PR:
 
 The fake `pg` resolves every connection with the real driver's `ConnectionParameters` (`pg/lib/connection-parameters.js`), so query parameters and PG* fallbacks behave as in production. `fakePg.connectAttempts` records the effective parameters and the fields a PG* variable influenced.
 
+[Follow-up rulings](https://github.com/Asymmetric-al/core/pull/2169#issuecomment-6311237350), automated in `connection-config`:
+
+| Follow-up ruling                             | Tests                                                                                                                                                    |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 allowlist is `sslmode` only                | (a) also rejects `application_name`, `connect_timeout`, `sslrootcert`, `sslcert`, `sslkey`, `ssl`, `uselibpqcompat` before connecting                    |
+| 2 PRIVILEGED_ROLES                           | (f) static and behaviour checks also require `pg_read_all_data` and `dashboard_user`                                                                     |
+| 3 host, port, database and user from the URL | (b) a URL with no port, no database, an empty database path, no port and no database, no user, or no host is rejected before connecting (every PG\* set) |
+| 4 no Unix socket-path host                   | (b) encoded `%2Fvar%2Frun%2Fpostgresql` and `%2Ftmp` hosts, `?host=/var/run/postgresql` and `?host=%2Ftmp` are rejected before connecting                |
+| 5 SET ROLE blocker names `session_user`      | (c) the SET ROLE and login-role cases require the literal `session_user` in the output                                                                   |
+
 Check on the PR:
 
-- [ ] The allowlist of query parameters is short and documented in the gate. The ruling doesn't list it; these tests assume `sslmode` is allowed and assert nothing about `application_name`, `connect_timeout` or `sslrootcert`.
 - [ ] Nits (ruling 6): the migration header points at `database-contract.ts`, and the deploy note says session mode (port 5432).
 - [ ] Ruling 7: develop (b0aec515) is merged, with the `tooling/shadscan/findings.json` conflict resolved, before any verdict.
