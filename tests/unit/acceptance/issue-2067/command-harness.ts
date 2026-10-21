@@ -23,7 +23,10 @@
  *
  * 1. allowlist.json schema is exactly
  *    `{ "owners": [{ "id", "role" }], "nonProductionProjects": [ ... ] }`
- *    (enforced strictly by `readAllowlist()`).
+ *    (enforced strictly by `readAllowlist()`); addendum 3 (7:47 PM PT,
+ *    https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6306730671)
+ *    adds that `nonProductionProjects` entries are unique, non-empty plain
+ *    strings.
  * 2. `digest` is the SHA-256 of the canonical JSON of the proof with the
  *    `digest` field left out (`expectedDigest()`); `--verify` recomputes it the
  *    same way and any one-byte change fails.
@@ -34,7 +37,9 @@
  *    credential blocker message (containing "read-only credential/key") are as
  *    these tests assume.
  *
- * Still unpinned (this suite's own choice): proof JSON keeps `proofId`,
+ * Addendum 3 item 2: proof field names other than `digest`, `recordedBy` and
+ * `proofPath` are not pinned by the spec; these tests are the contract. Proof
+ * JSON keeps `proofId`,
  * `recordedAt`, `outcome`, `evidence[]` and
  * `environment.{environmentLabel,databaseProjectId,storageIdentity,schemaVersion}`;
  * timestamps come from `Date` (used only to force a filename collision in DC1).
@@ -329,19 +334,27 @@ function schemaError(detail: string): Error {
 }
 
 /**
- * Read the committed allowlist and enforce the exact schema from spec
- * addendum 2 item 1: the top level has exactly the keys `owners` and
- * `nonProductionProjects`; every owner is an object with exactly the keys `id`
- * and `role`, both non-empty strings; `nonProductionProjects` is an array of
- * non-empty strings (project refs). Any other shape throws.
+ * Read an allowlist file (default: the committed one) and enforce the exact
+ * schema from spec addendum 2 item 1 and addendum 3 item 1: the top level has
+ * exactly the keys `owners` and `nonProductionProjects`; every owner is an
+ * object with exactly the keys `id` and `role`, both non-empty strings;
+ * `nonProductionProjects` holds unique, non-empty plain strings (project
+ * refs), so objects, empty strings and duplicates are rejected. Any other
+ * shape throws.
  */
-export function readAllowlist(): ParsedAllowlist {
-  if (!existsSync(ALLOWLIST_PATH)) {
+export function readAllowlist(
+  filePath: string = ALLOWLIST_PATH,
+): ParsedAllowlist {
+  if (!existsSync(filePath)) {
     throw new Error(
       `#2067: committed allowlist missing at ${ALLOWLIST_REL} (spec addendum).`,
     );
   }
-  const text = readFileSync(ALLOWLIST_PATH, "utf8");
+  return parseAllowlistText(readFileSync(filePath, "utf8"));
+}
+
+/** Strict parse of allowlist JSON text (see `readAllowlist()`). */
+export function parseAllowlistText(text: string): ParsedAllowlist {
   const json: unknown = JSON.parse(text);
   if (!isPlainObject(json)) throw schemaError("top level is not an object");
   const topKeys = sortedKeys(json);
@@ -373,6 +386,7 @@ export function readAllowlist(): ParsedAllowlist {
     },
   );
 
+  const seen = new Set<string>();
   const nonProductionProjects: string[] = json.nonProductionProjects.map(
     (entry: unknown, index: number) => {
       if (typeof entry !== "string" || !entry.trim()) {
@@ -380,6 +394,12 @@ export function readAllowlist(): ParsedAllowlist {
           `nonProductionProjects[${index}] is not a non-empty string`,
         );
       }
+      if (seen.has(entry)) {
+        throw schemaError(
+          `nonProductionProjects[${index}] duplicates "${entry}"`,
+        );
+      }
+      seen.add(entry);
       return entry;
     },
   );

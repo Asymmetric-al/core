@@ -17,7 +17,9 @@ The automated acceptance tests in this directory cover DC1–DC12. The items bel
 ## Spec items not enforced by code (check on the PR)
 
 - [ ] `.gitignore` no longer carries the old local proof-store entry, and nothing under `docs/ops/document-cutover/proofs/` is ignored (the ignore part is automated).
-- [ ] The committed `docs/ops/document-cutover/allowlist.json` has exactly `{ "owners": [{ "id", "role" }], "nonProductionProjects": [ ... ] }` (no other keys; automated by `readAllowlist()`), with project refs as strings. If the non-production list is empty, the positive DC11 case is skipped by design; confirm that is intended.
+- [ ] The committed `docs/ops/document-cutover/allowlist.json` has exactly `{ "owners": [{ "id", "role" }], "nonProductionProjects": [ ... ] }` (no other keys; automated by `readAllowlist()`). Per [addendum 3](https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6306730671), `nonProductionProjects` entries are unique, non-empty plain strings, and the command's loader rejects objects, empty strings and duplicates (automated in `allowlist-schema.acceptance.test.ts`, which mocks `node:fs` and never writes an allowlist file).
+- [ ] The command reads the allowlist through `node:fs` during each run, not through a static JSON import or a value cached at import time; `allowlist-schema.acceptance.test.ts` relies on this.
+- [ ] Addendum 3 item 2: proof field names other than `digest`, `recordedBy` and `proofPath` follow these tests (`proofId`, `recordedAt`, `outcome`, `evidence[]`, `environment.*`). If the non-production list is empty, the positive DC11 case is skipped by design; confirm that is intended.
 - [ ] The PR does not check Blake's approving review through the GitHub API (that is #961), adds no bypass flag or policy engine, and leaves AC1/AC4/AC5/AC6/AC10 semantics unchanged.
 - [ ] Process rule (not enforced by `--verify`): the proof PR is approved and merged within 24h of `recordedAt`.
 - [ ] Enabling "require code owner review" is a separate repo-settings change for Blake. It is not part of this PR.
