@@ -13,30 +13,16 @@ import {
 import type { ContributionDesignationSet } from "@asym/database/types";
 
 export type ContributionGridStatus =
-  | SharedContributionPaymentStatus
-  | "processing";
+  SharedContributionPaymentStatus | "processing";
 
 export type ContributionGridType =
-  | "One-time"
-  | "Recurring"
-  | "Pledge"
-  | "In-kind";
+  "One-time" | "Recurring" | "Pledge" | "In-kind";
 
 export type ContributionGridPaymentMethod =
-  | "Credit Card"
-  | "Bank Transfer"
-  | "Check"
-  | "Cash"
-  | "PayPal"
-  | "Other";
+  "Credit Card" | "Bank Transfer" | "Check" | "Cash" | "PayPal" | "Other";
 
 export type ContributionGridSource =
-  | "Online"
-  | "Mobile"
-  | "In-person"
-  | "Mail"
-  | "Phone"
-  | "Import";
+  "Online" | "Mobile" | "In-person" | "Mail" | "Phone" | "Import";
 
 export type ContributionReceiptStatus = SharedContributionReceiptStatus;
 

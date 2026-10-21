@@ -40,13 +40,9 @@ placeholder or empty tag draft MUST NOT replace hidden canonical donor data.
 
 ### Requirement: Missionary Partner Detail Preserves Readable Metadata and Controls
 
-The extracted Partners interface MUST display the selected partner type and a
-meaningful fallback when location is missing. Icon-only actions MUST have
-accessible names. Tag and activity choices MUST expose their current state
-through the shared Base UI controls, preserving existing saved tags and the
-selected activity kind. The interface MUST use Core semantic theme tokens.
-Compact layouts MUST keep the partner identity, header actions, activity choices
-and submit control reachable without clipping inside their containers.
+The extracted Partners interface MUST display the selected partner type and a meaningful fallback when location is missing.
+
+Every clause in `openspec/contracts/crm-core.md#contract-eafa0728ea637894cba3` MUST apply without exception.
 
 #### Scenario: A selected partner has no location
 

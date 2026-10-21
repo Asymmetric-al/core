@@ -2,17 +2,15 @@
 
 ## Purpose
 
-TBD - created by archiving change add-eve-email-discord-notifications. Update Purpose after archive.
+Govern accountable Eve email and Discord notification delivery through qualified server-side channels, durable claims, verified scope, and existing pause and policy controls.
 
 ## Requirements
 
 ### Requirement: Every Notification Starts From A Safe Typed Envelope
 
-Eve MUST normalize a governed source event into a typed notification envelope containing stable event and
-notification ids, event type, severity, safe source/target references, occurred time, safe decision summary,
-explicitly allowed detail fields, policy/redaction versions, dedupe key, intended channel class, and expiry.
-Unsafe raw source payloads and arbitrary model/tool text MUST NOT be copied into the envelope. Deterministic
-validation and redaction MUST run before channel rendering. [VERIFIED-REPO: openspec/changes/add-eve-audit-tracer-bullet]
+Eve MUST normalize a governed source event into a typed notification envelope containing stable event and notification ids, event type, severity, safe source/target references, occurred time, safe decision summary, explicitly allowed detail fields, policy/redaction versions, dedupe key, intended channel class, and expiry.
+
+Every clause in `openspec/contracts/eve-email-discord-notifications.md#contract-7e4a26799e80712133a9` MUST apply without exception.
 
 #### Scenario: A monitor finding requests notification
 
@@ -30,11 +28,9 @@ validation and redaction MUST run before channel rendering. [VERIFIED-REPO: open
 
 ### Requirement: V1 Email Goes Only To Configured Platform Owners
 
-Email destinations MUST resolve only from enabled app-owned platform-owner notification records whose current
-identity and permission state is valid. V1 MUST NOT send Eve email to customers, donors, tenant users,
-arbitrary admins, or addresses supplied by prompts, models, tools, source events, issues, PRs, or monitor
-evidence. Email MUST contain only the safe envelope rendering and permitted links to authorized app context.
-[VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
+Email destinations MUST resolve only from enabled app-owned platform-owner notification records whose current identity and permission state is valid.
+
+Every clause in `openspec/contracts/eve-email-discord-notifications.md#contract-fbe307c965d7eef68c5e` MUST apply without exception.
 
 #### Scenario: A platform-owner notification is eligible
 
@@ -52,11 +48,9 @@ evidence. Email MUST contain only the safe envelope rendering and permitted link
 
 ### Requirement: Discord Is Urgent And Rich Only After Safe-Content Policy
 
-Discord MUST receive only events that meet app-owned urgency/severity routing policy and MUST resolve only an
-enabled app-owned operational destination. Its default rendering MUST be minimal safe content. Rich detail MAY
-be included only after deterministic field allowlisting, redaction, and URL safety checks approve every field.
-Model-only safety claims MUST NOT authorize richer content; uncertain fields MUST be omitted.
-[VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
+Discord MUST receive only events that meet app-owned urgency/severity routing policy and MUST resolve only an enabled app-owned operational destination.
+
+Every clause in `openspec/contracts/eve-email-discord-notifications.md#contract-ee53334be56dfa02432d` MUST apply without exception.
 
 #### Scenario: An urgent safe alert is sent minimally
 
@@ -81,11 +75,9 @@ Model-only safety claims MUST NOT authorize richer content; uncertain fields MUS
 
 ### Requirement: Sensitive Material Never Enters External Notification Content
 
-Email and Discord content MUST exclude secrets, credentials, environment values, service-role keys, raw
-production records, donor/payment data, unapproved identity/tenant data, raw logs, unredacted replay/debug
-artifacts, hidden reasoning, and arbitrary model/tool output. Links MUST be allowlisted and sanitized so they
-contain no credentials or sensitive query values. Redaction MUST happen before provider submission, not only
-at storage or display time. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
+Email and Discord content MUST exclude secrets, credentials, environment values, service-role keys, raw production records, donor/payment data, unapproved identity/tenant data, raw logs, unredacted replay/debug artifacts, hidden reasoning, and arbitrary model/tool output.
+
+Every clause in `openspec/contracts/eve-email-discord-notifications.md#contract-5ddc2fea00291b11b913` MUST apply without exception.
 
 #### Scenario: A safe summary links to an unsafe URL
 
@@ -103,12 +95,9 @@ at storage or display time. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/
 
 ### Requirement: Notification Delivery Is Deduplicated, Idempotent, Bounded, And Pausable
 
-Every notification MUST use a stable dedupe key and lifecycle state. Repeat events inside the configured window
-MUST be suppressed or update the existing notification; provider attempts MUST use idempotency where
-supported. Retries MUST be bounded, consume #423 budgets/rate limits, stop after expiry, and recheck #418
-release/emergency, #420 relevant switch, notification pause/opt-out, recipient validity, and content policy
-before every attempt. #436 MUST NOT create a new global kill switch or self-grant an override.
-[VERIFIED-REPO: openspec/changes/add-eve-approval-budget-policy]
+Every notification MUST use a stable dedupe key and lifecycle state.
+
+Every clause in `openspec/contracts/eve-email-discord-notifications.md#contract-bf1d5e6bc9ff031e9175` MUST apply without exception.
 
 #### Scenario: A duplicate alert is observed
 
@@ -126,14 +115,9 @@ before every attempt. #436 MUST NOT create a new global kill switch or self-gran
 
 ### Requirement: Notification Decisions And Outcomes Are Audited And Retained By Existing Owners
 
-The #419 audit boundary MUST record the explicit source initiator/trigger, #426-verified service delivery actor, event class,
-policy/redaction versions, severity, dedupe outcome, channel and destination class, attempt identity, provider
-response class, and delivery result without storing credentials or unsafe payloads. Every generation and
-delivery attempt MUST execute under the verified service identity and user/tenant scope derived by #426;
-prompt, model, event, issue, PR, monitor, or tool content MUST NOT choose that actor or scope. #424 MUST own
-retention/hold/expiry of notification and audit records. #427 MUST expose safe notification status and pause
-controls to authorized admins. Email or Discord MUST NOT become the authoritative audit or retention store.
-[VERIFIED-REPO: openspec/changes/add-eve-retention-replay-tracer]
+The #419 audit boundary MUST record the explicit source initiator/trigger, #426-verified service delivery actor, event class, policy/redaction versions, severity, dedupe outcome, channel and destination class, attempt identity, provider response class, and delivery result without storing credentials or unsafe payloads.
+
+Every clause in `openspec/contracts/eve-email-discord-notifications.md#contract-59edd140c3fb2323c546` MUST apply without exception.
 
 #### Scenario: Source content claims a different actor or tenant
 
@@ -151,12 +135,9 @@ controls to authorized admins. Email or Discord MUST NOT become the authoritativ
 
 ### Requirement: This Change Grants No Uncontrolled Delivery Or Runtime Authority
 
-This change MUST implement delivery only behind disabled and paused app-owned channel configuration, the
-existing server-side email boundary, a server-only Discord secret, verified service identity, current
-governance and budget policy, and durable claims. #425 remains the owner of event-consumer/runtime durability.
-#420 remains the owner of global automation controls; #419/#424 remain owners of audit/redaction and
-retention/replay; #426 remains owner of verified identity and scope. The #418 release switch MUST remain off
-and no live provider credential or destination may be committed. [VERIFIED-REPO: openspec/project.md]
+Delivery MUST remain behind disabled and paused app-owned channel configuration and the existing verified server-side delivery and governance boundaries.
+
+Every clause in `openspec/contracts/eve-email-discord-notifications.md#contract-7f376dc6968e5e37849d` MUST apply without exception.
 
 #### Scenario: The package is reviewed for scope
 

@@ -43,9 +43,9 @@ test("shared page heading and description remain readable on the active surface"
   for (const ratio of contrast) expect(ratio).toBeGreaterThanOrEqual(4.5);
 });
 
-test("page descriptions keep a compact mobile preview and show full desktop detail", async ({
+test("page descriptions preserve complete readable text on mobile and desktop", async ({
   page,
-}, testInfo) => {
+}) => {
   const description = page
     .getByTestId("page-header-contract")
     .getByText(/^Shared page description/);
@@ -55,7 +55,15 @@ test("page descriptions keep a compact mobile preview and show full desktop deta
       node.getBoundingClientRect().height /
       Number.parseFloat(getComputedStyle(node).lineHeight),
   );
-  if (testInfo.project.name.startsWith("mobile"))
-    expect(lines).toBeLessThanOrEqual(2.1);
-  else expect(lines).toBeGreaterThan(2.1);
+  // Shared PageHeader removed clamping in 3d2d0408c (AL-1967). Preserve
+  // that delivered behavior instead of restoring the older fixture contract.
+  expect(lines).toBeGreaterThan(2.1);
+  const bounds = await description.evaluate((node) => ({
+    height: node.clientHeight,
+    scrollHeight: node.scrollHeight,
+    width: node.clientWidth,
+    scrollWidth: node.scrollWidth,
+  }));
+  expect(bounds.scrollHeight).toBeLessThanOrEqual(bounds.height + 1);
+  expect(bounds.scrollWidth).toBeLessThanOrEqual(bounds.width + 1);
 });

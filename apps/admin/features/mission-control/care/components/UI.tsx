@@ -1,3 +1,4 @@
+import { Button as SharedButton } from "@asym/ui/components/shadcn/button";
 import {
   Dialog as SharedDialog,
   DialogContent as SharedDialogContent,
@@ -756,22 +757,24 @@ export const Calendar: React.FC<CalendarProps> = ({
           {format(viewDate, "MMMM yyyy")}
         </div>
         <div className="flex items-center gap-1">
-          <Button
+          <SharedButton
+            type="button"
             variant="ghost"
-            size="icon"
-            className="size-8 rounded-xl"
+            size="icon-sm"
+            aria-label="Previous month"
             onClick={handlePrevMonth}
           >
             <ChevronLeft className="size-4" />
-          </Button>
-          <Button
+          </SharedButton>
+          <SharedButton
+            type="button"
             variant="ghost"
-            size="icon"
-            className="size-8 rounded-xl"
+            size="icon-sm"
+            aria-label="Next month"
             onClick={handleNextMonth}
           >
             <ChevronRight className="size-4" />
-          </Button>
+          </SharedButton>
         </div>
       </div>
 
@@ -805,6 +808,7 @@ export const Calendar: React.FC<CalendarProps> = ({
           return (
             <button
               key={day}
+              type="button"
               onClick={() => handleDateClick(day)}
               disabled={disabledState}
               className={cn(

@@ -8,6 +8,8 @@ import { useDonorDashboardBootstrap } from "./use-donor-dashboard-bootstrap";
 import { DashboardSkeleton } from "../../../features/donor/components/dashboard-ui";
 import { DonorDashboardMainBody } from "../../../features/donor/components/donor-dashboard-main-body";
 
+const mainBody = <DonorDashboardMainBody />;
+
 export default function DonorDashboardPage() {
   const bootstrap = useDonorDashboardBootstrap();
 
@@ -41,7 +43,6 @@ export default function DonorDashboardPage() {
   }
 
   const isPending = bootstrap.isPending;
-  const mainBody = <DonorDashboardMainBody />;
 
   return (
     <BoneyardSkeleton

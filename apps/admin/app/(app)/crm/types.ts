@@ -3,12 +3,7 @@ import type { CrmDonorDetailResponse, CrmGridRow } from "@asym/database/types";
 export type { CrmGridRow };
 
 export type ActivityType =
-  | "note"
-  | "call"
-  | "email"
-  | "meeting"
-  | "stage_change"
-  | "gift";
+  "note" | "call" | "email" | "meeting" | "stage_change" | "gift";
 
 export interface Activity {
   id: string;

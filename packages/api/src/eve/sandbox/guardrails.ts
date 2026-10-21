@@ -8,9 +8,7 @@ export const EVE_SANDBOX_NETWORK_POLICY = {
 } as const;
 
 export type EveSandboxFindingKind =
-  | "protected_path"
-  | "sensitive_content"
-  | "sensitive_path";
+  "protected_path" | "sensitive_content" | "sensitive_path";
 
 export interface EveSandboxFinding {
   kind: EveSandboxFindingKind;

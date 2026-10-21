@@ -74,6 +74,9 @@ def main():
     failures = []
     for path, content in render().items():
         formatted = subprocess.run(["bunx", "--no-install", "prettier", "--stdin-filepath", str(path)], input=content, text=True, capture_output=True, cwd=REPO, check=True).stdout
+        if path.name == "spec.md":
+            formatted = subprocess.run(["node", str(REPO / "scripts/openspec-contract-view.mjs"), path.parent.name, "--write" if args.write else "--check"], input=formatted, text=True, capture_output=True, cwd=REPO, check=True).stdout
+            formatted = subprocess.run(["bunx", "--no-install", "prettier", "--stdin-filepath", str(path)], input=formatted, text=True, capture_output=True, cwd=REPO, check=True).stdout
         if args.write:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(formatted)

@@ -2902,9 +2902,7 @@ type ProviderOutcome =
     };
 
 type CommunicationExecutionEnvironment =
-  | "development"
-  | "preview"
-  | "production";
+  "development" | "preview" | "production";
 
 type AuthenticatedTenantContext = {
   tenantId: string;

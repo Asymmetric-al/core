@@ -17,7 +17,7 @@ last_reviewed: 2026-07-15
 - **Generated source:** upstream derives its references from Vitest docs.
 
 The reviewed upstream snapshot targets Vitest 5 beta; Core now resolves the
-stable Vitest 5.0.3 release. No upstream skill file or generated reference tree is vendored into the
+stable Vitest 5.0.5 release. No upstream skill file or generated reference tree is vendored into the
 canonical source. Core's adapter keeps the useful workflow topics—configuration,
 filtering, mocking, environment selection, isolation, and coverage—but derives
 commands and constraints from Core's checked-in Vitest 5 harness rather than
@@ -37,3 +37,15 @@ canonical `docs/ai/skills/vitest/SKILL.md` is the routed authority inside Core.
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 
 This canonical adapter is not updated by `bun run skills:refresh-upstream`.
+
+## Runtime requalification, October 21, 2026
+
+Core's adapter was rechecked against Vitest 5.0.5 and its current official
+[migration guide](https://vitest.dev/guide/migration/). The harness retains its
+include scope, explicit mock clearing and isolated env defaults. The supported
+`@vitest/coverage-v8@5.0.5` replaces the legacy raw collector, with measured
+Istanbul reports, isolated-suite merging, TypeScript remapping, unexecuted
+branches and threshold enforcement verified by the committed fixture. Default
+reports cover imported source; a fixture-only filter also proves unimported
+source reporting. Active configuration/helpers use `.mts` for native ESM loading. This runtime check does not claim a new upstream skill import or alter
+the historical reviewed-commit metadata above.

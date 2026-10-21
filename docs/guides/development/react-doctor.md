@@ -1,6 +1,6 @@
 # React Doctor
 
-Core pins **React Doctor 0.9.17** and runs a local source-quality audit across eight concrete projects: `apps/admin`, `apps/donor`, `apps/missionary`, `packages/auth`, `packages/database`, `packages/lib`, `packages/missionary`, and `packages/ui`.
+Core pins **React Doctor 0.9.18** and runs a local source-quality audit across eight concrete projects: `apps/admin`, `apps/donor`, `apps/missionary`, `packages/auth`, `packages/database`, `packages/lib`, `packages/missionary`, and `packages/ui`.
 
 ## Commands and acceptance
 
@@ -48,7 +48,7 @@ Add regression coverage before substantive fixes. Run focused tests, workspace-a
 
 `test:react-cleanup` runs isolated **real React components with synthetic boundaries**. It includes contribution Hub/CRM launch surfaces and shared table, popover, chart, team, and wallet fixtures. It loads no credentials and makes no live provider calls. It covers failed submissions, stale revisions, refund limits, and a completed operation followed by refresh failure. These fixtures do not certify authenticated whole-page or production-provider integration.
 
-Core retains its existing custom coverage provider. Its current `totalScripts: 0` fallback artifact does not measure line, statement, or branch coverage; a successful coverage-enabled unit run must not be reported as 100% coverage. Record this limitation alongside the executed test results. See the canonical Vitest skill and `vitest.coverage-provider.mjs`.
+Core uses the supported Vitest V8 provider under Node. Its standard reports measure line, statement, branch and function coverage of imported source files; that scope is not a whole-repository denominator. Missing or zero-total reports do not establish coverage quality. Dated fallback reports remain unchanged and do not gain measured percentages retroactively. See the canonical Vitest skill and `vitest.config.mts`.
 
 One exact native-lint false positive is documented separately in `docs/qa/react-doctor/native-exceptions.json`: the payment factory only captures refs for its returned event handler. Its file-level compiler check remains enabled under both root and app ESLint contexts. CRM CSV export now resolves its attachment URL against the current origin before native navigation, requiring no waiver. This native exception does not suppress the disposable React Doctor inventory. Existing native design-system debt counts are retained or pruned, never increased by this cleanup.
 

@@ -41,10 +41,7 @@ export type SerializedPublicMedia = {
  * public contract behaves the same way.
  */
 export type SerializedPublicMediaValue =
-  | SerializedPublicMedia
-  | string
-  | number
-  | null;
+  SerializedPublicMedia | string | number | null;
 
 export type SerializedPublicBlockBase = {
   id: string | null;

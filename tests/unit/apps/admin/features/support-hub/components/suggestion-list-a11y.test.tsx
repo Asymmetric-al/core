@@ -18,6 +18,7 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { buildMentionExtension } from "../../../../../../../apps/admin/features/support-hub/components/detail/composer/extensions/mention-suggestion";
+import { SuggestionList } from "../../../../../../../apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList";
 
 const agents = [
   {
@@ -77,6 +78,27 @@ afterEach(async () => {
 });
 
 describe("SuggestionList active option exposure", () => {
+  it("derives complete option names from visible labels, descriptions and hints", () => {
+    render(
+      <SuggestionList
+        items={[
+          { id: "person", label: "Morgan", description: "Care" },
+          {
+            id: "response",
+            label: "Thank you",
+            description: "Gift received",
+            hint: "thanks",
+          },
+        ]}
+        command={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("option", { name: "Morgan Care" })).toBeTruthy();
+    expect(
+      screen.getByRole("option", { name: "Thank you Gift received thanks" }),
+    ).toBeTruthy();
+  });
+
   it("connects the focused editor to the highlighted option and updates keyboard selection", async () => {
     let editor: Editor | undefined;
     const capture = (instance: Editor) => {

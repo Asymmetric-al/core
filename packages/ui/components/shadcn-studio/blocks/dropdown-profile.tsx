@@ -95,7 +95,6 @@ const ProfileDropdown = ({
                     <DropdownMenuItem
                       key={`${item.href}:${item.label}`}
                       render={<Link href={item.href} />}
-                      className="px-3 py-1.5 text-sm cursor-pointer"
                     >
                       {Icon && (
                         <Icon className="text-muted-foreground size-4" />

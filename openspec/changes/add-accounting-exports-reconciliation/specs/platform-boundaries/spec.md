@@ -4,23 +4,9 @@
 
 ### Requirement: Accounting Handoffs Preserve Source-Specific Authority
 
-Asym source domains MUST own canonical contribution, allocation, correction,
-and receipt facts. Phase 20 MAY transform those facts into an immutable,
-balanced Accounting Release and evidence artifact, but that downstream
-projection MUST NOT mutate or become a competing source for gift truth.
+Asym source domains MUST own canonical contribution, allocation, correction, and receipt facts.
 
-Stripe MUST remain authoritative for processor balance transactions, fees,
-refunds, disputes, transfers, and payout evidence for the exact connected
-account and mode. Posted bank evidence MUST remain authoritative for what the
-bank recorded. QBO or Xero MUST remain authoritative for provider-native
-general-ledger objects, accounting periods and locks, and the tenant's final
-books reconciliation.
-
-Every imported, derived, exported, or read-back fact MUST retain its source
-label and exact source identifier. Agreement among systems MAY be shown as
-evidence; disagreement MUST remain visible and route to bounded review.
-Provider acceptance, bank matching, or GL posting MUST NOT rewrite another
-authority's history or permit blind replay of an ambiguous operation.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-641fa5785072e9769ef6` MUST apply without exception.
 
 #### Scenario: Stripe payout evidence and bank evidence disagree
 
@@ -48,22 +34,9 @@ authority's history or permit blind replay of an ambiguous operation.
 
 ### Requirement: Legal Entity Is Explicit Subtract-Only Financial Scope
 
-Every independently authoritative financial root and cross-system accounting
-handoff MUST store one exact tenant and Legal Entity. Legal Entity scope MUST
-only narrow the containing tenant's records, permissions, connections, and
-reporting; it MUST NOT widen access or action across tenants.
+Every independently authoritative financial root and cross-system accounting handoff MUST store one exact tenant and Legal Entity.
 
-A processor Settlement Account Binding, read-only bank-evidence connection, and
-QBO/Xero Accounting Destination Connection MUST be separate purpose-owned
-records scoped to the exact tenant and Legal Entity. Accepted work MUST retain
-the binding or connection identity that governed it. A mutable tenant, site, or
-current-default lookup MUST NOT reroute historical work.
-
-The product MAY quietly preselect the sole entity for a one-entity tenant, but
-storage and authorization MUST remain explicit. Multi-entity activation MUST
-be prospective and proof-gated. A financial operation, Accounting Release, or
-Bank Match that crosses Legal Entities MUST fail closed or be split before
-release.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-c4ff9bc796e8f1ba7007` MUST apply without exception.
 
 #### Scenario: A one-entity tenant posts an Accounting Release
 

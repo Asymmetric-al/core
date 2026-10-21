@@ -26,6 +26,28 @@ context, not the current implementation or a remaining vendor cutover plan.
 
 ## Remaining Work
 
+### Already synchronized removals
+
+The following operations were already applied to durable `crm-core` by the
+accepted retirement reconciliation. AL-2170 removes the redundant REMOVED
+operations from the still-active delta; it does not restore those contracts or
+claim completion of the external cleanup below. Their original rationale is
+retained here:
+
+- **CRM Backing Datastore Stays Isolated.** Asym Postgres now owns CRM truth.
+  A dedicated external CRM datastore is no longer the default or required
+  backing store. Isolation, backup, and privilege remain Asym Postgres and
+  tenant RLS concerns under `Asym Postgres Owns All CRM Records`.
+- **CRM Sync Is Signed, Durable, Pausable, And Replayable.** Twenty
+  inbound/outbound sync, webhooks, replay, and projection drift are retired as
+  product dependencies. Local authoritative writes, command audit, and optional
+  later non-Twenty projections require their own accepted changes.
+- **CRM Production Cutover Is Domain-Gated And Reversible.** There is no Twenty
+  production cutover. Production CRM data is Asym-owned. Production safety for
+  CRM remains tenant RLS, authorization, migrations, and Core quality gates.
+
+### External cleanup
+
 The external Vercel variable and Twenty Cloud key/workspace cleanup is not
 proved complete. Verify exact environments with authorized tooling and record
 the result in `tasks.md`; do not expose secrets or infer cleanup from code

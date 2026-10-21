@@ -4,7 +4,9 @@
 
 ### Requirement: Phase 27 P15 reported gift intake and independent completion
 
-P15 SHALL own a bounded operational actual-receipt report with trusted Tenant/recorder/time, attributed handling assertion/time precision, reported holder or explicit unknown, current accountable next work/owned exception and exact lineage. Unknown donor, entity, amount or allocation can remain unknown in the restricted nonfinancial intake envelope. It is not money or a nullable financial-root escape hatch. Continue/reconcile the same occurrence through existing batch/commit; already valid entry needs no compulsory precursor. Reporting grants no posting/correction/receipt/commitment authority. Recording and physical handling complete independently through exact source evidence; partial coverage closes only covered work. Accepted obligations survive appeal closure, cleanup and departure.
+P15 SHALL own a bounded operational actual-receipt report with trusted Tenant/recorder/time, attributed handling assertion/time precision, reported holder or explicit unknown, current accountable next work/owned exception and exact lineage.
+
+Every clause in `openspec/contracts/contribution-operations.md#contract-1fe25b586ff24315db30` MUST apply without exception.
 
 #### Scenario: Truthful incomplete report
 

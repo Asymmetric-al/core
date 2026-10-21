@@ -34,10 +34,7 @@ export type CollectionRegistryKind =
   | "server-only";
 
 export type CollectionMutationPolicy =
-  | "collection-crud"
-  | "server-command"
-  | "read-only"
-  | "local-only";
+  "collection-crud" | "server-command" | "read-only" | "local-only";
 
 export interface CollectionRegistryEntry {
   name: string;

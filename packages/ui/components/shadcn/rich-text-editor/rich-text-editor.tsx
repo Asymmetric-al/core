@@ -25,6 +25,8 @@ export interface RichTextEditorProps {
   placeholder?: string;
   className?: string;
   editorClassName?: string;
+  /** Feed-composer text density; default editor presentation is unchanged. */
+  variant?: "default" | "feed";
   /** When false, prose is not inverted in dark mode (default true). */
   proseInvert?: boolean;
   /**
@@ -49,6 +51,7 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       placeholder,
       className,
       editorClassName,
+      variant = "default",
       proseInvert = true,
       extraExtensions,
       children,
@@ -84,6 +87,8 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           class: cn(
             "tiptap prose prose-sm sm:prose-base focus:outline-none max-w-none min-h-37.5 p-4",
             proseInvert && "dark:prose-invert",
+            variant === "feed" &&
+              "py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-25 sm:min-h-35 leading-relaxed",
             editorClassName,
           ),
         },

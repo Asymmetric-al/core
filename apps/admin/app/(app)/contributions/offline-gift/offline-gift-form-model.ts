@@ -21,12 +21,7 @@ import type { OfflineContributionRequest } from "@asym/api/schemas/contributions
 export type OfflineDonorMode = "known" | "unknown_offline";
 export type OfflineDesignationType = "missionary" | "fund";
 export type OfflineMethod =
-  | "check"
-  | "cash"
-  | "manual_ach"
-  | "wire"
-  | "stock"
-  | "other";
+  "check" | "cash" | "manual_ach" | "wire" | "stock" | "other";
 
 export interface OfflineGiftFormValues {
   donorMode: OfflineDonorMode;

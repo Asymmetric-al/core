@@ -145,8 +145,8 @@ review` or `Publish changes` action atomically binds the exact revision,
 images on this page publicly.` or `By publishing, you confirm you’re allowed to
 share the words and images on this page publicly.` beside the Page action. For a
       Ministry Update, use the same one-step statement with `in this update
-      publicly`, `in this update with authorized supporters`, or `in this update
-      publicly and with authorized supporters` according to the exact requested
+publicly`, `in this update with authorized supporters`, or `in this update
+publicly and with authorized supporters` according to the exact requested
       D11 `Public page`, `Supporters`, or `Public page and supporters` audience
       selection. At Submit or Publish, bind its statement identifier and version
       atomically to the exact candidate and requested audience selection; if
@@ -499,7 +499,7 @@ review`, `Needs attention`, and `All pages`, cause-owned impact grouping,
       duplicated task, or health authority. Missing, stale, unsupported,
       contradictory, or partial adapter coverage is `Partial`/`Unavailable`, never
       healthy or a guessed task. Prove D7 `Giving unavailable` plus `Review
-      designation` while Page content remains independently public and no substitute
+designation` while Page content remains independently public and no substitute
       destination or unauthorized detail is exposed.
       Resolve current authorization and one exact Tenant, Legal Entity,
       environment, Site, and locale before enumerating, grouping, counting,

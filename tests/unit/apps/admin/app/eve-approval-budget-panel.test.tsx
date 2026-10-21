@@ -98,8 +98,7 @@ describe("Eve approval budget overrides", () => {
       ],
     };
     let finishMutation:
-      | ((value: ReturnType<typeof response>) => void)
-      | undefined;
+      ((value: ReturnType<typeof response>) => void) | undefined;
     const pendingResponse = new Promise<ReturnType<typeof response>>(
       (resolve) => {
         finishMutation = resolve;

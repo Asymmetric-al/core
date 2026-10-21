@@ -54,7 +54,8 @@ const BarChartContent = dynamic(
       return (
         <div className="h-70 w-full">
           <ChartContainer
-            className="h-full w-full aspect-auto"
+            layout="fill"
+            className="w-full"
             config={{ value: { label: title, color: "var(--chart-1)" } }}
           >
             <BarChart

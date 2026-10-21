@@ -13,21 +13,9 @@ Canonical structural detail (paths, packages, diagrams) lives in
 
 ### Requirement: Mission Control As The Staff Operations Surface
 
-Mission Control SHALL be the main staff operations console and the most heavily
-used daily surface in the platform. It MUST serve as the control center for the
-organization's operations and the conceptual home of operational depth.
-Mission Control MUST NOT be modeled as a Site.
+Mission Control SHALL be the main staff operations console and the most heavily used daily surface in the platform.
 
-Mission Control MUST carry the deepest staff capabilities across CRM,
-contributions, Support Hub, communications, reporting, content administration,
-documents, mobilization, automations, and tenant configuration. Support Hub
-SHALL be conceptually anchored in Mission Control as the staff home for
-support conversations and inbound email routing.
-
-Mission Control MUST NOT be treated as optional back-office overflow. When a
-capability carries organization-wide operational depth, staff control,
-exception-handling, or administrative truth, its first conceptual home SHALL be
-Mission Control.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-d7751393e2d5158f854e` MUST apply without exception.
 
 #### Scenario: A new capability carries operational depth
 
@@ -41,24 +29,9 @@ Mission Control.
 
 ### Requirement: Donor Portal As The Donor Self-Service Surface
 
-The donor portal SHALL be the donor self-service surface. It MUST let donors
-control their giving, recurring gifts, payment methods, receipts, statements,
-and related self-service actions without exposing staff-style complexity.
+The donor portal SHALL be the donor self-service surface.
 
-The donor portal SHALL feel calm, clear, confidence-building, and easy to use.
-It MUST highlight the most common donor actions clearly and MUST NOT bury them
-inside staff workflows, internal terminology, or operational detours.
-
-The Donor Portal MUST NOT be modeled as a Site. Donor accounts and authorized
-giving history SHALL remain Tenant-wide across all Sites. Per Phase 24 D57/D58,
-each activated Tenant/environment SHALL use exactly one verified Tenant Donor
-Portal Host and one stable Tenant Donor Account Brand. Neither the Default Site
-nor the entry Site SHALL fragment or reskin that account experience; source-Site
-attribution MAY remain visible on authorized gift records.
-
-The donor portal MUST NOT become a staff operations surface. It SHALL present
-only the depth needed for a donor to manage their relationship to giving with
-clarity and confidence.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-ccf6ed5bf8f1875ad962` MUST apply without exception.
 
 #### Scenario: A donor wants to complete a common giving task
 
@@ -72,21 +45,9 @@ clarity and confidence.
 
 ### Requirement: Missionary Workspace As The Missionary Support-Raising Surface
 
-The missionary workspace SHALL be the fundraising and communication home for
-missionaries. It MUST help missionaries understand support progress, donor
-information, recent giving, tasks, Ministry Updates, and the public pages or
-projects they are allowed to manage.
+The missionary workspace SHALL be the fundraising and communication home for missionaries.
 
-The missionary workspace MUST stay focused on what helps a missionary
-understand support, respond to donors, manage updates, and manage the public
-presence they are authorized to control.
-
-The Missionary Workspace MUST NOT be modeled as a Site. Managing public pages
-from this workspace SHALL NOT turn the workspace into their public destination.
-
-The missionary workspace MUST NOT become a replacement for Mission Control. It
-SHALL avoid staff-style operational depth that would overload missionaries or
-turn the workspace into a second admin console.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-cc75810832968927b8ec` MUST apply without exception.
 
 #### Scenario: A capability would add staff-style depth to the missionary experience
 
@@ -101,31 +62,9 @@ turn the workspace into a second admin console.
 
 ### Requirement: Public Tenant Website As The Public Ministry Surface
 
-The public tenant website SHALL be the public face of the ministry. A Tenant
-MAY operate one or more Sites, each with its own domains, branding,
-language/locale policy, public content, and giving entry points. Every Tenant
-MUST have at least one Site and exactly one Default Site. Each Site MUST be
-tenant-branded, highly customizable, content-managed, and tightly connected to
-missionary pages, project pages, public storytelling, and giving flows.
+The public tenant website SHALL be the public face of the ministry.
 
-Gifts entered through a public Site MUST retain attribution to that entry Site
-without changing their Designation or financial ownership. The Default Site
-SHALL be a workspace/default-attribution convenience, never a fallback for an
-unknown public host. Public Site presentation SHALL follow the explicit Phase
-24 amendments: operational Domain authority governs host bindings (D72), public
-routes and content use exact admitted locales without cross-language fallback
-(D15/D66), the applicable release authority pins complete immutable Site Brand
-Versions (D59), and payment owners independently qualify donor presentment
-currency (D61). Site count SHALL NOT determine payment-account count.
-
-The public tenant website MUST remain a public-facing ministry experience. It
-MUST NOT drift into a logged-in operational surface or become a disguised staff
-tool.
-
-Public giving MUST feel native to the tenant website rather than like a
-disconnected external tool. Missionary and project pages SHALL conceptually
-belong to the public tenant website surface even when authorized users initiate
-or edit related changes from other surfaces.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-31f7d1c749c3160ca2b2` MUST apply without exception.
 
 #### Scenario: A public website change starts to behave like an operational surface
 
@@ -156,17 +95,9 @@ or edit related changes from other surfaces.
 
 ### Requirement: Surface Ownership And Shared Records
 
-The same underlying record SHALL be allowed to appear across multiple surfaces
-according to role and privilege without changing its conceptual home.
+The same underlying record SHALL be allowed to appear across multiple surfaces according to role and privilege without changing its conceptual home.
 
-When the same information appears in both a deeper staff surface and a narrower
-logged-in surface, the surface that owns the deeper operational purpose SHALL
-remain the conceptual home. Narrower surfaces SHALL carry only the slice needed
-for that user's role and task.
-
-Missionary and project pages MUST remain part of the public tenant website
-experience even when related edits or submissions begin in missionary or admin
-surfaces.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-616e264e0b6275f039e0` MUST apply without exception.
 
 #### Scenario: A feature could live in Mission Control or the missionary workspace
 
@@ -190,19 +121,9 @@ surfaces.
 
 ### Requirement: Cross-Surface Continuous Flows
 
-Important actions SHALL feel like one connected flow across public, donor,
-missionary, and staff experiences. The platform MUST avoid manual re-entry,
-broken handoff, and confusion about where a user goes next.
+Important actions SHALL feel like one connected flow across public, donor, missionary, and staff experiences.
 
-The public giving flow MUST continue cleanly through donor confirmation, donor
-history, staff awareness, and missionary-relevant visibility as one connected
-product flow. Likewise, staff actions with downstream effects MUST reflect
-across the related surfaces without requiring side-channel correction.
-
-Ministry Updates MAY appear across surfaces according to visibility and
-moderation settings. They SHALL remain part of one connected product flow even
-when missionaries manage them, admins review them, public pages display them,
-donor experiences surface them, or communication flows reference them.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-d95406b37306a1b931db` MUST apply without exception.
 
 #### Scenario: A public gift becomes part of the connected ministry flow
 
@@ -224,18 +145,9 @@ donor experiences surface them, or communication flows reference them.
 
 ### Requirement: Coherence, Visibility, And Simplicity Across Surfaces
 
-The major surfaces SHALL feel like one connected platform rather than separate
-products. Shared concepts MUST use shared product language and predictable
-behavior across surfaces unless an intentional difference is explicitly defined
-in OpenSpec.
+The major surfaces SHALL feel like one connected platform rather than separate products.
 
-Role-based visibility MUST shape every surface. Users SHALL see the depth that
-fits their role, and staff depth MUST NOT leak into donor or missionary
-surfaces.
-
-Hidden capability MUST be handled cleanly so the product still feels
-intentional, coherent, and complete rather than broken, chopped apart, or half
-revealed.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-343e3a6349b278d9036f` MUST apply without exception.
 
 #### Scenario: A role should not see certain depth
 
@@ -257,13 +169,9 @@ revealed.
 
 ### Requirement: Outbound Communications Are A Governed Platform Channel
 
-Outbound communications — email today, additional channels as adopted — SHALL
-be treated as a governed channel of the connected platform rather than as a
-fifth surface.
+Outbound communications — email today, additional channels as adopted — SHALL be treated as a governed channel of the connected platform rather than as a fifth surface.
 
-Communications that reach donors, missionaries, or the public MUST use shared
-product language, honest states, and tenant-controlled templates and policy,
-and they MUST reflect the same underlying truth as the surfaces they reference.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-533b0737b78b2f4cec01` MUST apply without exception.
 
 #### Scenario: An outbound email would diverge from surface truth
 
@@ -272,3 +180,30 @@ and they MUST reflect the same underlying truth as the surfaces they reference.
 - THEN it reflects the same operational truth the platform surfaces show
 - AND it does not soften, overstate, or contradict the real state for the sake
   of nicer copy
+
+### Requirement: GraphQL Is A Shared-Record Surface Adapter
+
+GraphQL MUST be a shared-record surface adapter for records that already have a conceptual home on donor, missionary, or staff surfaces.
+
+Every clause in `openspec/contracts/platform-surfaces.md#contract-e1ca9b06ec79371872aa` MUST apply without exception.
+
+#### Scenario: A GraphQL Gift uses the same begin command as HTTP
+
+- WHEN GraphQL `createDonation` starts a Gift
+- THEN it calls the Gift Intake Begin Command
+- AND it does not name `begin_donation_saga` in the Yoga handler
+- AND HTTP donate and donations use the same command
+
+#### Scenario: A GraphQL Ministry Update reaction uses the shared command
+
+- WHEN GraphQL like, unlike, pray, or unpray runs
+- THEN it calls the Ministry Update Reaction Command
+- AND HTTP like, prayer, and fire adapters use the same command
+- AND GraphQL does not expose fire
+
+#### Scenario: GraphQL comments stay a real write
+
+- WHEN GraphQL `addComment` runs
+- THEN it calls the Ministry Update Comment Command
+- AND it selects and maps the comment after the command returns
+- AND HTTP comments POST remains a read-only demo no-op

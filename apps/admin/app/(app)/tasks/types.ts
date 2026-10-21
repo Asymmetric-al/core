@@ -1,18 +1,10 @@
 export type TaskPriority = "urgent" | "high" | "medium" | "low";
 export type TaskStatus = "todo" | "in_progress" | "completed" | "cancelled";
 export type TaskType =
-  | "call"
-  | "email"
-  | "meeting"
-  | "follow_up"
-  | "todo"
-  | "review";
+  "call" | "email" | "meeting" | "follow_up" | "todo" | "review";
 
 export type LinkedEntityType =
-  | "donor"
-  | "missionary"
-  | "contact"
-  | "organization";
+  "donor" | "missionary" | "contact" | "organization";
 
 export interface LinkedEntity {
   id: string;

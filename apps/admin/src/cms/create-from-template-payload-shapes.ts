@@ -9,10 +9,7 @@
 
 type CmsRelationship = string | number | { id: string | number } | null;
 export type CmsPageType =
-  | "standard"
-  | "missionary_giving"
-  | "project"
-  | "ministry_update";
+  "standard" | "missionary_giving" | "project" | "ministry_update";
 type PayloadPageType = Exclude<CmsPageType, "ministry_update">;
 export type CmsRichTextDocument = {
   root: {

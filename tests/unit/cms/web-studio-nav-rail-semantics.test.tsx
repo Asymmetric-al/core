@@ -176,3 +176,50 @@ it("keeps recent documents as named navigation links and preserves Payload navig
     screen.getByRole("button", { name: "Collapse studio navigation" }),
   ).toBeTruthy();
 });
+
+it("keeps collapsed section controls as named links with one navigation and stable focus", async () => {
+  fixture.pathname = "/web-studio/collections/pages";
+  render(
+    <RouterAdapterContext
+      value={{
+        Link: NativeLink,
+        pathname: fixture.pathname,
+        params: {},
+        searchParams: new URLSearchParams(),
+        router: {
+          push: fixture.push,
+          replace: fixture.replace,
+          refresh: vi.fn(),
+          back: vi.fn(),
+          forward: vi.fn(),
+          prefetch: vi.fn(),
+        },
+      }}
+    >
+      <StudioNavRail />
+    </RouterAdapterContext>,
+  );
+  await screen.findByTitle("Quarterly update");
+  fireEvent.click(
+    screen.getByRole("button", { name: "Collapse studio navigation" }),
+  );
+  const pageLink = screen.getByRole("link", { name: "Pages", exact: true });
+  expect(pageLink.tagName).toBe("A");
+  expect(pageLink.getAttribute("href")).toBe("/web-studio/collections/pages");
+  expect(pageLink.getAttribute("aria-current")).toBe("page");
+  expect(pageLink.querySelector("button")).toBeNull();
+  expect(
+    screen.queryByRole("button", { name: "Pages", exact: true }),
+  ).toBeNull();
+  pageLink.focus();
+  expect(document.activeElement).toBe(pageLink);
+  fireEvent.click(pageLink);
+  expect(fixture.push).toHaveBeenCalledExactlyOnceWith(
+    "/web-studio/collections/pages",
+    { scroll: undefined },
+  );
+  expect(fixture.setPreference).toHaveBeenCalledExactlyOnceWith(
+    "web-studio.navCollapsed",
+    { collapsed: true },
+  );
+});

@@ -5,6 +5,10 @@ The "Give Hope" tenant name that appears in some demo defaults is a test fronten
 
 ## Quick Start
 
+Install Node.js 24 at or above the tested version in `.node-version` and the
+exact Bun version in `.bun-version`. Setup and preflight reject other Node
+majors; GitHub Actions pins the exact tested checkpoint.
+
 Follow the canonical Quickstart in `README.md`:
 
 ```bash

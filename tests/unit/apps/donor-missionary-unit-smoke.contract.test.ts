@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import vitestConfig from "../../../vitest.config";
+import vitestConfig from "../../../vitest.config.mts";
 
 const repoRoot = process.cwd();
 

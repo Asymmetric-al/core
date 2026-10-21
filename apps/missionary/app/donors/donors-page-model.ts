@@ -17,11 +17,7 @@ export type DonorsPageSummary = {
 };
 
 export type DonorsStatFilterType =
-  | "atRisk"
-  | "needsAttention"
-  | "activePledge"
-  | "lapsed"
-  | "new";
+  "atRisk" | "needsAttention" | "activePledge" | "lapsed" | "new";
 
 type DonorsStatFilterState = DonorsPageFilterState & {
   selectedDonorId: null;

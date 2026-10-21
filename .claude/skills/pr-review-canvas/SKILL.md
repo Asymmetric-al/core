@@ -66,8 +66,7 @@ fetch(url):
     on success → close circuit breaker, return
     on retryable error → wait (exponential backoff + jitter)
     on non-retryable error → throw
-  circuit breaker records failure</pre
-      >
+  circuit breaker records failure</pre>
     </div>
     <div class="bp-section" style="margin:0;border:0;border-radius:0;">
       <div class="bp-hdr" onclick="toggleBP(this)">

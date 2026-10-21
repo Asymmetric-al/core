@@ -27,9 +27,7 @@ export type CrmRelationshipRecordKind =
   | "activity";
 
 export type CrmRelationshipAuthorityScope =
-  | "crm_relationship"
-  | "finance_summary"
-  | "care_excluded";
+  "crm_relationship" | "finance_summary" | "care_excluded";
 
 export type CrmRelationshipRow = {
   id: string;

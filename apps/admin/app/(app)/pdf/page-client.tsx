@@ -60,7 +60,6 @@ import {
   FileText,
   Save,
   Download,
-  Monitor,
   ChevronRight,
   Settings,
   FileCode,
@@ -89,6 +88,11 @@ import React, {
   useReducer,
 } from "react";
 import { toast } from "sonner";
+
+import {
+  NativePdfDocumentBuilderSection,
+  type NativePreviewState,
+} from "./native-pdf-document-builder-section";
 
 import type { PDFTemplateCategory, PDFTemplateEngine } from "@/lib/pdf-studio";
 import type { UnlayerDesignJSON } from "@asym/email/email-studio-types";
@@ -132,18 +136,6 @@ interface PDFTemplateListEntry {
   engine?: PDFTemplateEngine;
   native_schema_version?: number | null;
   updated_at: string;
-}
-
-interface NativePreviewState {
-  html: string;
-  diagnostics: Array<{
-    code: string;
-    severity: "info" | "warning" | "error";
-    message: string;
-    path?: string[];
-  }>;
-  status: "idle" | "loading" | "success" | "error";
-  error: string | null;
 }
 
 interface PDFStudioUiState {
@@ -988,97 +980,8 @@ function PDFTemplatePickerDialog({
   );
 }
 
-function NativePdfDocumentBuilderSection({
-  templateText,
-  preview,
-  onTemplateTextChange,
-  onPreview,
-}: {
-  templateText: string;
-  preview: NativePreviewState;
-  onTemplateTextChange: (value: string) => void;
-  onPreview: () => void;
-}) {
-  return (
-    <div className="absolute inset-0 grid min-h-0 grid-cols-1 bg-background lg:grid-cols-[minmax(360px,0.92fr)_minmax(420px,1.08fr)]">
-      <section className="flex min-h-0 flex-col border-r bg-background">
-        <div className="flex h-12 shrink-0 items-center justify-between border-b px-3">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <FileCode className="size-4 text-muted-foreground" />
-            Document JSON
-          </div>
-          <Button size="sm" variant="outline" onClick={onPreview}>
-            <Monitor className="mr-2 size-4" />
-            Preview
-          </Button>
-        </div>
-        <textarea
-          aria-label="PDF template source"
-          value={templateText}
-          onChange={(event) => onTemplateTextChange(event.target.value)}
-          spellCheck={false}
-          className="min-h-0 flex-1 resize-none border-0 bg-background px-3 py-2 font-mono text-xs leading-relaxed text-foreground outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-        />
-      </section>
-
-      <section className="flex min-h-0 flex-col bg-muted/30">
-        <div className="flex h-12 shrink-0 items-center justify-between border-b bg-background px-3">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Monitor className="size-4 text-muted-foreground" />
-            Authoring Preview
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {preview.status === "loading" && (
-              <span className="size-3 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent" />
-            )}
-            {preview.status}
-          </div>
-        </div>
-        <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto]">
-          <iframe
-            title="Native PDF authoring preview"
-            // The print document is static markup plus inline CSS (no
-            // scripts), so the same sandbox as the email preview applies.
-            sandbox="allow-same-origin"
-            srcDoc={preview.html}
-            className="h-full w-full bg-card"
-          />
-          <div className="max-h-40 overflow-y-auto border-t bg-background p-3">
-            {preview.error ? (
-              <div className="flex items-start gap-2 text-sm text-destructive">
-                <AlertCircle className="mt-0.5 size-4 shrink-0" />
-                <span>{preview.error}</span>
-              </div>
-            ) : preview.diagnostics.length > 0 ? (
-              <div className="space-y-2">
-                {preview.diagnostics.map((diagnostic, index) => (
-                  <div
-                    key={`${diagnostic.code}-${index}`}
-                    className="flex items-start gap-2 text-xs text-muted-foreground"
-                  >
-                    <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
-                    <span>
-                      {diagnostic.severity}: {diagnostic.message}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Check className="size-3.5" />
-                Preview ready
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
 type ExportPdfResult =
-  | { ok: true; url?: string }
-  | { ok: false; error: unknown };
+  { ok: true; url?: string } | { ok: false; error: unknown };
 
 async function runExportPdf(
   editor: LegacyUnlayerDocumentEditorHandle,
@@ -1135,8 +1038,7 @@ async function runDeletePdfTemplate(
 }
 
 type SaveTemplateResult =
-  | { ok: true; templateId: string }
-  | { ok: false; error: string };
+  { ok: true; templateId: string } | { ok: false; error: string };
 
 async function runSaveTemplate(options: {
   editor: LegacyUnlayerDocumentEditorHandle;

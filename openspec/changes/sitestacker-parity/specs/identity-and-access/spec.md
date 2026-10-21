@@ -2,13 +2,9 @@
 
 ### Requirement: Capability Aggregation Uses One Validated Context
 
-The current Phase 3/12 authorization target MUST resolve capabilities within one server-validated Tenant Authorization Context for the request or deferred operation. The accepted Phase 12 D12/D14 and ship-first rules supersede earlier shorthand that unions every active membership held by a person. Membership-backed human requests MUST select one currently valid Active Tenant Assignment and aggregate only grant sources applicable to that context before applying the tenant, Legal Entity, purpose and other subtract-only floors. Staff, donor and missionary hats MUST NOT implicitly widen one another.
+The current Phase 3/12 authorization target MUST resolve capabilities within one server-validated Tenant Authorization Context for the request or deferred operation.
 
-Public/anonymous contexts MUST remain pinned to their exact server-validated Site/public-resource projection and MUST NOT gain internal grants or enqueue tenant mutations. A single-Tenant NHI MUST remain bounded by its own grants intersected live with its required human owner’s current resolved capabilities. An operator MUST remain bounded by the exact audited, purpose-bound, time-boxed tenant grant. The common PDP MUST preserve these variants rather than manufacture a member assignment for every principal.
-
-Deferred member work MUST serialize and re-resolve its validated assignment. Deferred NHI/operator work MUST serialize only its appropriate source context reference and re-prove current identity, owner ceiling or operator grant, scope, purpose and capability at fire time. A previous favorable publication, membership list or cached union MUST NOT substitute for current authority.
-
-The Phase 3 early code-registry and read-only UI scope MUST remain distinct from Phase 12’s later generated capability tables and grant product. This target amendment MUST NOT be interpreted as a claim that those foundations are implemented, a backward whole-phase delivery dependency, or authority to invent private participant admission. Durable MVP implementation observations remain evidence of their recorded scope, not permission to implement the superseded union.
+Every clause in `openspec/contracts/identity-and-access.md#contract-af71db6fdfc6ab3f2f22` MUST apply without exception.
 
 #### Scenario: Another active hat cannot widen this request
 
@@ -40,20 +36,9 @@ The Phase 3 early code-registry and read-only UI scope MUST remain distinct from
 
 ### Requirement: Phase 3 Role-scoped Access Uses One Projection Boundary
 
-Phase 3 narrow-surface reads, writes and governed export MUST use one server-side,
-subtract-only projection decision under the validated context above. Static
-field policies MUST declare visibility, editability, exportability and sensitivity;
-conditional ownership, relationship, anonymity, record-state and consent checks
-MUST only remove access. Tenant remains the outer boundary. Financial records
-MUST carry their exact immutable Legal Entity; missing, stale or out-of-scope
-entity authority MUST fail closed before enumeration, counts, aggregation,
-export or binding, with denied and absent rows indistinguishable. Site,
-designation or a mutable Tenant default MUST NOT substitute for entity scope.
+Phase 3 narrow-surface reads, writes and governed export MUST use one server-side, subtract-only projection decision under the validated context above.
 
-The Phase 3 typed capability registry MUST remain code-authoritative and its
-capability/role inspection UI read-only. Capability tables, configurable grants,
-tenant overrides and the full Phase 12 permission-management product MUST remain
-deferred; dormant future seams MUST NOT change current decisions.
+Every clause in `openspec/contracts/identity-and-access.md#contract-1b5c3c717cb6ed5ee0a6` MUST apply without exception.
 
 #### Scenario: An authorized donor reads and edits their own admitted profile
 
@@ -85,33 +70,9 @@ deferred; dormant future seams MUST NOT change current decisions.
 
 ### Requirement: Phase 3 Sensitive Fields Fail Closed On Every Surface
 
-Unclassified fields, unknown or dotted field keys and unregistered surfaces MUST
-be omitted from donor, missionary, public and export projections. Unclassified
-fields MUST receive the strictest internal/non-exportable posture. Authorized
-Mission Control inspection MAY retain operational visibility under its own
-capability and row floors; it MUST NOT make those fields externally available.
-Processor identifiers MUST remain hard-locked off donor, missionary, public and
-future narrow surfaces, and off bulk export; Mission Control finance visibility
-MUST require the exact capability. Internal notes, scores, care and security data
-MUST NOT escape through templates, derived fields, search, caches or diagnostics.
-Anonymous donor identity MUST be masked for missionary/public consumers while
-remaining available to authorized finance, official-facts and audit consumers.
-Accepted online guest gifts MUST retain a known Party/legal donor; only explicit
-`unknown_offline` source intent may represent unknown identity.
+Unclassified fields, unknown or dotted field keys and unregistered surfaces MUST be omitted from donor, missionary, public and export projections.
 
-New record families MUST remain blind until their owning phase supplies field
-classification and exact row/purpose scope. The retired CRM→surface shadow-sync
-stack MUST NOT be revived as an enforcement or synchronization dependency.
-
-The AL-491 receipt-census clarification approved on 2026-10-05 at 04:44:28
-UTC permits `receipts` to remain explicitly absent/reserved, bound to the exact
-live inventory and repository/schema revision. It MUST have zero fabricated
-columns and zero positive seed rows. `receipts` and prototype receipt aliases
-MUST remain denied on every surface, including Mission Control, despite
-permissive policy rows, category defaults or donation fallbacks. This disposition
-qualifies only receipt census availability; all existing required columns still
-require a reviewed census and seed. Phase 7 owns canonical source qualification;
-Phase 18 owns artifacts and Phase 17 delivery.
+Every clause in `openspec/contracts/identity-and-access.md#contract-ee56b32263df54a7d4e3` MUST apply without exception.
 
 #### Scenario: The canonical receipt source is absent
 
@@ -144,17 +105,8 @@ Phase 18 owns artifacts and Phase 17 delivery.
 ### Requirement: Phase 3 Projection Widening Requires A Distinct Human
 
 Projection changes MUST be classified server-side as narrow, neutral or widen.
-Narrowing and neutral changes MUST apply immediately with audit; widening MUST
-remain pending with the old policy effective until a second distinct human
-approves. Reusing the contribution correction maker-checker engine MUST enforce
-separation of duties at human/profile identity, regardless of role switching or
-the unresolved financial correction-approval mode. Ambiguous changes and moves
-between incomparable donor/missionary surfaces MUST count as widening. Approval
-MUST recheck the base fingerprint and server-owned editable-tuple allowlist;
-stale or concurrent decisions MUST fail without publishing. Baseline policy
-changes MUST require super-admin authority. Rollback MUST be classified as an
-inverse edit and pass the same controls. Audit MUST contain identifiers and
-policy metadata rather than rendered PII.
+
+Every clause in `openspec/contracts/identity-and-access.md#contract-029692d18ea3835deea8` MUST apply without exception.
 
 #### Scenario: A narrowing takes effect immediately
 

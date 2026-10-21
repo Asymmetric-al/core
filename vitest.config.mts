@@ -1,0 +1,102 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vitest/config";
+
+import { perImporterAtAlias } from "./vitest.per-importer-alias.mts";
+import { pinWorkspacePackages } from "./vitest.pin-workspace-packages.mts";
+
+const rootDir = fileURLToPath(new URL(".", import.meta.url));
+const libraryRequire = createRequire(
+  new URL("./packages/lib/package.json", import.meta.url),
+);
+
+export default defineConfig({
+  /**
+   * `@/` resolves per importing file against the workspace's own tsconfig
+   * `paths` mapping (there is no repo-root `src/`); see
+   * vitest.per-importer-alias.mts.
+   */
+  plugins: [
+    pinWorkspacePackages(rootDir),
+    perImporterAtAlias(rootDir),
+    react(),
+  ],
+  resolve: {
+    alias: {
+      /** Vitest runs in Node (a server context); the marker must not throw. */
+      "server-only": path.join(rootDir, "tests/mocks/server-only.ts"),
+      "@tiptap/react/menus": path.join(
+        rootDir,
+        "tests/mocks/tiptap-react-menus.tsx",
+      ),
+      /** Bun's isolated store can split `next` into per-peer-set copies (root vs apps); pin one instance so `vi.mock("next/navigation")` patches the same module the app code under test imports. */
+      next: path.join(rootDir, "node_modules/next"),
+      /** Stripe is installed in the donor workspace. Resolve root-test mocks and app imports to the same SDK modules so the real provider cannot leak into isolated checkout tests. */
+      "@stripe/react-stripe-js": path.join(
+        rootDir,
+        "apps/donor/node_modules/@stripe/react-stripe-js",
+      ),
+      "@stripe/stripe-js": path.join(
+        rootDir,
+        "apps/donor/node_modules/@stripe/stripe-js",
+      ),
+      /** Not hoisted to the repo root, so `vi.mock("@supabase/ssr")` in a test resolves to nothing while `@asym/auth` resolves its own copy — pin both to one module. */
+      "@supabase/ssr": path.join(
+        rootDir,
+        "packages/auth/node_modules/@supabase/ssr",
+      ),
+      /** Resolve the public config export before the package-prefix alias appends `/config` to a physical directory. */
+      "@sentry/nextjs/config": libraryRequire.resolve("@sentry/nextjs/config"),
+      /** Apps and shared monitoring must resolve to the same SDK instance for local transport and initialization fixtures. */
+      "@sentry/nextjs": path.join(
+        rootDir,
+        "packages/lib/node_modules/@sentry/nextjs",
+      ),
+      /** The analytics fixture and shared adapter use the library's installed observer module. */
+      "web-vitals": path.join(rootDir, "packages/lib/node_modules/web-vitals"),
+      /** Tests live outside `packages/ui`; pin Sonner so `vi.mock('sonner')` patches the same module as `@asym/ui`. */
+      sonner: path.join(rootDir, "packages/ui/node_modules/sonner"),
+      /** Tests live outside `packages/ui`; pin MapLibre so `vi.mock("maplibre-gl")` patches the same module as the Map primitive. */
+      "maplibre-gl": path.join(rootDir, "packages/ui/node_modules/maplibre-gl"),
+      /** Tests live outside `packages/database`; pin the Supabase adapter so `vi.mock("@supabase-labs/tanstack-db")` patches the same module as `@asym/database`. */
+      "@supabase-labs/tanstack-db": path.join(
+        rootDir,
+        "packages/database/node_modules/@supabase-labs/tanstack-db",
+      ),
+    },
+  },
+  test: {
+    setupFiles: ["./tests/setup/unit-env.ts"],
+    include: [
+      "tests/unit/**/*.test.ts",
+      "tests/unit/**/*.test.tsx",
+      "packages/api/tests/unit/**/*.test.ts",
+      "packages/api/tests/unit/**/*.test.tsx",
+      "packages/auth/**/*.test.ts",
+    ],
+    environment: "node",
+    ...(process.platform === "win32" ? { maxWorkers: 4 } : {}),
+    env: {
+      SKIP_ENV_VALIDATION: "1",
+      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key",
+    },
+    testTimeout: 60_000,
+    hookTimeout: 120_000,
+    clearMocks: true,
+    /** TipTap React ships ESM subpaths; inline so `vi.mock` replaces the same module graph under coverage. */
+    server: {
+      deps: {
+        inline: ["@tiptap/react", "@tiptap/react/menus", "sonner"],
+      },
+    },
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "json-summary", "html"],
+      reportsDirectory: "coverage",
+    },
+  },
+});

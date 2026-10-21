@@ -37,6 +37,11 @@ without repairing it. Setup does not start an issue trial.
   ESLint/AST tooling and the legacy editor SDK. Root fixture commands use the
   explicit native alias. See the [compiler ownership guide](docs/guides/typescript-6-readiness.md)
   before changing compiler dependencies or editor settings.
+- **Unit coverage:** `bun run test:unit` uses the exact-version supported Vitest V8
+  provider. Reports measure imported source under configured filters; zero or
+  stale totals are not coverage. Keep ESM configuration in `vitest.config.mts`
+  and preserve importer-aware aliases, isolation and fixture behavior. See the
+  [tooling qualification record](docs/maintenance/modernization/development-tools.md).
 - **Conventions:** `docs/conventions.md` (folder structure, code style, and pre-commit checklist).
 - **UI lint:** use `bun run lint:ui <repo-relative-path>` during iteration.
   Follow the [canonical workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md)
@@ -68,6 +73,9 @@ without repairing it. Setup does not start an issue trial.
   target environment for full qualification. Follow the
   [build runbook](docs/guides/development/build-runbook.md#eve-artifacts-and-qualification)
   and keep Release Off until the separate launch requirements are met.
+- **OSS Scanner:** maintain the credential-free build and offline helpers using
+  the [scanner runbook](.oss-scanner/README.md); keep demo, mocked-provider and
+  local database evidence separate and triage findings privately.
 - **Production E2E:** `bun run test:e2e:production-gate` is the bounded
   release gate required for `production`; broader `bun run test:e2e` remains useful
   for local feature validation.

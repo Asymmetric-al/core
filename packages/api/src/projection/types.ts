@@ -120,8 +120,7 @@ export type RowScope = Readonly<{
     | NotApplicable
     | Readonly<{ kind: "applicable"; entityId: string; scopeRevision: string }>;
   ownership:
-    | NotApplicable
-    | Readonly<{ kind: "applicable"; ownerField: string }>;
+    NotApplicable | Readonly<{ kind: "applicable"; ownerField: string }>;
   relationship:
     | NotApplicable
     | Readonly<{

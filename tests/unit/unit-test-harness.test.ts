@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import vitestConfig from "../../vitest.config";
+import vitestConfig from "../../vitest.config.mts";
 
 describe("unit test harness", () => {
   it("applies SKIP_ENV_VALIDATION from vitest env defaults", () => {

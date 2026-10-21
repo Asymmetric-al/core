@@ -2,16 +2,9 @@
 
 ### Requirement: Web Build Artifacts Are Separate From Eve Runtime Qualification
 
-Generic web builds MUST compile their Eve dependency without provisioning a
-sandbox. Hosted preview Eve services MUST support the same explicit artifact
-mode. These outputs MUST be treated as unqualified Release-Off previews and MUST
-NOT activate Eve, change effect admission, or satisfy sandbox/launch evidence.
-Build caches MUST distinguish artifact mode and MUST NOT reuse a cached result
-as full sandbox qualification. Ordinary standalone and production service builds
-MUST retain the full SDK prewarm path and propagate its failures.
-Authored-source verification MUST exclude only the SDK's exact generated service
-and deployment output directories, while retaining checks on authored code and
-same-named directories outside those paths.
+Generic web builds MUST compile their Eve dependency without provisioning a sandbox.
+
+Every clause in `openspec/contracts/eve-runtime-foundation.md#contract-f7575c53fcf5e197aeda` MUST apply without exception.
 
 #### Scenario: A Release-Off preview compiles without provisioning
 

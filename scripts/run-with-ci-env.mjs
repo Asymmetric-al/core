@@ -81,6 +81,9 @@ export function loadLocalEnvFiles({
   env = process.env,
   loadEnvFile = process.loadEnvFile,
 } = {}) {
+  // Explicit fixture mode must never import a developer's privileged inputs.
+  // Normal local runs retain the existing opaque credential-loading behavior.
+  if (env.ASYM_USE_CI_ENV_DEFAULTS === "1") return;
   const envCandidates = [".env.local", ".env"];
 
   for (const relativePath of envCandidates) {

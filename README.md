@@ -1,6 +1,6 @@
 # Asymmetric.al - Kingdom Impact Platform
 
-A high-performance Next.js 16.4.0 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
+A high-performance Next.js 16.4.2 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
 
 ## Quickstart
 
@@ -10,7 +10,7 @@ For the optional six-agent GitHub issue-to-`develop` workflow, use the
 personal instructions; `--verify-only` checks existing setup without repair.
 The coordinator controls native handoffs; setup does not start an issue trial.
 
-1. **Install prerequisites:** [Node.js 24.21.0](https://nodejs.org/), [Bun 1.4.3](https://bun.sh), and Git on your PATH.
+1. **Install prerequisites:** [Node.js 24.22.1](https://nodejs.org/), [Bun 1.4.3](https://bun.sh), and Git on your PATH.
 2. **Choose your setup path.**
 
 ### Credential-free Mission Control sandbox
@@ -99,7 +99,7 @@ pwsh -File .\scripts\setup.ps1
 First run creates `.env.local`. Fill these required values, then re-run the setup:
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-The script order matches `bun run setup` on Unix: verify the pinned Bun version, install dependencies (unless `-SkipInstall`), run `bun run skills:verify`, then `bun run setup:verify`. After pulling changes that touch skills, run `bun run skills:verify`; if it reports mirror drift, run `bun run skills:sync` and commit the updated mirrors.
+The script order matches `bun run setup` on Unix: verify the approved Node.js runtime and pinned Bun version, install dependencies (unless `-SkipInstall`), run `bun run skills:verify`, then `bun run setup:verify`. After pulling changes that touch skills, run `bun run skills:verify`; if it reports mirror drift, run `bun run skills:sync` and commit the updated mirrors.
 
 Skip dependency install if you already ran it:
 
@@ -118,7 +118,7 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 16.4.0 (App Router, Turbopack in app configs, Instant Navigation via `cacheComponents` + `partialPrefetching`) — _optimized for performance_
+- **Framework**: Next.js 16.4.2 (App Router, Turbopack in app configs, Instant Navigation via `cacheComponents` + `partialPrefetching`) — _optimized for performance_
 - **UI system**: Tailwind CSS 4 + shadcn/ui (Maia theme) + Base UI
 - **Theme**: Light Zinc aesthetic (Zinc/Zinc), shadcn/ui Maia theme
 - **Database**: Supabase (PostgreSQL)
@@ -254,7 +254,7 @@ Commit both the canonical files and any mirror updates.
 
 ### Package Manager
 
-This repo uses **Bun** pinned in root `package.json` `packageManager` and `.bun-version` (currently **1.4.3**). Install that exact version locally (`bun run verify:bun-version` after setup). Prefer `bun` / `bunx` for scripts in this workspace; CI installs with `bun ci`. Apps still run on **Node.js 24** (CI pins **24.21.0**) via Next.js (`next build` / `next start`). Do not use `bun --bun`, and do not add `bunVersion` to `apps/*/vercel.json` — that switches Vercel Functions onto the Bun runtime ([changelog](https://vercel.com/changelog/bun-1-4-is-now-available-in-vercel-functions)), which is not this repo’s deploy path.
+This repo uses **Bun** pinned in root `package.json` `packageManager` and `.bun-version` (currently **1.4.3**). Install that exact version locally (`bun run verify:bun-version` after setup). Prefer `bun` / `bunx` for scripts in this workspace; CI installs with `bun ci`. Apps still run on **Node.js 24** (CI pins **24.22.1**) via Next.js (`next build` / `next start`). Do not use `bun --bun`, and do not add `bunVersion` to `apps/*/vercel.json` — that switches Vercel Functions onto the Bun runtime ([changelog](https://vercel.com/changelog/bun-1-4-is-now-available-in-vercel-functions)), which is not this repo’s deploy path.
 
 ### Monorepo Workspace Contract
 
@@ -375,6 +375,12 @@ Common commands:
 - `bun run verify:shadscan` (locked workspace audit, independent app floors and reviewed evidence; [guide](docs/guides/development/shadscan.md))
 - Canonical PR/push-readiness gate: `bun run ci:preflight` (routine development skips full compilation; dependency/build changes compile affected apps). Full QA/release checkpoint: `bun run ci:preflight -- --full`.
 
+Unit tests use Vitest's supported V8 coverage provider. Reports measure imported
+source under configured filters; they are not a whole-repository coverage census.
+Product builds use TypeScript 7, while AST/parser/editor tools retain the maintained
+TypeScript 6 API. See the [compiler boundary](docs/guides/typescript-6-readiness.md)
+and [tooling qualification record](docs/maintenance/modernization/development-tools.md).
+
 ### Git Hooks Setup
 
 Husky hooks:
@@ -408,12 +414,16 @@ Turbo remote caching depends on your CI/provider setup (e.g. `TURBO_TOKEN` / Ver
 
 Build env details: `docs/guides/development/build-runbook.md`.
 
+For the credential-free Anthropic OSS Scanner image, explicit offline service
+startup, verification profiles and private report triage, see the
+[OSS Scanner runbook](.oss-scanner/README.md).
+
 ### Key Dependencies
 
 | Package               | Version | Notes                                                         |
 | --------------------- | ------- | ------------------------------------------------------------- |
-| Next.js               | 16.4.0  | App Router + Turbopack in app configs                         |
-| React                 | 19.3.0  |                                                               |
+| Next.js               | 16.4.2  | App Router + Turbopack in app configs                         |
+| React                 | 19.3.1  |                                                               |
 | TypeScript            | 7.0.2   | Native workspace compiler; root TS 6 API/editor compatibility |
 | motion                | 12.x    | Animation (successor to framer-motion)                        |
 | @tanstack/react-query | 5.x     | Server state                                                  |
@@ -450,7 +460,7 @@ bun run verify:supabase-money
 ## Key Conventions
 
 1. **RSC first:** Keep components as React Server Components unless interactivity requires client hooks or browser-only APIs.
-2. **Next.js 16.4.0 compliance:** Always `await` dynamic `params` and `searchParams` in routes and layouts (follow current App Router patterns for this repo’s Next version).
+2. **Next.js 16.4.2 compliance:** Always `await` dynamic `params` and `searchParams` in routes and layouts (follow current App Router patterns for this repo’s Next version).
 3. **Zinc and shadcn/ui Maia aesthetic:** Maia/Zinc tokens and shared UI patterns in `@asym/ui`; use `zinc-900` for primary actions and `zinc-500` for secondary text where this convention applies.
 4. **Responsive integrity:** Test UI changes on both ~375px (mobile) and ~1440px (desktop) viewports.
 

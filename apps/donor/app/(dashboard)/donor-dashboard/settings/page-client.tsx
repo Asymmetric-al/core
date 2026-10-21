@@ -534,6 +534,61 @@ interface NotificationCategory {
   items: NotificationCategoryItem[];
 }
 
+const notificationCategories: NotificationCategory[] = [
+  {
+    title: "Billing & Receipts",
+    icon: Receipt,
+    color: "text-info bg-info/10",
+    items: [
+      {
+        key: "receipts",
+        label: "Instant Donation Receipts",
+        desc: "Email receipt after every donation.",
+      },
+      {
+        key: "monthlyStatement",
+        label: "Monthly Statements",
+        desc: "Consolidated summary sent on the 1st.",
+      },
+    ],
+  },
+  {
+    title: "Impact Updates",
+    icon: Heart,
+    color: "text-destructive bg-destructive/10",
+    items: [
+      {
+        key: "fieldUpdates",
+        label: "Field Partner Updates",
+        desc: "Stories directly from the workers you support.",
+        recommended: true,
+      },
+      {
+        key: "videoStories",
+        label: "Video Stories",
+        desc: "Links to video messages and reports.",
+      },
+    ],
+  },
+  {
+    title: "Organization",
+    icon: Globe,
+    color: "text-success bg-success/10",
+    items: [
+      {
+        key: "newsletters",
+        label: "Quarterly Newsletter",
+        desc: "High-level vision and stats.",
+      },
+      {
+        key: "emergencyAppeals",
+        label: "Emergency Appeals",
+        desc: "Notifications about urgent crises.",
+      },
+    ],
+  },
+];
+
 const NotificationsTab = () => {
   const pendingActionLabelId = useId();
 
@@ -563,61 +618,6 @@ const NotificationsTab = () => {
       setTimeout(() => setSuccess(false), 2500);
     }, 1200);
   };
-
-  const categories: NotificationCategory[] = [
-    {
-      title: "Billing & Receipts",
-      icon: Receipt,
-      color: "text-info bg-info/10",
-      items: [
-        {
-          key: "receipts",
-          label: "Instant Donation Receipts",
-          desc: "Email receipt after every donation.",
-        },
-        {
-          key: "monthlyStatement",
-          label: "Monthly Statements",
-          desc: "Consolidated summary sent on the 1st.",
-        },
-      ],
-    },
-    {
-      title: "Impact Updates",
-      icon: Heart,
-      color: "text-destructive bg-destructive/10",
-      items: [
-        {
-          key: "fieldUpdates",
-          label: "Field Partner Updates",
-          desc: "Stories directly from the workers you support.",
-          recommended: true,
-        },
-        {
-          key: "videoStories",
-          label: "Video Stories",
-          desc: "Links to video messages and reports.",
-        },
-      ],
-    },
-    {
-      title: "Organization",
-      icon: Globe,
-      color: "text-success bg-success/10",
-      items: [
-        {
-          key: "newsletters",
-          label: "Quarterly Newsletter",
-          desc: "High-level vision and stats.",
-        },
-        {
-          key: "emergencyAppeals",
-          label: "Emergency Appeals",
-          desc: "Notifications about urgent crises.",
-        },
-      ],
-    },
-  ];
 
   return (
     <SettingsCard
@@ -653,7 +653,7 @@ const NotificationsTab = () => {
       }
     >
       <div className="divide-y divide-border">
-        {categories.map((category) => (
+        {notificationCategories.map((category) => (
           <div key={category.title} className="py-6 first:pt-0 last:pb-0">
             <div className="flex flex-col md:flex-row md:gap-12 gap-6">
               <div className="md:w-48 shrink-0 flex items-start gap-3">
@@ -696,6 +696,16 @@ const NotificationsTab = () => {
   );
 };
 
+// Password Strength Logic
+const getStrength = (pass: string) => {
+  let score = 0;
+  if (pass.length >= 8) score++;
+  if (/[0-9]/.test(pass)) score++;
+  if (/[!@#$%^&*]/.test(pass)) score++;
+  if (/[A-Z]/.test(pass)) score++;
+  return score;
+};
+
 const SecurityTab = () => {
   const pendingActionLabelId = useId();
 
@@ -706,16 +716,6 @@ const SecurityTab = () => {
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-
-  // Password Strength Logic
-  const getStrength = (pass: string) => {
-    let score = 0;
-    if (pass.length >= 8) score++;
-    if (/[0-9]/.test(pass)) score++;
-    if (/[!@#$%^&*]/.test(pass)) score++;
-    if (/[A-Z]/.test(pass)) score++;
-    return score;
-  };
 
   const strengthScore = getStrength(passwords.new);
   const strengthColor =

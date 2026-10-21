@@ -2,12 +2,7 @@ import { CACHE_TAGS, revalidateTags } from "../shared/cache-tags";
 import { parseRpcObject } from "../shared/parse-rpc-object";
 
 export type MinistryUpdateReactionKind =
-  | "like"
-  | "unlike"
-  | "pray"
-  | "unpray"
-  | "fire"
-  | "unfire";
+  "like" | "unlike" | "pray" | "unpray" | "fire" | "unfire";
 
 export type MinistryUpdateReactionRpcName =
   | "atomic_like_post"

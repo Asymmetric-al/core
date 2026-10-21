@@ -1,4 +1,11 @@
-# Dependency upgrade qualification
+# Historical dependency upgrade qualification — 7 October 2026
+
+Status: historical, superseded by the approved
+[complete repository modernization](../maintenance/modernization/README.md) on
+21 October 2026. Current implementation follows its release checkpoints and
+[OpenSpec change](../../openspec/changes/complete-repository-modernization/proposal.md).
+The versions, holds and authorization boundaries below describe the earlier
+checkpoint; they are preserved as dated evidence rather than current instructions.
 
 Issue: AL-1965. Release observations were checked against the public registry on
 7 October 2026. The starting repository commit is

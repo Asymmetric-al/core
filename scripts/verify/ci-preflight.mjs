@@ -18,7 +18,7 @@ const ciSupabasePublicEnv = {
 
 /**
  * Mirrors blocking GitHub CI checks:
- * format -> skills:verify -> verify:phase25-spec -> verify:phase27-spec -> verify:phase28-spec
+ * runtime -> format -> skills:verify -> verify:phase25-spec -> verify:phase27-spec -> verify:phase28-spec
  * -> openspec:validate -> verify:openspec-deltas -> lint -> verify:data-boundary
  * -> verify:cms-public-sole-entry
  * -> verify:workspace-contract -> verify:bun-lock-drift
@@ -27,6 +27,10 @@ const ciSupabasePublicEnv = {
  * -> typecheck -> build -> test-unit
  */
 const stages = [
+  {
+    id: "runtime",
+    script: "verify:node-version",
+  },
   {
     id: "format",
     script: "format:check",

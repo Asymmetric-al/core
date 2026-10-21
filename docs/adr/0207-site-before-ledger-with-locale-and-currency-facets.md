@@ -101,5 +101,5 @@ alone does not prove runtime activation.
 - [Shared glossary](../../CONTEXT.md)
 - [Platform boundaries](../../openspec/specs/platform-boundaries/spec.md#requirement-site-is-a-tenant-owned-presentation-and-attribution-entity)
 - [Platform surfaces](../../openspec/specs/platform-surfaces/spec.md#requirement-public-tenant-website-as-the-public-ministry-surface)
-- [Multi-Site foundation documentation change](../../openspec/changes/document-multi-site-foundation/design.md)
+- [Multi-Site foundation documentation change](../../openspec/changes/archive/2026-10-21-document-multi-site-foundation/design.md)
 - [Reference-not-copy CMS/operational ownership](0029-reference-not-copy-cms-operational.md)

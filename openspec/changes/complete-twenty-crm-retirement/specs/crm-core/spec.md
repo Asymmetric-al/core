@@ -99,17 +99,9 @@ records.
 
 ### Requirement: CRM Backing Subsystem Stays Behind Asym Server Boundaries
 
-Asym Postgres MUST stay behind Asym-owned server boundaries whenever it stores
-CRM records.
+Asym Postgres MUST stay behind Asym-owned server boundaries whenever it stores CRM records.
 
-Supabase Auth MUST remain the platform identity and session authority. Mission
-Control MUST remain the staff operations shell. Asym-owned finance, CMS, care,
-public website, donor portal, missionary workspace, and tenant-control
-boundaries MUST NOT move into an external CRM vendor by implication.
-
-All CRM reads and writes MUST pass through server-side Asym contracts, with
-`packages/api` as the canonical business boundary. Browser code MUST NOT
-receive raw CRM vendor API keys, webhook secrets, or direct vendor credentials.
+Every clause in `openspec/contracts/crm-core.md#contract-75cc9ee164f41ae15950` MUST apply without exception.
 
 #### Scenario: Mission Control needs CRM data
 
@@ -131,23 +123,9 @@ receive raw CRM vendor API keys, webhook secrets, or direct vendor credentials.
 
 ### Requirement: CRM Identity Concepts Stay Distinct And Linked
 
-The platform MUST keep source identities distinct and connect them through
-tenant-scoped link and merge-candidate records instead of collapsing them into
-a single vendor record.
+The platform MUST keep source identities distinct and connect them through tenant-scoped link and merge-candidate records instead of collapsing them into a single vendor record.
 
-Supabase auth users, Asym profiles, tenant memberships, CRM people, donor
-profiles, missionary profiles, CMS public entities, Stripe customers, funds or
-projects, pledges or relationship commitments, gifts and their donation records,
-payments, receipts, refunds, statements, and reconciliation records MUST remain
-separate concepts. A CRM record MAY link to one or more of these concepts —
-including a gift-to-CRM link that connects a donation to its CRM record — but
-each link MUST preserve the source concept, source id, tenant, confidence,
-status, verification state, and repair metadata.
-
-Low-confidence duplicate matches MUST become merge candidates for staff review.
-They MUST NOT automatically merge, overwrite, or link records. Cross-tenant
-matches MUST be ignored or blocked. CRM schema and metadata changes MUST go
-through the server-side path rather than a browser or client toolchain.
+Every clause in `openspec/contracts/crm-core.md#contract-8745c55fd2728ab246d1` MUST apply without exception.
 
 #### Scenario: A donor profile maps to a CRM person
 
@@ -199,17 +177,9 @@ through the server-side path rather than a browser or client toolchain.
 
 ### Requirement: CRM Stays A Native Mission Control Experience
 
-Mission Control MUST remain the primary staff CRM experience. Staff users
-SHOULD work through native Asym screens, tables, actions, reports, and
-audit-aware flows. Raw vendor UI MUST NOT become the default Mission Control
-CRM product experience.
+Mission Control MUST remain the primary staff CRM experience.
 
-Donor, missionary, and public surfaces MAY receive role-scoped CRM context
-only after later work defines those slices. They MUST NOT expose staff-depth
-CRM controls or raw CRM vendor UI.
-
-External projections require separate accepted changes and remain
-non-authoritative. They MUST NOT restore Twenty as a product dependency.
+Every clause in `openspec/contracts/crm-core.md#contract-291c8bb29216536f619f` MUST apply without exception.
 
 #### Scenario: Staff opens CRM after a domain cutover
 
@@ -267,26 +237,3 @@ non-authoritative. They MUST NOT restore Twenty as a product dependency.
 - AND donor, missionary, CMS, public, finance, care, payment, receipt,
   statement, refund, reconciliation, automation, and auth authority stay in
   their Asym-owned surfaces
-
-## REMOVED Requirements
-
-### Requirement: CRM Backing Datastore Stays Isolated
-
-**Reason**: Asym Postgres now owns CRM truth. A dedicated external CRM
-datastore is no longer the default or required backing store.
-**Migration**: Isolation, backup, and privilege remain Asym Postgres and
-tenant RLS concerns under `Asym Postgres Owns All CRM Records`.
-
-### Requirement: CRM Sync Is Signed, Durable, Pausable, And Replayable
-
-**Reason**: Twenty inbound/outbound sync, webhooks, replay, and projection
-drift are retired as product dependencies.
-**Migration**: Local authoritative writes, command audit, and optional later
-non-Twenty projections require their own accepted changes.
-
-### Requirement: CRM Production Cutover Is Domain-Gated And Reversible
-
-**Reason**: There is no Twenty production cutover. Production CRM data is
-Asym-owned.
-**Migration**: Production safety for CRM remains tenant RLS, authorization,
-migrations, and Core quality gates.

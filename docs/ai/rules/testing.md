@@ -13,9 +13,9 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 - **Unit tests:** Vitest (configured for `tests/unit/**/*.test.ts(x)`).
 - **Unit-test skill:** Use `docs/ai/skills/vitest/SKILL.md` for Core-specific
   Vitest 5 test placement, filtering, mocking, environments, isolation, and
-  coverage caveats. Use `bun run test:unit` for the full gate; do not use
+  measured coverage scope. Use `bun run test:unit` for the full gate; do not use
   `bun test`, which selects Bun's test runner.
-- **Unit test env defaults:** `vitest.config.ts` provides `SKIP_ENV_VALIDATION=1` plus placeholder public Supabase values so unit tests can import env-sensitive modules. Tests that validate env schema behavior must override or clear those values intentionally. These defaults do not replace integration or production env validation, and no real secrets belong in test config.
+- **Unit test env defaults:** `vitest.config.mts` provides `SKIP_ENV_VALIDATION=1` plus placeholder public Supabase values so unit tests can import env-sensitive modules. Tests that validate env schema behavior must override or clear those values intentionally. These defaults do not replace integration or production env validation, and no real secrets belong in test config.
 - **Accessibility:** `@axe-core/playwright`.
 - **Accessibility review:** Use
   `docs/ai/skills/accessibility-review/SKILL.md` for remediation and manual

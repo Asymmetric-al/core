@@ -4,25 +4,9 @@
 
 ### Requirement: Source Domains Own Truth And Document Production Owns Artifacts
 
-Source domains MUST own legal donor, eligibility, posted money, valuation,
-recipient meaning, contribution and statement population facts, whether and why
-official issuance/document identity is required, exact issuer/recipient/coverage
-facts, issuance validity, and correction/void/cancel/replace authorization and
-effect. Document Production MUST consume one immutable purpose-scoped Facts
-Package and MUST own structured definitions, immutable publications, generation
-orchestration, exact artifacts, artifact access, document-specific records
-evidence, and the D9/D11 code-owned identity mechanics: `ACK-*`, exact-issuer
-`ca_r_v1` allocation, reuse/nonreuse, disposition, and artifact linkage.
+Source domains MUST own legal donor, eligibility, posted money, valuation, recipient meaning, contribution and statement population facts, whether and why official issuance/document identity is required, exact issuer/recipient/coverage facts, issuance validity, and correction/void/cancel/replace authorization and effect.
 
-Templates and renderers MUST NOT query source tables, choose a donor, decide
-jurisdiction, calculate official amounts, allocate a legal number, select a
-statement population, or alter source lifecycle truth.
-
-Only the tenant- and actor-scoped Generated Document service MAY allocate a
-Phase 18 reference or serial, and only after the request is admitted and its
-purpose, facts, publication, authorization, and safety generations are frozen.
-The service MUST NOT treat mechanical allocation or disposition as authority to
-change source-owned issuance validity or correction effect.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-efc16478fd7d38ec049f` MUST apply without exception.
 
 #### Scenario: An official acknowledgment is requested
 
@@ -54,14 +38,9 @@ change source-owned issuance validity or correction effect.
 
 ### Requirement: Delivery And Document Issuance Remain Independent
 
-Phase 17 MUST own governed message content, publication/compiler and sender
-resolution, and protected-action presentation. Phase 6 MUST own recipient
-intent, consent, preparation orchestration, provider submission and outcomes,
-delivery recovery, and communication history.
-Document Production MUST own exact artifact identity, authorization, retrieval,
-current/replaced/cancelled state, and artifact evidence. A send, bounce, open,
-link preflight, grant redemption, byte response, or download MUST NOT create or
-alter document issuance.
+Phase 17 MUST own governed message content, publication/compiler and sender resolution, and protected-action presentation.
+
+Every clause in `openspec/contracts/platform-boundaries.md#contract-c3911bd115c2519bc6d6` MUST apply without exception.
 
 #### Scenario: A document email bounces
 

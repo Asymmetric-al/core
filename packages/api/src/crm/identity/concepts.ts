@@ -16,10 +16,7 @@ export type CrmIdentityConceptId =
   | "reconciliation_record";
 
 export type CrmIdentityLinkPolicy =
-  | "direct_link"
-  | "context_link"
-  | "summary_only"
-  | "no_crm_identity_link";
+  "direct_link" | "context_link" | "summary_only" | "no_crm_identity_link";
 
 export interface CrmIdentityConcept {
   id: CrmIdentityConceptId;

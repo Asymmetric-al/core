@@ -1,0 +1,123 @@
+diff --git a/dist/index.js b/dist/index.js
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -1129,9 +1129,11 @@
+ 	};
+ }
+ function componentFromImport(index, binding, importedName, patterns) {
+-	if (binding && index.owns(binding.file)) {
++	// Preserve shared-component identity through a consumer's local barrel.
++	const owner = binding && !index.owns(binding.file) ? componentsFor(binding.file) : index;
++	if (binding && owner.owns(binding.file)) {
+ 		const component = `${binding.name}${importedName.suffix}`;
+-		const indexed = index.files.get(component);
++		const indexed = owner.files.get(component);
+ 		if (!NODE_MODULES.test(binding.file) || indexed) {
+ 			const file = indexed ?? binding.file;
+ 			return {
+@@ -2723,7 +2725,17 @@
+ 			const importedName = importNameOf(imported, root, property);
+ 			if (imported.namespace && property === null) importedName.name = root;
+ 			const { exportName, name } = importedName;
+-			const binding = exportName ? bindingOf(root, exportName) : null;
++			let binding = exportName ? bindingOf(root, exportName) : null;
++			// A raw Base UI namespace re-export has no Core appearance owner.
++			// Resolve its exact member before synthetic suffixes can claim it.
++			if (!imported.namespace && property !== null && exportName) {
++				const member = bindingOf(root, `${exportName}.${property}`);
++				if (member && /\/node_modules\/@base-ui\/react\//.test(member.file.replaceAll("\\", "/"))) return null;
++				if (member && !NODE_MODULES.test(member.file)) {
++					binding = member;
++					importedName.suffix = "";
++				}
++			}
+ 			const component = componentFromImport(index, binding, importedName, patterns);
+ 			if (component) return {
+ 				...component,
+@@ -3392,6 +3404,50 @@
+ 	"TSAbstractPropertyDefinition",
+ 	"TSAbstractMethodDefinition"
+ ]);
++// A classless Base UI Trigger delegates native-target appearance to its caller.
++// Read its current source: upstream's TTL caches cannot establish fresh proof.
++const classlessRenderProofs = /* @__PURE__ */ new Map();
++function classlessNativeRenderOwner(owner) {
++	if (!owner?.file || NODE_MODULES.test(owner.file)) return false;
++	try {
++		const source = fs.readFileSync(owner.file, "utf-8");
++		let cached = classlessRenderProofs.get(owner.file);
++		if (cached?.source !== source) {
++			cached = { source, components: /* @__PURE__ */ new Map() };
++			classlessRenderProofs.set(owner.file, cached);
++		}
++		if (cached.components.has(owner.component)) return cached.components.get(owner.component);
++		const prove = () => {
++			const ast = parseSource(source, owner.file);
++			const fn = indexLocalBindings(ast).bindings.get(owner.component);
++			if (!["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"].includes(fn?.type) || fn.async || fn.generator) return false;
++			const param = fn?.params?.[0];
++			if (fn?.params.length !== 1 || param?.type !== "ObjectPattern" || param.properties.length !== 1) return false;
++			const rest = param.properties[0];
++			if (rest.type !== "RestElement" || rest.argument?.type !== "Identifier") return false;
++			if (fn.body?.type !== "BlockStatement" || fn.body.body.length !== 1 || fn.body.body[0].type !== "ReturnStatement") return false;
++			let element = fn.body.body[0].argument;
++			while (element?.type === "ParenthesizedExpression") element = element.expression;
++			const opening = element?.openingElement;
++			const tag = opening?.name;
++			if (element?.type !== "JSXElement" || !opening.selfClosing || element.children.length || tag?.type !== "JSXMemberExpression" || tag.object.type !== "JSXIdentifier" || tag.property.name !== "Trigger") return false;
++			if (rest.argument.name === tag.object.name || fn.id?.name === tag.object.name) return false;
++			const imported = ast.body.find((statement) => statement.type === "ImportDeclaration" && statement.importKind !== "type" && statement.specifiers.some((specifier) => specifier.type === "ImportSpecifier" && specifier.importKind !== "type" && specifier.local.name === tag.object.name));
++			if (!imported || !/^@base-ui\/react(?:\/[a-z-]+)?$/.test(imported.source.value)) return false;
++			let spreads = 0;
++			for (const attribute of opening.attributes) {
++				if (attribute.type === "JSXSpreadAttribute" && attribute.argument?.type === "Identifier" && attribute.argument.name === rest.argument.name) spreads++;
++				else if (attribute.type !== "JSXAttribute" || attribute.name?.name !== "data-slot" || typeof attribute.value?.value !== "string") return false;
++			}
++			return spreads === 1;
++		};
++		const proof = prove();
++		cached.components.set(owner.component, proof);
++		return proof;
++	} catch {
++		return false;
++	}
++}
+ function classSiteVisitors(context, options, onSite) {
+ 	const shared = sharedFor(context, options);
+ 	if (!shared.hasSites && !options.scanAllStrings) return NO_VISITORS;
+@@ -3423,7 +3479,8 @@
+ 		const own = tracker.resolveName(reader.nameOf(element), attribute);
+ 		if (own) return own;
+ 		const owner = reader.parentElementOf(element);
+-		return owner && reader.renderedElementOf?.(owner) === element ? tracker.resolveName(reader.nameOf(owner), attribute) : null;
++		const inherited = owner && reader.renderedElementOf?.(owner) === element ? tracker.resolveName(reader.nameOf(owner), attribute) : null;
++		return inherited && reader.nameOf(element)?.component === false && classlessNativeRenderOwner(inherited) ? null : inherited;
+ 	};
+ 	const enclosingOf = (element, accepts) => {
+ 		let direct = true;
+@@ -3666,6 +3723,8 @@
+ 		if (classifier.groupOf(entry)) continue;
+ 		const known = fromFile ? knownClassesFor(fromFile) : null;
+ 		if (known?.utilities.has(entry) || known?.classes.has(entry)) continue;
++		const themeEntry = fromFile ? tailwindEntryFor(fromFile) : null;
++		if (themeEntry && unknownClasses(themeEntry, [entry])?.length === 0) continue;
+ 		const hint = /^[A-Za-z][A-Za-z0-9]*$/.test(entry) ? didYouMean(entry, [
+ 			...CATEGORIES,
+ 			"layout",
+@@ -5001,6 +5060,16 @@
+ 	const expected = component.charAt(0).toLowerCase() + component.slice(1) + "Variants";
+ 	const read = fileVariantsOf(file);
+ 	const definitions = read?.definitions ?? [];
++	const local = definitions.find((d) => d.name === expected) ?? definitions.find((d) => d.name === component && d.source === "props");
++	if (local) return local;
++	// Resolve only the exact named CVA factory; its own file cache must refresh.
++	for (const imported of moduleOf(file)?.imports.values() ?? []) {
++		if (imported.name !== expected || !imported.spec.startsWith(".")) continue;
++		const target = resolveFrom(file, imported.spec);
++		const binding = target ? exportsOf(target).get(imported.name) : null;
++		const definition = binding ? variantDefinitionsOf(binding.file).find((d) => d.name === binding.name && d.source === "factory") : null;
++		if (definition) return definition;
++	}
+ 	if (!definitions.length) {
+ 		const barrel = isSfc(file) ? barrelOf(path.dirname(file)) : null;
+ 		if (!barrel) return null;
