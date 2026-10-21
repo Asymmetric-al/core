@@ -4624,26 +4624,22 @@
           "target": "17.0.2"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-product-graphql-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "graphql-qualification.json: actual Yoga HTTP baseline/current contracts and physical product17/CMS16 boundary tests."
+      ],
+      "note": "Duplicate root declaration removed. CMS retains the latest supported16 release required by its current upstream; the Payload migration must requalify it. Full gates, previews, security reconciliation and merge remain required.",
       "currentUses": [
-        {
-          "path": "package.json",
-          "section": "dependencies",
-          "declaredAs": "graphql",
-          "declared": "16.14.2",
-          "target": "17.0.2"
-        },
         {
           "path": "packages/graphql/package.json",
           "section": "dependencies",
           "declaredAs": "graphql",
-          "declared": "16.14.2",
+          "declared": "17.0.2",
           "target": "17.0.2"
         }
-      ]
+      ],
+      "selectedTarget": "17.0.2"
     },
     {
       "name": "graphql-yoga",
@@ -4673,26 +4669,22 @@
           "target": "5.24.6"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-product-graphql-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "graphql-qualification.json: actual Yoga HTTP baseline/current contracts and physical product17/CMS16 boundary tests."
+      ],
+      "note": "Duplicate root declaration removed. CMS retains the latest supported16 release required by its current upstream; the Payload migration must requalify it. Full gates, previews, security reconciliation and merge remain required.",
       "currentUses": [
-        {
-          "path": "package.json",
-          "section": "dependencies",
-          "declaredAs": "graphql-yoga",
-          "declared": "5.24.2",
-          "target": "5.24.6"
-        },
         {
           "path": "packages/graphql/package.json",
           "section": "dependencies",
           "declaredAs": "graphql-yoga",
-          "declared": "5.24.2",
+          "declared": "5.24.6",
           "target": "5.24.6"
         }
-      ]
+      ],
+      "selectedTarget": "5.24.6"
     },
     {
       "name": "html-react-parser",
@@ -7313,7 +7305,7 @@
     }
   ],
   "manifestCoverage": {
-    "capturedAt": "2026-10-21T15:23:39.393107+00:00",
+    "capturedAt": "2026-10-21T21:04:36.264623+00:00",
     "baselineCommit": "800213405e2c51e07180e86ee8322355e0fdb4eb",
     "activeManifests": [
       "package.json",
@@ -7342,7 +7334,7 @@
     ],
     "manifestCount": 23,
     "canonicalExternalAndImportedIdentities": 129,
-    "currentDeclarationCount": 303,
+    "currentDeclarationCount": 301,
     "internalWorkspaceLinks": [
       {
         "path": "package.json",

@@ -51,3 +51,7 @@ donor 61, missionary 47. Existing floors remain binding.
 | Payments / legal       | Stripe 23 / Endive; OpenPolicy current + owned Terms            | Pending                                   | Sandbox drain/abort and document equality required                                         |
 | Nested security / docs | Complete graph, owned exceptions, current active instructions   | Pending                                   | Final SBOM/manual reconciliation required                                                  |
 | Combined release       | All merged exact versions                                       | Pending                                   | Clean install, deployed previews and immutable production package required                 |
+
+The [data access](data-access.md) and [product GraphQL](graphql.md) records track
+the implementations in progress. They preserve the distinction between focused
+local evidence and the full review, CI, preview and merge finish line.
