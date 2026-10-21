@@ -414,6 +414,10 @@ Turbo remote caching depends on your CI/provider setup (e.g. `TURBO_TOKEN` / Ver
 
 Build env details: `docs/guides/development/build-runbook.md`.
 
+For the credential-free Anthropic OSS Scanner image, explicit offline service
+startup, verification profiles and private report triage, see the
+[OSS Scanner runbook](.oss-scanner/README.md).
+
 ### Key Dependencies
 
 | Package               | Version | Notes                                                         |
