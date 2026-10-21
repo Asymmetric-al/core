@@ -306,8 +306,9 @@ async function apiExposure(expected, environment, fetch) {
     "Public Supabase URL does not match the expected Supabase project.",
   );
   try {
+    // The OpenAPI root requires a privileged key; table requests support public keys.
     const response = await fetch(
-      `https://${expected.projectRef}.supabase.co/rest/v1/`,
+      `https://${expected.projectRef}.supabase.co/rest/v1/${encodeURIComponent(expected.tables[0])}?select=id&limit=0`,
       {
         headers: { apikey: key, "Accept-Profile": expected.schema },
         signal: AbortSignal.timeout(10_000),

@@ -287,6 +287,7 @@ describe("Stripe Data Pipeline verifier", () => {
   );
 
   it.each([
+    [406, { code: "PGRST106" }, "passed"],
     [200, {}, "failed"],
     [403, { code: "42501" }, "failed"],
     [401, { code: "invalid_key" }, "incomplete"],
@@ -299,7 +300,9 @@ describe("Stripe Data Pipeline verifier", () => {
       const result = await verifyStripeDataPipeline(expectations, deps);
       expect(result.checks.privacy).toBe(check);
       const [url, options] = deps.fetch.mock.calls[0];
-      expect(url).toBe("https://developmentfixture.supabase.co/rest/v1/");
+      expect(url).toBe(
+        "https://developmentfixture.supabase.co/rest/v1/customers?select=id&limit=0",
+      );
       expect(options.headers["Accept-Profile"]).toBe("provider_fixture");
       expect(options.redirect).toBe("error");
     },
@@ -345,6 +348,9 @@ describe("Stripe Data Pipeline verifier", () => {
       deps,
     );
     expect(result.checks.structure).toBe("passed");
+    expect(deps.fetch.mock.calls[0][0]).toBe(
+      "https://developmentfixture.supabase.co/rest/v1/refunds?select=id&limit=0",
+    );
     expect(deps.spawn.mock.calls[1][2].input).not.toContain("WHERE livemode");
   });
 
