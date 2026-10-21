@@ -8,12 +8,13 @@ We provide security updates only for the **latest stable release** of this proje
 
 As the project matures, we may adopt a more formal support policy (for example, supporting multiple release lines or LTS branches). Until then, please upgrade to the latest stable release to receive security fixes.
 
-| Version / Branch      | Supported                           |
-| --------------------- | ----------------------------------- |
-| Latest stable release | ✅                                  |
-| Older releases        | ❌                                  |
-| `develop`             | ✅ (security fixes land here first) |
-| `production`          | ✅ (protected release branch)       |
+| Version               | Supported |
+| --------------------- | --------- |
+| Latest stable release | ✅        |
+| Older releases        | ❌        |
+
+Security fixes land on `develop` and ship through the protected `production`
+release branch. Release support remains limited to the latest stable release.
 
 ## Anthropic OSS Scanner contact
 
