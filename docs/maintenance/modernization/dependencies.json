@@ -2959,7 +2959,7 @@
         }
       ],
       "state": "qualified-merged",
-      "disposition": "upgraded",
+      "disposition": "verified-maintained-compatibility-dependency",
       "verification": [
         "development-tools.md",
         "development-tools-qualification.json",
@@ -2973,37 +2973,45 @@
           "section": "devDependencies",
           "declaredAs": "@types/node",
           "declared": "24.19.2",
-          "target": "26.6.5"
+          "target": "24.19.2"
         },
         {
           "path": "apps/admin/package.json",
           "section": "devDependencies",
           "declaredAs": "@types/node",
           "declared": "24.19.2",
-          "target": "26.6.5"
+          "target": "24.19.2"
         },
         {
           "path": "apps/donor/package.json",
           "section": "devDependencies",
           "declaredAs": "@types/node",
           "declared": "24.19.2",
-          "target": "26.6.5"
+          "target": "24.19.2"
         },
         {
           "path": "apps/missionary/package.json",
           "section": "devDependencies",
           "declaredAs": "@types/node",
           "declared": "24.19.2",
-          "target": "26.6.5"
+          "target": "24.19.2"
         },
         {
           "path": "packages/eve-runtime/package.json",
           "section": "devDependencies",
           "declaredAs": "@types/node",
           "declared": "24.19.2",
-          "target": "26.6.5"
+          "target": "24.19.2"
         }
-      ]
+      ],
+      "selectedTarget": "24.19.2",
+      "compatibility": {
+        "owner": "Core runtime and TypeScript tooling maintainers",
+        "upstreamReason": "The approved supported runtime is Node 24 LTS; current Node 24 type declarations match its APIs. Global latest Node 26 declarations would expose APIs outside that runtime contract.",
+        "upstream": "https://nodejs.org/en/about/previous-releases",
+        "recheckCondition": "Requalify on every approved Node runtime line change, @types/node release or compiler migration.",
+        "verification": "Current Node 24 declaration line 24.19.2 passed all product TypeScript 7 builds and maintained JavaScript compiler API tests."
+      }
     },
     {
       "name": "@types/pdfkit",
@@ -6698,7 +6706,7 @@
         "development-tools-qualification.json",
         "https://github.com/Asymmetric-al/core/pull/2176"
       ],
-      "note": "Product TypeScript7 remains current; the maintained TypeScript6 JavaScript API is required by current AST/parser/editor upstreams and is explicitly owned, isolated and behavior-tested.",
+      "note": "Product TypeScript 7 remains current; the maintained TypeScript 6 JavaScript API is required by current AST/parser/editor upstreams and is explicitly owned, isolated and behavior-tested.",
       "selectedVersions": ["6.0.3", "7.0.2"],
       "currentUses": [
         {
@@ -6830,7 +6838,7 @@
       ],
       "compatibility": {
         "owner": "Core toolchain maintainers",
-        "upstreamReason": "TypeScript ESLint8.72 parser peer range requires the maintained JavaScript API below6.1; product compilation uses native7.0.2",
+        "upstreamReason": "TypeScript ESLint 8.72 parser peer range requires the maintained JavaScript API below 6.1; product compilation uses native 7.0.2",
         "enforcedBy": "scripts/verify/typescript-toolchain.mjs",
         "tests": "tests/unit/scripts/typescript-toolchain.test.ts",
         "recheckCondition": "Every compiler/parser/editor update; remove the compatibility API when current upstream consumers support the product compiler API."

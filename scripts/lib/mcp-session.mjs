@@ -51,8 +51,8 @@ export async function createMcpSession({
     );
     if (
       method !== "server/discover" &&
-      result?.resultType !== undefined &&
-      result.resultType !== "complete"
+      !notification &&
+      result?.resultType !== "complete"
     ) {
       // Readiness advertises no sampling, elicitation, roots or extensions and
       // never performs interactive/provider work to complete a tool response.

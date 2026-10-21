@@ -111,14 +111,17 @@ if (sql.includes("public.field_policies")) {
       },
     },
   );
-  return {
-    ...result,
-    calls: existsSync(calls)
+  const capturedCalls: Array<{ args: string[]; stdinSql: string | null }> =
+    existsSync(calls)
       ? readFileSync(calls, "utf8")
           .trim()
           .split("\n")
-          .map((line) => JSON.parse(line).args)
-      : [],
+          .map((line) => JSON.parse(line))
+      : [];
+  return {
+    ...result,
+    calls: capturedCalls.map(({ args }) => args),
+    inputs: capturedCalls.map(({ stdinSql }) => stdinSql),
   };
 }
 
@@ -136,6 +139,19 @@ itPosix(
       (args: string[]) => !args.includes("-f") && !args.includes("-c"),
     );
     expect(probeIndex).toBeGreaterThan(1);
+    expect(result.inputs[probeIndex]).toContain(
+      "'storedPgpFunctionCandidates'",
+    );
+    expect(result.inputs[probeIndex]).toContain(
+      "CREATE FUNCTION pg_temp.modernization_mixed_case_pgp_probe",
+    );
+    expect(result.inputs[probeIndex]).toContain(
+      "CREATE FUNCTION pg_temp.modernization_sql_standard_pgp_probe",
+    );
+    expect(result.inputs[probeIndex]).toContain("BEGIN ATOMIC");
+    expect(result.inputs[probeIndex]).not.toContain(
+      "-- CORE_POSTGRES_UPGRADE_READINESS_QUERY",
+    );
     const queryIndex = result.calls.findIndex((args: string[]) =>
       args.includes("-c"),
     );

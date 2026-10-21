@@ -1,5 +1,5 @@
 {
-  "observedAt": "2026-10-21 17:28:08 UTC",
+  "observedAt": "2026-10-21T18:25:43.587Z",
   "method": "read-only provider project metadata and PostgreSQL catalogues; no user rows or encrypted values queried",
   "productionWrites": false,
   "target": "Provider-supported PostgreSQL 17.11 bundle; apply only through prepared release process",
@@ -103,7 +103,7 @@
     "Empty PGP function inventory does not exclude encrypted values written by external applications.",
     "Hosted upgrades and production execution are outside this delivery."
   ],
-  "pgpFunctionMatcher": "case-insensitive; mixed-case regression qualified on isolated PostgreSQL17.11",
-  "querySha256": "b0d9df568f2ce08d3870e48bb2842c7e110dbdc3cc09b54ef2d2cc9770d5bc87",
-  "sourceSha256": "85829e1a4a0859b9f4093fa27fe8b13a92569576218e7dbc5332c9a4a56257fe"
+  "pgpFunctionMatcher": "Case-insensitive string-literal bodies and deparsed SQL-standard bodies (prosqlbody)",
+  "querySha256": "32b2a781878728a48102aab9285aadec3a27f2f761777f48ec2d197a197e4834",
+  "sourceSha256": "32b2a781878728a48102aab9285aadec3a27f2f761777f48ec2d197a197e4834"
 }

@@ -204,9 +204,18 @@ function rpcMessage(text, id, optional = false) {
 }
 
 async function readRpc(response, id) {
-  const sse = response.headers
+  const mediaType = response.headers
     .get("content-type")
-    ?.includes("text/event-stream");
+    ?.split(";", 1)[0]
+    .trim()
+    .toLowerCase();
+  const sse = mediaType === "text/event-stream";
+  if (response.ok && mediaType !== "application/json" && !sse) {
+    await response.body?.cancel().catch(() => {});
+    throw new Error("MCP returned an unsupported response content type");
+  }
+  // Bounded pre-initialize HTTP400/404 error parsing still distinguishes modern
+  // rejections from legacy endpoints. Successful representations must be typed.
   const reader = response.body?.getReader();
   if (!reader) throw new Error("MCP returned an empty response");
   const decoder = new TextDecoder();

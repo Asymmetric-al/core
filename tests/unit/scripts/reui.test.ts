@@ -139,6 +139,8 @@ function remoteFixture({
         ],
       };
     }
+    if (modern && typeof result === "object" && result !== null)
+      result = { ...result, resultType: "complete" };
     const message = JSON.stringify({ jsonrpc: "2.0", id: body?.id, result });
     if (json)
       return new Response(message, {
@@ -452,6 +454,58 @@ describe("ReUI readiness verification", () => {
       ).toMatchObject({ name: "core-reui-readiness" });
     }
   });
+
+  it.each([
+    undefined,
+    "text/plain",
+    "application/octet-stream",
+    "application/json-seq",
+    "text/event-stream-other",
+  ])(
+    "rejects a successful MCP response with unsupported media type %s",
+    async (contentType) => {
+      const { root } = fixture();
+      const cancel = vi.fn();
+      const { fetchImpl, requests } = remoteFixture({
+        modern: true,
+        override: (body) =>
+          body?.method === "server/discover"
+            ? new Response(
+                new ReadableStream({
+                  start(controller) {
+                    controller.enqueue(
+                      new TextEncoder().encode(
+                        JSON.stringify({
+                          jsonrpc: "2.0",
+                          id: body.id,
+                          result: {
+                            resultType: "complete",
+                            supportedVersions: ["2026-07-28"],
+                            capabilities: { tools: {} },
+                          },
+                        }),
+                      ),
+                    );
+                    controller.close();
+                  },
+                  cancel,
+                }),
+                { headers: contentType ? { "Content-Type": contentType } : {} },
+              )
+            : undefined,
+      });
+      await expect(
+        verifyReui({
+          root,
+          live: true,
+          env: { REUI_LICENSE_KEY: testLicense },
+          fetchImpl,
+        }),
+      ).rejects.toThrow("unsupported response content type");
+      expect(requests).toHaveLength(1);
+      expect(cancel).toHaveBeenCalledOnce();
+    },
+  );
 
   it("does not downgrade a recognized modern version rejection to initialize", async () => {
     const { root } = fixture();

@@ -109,8 +109,8 @@
         "id": "dpl_CzfEy93MkHBZdoMY3cqkgZrGzRNc",
         "url": "https://missionary-akesdvnws-asymmetric-al.vercel.app"
       },
-      "independentHTTP": "All six public/guard/login fetches returned200 with HTML, expected login forms and no Next error document",
-      "providerLimit": "Hosted Node patch number is not independently observable; build runtime24.22.1 was qualified"
+      "independentHTTP": "All six public/guard/login fetches returned 200 with HTML, expected login forms and no Next error document",
+      "providerLimit": "Hosted Node patch number is not independently observable; build runtime 24.22.1 was qualified"
     },
     "merge": "Merged 2026-10-21T16:32:43Z; exact head is an ancestor of develop",
     "independentReview": {

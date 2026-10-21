@@ -3,7 +3,7 @@
   "checkpoint": "runtime-infrastructure",
   "status": "implemented-awaiting-final-gates-review-ci-previews-and-merge",
   "sourceBase": "8906631256bc1dd95d4d7ba8c11a7409d3763161",
-  "capturedAt": "2026-10-21T17:08:51.106036+00:00",
+  "capturedAt": "2026-10-21T18:30:50.724023+00:00",
   "owner": "Core CI and operations maintainers",
   "versions": {
     "node": "24.22.1",
@@ -23,43 +23,43 @@
       {
         "name": "migrations",
         "exitCode": 0,
-        "seconds": 8.87,
-        "log": "/tmp/core-modernization-infra-pg17-v2-migrations.log",
-        "sha256": "90236309381ef87e7f8dfc7af648c309cf1a80f3661a0a5cdc170196c675f03d"
+        "seconds": 19.19,
+        "log": "/tmp/core-modernization-infra-pg17-v3-migrations.log",
+        "sha256": "ac5292a48fc60f27f24de89adc72b46da7fc88b6a91d3504b9bf37d313f967db"
       },
       {
         "name": "payload-migrations",
         "exitCode": 0,
-        "seconds": 5.99,
-        "log": "/tmp/core-modernization-infra-pg17-v2-payload-migrations.log",
-        "sha256": "2a3aabbddcfa10b122f64d21be30df299328514bae7c1413bb8876ad1b60e7be"
+        "seconds": 4.55,
+        "log": "/tmp/core-modernization-infra-pg17-v3-payload-migrations.log",
+        "sha256": "c0f75cf3a50aeba2defd606063d79a7d433208dbc9e59b856534e7b2fd1bfbe2"
       },
       {
         "name": "payload-status",
         "exitCode": 0,
-        "seconds": 2.46,
-        "log": "/tmp/core-modernization-infra-pg17-v2-payload-status.log",
-        "sha256": "b9e6237a0d756226eace0d6f370d196937db0f261a9c926c1bcf921d3b501918"
+        "seconds": 2.31,
+        "log": "/tmp/core-modernization-infra-pg17-v3-payload-status.log",
+        "sha256": "c5e59a9adeb159f73ac3034e8875ce08d834f03be7960f7ffb7e504deb45c1bf"
       },
       {
         "name": "seed",
         "exitCode": 0,
-        "seconds": 0.25,
-        "log": "/tmp/core-modernization-infra-pg17-v2-seed.log",
+        "seconds": 0.27,
+        "log": "/tmp/core-modernization-infra-pg17-v3-seed.log",
         "sha256": "567ca883e55aa0b5d909ce36ba9ce2b49ca7b59c6d9af85a8a0751e545acb247"
       },
       {
         "name": "auth-access",
         "exitCode": 0,
         "seconds": 0.04,
-        "log": "/tmp/core-modernization-infra-pg17-v2-auth-access.log",
+        "log": "/tmp/core-modernization-infra-pg17-v3-auth-access.log",
         "sha256": "2e9fd42fc3ba1154bae3d1bbfcc9f54c77025207f9940814bbf2fc7e903d1b88"
       },
       {
         "name": "donation-fee-replay",
         "exitCode": 0,
         "seconds": 0.06,
-        "log": "/tmp/core-modernization-infra-pg17-v2-donation-fee-replay.log",
+        "log": "/tmp/core-modernization-infra-pg17-v3-donation-fee-replay.log",
         "sha256": "42eab4b9225d76be79e0b7dcdf7de38320eeabae6811b0db4a243181e8807d8c"
       }
     ],
@@ -211,7 +211,7 @@
     "canonicalMigrations": 81
   },
   "mcpStdio": {
-    "capturedAt": "2026-10-21T16:38:12.080Z",
+    "capturedAt": "2026-10-21T18:29:08.160Z",
     "commandsReadFromPinnedProjectConfig": true,
     "noLocalEnvironmentFileInCheckout": true,
     "noCredentialsForwarded": true,
@@ -228,7 +228,7 @@
           "version": "0.4.0"
         },
         "tools": ["browser_eval", "nextjs_docs", "nextjs_index", "nextjs_call"],
-        "stderrBytes": 79,
+        "stderrBytes": 0,
         "success": true
       },
       {
@@ -256,12 +256,12 @@
     ]
   },
   "tests": {
-    "protocolAndHeaderTests": 82,
+    "protocolAndHeaderTests": 92,
     "operationalWorkflowTests": 33,
     "setupAndCliContracts": 63,
     "note": "Overlapping suites are reported separately, never summed as unique tests. Final full preflight remains required.",
-    "latestFocusedInfrastructureTests": 41,
-    "postgresMixedCaseProbe": "Actual catalogue query injected into a temporary mixed-case function regression; red exit3, fixed green exit0. Required by the normal local-only Supabase migration verifier.",
+    "latestFocusedInfrastructureTests": 98,
+    "postgresMixedCaseProbe": "Actual committed catalogue query detects both mixed-case literal and SQL-standard BEGIN ATOMIC callers. The SQL-standard regression failed against the prior query (exit3) and passed after deparsing prosqlbody (exit0); temporary metadata rolled back.",
     "staleContractCorrections": "Full unit run identified two assertions for superseded Boneyard selector and shell dispatch. Updated assertions preserve origin-only URLs and verify Node/Bun fallback ordering with argument arrays and shell:false.",
     "staleContractCorrectionResult": {
       "command": "bun run test:unit tests/unit/scripts/boneyard-scripts.test.ts tests/unit/scripts/setup-scripts.test.ts tests/unit/scripts/unit-tests-runner.test.ts tests/unit/scripts/unit-tests-runner.contract.test.ts",
@@ -274,7 +274,7 @@
   "independentReview": {
     "base": "8906631256bc1dd95d4d7ba8c11a7409d3763161",
     "initialPatchSha256": "ff5e9e854f7a2e60b92c71118a071d2e548cf0406b97d5620fe38536ec7d9cbd",
-    "initialCoverage": "All42 files:33 non-MCP and9 MCP paths; no important findings. Subsequent delta review still required.",
+    "initialCoverage": "All 42 files: 33 non-MCP and 9 MCP paths; no important findings. Subsequent delta review still required.",
     "mcpFinalDelta": {
       "sha256": "cbe15c9ca866d35f54475b1646fd18ed05a66438693dbc2f6ef2bae23ffe91d1",
       "status": "approved; no important findings; independent byte-boundary and downgrade probes passed"
@@ -284,7 +284,7 @@
       "status": "approved after fixing mixed-case catalogue detection; actual regression red/green and fresh all-six PostgreSQL qualification verified"
     },
     "rootManifestProofs": {
-      "status": "approved; exactly eight SHA updates after six exact Boneyard launcher pins; all118 ledger entries and policy unchanged"
+      "status": "approved; exactly eight SHA updates after six exact Boneyard launcher pins; all 118 ledger entries and policy unchanged"
     }
   },
   "hostedPostgres": "hosted-postgres-qualification.json",
@@ -339,7 +339,7 @@
     "rawOutputWithheld": true
   },
   "mcpLicensedHTTP": {
-    "capturedAt": "2026-10-21T17:23:03.018Z",
+    "capturedAt": "2026-10-21T18:27:56.457Z",
     "credentialInput": "user-supplied ephemeral stdin",
     "credentialsPersisted": false,
     "productionWrites": false,
@@ -354,7 +354,7 @@
     ]
   },
   "shadscanRootProofRequalification": {
-    "reason": "Six existing root Boneyard commands now use the tested exact1.10.0 selector. Root identity, all dependency/tool versions, workspace declarations, application ownership and design-system inputs are unchanged. The8root library-applicability classifications remain valid.",
+    "reason": "Six existing root Boneyard commands now use the tested exact 1.10.0 selector. Root identity, all dependency/tool versions, workspace declarations, application ownership and design-system inputs are unchanged. The 8 root library-applicability classifications remain valid.",
     "rootManifestBefore": "68932532365ce169b4ba10659aa5d8eaad7de96f2fcf01032d4b737f14b0e597",
     "rootManifestAfter": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553",
     "changedScripts": {
@@ -448,5 +448,44 @@
     "paths": ["scripts/setup-codex-mcp.sh", "scripts/setup/codex-mcp.sh"],
     "trackedCallers": 0,
     "verification": "git grep across tracked sources excludes only the two removed definitions; no callers. Project configuration and AGENTS optional-helper routing replace the obsolete global-server requirement."
+  },
+  "postPublicationCorrections": {
+    "reviewedHeadBeforeCorrections": "6fc8afa0e6cfa2f81d56d76a4761849e33b857db",
+    "functionalFindings": [
+      "SQL-standard stored PGP callers require deparsed definitions.",
+      "Modern MCP responses require an explicit complete discriminator.",
+      "Successful MCP HTTP responses require exact JSON or SSE media types."
+    ],
+    "redGreen": {
+      "mcpRedSha256": "76fd8d4566c53ecc47d46bb3f16ca7d1b2a88b0e4a2da622088764cdcb5b3002",
+      "mcpGreen": {
+        "capturedAt": "2026-10-21T18:24:28.283593+00:00",
+        "command": [
+          "bun",
+          "run",
+          "test:unit",
+          "tests/unit/scripts/mcp-session.test.ts",
+          "tests/unit/scripts/reui.test.ts",
+          "tests/unit/scripts/mcp-http-headers.test.ts",
+          "tests/unit/scripts/supabase-migrations.test.ts"
+        ],
+        "exitCode": 0,
+        "logSha256": "cafbee02ed6eecac811d65faf3f3f22213f21ec3f5a7c6805615095b787c978c"
+      },
+      "postgresRedSha256": "2b2a02d3018ceece04406a4ac2bb27b7aba6ff25e0685a24c7e11c56b72638f2",
+      "postgresGreen": {
+        "capturedAt": "2026-10-21T18:24:40.707722+00:00",
+        "container": "core-modernization-infra-20261021",
+        "database": "infra_qualification_v2",
+        "ownerVerified": true,
+        "exitCode": 0,
+        "rolledBack": true,
+        "committedQuerySha256": "32b2a781878728a48102aab9285aadec3a27f2f761777f48ec2d197a197e4834",
+        "logSha256": "92119d4c29ef3612e9104edf1903418842127b3930d9e9970aaa5401e171ef85"
+      }
+    },
+    "otherCorrections": "Migration-runner tests retain/assert stdin SQL; active MCP rules match exact executable/discovery APIs; Node24 declarations have owned compatibility rationale; qualification prose is reconciled.",
+    "newDeltaReviewAndCurrentHeadGates": "required before merge",
+    "liveRequalification": "The corrected client passed both pinned STDIO servers and licensed ReUI HTTP. A fresh PostgreSQL 17.11 fixture passed all six committed-runner checks, preserving 166 tables and one profile."
   }
 }

@@ -161,10 +161,11 @@ After the 2026-05-23 refresh:
 - The animations.dev installer was not rerun with a maintainer email. The
   refresh used the currently installed local `~/.cursor/skills/emil-design-engineering`
   source after setting `HOME` for PowerShell.
-- `next-devtools-mcp@latest --help` behaves like a long-running MCP process in
-  this environment; it was stopped after confirming dependency resolution.
-  Local Next.js 16 docs still verify the committed `next-devtools-mcp@latest`
-  configuration.
+- Resolved by the runtime modernization checkpoint: the earlier floating Next
+  DevTools help probe established dependency resolution only. The exact
+  `next-devtools-mcp@0.4.0` launcher now passes real STDIO negotiation and tool
+  listing. Qualify future bumps through
+  `docs/maintenance/modernization/runtime-infrastructure-inventory.json`.
 - Several mirror-only skills have ambiguous public search results. The refresh
   updated clear upstream sources and left ambiguous/plugin-only skills as
   runtime mirrors.

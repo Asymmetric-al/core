@@ -20,9 +20,9 @@ Prettier, Turbo, Vite, Vitest, jsdom, Playwright, axe, Shadcn, agent-browser,
 React Doctor, Canvas and PostCSS use exact reviewed pins. Browser downloads
 match Playwright 1.64.1; Chromium, Firefox and WebKit each launched and executed
 a named-control smoke test. Native Canvas drawing, pixel readback and PNG
-encoding pass on Node 24.22.1. Three application builds and browser behavior
-remain qualification requirements; browser-engine smoke alone does not prove
-the applications work.
+encoding pass on Node 24.22.1. The completed full-preflight application builds,
+deployed-preview checks and browser checks below provide the application proof;
+browser-engine smoke alone does not establish it.
 
 Vitest 5 uses native ESM configuration and explicit `.mts` implementation
 imports. Two old `.ts` helper paths remain thin re-exports because frozen

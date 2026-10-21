@@ -52,3 +52,44 @@ describe("MCP legacy HTTP discovery", () => {
     expect(request).toHaveBeenCalledOnce();
   });
 });
+
+describe("modern MCP result contracts", () => {
+  it.each([undefined, null, {}, { tools: [] }])(
+    "rejects a modern result without its complete discriminator: %j",
+    async (result) => {
+      const request = vi.fn(async (method: string) =>
+        method === "server/discover"
+          ? {
+              resultType: "complete",
+              supportedVersions: ["2026-07-28"],
+              capabilities: { tools: {} },
+            }
+          : result,
+      );
+      const session = await createMcpSession({ request });
+      await expect(session.rpc("tools/list", {})).rejects.toThrow(
+        "Unsupported MCP result type",
+      );
+      expect(request.mock.calls.map(([method]) => method)).toEqual([
+        "server/discover",
+        "tools/list",
+      ]);
+    },
+  );
+
+  it("does not require result objects for modern notifications", async () => {
+    const request = vi.fn(async (method: string) =>
+      method === "server/discover"
+        ? {
+            resultType: "complete",
+            supportedVersions: ["2026-07-28"],
+            capabilities: { tools: {} },
+          }
+        : undefined,
+    );
+    const session = await createMcpSession({ request });
+    await expect(
+      session.rpc("notifications/cancelled", {}, true),
+    ).resolves.toBeUndefined();
+  });
+});

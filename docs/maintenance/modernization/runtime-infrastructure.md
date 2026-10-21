@@ -25,7 +25,8 @@ external CLI transitive dependencies; their advisory paths remain owned findings
 - MCP readiness tries current discovery, negotiates maintained legacy protocols,
   and refuses authentication/server errors as downgrade signals. HTTP metadata
   and annotated headers agree; unsupported interactive results fail closed.
-  Requests have a 15-second HTTP timeout, response-byte limits and stream
+  Modern results require an explicit complete discriminator; successful HTTP
+  responses require JSON or SSE media types. Requests have a 15-second HTTP timeout, response-byte limits and stream
   cancellation. STDIO transports supply their own bounded request timeout.
 - Four CI database services and the synthetic restore transport use the exact
   PostgreSQL 17.11 image digest. Disposable Auth helpers work for restricted
@@ -75,7 +76,7 @@ projects still on 17.6 and the provider bundle 17.6.1.063. The committed
 [catalogue preflight](../../../scripts/sql/postgres17-upgrade-readiness.sql)
 queries versions, extensions and migration hazards without application records,
 keys or encrypted values. The normal disposable migration verifier tests the
-actual preflight with a mixed-case PGP caller to prevent false clearance. No candidate ltree/float-GiST indexes, custom estimator
+actual preflight with mixed-case literal and SQL-standard PGP callers to prevent false clearance. No candidate ltree/float-GiST indexes, custom estimator
 operators or stored PGP callers were found. Repository application/SQL sources
 also contain no PGP encryption calls. External writers require provenance review.
 
