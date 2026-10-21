@@ -204,8 +204,9 @@ jobs:
 
   build:
     needs: compilation-plan
-    if: needs.compilation-plan.outputs.requested == 'true'
-    runs-on: ubuntu-latest
+    if: ${{ needs.compilation-plan.outputs.requested == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: [self-hosted, linux, x64, proxmox]
+    timeout-minutes: 15
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
@@ -236,7 +237,9 @@ jobs:
         run: node scripts/verify/ci-build-policy.mjs --build
 
   test-unit:
-    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: [self-hosted, linux, x64, proxmox]
+    timeout-minutes: 25
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
