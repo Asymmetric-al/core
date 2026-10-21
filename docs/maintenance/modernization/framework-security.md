@@ -82,11 +82,21 @@ pass with the combined tree. Fresh full preflight, exact-head CI/review/previews
 merge and develop readback remain required after reconciliation. Previous-head
 preview success does not close those requirements.
 
-Additional observations remain owned by later cohorts: the CI environment wrapper
-loads local provider credentials even when fixture mode is explicitly requested;
-a telemetry Date.now prerender warning needs qualification; and one subprocess
-retry test uses a short wall-clock deadline. No credential values were inspected,
-and no quality floor or test scope was weakened to pass this checkpoint.
+The combined preflight exposed a pre-existing flaky 500 ms subprocess retry
+test. Its deadline checks now use controlled process events and time, covering
+expiry during both backoff and the second attempt. All 136 tests in the file
+pass, including the retained real subprocess integration cases. A deliberate
+per-attempt deadline-reset mutation fails the new regression; the production
+retry implementation is unchanged. The independently reviewed test hash was
+refreshed in the upstream UI baseline; its live comparison passes for 53
+installed components, 54 file diffs and 34 local adapters. No quality floor or
+test scope was reduced.
+
+The home-page Date.now warning also reproduces on the untouched baseline with
+the identical hermetic browser test, which passes there and on the patched
+release. The telemetry cohort owns its resolution. The CI environment wrapper's
+local credential loading in explicit fixture mode remains a tooling finding.
+No credential values were inspected.
 
 ## Rollback
 
