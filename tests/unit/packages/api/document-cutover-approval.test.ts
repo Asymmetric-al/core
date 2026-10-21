@@ -17,7 +17,7 @@ import type { DocumentCutoverAssessment } from "../../../../packages/api/src/doc
 
 const OWNER = { ownerId: "owner-blake", ownerRole: "platform_owner" };
 const AUTHORIZATION = {
-  allowedOwnerIds: [OWNER.ownerId],
+  owners: [{ id: OWNER.ownerId, role: OWNER.ownerRole }],
 };
 
 function goApproval() {
@@ -331,7 +331,7 @@ describe("approval re-derives safety from primitive evidence", () => {
     ).rejects.toMatchObject({ code: "assessment_stale" });
   });
 
-  it("rejects go when the owner allowlist is missing, empty, or excludes the caller", async () => {
+  it("rejects go when the owner allowlist is missing, empty, or excludes the caller's id or role", async () => {
     const store = new InMemoryDocumentCutoverProofStore();
     const assessment = await cleanAssessment();
 
@@ -349,7 +349,7 @@ describe("approval re-derives safety from primitive evidence", () => {
         assessment,
         owner: OWNER,
         approval: goApproval(),
-        authorization: { allowedOwnerIds: [] },
+        authorization: { owners: [] },
         store,
       }),
     ).rejects.toMatchObject({ code: "owner_unauthorized" });
@@ -359,7 +359,19 @@ describe("approval re-derives safety from primitive evidence", () => {
         assessment,
         owner: OWNER,
         approval: goApproval(),
-        authorization: { allowedOwnerIds: ["someone-else"] },
+        authorization: {
+          owners: [{ id: "someone-else", role: OWNER.ownerRole }],
+        },
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "owner_unauthorized" });
+
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment,
+        owner: OWNER,
+        approval: goApproval(),
+        authorization: { owners: [{ id: OWNER.ownerId, role: "other_role" }] },
         store,
       }),
     ).rejects.toMatchObject({ code: "owner_unauthorized" });
@@ -380,14 +392,42 @@ describe("approval re-derives safety from primitive evidence", () => {
       owner: OWNER,
       approval: goApproval(),
       authorization: AUTHORIZATION,
-      provenance: { recordedBy: "operator via unit", proofDirectory: "tmp/x/" },
+      provenance: {
+        recordedBy: "operator via unit",
+        proofDirectory: `${DOCUMENT_CUTOVER_PROOFS_DIR}/unit/`,
+      },
       store: new InMemoryDocumentCutoverProofStore(),
       generateId: () => "proof-unit",
     });
 
     expect(proof.recordedBy).toBe("operator via unit");
     expect(proof.proofPath).toBe(
-      `tmp/x/${proof.recordedAt.replaceAll(":", "-")}-proof-unit.json`,
+      `${DOCUMENT_CUTOVER_PROOFS_DIR}/unit/${proof.recordedAt.replaceAll(":", "-")}-proof-unit.json`,
     );
   });
+
+  it.each([
+    "",
+    ".",
+    "tmp/x",
+    "../x",
+    "/tmp",
+    `${DOCUMENT_CUTOVER_PROOFS_DIR}/../x`,
+  ])(
+    "refuses proof directory %j outside the proofs directory and records nothing",
+    async (proofDirectory) => {
+      const store = new InMemoryDocumentCutoverProofStore();
+      await expect(
+        recordDocumentCutoverApproval({
+          assessment: await cleanAssessment(),
+          owner: OWNER,
+          approval: goApproval(),
+          authorization: AUTHORIZATION,
+          provenance: { proofDirectory },
+          store,
+        }),
+      ).rejects.toThrow(/outside/);
+      expect(await store.list()).toEqual([]);
+    },
+  );
 });

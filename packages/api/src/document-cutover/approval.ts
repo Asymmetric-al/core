@@ -37,6 +37,12 @@ export class DocumentCutoverApprovalError extends Error {
   }
 }
 
+/** One allowlisted owner, as listed in docs/ops/document-cutover/allowlist.json. */
+export interface DocumentCutoverAuthorizedOwner {
+  id: string;
+  role: string;
+}
+
 export interface RecordDocumentCutoverApprovalInput {
   assessment: DocumentCutoverAssessment;
   owner: DocumentCutoverOwnerIdentity;
@@ -50,12 +56,19 @@ export interface RecordDocumentCutoverApprovalInput {
   };
   store: DocumentCutoverProofStore;
   /**
-   * Owner allowlist from the repo-committed allowlist file. A `go` decision
-   * requires a non-empty list containing the named owner, otherwise a caller
-   * could self-declare authorization and mint a clean proof. A `no_go` may
-   * omit it so stopped states stay auditable without a policy.
+   * Owners from the repo-committed allowlist file, in its own
+   * `owners: [{ id, role }]` shape. A `go` decision requires a non-empty list
+   * containing the named owner with the same role, otherwise a caller could
+   * self-declare authorization and mint a clean proof. A `no_go` may omit it
+   * so stopped states stay auditable without a policy.
    */
   authorization?: {
+    owners?: readonly DocumentCutoverAuthorizedOwner[];
+    /**
+     * @deprecated Id-only allowlist from before the owner-role check moved
+     * into this library. Used only when `owners` is absent; it cannot check
+     * the role, so new callers must pass `owners`.
+     */
     allowedOwnerIds?: readonly string[];
   };
   /**
@@ -112,25 +125,53 @@ function unsafe(message: string): DocumentCutoverApprovalError {
 }
 
 /**
+ * Whether `owner` is allowlisted: id and role must both match one entry of
+ * `authorization.owners`. Without `owners`, the deprecated id-only list is
+ * consulted. Returns null when no allowlist was given at all.
+ */
+function ownerIsAllowlisted(
+  owner: DocumentCutoverOwnerIdentity,
+  authorization: RecordDocumentCutoverApprovalInput["authorization"],
+): boolean | null {
+  const owners = authorization?.owners;
+  if (owners) {
+    return owners.some(
+      (entry) => entry.id === owner.ownerId && entry.role === owner.ownerRole,
+    );
+  }
+  const ids = authorization?.allowedOwnerIds;
+  return ids ? ids.includes(owner.ownerId) : null;
+}
+
+function hasNonEmptyAllowlist(
+  authorization: RecordDocumentCutoverApprovalInput["authorization"],
+): boolean {
+  return (
+    (authorization?.owners?.length ?? 0) > 0 ||
+    (!authorization?.owners &&
+      (authorization?.allowedOwnerIds?.length ?? 0) > 0)
+  );
+}
+
+/**
  * A clean `go` must bind to the committed owner allowlist. A missing or empty
- * allowlist fails closed so self-declared owners cannot mint clean proofs.
+ * allowlist fails closed so self-declared owners cannot mint clean proofs, and
+ * an allowlisted id with a different role is rejected.
  */
 function requireAuthorizedGoOwner(
-  ownerId: string,
+  owner: DocumentCutoverOwnerIdentity,
   authorization: RecordDocumentCutoverApprovalInput["authorization"],
 ): void {
-  const allowedOwners = authorization?.allowedOwnerIds;
-
-  if (!allowedOwners || allowedOwners.length === 0) {
+  if (!hasNonEmptyAllowlist(authorization)) {
     throw new DocumentCutoverApprovalError(
       "owner_unauthorized",
       "A clean go requires a non-empty owner allowlist; self-declared owners are rejected.",
     );
   }
-  if (!allowedOwners.includes(ownerId)) {
+  if (ownerIsAllowlisted(owner, authorization) !== true) {
     throw new DocumentCutoverApprovalError(
       "owner_unauthorized",
-      "The named owner is not in the owner allowlist.",
+      "The named owner and role are not in the owner allowlist.",
     );
   }
 }
@@ -252,16 +293,13 @@ export async function recordDocumentCutoverApproval(
   }
 
   if (input.approval.decision === "go") {
-    requireAuthorizedGoOwner(input.owner.ownerId, input.authorization);
-  } else {
+    requireAuthorizedGoOwner(input.owner, input.authorization);
+  } else if (ownerIsAllowlisted(input.owner, input.authorization) === false) {
     // Optional membership check for no_go when a policy is present.
-    const allowedOwners = input.authorization?.allowedOwnerIds;
-    if (allowedOwners && !allowedOwners.includes(input.owner.ownerId)) {
-      throw new DocumentCutoverApprovalError(
-        "owner_unauthorized",
-        "The named owner is not in the owner allowlist.",
-      );
-    }
+    throw new DocumentCutoverApprovalError(
+      "owner_unauthorized",
+      "The named owner and role are not in the owner allowlist.",
+    );
   }
 
   await verifyAssessmentIntegrity(input.assessment);

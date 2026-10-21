@@ -11,7 +11,8 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -48,6 +49,8 @@ const SCRIPT_PATH = path.join(
 );
 
 const LOOPBACK_URL = "http://127.0.0.1:54321";
+/** Obviously fake, built at runtime; never a real credential. */
+const FAKE_DB_PASSWORD = ["seam", "2067", "not", "a", "password"].join("-");
 const HOSTED_URL = "https://seam2066hostedproject.supabase.co";
 
 let output: string[];
@@ -138,21 +141,45 @@ describe("#2066 command seam — injected detectors", () => {
 
 describe("#2067 --verify on a malformed proof", () => {
   it("exits 1 without contacting the target when the proof JSON lacks required fields", async () => {
-    const dir = mkdtempSync(path.join(os.tmpdir(), "seam-2067-proof-"));
-    const file = path.join(dir, "proof.json");
-    writeFileSync(file, JSON.stringify({ proofSchemaVersion: "2" }));
+    // --verify only reads proofs inside docs/ops/document-cutover/proofs/.
+    const dir = path.join(REPO_ROOT, "docs/ops/document-cutover/proofs");
+    mkdirSync(dir, { recursive: true });
+    const file = path.join(
+      dir,
+      `seam-2067-malformed-${randomBytes(6).toString("hex")}.json`,
+    );
+    writeFileSync(file, JSON.stringify({ proofSchemaVersion: "2" }), {
+      flag: "wx",
+    });
     try {
       const exitCode = await runDocumentCutoverCommand({
         argv: ["--verify", file],
         env: {
           SUPABASE_URL: LOOPBACK_URL,
-          DOCUMENT_CUTOVER_SUPABASE_READ_KEY: "seam-2067-fake-read-key",
+          DOCUMENT_CUTOVER_DATABASE_URL: `postgresql://document_cutover_reader:${FAKE_DB_PASSWORD}@127.0.0.1:9/postgres`,
         },
       });
 
       expect(exitCode).toBe(1);
       expect(createClientCalls.count).toBe(0);
       expect(output.join("\n")).toMatch(/^INVALID proof/m);
+    } finally {
+      rmSync(file, { force: true });
+    }
+  });
+
+  it("rejects a proof path outside docs/ops/document-cutover/proofs/ before reading it", async () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "seam-2067-proof-"));
+    const file = path.join(dir, "proof.json");
+    writeFileSync(file, JSON.stringify({ proofSchemaVersion: "2" }));
+    try {
+      const exitCode = await runDocumentCutoverCommand({
+        argv: ["--verify", file],
+        env: { SUPABASE_URL: LOOPBACK_URL },
+      });
+
+      expect(exitCode).toBe(1);
+      expect(output.join("\n")).toMatch(/^INVALID proof location/m);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

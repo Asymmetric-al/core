@@ -26,7 +26,24 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
     CREATE ROLE service_role NOLOGIN BYPASSRLS;
   END IF;
+
+  -- PostgREST's login role on Supabase; it can switch to the API roles.
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticator') THEN
+    CREATE ROLE authenticator NOINHERIT NOLOGIN;
+  END IF;
 END $$;
+
+GRANT anon, authenticated, service_role TO authenticator;
+
+-- Supabase's migration history (applied versions), read by the
+-- document_cutover.schema_version() function.
+CREATE SCHEMA IF NOT EXISTS supabase_migrations;
+
+CREATE TABLE IF NOT EXISTS supabase_migrations.schema_migrations (
+  version TEXT PRIMARY KEY,
+  statements TEXT[],
+  name TEXT
+);
 
 CREATE SCHEMA IF NOT EXISTS auth;
 

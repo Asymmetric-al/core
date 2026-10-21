@@ -14,6 +14,13 @@
  * review of that PR is the go/no-go approval of record. The proof itself only
  * carries non-authorizing provenance (`recordedBy`, `proofPath`, `digest`).
  *
+ * Target reads (#2067 addendum 4): the gate connects with `pg` as
+ * `document_cutover_reader` and calls only the counts-only SECURITY DEFINER
+ * functions in the private `document_cutover` schema
+ * (supabase/migrations/20261021064500_document_cutover_reader.sql). It makes no
+ * PostgREST call, no auth.admin call and no direct table or Storage read. The
+ * connection fails closed unless it really is that unprivileged role.
+ *
  * Exit codes: 0 only for a cryptographically verified clean proof (and for
  * --help); 1 for every stopped, incomplete, or invalid state.
  *
@@ -32,11 +39,14 @@
  *                             (mismatch check only).
  *   --expect-env <label>      Operator-declared environment label (mismatch
  *                             check only).
- *   --out <dir>               Proof output directory
- *                             (default docs/ops/document-cutover/proofs).
- *   --verify <proof.json>     Verify a stored proof file against the current
- *                             target and exit (digest, legacy attestation,
- *                             24h freshness from recordedAt, environment).
+ *   --out <dir>               Proof output directory; must be
+ *                             docs/ops/document-cutover/proofs (the default) or
+ *                             a directory inside it.
+ *   --verify <proof.json>     Verify a proof file inside
+ *                             docs/ops/document-cutover/proofs/ against the
+ *                             current target and exit (digest, legacy
+ *                             attestation, 24h freshness from recordedAt,
+ *                             environment).
  *
  * Owner and non-production project allowlist:
  *   docs/ops/document-cutover/allowlist.json, changed only through a PR
@@ -44,22 +54,31 @@
  *   when its ref is listed there; a loopback target is non-production.
  *
  * Environment:
- *   SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL   Target Supabase URL.
- *   DOCUMENT_CUTOVER_SUPABASE_READ_KEY        Restricted read-only Supabase
- *                             key. Required; SUPABASE_SERVICE_ROLE_KEY is
- *                             never used. Its role must be able to read the
- *                             prototype tables, Storage, auth users and
- *                             supabase_migrations.schema_migrations.
+ *   SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL   Target identity (loopback or
+ *                             <ref>.supabase.co).
+ *   DOCUMENT_CUTOVER_DATABASE_URL             Required. postgres:// URL with
+ *                             user and password for document_cutover_reader
+ *                             (pooler user document_cutover_reader.<ref>, or a
+ *                             direct db.<ref>.supabase.co host). Its project
+ *                             ref must match SUPABASE_URL's. PG* variables,
+ *                             DATABASE_URL and SUPABASE_SERVICE_ROLE_KEY are
+ *                             never used.
  */
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  realpathSync,
+} from "node:fs";
 import { writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createClient } from "@supabase/supabase-js";
+import pg from "pg";
 
 import {
   isProductionDeployment,
@@ -68,6 +87,7 @@ import {
 } from "../../packages/env/src/target-env";
 import {
   DOCUMENT_CUTOVER_ALLOWLIST_PATH,
+  DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS,
   DOCUMENT_CUTOVER_PROOFS_DIR,
   PHASE_18_DESTRUCTIVE_CUTOVER_PLAN,
   PHASE_18_INTEGRATION_SURFACES,
@@ -78,6 +98,12 @@ import {
   redactDiagnosticText,
   verifyDocumentCutoverEnvironmentProof,
 } from "../../packages/api/src/document-cutover";
+// The pinned document_cutover function contract (names, arguments, result
+// columns), shared with the migration checks and the fakes (#2067 ruling 2).
+import {
+  DOCUMENT_CUTOVER_FUNCTIONS,
+  READER_ROLE,
+} from "../../tests/unit/acceptance/issue-2067/document-cutover-contract";
 
 import type {
   DocumentCutoverAssessment,
@@ -88,6 +114,7 @@ import type {
   DocumentCutoverEnvironmentProof,
   DocumentCutoverProofStore,
   DocumentCutoverSurfaceInspection,
+  DocumentCutoverSurfaceKind,
   DocumentCutoverTargetIdentity,
 } from "../../packages/api/src/document-cutover";
 
@@ -120,11 +147,14 @@ const REMOVED_FLAGS: Record<string, string> = {
     "non-production projects come only from the committed allowlist",
 };
 
-const READ_ONLY_CREDENTIAL_BLOCKER =
-  "STOP THE LINE — read-only credential required: set DOCUMENT_CUTOVER_SUPABASE_READ_KEY, the restricted read-only Supabase key, for the target. SUPABASE_SERVICE_ROLE_KEY can write, so it is never used, and a Postgres URL alone cannot list Storage.";
+const DATABASE_URL_MISSING_BLOCKER =
+  "STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL is not set. The gate reads the target only as document_cutover_reader over that connection string; SUPABASE_SERVICE_ROLE_KEY, the old DOCUMENT_CUTOVER_SUPABASE_READ_KEY, DATABASE_URL and PG* variables are never used.";
 
 /** Recorded when the target database's schema version cannot be read. */
 const UNREADABLE_SCHEMA_VERSION = "unreadable";
+
+/** Absolute directory every proof is written to and verified from. */
+const PROOFS_ROOT = path.join(repoRoot, DOCUMENT_CUTOVER_PROOFS_DIR);
 
 type CommandEnv = Record<string, string | undefined>;
 
@@ -399,69 +429,268 @@ function resolveEnvironment(
 }
 
 // ---------------------------------------------------------------------------
-// Read client and target reads
+// ---------------------------------------------------------------------------
+// Reader connection (document_cutover_reader over DOCUMENT_CUTOVER_DATABASE_URL)
 // ---------------------------------------------------------------------------
 
-type SupabaseReadClient = ReturnType<typeof createClient>;
+type PgClient = InstanceType<typeof pg.Client>;
+
+/** The reader session: one connection, one query at a time. */
+interface ReaderClient {
+  query(
+    text: string,
+    values?: readonly unknown[],
+  ): Promise<{ rows: unknown[] }>;
+  end(): Promise<void>;
+}
+type ContractFunction = (typeof DOCUMENT_CUTOVER_FUNCTIONS)[number];
+type ContractFunctionName = ContractFunction["name"];
+
+const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
+
+/** Roles the reader must not be, or be a member of (directly or inherited). */
+const PRIVILEGED_ROLES = [
+  "postgres",
+  "service_role",
+  "authenticator",
+  "supabase_admin",
+];
+
+function withDeadline<T>(
+  promise: Promise<T>,
+  label: string,
+  timeoutMs: number = DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () =>
+        reject(
+          new Error(`${label} timed out after ${timeoutMs}ms (deadline).`),
+        ),
+      timeoutMs,
+    );
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+/** Project scope of SUPABASE_URL: loopback, or a hosted <ref>.supabase.co. */
+function targetScope(
+  env: CommandEnv,
+): { local: true } | { local: false; ref: string | null } | null {
+  const url = targetUrl(env);
+  if (!url) return null;
+  try {
+    const host = new URL(url).hostname;
+    if (LOOPBACK_HOSTS.has(host)) return { local: true };
+    return {
+      local: false,
+      ref: /^([a-z0-9]+)\.supabase\.co$/.exec(host)?.[1] ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
 
 /**
- * Builds the only client the gate uses, from the restricted read key alone.
- * Without that key the gate stops; it never falls back to the service role.
+ * Checks DOCUMENT_CUTOVER_DATABASE_URL before any connection: present, a
+ * postgres URL carrying the reader's user and its password (the URL is the
+ * only source; PG* fallbacks are never used), and pointing at the same project
+ * as SUPABASE_URL. Returns the URL, or a blocker.
  */
-function createReadClient(
+function checkDatabaseUrl(
   env: CommandEnv,
-): { client: SupabaseReadClient } | { blocker: string } {
-  const key = env.DOCUMENT_CUTOVER_SUPABASE_READ_KEY?.trim();
-  if (!key) return { blocker: READ_ONLY_CREDENTIAL_BLOCKER };
-  const url = targetUrl(env);
-  if (!url) {
+): { url: string } | { blocker: string } {
+  const raw = env.DOCUMENT_CUTOVER_DATABASE_URL?.trim();
+  if (!raw) return { blocker: DATABASE_URL_MISSING_BLOCKER };
+
+  let parsed: URL | null = null;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    parsed = null;
+  }
+  if (
+    !parsed ||
+    (parsed.protocol !== "postgres:" && parsed.protocol !== "postgresql:")
+  ) {
     return {
       blocker:
-        "STOP THE LINE — SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) must name the target.",
+        "STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL is not a postgres:// URL, so its project ref can't be checked against SUPABASE_URL.",
     };
   }
+
+  const login = decodeURIComponent(parsed.username);
+  const [role, ...refParts] = login.split(".");
+  if (role !== READER_ROLE) {
+    return {
+      blocker: `STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL connects as "${role || "(no user)"}", not ${READER_ROLE}; the gate never reads the target as a privileged user.`,
+    };
+  }
+  if (!parsed.password) {
+    return {
+      blocker:
+        "STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL carries no password; the URL is the only connection source (PG* variables are never read).",
+    };
+  }
+
+  const target = targetScope(env);
+  const host = parsed.hostname;
+  const userRef = refParts.length > 0 ? refParts.join(".") : null;
+  const hostRef = /^db\.([a-z0-9]+)\.supabase\.co$/.exec(host)?.[1] ?? null;
+  const databaseIsLocal = LOOPBACK_HOSTS.has(host);
+  const mismatch = (detail: string) => ({
+    blocker: `STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL does not match the SUPABASE_URL project: ${detail}`,
+  });
+
+  if (!target) return mismatch("SUPABASE_URL is missing or invalid.");
+  if (target.local) {
+    if (!databaseIsLocal || userRef || hostRef) {
+      return mismatch(
+        "SUPABASE_URL is a loopback target but the database URL names a hosted project ref.",
+      );
+    }
+    return { url: raw };
+  }
+  if (!target.ref) {
+    return mismatch("SUPABASE_URL has no <ref>.supabase.co project ref.");
+  }
+  const refs = [userRef, hostRef].filter((ref): ref is string => ref !== null);
+  if (databaseIsLocal || refs.length === 0) {
+    return mismatch(
+      "the database URL carries no project ref (expected a pooler user document_cutover_reader.<ref> or a db.<ref>.supabase.co host).",
+    );
+  }
+  if (refs.some((ref) => ref !== target.ref)) {
+    return mismatch(
+      `the database URL's project ref (${refs.join(", ")}) is not ${target.ref}.`,
+    );
+  }
+  return { url: raw };
+}
+
+const SESSION_IDENTITY_SQL =
+  "select current_user as session_role, r.rolsuper, r.rolbypassrls from pg_catalog.pg_roles r where r.rolname = current_user";
+const PRIVILEGED_MEMBERSHIP_SQL = `select r.rolname from pg_catalog.pg_roles r where r.rolname in (${PRIVILEGED_ROLES.map((role) => `'${role}'`).join(", ")}) and pg_has_role(current_user, r.oid, 'member')`;
+
+/**
+ * The connected session must be document_cutover_reader, without rolsuper or
+ * rolbypassrls, and with no membership (direct or inherited) in a privileged
+ * role. Returns a blocker, or null when the identity holds.
+ */
+async function readerIdentityBlocker(
+  client: ReaderClient,
+): Promise<string | null> {
+  const self = await client.query(SESSION_IDENTITY_SQL);
+  const row = self.rows[0] as Record<string, unknown> | undefined;
+  if (self.rows.length !== 1 || !row) {
+    return `STOP THE LINE — the reader connection's role could not be confirmed as ${READER_ROLE}.`;
+  }
+  if (row.session_role !== READER_ROLE) {
+    return `STOP THE LINE — the reader connection is "${String(row.session_role)}", not ${READER_ROLE}.`;
+  }
+  if (row.rolsuper !== false || row.rolbypassrls !== false) {
+    return `STOP THE LINE — ${READER_ROLE} has rolsuper=${String(row.rolsuper)} rolbypassrls=${String(row.rolbypassrls)}; the gate requires an unprivileged reader.`;
+  }
+
+  const memberships = await client.query(PRIVILEGED_MEMBERSHIP_SQL);
+  const privileged = memberships.rows.map((member) =>
+    String((member as Record<string, unknown>).rolname),
+  );
+  if (privileged.length > 0) {
+    return `STOP THE LINE — ${READER_ROLE} is a member (direct or inherited) of ${privileged.join(", ")}; the gate requires an unprivileged reader.`;
+  }
+  return null;
+}
+
+/**
+ * Serializes queries on the single reader connection (pg's own queueing of
+ * concurrent queries is deprecated). A query that never settles releases the
+ * queue at the detector deadline, so one hung read can't hold the others
+ * past it.
+ */
+function serialReader(client: PgClient): ReaderClient {
+  let tail: Promise<unknown> = Promise.resolve();
   return {
-    client: createClient(url, key, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    }),
+    query(text, values = []) {
+      const run = tail.then(() => client.query(text, [...values]));
+      tail = withDeadline(run, "a document_cutover read").catch(
+        () => undefined,
+      );
+      return run;
+    },
+    end: () => client.end(),
   };
 }
+
+async function closeReader(client: ReaderClient): Promise<void> {
+  await withDeadline(
+    client.end(),
+    "closing the reader connection",
+    5_000,
+  ).catch(() => undefined);
+}
+
+/**
+ * Opens the read-only reader session, or returns a blocker. Nothing is read
+ * from the target until the connection's identity has been confirmed.
+ */
+async function openReaderConnection(
+  env: CommandEnv,
+): Promise<{ client: ReaderClient } | { blocker: string }> {
+  const checked = checkDatabaseUrl(env);
+  if ("blocker" in checked) return checked;
+
+  const connection = new pg.Client({
+    connectionString: checked.url,
+    application_name: "document-cutover-gate",
+    connectionTimeoutMillis: 10_000,
+    statement_timeout: DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS,
+  });
+  // A dropped connection surfaces through the pending query; never crash.
+  connection.on("error", () => undefined);
+  const client = serialReader(connection);
+  try {
+    await withDeadline(connection.connect(), "connecting as the reader");
+    const blocker = await withDeadline(
+      readerIdentityBlocker(client),
+      "checking the reader identity",
+    );
+    if (blocker) {
+      await closeReader(client);
+      return { blocker };
+    }
+    await client.query("set default_transaction_read_only = on");
+    return { client };
+  } catch (error) {
+    await closeReader(client);
+    return {
+      blocker: `STOP THE LINE — could not open the ${READER_ROLE} connection: ${redactDiagnosticText(error instanceof Error ? error.message : String(error))}`,
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// document_cutover function calls (counts only)
+// ---------------------------------------------------------------------------
 
 type ReadFailure = { code: DocumentCutoverBlockingCode; message: string };
 type ReadResult<T> = { value: T } | { failure: ReadFailure };
 
-function classifyReadError(message: string): DocumentCutoverBlockingCode {
-  const lowered = message.toLowerCase();
-  if (
-    lowered.includes("does not exist") ||
-    lowered.includes("could not find") ||
-    lowered.includes("schema cache")
+function readError(error: unknown): { failure: ReadFailure } {
+  const code = (error as { code?: unknown } | null)?.code;
+  const message = error instanceof Error ? error.message : String(error);
+  let blocking: DocumentCutoverBlockingCode = "detector_error";
+  if (code === "42501") blocking = "permission_denied";
+  else if (
+    code === "42P01" ||
+    code === "42883" ||
+    code === "3F000" ||
+    code === "42703"
   ) {
-    return "unknown_schema";
+    blocking = "unknown_schema";
   }
-  if (
-    lowered.includes("fetch failed") ||
-    lowered.includes("econnrefused") ||
-    lowered.includes("enotfound") ||
-    lowered.includes("network") ||
-    lowered.includes("timed out")
-  ) {
-    return "detector_error";
-  }
-  return "permission_denied";
-}
-
-function readError(message: string): { failure: ReadFailure } {
-  return { failure: { code: classifyReadError(message), message } };
-}
-
-function unknownShape(what: string): { failure: ReadFailure } {
-  return {
-    failure: {
-      code: "unknown_schema",
-      message: `${what} returned an unrecognized response shape.`,
-    },
-  };
+  return { failure: { code: blocking, message } };
 }
 
 function indeterminate(
@@ -471,401 +700,144 @@ function indeterminate(
   return { completeness: "indeterminate", detectorQuery, failure };
 }
 
-/** Latest version in the target's migrations table (never through an RPC). */
-async function readTargetSchemaVersion(
-  client: SupabaseReadClient | null,
-): Promise<ReadResult<string>> {
-  if (!client) {
+function contractFunction(name: ContractFunctionName): ContractFunction {
+  const fn = DOCUMENT_CUTOVER_FUNCTIONS.find(
+    (candidate) => candidate.name === name,
+  );
+  if (!fn) throw new Error(`document_cutover.${name} is not in the contract`);
+  return fn;
+}
+
+/**
+ * Calls one `document_cutover` function and returns its count columns. The
+ * call must return exactly one row whose every contract column is a
+ * non-negative integer; anything else (no rows, as row-level security would
+ * give, or an unknown shape) is indeterminate, never zero.
+ */
+async function callCounts(
+  client: ReaderClient,
+  name: ContractFunctionName,
+  args: readonly string[] = [],
+): Promise<ReadResult<Record<string, number>>> {
+  const fn = contractFunction(name);
+  const placeholders = fn.args.map((_, index) => `$${index + 1}`).join(", ");
+  let rows: unknown[];
+  try {
+    const result = await client.query(
+      `select * from document_cutover.${fn.name}(${placeholders})`,
+      [...args],
+    );
+    rows = result.rows;
+  } catch (error) {
+    return readError(error);
+  }
+  if (!Array.isArray(rows) || rows.length !== 1) {
     return {
       failure: {
         code: "detector_incomplete",
-        message: "no read client for the target database",
+        message: `document_cutover.${fn.name} returned ${Array.isArray(rows) ? rows.length : "no"} rows instead of one; an empty read (as row-level security would give) is never counted as zero.`,
       },
     };
   }
-  try {
-    const { data, error } = await client
-      .schema("supabase_migrations")
-      .from("schema_migrations")
-      .select("version")
-      .order("version", { ascending: false })
-      .limit(1);
-    if (error) return readError(error.message);
-    const version: unknown = Array.isArray(data) ? data[0]?.version : undefined;
-    if (typeof version !== "string" || !/^\d{14}$/.test(version)) {
-      return unknownShape("supabase_migrations.schema_migrations");
+  const row = rows[0] as Record<string, unknown>;
+  const counts: Record<string, number> = {};
+  for (const column of fn.columns) {
+    const value = row[column.name];
+    const text =
+      typeof value === "number" || typeof value === "bigint"
+        ? String(value)
+        : value;
+    if (
+      typeof text !== "string" ||
+      !/^\d+$/.test(text) ||
+      !Number.isSafeInteger(Number(text))
+    ) {
+      return {
+        failure: {
+          code: "unknown_schema",
+          message: `document_cutover.${fn.name} returned no count in column ${column.name}.`,
+        },
+      };
     }
-    return { value: version };
-  } catch (error) {
-    return readError(error instanceof Error ? error.message : String(error));
+    counts[column.name] = Number(text);
   }
+  return { value: counts };
 }
 
+/** The target's applied migration version, or UNREADABLE_SCHEMA_VERSION. */
 async function targetSchemaVersion(
-  client: SupabaseReadClient | null,
+  client: ReaderClient | null,
 ): Promise<string> {
-  const result = await readTargetSchemaVersion(client);
-  if ("value" in result) return result.value;
+  const result: ReadResult<Record<string, number>> = client
+    ? await callCounts(client, "schema_version")
+    : {
+        failure: {
+          code: "detector_incomplete",
+          message: "no reader connection for the target database",
+        },
+      };
+  const version =
+    "value" in result ? String(result.value.schema_version) : undefined;
+  if (version && /^\d{14}$/.test(version)) return version;
+  const detail =
+    "failure" in result
+      ? `${result.failure.code}: ${result.failure.message}`
+      : `unexpected version ${version}`;
   console.error(
-    `Target schema version unreadable (${result.failure.code}): ${redactDiagnosticText(result.failure.message)}`,
+    `Target schema version unreadable (${redactDiagnosticText(detail)})`,
   );
   return UNREADABLE_SCHEMA_VERSION;
-}
-
-async function countRows(
-  client: SupabaseReadClient,
-  table: string,
-  filter?: (
-    query: ReturnType<ReturnType<typeof client.from>["select"]>,
-  ) => typeof query,
-): Promise<ReadResult<number>> {
-  let query = client.from(table).select("*", { count: "exact", head: true });
-  if (filter) query = filter(query);
-  const { count, error } = await query;
-  if (error) return readError(error.message);
-  // A missing count is an unknown response, never "zero rows".
-  if (typeof count !== "number") return unknownShape(`count(${table})`);
-  return { value: count };
-}
-
-const TENANT_PAGE_SIZE = 1000;
-const MAX_TENANT_PAGES = 100;
-
-/**
- * Distinct non-null `tenant_id` values in `table`. The ids stay in memory for
- * counting only; they are never reported, logged or recorded.
- */
-async function countDistinctTenants(
-  client: SupabaseReadClient,
-  table: string,
-): Promise<ReadResult<number>> {
-  const tenants = new Set<string>();
-  for (let page = 0; page < MAX_TENANT_PAGES; page += 1) {
-    const from = page * TENANT_PAGE_SIZE;
-    const { data, error } = await client
-      .from(table)
-      .select("tenant_id")
-      .not("tenant_id", "is", null)
-      .order("tenant_id")
-      .range(from, from + TENANT_PAGE_SIZE - 1);
-    if (error) return readError(error.message);
-    if (!Array.isArray(data)) return unknownShape(`tenant_id from ${table}`);
-    for (const row of data as Array<Record<string, unknown>>) {
-      tenants.add(String(row.tenant_id));
-    }
-    if (data.length < TENANT_PAGE_SIZE) return { value: tenants.size };
-  }
-  return {
-    failure: {
-      code: "detector_incomplete",
-      message: `${table} has more than ${MAX_TENANT_PAGES * TENANT_PAGE_SIZE} tenant rows; distinct tenants were not fully counted.`,
-    },
-  };
 }
 
 // ---------------------------------------------------------------------------
 // Detectors
 // ---------------------------------------------------------------------------
 
-function tableDetector(client: SupabaseReadClient): DocumentCutoverDetector {
-  return {
-    detectorId: "supabase-table-census",
-    detectorVersion: "2",
-    surfaceKind: "database_table",
-    surfaceIds: PHASE_18_DESTRUCTIVE_CUTOVER_PLAN.surfaces
-      .filter((surface) => surface.surfaceKind === "database_table")
-      .map((surface) => surface.surfaceId),
-    async inspectSurface(table) {
-      const detectorQuery = `select count(*), count(distinct tenant_id) from public.${table}`;
+type CountInspection = Pick<
+  DocumentCutoverSurfaceInspection,
+  "relianceCounts" | "inventoryFindings"
+>;
 
-      const rows = await countRows(client, table);
-      if ("failure" in rows) return indeterminate(detectorQuery, rows.failure);
-
-      const tenants = await countDistinctTenants(client, table);
-      if ("failure" in tenants) {
-        return indeterminate(detectorQuery, tenants.failure);
-      }
-
-      return {
-        completeness: "complete",
-        detectorQuery,
-        relianceCounts: {
-          rows: rows.value,
-          tenants: tenants.value,
-          ...(table === "pdf_template_audit_events"
-            ? { retainedHistory: rows.value }
-            : {}),
-        },
-      };
-    },
-  };
-}
-
-const PROTOTYPE_BUCKET_NAME_PATTERN = /pdf|template|artifact|receipt/i;
-
-function storageDetector(client: SupabaseReadClient): DocumentCutoverDetector {
-  return {
-    detectorId: "supabase-artifact-storage-census",
-    detectorVersion: "3",
-    surfaceKind: "storage_location",
-    surfaceIds: ["pdf_template_artifacts.storage_objects"],
-    async inspectSurface() {
-      const detectorQuery =
-        "count pdf_template_artifacts rows with storage references; list objects in every referenced or prototype-named storage bucket";
-
-      const referencedRows = await countRows(
-        client,
-        "pdf_template_artifacts",
-        (query) => query.not("storage_path", "is", null),
-      );
-      if ("failure" in referencedRows) {
-        return indeterminate(detectorQuery, referencedRows.failure);
-      }
-
-      const { data: bucketRows, error: bucketRowsError } = await client
-        .from("pdf_template_artifacts")
-        .select("storage_bucket")
-        .not("storage_bucket", "is", null)
-        .limit(1000);
-      if (bucketRowsError) {
-        return indeterminate(
-          detectorQuery,
-          readError(bucketRowsError.message).failure,
-        );
-      }
-      if (!Array.isArray(bucketRows)) {
-        return indeterminate(
-          detectorQuery,
-          unknownShape("pdf_template_artifacts.storage_bucket").failure,
-        );
-      }
-
-      const bucketsToInspect = new Set<string>(
-        bucketRows
-          .map((row) =>
-            typeof row.storage_bucket === "string" ? row.storage_bucket : "",
-          )
-          .filter(Boolean),
-      );
-
-      // Also inspect any bucket whose name looks prototype-owned, so objects
-      // orphaned from their rows still stop the line.
-      const { data: allBuckets, error: listBucketsError } =
-        await client.storage.listBuckets();
-      if (listBucketsError) {
-        return indeterminate(detectorQuery, {
-          code: "permission_denied",
-          message: listBucketsError.message,
-        });
-      }
-      if (!Array.isArray(allBuckets)) {
-        return indeterminate(
-          detectorQuery,
-          unknownShape("storage.listBuckets").failure,
-        );
-      }
-      for (const bucket of allBuckets) {
-        if (PROTOTYPE_BUCKET_NAME_PATTERN.test(bucket.name)) {
-          bucketsToInspect.add(bucket.name);
-        }
-      }
-
-      let listedObjects = 0;
-      for (const bucket of bucketsToInspect) {
-        const { data: entries, error: listError } = await client.storage
-          .from(bucket)
-          .list("", { limit: 1000 });
-        if (listError) {
-          return indeterminate(detectorQuery, {
-            code: "permission_denied",
-            message: listError.message,
-          });
-        }
-        if (!Array.isArray(entries)) {
-          return indeterminate(
-            detectorQuery,
-            unknownShape(`storage.from(${bucket}).list`).failure,
-          );
-        }
-        listedObjects += entries.length;
-      }
-
-      return {
-        completeness: "complete",
-        detectorQuery,
-        relianceCounts: { objects: referencedRows.value + listedObjects },
-        inventoryFindings: {
-          referencedObjectRows: referencedRows.value,
-          listedBucketEntries: listedObjects,
-          bucketsInspected: [...bucketsToInspect].sort().join(",") || "(none)",
-        },
-      };
-    },
-  };
-}
-
-function externalReferenceDetector(
-  client: SupabaseReadClient,
+/** A detector backed by one `document_cutover` function call per surface. */
+function functionDetector(
+  client: ReaderClient,
+  spec: {
+    detectorId: string;
+    detectorVersion: string;
+    surfaceKind: DocumentCutoverSurfaceKind;
+    surfaceIds: readonly string[];
+    fn: ContractFunctionName;
+    args?: (surfaceId: string) => string[];
+    inspect: (
+      counts: Record<string, number>,
+      surfaceId: string,
+    ) => CountInspection;
+  },
 ): DocumentCutoverDetector {
   return {
-    detectorId: "supabase-artifact-external-url-census",
-    detectorVersion: "2",
-    surfaceKind: "external_reference",
-    surfaceIds: ["pdf_template_artifacts.external_urls"],
-    async inspectSurface() {
-      const detectorQuery =
-        "select count(*), sample(url, 5) from public.pdf_template_artifacts where url is not null";
-
-      const references = await countRows(
-        client,
-        "pdf_template_artifacts",
-        (query) => query.not("url", "is", null),
-      );
-      if ("failure" in references) {
-        return indeterminate(detectorQuery, references.failure);
-      }
-
-      let samples: string[] = [];
-      if (references.value > 0) {
-        const { data } = await client
-          .from("pdf_template_artifacts")
-          .select("url")
-          .not("url", "is", null)
-          .limit(5);
-        samples = (Array.isArray(data) ? data : [])
-          .map((row) => (typeof row.url === "string" ? row.url : ""))
-          .filter(Boolean);
-      }
-
+    detectorId: spec.detectorId,
+    detectorVersion: spec.detectorVersion,
+    surfaceKind: spec.surfaceKind,
+    surfaceIds: spec.surfaceIds,
+    async inspectSurface(surfaceId) {
+      const args = spec.args?.(surfaceId) ?? [];
+      const detectorQuery = `select * from document_cutover.${spec.fn}(${args.map((arg) => `'${arg}'`).join(", ")})`;
+      const result = await callCounts(client, spec.fn, args);
+      if ("failure" in result)
+        return indeterminate(detectorQuery, result.failure);
       return {
         completeness: "complete",
         detectorQuery,
-        relianceCounts: { externalReferences: references.value },
-        externalReferences: samples,
+        ...spec.inspect(result.value, surfaceId),
       };
     },
   };
 }
 
-function jobDetector(client: SupabaseReadClient): DocumentCutoverDetector {
-  return {
-    detectorId: "supabase-batch-job-census",
-    detectorVersion: "2",
-    surfaceKind: "background_job",
-    surfaceIds: ["pdf_template_batch_jobs.queue"],
-    async inspectSurface() {
-      const detectorQuery =
-        "select count(*) from public.pdf_template_batch_jobs";
-
-      const jobs = await countRows(client, "pdf_template_batch_jobs");
-      if ("failure" in jobs) return indeterminate(detectorQuery, jobs.failure);
-
-      // Any queued job row is treated as an active reliance; the gate never
-      // guesses which statuses are safe to abandon.
-      return {
-        completeness: "complete",
-        detectorQuery,
-        relianceCounts: { activeJobs: jobs.value },
-      };
-    },
-  };
-}
-
-const USERS_PAGE_SIZE = 1000;
-const MAX_USER_PAGES = 100;
-
-function userDetector(client: SupabaseReadClient): DocumentCutoverDetector {
-  return {
-    detectorId: "supabase-auth-user-census",
-    detectorVersion: "1",
-    surfaceKind: "user_account",
-    surfaceIds: [...PHASE_18_USER_SURFACES],
-    async inspectSurface() {
-      const detectorQuery = `auth.admin.listUsers (pages of ${USERS_PAGE_SIZE})`;
-
-      let users = 0;
-      for (let page = 1; page <= MAX_USER_PAGES; page += 1) {
-        const { data, error } = await client.auth.admin.listUsers({
-          page,
-          perPage: USERS_PAGE_SIZE,
-        });
-        if (error) {
-          return indeterminate(detectorQuery, readError(error.message).failure);
-        }
-        const listed: unknown = (data as { users?: unknown } | null)?.users;
-        if (!Array.isArray(listed)) {
-          return indeterminate(
-            detectorQuery,
-            unknownShape("auth.admin.listUsers").failure,
-          );
-        }
-        users += listed.length;
-        if (listed.length < USERS_PAGE_SIZE) {
-          return {
-            completeness: "complete",
-            detectorQuery,
-            relianceCounts: { users },
-          };
-        }
-      }
-      return indeterminate(detectorQuery, {
-        code: "detector_incomplete",
-        message: `More than ${MAX_USER_PAGES * USERS_PAGE_SIZE} auth users; the census did not finish.`,
-      });
-    },
-  };
-}
-
-function reportDetector(client: SupabaseReadClient): DocumentCutoverDetector {
-  return {
-    detectorId: "supabase-migration-report-census",
-    detectorVersion: "1",
-    surfaceKind: "report",
-    surfaceIds: [...PHASE_18_REPORT_SURFACES],
-    async inspectSurface() {
-      const detectorQuery =
-        "select count(*) from public.pdf_templates where migration_report <> '{}'";
-
-      const reports = await countRows(client, "pdf_templates", (query) =>
-        query.neq("migration_report", "{}"),
-      );
-      if ("failure" in reports) {
-        return indeterminate(detectorQuery, reports.failure);
-      }
-      return {
-        completeness: "complete",
-        detectorQuery,
-        relianceCounts: { reports: reports.value },
-      };
-    },
-  };
-}
-
-function integrationDetector(
-  client: SupabaseReadClient,
-): DocumentCutoverDetector {
-  return {
-    detectorId: "supabase-renderer-integration-census",
-    detectorVersion: "1",
-    surfaceKind: "integration",
-    surfaceIds: [...PHASE_18_INTEGRATION_SURFACES],
-    async inspectSurface() {
-      const detectorQuery =
-        "select count(*) from public.pdf_template_renders where renderer = 'docraptor'";
-
-      const renders = await countRows(client, "pdf_template_renders", (query) =>
-        query.eq("renderer", "docraptor"),
-      );
-      if ("failure" in renders) {
-        return indeterminate(detectorQuery, renders.failure);
-      }
-      return {
-        completeness: "complete",
-        detectorQuery,
-        relianceCounts: { integrations: renders.value },
-      };
-    },
-  };
+function planSurfaceIds(surfaceKind: DocumentCutoverSurfaceKind): string[] {
+  return PHASE_18_DESTRUCTIVE_CUTOVER_PLAN.surfaces
+    .filter((surface) => surface.surfaceKind === surfaceKind)
+    .map((surface) => surface.surfaceId);
 }
 
 function repoInventoryDetector(
@@ -875,11 +847,9 @@ function repoInventoryDetector(
     detectorId: `repo-inventory-${surfaceKind}`,
     detectorVersion: "1",
     surfaceKind,
-    surfaceIds: PHASE_18_DESTRUCTIVE_CUTOVER_PLAN.surfaces
-      .filter((surface) => surface.surfaceKind === surfaceKind)
-      .map((surface) => surface.surfaceId),
+    surfaceIds: planSurfaceIds(surfaceKind),
     async inspectSurface(surfaceId) {
-      const [filePart] = surfaceId.split("#");
+      const [filePart = surfaceId] = surfaceId.split("#");
       const absolute = path.join(repoRoot, filePart);
       return {
         completeness: "complete",
@@ -890,15 +860,93 @@ function repoInventoryDetector(
   };
 }
 
-function realDetectors(client: SupabaseReadClient): DocumentCutoverDetector[] {
+function realDetectors(client: ReaderClient): DocumentCutoverDetector[] {
   return [
-    tableDetector(client),
-    storageDetector(client),
-    externalReferenceDetector(client),
-    jobDetector(client),
-    userDetector(client),
-    reportDetector(client),
-    integrationDetector(client),
+    functionDetector(client, {
+      detectorId: "supabase-table-census",
+      detectorVersion: "3",
+      surfaceKind: "database_table",
+      surfaceIds: planSurfaceIds("database_table"),
+      fn: "table_census",
+      args: (table) => [table],
+      inspect: (counts, table) => ({
+        relianceCounts: {
+          rows: counts.row_count,
+          tenants: counts.tenant_count,
+          ...(table === "pdf_template_audit_events"
+            ? { retainedHistory: counts.row_count }
+            : {}),
+        },
+      }),
+    }),
+    functionDetector(client, {
+      detectorId: "supabase-artifact-storage-census",
+      detectorVersion: "4",
+      surfaceKind: "storage_location",
+      surfaceIds: planSurfaceIds("storage_location"),
+      fn: "artifact_storage_census",
+      inspect: (counts) => ({
+        relianceCounts: {
+          objects: (counts.referenced_rows ?? 0) + (counts.bucket_objects ?? 0),
+        },
+        inventoryFindings: {
+          referencedObjectRows: counts.referenced_rows ?? 0,
+          bucketObjects: counts.bucket_objects ?? 0,
+        },
+      }),
+    }),
+    functionDetector(client, {
+      detectorId: "supabase-artifact-external-url-census",
+      detectorVersion: "3",
+      surfaceKind: "external_reference",
+      surfaceIds: planSurfaceIds("external_reference"),
+      fn: "external_reference_count",
+      inspect: (counts) => ({
+        relianceCounts: { externalReferences: counts.external_reference_count },
+      }),
+    }),
+    // Any queued job row is treated as an active reliance; the gate never
+    // guesses which statuses are safe to abandon.
+    functionDetector(client, {
+      detectorId: "supabase-batch-job-census",
+      detectorVersion: "3",
+      surfaceKind: "background_job",
+      surfaceIds: planSurfaceIds("background_job"),
+      fn: "batch_job_count",
+      inspect: (counts) => ({
+        relianceCounts: { activeJobs: counts.batch_job_count },
+      }),
+    }),
+    functionDetector(client, {
+      detectorId: "supabase-auth-user-census",
+      detectorVersion: "2",
+      surfaceKind: "user_account",
+      surfaceIds: [...PHASE_18_USER_SURFACES],
+      fn: "auth_user_count",
+      inspect: (counts) => ({
+        relianceCounts: { users: counts.auth_user_count },
+      }),
+    }),
+    functionDetector(client, {
+      detectorId: "supabase-migration-report-census",
+      detectorVersion: "2",
+      surfaceKind: "report",
+      surfaceIds: [...PHASE_18_REPORT_SURFACES],
+      fn: "migration_report_count",
+      inspect: (counts) => ({
+        relianceCounts: { reports: counts.migration_report_count },
+      }),
+    }),
+    functionDetector(client, {
+      detectorId: "supabase-renderer-integration-census",
+      detectorVersion: "2",
+      surfaceKind: "integration",
+      surfaceIds: [...PHASE_18_INTEGRATION_SURFACES],
+      fn: "renderer_integration_count",
+      inspect: (counts) => ({
+        relianceCounts: { integrations: counts.renderer_integration_count },
+      }),
+    }),
     repoInventoryDetector("route"),
     repoInventoryDetector("configuration"),
     repoInventoryDetector("prototype_test"),
@@ -906,30 +954,48 @@ function realDetectors(client: SupabaseReadClient): DocumentCutoverDetector[] {
 }
 
 // ---------------------------------------------------------------------------
-// Proof output
+// Proof output (contained in docs/ops/document-cutover/proofs/)
 // ---------------------------------------------------------------------------
+
+function isInside(root: string, candidate: string): boolean {
+  const relative = path.relative(root, candidate);
+  return (
+    relative === "" ||
+    (!path.isAbsolute(relative) && relative.split(path.sep)[0] !== "..")
+  );
+}
+
+/**
+ * Repo-relative proof directory for `--out`, or null when it does not
+ * resolve inside docs/ops/document-cutover/proofs/ (`.`, `""`, `../x`,
+ * absolute paths elsewhere, siblings).
+ */
+function proofDirectoryFor(out: string): string | null {
+  if (out.trim() === "") return null;
+  const absolute = path.resolve(repoRoot, out);
+  if (!isInside(PROOFS_ROOT, absolute)) return null;
+  return path.relative(repoRoot, absolute).split(path.sep).join("/");
+}
 
 /**
  * Writes each new proof to its `proofPath` for commit through a PR. The `wx`
  * flag makes writing over an existing proof path throw, so a rerun never
- * changes an earlier proof.
+ * changes an earlier proof, and a path outside the proofs directory is refused.
  */
 const committedProofFileWriter: DocumentCutoverProofStore = {
   async append(proof) {
     const target = path.resolve(repoRoot, proof.proofPath);
+    if (target === PROOFS_ROOT || !isInside(PROOFS_ROOT, target)) {
+      throw new Error(
+        `Proof path ${proof.proofPath} is outside ${DOCUMENT_CUTOVER_PROOFS_DIR}/; nothing written.`,
+      );
+    }
     mkdirSync(path.dirname(target), { recursive: true });
     await writeFile(target, `${JSON.stringify(proof, null, 2)}\n`, {
       flag: "wx",
     });
   },
 };
-
-function repoRelativeDirectory(directory: string): string {
-  return path
-    .relative(repoRoot, path.resolve(repoRoot, directory))
-    .split(path.sep)
-    .join("/");
-}
 
 // ---------------------------------------------------------------------------
 // Output
@@ -991,22 +1057,41 @@ function printAssessment(assessment: DocumentCutoverAssessment): void {
 }
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // --verify
 // ---------------------------------------------------------------------------
 
 /**
- * Checks the proof itself first (digests, legacy attestation, 24h freshness
- * from `recordedAt`, clean consistency). Only an intact clean proof is then
- * compared with the current target, read with the read-only key.
+ * Checks the proof itself first (location, digests, legacy attestation, 24h
+ * freshness from `recordedAt`, clean consistency). Only an intact clean proof
+ * inside docs/ops/document-cutover/proofs/ is then compared with the current
+ * target, read over the reader connection.
  */
 async function verifyStoredProof(
   proofPath: string,
   env: CommandEnv,
 ): Promise<number> {
+  const absolute = path.resolve(repoRoot, proofPath);
+  if (!existsSync(absolute)) {
+    console.error(`Unable to read the proof at ${proofPath}: no such file.`);
+    return 1;
+  }
+  const location = realpathSync(absolute);
+  if (
+    !existsSync(PROOFS_ROOT) ||
+    location === realpathSync(PROOFS_ROOT) ||
+    !isInside(realpathSync(PROOFS_ROOT), location)
+  ) {
+    console.error(
+      `INVALID proof location ${proofPath}: only proofs committed under ${DOCUMENT_CUTOVER_PROOFS_DIR}/ are verified.`,
+    );
+    return 1;
+  }
+
   let proof: DocumentCutoverEnvironmentProof;
   try {
     proof = JSON.parse(
-      readFileSync(path.resolve(repoRoot, proofPath), "utf8"),
+      readFileSync(location, "utf8"),
     ) as DocumentCutoverEnvironmentProof;
   } catch (error) {
     console.error(
@@ -1017,17 +1102,22 @@ async function verifyStoredProof(
 
   let result = await verifyDocumentCutoverEnvironmentProof(proof);
   if (result.valid && proof.outcome === "clean_preproduction_proof") {
-    const read = createReadClient(env);
-    if ("blocker" in read) {
-      console.error(read.blocker);
+    const opened = await openReaderConnection(env);
+    if ("blocker" in opened) {
+      console.error(opened.blocker);
       return 1;
     }
-    const currentTarget = targetIdentity(
-      env,
-      await targetSchemaVersion(read.client),
-    );
+    let schemaVersion: string;
+    try {
+      schemaVersion = await withDeadline(
+        targetSchemaVersion(opened.client),
+        "reading the target schema version",
+      ).catch(() => UNREADABLE_SCHEMA_VERSION);
+    } finally {
+      await closeReader(opened.client);
+    }
     result = await verifyDocumentCutoverEnvironmentProof(proof, {
-      currentTarget,
+      currentTarget: targetIdentity(env, schemaVersion),
     });
   }
 
@@ -1089,6 +1179,14 @@ export async function runDocumentCutoverCommand(
     }
   }
 
+  const proofDirectory = proofDirectoryFor(args.out);
+  if (proofDirectory === null) {
+    console.error(
+      `STOP THE LINE — --out "${args.out}" does not resolve inside ${DOCUMENT_CUTOVER_PROOFS_DIR}/; nothing written.`,
+    );
+    return 1;
+  }
+
   let allowlist: DocumentCutoverAllowlist;
   try {
     allowlist = loadAllowlist();
@@ -1106,6 +1204,8 @@ export async function runDocumentCutoverCommand(
       );
       return 1;
     }
+    // Fail fast before touching the target; the library check
+    // (recordDocumentCutoverApproval) is authoritative.
     const listed = allowlist.owners.some(
       (owner) => owner.id === args.owner && owner.role === args.ownerRole,
     );
@@ -1117,27 +1217,58 @@ export async function runDocumentCutoverCommand(
     }
   }
 
-  // Injected detectors never need the real client, so it is only built (and
-  // the read key only read) for the real detectors. Without a real read the
-  // target schema version is unreadable and the line stops.
-  let client: SupabaseReadClient | null = null;
+  // Injected detectors never need the target, so the reader connection is
+  // only opened (and DOCUMENT_CUTOVER_DATABASE_URL only read) for the real
+  // detectors. Without a real read the target schema version is unreadable
+  // and the line stops.
+  let reader: ReaderClient | null = null;
   let detectors = deps.detectors;
   if (!detectors) {
-    const read = createReadClient(env);
-    if ("blocker" in read) {
-      console.error(read.blocker);
+    const opened = await openReaderConnection(env);
+    if ("blocker" in opened) {
+      console.error(opened.blocker);
       return 1;
     }
-    client = read.client;
-    detectors = realDetectors(read.client);
+    reader = opened.client;
+    detectors = realDetectors(opened.client);
   }
-  const schemaVersion = await targetSchemaVersion(client);
 
+  try {
+    return await assessAndRecord({
+      args,
+      env,
+      allowlist,
+      proofDirectory,
+      reader,
+      detectors,
+      store: deps.store ?? committedProofFileWriter,
+    });
+  } finally {
+    if (reader) await closeReader(reader);
+  }
+}
+
+async function assessAndRecord(input: {
+  args: CliArgs;
+  env: CommandEnv;
+  allowlist: DocumentCutoverAllowlist;
+  proofDirectory: string;
+  reader: ReaderClient | null;
+  detectors: DocumentCutoverDetector[];
+  store: DocumentCutoverProofStore;
+}): Promise<number> {
+  const { args, env, allowlist, reader } = input;
   const assessment = await assessDocumentCutoverEnvironment({
     plan: PHASE_18_DESTRUCTIVE_CUTOVER_PLAN,
+    // The schema-version read happens inside the resolver, so it runs under
+    // the same deadline as the detectors.
     resolveEnvironment: async () =>
-      resolveEnvironment(env, allowlist.nonProductionProjects, schemaVersion),
-    detectors,
+      resolveEnvironment(
+        env,
+        allowlist.nonProductionProjects,
+        await targetSchemaVersion(reader),
+      ),
+    detectors: input.detectors,
     procedures: {
       resetRebuild: RESET_PROCEDURE,
       rollbackBeforeFirstCanonicalWrite: ROLLBACK_PROCEDURE,
@@ -1172,14 +1303,12 @@ export async function runDocumentCutoverCommand(
         approvalStatement: args.statement,
         decision: args.decision,
       },
-      authorization: {
-        allowedOwnerIds: allowlist.owners.map((owner) => owner.id),
-      },
+      authorization: { owners: allowlist.owners },
       provenance: {
         recordedBy: operatorIdentity(),
-        proofDirectory: repoRelativeDirectory(args.out),
+        proofDirectory: input.proofDirectory,
       },
-      store: deps.store ?? committedProofFileWriter,
+      store: input.store,
     });
 
     const verification = await verifyDocumentCutoverEnvironmentProof(proof);

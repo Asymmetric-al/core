@@ -1,4 +1,5 @@
 export {
+  DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS,
   assessDocumentCutoverEnvironment,
   type AssessDocumentCutoverEnvironmentInput,
   type DocumentCutoverProcedureInput,
@@ -7,6 +8,7 @@ export {
   DocumentCutoverApprovalError,
   recordDocumentCutoverApproval,
   type DocumentCutoverApprovalErrorCode,
+  type DocumentCutoverAuthorizedOwner,
   type RecordDocumentCutoverApprovalInput,
 } from "./approval";
 export {

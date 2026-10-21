@@ -28,7 +28,7 @@ async function cleanProof(): Promise<DocumentCutoverEnvironmentProof> {
       approvalStatement: "Approved for the exact plan digest.",
       decision: "go",
     },
-    authorization: { allowedOwnerIds: ["owner-blake"] },
+    authorization: { owners: [{ id: "owner-blake", role: "platform_owner" }] },
     store: new InMemoryDocumentCutoverProofStore(),
   });
 }
