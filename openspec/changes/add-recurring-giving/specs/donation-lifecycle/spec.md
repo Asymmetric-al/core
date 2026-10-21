@@ -4,89 +4,9 @@
 
 ### Requirement: Donors Can Start Recurring Giving
 
-The platform MUST let a donor initiate recurring giving through checkout using
-one explicit recurring-giving group with one or more independently manageable
-destination lines. Each destination-line identity MUST remain stable across
-provider replacement, cohort split, term change, and schedule change. Exact
-amount, designation, cadence, and other disclosed business terms MUST be frozen
-in append-only effective line-term versions; donor-controlled calendar intent
-MUST be frozen separately in append-only schedule epochs. Calendar-bearing
-terms—including cadence, anchor, giving timezone, preferred calendar day, and
-final boundary—MUST appear in the authoritative schedule epoch and its matching
-line-term disclosure snapshot. A calendar-bearing change therefore appends both
-a term version and a schedule epoch; a non-calendar term change appends no
-schedule epoch. Disagreement at an effective boundary MUST fail closed or split
-the cohort. The server MUST form only the compatible billing cohorts
-the current line terms, schedule epochs, and authorization require. Under the current Stripe adapter, a
-cohort MUST bind through explicit execution legs: an ordinary cadence has one
-leg/subscription and twice-monthly has two monthly legs/subscriptions, one for
-the 1st and one for the 15th. Each line MUST bind to its exact subscription item
-in every applicable leg. The client MUST NOT choose group, line, cohort, leg,
-occurrence, provider-subscription, or provider-item identifiers.
+The platform MUST let a donor initiate recurring giving through checkout using one explicit recurring-giving group with one or more independently manageable destination lines.
 
-The supported recurring cadence vocabulary MUST be weekly, every two weeks,
-twice monthly on the 1st and 15th, every four weeks, monthly, quarterly,
-semiannual, and annual. Every active cadence policy MUST feature exactly one
-enabled cadence: monthly whenever it is enabled, otherwise one other enabled
-cadence selected atomically by the tenant. Tenant configuration MAY narrow
-prospective availability but MUST NOT mutate a grandfathered schedule. Daily
-recurrence is excluded and one-time giving is a separate gift mode. Checkout
-MUST create no end date by default and MUST ask no extra ongoing-versus-ended
-question; an optional secondary control MAY set an inclusive final eligible
-date after clear, non-guilt-based explanation.
-
-The continuing anchor MUST default to the current civil date in the
-arrangement's frozen tenant giving timezone and MUST accept only that date or a
-future date. For twice-monthly giving, an off-slot default MUST advance to the
-next 1st or 15th and a donor-selected continuing date MUST be a 1st or 15th.
-Any selected final eligible date MUST be on or after the first continuing
-occurrence under the accepted terms. The server-owned preview and the locked
-apply command MUST both enforce these rules; equality permits that one
-continuing occurrence, and the immediate initial contribution MUST NOT make an
-otherwise invalid continuing range valid.
-
-The server MUST attempt one actual initial contribution immediately for each
-disclosed compatible billing cohort—never one per line or per twice-monthly
-execution leg. If a cohort's continuing schedule begins today, that contribution
-is its first occurrence and MUST NOT be duplicated. If the donor selects a
-future continuing date, checkout MUST disclose every initial contribution and
-the future first continuing occurrences separately. For each cohort, the
-accepted command MUST freeze exactly one initial-attempt owner: either one
-charge-owning executor-invoice provisioning operation or one product-triggered
-payment operation. The other branch MUST be forbidden, and executor provisioning
-in the product-triggered branch MUST be proven non-charging. Every request and provider effect MUST use durable local
-semantic idempotency plus adapter idempotency so replay cannot duplicate any
-group, line, cohort, schedule epoch, initial contribution, provider executor,
-occurrence, attempt, or communication candidate. Every provider effect MUST
-have one exact scoped child operation; pre-binding executor provisioning MUST
-target its pre-existing execution leg and complete frozen line/item plan rather
-than a fabricated future binding.
-
-Every recurring group MUST freeze one exact Legal Entity, and every accepted
-billing cohort MUST freeze one exact effective Settlement Account Binding
-before provider creation. Legal Entity, settlement binding, currency, payer,
-authorization, and provider capability are compatibility inputs, not mutable
-defaults. The client MUST NOT choose either identifier. A later default,
-connection, or account change applies prospectively and MUST NOT reroute an
-accepted group, occurrence, event, refund, or recovery command.
-
-A newly created recurring arrangement MUST enter the signed provider-event and
-reconciliation path so normal renewal evidence updates occurrence execution,
-provider payment finality, canonical contribution/ledger posting, and executor
-control as separate folds for the exact cohort occurrence and its line
-allocations. Provider success MUST NOT itself claim ledger posting or receipt
-eligibility, and a posting MUST NOT move the scheduled grid. The product
-schedule MUST remain provider-neutral, versioned business truth; a provider
-object MUST NOT become the commitment or move its calendar grid. Normal
-renewals MUST NOT be rebuilt as manual one-time-payment loops. A configured
-provider subscription MAY execute ordinary renewals only; provider-native
-automatic retries MUST be disabled or proved unable to overlap the product-
-owned Phase 16 recovery candidates and commands.
-
-**Supersession (2026-07-13):** the original one-subscription-to-one-
-`donor_pledges` requirement is replaced by this Phase 16 group/line/cohort
-contract. The legacy row is migration evidence and MUST NOT be extended as the
-target write model.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-e0cfb2b09c4242e7975e` MUST apply without exception.
 
 #### Scenario: A donor starts compatible support for two destinations
 

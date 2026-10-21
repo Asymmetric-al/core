@@ -12,18 +12,9 @@ Day-to-day tooling, lint rules, and stack-specific procedures remain in
 
 ### Requirement: Safety And Permission Correctness Over Convenience
 
-When priorities conflict, the platform MUST apply one canonical priority
-ladder: tenant safety and permission correctness first; financial and
-operational truth second, with donation-flow integrity as its sharpest product
-instance; donor-facing clarity and trust third; and convenience last.
+When priorities conflict, the platform MUST apply one canonical priority ladder: tenant safety and permission correctness first; financial and operational truth second, with donation-flow integrity as its sharpest product instance; donor-facing clarity and trust third; and convenience last.
 
-This ladder SHALL be the single canonical ordering for the platform. Other
-specs MUST defer to it rather than restating a competing order of their own.
-
-Permission correctness MUST be treated as non-negotiable. The platform SHALL
-not take a faster path that makes data exposure, action authority, or role
-visibility ambiguous just because that shortcut is technically simpler or easier
-to ship.
+Every clause in `openspec/contracts/platform-principles.md#contract-8b6afaacb2f5eb889ed5` MUST apply without exception.
 
 #### Scenario: A shortcut would make development faster but weaken safety
 
@@ -45,16 +36,9 @@ to ship.
 
 ### Requirement: Operational Truth And Money Integrity
 
-The platform MUST preserve financial and operational truth across gifts,
-designations, recurring state, refunds, receipts, statements, donor linkage,
-fund ownership, missionary visibility, and administrative visibility.
+The platform MUST preserve financial and operational truth across gifts, designations, recurring state, refunds, receipts, statements, donor linkage, fund ownership, missionary visibility, and administrative visibility.
 
-When a change helps one user group but weakens the accuracy, clarity, or
-unambiguity of money flow, the platform SHALL protect money integrity first.
-
-This requirement MUST govern product judgment about truthful money behavior. It
-does not replace the structural source-of-truth ownership rules, which belong in
-`platform-boundaries`.
+Every clause in `openspec/contracts/platform-principles.md#contract-73df5470eb4a82a7423e` MUST apply without exception.
 
 #### Scenario: A change would help one user group but weaken money truth
 
@@ -67,18 +51,9 @@ does not replace the structural source-of-truth ownership rules, which belong in
 
 ### Requirement: Administrative Foundation With Surface-Appropriate Simplicity
 
-Admin and operational truth are foundational to the platform. The system MUST
-support the organization's operational strength first, because downstream donor
-and missionary experiences depend on that foundation being reliable and
-complete.
+Admin and operational truth are foundational to the platform.
 
-Within a safe, permitted, and operationally truthful path, the platform SHALL
-preserve the administrative foundation the organization depends on, protect
-donor clarity strongly, and keep missionary experiences focused rather than
-expansive.
-
-This default MUST NOT override safety, permission correctness, money integrity,
-or donor-trust obligations.
+Every clause in `openspec/contracts/platform-principles.md#contract-ac1c0c1f13e002605c3e` MUST apply without exception.
 
 #### Scenario: A feature would give admins more power but make downstream surfaces too deep
 
@@ -162,17 +137,9 @@ understand, less accessible, or less obviously actionable.
 
 ### Requirement: Shared Language, Shared Behavior, And Cross-Surface Coherence
 
-Shared language and shared behavior across the platform MUST matter as much as
-local optimization. The same concept SHALL not behave differently in different
-surfaces without a clear reason documented in product intent or surface intent.
+Shared language and shared behavior across the platform MUST matter as much as local optimization.
 
-The platform MUST optimize for performance and reliability without allowing
-separate surfaces to drift into inconsistent vocabulary, inconsistent state
-handling, or incompatible mental models for the same underlying concept.
-
-The biggest judgment failure for an AI agent is making the platform too siloed,
-too inconsistent, too clever locally, or too disconnected across surfaces.
-Everything MUST work together as one cohesive, high-trust platform.
+Every clause in `openspec/contracts/platform-principles.md#contract-47b3120d0359f1804537` MUST apply without exception.
 
 #### Scenario: The same concept appears across more than one surface
 

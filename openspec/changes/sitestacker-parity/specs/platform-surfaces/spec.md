@@ -4,52 +4,9 @@
 
 ### Requirement: Outbound Communications Are A Governed Platform Channel
 
-Outbound communications — email today, additional channels only when explicitly
-adopted — SHALL be treated as a governed channel of the connected platform
-rather than as a fifth surface. In-product notifications SHALL be role-safe
-attention projections inside the existing surfaces, not a separate source of
-business truth, task state, or communication history.
+Outbound communications — email today, additional channels only when explicitly adopted — SHALL be treated as a governed channel of the connected platform rather than as a fifth surface.
 
-Communications that reach donors, missionaries, staff, or the public MUST use
-shared product language, honest states, and broad but contract-bounded
-tenant-controlled content and presentation. They MUST reflect the same
-producer-owned truth and authorization as the surfaces they reference.
-Tenant control MUST NOT remove or fabricate required legal, security, payment,
-receipt, consent, protected-action, recipient, or current-source meaning.
-
-Every platform/system-generated message on an enabled catalog channel—including
-email, in-product, and separately activated future SMS—MUST use the code-governed
-system-message catalog and the one Phase 6 recipient-specific intent, event,
-idempotency, and history seam. External steps continue through the applicable
-delivery executor; `in_product` steps create only the local `available` event
-and role-safe projection with no provider work. Human-authored support replies,
-newsletters, campaigns, and missionary personal messages remain outside the
-system-message catalog under their owning phases, but their external delivery
-MUST still use the Phase 6 seam.
-Eve Discord alerts remain a bounded operational-awareness channel under Eve
-policy, destination, provider, and audit ownership. They MUST NOT appear as a
-tenant System Messages channel, a Phase 6 email outcome, or durable
-communication truth. The current manifest generation contains no Eve email key,
-so every Eve email request is rejected before intent creation. Any later Eve
-email uses a meaning-specific platform-scoped fixed Phase 17 contract and the
-Phase 6 recipient-specific Resend delivery spine only after its platform proof
-pack passes; no generic catch-all key is allowed. Eve/the producing platform
-domain owns platform-recipient selection and its revisioned authority record;
-Phase 17 owns contract publication, generated resolver identity, resolver and
-configuration proof, and compilation. Phase 6 creates the recipient-specific
-intent and orchestrates runtime preparation through that exact resolver, then
-owns provider submission, evidence reduction, and history. Phase 6 never selects
-or invents a platform recipient authority.
-That spine MUST propagate one explicit tenant/platform owner arc: tenant mail
-uses tenant Party/contact/publication/connection authority, while platform mail
-uses an exact revisioned verified platform-owner authority and service-only Asym
-publication/connection with every tenant field null. Tenant roles cannot view or
-mutate platform execution/history, and neither a caller nor provider payload can
-choose scope.
-Phase 17 MUST govern immutable publication, deterministic whole-message
-resolution, typed facts, presentation dependencies, bounded Delivery Plans,
-delivery identity, and evidence/recovery without creating a second workflow
-engine, provider log, sent-mail archive, or business-record owner.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-1173bcf4c60dab5f6922` MUST apply without exception.
 
 #### Scenario: An outbound email would diverge from surface truth
 

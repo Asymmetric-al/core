@@ -4,7 +4,9 @@
 
 ### Requirement: Phase 27 role-qualified staff assignment identity
 
-For the staff-assignment family only, active logical identity SHALL distinguish Tenant, exact staff/Party endpoints and role-qualified responsibility. Multiple roles per person/Party and multiple assignees per role remain permitted; duplicate active copies of the same role-qualified edge are forbidden. Preserve shared one-primary behavior independently and historical lineage. Portfolios remain derived. P27 policy consumes P9 authoritative transfer commands; manual/unassigned/unknown provenance stays protected and transfer grants no access.
+For the staff-assignment family only, active logical identity SHALL distinguish Tenant, exact staff/Party endpoints and role-qualified responsibility.
+
+Every clause in `openspec/contracts/crm-core.md#contract-434547cc12041936245c` MUST apply without exception.
 
 #### Scenario: Distinct legitimate roles
 

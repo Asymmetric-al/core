@@ -275,7 +275,7 @@ const githubUpstreamGroups = [
     repo: "https://github.com/Fission-AI/OpenSpec.git",
     source: "Fission-AI/OpenSpec",
     sourceUrl: "https://github.com/Fission-AI/OpenSpec",
-    ref: "v1.9.0",
+    ref: "v1.14.3",
     sourceRoot: "skills",
     skillNames: openspecSkillNames,
     lockSkillPath(skillName) {
@@ -285,7 +285,7 @@ const githubUpstreamGroups = [
       return `skills/${skillName}/`;
     },
     sourceUrlForSkill(skillName) {
-      return `https://github.com/Fission-AI/OpenSpec/tree/v1.9.0/skills/${skillName}`;
+      return `https://github.com/Fission-AI/OpenSpec/tree/v1.14.3/skills/${skillName}`;
     },
     skillExtraCopies: Object.fromEntries(
       openspecSkillNames.map((skillName) => [
@@ -1516,6 +1516,22 @@ async function restoreCoreOverlay(targetRoot, overlay, skillName) {
     return;
   }
 
+  if (openspecSkillNames.includes(skillName)) {
+    // Several upstream workflows have no H1 outside their Markdown examples.
+    // Core's controlling instructions must precede the workflow, never land
+    // inside the first example spec's fenced heading.
+    const frontmatter = /^---\n[\s\S]*?\n---\n/.exec(content);
+    if (!frontmatter)
+      throw new Error(`OpenSpec skill requires frontmatter: ${skillName}`);
+    const after = content.slice(frontmatter[0].length).trimStart();
+    await writeFile(
+      skillPath,
+      `${frontmatter[0]}\n${overlay.trim()}\n\n${after}`,
+      "utf8",
+    );
+    return;
+  }
+
   const headingMatch = /^# .+$/m.exec(content);
   if (headingMatch && headingMatch.index !== undefined) {
     const headingEnd = headingMatch.index + headingMatch[0].length;
@@ -1841,7 +1857,35 @@ async function ensureGitGuardrailsFailClosed(skillName, targetRoot) {
   await cp(overlayPath, hookPath);
 }
 
+async function ensureOpenSpecWrapperPermission(skillName, targetRoot) {
+  if (!openspecSkillNames.includes(skillName)) {
+    return;
+  }
+
+  const skillPath = path.join(targetRoot, "SKILL.md");
+  const content = (await readFile(skillPath, "utf8")).replaceAll("\r\n", "\n");
+  const lines = content.split("\n");
+  const end = lines.indexOf("---", 1);
+  const permissions = lines
+    .slice(1, end)
+    .filter((line) => line.startsWith("allowed-tools:"));
+  const value = permissions[0]?.match(/^allowed-tools:\s+([A-Za-z].*)$/)?.[1];
+  if (lines[0] !== "---" || end < 1 || permissions.length !== 1 || !value) {
+    throw new Error(
+      `Unsupported OpenSpec allowed-tools frontmatter in ${path.relative(repoRoot, skillPath)}; review upstream permissions before refreshing.`,
+    );
+  }
+  if (/(?:^|,\s*)Bash\(bun:\*\)(?=,|$)/.test(value)) {
+    return;
+  }
+
+  lines[lines.indexOf(permissions[0])] = `${permissions[0]}, Bash(bun:*)`;
+  await writeFile(skillPath, lines.join("\n"), "utf8");
+}
+
 async function applyPostRefreshReplacements(skillName, targetRoot) {
+  await ensureOpenSpecWrapperPermission(skillName, targetRoot);
+
   if (skillName === "emil-design-engineering") {
     const formsControlsPath = path.join(targetRoot, "forms-controls.md");
     const formsControlsContent = await readFile(formsControlsPath, "utf8");

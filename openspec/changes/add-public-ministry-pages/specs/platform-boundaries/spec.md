@@ -28,22 +28,9 @@ flag SHALL NOT constitute an eligible public release.
 
 ### Requirement: Phase 22 Uses One Application Boundary For Private Editing And Public Serving
 
-All authenticated revision, attestation, review, preview, release, assignment,
-settings, operations, adoption, and recovery behavior SHALL cross
-`PublicMinistryPagesService`. Anonymous serving SHALL resolve the exact current
-Page-locale release through the same domain boundary before Phase 5 renders or
-uses cache. Browsers SHALL NOT receive direct grants to private Phase 22, CRM,
-financial, assignment, response, measurement-occurrence, or CMS-admin tables.
-For D24 staff revisions, user-context Payload Local API calls SHALL preserve the
-authenticated actor and use `overrideAccess: false` and `overrideLock: false`.
-An inert private content prepare MAY precede the operational commit, but the
-service SHALL advance the exact working head only through the expected-head CAS
-and SHALL NOT claim cross-store atomicity. Same-scope integrity SHALL combine
-complete operational provenance constraints with adapter validation of the
-exact Payload version scope and digest; it SHALL NOT require or imply a
-cross-schema CMS-to-operational foreign key. A complete transaction retry is
-permitted only for proved serialization or deadlock failures, while an
-ambiguous result requires authoritative inspection before any retry.
+All authenticated revision, attestation, review, preview, release, assignment, settings, operations, adoption, and recovery behavior SHALL cross `PublicMinistryPagesService`.
+
+Every clause in `openspec/contracts/platform-boundaries.md#contract-b0dee2b17457f195a3dc` MUST apply without exception.
 
 #### Scenario: An authenticated actor saves Page work
 
@@ -68,19 +55,9 @@ ambiguous result requires authoritative inspection before any retry.
 
 ### Requirement: Phase 22 Public Composition Is Exact Gate-Before-Cache And Adverse-First
 
-Public serving SHALL compose one exact route, Page-locale release, D27
-Site-family presentation activation, D2/Phase-10 admission, media and public
-projection manifest. Admission SHALL occur before cache access. Positive
-changes MAY converge through bounded freshness classes, but adverse changes
-SHALL stop the affected new behavior first and SHALL never use stale-if-error,
-slug guessing, locale prose fallback, or a legacy reader.
-Every owner-labelled adverse cause SHALL enqueue one append-only exact-scope
-convergence operation through transactionally coupled delivery. The operation
-SHALL reference the owning disposition and pin desired generation, input digest,
-idempotency identity, controlled-surface coverage, deadline, fenced attempts,
-and residual-only recovery. Expiration requested, provider accepted, controlled
-response observed, not verifiable, and external observation SHALL remain
-distinct facts and SHALL NOT individually prove convergence.
+Public serving SHALL compose one exact route, Page-locale release, D27 Site-family presentation activation, D2/Phase-10 admission, media and public projection manifest.
+
+Every clause in `openspec/contracts/platform-boundaries.md#contract-e3fe1903406c4bce0915` MUST apply without exception.
 
 #### Scenario: A positive release propagates
 
@@ -105,37 +82,9 @@ distinct facts and SHALL NOT individually prove convergence.
 
 ### Requirement: Phase 22 Adoption Transfers One Complete Public Reader Cohort
 
-Legacy-to-Phase-22 adoption SHALL use private, resumable, non-authoritative
-preparation and shadow comparison over a complete Tenant, Legal Entity,
-environment, Site, immutable enumerated verified-host membership generation and
-digest, and locale cohort. Host strings, wildcards, request headers, deployment
-domains, previously verified hosts, and mutable current-host queries SHALL NOT
-define or widen that cohort. Every Page and shared artifact SHALL receive one
-non-overlapping disposition. The Adoption Case, Plan, shadow, and Coverage
-Manifest SHALL pin the same host-membership generation and digest. One idempotent,
-generation-fenced CAS SHALL transfer public reader authority; no partial tenant
-enablement, mixed reader, dual write, destructive rollback, or legacy fallback
-is permitted afterward.
-Coverage SHALL close over shared route maps, directories and indexes, sitemaps,
-canonical/alternate-locale graphs, cache generations, and every Controlled
-Public Surface. A cross-cohort artifact requires an atomically selectable,
-generation-pinned partition; otherwise all dependent cases SHALL participate in
-one coordinated shared-authority CAS. The selected Adoption Plan Version and
-Coverage Manifest SHALL be immutable, content-addressed successors; corrections
-SHALL create successors rather than mutate them or resolve through a floating
-latest pointer.
-The final CAS SHALL compare the pinned host-membership generation and digest to
-the current Phase 2/24 owner head and SHALL abort with no public effect when a
-host was added, removed, transferred, canonicalized, or reverified after
-preparation.
+Legacy-to-Phase-22 adoption SHALL use private, resumable, non-authoritative preparation and shadow comparison over a complete Tenant, Legal Entity, environment, Site, immutable enumerated verified-host membership generation and digest, and locale cohort.
 
-A Compatible Legacy Page Release MAY preserve proved-safe legacy presentation
-only through a certified one-time family-qualified adapter that freezes an
-immutable D2 DTO and pins the exact D20 catalog, D3 profile, compatibility
-renderer, content, locale, brand, managed references, and owner generations.
-Request-time raw Payload or mutable legacy reads and unknown semantics SHALL be
-ineligible. No new compatible-legacy release SHALL be created after cohort
-cutover, and the next edit SHALL use an ordinary current-catalog successor.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-56c06244372b57c09a69` MUST apply without exception.
 
 #### Scenario: Preparation is incomplete
 
@@ -174,13 +123,9 @@ cutover, and the next edit SHALL use an ordinary current-catalog successor.
 
 ### Requirement: Phase 22 Optional Services Never Gain Publication Or Financial Authority
 
-Writing assistance, first-party measurement, search, social presentation,
-comments/reactions, notifications, provider invalidation, and external adapters
-SHALL consume bounded release projections and SHALL fail independently. They
-SHALL NOT approve or publish content, widen Phase 10 or Phase 12 access, create
-financial truth, prove delivery or sharing, block Giving, or become a fallback
-public reader. Data egress, retention, consent/objection, and provider use SHALL
-remain purpose-specific and capability-honest.
+Writing assistance, first-party measurement, search, social presentation, comments/reactions, notifications, provider invalidation, and external adapters SHALL consume bounded release projections and SHALL fail independently.
+
+Every clause in `openspec/contracts/platform-boundaries.md#contract-f8a5a3c28523dcbbc16e` MUST apply without exception.
 
 #### Scenario: An optional service is unavailable
 
@@ -206,26 +151,9 @@ remain purpose-specific and capability-honest.
 
 ### Requirement: Phase 22 Operations And Settings Remain Derived Projections
 
-Mission Control's Public Pages operations and setup/settings workspaces SHALL be
-disposable projections over source-owned current facts. The operations projection
-SHALL resolve current authorization and one exact Tenant, Legal Entity,
-environment, Site, and locale before enumerating, grouping, counting, searching,
-exporting, notifying, linking, badging, subscribing through Realtime, or caching
-any result. A host, route, selected row, task link, cache namespace, or prior
-authorization SHALL NOT infer or widen that scope. The operations projection
-SHALL consume one finite, code-owned, versioned registry covering every D1–D21
-owner contract; each compatible owner version SHALL supply either a privacy-safe
-condition/action adapter or a source-owned `not participating`, `Off`, or
-`unavailable` disposition. Missing or incompatible coverage SHALL remain
-`Partial`/`Unavailable` and SHALL NOT trigger raw owner-table reads, copied status
-logic, a guessed task, or a healthy result. Each action SHALL route to its owning
-contract and re-prove current permission and version. The workspaces SHALL NOT
-create parallel health, task, workflow, settings, or permission authority.
-The authorized product audit export SHALL use a versioned machine-readable schema
-with stable opaque IDs, immutable lineage, exact scope, source provenance, and
-coverage time for Pages, releases, routes/dispositions, assignments, and selected
-and effective profile references. It SHALL be privacy-filtered before enumeration
-and SHALL NOT be replaced by an infrastructure backup/export.
+Mission Control's Public Pages operations and setup/settings workspaces SHALL be disposable projections over source-owned current facts.
+
+Every clause in `openspec/contracts/platform-boundaries.md#contract-ac554d91b10698f92025` MUST apply without exception.
 
 #### Scenario: One cause affects many Pages
 
@@ -266,15 +194,9 @@ and SHALL NOT be replaced by an infrastructure backup/export.
 
 ### Requirement: Phase 22 Editorial Recovery Is Fenced And Reference-Safe
 
-One private non-semantic recovery buffer MAY exist per exact Page and locale
-beneath the expected coherent working head. It SHALL use digest no-op
-suppression, at most one in-flight write per exact generation, and late-write
-fencing; it SHALL NOT advance a semantic head, freeze a candidate, create an
-actor branch, or emit per-autosave audit/outbox facts. Governed Page collections
-SHALL disable blind native version pruning. Cleanup MAY remove only reference-
-proved scratch or inert prepares after authoritative recheck; ambiguous
-reference closure SHALL preserve the content and create a private operational
-exception.
+One private non-semantic recovery buffer MAY exist per exact Page and locale beneath the expected coherent working head.
+
+Every clause in `openspec/contracts/platform-boundaries.md#contract-5396fff1169250154520` MUST apply without exception.
 
 #### Scenario: A late autosave loses its generation race
 
@@ -294,12 +216,9 @@ exception.
 
 ### Requirement: Phase 22 Financial And Giving State Remains Capability-Honest
 
-Public progress SHALL use only a certified, purpose-specific owning-phase
-projection, and every released MVP Page SHALL bind exactly one eligible Phase 13
-Designation; an incomplete draft MAY exist but SHALL NOT release. Page availability, progress, Give selection, cart admission,
-provider acceptance, settlement, support recognition, balance, payroll, and
-payment SHALL remain distinct facts. Missing or stale financial data SHALL never
-become zero, inferred currency conversion, or optimistic completion.
+Public progress SHALL use only a certified, purpose-specific owning-phase projection, and every released MVP Page SHALL bind exactly one eligible Phase 13 Designation; an incomplete draft MAY exist but SHALL NOT release.
+
+Every clause in `openspec/contracts/platform-boundaries.md#contract-bbd55362eabde3c8450d` MUST apply without exception.
 
 #### Scenario: Progress is unavailable but giving is eligible
 

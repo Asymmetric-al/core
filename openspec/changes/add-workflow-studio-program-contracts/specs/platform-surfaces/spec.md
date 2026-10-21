@@ -4,7 +4,9 @@
 
 ### Requirement: Authenticated Participant Journey Experience
 
-The platform SHALL provide an authenticated, purpose-scoped My Journey experience for applicants and other approved workflow participants, implemented within an existing application surface without creating a second staff console. A participant mode in the missionary application MUST NOT imply missionary, donor, financial, or unrestricted CRM privileges. Mission Control remains the authoring, administration and operational-depth owner. Public entry forms may originate on the tenant website; private journey records and evidence MUST NOT become public content. Phase 34 MUST supply shared mechanisms and Phase 41 MUST supply application-specific accepted records and journey behavior. A predecessor admission model unable to represent the private purpose MUST gain an explicit compatible owner-approved successor before implementation; public-only anonymous access MUST NOT be widened.
+The platform SHALL provide an authenticated, purpose-scoped My Journey experience for applicants and other approved workflow participants, implemented within an existing application surface without creating a second staff console.
+
+Every clause in `openspec/contracts/platform-surfaces.md#contract-7e18ff4f714f8cc8ecd3` MUST apply without exception.
 
 #### Scenario: Applicant follows their next step
 

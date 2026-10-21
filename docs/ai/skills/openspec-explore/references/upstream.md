@@ -1,10 +1,10 @@
 ---
 source_name: Fission-AI/OpenSpec (openspec-explore)
-source_url: https://github.com/Fission-AI/OpenSpec/tree/v1.9.0/skills/openspec-explore
+source_url: https://github.com/Fission-AI/OpenSpec/tree/v1.14.3/skills/openspec-explore
 source_type: github
 upstream_path: skills/openspec-explore/
-skills_lock_hash: c745db627e4f5176bcf103e6c955dd39e359860afd52b00407e78003be9f6995
-last_reviewed: 2026-08-18
+skills_lock_hash: 643a3a5c2526009681ad76c86b733a9ebb0cc0674be4dc281ddf56c9d449e7da
+last_reviewed: 2026-10-21
 ---
 
 # Upstream: openspec-explore
@@ -12,26 +12,19 @@ last_reviewed: 2026-08-18
 Canonical copy in this repo: `docs/ai/skills/openspec-explore/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/Fission-AI/OpenSpec
-- **Ref:** `v1.9.0`
-- **Commit reviewed:** `2826b8889e5223a9a8095d4428b60b56597e1020`
+- **Ref:** `v1.14.3`
+- **Commit reviewed:** `c794978f4f8845ce59693373c9dd882ee776588c`
 - **Upstream path:** `skills/openspec-explore/`
 - **Lock skillPath:** `skills/openspec-explore/SKILL.md`
-- **Computed hash:** `c745db627e4f5176bcf103e6c955dd39e359860afd52b00407e78003be9f6995`
+- **Computed hash:** `643a3a5c2526009681ad76c86b733a9ebb0cc0674be4dc281ddf56c9d449e7da`
 
 ## Refresh from upstream
 
 1. Run `bun run skills:refresh-upstream`.
-2. The script clones `https://github.com/Fission-AI/OpenSpec.git` at `v1.9.0`, verifies the upstream skill directory exists, copies the full skill directory into `docs/ai/skills/openspec-explore/`, and updates this metadata.
+2. The script clones `https://github.com/Fission-AI/OpenSpec.git` at `v1.14.3`, verifies the upstream skill directory exists, copies the full skill directory into `docs/ai/skills/openspec-explore/`, and updates this metadata.
 3. Run `bun run skills:sync` and `bun run skills:verify` to refresh runtime mirrors.
 
 ## Notes for maintainers
 
 - Do not copy secrets, tokens, or environment-specific identifiers into skill content.
 - Preserve repo-local notes in this `references/` directory when refreshing.
-
-## Core overlay
-
-Official workflow text is preserved. Core adds a marked overlay that requires
-`bun run openspec --`, an explicit change ID, and no Stores. Frontmatter
-`allowed-tools` includes `Bash(bun:*)` so the local wrapper can run. Do not
-run `openspec update` against the live customized repository.

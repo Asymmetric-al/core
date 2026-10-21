@@ -17,6 +17,11 @@ domain requirements remain with their owners.
 3. **Where to edit:** follow the package's canonical authoring declaration.
    Generated Markdown and OpenSpec views carry the contract but are not
    independent decision sources. Amend their source and regenerate together.
+   OpenSpec requirements also incorporate complete `openspec/contracts/`
+   sections through unconditional repository-root references. Read their full
+   clauses with every scenario; the concise description does not narrow them.
+   Generated sections retain the same canonical source owner and status as
+   their referencing projection. See `openspec/contracts/README.md`.
 4. **Why a decision exists:** use the accepted ADR and final decision log;
    earlier questions, alternatives and research are dated provenance.
 5. **Publication status:** use actual GitHub state and commit ancestry. An

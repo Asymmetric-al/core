@@ -4,30 +4,9 @@
 
 ### Requirement: Field Accounts Preserve Organization-Controlled Support Truth Without Becoming Accounting Or Payroll
 
-Phase 21 MUST own organization-controlled Support Assignments, currency-scoped
-Field Account occurrences, exact source coverage, Support Cycle close facts,
-derived Finance-confirmed Field Account Balances, expense-claim operational
-truth, and the Phase 21 packages handed to owning downstream systems. It MUST
-NOT derive authoritative balances by summing donation rows or treat a Field
-Account as a donor restriction, worker-owned wallet, bank balance, payroll
-balance, accounts-payable subledger, general ledger, or money-movement system.
+Phase 21 MUST own organization-controlled Support Assignments, currency-scoped Field Account occurrences, exact source coverage, Support Cycle close facts, derived Finance-confirmed Field Account Balances, expense-claim operational truth, and the Phase 21 packages handed to owning downstream systems.
 
-Phase 13 and Phase 15 MUST remain authoritative for their contribution and
-offline/noncash source facts. Phase 20 MUST remain the only owner of QBO/Xero
-accounting delivery and accounting reconciliation assistance. External payroll
-or AP providers MUST remain authoritative for classification, calculation,
-approval, execution, completion, and payment according to their certified
-capabilities. Phase 29 MUST own protected Phase-21 evidence and D26 package
-bytes, retention holds, and disposal; independently owned artifact bytes,
-including Phase 18 generated documents, MUST remain with their owner. Phase 30
-MUST own inbound transport, and Phase 31 outbound support-feed transport.
-
-Each cross-phase handoff MUST carry exact Tenant, Legal Entity, purpose,
-Support Assignment, Field Account, ISO currency, source identity/version,
-coverage, policy version, and authority evidence required by the receiving
-contract. A downstream acceptance, artifact, provider draft, accounting post,
-bank match, payslip, or notification MUST NOT rewrite Phase 21 history or be
-presented as another authority's success.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-c669c207c2a508e8e183` MUST apply without exception.
 
 #### Scenario: A missionary dashboard requests a support balance
 
@@ -68,28 +47,9 @@ presented as another authority's success.
 
 ### Requirement: Support Assignment Participation Never Implies Financial Access Or Ownership
 
-A Support Assignment MUST be the stable organization-controlled financial
-subject. Participant Membership, Phase 12 Workspace Access, source-owned
-operational responsibility, claimant identity, review authority, payee status,
-and notification preferences MUST remain independent, versioned facts. Spouse,
-household, teammate, leader, project, contact, or participant relationships MUST
-NOT imply one another or grant transitive access.
+A Support Assignment MUST be the stable organization-controlled financial subject.
 
-All Phase 21 commands and projections MUST enter through the trusted
-`FieldAccountOperationsService` boundary with a server-resolved principal and
-actual actor, exact Tenant Authorization Context, exact Tenant and Legal Entity,
-environment, authorization epoch, assurance level, capabilities, and resource
-scope.
-Application authorization MUST use the Phase 12 server policy decision point;
-forced row-level security and same-scope database constraints MUST provide
-defense in depth. Financial grants MUST NOT be stored in client state or JWT
-claims, and raw financial tables MUST NOT be exposed through Realtime.
-
-Authorization and privacy filtering MUST happen before enumeration, counts,
-arithmetic, pagination, caching, export, notification, provider delivery, or
-diagnostics. A denied or stale cross-scope identifier MUST return the same
-non-enumerating outcome as a nonexistent resource and MUST create no side
-effect.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-1f2188a9475cdc122a87` MUST apply without exception.
 
 #### Scenario: Two spouses use separate accounts for one assignment
 

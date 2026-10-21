@@ -17,5 +17,17 @@
 - [x] Finish the remaining review ledger and semantic predecessor reconciliation.
 - [x] Reconcile the latest integration base and any independently reviewed runtime repair.
 - [ ] Run current formatting, lint, specification, mirror, focused and full readiness gates.
-- [ ] Publish and verify current-head GitHub checks and review requirements.
-- [ ] Merge the carrier and prove supersession before closing predecessor PRs.
+- [x] Publish and verify current-head GitHub checks and review requirements.
+- [x] Verify the carrier and all five independently merged predecessors are
+      integrated through exact final-head and merge ancestry.
+
+AL-2170 delivery reconciliation: carrier PR #1905 merged as
+`dc2b5f124e4865e36653b30ad028aff01515dac5`, an ancestor of the reviewed develop
+baseline. Its required checks passed. Predecessors #1430, #1862, #1863, #1902,
+and #1904 merged independently before the carrier; each final head and merge
+commit is an ancestor of the carrier and baseline. They were not closed as
+superseded by #1905. PR #1429 is an independent accepted correction. This does
+not claim every broad check passed:
+the historical `test-e2e` result is a failure. The full-readiness task above stays
+open for that unresolved qualification; the accepted delivery facts do not close
+it or justify archiving the whole change.

@@ -2,7 +2,7 @@
 
 Provide one coherent donor self-service experience that preserves exact source authority, privacy, financial truth, accessible task completion and recoverable outcomes across the accepted Phase25 jobs.
 
-<!-- Generated from docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/traceability.json stories and final trace mappings. Do not hand-edit; run node docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/tools/render-stories.mjs --write. -->
+Generated from docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/traceability.json stories and final trace mappings. Do not hand-edit; run node docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/tools/render-stories.mjs --write.
 
 ## ADDED Requirements
 

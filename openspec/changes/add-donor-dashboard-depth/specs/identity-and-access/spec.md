@@ -21,7 +21,9 @@ Donor-facing access SHALL use the existing current Tenant Authorization Context 
 
 ### Requirement: Phase25 Guest-Origin Newsletter Recipient Access
 
-Before the Q25 consumer is dispatched, P28 and P12 SHALL implement and qualify the already-ratified narrow guest-origin recipient-access extension. The recipient view SHALL project the same immutable P23 request to its frozen intended human only while current exact Page/typed-subject/purpose, field and safety authority still admits it. Guest origin SHALL NOT require a fabricated donor, supporter, follower, account linkage or fifth Tenant context. Read, Archive, Copy, authentication and replay SHALL preserve the original source identity and payload-access lifetime and SHALL NOT create a request, enrollment or broader permission.
+Before the Q25 consumer is dispatched, P28 and P12 SHALL implement and qualify the already-ratified narrow guest-origin recipient-access extension.
+
+Every clause in `openspec/contracts/identity-and-access.md#contract-3c4485064f0a1589d8fe` MUST apply without exception.
 
 #### Scenario: Intended recipient reads a guest-origin request
 

@@ -25,6 +25,10 @@ This keeps durable project context, intended behavior, and active change scope v
    - Open `openspec/config.yaml` for injected planning context.
    - Open `openspec/project.md` for the detailed index.
    - Read the relevant specs under `openspec/specs/**`.
+   - Read every referenced `openspec/contracts/<capability>.md#contract-...`
+     section in full. These repository-root references unconditionally bind
+     the complete clauses to the requirement and all its scenarios; concise
+     descriptions do not narrow them. See `openspec/contracts/README.md`.
    - Read any active change under `openspec/changes/**` that already covers the
      task.
    - Distinguish intended behavior (active change, specs, ADRs) from current
@@ -34,7 +38,8 @@ This keeps durable project context, intended behavior, and active change scope v
      source; do not independently edit generated OpenSpec requirements.
    - Run `bun run verify:openspec-deltas` to check active deltas against the
      current durable requirements; structural validation alone cannot detect
-     every stale MODIFIED target or changed ADDED collision.
+     every stale MODIFIED target or changed ADDED collision. The gate also
+     verifies binding contract references before and after merging.
 
 2. **Create or update a change before major behavior work.**
    - Use an explicit change ID.
