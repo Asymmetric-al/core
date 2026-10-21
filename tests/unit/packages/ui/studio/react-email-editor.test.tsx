@@ -27,8 +27,7 @@ const { editorState } = vi.hoisted(() => ({
     deferReady: false,
     fireReady: undefined as (() => void) | undefined,
     onUploadImage: undefined as
-      | ((file: File) => Promise<{ url: string }>)
-      | undefined,
+      ((file: File) => Promise<{ url: string }>) | undefined,
   },
 }));
 

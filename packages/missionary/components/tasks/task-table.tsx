@@ -174,15 +174,25 @@ export function TaskTable({
                           )}
                         </button>
                         <div className="flex flex-col min-w-0">
-                          <span
-                            className={cn(
-                              "text-sm font-medium text-foreground truncate max-w-70",
-                              isCompleted &&
-                                "text-muted-foreground line-through",
-                            )}
+                          <Button
+                            type="button"
+                            variant="link"
+                            size={null}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onTaskClick(task);
+                            }}
                           >
-                            {task.title}
-                          </span>
+                            <span
+                              className={cn(
+                                "text-sm font-medium text-foreground truncate max-w-70",
+                                isCompleted &&
+                                  "text-muted-foreground line-through",
+                              )}
+                            >
+                              {task.title}
+                            </span>
+                          </Button>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <typeConfig.icon
                               className={cn("size-3", typeConfig.color)}

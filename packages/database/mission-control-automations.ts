@@ -1,24 +1,11 @@
 export type MissionControlAutomationActivationStatus =
-  | "draft"
-  | "ready"
-  | "active"
-  | "paused"
-  | "disabled";
+  "draft" | "ready" | "active" | "paused" | "disabled";
 
 export type MissionControlAutomationDisplayStatus =
-  | "Active"
-  | "Invalid"
-  | "Paused"
-  | "Disabled"
-  | "Ready"
-  | "Draft";
+  "Active" | "Invalid" | "Paused" | "Disabled" | "Ready" | "Draft";
 
 export type MissionControlAutomationSummaryBucket =
-  | "activeRules"
-  | "invalidRules"
-  | "pausedRules"
-  | "readyRules"
-  | "draftRules";
+  "activeRules" | "invalidRules" | "pausedRules" | "readyRules" | "draftRules";
 
 export interface MissionControlAutomationLifecycleRule {
   enabled: boolean;

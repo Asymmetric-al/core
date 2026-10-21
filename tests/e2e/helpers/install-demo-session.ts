@@ -5,12 +5,7 @@ import type { Page } from "@playwright/test";
  * Keeps call sites aligned with the API without importing app code.
  */
 export type DemoAccountRole =
-  | "admin"
-  | "donor"
-  | "missionary"
-  | "delivery"
-  | "ticketing"
-  | "machinery";
+  "admin" | "donor" | "missionary" | "delivery" | "ticketing" | "machinery";
 
 /**
  * Install demo auth for the Playwright browser context.

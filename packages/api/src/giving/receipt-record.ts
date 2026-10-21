@@ -28,11 +28,7 @@ export const NON_PRODUCTION_RECEIPT_NOTICE =
   "[TEST RECEIPT — NOT AN OFFICIAL TAX RECEIPT] Placeholder receipt language pending finance/admin approval. Not valid for tax or legal filing.";
 
 export type GiftReceiptStatus =
-  | "paid"
-  | "processing"
-  | "pending"
-  | "failed"
-  | "refunded";
+  "paid" | "processing" | "pending" | "failed" | "refunded";
 
 const SETTLED_DONATION_STATUSES = new Set([
   "completed",

@@ -8,19 +8,10 @@ import { fetchJsonResult } from "../http/fetch-result";
 
 // Local type definitions (should match missionary app types)
 export type TaskStatus =
-  | "not_started"
-  | "in_progress"
-  | "waiting"
-  | "completed"
-  | "deferred";
+  "not_started" | "in_progress" | "waiting" | "completed" | "deferred";
 export type TaskPriority = "none" | "low" | "medium" | "high";
 export type TaskType =
-  | "call"
-  | "email"
-  | "to_do"
-  | "follow_up"
-  | "thank_you"
-  | "meeting";
+  "call" | "email" | "to_do" | "follow_up" | "thank_you" | "meeting";
 
 export interface Task {
   id: string;

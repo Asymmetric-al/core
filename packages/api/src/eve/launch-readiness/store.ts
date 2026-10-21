@@ -153,8 +153,7 @@ function toLaunch(row: unknown): EveLaunchRecord {
     activatedByProfileId: parsed.activated_by_profile_id,
     canaryDeadline: parsed.canary_deadline,
     canaryResults: parsed.canary_results as
-      | EveLaunchRecord["canaryResults"]
-      | undefined,
+      EveLaunchRecord["canaryResults"] | undefined,
     closedAt: parsed.closed_at ?? undefined,
     id: parsed.id,
     manifestId: parsed.manifest_id,

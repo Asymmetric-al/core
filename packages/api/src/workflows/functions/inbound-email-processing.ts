@@ -54,8 +54,7 @@ export const inboundEmailProcessing = inngest.createFunction(
     throttle: { limit: 8, period: "1s" },
     onFailure: async ({ event }) => {
       const original = event.data.event?.data as
-        | { tenantId?: string; subject?: { id?: string } }
-        | undefined;
+        { tenantId?: string; subject?: { id?: string } } | undefined;
       const inboundEmailRowId = original?.subject?.id;
 
       if (!inboundEmailRowId) return;

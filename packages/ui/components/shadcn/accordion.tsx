@@ -2,6 +2,7 @@
 
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
 import { useRender } from "@base-ui/react/use-render";
+import { cva, type VariantProps } from "class-variance-authority";
 import { ChevronDownIcon } from "lucide-react";
 
 import { mergeBaseUIClassName } from "../../lib/base-ui";
@@ -12,11 +13,28 @@ function Accordion({ ...props }: AccordionPrimitive.Root.Props) {
   return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
 }
 
-function AccordionItem({ className, ...props }: AccordionPrimitive.Item.Props) {
+const accordionItemVariants = cva("", {
+  variants: {
+    variant: {
+      default: "border-b last:border-b-0",
+      card: "border last:border-b rounded-2xl px-6 overflow-hidden transition-colors duration-(--duration-standard) border-border bg-card data-open:border-ring data-open:bg-accent data-open:shadow-sm",
+    },
+  },
+  defaultVariants: { variant: "default" },
+});
+
+function AccordionItem({
+  className,
+  variant = "default",
+  ...props
+}: AccordionPrimitive.Item.Props & VariantProps<typeof accordionItemVariants>) {
   return (
     <AccordionPrimitive.Item
       data-slot="accordion-item"
-      className={mergeBaseUIClassName("border-b last:border-b-0", className)}
+      className={mergeBaseUIClassName(
+        accordionItemVariants({ variant }),
+        className,
+      )}
       {...props}
     />
   );
@@ -50,14 +68,21 @@ function AccordionContentLayout({
   render,
   className,
   children,
+  variant,
 }: {
   panelProps: React.ComponentPropsWithRef<"div">;
   state: AccordionPrimitive.Panel.State;
   render: AccordionPrimitive.Panel.Props["render"];
   className: AccordionPrimitive.Panel.Props["className"];
   children: React.ReactNode;
+  variant: "default" | "faq";
 }) {
-  const contentClassName = mergeBaseUIClassName("pt-0 pb-4", className);
+  const contentClassName = mergeBaseUIClassName(
+    variant === "faq"
+      ? "pt-0 pb-6 text-muted-foreground leading-relaxed font-light"
+      : "pt-0 pb-4",
+    className,
+  );
   return useRender({
     defaultTagName: "div",
     render,
@@ -84,12 +109,21 @@ function AccordionContent({
   className,
   children,
   render,
+  variant = "default",
+  animation = "height",
   ...props
-}: AccordionPrimitive.Panel.Props) {
+}: AccordionPrimitive.Panel.Props & {
+  variant?: "default" | "faq";
+  animation?: "height" | "none";
+}) {
   return (
     <AccordionPrimitive.Panel
       data-slot="accordion-content"
-      className="overflow-hidden text-sm data-closed:animate-accordion-up data-open:animate-accordion-down"
+      className={
+        animation === "none"
+          ? "overflow-hidden text-sm"
+          : "overflow-hidden text-sm data-closed:animate-accordion-up data-open:animate-accordion-down"
+      }
       {...props}
       render={(panelProps, state) => (
         <AccordionContentLayout
@@ -97,6 +131,7 @@ function AccordionContent({
           state={state}
           render={render}
           className={className}
+          variant={variant}
         >
           {children}
         </AccordionContentLayout>

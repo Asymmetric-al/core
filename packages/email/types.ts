@@ -40,10 +40,7 @@ export type BounceType = "hard" | "soft" | "blocked";
 export type DMARCPolicy = "none" | "quarantine" | "reject";
 
 export type DeliverabilityCheckStatus =
-  | "passed"
-  | "warning"
-  | "failed"
-  | "pending";
+  "passed" | "warning" | "failed" | "pending";
 
 // Resend event types from webhook
 export type ResendEventType =

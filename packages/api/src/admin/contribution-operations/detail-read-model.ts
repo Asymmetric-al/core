@@ -275,11 +275,7 @@ export interface ContributionDetail {
   batches: unknown[];
   donorVisible: {
     status:
-      | "Succeeded"
-      | "Processing"
-      | "Failed"
-      | "Partially Refunded"
-      | "Refunded";
+      "Succeeded" | "Processing" | "Failed" | "Partially Refunded" | "Refunded";
     historyUpdatedImmediately: true;
     amount: number;
     currency: string;

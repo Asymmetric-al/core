@@ -1,3 +1,13 @@
+import {
+  mkdtempSync,
+  mkdirSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,6 +17,7 @@ import {
   parseFailedTests,
   parseVitestSummary,
   recommendedAction,
+  readCoverageCaveat,
 } from "../../../scripts/verify/unit-feedback.mjs";
 
 describe("unit feedback report helpers", () => {
@@ -78,7 +89,7 @@ AssertionError: expected 'import PageClient from "./page-client";' to match /use
         stderr: "",
       },
       coverageCaveat:
-        "Development fallback coverage provider; line/statement/branch totals are not computed. totalScripts: 0.",
+        "Measured source coverage: lines 75% (3/4). Scope follows configured source filters.",
       failures: [
         {
           testFile: "tests/unit/example.test.ts",
@@ -108,5 +119,81 @@ AssertionError: expected 'import PageClient from "./page-client";' to match /use
     expect(markdown).toContain("| Test file | Test name | Assertion |");
     expect(markdown).toContain("server/client boundary");
     expect(markdown).toContain("Targeted Reruns");
+  });
+});
+
+describe("measured coverage feedback", () => {
+  it("rejects missing, malformed and placeholder totals while reporting actual metrics", () => {
+    const temporaryDirectory = mkdtempSync(
+      path.join(tmpdir(), "core-coverage-feedback-"),
+    );
+    const coverageDirectory = path.join(temporaryDirectory, "coverage");
+    const summaryPath = path.join(coverageDirectory, "coverage-summary.json");
+    try {
+      expect(readCoverageCaveat(temporaryDirectory)).toContain(
+        "Coverage unavailable",
+      );
+      mkdirSync(coverageDirectory);
+      for (const value of [
+        "not json",
+        "{}",
+        JSON.stringify({
+          total: Object.fromEntries(
+            ["lines", "statements", "branches", "functions"].map((metric) => [
+              metric,
+              { total: 0, covered: 0, pct: 100 },
+            ]),
+          ),
+        }),
+      ]) {
+        writeFileSync(summaryPath, value);
+        expect(readCoverageCaveat(temporaryDirectory)).toContain(
+          "Coverage unavailable",
+        );
+      }
+      const total = Object.fromEntries(
+        ["lines", "statements", "branches", "functions"].map((metric) => [
+          metric,
+          { total: 4, covered: 3, pct: 75 },
+        ]),
+      );
+      writeFileSync(summaryPath, JSON.stringify({ total }));
+      const feedback = readCoverageCaveat(temporaryDirectory);
+      expect(feedback).toContain("Measured source coverage");
+      for (const metric of Object.keys(total))
+        expect(feedback).toContain(`${metric} 75% (3/4)`);
+      const startedAt = Date.now();
+      utimesSync(
+        summaryPath,
+        new Date(startedAt - 10_000),
+        new Date(startedAt - 10_000),
+      );
+      expect(
+        readCoverageCaveat(temporaryDirectory, { notBefore: startedAt }),
+      ).toContain("Coverage unavailable: summary predates this run");
+      utimesSync(
+        summaryPath,
+        new Date(startedAt + 1000),
+        new Date(startedAt + 1000),
+      );
+      expect(
+        readCoverageCaveat(temporaryDirectory, { notBefore: startedAt }),
+      ).toContain("Measured source coverage");
+      for (const invalid of [
+        { total: -1, covered: 0, pct: 100 },
+        { total: 4, covered: 5, pct: 125 },
+        { total: 4, covered: 3, pct: "75" },
+      ]) {
+        writeFileSync(
+          summaryPath,
+          JSON.stringify({ total: { ...total, lines: invalid } }),
+        );
+        expect(readCoverageCaveat(temporaryDirectory)).toContain(
+          "Coverage unavailable",
+        );
+      }
+    } finally {
+      rmSync(temporaryDirectory, { recursive: true, force: true });
+    }
   });
 });

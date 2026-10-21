@@ -1,16 +1,10 @@
 import type { ContributionActionType } from "../types";
 
 export type ContributionNotificationMode =
-  | "auto_notify"
-  | "always_ask"
-  | "staff_chooses";
+  "auto_notify" | "always_ask" | "staff_chooses";
 
 export type ContributionNotificationDecision =
-  | "sent"
-  | "suppressed"
-  | "blocked"
-  | "failed"
-  | "not_required";
+  "sent" | "suppressed" | "blocked" | "failed" | "not_required";
 
 const DEFAULT_MODE_BY_ACTION: Partial<
   Record<ContributionActionType, ContributionNotificationMode>

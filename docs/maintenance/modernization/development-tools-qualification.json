@@ -1,0 +1,207 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "development-tools",
+  "owner": "@asym/eslint-config and Core maintainers",
+  "status": "implementation-under-qualification",
+  "baseCommit": "dfaa201242c6ad468bf2d343aa18e8f223f67c5c",
+  "versions": {
+    "eslint": "10.13.0",
+    "@typescript-eslint/eslint-plugin": "8.72.0",
+    "@typescript-eslint/parser": "8.72.0",
+    "eslint-plugin-unused-imports": "4.4.1",
+    "eslint-plugin-import-x": "4.17.1",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "@shadcn/lint": "0.2.3",
+    "prettier": "3.9.10",
+    "turbo": "2.11.10",
+    "vite": "8.3.5",
+    "vitest": "5.0.5",
+    "jsdom": "30.1.3",
+    "@playwright/test": "1.64.1",
+    "playwright-core": "1.64.1",
+    "@axe-core/playwright": "4.14.0",
+    "shadcn": "4.22.1",
+    "agent-browser": "0.39.1",
+    "@types/node": "24.19.2",
+    "canvas": "3.2.3",
+    "postcss": "8.5.31",
+    "glob": "13.0.6",
+    "husky": "9.1.7",
+    "react-doctor": "0.9.18",
+    "@vitest/coverage-v8": "5.0.5"
+  },
+  "compilerBoundary": {
+    "productCompiler": "7.0.2",
+    "javascriptCompilerApi": "6.0.3",
+    "editorSdk": "6.0.3",
+    "enforcedBy": "scripts/verify/typescript-toolchain.mjs",
+    "productWorkspaces": 15,
+    "reason": "Current TypeScript ESLint AST tooling requires the maintained JavaScript compiler API; product compilation remains native TypeScript 7.",
+    "recheck": "Every compiler/parser update; remove the API compatibility dependency when upstream supports the product compiler API."
+  },
+  "lint": {
+    "rawUiFiles": 1246,
+    "legacySuppressionCountBefore": 4865,
+    "legacySuppressionCountAfter": 4825,
+    "suppressionIncreases": 0,
+    "patchReference": "../../ai/skills/moai-library-shadcn/references/design-system-lint.md",
+    "independentCoverageReview": "Complete immutable diff and all 294 React Doctor exception mappings independently reviewed; new nested brace advisory resolved by a compatible lock refresh and final delta review.",
+    "nextDiscovery": "Three app roots in repository and workspace cwd; root-route behavior tested; upstream grouped-route matcher is not certified",
+    "nativeHookCoverage": "All eight targets, including plain TypeScript, reject conditional/loop/post-return hooks and accept unconditional controls"
+  },
+  "browserEngineSmoke": {
+    "browsers": [
+      {
+        "name": "chromium",
+        "version": "156.0.8078.4",
+        "passed": true
+      },
+      {
+        "name": "firefox",
+        "version": "157.0",
+        "passed": true
+      },
+      {
+        "name": "webkit",
+        "version": "27.2",
+        "passed": true
+      }
+    ],
+    "canvas": {
+      "version": "3.2.3",
+      "pixel": [17, 34, 51, 255],
+      "png": true
+    }
+  },
+  "qualification": {
+    "focusedBehaviorTests": "Passed: 112 component tests, compiler/harness/coverage/native-hooks regressions and eight new browser contracts",
+    "repositoryGates": {
+      "command": "node scripts/verify/ci-preflight.mjs --full",
+      "passed": true,
+      "completedAt": "2026-10-21T15:48:01.495276+00:00",
+      "testedLockSha256": "8c24d3918c15097db16c94fad96cb768053c6bc81d01f8c2aaf31ac075add60e",
+      "finalCompatibleLockRefreshRequalification": "Required through normal push hook and current-head CI before merge",
+      "builds": ["admin", "donor", "missionary"],
+      "unit": {
+        "filesPassed": 893,
+        "filesSkipped": 2,
+        "testsPassed": 7258,
+        "expectedFailures": 1,
+        "testsSkipped": 4
+      },
+      "environment": "Clean CI fixture defaults; owned opaque environment symlink temporarily detached and restored without reading or copying its target contents",
+      "vitestMaxWorkers": 4,
+      "logSha256": "65d9db4a638081aa2ed9d7fe565dd185ed92a71b384c964def1852aa029ec996"
+    },
+    "deployedPreviews": "pending",
+    "merge": "pending",
+    "independentReview": {
+      "source": "Complete immutable diff plus targeted final behavior, ledger and coverage reviews",
+      "patchSha256": "3828dfdeabf2401a708da5a0ae61a9c922bfe5f4e2ac2a7cb57ff4f54e32a07f",
+      "remaining": "Exact-head provider review reconciliation; final compatible lock-only delta independently approved"
+    }
+  },
+  "boundaries": [
+    "No production execution",
+    "Infrastructure CLI/MCP/Action/PostgreSQL updates continue in the next checkpoint",
+    "Full advisory closure remains owned by each dependency migration and final graph reconciliation"
+  ],
+  "coverage": {
+    "provider": "@vitest/coverage-v8",
+    "version": "5.0.5",
+    "scope": "Imported source under configured filters; not a repository-wide denominator",
+    "regression": "Two isolated suites merge into mapped TypeScript Istanbul coverage; unexecuted exports/branches and unimported fixture source remain uncovered; 100% branch threshold fails",
+    "legacyFallback": "Removed; dated historical evidence preserved"
+  },
+  "browserComponents": {
+    "passed": 223,
+    "skipped": 5,
+    "failed": 0,
+    "projects": [
+      "desktop-light",
+      "mobile-light",
+      "desktop-dark-reduced-motion",
+      "mobile-dark-reduced-motion"
+    ],
+    "scope": "Real shared component fixtures; not authenticated whole-app/provider qualification",
+    "additionalModernizationContracts": {
+      "passed": 8,
+      "failed": 0,
+      "scope": "Real PDF source editor and task table; four viewport/theme/motion projects. Axe covers editor chrome; sandboxed generated print content belongs document qualification.",
+      "includedInTotal": true
+    },
+    "total": 228,
+    "command": "bun run test:e2e:base-ui",
+    "logSha256": "401d5f5a8facf3bed1eaac978f3aed39dfa3ece19113a9df3d63dd86ad05f0a0"
+  },
+  "reactDoctor": {
+    "version": "0.9.18",
+    "reference": "react-doctor-requalification.json",
+    "rawAudit": "All eight complete targets; checkout and physical snapshot integrity verified; no skipped checks",
+    "applicableFindings": 294,
+    "reviewedExactExceptions": 294,
+    "actionableFindings": 0,
+    "strictConfiguredAudit": "Passed all eight targets on the final compatible lock: zero actionable findings and 294 exact evidence-backed exceptions; 22 whole-lock evidence bindings independently revalidated without policy/fingerprint/count changes",
+    "strictLogSha256": "24387c48eef42e576ff2f88fdadf29244e73efc54a14ee82b0f7f13dd8947884"
+  },
+  "agentBrowserSmoke": {
+    "version": "0.39.1",
+    "isolatedConfigAndSession": true,
+    "page": "Synthetic loopback HTML fixture",
+    "actions": [
+      "navigate",
+      "snapshot",
+      "fill observed textbox",
+      "fresh snapshot",
+      "click observed button",
+      "assert output",
+      "close session"
+    ],
+    "passed": true,
+    "opaqueCredentialsUsed": false,
+    "proofSha256": "7c4561bdc314c694d23a3d659d0c7bba6681d56ed047f308665f292b716abe0f"
+  },
+  "nestedResolutionRefresh": {
+    "selectedAt": "2026-10-21T15:51:26.703777+00:00",
+    "command": "bun update minimatch brace-expansion --no-cache",
+    "manifestChanges": false,
+    "newOverrides": false,
+    "minimatch": "10.2.6",
+    "braceExpansion": ["1.1.21", "2.1.7", "5.0.12"],
+    "reason": "Fix the newly owned ESLint brace-expansion v5 advisory and all compatible older-major brace resolutions within existing parent ranges",
+    "sources": [
+      "https://github.com/advisories/GHSA-jxxr-4gwj-5jf2",
+      "https://github.com/advisories/GHSA-q2hr-2g5m-vwhr",
+      "https://registry.npmjs.org/minimatch/10.2.6",
+      "https://registry.npmjs.org/brace-expansion/5.0.12"
+    ],
+    "postRefreshAudit": {
+      "packageNames": 42,
+      "uniqueAdvisories": 103,
+      "braceExpansionReported": false,
+      "sha256": "ce4de6cb69c30ce4990ada726ce35c1364db8c3a55650496c433c67837ebbcfa",
+      "status": "Remaining owning-family migrations and final reachability reconciliation required; no security closure claimed"
+    },
+    "deltaSha256": "b3bbba031e76ce0b7db1ff89b8a4c63f889885a0c19ef87dfd79c30008f495aa",
+    "review": {
+      "deltaSha256": "b3bbba031e76ce0b7db1ff89b8a4c63f889885a0c19ef87dfd79c30008f495aa",
+      "incomingEdgesVerified": 16,
+      "publishedParentVersionsVerified": 12,
+      "manifestOverrideAndPatchChanges": false,
+      "introducedAffectedPairs": 0,
+      "newAffectedLockEntries": 0,
+      "removedUniqueAdvisories": 7,
+      "remainingAffectedLockEntries": 76,
+      "remainingAffectedResolvedVersions": 51,
+      "remainingToolingOwners": [
+        "eslint",
+        "eslint-plugin-react-hooks",
+        "jsdom",
+        "shadcn"
+      ],
+      "remainingToolingVersions": 8,
+      "remainingToolingAdvisories": 19,
+      "limitation": "Inherited paths remain open; absence of a regression is not unreachability evidence."
+    }
+  }
+}

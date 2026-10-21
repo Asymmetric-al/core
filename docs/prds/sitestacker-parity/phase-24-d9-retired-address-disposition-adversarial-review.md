@@ -760,7 +760,7 @@ package after predecessor authority settles.
 ### Current external primary evidence
 
 - [RFC 9110 `404](https://www.rfc-editor.org/rfc/rfc9110.html#name-404-not-found)
-  allows absence or unwillingness to disclose; `410` says intentional permanent
+allows absence or unwillingness to disclose; `410` says intentional permanent
   removal. Its
   [Location semantics](https://www.rfc-editor.org/rfc/rfc9110.html#name-location)
   and fragment security guidance require explicit fragment handling.

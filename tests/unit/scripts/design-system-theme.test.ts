@@ -48,7 +48,7 @@ async function compileStylesheet(
 
 describe("Core shared theme discovery", () => {
   it("pins the diagnostic API to the vetted release", () => {
-    expect(toolingRequire("@shadcn/lint/package.json").version).toBe("0.2.0");
+    expect(toolingRequire("@shadcn/lint/package.json").version).toBe("0.2.3");
   });
 
   it.each(workspaces)("discovers shared semantic tokens in %s", (workspace) => {

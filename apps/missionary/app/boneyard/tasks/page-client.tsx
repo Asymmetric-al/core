@@ -7,13 +7,13 @@ import { Suspense } from "react";
 
 import { MissionaryTasksListBoneyardFixture } from "../../tasks/boneyard-fixture";
 
+const skeletonContent = <MissionaryTasksListBoneyardFixture />;
+
 /**
  * Public capture route for Boneyard CLI (no missionary shell auth).
  * Run: `bun run boneyard:missionary` with dev server on :4000.
  */
 export default function BoneyardTasksCapturePage() {
-  const skeletonContent = <MissionaryTasksListBoneyardFixture />;
-
   return (
     <PageShell
       title="Mission Tasks"

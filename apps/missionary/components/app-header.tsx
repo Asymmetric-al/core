@@ -48,7 +48,7 @@ export function AppHeader({ title, navigation }: AppHeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon-touch">
                 <LifeBuoy aria-hidden data-icon="inline-start" />
                 <span className="sr-only">Help</span>
               </Button>

@@ -21,12 +21,10 @@ export type FetchFailure =
   | { kind: "parse"; status: number; cause: unknown; message: string };
 
 export type FetchResult =
-  | { ok: true; response: Response }
-  | { ok: false; error: FetchFailure };
+  { ok: true; response: Response } | { ok: false; error: FetchFailure };
 
 export type FetchJsonResult<T> =
-  | { ok: true; status: number; data: T }
-  | { ok: false; error: FetchFailure };
+  { ok: true; status: number; data: T } | { ok: false; error: FetchFailure };
 
 /** Pull a human-readable message out of the API error conventions used here. */
 export function readErrorMessage(payload: unknown): string | null {

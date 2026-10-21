@@ -19,10 +19,7 @@ export const MAX_SAFEGUARD_SIZE_BYTES = MAX_SAFEGUARD_SIZE_MB * 1024 * 1024;
 export const MAX_PREVIEW_DIMENSION = 4096;
 
 export type ImageValidationError =
-  | "invalid_type"
-  | "file_too_large"
-  | "corrupt_image"
-  | "unknown";
+  "invalid_type" | "file_too_large" | "corrupt_image" | "unknown";
 
 export interface ImageValidationResult {
   valid: boolean;

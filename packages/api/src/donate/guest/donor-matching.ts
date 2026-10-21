@@ -17,11 +17,7 @@
  */
 
 export type DonorMatchConfidence =
-  | "exact"
-  | "high"
-  | "possible"
-  | "low"
-  | "none";
+  "exact" | "high" | "possible" | "low" | "none";
 
 export type DonorMatchDecision =
   | "attach" // §2.1 exact/high — attach gift to the existing canonical donor

@@ -11,20 +11,10 @@ export type TaskPriority = "low" | "medium" | "high" | "urgent";
 export type TaskStatus = "pending" | "in_progress" | "completed" | "cancelled";
 export type TaskType = "call" | "email" | "meeting" | "todo" | "follow_up";
 export type DonationFrequency =
-  | "one_time"
-  | "weekly"
-  | "biweekly"
-  | "monthly"
-  | "quarterly"
-  | "yearly";
+  "one_time" | "weekly" | "biweekly" | "monthly" | "quarterly" | "yearly";
 export type DonationStatus = "succeeded" | "pending" | "failed" | "refunded";
 export type PaymentMethod =
-  | "visa"
-  | "mastercard"
-  | "amex"
-  | "discover"
-  | "bank_transfer"
-  | "check";
+  "visa" | "mastercard" | "amex" | "discover" | "bank_transfer" | "check";
 export type MissionaryStatus = "active" | "on_leave" | "furlough" | "retired";
 export type HealthStatus = "healthy" | "at_risk" | "critical";
 export type ActivityType =
@@ -37,10 +27,7 @@ export type ActivityType =
   | "video_call"
   | "pastoral_note";
 export type PostType =
-  | "update"
-  | "prayer_request"
-  | "praise_report"
-  | "newsletter";
+  "update" | "prayer_request" | "praise_report" | "newsletter";
 
 export interface Address {
   id: string;

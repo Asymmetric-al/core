@@ -147,9 +147,7 @@ export const PURPOSE_LAUNCH_GATES = [
 export type PurposeLaunchGate = (typeof PURPOSE_LAUNCH_GATES)[number];
 
 export type PurposeLaunchState =
-  | "absent_until_activation"
-  | "dark"
-  | "supported_after_gates";
+  "absent_until_activation" | "dark" | "supported_after_gates";
 
 export const FIXTURE_CLASSES = [
   "ordinary",
@@ -173,9 +171,7 @@ export const RELEASE_EVIDENCE_CLASSES = [
 export type ReleaseEvidenceClass = (typeof RELEASE_EVIDENCE_CLASSES)[number];
 
 export type PublicReferencePolicy =
-  | "ack_reference_v1"
-  | "ca_serial_r_v1"
-  | "none";
+  "ack_reference_v1" | "ca_serial_r_v1" | "none";
 
 export type CorrectionModel =
   | "source_owned_replacement_serial"

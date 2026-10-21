@@ -14,11 +14,16 @@ import { CheckCircle2, PenTool, Download, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useSyncExternalStore } from "react";
 
+const subscribeToDate = () => () => {};
+const getDateSnapshot = () => new Date().toLocaleDateString();
+const getServerDateSnapshot = () => "";
+
 function useHydrationSafeDate() {
-  const subscribe = () => () => {};
-  const getSnapshot = () => new Date().toLocaleDateString();
-  const getServerSnapshot = () => "";
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  return useSyncExternalStore(
+    subscribeToDate,
+    getDateSnapshot,
+    getServerDateSnapshot,
+  );
 }
 
 export default function SignStudioPublicSigningPage() {

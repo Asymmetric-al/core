@@ -131,8 +131,7 @@ describe("client session auth state", () => {
     const secondUser = { id: "user-2" } as User;
     const profileClient = createProfileClient(null);
     let authCallback:
-      | ((event: string, session: { user: User } | null) => void)
-      | null = null;
+      ((event: string, session: { user: User } | null) => void) | null = null;
     const supabase = {
       auth: {
         getUser: vi.fn(async () => ({

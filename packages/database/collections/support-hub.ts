@@ -40,8 +40,7 @@ async function parseJsonResponse(
   response: Response,
 ): Promise<Record<string, unknown>> {
   const payload = (await response.json().catch(() => null)) as
-    | (Record<string, unknown> & { error?: string })
-    | null;
+    (Record<string, unknown> & { error?: string }) | null;
 
   if (!response.ok) {
     throw new Error(

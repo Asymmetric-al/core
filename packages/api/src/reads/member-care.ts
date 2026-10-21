@@ -6,10 +6,7 @@ import { MEMBER_CARE_CACHE_TAGS } from "../shared/cache-tags";
 type QueryError = { message?: string } | null;
 
 export type MemberCarePriority =
-  | "Healthy"
-  | "Needs Attention"
-  | "At Risk"
-  | "Crisis";
+  "Healthy" | "Needs Attention" | "At Risk" | "Crisis";
 
 export type MemberCareActivityType =
   | "Video Call"

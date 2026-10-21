@@ -15,6 +15,43 @@ import { SettingsToolbar } from "../SettingsToolbar";
 
 import type { SupportNotificationPreferences } from "../../../types";
 
+const notificationPreferenceKeys = [
+  "emailMentions",
+  "emailAssignments",
+  "emailDailyDigest",
+  "inAppMentions",
+  "inAppAssignments",
+  "inAppSlaWarnings",
+] as const;
+
+function createNotificationDraft(
+  agentId: string,
+): SupportNotificationPreferences {
+  return {
+    id: `draft-${agentId}`,
+    tenantId: "",
+    agentId,
+    emailMentions: true,
+    emailAssignments: true,
+    emailDailyDigest: false,
+    inAppMentions: true,
+    inAppAssignments: true,
+    inAppSlaWarnings: true,
+    createdAt: "",
+    updatedAt: "",
+  };
+}
+
+function notificationPreferencesChanged(
+  existing: SupportNotificationPreferences | null,
+  current: SupportNotificationPreferences,
+) {
+  return (
+    !existing ||
+    notificationPreferenceKeys.some((key) => existing[key] !== current[key])
+  );
+}
+
 export function NotificationPreferencesForm() {
   const { data: agents } = useSupportAgents();
   const currentAgentId = useCurrentSupportAgentId();
@@ -52,28 +89,8 @@ export function NotificationPreferencesForm() {
     );
   }
 
-  const current: SupportNotificationPreferences = draft ?? {
-    id: `draft-${agentId}`,
-    tenantId: "",
-    agentId,
-    emailMentions: true,
-    emailAssignments: true,
-    emailDailyDigest: false,
-    inAppMentions: true,
-    inAppAssignments: true,
-    inAppSlaWarnings: true,
-    createdAt: "",
-    updatedAt: "",
-  };
-
-  const isDirty = !existing
-    ? true
-    : existing.emailMentions !== current.emailMentions ||
-      existing.emailAssignments !== current.emailAssignments ||
-      existing.emailDailyDigest !== current.emailDailyDigest ||
-      existing.inAppMentions !== current.inAppMentions ||
-      existing.inAppAssignments !== current.inAppAssignments ||
-      existing.inAppSlaWarnings !== current.inAppSlaWarnings;
+  const current = draft ?? createNotificationDraft(agentId);
+  const isDirty = notificationPreferencesChanged(existing, current);
 
   const handleSave = async () => {
     try {

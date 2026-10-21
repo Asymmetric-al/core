@@ -5,12 +5,7 @@ import type {
 } from "./contribution-shared";
 
 export type CrmTimelineEntryKind =
-  | "gift"
-  | "receipt"
-  | "note"
-  | "task"
-  | "activity"
-  | "support";
+  "gift" | "receipt" | "note" | "task" | "activity" | "support";
 
 /**
  * Contribution operations that can be surfaced inline from CRM gift rows.

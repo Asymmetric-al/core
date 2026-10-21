@@ -21,10 +21,7 @@ const LEDGER_TABLE = "workflow_dispatch_requests";
 const RETRY_BACKOFF_MS = 60_000;
 
 export type WorkflowDispatchRequestStatus =
-  | "pending"
-  | "dispatched"
-  | "failed"
-  | "dead_letter";
+  "pending" | "dispatched" | "failed" | "dead_letter";
 
 /** Snake_case row shape stored in public.workflow_dispatch_requests. */
 export interface WorkflowDispatchRequestRow {
@@ -247,9 +244,7 @@ async function recordDispatchOutcome(
 }
 
 export type WorkflowDispatchOutcome =
-  | "dispatched"
-  | "failed"
-  | "already_dispatched";
+  "dispatched" | "failed" | "already_dispatched";
 
 export interface RequestWorkflowDispatchResult {
   outcome: WorkflowDispatchOutcome;

@@ -232,11 +232,6 @@ export function getPaymentMethodIcon(method: string | undefined) {
   }
 }
 
-export function getTagStyle(tagId: string) {
-  const tag = AVAILABLE_TAGS.find((candidate) => candidate.id === tagId);
-  return tag?.color || "bg-muted text-muted-foreground border-border";
-}
-
 export function getTagVariant(tagId: string): StatusBadgeVariant {
   return AVAILABLE_TAGS.find((tag) => tag.id === tagId)?.variant ?? "secondary";
 }

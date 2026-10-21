@@ -1006,7 +1006,7 @@ function PostComposerCard({
               value={postContent}
               onChange={setPostContent}
               placeholder={`What's happening? Share a ${postType.toLowerCase()}…`}
-              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-25 sm:min-h-35 leading-relaxed"
+              variant="feed"
               toolbarPosition="bottom"
               proseInvert={false}
               actions={

@@ -107,14 +107,11 @@ export function GivingWidget({
                 key={amt}
                 value={amt}
                 nativeButton
-                render={(radioProps) => <button {...radioProps}>${amt}</button>}
-                className={cn(
-                  "aspect-auto h-auto w-full py-2.5 rounded-xl border text-sm font-semibold shadow-none press-feedback",
-                  amount === amt && !customAmount
-                    ? "border-border bg-background text-foreground"
-                    : "border-border bg-card text-muted-foreground hover:border-border hover:text-foreground hover:bg-background",
-                )}
-              />
+                variant="amount-compact"
+                render={<button />}
+              >
+                ${amt}
+              </RadioGroupItem>
             ))}
           </RadioGroup>
         </div>

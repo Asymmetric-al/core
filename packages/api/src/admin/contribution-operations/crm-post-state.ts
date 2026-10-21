@@ -26,8 +26,7 @@ export interface CrmDesignationRecordState {
 }
 
 export type CrmPostFailedScope =
-  | { scope: "parent" }
-  | { scope: "designation"; allocationId: string | null };
+  { scope: "parent" } | { scope: "designation"; allocationId: string | null };
 
 export interface ContributionCrmPostState {
   parent: {

@@ -1,11 +1,7 @@
 import type { ContributionActionType } from "./types";
 
 export type OperationCategory =
-  | "correction"
-  | "receipt"
-  | "refund"
-  | "crm"
-  | "provider";
+  "correction" | "receipt" | "refund" | "crm" | "provider";
 
 export interface OperationFieldValues {
   amountDollars?: string;

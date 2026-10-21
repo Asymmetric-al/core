@@ -424,8 +424,7 @@ function useLegacyUnlayerController({
   mergeTags: UnlayerMergeTags | undefined;
   onExport: ((data: UnlayerExportHTML) => void) | undefined;
   onSave:
-    | ((data: { design: UnlayerDesignJSON; html: string }) => void)
-    | undefined;
+    ((data: { design: UnlayerDesignJSON; html: string }) => void) | undefined;
   ref: React.ForwardedRef<LegacyUnlayerEditorHandle>;
 }) {
   const emailEditorRef = useRef<EditorRef>(null);

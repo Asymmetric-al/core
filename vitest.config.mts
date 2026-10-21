@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
-import { perImporterAtAlias } from "./vitest.per-importer-alias";
-import { pinWorkspacePackages } from "./vitest.pin-workspace-packages";
+import { perImporterAtAlias } from "./vitest.per-importer-alias.mts";
+import { pinWorkspacePackages } from "./vitest.pin-workspace-packages.mts";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 const libraryRequire = createRequire(
@@ -17,7 +17,7 @@ export default defineConfig({
   /**
    * `@/` resolves per importing file against the workspace's own tsconfig
    * `paths` mapping (there is no repo-root `src/`); see
-   * vitest.per-importer-alias.ts.
+   * vitest.per-importer-alias.mts.
    */
   plugins: [
     pinWorkspacePackages(rootDir),
@@ -94,8 +94,8 @@ export default defineConfig({
       },
     },
     coverage: {
-      provider: "custom",
-      customProviderModule: "./vitest.coverage-provider.mjs",
+      provider: "v8",
+      reporter: ["text", "json", "json-summary", "html"],
       reportsDirectory: "coverage",
     },
   },

@@ -5,9 +5,7 @@ import type {
 } from "@asym/database/types";
 
 export type DashboardScope =
-  | "donor_portal"
-  | "missionary_dashboard"
-  | "admin_dashboard";
+  "donor_portal" | "missionary_dashboard" | "admin_dashboard";
 
 export type StaffCapability =
   | "admin.dashboard.access"

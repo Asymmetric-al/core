@@ -28,36 +28,16 @@ import type { CurrencyFoundationTables } from "./currency-foundation.generated";
  */
 
 export type UserRole =
-  | "donor"
-  | "missionary"
-  | "admin"
-  | "staff"
-  | "super_admin";
+  "donor" | "missionary" | "admin" | "staff" | "super_admin";
 export type MembershipRole = "donor" | "missionary" | "staff";
 export type StaffSubrole =
-  | "finance"
-  | "mobilizer"
-  | "development"
-  | "hr"
-  | "member_care";
+  "finance" | "mobilizer" | "development" | "hr" | "member_care";
 export type DonationStatus =
-  | "pending"
-  | "processing"
-  | "completed"
-  | "failed"
-  | "refunded";
+  "pending" | "processing" | "completed" | "failed" | "refunded";
 export type GivingFrequency =
-  | "weekly"
-  | "biweekly"
-  | "monthly"
-  | "quarterly"
-  | "yearly";
+  "weekly" | "biweekly" | "monthly" | "quarterly" | "yearly";
 export type DonationSource =
-  | "direct"
-  | "one_time"
-  | "pledge"
-  | "import"
-  | string;
+  "direct" | "one_time" | "pledge" | "import" | string;
 export type MoneyCents = number;
 
 export interface Profile {
@@ -299,10 +279,7 @@ export type ContributionCorrectionType =
   | "stripe_replay";
 
 export type ContributionCorrectionStatus =
-  | "pending"
-  | "applied"
-  | "failed"
-  | "voided";
+  "pending" | "applied" | "failed" | "voided";
 
 export interface ContributionOperationPromptSettings {
   tenant_id: string;
@@ -388,9 +365,7 @@ export interface ContributionAdjustment {
 export interface ContributionApprovalPolicy {
   tenant_id: string;
   ownership_mode:
-    | "no_approval_required"
-    | "one_approver"
-    | "separation_of_duties";
+    "no_approval_required" | "one_approver" | "separation_of_duties";
   suppressed_gates: string[];
   stronger_approval_categories: string[];
   reminder_hours: number;
@@ -458,16 +433,10 @@ export interface ContributionApprovalNotification {
 }
 
 export type ContributionNotificationMode =
-  | "auto_notify"
-  | "always_ask"
-  | "staff_chooses";
+  "auto_notify" | "always_ask" | "staff_chooses";
 
 export type ContributionNotificationDecision =
-  | "sent"
-  | "suppressed"
-  | "blocked"
-  | "failed"
-  | "not_required";
+  "sent" | "suppressed" | "blocked" | "failed" | "not_required";
 
 export interface EmailTemplateSystemBinding {
   id: string;
@@ -522,17 +491,10 @@ export interface ContributionNotificationEvent {
 }
 
 export type MissionControlTaskStatus =
-  | "open"
-  | "in_progress"
-  | "completed"
-  | "dismissed"
-  | "suppressed";
+  "open" | "in_progress" | "completed" | "dismissed" | "suppressed";
 export type MissionControlTaskUrgency = "normal" | "high" | "critical";
 export type MissionControlAttentionStatus =
-  | "open"
-  | "resolved"
-  | "dismissed"
-  | "suppressed";
+  "open" | "resolved" | "dismissed" | "suppressed";
 
 export interface MissionControlQueue {
   id: string;
@@ -645,20 +607,11 @@ export interface MissionControlAutomationActivityLog {
 }
 
 export type ContributionOperationBatchStatus =
-  | "running"
-  | "complete"
-  | "complete_with_issues"
-  | "failed"
-  | "cancelled";
+  "running" | "complete" | "complete_with_issues" | "failed" | "cancelled";
 export type ContributionOperationBatchExecutionMode =
-  | "immediate"
-  | "background";
+  "immediate" | "background";
 export type ContributionOperationBatchItemStatus =
-  | "pending"
-  | "running"
-  | "succeeded"
-  | "skipped"
-  | "failed";
+  "pending" | "running" | "succeeded" | "skipped" | "failed";
 
 export interface ContributionOperationBatch {
   id: string;

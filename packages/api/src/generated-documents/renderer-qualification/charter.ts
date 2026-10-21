@@ -589,8 +589,7 @@ function validateSyntheticCorpusProof(
 ): void {
   const path = "synthetic_corpus_proof";
   const proof = input.synthetic_corpus_proof as
-    | Partial<SyntheticCorpusProof>
-    | undefined;
+    Partial<SyntheticCorpusProof> | undefined;
 
   if (!proof || typeof proof !== "object" || Array.isArray(proof)) {
     issues.push(
@@ -604,8 +603,7 @@ function validateSyntheticCorpusProof(
   }
 
   const procedure = proof.procedure as
-    | Partial<SyntheticCorpusProof["procedure"]>
-    | undefined;
+    Partial<SyntheticCorpusProof["procedure"]> | undefined;
   if (
     !hasExactOwnFields(proof, SYNTHETIC_CORPUS_PROOF_FIELDS) ||
     !hasExactOwnFields(procedure, SYNTHETIC_CORPUS_PROCEDURE_FIELDS)

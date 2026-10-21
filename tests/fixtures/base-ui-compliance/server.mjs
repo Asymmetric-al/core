@@ -31,7 +31,7 @@ await writeFile(compiledCssPath, compiled.css);
 const buildDirectory = resolve(outputDirectory, "dist");
 await build({
   configFile: false,
-  envFile: false,
+  envDir: false,
   root: fixtureDirectory,
   cacheDir: resolve(outputDirectory, "vite-cache"),
   plugins: [
@@ -157,9 +157,10 @@ await build({
     outDir: buildDirectory,
     emptyOutDir: true,
     target: "esnext",
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         main: resolve(fixtureDirectory, "index.html"),
+        modernization: resolve(fixtureDirectory, "modernization.html"),
         support: resolve(fixtureDirectory, "support.html"),
         workspace: resolve(fixtureDirectory, "workspace.html"),
         taskToolbar: resolve(fixtureDirectory, "task-toolbar.html"),
@@ -167,7 +168,7 @@ await build({
         adminAvailability: resolve(fixtureDirectory, "admin-availability.html"),
       },
       onwarn(warning, warn) {
-        // Every imported component runs in this client-only fixture. Rollup can
+        // Every imported component runs in this client-only fixture. The bundler can
         // safely omit Next's module boundary directive, while other warnings remain visible.
         if (
           warning.code === "MODULE_LEVEL_DIRECTIVE" &&
@@ -183,7 +184,7 @@ await build({
 // optimization or reload another test's page when a dependency is discovered.
 const server = await preview({
   configFile: false,
-  envFile: false,
+  envDir: false,
   root: fixtureDirectory,
   build: { outDir: buildDirectory },
   preview: { host: "127.0.0.1", port: 5198, strictPort: true },

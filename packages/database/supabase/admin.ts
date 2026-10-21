@@ -6,8 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type AdminSupabaseClient = SupabaseClient;
 
 type AdminClientResult =
-  | { client: SupabaseClient; error: null }
-  | { client: null; error: string };
+  { client: SupabaseClient; error: null } | { client: null; error: string };
 
 let cachedClient: SupabaseClient | null | undefined;
 let cachedError: string | null = null;

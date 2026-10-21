@@ -95,18 +95,9 @@ export interface RecurringAgreement {
 }
 
 export type TaskType =
-  | "call"
-  | "email"
-  | "to_do"
-  | "follow_up"
-  | "thank_you"
-  | "meeting";
+  "call" | "email" | "to_do" | "follow_up" | "thank_you" | "meeting";
 export type TaskStatus =
-  | "not_started"
-  | "in_progress"
-  | "waiting"
-  | "completed"
-  | "deferred";
+  "not_started" | "in_progress" | "waiting" | "completed" | "deferred";
 export type TaskPriority = "none" | "low" | "medium" | "high";
 
 export interface Task {

@@ -6,15 +6,15 @@ description: Write, review, filter, mock, and debug Core unit tests with the rep
 # Vitest in Core
 
 Use the repository harness as the source of truth. Core currently resolves
-Vitest 5.0.3 from `bun.lock`; verify the exact version before relying on a newly
+Vitest 5.0.5 from `bun.lock`; verify the exact version before relying on a newly
 introduced API.
 
 ## Authority and test surface
 
 Read these before changing tests or configuration:
 
-- `vitest.config.ts` — include globs, aliases, Node default environment,
-  timeouts, mock clearing, setup, and the custom coverage provider.
+- `vitest.config.mts` — include globs, aliases, Node default environment,
+  timeouts, mock clearing, setup, and the supported V8 coverage provider.
 - `tests/setup/unit-env.ts` — safe env defaults and browser shims.
 - `scripts/verify/unit-tests.mjs` — the full unit gate and platform behavior.
 - `docs/ai/rules/testing.md` — repository-wide test and CI policy.
@@ -26,7 +26,7 @@ committed scripts or `bunx vitest`.
 ## Commands
 
 ```bash
-# Full CI-equivalent unit suite with Core's coverage provider
+# Full CI-equivalent unit suite with the supported V8 coverage provider
 bun run test:unit
 
 # Focused file or directory while iterating
@@ -50,7 +50,7 @@ bun run test:unit:feedback
    Component.
 2. **Place the test in an included path.** Match the existing `tests/unit`,
    `packages/api/tests/unit`, or `packages/auth` conventions from
-   `vitest.config.ts`; do not invent a disconnected test root.
+   `vitest.config.mts`; do not invent a disconnected test root.
 3. **Control the environment.** The default is `node`. Add
    `// @vitest-environment jsdom` only to files that need DOM APIs, and clean up
    rendered components and mutated globals.
@@ -74,10 +74,13 @@ bun run test:unit:feedback
 - Prefer explicit test data builders/helpers over large untyped fixture blobs.
 - Avoid `.only`; use `.skip`/`.todo` only with a documented reason and no hidden
   loss of required coverage.
-- Core's custom raw V8 coverage provider records script/function information
-  but does not compute line, statement, or branch coverage. Its placeholder
-  totals do not establish coverage quality. Do not claim a threshold the
-  provider does not measure.
+- Coverage runs under Node with exact-version `@vitest/coverage-v8` and produces
+  measured line, statement, branch and function reports. The default denominator
+  is imported source under the configured filters, not all repository files.
+  Do not infer whole-repository coverage or retrofit measured percentages onto
+  historical fallback reports. Missing, malformed or zero-total reports are
+  unavailable. The isolated-suite regression proves remapping and threshold
+  enforcement; keep it passing when changing providers or worker behavior.
 
 ## Checklist
 

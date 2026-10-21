@@ -16,11 +16,7 @@ export type NativeDocumentPrimaryStateInput = {
 };
 
 export type NativeDocumentStateTone =
-  | "danger"
-  | "info"
-  | "muted"
-  | "success"
-  | "warning";
+  "danger" | "info" | "muted" | "success" | "warning";
 
 export type NativeDocumentPrimaryState = {
   description: string;

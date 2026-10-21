@@ -451,11 +451,9 @@ describe("api/email/webhooks/resend", () => {
     expect(secondBody.accepted).toBe(true);
     expect(insertEmailEventsMock).toHaveBeenCalledTimes(2);
     const firstEventPayload = insertEmailEventsMock.mock.calls[0]?.[0] as
-      | { resend_event_id?: string }
-      | undefined;
+      { resend_event_id?: string } | undefined;
     const secondEventPayload = insertEmailEventsMock.mock.calls[1]?.[0] as
-      | { resend_event_id?: string }
-      | undefined;
+      { resend_event_id?: string } | undefined;
     expect(firstEventPayload?.resend_event_id).toMatch(
       /^synthetic_[a-f0-9]{64}$/,
     );

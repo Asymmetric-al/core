@@ -7,11 +7,7 @@ import type { MissionControlIssueType } from "../mission-control-tasks/types";
 export type AutomationMode = "simple" | "advanced";
 export type AutomationRunMode = "automatic" | "review_first";
 export type AutomationActivationStatus =
-  | "draft"
-  | "ready"
-  | "active"
-  | "paused"
-  | "disabled";
+  "draft" | "ready" | "active" | "paused" | "disabled";
 
 export type AutomationTrigger =
   | { kind: "contribution_issue_created" }

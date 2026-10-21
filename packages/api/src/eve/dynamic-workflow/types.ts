@@ -76,11 +76,7 @@ export interface EveValidatedDynamicWorkflowPlan {
 }
 
 export type EveDynamicWorkflowStepStatus =
-  | "pending"
-  | "running"
-  | "completed"
-  | "failed"
-  | "stopped";
+  "pending" | "running" | "completed" | "failed" | "stopped";
 
 export interface EveDynamicWorkflowStepState {
   attempts: number;
@@ -97,12 +93,7 @@ export interface EveDynamicWorkflowRuntimeState {
   planDigest?: string;
   preparedGovernanceStateVersion?: number;
   status:
-    | "idle"
-    | "prepared"
-    | "running"
-    | "paused"
-    | "completed"
-    | "cancelled";
+    "idle" | "prepared" | "running" | "paused" | "completed" | "cancelled";
   steps: Record<string, EveDynamicWorkflowStepState>;
   ticketId?: string;
 }

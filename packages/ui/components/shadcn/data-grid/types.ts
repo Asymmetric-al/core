@@ -2,13 +2,7 @@ import type { ColumnDef, Row } from "../data-table/tanstack";
 import type { VirtualizationConfig } from "../data-table/types";
 
 export type DataGridCellType =
-  | "text"
-  | "number"
-  | "select"
-  | "date"
-  | "checkbox"
-  | "file"
-  | "readonly";
+  "text" | "number" | "select" | "date" | "checkbox" | "file" | "readonly";
 
 export interface DataGridColumnOption {
   label: string;

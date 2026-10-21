@@ -20,8 +20,7 @@ import type { EveSpecialistId } from "@asym/api/eve/subagent-catalog";
 
 export async function resolveEveSpecialistActivation(input: {
   actionId?:
-    | "engineering.dynamic_workflow.execute"
-    | "engineering.subagent.delegate";
+    "engineering.dynamic_workflow.execute" | "engineering.subagent.delegate";
   auth: EveSessionAuthSnapshot | null;
   sessionId: string;
   specialistId: EveSpecialistId;

@@ -14,9 +14,13 @@ maintained compatibility dependency with a current upstream reason and owner.
 
 ## Coverage
 
-- [Dependency inventory](dependencies.json): all 127 directly queried upstream
-  identities from 23 active manifests (18 workspaces plus five imported PDF
-  packages). Private imported names are not expected on the public registry.
+- [Dependency inventory](dependencies.json): all 129 current canonical external
+  and imported identities across 23 active manifests (18 workspace/root manifests
+  plus five imported PDF packages). Baseline and current declarations retain
+  alias names and every imported-package consumer. Internal workspace links are
+  recorded separately. The supported V8 provider was introduced after baseline;
+  all five private PDF identities point to their owner source and artifact
+  manifests rather than a public-registry lookup.
 - Locked graph, advisory reachability, overrides/patches, imported artifacts,
   CLI/MCP/Action/image/protocol pins, skills and documentation findings still
   require their complete owned evidence and closure records.
@@ -38,8 +42,8 @@ donor 61, missionary 47. Existing floors remain binding.
 
 | Checkpoint             | Exact initial target                                            | Status       | Qualification                                                              |
 | ---------------------- | --------------------------------------------------------------- | ------------ | -------------------------------------------------------------------------- |
-| Framework security     | Next family 16.4.2, React/DOM 19.3.1, Node 24.22.1, Bun 1.4.3   | Implementing | [Checkpoint record](framework-security.md)                                 |
-| Tools / infrastructure | Supported ESLint 10, current tools and reproducible executables | Pending      | Not qualified                                                              |
+| Framework security     | Next family 16.4.2, React/DOM 19.3.1, Node 24.22.1, Bun 1.4.3   | Merged       | [Checkpoint record](framework-security.md)                                 |
+| Tools / infrastructure | Supported ESLint 10, current tools and reproducible executables | Implementing | [Tooling record](development-tools.md); infrastructure follows             |
 | Data / workflows / API | Current supported cohorts, GraphQL 17 product / 16 CMS boundary | Pending      | Not qualified                                                              |
 | Payload                | Public 4.0.0-beta.3 coherent cohort                             | Pending      | Migration/restore rehearsal required                                       |
 | PDF source / artifacts | Recover shipped Phase 47, then modernize in owner repository    | Pending      | Source provenance and baseline required                                    |
