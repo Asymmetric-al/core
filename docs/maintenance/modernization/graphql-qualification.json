@@ -3,8 +3,8 @@
   "checkpoint": "product-graphql",
   "status": "implemented-awaiting-full-qualification-and-merge",
   "owner": "Core API and CMS maintainers",
-  "capturedAt": "2026-10-21T21:26:43.030635+00:00",
-  "temporaryStackBase": "1dcdade63e012898f237663a634eca28c8275193",
+  "capturedAt": "2026-10-21T22:26:47.378259+00:00",
+  "temporaryStackBase": "b350a6880d95c39631cdd9e5bf5747909db63974",
   "mustRequalifyOnMergedDevelop": true,
   "releaseMetadataRefreshedAt": "2026-10-21T20:31:23.330472+00:00",
   "targets": [
@@ -66,7 +66,7 @@
     ],
     "upstreamRequirement": "^16.8.1",
     "owner": "Core CMS maintainers",
-    "verification": "Actual physical dependency tests prove product Yoga uses17, CMS uses16, constructors differ, each validates its own schema and crossing runtime objects is rejected. The public product package exports only a handler factory.",
+    "verification": "Actual physical dependency tests prove product Yoga uses 17, CMS uses 16, constructors differ, each validates its own schema and crossing runtime objects is rejected. The public product package exports only a handler factory.",
     "recheck": "The public Payload v4 migration or any product/CMS GraphQL dependency change invalidates this compatibility proof."
   },
   "migrationReview": {
@@ -75,7 +75,7 @@
     "yogaGraphqlPeer": "^15.2.0 || ^16.0.0 || ^17.0.0",
     "boundary": "SDL/resolvers and schema construction remain private to @asym/graphql. No GraphQL17 schema, AST or class instance is passed to CMS code.",
     "applicableChanges": [
-      "Node24 satisfies17 runtime requirements.",
+      "Node 24 satisfies GraphQL 17 runtime requirements.",
       "Variable coercion preserves missing versus explicit null update fields.",
       "HTTP validation rejects fractional, oversized and string Int inputs before mutation transport.",
       "Existing DateTime scalar responses, integer money amounts and idempotency inputs remain stable."
@@ -143,7 +143,7 @@
       "freshCheckout": false,
       "priorIncrementalInstallFailedOnExistingPdfLink": true
     },
-    "remaining": "Clean installation and focused contract tests are complete. Full gates, compiled runtime, current-head CI/review, previews and merge remain required.",
+    "remaining": "Clean installation and focused contract tests are complete. Original full gates and compiled product/CMS checks passed. Requalify full gates after the inherited data fixes, then require current-head CI/review, previews and merged-develop readback.",
     "freshCheckout": {
       "startedAt": "2026-10-21T21:25:04.094523+00:00",
       "completedAt": "2026-10-21T21:25:07.604712+00:00",
@@ -173,7 +173,7 @@
     }
   },
   "limitations": [
-    "Full repository gates, current-head CI/review, compiled CMS/product runtime checks, browser previews and merge readback remain required.",
+    "Requalified full repository gates after inherited data fixes, current-head CI/review, browser previews and merged-develop readback remain required. The recorded compiled product/CMS checks already passed.",
     "No hosted Supabase or payment provider behavior is inferred from mocked GraphQL transport tests.",
     "No production operation or database migration was executed.",
     "Full nested-advisory reconciliation remains owned by the security checkpoint."
@@ -244,7 +244,7 @@
     "importantFindings": 0,
     "dependencyPeerEdgesVerified": 29,
     "changedOrRepositionedRegistryIdentitiesVerified": 9,
-    "remaining": "The original complete documentation/quality review passed. The clean-install documentation delta, full gates, compiled runtime, current-head CI/review, previews and merge remain required."
+    "remaining": "Original complete implementation, documentation/quality and clean-install delta reviews passed. The new compiled-runtime evidence delta, full-gate requalification, current-head CI/review, previews and merged-develop readback remain required."
   },
   "currentDesignSystemQualification": {
     "shadscan": {
@@ -348,5 +348,132 @@
     }
   },
   "initialTemporaryStackBase": "c48420906f78760b39f2de877b31a736fd0c474f",
-  "infrastructureStackBase": "2e1ebf397af60eb1b0613561f2535b96770ec6ca"
+  "infrastructureStackBase": "2e1ebf397af60eb1b0613561f2535b96770ec6ca",
+  "previousTemporaryStackBase": "1dcdade63e012898f237663a634eca28c8275193",
+  "initialFullPrePush": {
+    "startedAt": "2026-10-21T21:28:20.473070+00:00",
+    "completedAt": "2026-10-21T21:40:34.642377+00:00",
+    "exitCode": 0,
+    "head": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+    "logSha256": "c73eb09d6b46563ccd89023c894b34e0dd4365ba404f736a764b3a4267dcacf8",
+    "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+    "sourceHead": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+    "passedTestFiles": 900,
+    "skippedTestFiles": 2,
+    "passedTests": 7364,
+    "expectedFailedTests": 1,
+    "skippedTests": 4,
+    "applicationBuilds": 3,
+    "productTypechecks": 15,
+    "mustRequalifyAfterInheritedDataReviewFixes": true
+  },
+  "compiledProductHttpComparison": {
+    "capturedAt": "2026-10-21T21:43:16.620834+00:00",
+    "baselineHead": "1dcdade63e012898f237663a634eca28c8275193",
+    "currentHead": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+    "cases": 9,
+    "exactStatusesAndPublicResponsesPreserved": true,
+    "productionMaskingPreserved": true,
+    "legacyAndModernAcceptSemanticsPreserved": true,
+    "canonicalPerAppStart": true,
+    "providerCredentialsUsed": false,
+    "sourceSha256": "3a16c227af622d069a5fe23d4b8e434942abb372a4be9d3a109aa1c1c177543b"
+  },
+  "compiledCmsRuntime": {
+    "startedAt": "2026-10-21T22:24:19.983792+00:00",
+    "root": "/home/conrad/code/core-worktrees/graphql-modernization-2026-10-22",
+    "head": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+    "scope": "actual compiled Next admin CMS GraphQL16 route against preserved synthetic local database; temporary CMS-select-only role, no environment files",
+    "productionTouched": false,
+    "checks": [
+      "compiled-payload16-root-query",
+      "cms-production-introspection-remains-disabled",
+      "anonymous-cms-users-denied",
+      "compiled-cms-options-mounted",
+      "compiled-cms-mount-preserves-anonymous-redirect"
+    ],
+    "preservationBefore": {
+      "tables": 266,
+      "rows": 1577,
+      "sha256": "74c393fcfa803c978b588d6f626cee22775c59b42d945c5eb77318482a8a49dc"
+    },
+    "rootQuery": {
+      "status": 200,
+      "response": {
+        "data": {
+          "__typename": "Query"
+        }
+      }
+    },
+    "productionIntrospection": {
+      "status": 200,
+      "response": {
+        "errors": [
+          {
+            "message": "GraphQL introspection is not allowed, but the query contained __schema or __type",
+            "locations": [
+              {
+                "line": 1,
+                "column": 3
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "anonymousCmsUsers": {
+      "status": 200,
+      "response": {
+        "errors": [
+          {
+            "extensions": {
+              "name": "T",
+              "statusCode": 403
+            },
+            "locations": [
+              {
+                "line": 1,
+                "column": 3
+              }
+            ],
+            "message": "You are not allowed to perform this action.",
+            "path": ["CmsUsers"]
+          }
+        ],
+        "data": {
+          "CmsUsers": null
+        }
+      }
+    },
+    "options": {
+      "status": 200
+    },
+    "loginMount": {
+      "status": 307,
+      "htmlBytes": 33,
+      "location": "/login?next=%2Fweb-studio%2Flogin",
+      "hasLoginMarkup": true,
+      "hasHtml": false
+    },
+    "passed": true,
+    "redactedLogSha256": "fd8dc5f1103abdc14aa8889fa96d94bc714f28651215a034b6296ebd1b628938",
+    "temporaryRoleRemoved": true,
+    "preservationAfter": {
+      "tables": 266,
+      "rows": 1577,
+      "sha256": "74c393fcfa803c978b588d6f626cee22775c59b42d945c5eb77318482a8a49dc"
+    },
+    "tableDataUnchanged": true,
+    "completedAt": "2026-10-21T22:25:17.482249+00:00",
+    "runnerSha256": "80ce5851bb2f5a61d9463f3c2913c3b2d6f9b0fdcd575eee442644467f42df29",
+    "runnerSourceUnchangedDuringExecution": true,
+    "limits": "Read-only CMS protocol/mount checks with a temporary CMS-select-only database role and no provider credentials. Authenticated editor and hosted preview flows remain separate qualification. The temporary role was removed and all table data stayed unchanged."
+  },
+  "inheritedDataReviewFixes": {
+    "head": "b350a6880d95c39631cdd9e5bf5747909db63974",
+    "sourceReview": "The independently approved data fixture ownership, lost-Auth-response cleanup and build-selection fixes are inherited without modification. Only the shared dependency ledger merges the separately reviewed data and product GraphQL rows.",
+    "graphqlInstallationInputsUnchanged": true,
+    "productImplementationUnchanged": true,
+    "compiledProofSourceHead": "f915c7de74411ccb748ce81e741edc378ecc37b3"
+  }
 }

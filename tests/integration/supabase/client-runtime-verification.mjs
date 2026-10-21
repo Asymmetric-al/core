@@ -3,8 +3,11 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 
 import {
+  createTrackedFixtureUser,
+  fixtureAuthUserCleanupOperations,
   isDeniedSelfRoleUpdate,
   runFixtureCleanup,
+  verifyLocalFixtureTarget,
 } from "./client-runtime-checks.mjs";
 
 // Feed credentials from an owned local CLI status response through stdin only.
@@ -48,22 +51,42 @@ function bounded(operation, label) {
 }
 
 async function verify(input) {
-  const url = new URL(input.API_URL);
-  assert.ok(/^asym-modernization-[a-z0-9-]+$/.test(input.projectId));
-  assert.equal(url.protocol, "http:");
-  assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(url.hostname));
-  assert.equal(url.username + url.password + url.search + url.hash, "");
-  assert.ok(url.pathname === "/" && url.port);
-  assert.ok(input.PUBLIC_KEY && input.SERVICE_ROLE_KEY);
+  assert.ok(
+    input.simulateLostUserCreationResponse === undefined ||
+      typeof input.simulateLostUserCreationResponse === "boolean",
+  );
+  const { url } = await verifyLocalFixtureTarget(input);
+  checks.push("local-target-bound-to-owned-gateway");
 
   const require = createRequire(
     new URL("../../../packages/database/package.json", import.meta.url),
   );
   const { createClient } = require("@supabase/supabase-js");
   const { createServerClient } = require("@supabase/ssr");
+  let simulateLostResponse = input.simulateLostUserCreationResponse === true;
   const global = {
-    fetch: (request, init) =>
-      fetch(request, { ...init, signal: AbortSignal.timeout(15_000) }),
+    fetch: async (request, init) => {
+      const response = await fetch(request, {
+        ...init,
+        redirect: "error",
+        signal: AbortSignal.timeout(15_000),
+      });
+      const requestUrl = new URL(
+        request instanceof Request ? request.url : String(request),
+      );
+      if (
+        simulateLostResponse &&
+        init?.method === "POST" &&
+        requestUrl.pathname === "/auth/v1/admin/users" &&
+        response.ok
+      ) {
+        simulateLostResponse = false;
+        await response.arrayBuffer();
+        checks.push("simulated-committed-user-creation-response-loss");
+        throw new TypeError("Synthetic fixture creation response loss");
+      }
+      return response;
+    },
   };
   const options = {
     global,
@@ -78,6 +101,7 @@ async function verify(input) {
   const anonymous = createClient(url.href, input.PUBLIC_KEY, options);
   const tenantIds = [randomUUID(), randomUUID()];
   const users = [];
+  const runId = randomUUID();
   const fundId = randomUUID();
   const cookies = new Map();
   const server = () =>
@@ -125,17 +149,18 @@ async function verify(input) {
       const email = `sdk-${randomUUID()}@example.invalid`;
       const password = randomBytes(32).toString("base64url");
       const { user } = successful(
-        await admin.auth.admin.createUser({
+        await createTrackedFixtureUser(admin.auth.admin, users, {
+          id: randomUUID(),
           email,
           password,
-          email_confirm: true,
-          app_metadata: { tenant_id: tenantId },
+          tenantId,
+          runId,
         }),
       );
       assert.ok(user);
-      users.push({ id: user.id, email, password });
       check(
-        user.app_metadata.tenant_id === tenantId,
+        user.app_metadata.tenant_id === tenantId &&
+          user.app_metadata.sdk_qualification_run === runId,
         "fixture-user-tenant-metadata",
       );
       // Provision the domain fixture explicitly; Auth metadata is not a
@@ -303,11 +328,7 @@ async function verify(input) {
             await admin.from("funds").delete().eq("id", fundId),
           ),
       },
-      ...users.map((user, index) => ({
-        label: `delete-auth-user-${index + 1}`,
-        run: async () =>
-          cleanupSuccessful(await admin.auth.admin.deleteUser(user.id)),
-      })),
+      ...fixtureAuthUserCleanupOperations(admin.auth.admin, users),
       {
         label: "delete-tenants",
         run: async () =>
@@ -325,8 +346,7 @@ async function verify(input) {
           ),
       },
     ]);
-    if (!failures.some(({ label }) => label === "restore-census"))
-      checks.push("fixture-census-restored");
+    if (failures.length === 0) checks.push("fixture-census-restored");
     if (failures.length > 0) cleanupFailures = failures;
     if (verificationFailed) {
       ({ step, failedCheck, providerErrorCode, realtimeStatus } =

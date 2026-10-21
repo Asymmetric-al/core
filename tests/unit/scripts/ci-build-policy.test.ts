@@ -45,6 +45,15 @@ describe("development compilation policy", () => {
     ).toEqual(["admin", "donor", "missionary"]);
   });
 
+  it("compiles all apps when installed file-package links change", () => {
+    expect(
+      resolveCompilation({
+        ...development,
+        changedFiles: ["scripts/repair-file-package-links.mjs"],
+      }),
+    ).toEqual(["admin", "donor", "missionary"]);
+  });
+
   it.each(["base.json", "nextjs.json", "react.json"])(
     "compiles all apps for shared TypeScript configuration: %s",
     (file) => {

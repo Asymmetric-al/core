@@ -35,11 +35,29 @@ drift, no environment file and no materialized opaque vendored database. All 36
 focused contract tests passed there. PDF artifacts and their installation
 repairs remain owned by the PDF provenance checkpoint.
 
+The normal full pre-push passed all 15 product typechecks, all three app builds
+and the repository gates at the initial published head: 900 test files passed,
+2 existing files skipped; 7,364 tests passed, 1 expected failure and 4 existing
+tests skipped. The branch now also inherits the independently reviewed data
+fixture and build-selection fixes; its GraphQL implementation and installation
+inputs stay unchanged. Requalify the full gates after that merge.
+
+Nine compiled product HTTP cases match the previous GraphQL 16 stack in exact
+status and complete public response, including production error masking and
+legacy versus modern Accept-header behavior. Five additional checks exercised
+the actual compiled admin CMS route: its GraphQL 16 root query executes,
+production introspection stays disabled, anonymous CMS-user reads are denied,
+OPTIONS remains mounted and unauthenticated Web Studio access redirects to the
+shared login. The CMS probe used a temporary read-only role against the isolated
+synthetic database, removed that role and verified all 266 tables and 1,577
+records unchanged. These checks establish the compiled runtime boundaries;
+authenticated editor and deployed-preview flows still require separate evidence.
+
 This checkpoint changes no database schema or public route. Revert the complete
 checkpoint's manifests, lockfile and owned evidence together if qualification
-fails, then rerun affected gates. All three app builds, repository checks,
-independent review, current-head CI and CMS/product preview checks remain
-required. No production operation was executed.
+fails, then rerun affected gates. Requalified app builds and repository gates, the
+compiled-evidence delta review, current-head CI, CMS/product previews and
+merged-develop readback remain required. No production operation was executed.
 
 Sources: [versioned GraphQL 17 migration guide](https://github.com/graphql/graphql-js/blob/v17.0.2/website/pages/upgrade-guides/v16-v17.mdx),
 [Yoga 5.24.6 release](https://github.com/graphql-hive/graphql-yoga/releases/tag/graphql-yoga%405.24.6)
