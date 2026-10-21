@@ -28,9 +28,11 @@ import {
   decisionArgs,
   git,
   listProofFiles,
+  markedStatement,
   expectedDigest,
   mintCleanProof,
   newProofFiles,
+  proofRunMarker,
   readProofFile,
   runCommand,
 } from "./command-harness";
@@ -45,9 +47,9 @@ afterEach(() => {
   cleanupProofFiles();
 });
 
-async function recordNoGo() {
+async function recordNoGo(marker: string) {
   return runCommand({
-    argv: decisionArgs("no_go", allowlistedOwner()),
+    argv: decisionArgs("no_go", allowlistedOwner(), markedStatement(marker)),
     env: LOCAL_TARGET_ENV,
   });
 }
@@ -55,16 +57,17 @@ async function recordNoGo() {
 describe("issue #2067 — DC1 append-only proof files under docs/ops/document-cutover/proofs/", () => {
   it("DC1: two consecutive runs (default --out) produce two distinct <ISO>-<proofId>.json files; the first file's bytes are unchanged", async () => {
     cleanTarget();
+    const marker = proofRunMarker();
     const before = listProofFiles();
 
-    await recordNoGo();
-    const afterFirst = newProofFiles(before);
+    await recordNoGo(marker);
+    const afterFirst = newProofFiles(before, marker);
     expect(afterFirst).toHaveLength(1);
     const firstName = afterFirst[0] as string;
     const firstBytes = readFileSync(path.join(PROOFS_DIR, firstName));
 
-    await recordNoGo();
-    const created = newProofFiles(before);
+    await recordNoGo(marker);
+    const created = newProofFiles(before, marker);
     expect(created).toHaveLength(2);
     expect(new Set(created).size).toBe(2);
 
@@ -86,18 +89,19 @@ describe("issue #2067 — DC1 append-only proof files under docs/ops/document-cu
     vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue(
       "00000000-0000-4000-8000-000000002067",
     );
+    const marker = proofRunMarker();
     const before = listProofFiles();
 
-    await recordNoGo();
-    const first = newProofFiles(before);
+    await recordNoGo(marker);
+    const first = newProofFiles(before, marker);
     expect(first).toHaveLength(1);
     const firstName = first[0] as string;
     const firstBytes = readFileSync(path.join(PROOFS_DIR, firstName));
 
-    const second = await recordNoGo();
+    const second = await recordNoGo(marker);
 
     expect(second.exitCode).not.toBe(0);
-    expect(newProofFiles(before)).toEqual(first);
+    expect(newProofFiles(before, marker)).toEqual(first);
     expect(
       readFileSync(path.join(PROOFS_DIR, firstName)).equals(firstBytes),
     ).toBe(true);
@@ -122,9 +126,10 @@ describe("issue #2067 — DC2 provenance replaces attestation", () => {
 
   it("DC2: a stop_the_line (no_go) proof carries the same provenance and no attestation", async () => {
     cleanTarget();
+    const marker = proofRunMarker();
     const before = listProofFiles();
-    await recordNoGo();
-    const [name] = newProofFiles(before);
+    await recordNoGo(marker);
+    const [name] = newProofFiles(before, marker);
     expect(name).toBeDefined();
     const proof = readProofFile(name as string);
     const keys = collectKeys(proof);
@@ -146,9 +151,10 @@ describe("issue #2067 — DC2 digest rule (addendum 2 item 2)", () => {
 
   it("DC2: a stop_the_line (no_go) proof's digest follows the same rule", async () => {
     cleanTarget();
+    const marker = proofRunMarker();
     const before = listProofFiles();
-    await recordNoGo();
-    const [name] = newProofFiles(before);
+    await recordNoGo(marker);
+    const [name] = newProofFiles(before, marker);
     expect(name).toBeDefined();
     const proof = readProofFile(name as string);
     expect(proof.digest).toBe(await expectedDigest(proof));
