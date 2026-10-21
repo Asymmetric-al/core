@@ -10,21 +10,23 @@ AI agents should pair official TanStack CLI docs/search output with this repo-sp
 | -------------------------------- | ------------------------ | -------------------------------------------------------------- | --------------------------------------- |
 | `@tanstack/react-form`           | `1.33.5` (exact)         | `packages/ui`, `apps/admin`                                    | Form state and validation               |
 | `@tanstack/react-store`          | `0.11.2` (exact)         | `packages/ui`                                                  | Shared Table and Form subscriptions     |
-| `@tanstack/react-query`          | `^5.104.1`               | `packages/database`, apps                                      | Query state and caching                 |
-| `@tanstack/react-table`          | `9.2.6` (exact)          | `packages/ui`, `packages/database`, `apps/admin`, `apps/donor` | Headless table engine (v9 stable)       |
-| `@tanstack/react-table-devtools` | `9.2.5` (exact)          | `packages/ui`, `apps/admin`                                    | Table devtools adapter/plugin           |
-| `@tanstack/react-devtools`       | `^0.10.13`               | `apps/admin`                                                   | TanStack Devtools shell (hosts plugins) |
-| `@tanstack/react-db`             | `^0.5.5`                 | `packages/database`, `packages/ui`                             | React DB bindings                       |
-| `@tanstack/query-db-collection`  | `^1.4.0`                 | `packages/database`                                            | Query-backed collections                |
-| `@tanstack/db`                   | `^0.12.1`                | `packages/database`                                            | DB runtime                              |
+| `@tanstack/react-query`          | `5.104.5`                | `packages/database`, apps                                      | Query state and caching                 |
+| `@tanstack/react-table`          | `9.3.1` (exact)          | `packages/ui`, `packages/database`, `apps/admin`, `apps/donor` | Headless table engine (v9 stable)       |
+| `@tanstack/react-table-devtools` | `9.3.1` (exact)          | `packages/ui`, `apps/admin`                                    | Table devtools adapter/plugin           |
+| `@tanstack/react-devtools`       | `0.10.13`                | `apps/admin`                                                   | TanStack Devtools shell (hosts plugins) |
+| `@tanstack/react-db`             | `0.5.12`                 | `packages/database`, `packages/ui`                             | React DB bindings                       |
+| `@tanstack/query-db-collection`  | `1.4.8`                  | `packages/database`                                            | Query-backed collections                |
+| `@tanstack/db`                   | `0.15.2`                 | `packages/database`, `packages/ui`                             | DB runtime                              |
 | `@supabase-labs/tanstack-db`     | `0.1.0` (exact, patched) | `packages/database`                                            | Supabase collection adapter             |
-| `@tanstack/react-virtual`        | `^3.14.13`               | `packages/ui`                                                  | Row/list virtualization                 |
-| `@tanstack/cli`                  | `^0.71.1`                | repo root (devDependency)                                      | TanStack docs + tooling                 |
-| `zod`                            | `^4.6.5`                 | apps + shared packages                                         | Runtime schema validation               |
+| `@tanstack/react-virtual`        | `3.14.21`                | `packages/ui`                                                  | Row/list virtualization                 |
+| `@tanstack/cli`                  | `0.72.0`                 | repo root (devDependency)                                      | TanStack docs + tooling                 |
+| `zod`                            | `4.6.7`                  | apps + shared packages                                         | Runtime schema validation               |
 
-`@tanstack/react-table` and `@tanstack/react-table-devtools` are pinned **exactly** (no caret) in every workspace that consumes them: the engine boundary and devtools adapter are qualified together. Their published versions differ; the adapter peer range accepts the installed stable v9 engine. Rationale and rollout history live in `docs/guides/architecture/tanstack-table-v9-decisions.md` (ADR-1).
+`@tanstack/react-table` and `@tanstack/react-table-devtools` are pinned **exactly** (no caret) in every workspace that consumes them: the engine boundary and devtools adapter are qualified together. Both tested releases are 9.3.1; the adapter peer range also accepts the engine. Their behavior is qualified together rather than inferred from peer ranges alone. Rationale and rollout history live in `docs/guides/architecture/tanstack-table-v9-decisions.md` (ADR-1).
 
-The Supabase adapter has a maintained [Bun compatibility patch](../../../packages/database/patches/README.md), registered in root `patchedDependencies`. It preserves complete join predicates for local `queryOnce`, awaits direct-write acceptance, and handles Realtime failures with one explicit snapshot recovery attempt. Server aggregate queries with joins are rejected before transport because PostgREST embedding cannot generally preserve their predicates and cardinality. Ordinary single-table aggregate queries retain the upstream path. The real-adapter regression suite gates patch removal.
+The Supabase adapter has a maintained [Bun compatibility patch](../../../packages/database/patches/README.md), registered in root `patchedDependencies`. It preserves complete join predicates for local `queryOnce`, awaits direct-write acceptance, and handles Realtime failures with one explicit snapshot recovery attempt. Server aggregate queries with joins are rejected before transport because PostgREST embedding cannot generally preserve their predicates and cardinality. Ordinary single-table aggregate queries retain the upstream path. The real-adapter regression suite gates patch removal. A delayed-acceptance test fails against pristine current adapter 0.1.0 and passes with the registered patch. Transactions use `when("settled")`; the adapter must keep this promise pending until the server write and sync acceptance finish.
+
+The DB, React and Query bindings resolve one physical 0.15.2 runtime without an override or postinstall DB rewrite. The installed-runtime identity test and clean-install adapter regressions gate this property. Existing PDF installation repairs remain owned by their separate source/provenance migration.
 
 ## Layer Responsibilities
 
@@ -48,7 +50,7 @@ The Supabase adapter has a maintained [Bun compatibility patch](../../../package
 
 ## TanStack Table v9
 
-The shared table layer runs `@tanstack/react-table@9.2.6`. The migration kept the public component API stable; the engine-facing changes are concentrated in one boundary module.
+The shared table layer runs `@tanstack/react-table@9.3.1`. The migration kept the public component API stable; the engine-facing changes are concentrated in one boundary module.
 
 ### Boundary module (the only engine import)
 
@@ -116,7 +118,7 @@ The shared pattern (see `packages/ui/components/shadcn/data-table/data-table-chr
 - `DataTable`, `DataTableResponsive`, and `DataGrid` accept an optional **`devtoolsKey`** prop (`DataTableWrapper` forwards it), and `useDataTableWithLiveQuery` accepts the same option. It becomes the table's `key` option — its devtools identity — and gates registration via `useTanStackTableDevtools(table, { enabled: Boolean(devtoolsKey) })`. Omit it (the default) and the table stays unregistered.
 - The host shell is mounted **dev-only** in the admin app: `AdminTanStackDevtools` (`apps/admin/app/_providers/tanstack-devtools.tsx`) renders `<TanStackDevtools plugins={[tableDevtoolsPlugin()]} />` from `@tanstack/react-devtools` + `@tanstack/react-table-devtools` and returns `null` in production builds; it is wired into `apps/admin/app/layout.tsx`.
 - The adapter's default `.` entry exports no-ops whenever `NODE_ENV !== "development"`, so registration is skipped outside development and `devtoolsKey` values can stay in committed code. Beware the package's `./production` entry: it is the opposite — an always-enabled opt-in that exports the real panel/plugin/hook — so never import it expecting a no-op.
-- Stable v9 uses `@tanstack/react-table-devtools@9.2.5` with `@tanstack/react-table@9.2.6`. The adapter targets the v9 Store-backed state through its `@tanstack/table-core: ^9.0.0` peer range. The shell resolves its own compatible devtools closure; do not force matching numeric versions across the packages.
+- The qualified engine and adapter are both 9.3.1. The adapter targets Store-backed v9 state through its `@tanstack/table-core: ^9.0.0` peer range. The shell resolves its compatible devtools closure; package versions are selected from their own releases.
 
 ### Testing expectations
 
@@ -173,7 +175,7 @@ export default function RootLayout({
 
 - Put pagination/sorting/filtering in explicit serializable state.
 - Query key must include that state (and the `manual*` flags when a surface can run in both modes).
-- For server-mode tables, use `manualPagination`, `manualSorting`, and `manualFiltering`. The shared components skip registering the matching client-side row models automatically; direct `useTable` call sites must mirror the flags themselves (see [Building a new table on v9](#building-a-new-table-on-v9)).
+- For server-mode tables, use `manualPagination`, `manualSorting`, and `manualFiltering`. The shared components keep row-model factories registered and use these instance flags to skip matching client-side processing. Direct `useTable` call sites must set the same flags (see [Building a new table on v9](#building-a-new-table-on-v9)).
 - Prefer `placeholderData: keepPreviousData` in Query v5 for smoother transitions.
 - Prefer `rowCount` for server pagination totals; TanStack Table derives `pageCount` from `rowCount` + page size.
 - Use `pageCount` only when `rowCount` is unavailable.
@@ -354,7 +356,7 @@ This preserves count consistency without requiring route-level SQL transactions 
 ## Quality Checklist
 
 - [ ] No new direct `@tanstack/react-table` imports outside the boundary module (sanctioned exceptions only).
-- [ ] Direct `useTable` call sites mirror `manual*` flags in `createDataTableRowModels` flags.
+- [ ] Direct `useTable` call sites use `dataTableFeatures` and set the required `manual*` instance options.
 - [ ] Memoized table chrome reads state via `useSelector(table.atoms.<slice>)`, never `table.state`.
 - [ ] Query keys include table/list state that impacts data.
 - [ ] Table manual mode aligns with API behavior.
@@ -376,6 +378,6 @@ This preserves count consistency without requiring route-level SQL transactions 
 
 - TanStack DB docs: `https://tanstack.com/db/latest`
 - TanStack Virtual docs: `https://tanstack.com/virtual/latest`
-- TanStack Table: tanstack.com still indexes **v8** — use the [v9 doc sources](#v9-doc-sources) above for Table work.
+- TanStack Table: the official latest migration and row-model guides now document v9. Pair the [v9 doc sources](#v9-doc-sources) with the exact installed release.
 - Version truth for this repo is pinned via workspace `package.json` plus npm dist-tags (`npm view @tanstack/* version dist-tags`).
 - TanStack CLI is installed at the repo root to support `tanstack doc` / `tanstack search-docs` for future upgrade checks.

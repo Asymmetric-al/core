@@ -49,7 +49,7 @@ export function resolveCompilation({
       SHARED_INPUTS.has(file) ||
       /^tooling\/typescript-config\/.*\.jsonc?$/.test(file) ||
       (!app && BUILD_CONFIG.test(file)) ||
-      /^scripts\/(?:vercel\/|verify\/ci-build|repair-workspace-links\.mjs|dedupe-tanstack-db\.mjs|resolve-monorepo-root\.mjs)/.test(
+      /^scripts\/(?:vercel\/|verify\/ci-build|repair-workspace-links\.mjs|resolve-monorepo-root\.mjs)/.test(
         file,
       ) ||
       /^\.github\/workflows\/(?:ci|ci-integration|qa-smoke-preview-deploy)\.yml$/.test(

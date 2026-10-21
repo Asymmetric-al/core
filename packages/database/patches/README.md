@@ -1,7 +1,7 @@
 # Supabase TanStack DB compatibility patch
 
 `@supabase-labs/tanstack-db@0.1.0` declares support for TanStack DB `>=0.6 <1.0`
-but needs this patch with DB `0.12.1` and Query DB Collection `1.4.0`. The root
+but still needs this patch with DB `0.15.2` and Query DB Collection `1.4.8`. The root
 `patchedDependencies` entry applies the patch during Bun installation, including
 frozen lockfile installs. No application runtime monkeypatch is required.
 
@@ -16,7 +16,7 @@ frozen lockfile installs. No application runtime monkeypatch is required.
   the supplied `ON` predicate, outer-join semantics, or flat join cardinality.
   Single-table server aggregate queries retain the upstream path.
 - Await insert/update/delete direct-write acceptance so schema or persistence
-  rejection reaches `transaction.isPersisted.promise` and optimistic state rolls
+  rejection reaches `transaction.when("settled")` and optimistic state rolls
   back. A successful HTTP mutation followed by local validation failure can
   already have changed the server; local rollback does not undo that server write.
 - Await and catch Realtime direct writes. A failed event logs the table and error,
@@ -40,7 +40,7 @@ repair, not a replacement server query planner or a Supabase schema/RLS change.
   `37b4d15c8d1dd3ea08bffcf9e6dbc0f6de82d8de1b81d9734fa383160172b2e2`
 - Published upstream commit:
   [3503c451b2f2550ab4069067673881f39342b588](https://github.com/supabase/tanstack-db/tree/3503c451b2f2550ab4069067673881f39342b588)
-- TanStack DB `0.12.1` provenance commit:
+- Original baseline TanStack DB `0.12.1` provenance commit:
   [3825ac3cb1db1fb145cafcc202dc05424b74dc56](https://github.com/TanStack/db/tree/3825ac3cb1db1fb145cafcc202dc05424b74dc56)
 - [PostgREST FK resource embedding](https://docs.postgrest.org/en/v14/references/api/resource_embedding.html)
   and [aggregate placement](https://docs.postgrest.org/en/v14/references/api/aggregate_functions.html#aggregates-and-resource-embedding)
@@ -54,8 +54,8 @@ rejection tests additionally inject a failed promise at the public direct-write
 acceptance utility to model a rejected durable step. It makes no network calls.
 
 ```bash
-bunx vitest run tests/unit/packages/database/supabase-adapter-compatibility.test.ts
-bunx vitest run tests/unit/packages/database
+bun run test:unit tests/unit/packages/database/supabase-adapter-compatibility.test.ts
+bun run test:unit tests/unit/packages/database
 ```
 
 With the unpatched release, joins throw while serializing nonexistent

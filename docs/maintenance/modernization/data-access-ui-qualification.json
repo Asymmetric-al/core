@@ -1,0 +1,1337 @@
+{
+  "capturedAt": "2026-10-21T19:58:22.931586+00:00",
+  "scope": "Shadscan evidence input requalification, not browser or security approval",
+  "all528FindingEvidenceAndScoresUnchanged": true,
+  "all118ClassificationsAndRationalesUnchanged": true,
+  "allPoliciesAndFloorsUnchanged": true,
+  "reason": "Version-only consumer manifest changes retain package ownership/exports; root removes the obsolete DB override and install repair and updates its existing TanStack CLI. Unchanged Payload NotFound and Sonner Toaster implementations and locked versions retain their source-backed classifications.",
+  "manifestDeltas": {
+    "apps/admin/package.json": {
+      "changedFields": ["dependencies"],
+      "nameUnchanged": true,
+      "exportsAndAppOwnershipUnchanged": true
+    },
+    "package.json": {
+      "changedFields": [
+        "dependencies",
+        "devDependencies",
+        "overrides",
+        "scripts"
+      ],
+      "nameUnchanged": true,
+      "exportsAndAppOwnershipUnchanged": true
+    },
+    "packages/auth/package.json": {
+      "changedFields": ["dependencies"],
+      "nameUnchanged": true,
+      "exportsAndAppOwnershipUnchanged": true
+    },
+    "packages/database/package.json": {
+      "changedFields": ["dependencies"],
+      "nameUnchanged": true,
+      "exportsAndAppOwnershipUnchanged": true
+    },
+    "packages/lib/package.json": {
+      "changedFields": ["dependencies"],
+      "nameUnchanged": true,
+      "exportsAndAppOwnershipUnchanged": true
+    },
+    "packages/missionary/package.json": {
+      "changedFields": ["dependencies"],
+      "nameUnchanged": true,
+      "exportsAndAppOwnershipUnchanged": true
+    },
+    "packages/ui/package.json": {
+      "changedFields": ["dependencies"],
+      "nameUnchanged": true,
+      "exportsAndAppOwnershipUnchanged": true
+    }
+  },
+  "proofUpdates": [
+    {
+      "entry": 0,
+      "proof": 1,
+      "project": ".",
+      "rule": "command-menu-hotkey-present",
+      "path": "package.json",
+      "old": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553",
+      "new": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb"
+    },
+    {
+      "entry": 1,
+      "proof": 1,
+      "project": ".",
+      "rule": "command-menu-present",
+      "path": "package.json",
+      "old": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553",
+      "new": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb"
+    },
+    {
+      "entry": 2,
+      "proof": 1,
+      "project": ".",
+      "rule": "error-boundary-present",
+      "path": "package.json",
+      "old": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553",
+      "new": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb"
+    },
+    {
+      "entry": 3,
+      "proof": 1,
+      "project": ".",
+      "rule": "metadata-configured",
+      "path": "package.json",
+      "old": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553",
+      "new": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb"
+    },
+    {
+      "entry": 4,
+      "proof": 1,
+      "project": ".",
+      "rule": "shadcn-config-present",
+      "path": "package.json",
+      "old": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553",
+      "new": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb"
+    },
+    {
+      "entry": 5,
+      "proof": 1,
+      "project": ".",
+      "rule": "theme-hotkey-present",
+      "path": "package.json",
+      "old": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553",
+      "new": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb"
+    },
+    {
+      "entry": 6,
+      "proof": 1,
+      "project": ".",
+      "rule": "theme-provider-configured",
+      "path": "package.json",
+      "old": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553",
+      "new": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb"
+    },
+    {
+      "entry": 7,
+      "proof": 1,
+      "project": ".",
+      "rule": "toast-provider-present",
+      "path": "package.json",
+      "old": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553",
+      "new": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb"
+    },
+    {
+      "entry": 19,
+      "proof": 2,
+      "project": "apps/admin",
+      "rule": "not-found-recovery-present",
+      "path": "apps/admin/package.json",
+      "old": "57340658d6c924d5b83fdd04725a2a039f2f78262b150209d81d285f95fa2ae7",
+      "new": "a00a70968279b2b21ad66efa1074bf42b25c139337860e273226115e44f4ac43"
+    },
+    {
+      "entry": 26,
+      "proof": 2,
+      "project": "apps/admin",
+      "rule": "toast-provider-mounted",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 27,
+      "proof": 2,
+      "project": "apps/admin",
+      "rule": "toast-provider-present",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 39,
+      "proof": 2,
+      "project": "apps/donor",
+      "rule": "toast-provider-mounted",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 40,
+      "proof": 2,
+      "project": "apps/donor",
+      "rule": "toast-provider-present",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 56,
+      "proof": 2,
+      "project": "apps/missionary",
+      "rule": "toast-provider-mounted",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 57,
+      "proof": 2,
+      "project": "apps/missionary",
+      "rule": "toast-provider-present",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 58,
+      "proof": 1,
+      "project": "packages/auth",
+      "rule": "command-menu-hotkey-present",
+      "path": "packages/auth/package.json",
+      "old": "844253199bcd8d6581516839de6cb1566b821bace4ccb2863d7fe22258662709",
+      "new": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+    },
+    {
+      "entry": 59,
+      "proof": 1,
+      "project": "packages/auth",
+      "rule": "command-menu-present",
+      "path": "packages/auth/package.json",
+      "old": "844253199bcd8d6581516839de6cb1566b821bace4ccb2863d7fe22258662709",
+      "new": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+    },
+    {
+      "entry": 60,
+      "proof": 1,
+      "project": "packages/auth",
+      "rule": "error-boundary-present",
+      "path": "packages/auth/package.json",
+      "old": "844253199bcd8d6581516839de6cb1566b821bace4ccb2863d7fe22258662709",
+      "new": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+    },
+    {
+      "entry": 61,
+      "proof": 1,
+      "project": "packages/auth",
+      "rule": "favicon-present",
+      "path": "packages/auth/package.json",
+      "old": "844253199bcd8d6581516839de6cb1566b821bace4ccb2863d7fe22258662709",
+      "new": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+    },
+    {
+      "entry": 62,
+      "proof": 1,
+      "project": "packages/auth",
+      "rule": "metadata-configured",
+      "path": "packages/auth/package.json",
+      "old": "844253199bcd8d6581516839de6cb1566b821bace4ccb2863d7fe22258662709",
+      "new": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+    },
+    {
+      "entry": 63,
+      "proof": 1,
+      "project": "packages/auth",
+      "rule": "shadcn-config-present",
+      "path": "packages/auth/package.json",
+      "old": "844253199bcd8d6581516839de6cb1566b821bace4ccb2863d7fe22258662709",
+      "new": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+    },
+    {
+      "entry": 64,
+      "proof": 1,
+      "project": "packages/auth",
+      "rule": "theme-hotkey-present",
+      "path": "packages/auth/package.json",
+      "old": "844253199bcd8d6581516839de6cb1566b821bace4ccb2863d7fe22258662709",
+      "new": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+    },
+    {
+      "entry": 65,
+      "proof": 1,
+      "project": "packages/auth",
+      "rule": "theme-provider-configured",
+      "path": "packages/auth/package.json",
+      "old": "844253199bcd8d6581516839de6cb1566b821bace4ccb2863d7fe22258662709",
+      "new": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+    },
+    {
+      "entry": 66,
+      "proof": 1,
+      "project": "packages/auth",
+      "rule": "toast-provider-present",
+      "path": "packages/auth/package.json",
+      "old": "844253199bcd8d6581516839de6cb1566b821bace4ccb2863d7fe22258662709",
+      "new": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+    },
+    {
+      "entry": 68,
+      "proof": 1,
+      "project": "packages/database",
+      "rule": "command-menu-hotkey-present",
+      "path": "packages/database/package.json",
+      "old": "e6e750ee249bb4d880d8f0a950ec4af55b1fbb9ca922885ea4ed2059746720a0",
+      "new": "fd3551052d4cb2b13436abf6755fe537b9de3ef31cbf2f3f700959db721bad9b"
+    },
+    {
+      "entry": 69,
+      "proof": 1,
+      "project": "packages/database",
+      "rule": "command-menu-present",
+      "path": "packages/database/package.json",
+      "old": "e6e750ee249bb4d880d8f0a950ec4af55b1fbb9ca922885ea4ed2059746720a0",
+      "new": "fd3551052d4cb2b13436abf6755fe537b9de3ef31cbf2f3f700959db721bad9b"
+    },
+    {
+      "entry": 70,
+      "proof": 1,
+      "project": "packages/database",
+      "rule": "error-boundary-present",
+      "path": "packages/database/package.json",
+      "old": "e6e750ee249bb4d880d8f0a950ec4af55b1fbb9ca922885ea4ed2059746720a0",
+      "new": "fd3551052d4cb2b13436abf6755fe537b9de3ef31cbf2f3f700959db721bad9b"
+    },
+    {
+      "entry": 71,
+      "proof": 1,
+      "project": "packages/database",
+      "rule": "favicon-present",
+      "path": "packages/database/package.json",
+      "old": "e6e750ee249bb4d880d8f0a950ec4af55b1fbb9ca922885ea4ed2059746720a0",
+      "new": "fd3551052d4cb2b13436abf6755fe537b9de3ef31cbf2f3f700959db721bad9b"
+    },
+    {
+      "entry": 72,
+      "proof": 1,
+      "project": "packages/database",
+      "rule": "metadata-configured",
+      "path": "packages/database/package.json",
+      "old": "e6e750ee249bb4d880d8f0a950ec4af55b1fbb9ca922885ea4ed2059746720a0",
+      "new": "fd3551052d4cb2b13436abf6755fe537b9de3ef31cbf2f3f700959db721bad9b"
+    },
+    {
+      "entry": 73,
+      "proof": 1,
+      "project": "packages/database",
+      "rule": "shadcn-config-present",
+      "path": "packages/database/package.json",
+      "old": "e6e750ee249bb4d880d8f0a950ec4af55b1fbb9ca922885ea4ed2059746720a0",
+      "new": "fd3551052d4cb2b13436abf6755fe537b9de3ef31cbf2f3f700959db721bad9b"
+    },
+    {
+      "entry": 74,
+      "proof": 1,
+      "project": "packages/database",
+      "rule": "theme-hotkey-present",
+      "path": "packages/database/package.json",
+      "old": "e6e750ee249bb4d880d8f0a950ec4af55b1fbb9ca922885ea4ed2059746720a0",
+      "new": "fd3551052d4cb2b13436abf6755fe537b9de3ef31cbf2f3f700959db721bad9b"
+    },
+    {
+      "entry": 75,
+      "proof": 1,
+      "project": "packages/database",
+      "rule": "theme-provider-configured",
+      "path": "packages/database/package.json",
+      "old": "e6e750ee249bb4d880d8f0a950ec4af55b1fbb9ca922885ea4ed2059746720a0",
+      "new": "fd3551052d4cb2b13436abf6755fe537b9de3ef31cbf2f3f700959db721bad9b"
+    },
+    {
+      "entry": 76,
+      "proof": 1,
+      "project": "packages/database",
+      "rule": "toast-provider-present",
+      "path": "packages/database/package.json",
+      "old": "e6e750ee249bb4d880d8f0a950ec4af55b1fbb9ca922885ea4ed2059746720a0",
+      "new": "fd3551052d4cb2b13436abf6755fe537b9de3ef31cbf2f3f700959db721bad9b"
+    },
+    {
+      "entry": 77,
+      "proof": 1,
+      "project": "packages/lib",
+      "rule": "command-menu-hotkey-present",
+      "path": "packages/lib/package.json",
+      "old": "cfd68f729999db61138c606848c84d43b3d363b04e48011e51cad0a6de27a71c",
+      "new": "0ffb534edab2217d5bc64cb761603ab662d2720cc24dabef4e588d9390040228"
+    },
+    {
+      "entry": 78,
+      "proof": 1,
+      "project": "packages/lib",
+      "rule": "command-menu-present",
+      "path": "packages/lib/package.json",
+      "old": "cfd68f729999db61138c606848c84d43b3d363b04e48011e51cad0a6de27a71c",
+      "new": "0ffb534edab2217d5bc64cb761603ab662d2720cc24dabef4e588d9390040228"
+    },
+    {
+      "entry": 79,
+      "proof": 1,
+      "project": "packages/lib",
+      "rule": "error-boundary-present",
+      "path": "packages/lib/package.json",
+      "old": "cfd68f729999db61138c606848c84d43b3d363b04e48011e51cad0a6de27a71c",
+      "new": "0ffb534edab2217d5bc64cb761603ab662d2720cc24dabef4e588d9390040228"
+    },
+    {
+      "entry": 80,
+      "proof": 1,
+      "project": "packages/lib",
+      "rule": "favicon-present",
+      "path": "packages/lib/package.json",
+      "old": "cfd68f729999db61138c606848c84d43b3d363b04e48011e51cad0a6de27a71c",
+      "new": "0ffb534edab2217d5bc64cb761603ab662d2720cc24dabef4e588d9390040228"
+    },
+    {
+      "entry": 81,
+      "proof": 1,
+      "project": "packages/lib",
+      "rule": "metadata-configured",
+      "path": "packages/lib/package.json",
+      "old": "cfd68f729999db61138c606848c84d43b3d363b04e48011e51cad0a6de27a71c",
+      "new": "0ffb534edab2217d5bc64cb761603ab662d2720cc24dabef4e588d9390040228"
+    },
+    {
+      "entry": 82,
+      "proof": 1,
+      "project": "packages/lib",
+      "rule": "shadcn-config-present",
+      "path": "packages/lib/package.json",
+      "old": "cfd68f729999db61138c606848c84d43b3d363b04e48011e51cad0a6de27a71c",
+      "new": "0ffb534edab2217d5bc64cb761603ab662d2720cc24dabef4e588d9390040228"
+    },
+    {
+      "entry": 83,
+      "proof": 1,
+      "project": "packages/lib",
+      "rule": "theme-hotkey-present",
+      "path": "packages/lib/package.json",
+      "old": "cfd68f729999db61138c606848c84d43b3d363b04e48011e51cad0a6de27a71c",
+      "new": "0ffb534edab2217d5bc64cb761603ab662d2720cc24dabef4e588d9390040228"
+    },
+    {
+      "entry": 84,
+      "proof": 1,
+      "project": "packages/lib",
+      "rule": "theme-provider-configured",
+      "path": "packages/lib/package.json",
+      "old": "cfd68f729999db61138c606848c84d43b3d363b04e48011e51cad0a6de27a71c",
+      "new": "0ffb534edab2217d5bc64cb761603ab662d2720cc24dabef4e588d9390040228"
+    },
+    {
+      "entry": 85,
+      "proof": 1,
+      "project": "packages/lib",
+      "rule": "toast-provider-present",
+      "path": "packages/lib/package.json",
+      "old": "cfd68f729999db61138c606848c84d43b3d363b04e48011e51cad0a6de27a71c",
+      "new": "0ffb534edab2217d5bc64cb761603ab662d2720cc24dabef4e588d9390040228"
+    },
+    {
+      "entry": 86,
+      "proof": 1,
+      "project": "packages/missionary",
+      "rule": "command-menu-hotkey-present",
+      "path": "packages/missionary/package.json",
+      "old": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+      "new": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+    },
+    {
+      "entry": 87,
+      "proof": 1,
+      "project": "packages/missionary",
+      "rule": "command-menu-present",
+      "path": "packages/missionary/package.json",
+      "old": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+      "new": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+    },
+    {
+      "entry": 90,
+      "proof": 1,
+      "project": "packages/missionary",
+      "rule": "error-boundary-present",
+      "path": "packages/missionary/package.json",
+      "old": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+      "new": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+    },
+    {
+      "entry": 91,
+      "proof": 1,
+      "project": "packages/missionary",
+      "rule": "favicon-present",
+      "path": "packages/missionary/package.json",
+      "old": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+      "new": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+    },
+    {
+      "entry": 94,
+      "proof": 1,
+      "project": "packages/missionary",
+      "rule": "metadata-configured",
+      "path": "packages/missionary/package.json",
+      "old": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+      "new": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+    },
+    {
+      "entry": 96,
+      "proof": 1,
+      "project": "packages/missionary",
+      "rule": "shadcn-config-present",
+      "path": "packages/missionary/package.json",
+      "old": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+      "new": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+    },
+    {
+      "entry": 97,
+      "proof": 1,
+      "project": "packages/missionary",
+      "rule": "theme-hotkey-present",
+      "path": "packages/missionary/package.json",
+      "old": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+      "new": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+    },
+    {
+      "entry": 98,
+      "proof": 1,
+      "project": "packages/missionary",
+      "rule": "theme-provider-configured",
+      "path": "packages/missionary/package.json",
+      "old": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+      "new": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+    },
+    {
+      "entry": 99,
+      "proof": 1,
+      "project": "packages/missionary",
+      "rule": "toast-provider-present",
+      "path": "packages/missionary/package.json",
+      "old": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+      "new": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+    },
+    {
+      "entry": 101,
+      "proof": 1,
+      "project": "packages/ui",
+      "rule": "command-menu-hotkey-present",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 102,
+      "proof": 1,
+      "project": "packages/ui",
+      "rule": "command-menu-present",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 105,
+      "proof": 1,
+      "project": "packages/ui",
+      "rule": "error-boundary-present",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 106,
+      "proof": 1,
+      "project": "packages/ui",
+      "rule": "favicon-present",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 113,
+      "proof": 1,
+      "project": "packages/ui",
+      "rule": "metadata-configured",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 115,
+      "proof": 1,
+      "project": "packages/ui",
+      "rule": "theme-hotkey-present",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    },
+    {
+      "entry": 116,
+      "proof": 1,
+      "project": "packages/ui",
+      "rule": "toast-provider-present",
+      "path": "packages/ui/package.json",
+      "old": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+      "new": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+    }
+  ],
+  "baselineReportSha256": "737160c91762a388e7cd96650df9e7ea10c5879c625732ef467806ed0b8a86f8",
+  "currentReportSha256": "e7d1ec39fe908616a625b2637cb7f212cb19f9a8229d5c3691ecacb1dd2230ff",
+  "ledgerSha256": "5c5e2aa07ece1c90f40c891b328562585644ac6997d6b7bdf73eb975d5186fc8",
+  "browserQualification": "still required",
+  "reactDoctor": {
+    "capturedAt": "2026-10-21T19:01:52.462Z",
+    "reactDoctorVersion": "0.9.18",
+    "allEightTargetsComplete": true,
+    "skippedChecks": 0,
+    "all294DiagnosticIdentitiesAndRationalesUnchanged": true,
+    "actionable": 0,
+    "excepted": 294,
+    "sourceUpdates": [
+      {
+        "index": 139,
+        "target": "apps/donor",
+        "file": "package.json",
+        "rule": "unused-dependency",
+        "oldContext": "9e80c6a46d55299ed15c6134be8c4e6075483dfbe2ef89a2128db9376d6c7725",
+        "newContext": "49588df1208b018939aca302b9620336829c8fb7e1153f7a70ebc9b7e724f350",
+        "oldSource": "9e80c6a46d55299ed15c6134be8c4e6075483dfbe2ef89a2128db9376d6c7725",
+        "newSource": "49588df1208b018939aca302b9620336829c8fb7e1153f7a70ebc9b7e724f350"
+      },
+      {
+        "index": 150,
+        "target": "apps/missionary",
+        "file": "package.json",
+        "rule": "unused-dependency",
+        "oldContext": "6373d552791349dc7c2cbe49d2572030cfcce2ae2ecabb1d998aa4275fa55846",
+        "newContext": "062dae0484b68ad95b70cc0d3a4275b48d74610c774cb99a059deae79e3bfacd",
+        "oldSource": "6373d552791349dc7c2cbe49d2572030cfcce2ae2ecabb1d998aa4275fa55846",
+        "newSource": "062dae0484b68ad95b70cc0d3a4275b48d74610c774cb99a059deae79e3bfacd"
+      }
+    ],
+    "evidenceUpdates": [
+      {
+        "index": 4,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 45,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 50,
+        "path": "packages/missionary/package.json",
+        "oldHash": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+        "newHash": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+      },
+      {
+        "index": 50,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 51,
+        "path": "packages/missionary/package.json",
+        "oldHash": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+        "newHash": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+      },
+      {
+        "index": 51,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 63,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 66,
+        "path": "packages/missionary/package.json",
+        "oldHash": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+        "newHash": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+      },
+      {
+        "index": 66,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 130,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 139,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 150,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 159,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 161,
+        "path": "packages/missionary/package.json",
+        "oldHash": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+        "newHash": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+      },
+      {
+        "index": 161,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 162,
+        "path": "packages/missionary/package.json",
+        "oldHash": "27212fe87ba41a346fb06f941c2baa02edf9c5d97c7f74008fd15ea7a30b54c7",
+        "newHash": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77"
+      },
+      {
+        "index": 162,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 163,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 165,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 166,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 178,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 179,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 180,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 182,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 183,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 184,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 190,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 191,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 192,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 193,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 194,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 195,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 196,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 197,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 198,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 199,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 200,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 201,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 201,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 202,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 202,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 203,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 203,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 204,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 205,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 205,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 206,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 207,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 208,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 209,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 210,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 211,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 219,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 221,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 222,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 225,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 226,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 227,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 228,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 229,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 230,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 231,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 232,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 233,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 234,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 235,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 235,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 236,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 237,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 238,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 239,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 240,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 241,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 242,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 242,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 243,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 244,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 245,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 246,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 248,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 249,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 250,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 251,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 252,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 253,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 254,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 255,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 256,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 257,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 258,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 258,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 259,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 260,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 262,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 263,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 264,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 265,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 266,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 267,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 268,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 269,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 270,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 271,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 272,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 273,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 274,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 280,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      },
+      {
+        "index": 280,
+        "path": "bun.lock",
+        "oldHash": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2",
+        "newHash": "d89834433190ac389b66dc37b3f43d25fcbc08842d2b6954ff80854aa379f8cd"
+      },
+      {
+        "index": 281,
+        "path": "packages/ui/package.json",
+        "oldHash": "3e762c7ded38242a8337b5ab50b1b2dc0c91cc3870c7dcbdc5dc481056833528",
+        "newHash": "2e866f816ffebca521ad238bd7178c547cb57e6963f9542a16df1ab270d18d8f"
+      }
+    ],
+    "reason": "Fresh no-cache scans retain every exact diagnostic. The two changed diagnostic contexts are only next-themes manifest entries, whose declarations/ownership remain unchanged. Updated supporting manifests retain all package exports and primitive/style owners. The lock refresh changes Supabase/TanStack/Zod and file-package metadata, preserving the current Payload, OpenPolicy, Motion, Recharts, Base UI, icon and DnD implementations cited by these retained findings. Earlier dated evidence remains historical; this current source-bound qualification governs this checkpoint.",
+    "immutableScanIntegritySha256": "93e8695d04e8c15744d373743e5415c071601022268de25a53af717c8ad42c2f",
+    "unchangedRuntimeCohorts": {
+      "@base-ui/react": "@base-ui/react@1.9.0",
+      "@dnd-kit/accessibility": "@dnd-kit/accessibility@3.1.1",
+      "@dnd-kit/core": "@dnd-kit/core@6.3.1",
+      "@dnd-kit/modifiers": "@dnd-kit/modifiers@9.0.0",
+      "@dnd-kit/sortable": "@dnd-kit/sortable@10.0.0",
+      "@dnd-kit/utilities": "@dnd-kit/utilities@3.2.2",
+      "@openpolicy/core": "@openpolicy/core@0.0.17",
+      "@openpolicy/react": "@openpolicy/react@0.0.17",
+      "@openpolicy/renderers": "@openpolicy/renderers@0.0.14",
+      "@openpolicy/sdk": "@openpolicy/sdk@0.0.17",
+      "@payloadcms/db-postgres": "@payloadcms/db-postgres@4.0.0-internal.1f9ae9a",
+      "@payloadcms/drizzle": "@payloadcms/drizzle@4.0.0-internal.1f9ae9a",
+      "@payloadcms/email-resend": "@payloadcms/email-resend@4.0.0-internal.1f9ae9a",
+      "@payloadcms/graphql": "@payloadcms/graphql@4.0.0-internal.1f9ae9a",
+      "@payloadcms/next": "@payloadcms/next@4.0.0-internal.1f9ae9a",
+      "@payloadcms/plugin-cloud-storage": "@payloadcms/plugin-cloud-storage@4.0.0-internal.1f9ae9a",
+      "@payloadcms/richtext-lexical": "@payloadcms/richtext-lexical@4.0.0-internal.1f9ae9a",
+      "@payloadcms/storage-vercel-blob": "@payloadcms/storage-vercel-blob@4.0.0-internal.1f9ae9a",
+      "@payloadcms/translations": "@payloadcms/translations@4.0.0-internal.1f9ae9a",
+      "@payloadcms/ui": "@payloadcms/ui@4.0.0-internal.1f9ae9a",
+      "lucide-react": "lucide-react@1.52.0",
+      "motion": "motion@14.0.0",
+      "next": "next@16.4.2",
+      "payload": "payload@4.0.0-internal.1f9ae9a",
+      "react": "react@19.3.1",
+      "react-dom": "react-dom@19.3.1",
+      "recharts": "recharts@3.10.1",
+      "sonner": "sonner@2.0.8"
+    }
+  },
+  "currentPatchRefresh": {
+    "versions": {
+      "@tanstack/db": "0.15.2",
+      "@tanstack/react-db": "0.5.12",
+      "@tanstack/query-db-collection": "1.4.8"
+    },
+    "allPreviousFindingsDiagnosticsReasonsAndFloorsUnchanged": true,
+    "allEightDoctorTargetsComplete": true,
+    "skippedChecks": 0,
+    "changedScanInputs": [
+      "bun.lock",
+      "packages/database/package.json",
+      "packages/database/patches/README.md",
+      "packages/ui/package.json"
+    ],
+    "reboundProofCount": {
+      "tooling/shadscan/findings.json": 22,
+      "docs/qa/react-doctor/exceptions.json": 104
+    },
+    "reason": "The coordinated DB/React DB/Query Collection patch refresh changes the tested lock and two manifests. Immutable artifact/source/identity review passed; fresh diagnostics, ownership, reasons, classifications and quality floors are unchanged. README corrections identify the current cohort while preserving historical provenance.",
+    "qualification": {
+      "capturedAt": "2026-10-21T19:54:24.623Z",
+      "doctor": {
+        "actionable": 0,
+        "excepted": 294,
+        "allEightTargetsComplete": true,
+        "skippedChecks": 0,
+        "integritySha256": "8eb85119516a910a441af11c9d57907bf8b6afc2e3602b13247515bb98acdd7d",
+        "ledgerSha256": "cfad1fe628ab57b3747a4fa4738ac2e2d4dcd965c0fa6cde3ed0c001cede3eb2"
+      },
+      "shadscan": {
+        "passed": true,
+        "score": 48,
+        "ledgerSha256": "7ec98aaaf000d707e57c70e4952b3744717071f2232282ab58106f5acbc3f5cf",
+        "reportSha256": "b667eb74f62d4064b1a96e70a0ac63863453e7d9aa73f2fe1081d1dca1a4d78e"
+      },
+      "testedLockSha256": "d24aca2ff9e9a5d9cd94bddfc8dae599f13f1beb95d5beae2a5c022a3e67cb94"
+    },
+    "freshDoctorLogSha256": "29c8f9e6e1c2ec51ac000150e2a1705d048a20b5befef08e00a1d823bdb4e3eb"
+  }
+}
