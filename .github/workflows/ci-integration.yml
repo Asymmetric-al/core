@@ -11,7 +11,7 @@ permissions:
 
 env:
   BUN_VERSION: "1.4.3"
-  NODE_VERSION: "24.21.0"
+  NODE_VERSION: "24.22.1"
 
 concurrency:
   group: ci-integration-${{ github.event.pull_request.number || github.ref }}
