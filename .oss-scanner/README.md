@@ -58,7 +58,7 @@ construction do not survive. From `/src`, as root with `HOME=/root`:
 ./.oss-scanner/start-services.sh apps
 ```
 
-PostgreSQL listens on loopback port **55432**, with disposable database
+PostgreSQL **17.11** listens on loopback port **55432**, with disposable database
 `core_scanner` and synthetic local password `scanner-local-only`.
 The helper uses the committed Supabase compatibility bootstrap and migration
 verifier, then the committed CMS migration/seed path. Fixture SQL lives in `tests/integration/supabase/` and
@@ -100,6 +100,14 @@ results cannot silently validate a schema left over from before a patch.
 If initialization is interrupted or a migration fails, inspect the retained logs,
 fix the cause and run `reset-db` before retrying; forward migrations are not
 idempotent and ordinary `db` startup cannot repair a partially initialized schema.
+
+The modernization checkpoint supersedes the initial PostgreSQL 15 image with
+PostgreSQL 17 on the pinned Node 24 Debian 13 image. Its server/client package
+versions are frozen in the Dockerfile. Rebuild the image after changing those
+pins and use a fresh disposable container for a database-major change. The helper
+refuses an incompatible `PG_VERSION` before stopping apps or changing the database;
+`reset-db` does not perform a cluster upgrade. The Docker context also excludes
+the opaque vendored `payload.db`; it is not a synthetic scanner fixture.
 
 For a separate UI demonstration (startup stops helper-owned normal apps):
 

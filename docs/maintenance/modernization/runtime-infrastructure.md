@@ -37,6 +37,10 @@ external CLI transitive dependencies; their advisory paths remain owned findings
   optional-helper rules in `AGENTS.md` govern setup.
 - Supabase configuration uses `local_smtp` and removes the obsolete empty
   experimental OrioleDB setting. The supported database major remains 17.
+- The newly merged OSS investigation image uses the pinned Node 24 Debian 13
+  base and PostgreSQL 17.11 server/client packages. An incompatible existing
+  database major is refused before app shutdown or database reset. The build
+  context excludes the opaque vendored database.
 
 ## Evidence and remaining qualification
 
@@ -63,6 +67,15 @@ Local signup, password login, session refresh, logout and test-user deletion als
 passed. The isolated stack was stopped afterward with its volumes preserved.
 [Qualification evidence](runtime-infrastructure-qualification.json) records the
 actual service image digests and the boundaries of every check.
+
+The rebuilt scanner image passed its offline runner with networking disabled,
+two CPUs and 8 GiB RAM: committed migration/seed paths, local SQL/RLS checks,
+227 selected unit tests, normal health/denial and Chromium login checks across
+all three apps, and one explicit donor demo preflight. Both incompatible-major
+refusal modes and Docker context exclusions have separate regression evidence.
+The [installed OS inventory](scanner-os-packages.json) freezes 552 package
+versions; image advisory reconciliation remains open. These checks do not prove
+hosted authentication, paid integrations or acceptance by the scanner service.
 
 Independent immutable reviews cover the operational and MCP slices. Final delta
 review, repository gates, current-head CI, deployed previews and merge readback

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-10-21T17:48:53.325656+00:00",
+  "capturedAt": "2026-10-21T19:47:14.663015+00:00",
   "sourceBase": "8906631256bc1dd95d4d7ba8c11a7409d3763161",
   "owner": "Core modernization maintainers",
-  "scope": "Active infrastructure pins in project MCP configurations, workflows, runtime wrappers and root Boneyard commands",
+  "scope": "Active infrastructure pins in project MCP configurations, workflows, runtime wrappers and root Boneyard commands; newly merged OSS investigation environment",
   "items": [
     {
       "kind": "container-image",
@@ -945,6 +945,54 @@
       "disposition": null,
       "verification": "Endpoint configuration observed only. Exact CLI/server pin, negotiated protocol and function-discovery smoke are required alongside the Inngest SDK cohort. This infrastructure checkpoint does not qualify this service.",
       "recheck": "Qualify the CLI/server and MCP endpoint with every Inngest cohort change."
+    },
+    {
+      "kind": "container-image",
+      "name": "Bun scanner build stage",
+      "version": "1.4.3",
+      "selector": "oven/bun:1.4.3@sha256:ec06c3b6cea04192ae6770c434f668ca41d343ad19fa6472216c7b48be39c598",
+      "sourcePath": ".oss-scanner/Dockerfile",
+      "line": 2,
+      "upstream": "https://github.com/oven-sh/bun/releases/tag/bun-v1.4.3",
+      "owner": "Core security and infrastructure maintainers",
+      "state": "implemented-awaiting-infrastructure-checkpoint-qualification",
+      "disposition": "verified-maintained-compatibility-dependency",
+      "verification": "Exact rebuilt image and offline runner passed PostgreSQL17.11 migrations, selected SQL/RLS,227 mocked unit tests, all three normal browser/denial smokes and one explicit donor demo check. See runtime-infrastructure-qualification.json; OS inventory is scanner-os-packages.json.",
+      "recheck": "Runtime, OS base, PostgreSQL, frozen lockfile, browser or scanner helper changes require rebuilt-image qualification."
+    },
+    {
+      "kind": "container-image",
+      "name": "Node scanner base",
+      "version": "24.22.1-trixie",
+      "selector": "node:24.22.1-trixie@sha256:e8bc2eedd0e82fb45a4d9a68aff03d1fbe478fc5794a67d7dc06b72a2caaa2ec",
+      "sourcePath": ".oss-scanner/Dockerfile",
+      "line": 3,
+      "upstream": "https://github.com/nodejs/docker-node/tree/80f02a542da739e6a662451d1db66456a0dea253/24/trixie",
+      "owner": "Core security and infrastructure maintainers",
+      "state": "implemented-awaiting-infrastructure-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": "Exact rebuilt image and offline runner passed PostgreSQL17.11 migrations, selected SQL/RLS,227 mocked unit tests, all three normal browser/denial smokes and one explicit donor demo check. See runtime-infrastructure-qualification.json; OS inventory is scanner-os-packages.json.",
+      "recheck": "Runtime, OS base, PostgreSQL, frozen lockfile, browser or scanner helper changes require rebuilt-image qualification."
+    },
+    {
+      "kind": "operational-package",
+      "name": "Scanner PostgreSQL server and client",
+      "version": "17.11-0+deb13u1",
+      "selector": "postgresql-17=17.11-0+deb13u1 postgresql-client-17=17.11-0+deb13u1",
+      "sourcePath": ".oss-scanner/Dockerfile",
+      "line": 21,
+      "upstream": "https://packages.debian.org/trixie/postgresql-17",
+      "owner": "Core security and infrastructure maintainers",
+      "state": "implemented-awaiting-infrastructure-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": "Exact rebuilt image and offline runner passed PostgreSQL17.11 migrations, selected SQL/RLS,227 mocked unit tests, all three normal browser/denial smokes and one explicit donor demo check. See runtime-infrastructure-qualification.json; OS inventory is scanner-os-packages.json.",
+      "recheck": "Runtime, OS base, PostgreSQL, frozen lockfile, browser or scanner helper changes require rebuilt-image qualification.",
+      "sourcePaths": [
+        ".oss-scanner/Dockerfile",
+        ".oss-scanner/start-services.sh"
+      ],
+      "initialVersion": "15",
+      "compatibility": "A different existing PG_VERSION is refused without cluster deletion or upgrade."
     }
   ],
   "remainingCoverage": [
@@ -953,6 +1001,7 @@
     "Imported skill command templates and version references are owned by the provenance/docs refresh.",
     "Full nested external CLI graphs and security reachability remain open for final advisory qualification.",
     "Custom pin drift checker and weekly maintenance remain open in OpenSpec10.",
-    "Two unreferenced duplicate Codex setup scripts were removed: they incorrectly required global Context7/Nia/GitHub servers. Project MCP configuration and optional-helper routing in AGENTS.md are authoritative."
+    "Two unreferenced duplicate Codex setup scripts were removed: they incorrectly required global Context7/Nia/GitHub servers. Project MCP configuration and optional-helper routing in AGENTS.md are authoritative.",
+    "Scanner OS package graph, browser binaries and image advisory/SBOM reconciliation remain open under the full security and provenance checkpoints; pinning the base does not close them."
   ]
 }

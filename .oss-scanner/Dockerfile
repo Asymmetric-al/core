@@ -1,6 +1,6 @@
 # Keep the complete source, development dependencies, and tools for patch verification.
 FROM oven/bun:1.4.3@sha256:ec06c3b6cea04192ae6770c434f668ca41d343ad19fa6472216c7b48be39c598 AS bun
-FROM node:24.22.1-bookworm@sha256:5630d96570d4ca4a8523fda3d169d0114554d0f48293e1ae3db6be7c79b42a17
+FROM node:24.22.1-trixie@sha256:e8bc2eedd0e82fb45a4d9a68aff03d1fbe478fc5794a67d7dc06b72a2caaa2ec
 
 COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 RUN ln -s /usr/local/bin/bun /usr/local/bin/bunx
@@ -12,12 +12,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TURBO_TELEMETRY_DISABLED=1 \
     DO_NOT_TRACK=1
 
-# PostgreSQL 15 matches CI's disposable migration database. The six canvas
+# PostgreSQL 17 matches CI's disposable migration database. Debian 13 supplies
+# the tested server/client patch without another package repository. The six canvas
 # development libraries match scripts/github/install-canvas-deps.sh.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl git sudo procps iproute2 tini \
     build-essential python3 python3-venv python3-yaml pkg-config \
-    postgresql-15 postgresql-client-15 postgresql-contrib-15 \
+    postgresql-17=17.11-0+deb13u1 postgresql-client-17=17.11-0+deb13u1 postgresql-contrib-17 \
     libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev \
     libgif-dev librsvg2-dev \
     && rm -rf /var/lib/apt/lists/*

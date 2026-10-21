@@ -498,5 +498,104 @@
       "runtimeEvidence": "Four real Vitest parser/fixture subprocesses using Linux and simulated Windows argv; native Windows runtime is not claimed.",
       "qualification": "New-head normal hooks, independent delta review and remote gates still required."
     }
+  },
+  "scannerEnvironment": {
+    "introducedBy": "https://github.com/Asymmetric-al/core/pull/2179",
+    "modernizationBase": "1e59f19cc5f18d31acd9f9e867342746d7fd6724",
+    "build": {
+      "startedAt": "2026-10-21T19:33:39.825474+00:00",
+      "completedAt": "2026-10-21T19:43:38.825850+00:00",
+      "exitCode": 0,
+      "tag": "core-oss-scanner:modernization-20261021",
+      "logSha256": "b578c4c3625eff3a7723ed16801cc54c7ddc762434b7d9e974606ed127dbfcf3",
+      "sources": {
+        ".oss-scanner/Dockerfile": "8bd96f27cbeaeffd20873c51388bb810cdacf96d7cbc38985b081b2084698ab2",
+        ".oss-scanner/Dockerfile.dockerignore": "f81a2f934d70e5579c50595c7451e831bdbe9301b6c2b6d48557dfbe3aa356b0",
+        ".oss-scanner/start-services.sh": "d99fca6b89812011a05cdc8441e2f40e844867dd33c3ce699f4ee769ffcf29f1",
+        "bun.lock": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2"
+      }
+    },
+    "offline": {
+      "startedAt": "2026-10-21T19:44:35.690288+00:00",
+      "completedAt": "2026-10-21T19:46:10.992424+00:00",
+      "exitCode": 0,
+      "imageId": "sha256:eb7c8fb2709b2a3a50b136de4c78f364a2d0c51002e823472098e06d87c61409",
+      "network": "none",
+      "cpus": 2,
+      "memory": "8g",
+      "packageCount": 552,
+      "postgresVersion": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)",
+      "helperSha256": "d99fca6b89812011a05cdc8441e2f40e844867dd33c3ce699f4ee769ffcf29f1",
+      "osPackageMetadataSha256": "af0887896833eff6232263ac29a246b82ec26fa138dcdff695ccb99ef3d2aa81",
+      "logSha256": "8af4e13dd77a8a4166b58ce6a9ea67d597a753e0c264b0c0dda5ddc8d8bf7d56",
+      "noHostMountsOrCredentials": true,
+      "productionTouched": false
+    },
+    "majorGuard": {
+      "red": {
+        "capturedAt": "2026-10-21T19:32:17.180193+00:00",
+        "phase": "red",
+        "exitCode": 1,
+        "expectedFailure": "The old helper lacks an explicit fail-before-modification PostgreSQL-major refusal.",
+        "sourceSha256": "03bab3dc43148196d5a9a9ba6bfb24601dd23b7fe4221b172f5839d6976fb0cb",
+        "image": "node:24.22.1-trixie@sha256:e8bc2eedd0e82fb45a4d9a68aff03d1fbe478fc5794a67d7dc06b72a2caaa2ec",
+        "logSha256": "4a7ba75d9352e140e05e612271405e3298ff0110c7a697aafe5f294bdfb2f0e7",
+        "noHostMountsOrCredentials": true
+      },
+      "green": {
+        "capturedAt": "2026-10-21T19:33:24.229177+00:00",
+        "phase": "green",
+        "exitCode": 0,
+        "modes": ["db", "reset-db"],
+        "sourceSha256": "d99fca6b89812011a05cdc8441e2f40e844867dd33c3ce699f4ee769ffcf29f1",
+        "image": "node:24.22.1-trixie@sha256:e8bc2eedd0e82fb45a4d9a68aff03d1fbe478fc5794a67d7dc06b72a2caaa2ec",
+        "logSha256": "541e5f829d832aa717b9e65e10a9bb02987662cf4dcc539c3a2eed9f9976dc03",
+        "noHostMountsOrCredentials": true
+      }
+    },
+    "dockerContext": {
+      "capturedAt": "2026-10-21T19:33:25.042110+00:00",
+      "exitCode": 0,
+      "excluded": [
+        ".env.local",
+        "apps/admin/.env.local",
+        "vendor/payload-upstream/payload.db",
+        ".npmrc",
+        ".ssh/id_rsa",
+        "node_modules/fake.js",
+        "apps/admin/media/upload.png"
+      ],
+      "retained": [
+        ".env.example",
+        "vendor/payload-upstream/test/example/.env.emulated",
+        "packages/example/source.ts"
+      ],
+      "dockerignoreSha256": "f81a2f934d70e5579c50595c7451e831bdbe9301b6c2b6d48557dfbe3aa356b0",
+      "logSha256": "330ffc96e384788e95a513a79959d6aa698398733ffd296ca685e630434c1eec",
+      "fixturesSyntheticOnly": true
+    },
+    "postgresPackageSelection": {
+      "capturedAt": "2026-10-21T19:24:42.865550+00:00",
+      "image": "node:24.22.1-trixie@sha256:e8bc2eedd0e82fb45a4d9a68aff03d1fbe478fc5794a67d7dc06b72a2caaa2ec",
+      "exitCode": 0,
+      "packageMetadata": "postgresql-17:\n  Installed: (none)\n  Candidate: 17.11-0+deb13u1\n  Version table:\n     17.11-0+deb13u1 500\n        500 http://deb.debian.org/debian trixie/main amd64 Packages\n        500 http://deb.debian.org/debian-security trixie-security/main amd64 Packages\npostgresql-client-17:\n  Installed: (none)\n  Candidate: 17.11-0+deb13u1\n  Version table:\n     17.11-0+deb13u1 500\n        500 http://deb.debian.org/debian trixie/main amd64 Packages\n        500 http://deb.debian.org/debian-security trixie-security/main amd64 Packages\nv24.22.1\n",
+      "diagnosticSha256": "26d195a19c106aab195c1484f42289958e2c1e2fbe0490773d77d7112497f8dd",
+      "noHostMountsOrCredentials": true,
+      "productionTouched": false
+    },
+    "installedOsInventory": "scanner-os-packages.json",
+    "installedOsInventorySha256": "4f9daa17e3d24e51c6006920f53014f690cb3ace659f220de3f2f28d3504c72d",
+    "qualifiedChecks": [
+      "Committed Supabase and Payload migration/status/seed paths",
+      "Donation fee replay, Eve verification and actual CRM role-switched RLS SQL",
+      "227 selected mocked unit tests in30 files",
+      "All three built app health/degraded-state, demo-auth denial and Chromium login rendering",
+      "One explicit donor demonstration preflight"
+    ],
+    "limitations": [
+      "No hosted Supabase, paid provider, live model, outbound email or production qualification.",
+      "Image/advisory reconciliation remains open in the full security checkpoint.",
+      "Official scanner enrollment and service acceptance are separate from this environment qualification."
+    ]
   }
 }
