@@ -3,8 +3,8 @@
   "checkpoint": "product-graphql",
   "status": "implemented-awaiting-full-qualification-and-merge",
   "owner": "Core API and CMS maintainers",
-  "capturedAt": "2026-10-21T20:44:30.265322+00:00",
-  "temporaryStackBase": "af932c4310f236a303fb43a18d052f6b57f4e248",
+  "capturedAt": "2026-10-21T21:26:43.030635+00:00",
+  "temporaryStackBase": "1dcdade63e012898f237663a634eca28c8275193",
   "mustRequalifyOnMergedDevelop": true,
   "releaseMetadataRefreshedAt": "2026-10-21T20:31:23.330472+00:00",
   "targets": [
@@ -143,10 +143,37 @@
       "freshCheckout": false,
       "priorIncrementalInstallFailedOnExistingPdfLink": true
     },
-    "remaining": "A separate clean frozen install is required; the initial incremental install encountered an existing PDF file-link EEXIST, then the normal frozen retry passed with no lock drift."
+    "remaining": "Clean installation and focused contract tests are complete. Full gates, compiled runtime, current-head CI/review, previews and merge remain required.",
+    "freshCheckout": {
+      "startedAt": "2026-10-21T21:25:04.094523+00:00",
+      "completedAt": "2026-10-21T21:25:07.604712+00:00",
+      "head": "3b01e6793c84dc07bcda588683652c33bee4d676",
+      "path": "/home/conrad/code/core-worktrees/graphql-clean-install-2026-10-22",
+      "exitCode": 0,
+      "logSha256": "75d42968cf24c5f845ec2c1d841b8204f05621424d7dc7e7148cb1d8175316ac",
+      "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "opaqueDatabaseAbsent": true,
+      "environmentAbsent": true,
+      "trackedClean": true,
+      "packages": 1946,
+      "frozen": true,
+      "backend": "copyfile",
+      "noCache": true,
+      "opaqueDatabaseNeverMaterialized": true
+    },
+    "freshCheckoutContractTests": {
+      "startedAt": "2026-10-21T21:25:44.724958+00:00",
+      "completedAt": "2026-10-21T21:25:46.287830+00:00",
+      "exitCode": 0,
+      "head": "3b01e6793c84dc07bcda588683652c33bee4d676",
+      "logSha256": "5231b4e042a7946fbbddca942c8c6dae0fdad0338d9bbe0143115a5a2f3eac5b",
+      "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "files": 3,
+      "tests": 36
+    }
   },
   "limitations": [
-    "Full repository gates, clean installation, current-head CI/review, CMS/product browser previews and merge readback remain required.",
+    "Full repository gates, current-head CI/review, compiled CMS/product runtime checks, browser previews and merge readback remain required.",
     "No hosted Supabase or payment provider behavior is inferred from mocked GraphQL transport tests.",
     "No production operation or database migration was executed.",
     "Full nested-advisory reconciliation remains owned by the security checkpoint."
@@ -217,7 +244,7 @@
     "importantFindings": 0,
     "dependencyPeerEdgesVerified": 29,
     "changedOrRepositionedRegistryIdentitiesVerified": 9,
-    "remaining": "Final documentation/quality delta, clean install, full gates, current-head CI/review, previews and merge."
+    "remaining": "The original complete documentation/quality review passed. The clean-install documentation delta, full gates, compiled runtime, current-head CI/review, previews and merge remain required."
   },
   "currentDesignSystemQualification": {
     "shadscan": {

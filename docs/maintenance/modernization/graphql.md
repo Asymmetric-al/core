@@ -29,8 +29,10 @@ transport are mocked in these tests; hosted Auth, RLS and payment-provider
 behavior require their separate qualification evidence.
 
 The initial incremental install encountered the existing PDF file-link repair
-boundary. The normal frozen retry passed without lock drift. A fresh checkout
-installation remains required before merge. PDF artifacts and their installation
+boundary. The normal frozen retry passed without lock drift. A separate fresh
+checkout then installed all 1,946 packages with the frozen lockfile, no lock
+drift, no environment file and no materialized opaque vendored database. All 36
+focused contract tests passed there. PDF artifacts and their installation
 repairs remain owned by the PDF provenance checkpoint.
 
 This checkpoint changes no database schema or public route. Revert the complete
