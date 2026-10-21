@@ -476,6 +476,12 @@ const PRIVILEGED_ROLES = [
   "supabase_replication_admin",
   "anon",
   "pg_execute_server_program",
+  "pg_read_server_files",
+  "pg_write_server_files",
+  "pg_monitor",
+  "pg_signal_backend",
+  "pg_checkpoint",
+  "pg_create_subscription",
 ];
 
 /** sslmode values accepted for a non-loopback host: TLS with verification. */
