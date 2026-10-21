@@ -28,6 +28,7 @@ import {
   serializeProof,
   serverResolvedLocalIdentity,
   tamperOneByte,
+  cleanupWrittenProofFiles,
   writeTempProofFile,
 } from "./command-harness";
 import { InMemoryDocumentCutoverProofStore } from "../../../../packages/api/src/document-cutover";
@@ -80,8 +81,37 @@ vi.mock("@supabase/supabase-js", async (importOriginal) => {
   };
 });
 
+/**
+ * #2067 addendum 4: the gate reads the target over a `pg` connection as
+ * document_cutover_reader (fake in ../issue-2067/fake-postgres.ts). While
+ * `targetMigrations.version` is null, every connection is refused (as the real
+ * driver would be by the unroutable URL in LOCAL_TARGET_ENV); when set, the
+ * schema-version function reports it and other functions report zero.
+ */
+vi.mock("pg", async () => {
+  const { createFakePgModule, createFakePgState } =
+    await import("../issue-2067/fake-postgres");
+  const state = createFakePgState({
+    schemaVersion: () => targetMigrations.version,
+    userCount: () => 0,
+    tableRows: () => [],
+    mode: () => "happy",
+  });
+  return createFakePgModule(
+    new Proxy(state, {
+      get(target, prop, receiver) {
+        if (prop === "refuseConnections") {
+          return targetMigrations.version === null;
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+    }),
+  );
+});
+
 afterEach(() => {
   targetMigrations.version = null;
+  cleanupWrittenProofFiles();
 });
 
 describe("issue #2066 — minimal test seam (spec §2)", () => {

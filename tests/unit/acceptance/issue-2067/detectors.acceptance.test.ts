@@ -15,8 +15,18 @@
  * https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6306634165):
  * the new plan surfaces / detectors are identifiable by /user/i, /report/i and
  * /integration/i in their surfaceKind, surfaceId or detectorId, outside the
- * repo-inventory kinds. Addendum 2 item 3: the schema version is read from the
- * migrations table, not through an RPC.
+ * repo-inventory kinds.
+ *
+ * Addendum 4 (Blake-approved 2026-10-20 10:31 PM PT,
+ * https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6308840307):
+ * every detector read, the user census and the schema version now come from
+ * `document_cutover.*` functions over the `document_cutover_reader` `pg`
+ * connection (./fake-postgres.ts), which reads the same `fakeDb` seeding as
+ * ./fake-supabase.ts. So DC5/DC6/DC10 below keep their assertions across the
+ * switch. `fakeDb.mode` drives both fakes (pg: `42501`, connection lost,
+ * unexpected row shape). Reworked: the DC7 "migrations-table read, no rpc"
+ * test (addendum 2 item 3) now asserts the version comes from a
+ * `document_cutover` function call and never from a PostgREST migrations read.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
@@ -33,6 +43,7 @@ import {
   proposedOutcome,
   runCommand,
 } from "./command-harness";
+import { fakePg } from "./fake-postgres";
 import { fakeDb } from "./fake-supabase";
 import {
   PHASE_18_DESTRUCTIVE_CUTOVER_PLAN,
@@ -46,6 +57,7 @@ import type { DocumentCutoverSurfaceEvidence } from "../../../../packages/api/sr
 vi.mock("@supabase/supabase-js", async (importOriginal) =>
   (await import("./fake-supabase")).mockSupabaseModule(await importOriginal()),
 );
+vi.mock("pg", async () => (await import("./fake-postgres")).mockPgModule());
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -200,11 +212,17 @@ describe("issue #2067 — DC7 schemaVersion is read from the target DB", () => {
     expect(proposedOutcome(result.stdout)).toBe("clean_preproduction_proof");
   });
 
-  it("DC7 (addendum 2 item 3): the version comes from a migrations-table read, with no rpc call", async () => {
+  it("DC7 (reworked for addendum 4 item 1/4): the version comes from a document_cutover schema-version function over the reader connection, never from a PostgREST migrations read or an rpc", async () => {
     cleanTarget();
     const result = await assessOnly();
     expect(proposedOutcome(result.stdout)).toBe("clean_preproduction_proof");
-    expect(fakeDb.reads.some((read) => /migrations/i.test(read))).toBe(true);
+    expect(
+      fakePg.queries.filter(
+        (query) =>
+          query.kind === "function" && query.route === "schema_version",
+      ),
+    ).not.toEqual([]);
+    expect(fakeDb.reads.filter((read) => /migrations/i.test(read))).toEqual([]);
     expect(fakeDb.writes.filter((write) => /rpc/.test(write))).toEqual([]);
   });
 

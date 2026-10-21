@@ -1,11 +1,21 @@
 /**
- * Acceptance tests for GitHub issue #2067 — read-only credential (DC4).
- * Spec (rev 2, Blake-approved): {@link https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6306182453}
+ * Acceptance tests for GitHub issue #2067 — the gate's database credential.
+ * Spec rev 2 DC4 (read-only credential), as replaced by addendum 4
+ * (Blake-approved 2026-10-20 10:31 PM PT):
+ * {@link https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6308840307}
  *
- * With only SUPABASE_SERVICE_ROLE_KEY set, `bun run cutover:assess:documents`
- * exits 1 with a read-only-credential blocker and no client is created with
- * that key. With DOCUMENT_CUTOVER_SUPABASE_READ_KEY set, the read client uses
- * only that key. All key values are obviously fake; no network target is real.
+ * Addendum 4 item 5 / criterion 3 (fourth case): the gate fails closed when
+ * `DOCUMENT_CUTOVER_DATABASE_URL` is missing, including when only
+ * `SUPABASE_SERVICE_ROLE_KEY` is set. It exits non-zero with a blocker that
+ * names `DOCUMENT_CUTOVER_DATABASE_URL`, writes no proof, and creates no
+ * client of any kind with the service-role key. The old read key is replaced
+ * (criterion 2), so it no longer satisfies the gate on its own either.
+ *
+ * Reworked for addendum 4 (was: "with only SUPABASE_SERVICE_ROLE_KEY ... a
+ * read-only-credential blocker" and "every read client uses only
+ * DOCUMENT_CUTOVER_SUPABASE_READ_KEY"). The read-key client test is removed:
+ * the gate must create no Supabase client at all (reader-connection
+ * criterion 2 tests). All values are obviously fake; no network target is real.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
@@ -19,67 +29,82 @@ import {
   FAKE_SERVICE_ROLE_KEY,
   LOCAL_TARGET_URL,
   REPO_ROOT,
+  allowlistedOwner,
   cleanTarget,
   cleanupProofFiles,
+  decisionArgs,
+  listProofFiles,
+  markedStatement,
+  newProofFiles,
+  proofRunMarker,
   runCommand,
 } from "./command-harness";
+import { fakePg } from "./fake-postgres";
 import { fakeDb } from "./fake-supabase";
+import { InMemoryDocumentCutoverProofStore } from "../../../../packages/api/src/document-cutover";
 
 vi.mock("@supabase/supabase-js", async (importOriginal) =>
   (await import("./fake-supabase")).mockSupabaseModule(await importOriginal()),
 );
+vi.mock("pg", async () => (await import("./fake-postgres")).mockPgModule());
 
 afterEach(() => {
   vi.restoreAllMocks();
   cleanupProofFiles();
 });
 
-/**
- * A line that names a read-only credential/key requirement (the blocker).
- * Message wording confirmed by spec addendum 2 item 5 (contains
- * "read-only credential/key").
- */
-const READ_ONLY_CREDENTIAL_BLOCKER =
-  /read[- ]?only[^\n]*(credential|key)|(credential|key)[^\n]*read[- ]?only/i;
+/** The blocker names the missing variable (addendum 4 item 5). */
+const DATABASE_URL_BLOCKER = /DOCUMENT_CUTOVER_DATABASE_URL/;
 
-describe("issue #2067 — DC4 read-only credential", () => {
-  it("DC4: with only SUPABASE_SERVICE_ROLE_KEY set, the command exits 1 with a read-only-credential blocker and creates no client with that key", async () => {
-    cleanTarget();
-    const result = await runCommand({
-      argv: [],
-      env: {
-        SUPABASE_URL: LOCAL_TARGET_URL,
-        SUPABASE_SERVICE_ROLE_KEY: FAKE_SERVICE_ROLE_KEY,
-      },
+async function goWithEnv(env: Record<string, string>) {
+  cleanTarget();
+  const marker = proofRunMarker();
+  const before = listProofFiles();
+  const store = new InMemoryDocumentCutoverProofStore();
+  const result = await runCommand({
+    argv: decisionArgs("go", allowlistedOwner(), markedStatement(marker)),
+    env,
+    store,
+  });
+  return {
+    result,
+    output: `${result.stdout}\n${result.stderr}`,
+    stored: await store.list(),
+    files: newProofFiles(before, marker),
+  };
+}
+
+describe("issue #2067 addendum 4 — criterion 3: DOCUMENT_CUTOVER_DATABASE_URL missing", () => {
+  it("criterion 3 (missing URL, only SUPABASE_SERVICE_ROLE_KEY set): --decision go exits non-zero with a blocker naming DOCUMENT_CUTOVER_DATABASE_URL, writes no proof, and creates no client with that key", async () => {
+    const { result, output, stored, files } = await goWithEnv({
+      SUPABASE_URL: LOCAL_TARGET_URL,
+      SUPABASE_SERVICE_ROLE_KEY: FAKE_SERVICE_ROLE_KEY,
     });
 
-    expect(result.exitCode).toBe(1);
-    expect(`${result.stdout}\n${result.stderr}`).toMatch(
-      READ_ONLY_CREDENTIAL_BLOCKER,
-    );
+    expect(result.exitCode).not.toBe(0);
+    expect(output).toMatch(DATABASE_URL_BLOCKER);
+    expect(stored).toEqual([]);
+    expect(files).toEqual([]);
     expect(
       fakeDb.clients.filter(({ key }) => key === FAKE_SERVICE_ROLE_KEY),
     ).toEqual([]);
+    expect(fakePg.connections).toEqual([]);
   });
 
-  it("DC4: with DOCUMENT_CUTOVER_SUPABASE_READ_KEY set (service role key also present), every read client uses only the read key", async () => {
-    cleanTarget();
-    await runCommand({
-      argv: [],
-      env: {
-        SUPABASE_URL: LOCAL_TARGET_URL,
-        SUPABASE_SERVICE_ROLE_KEY: FAKE_SERVICE_ROLE_KEY,
-        DOCUMENT_CUTOVER_SUPABASE_READ_KEY: FAKE_READ_KEY,
-      },
+  it("criterion 3 (missing URL, only the replaced DOCUMENT_CUTOVER_SUPABASE_READ_KEY set): --decision go exits non-zero with a blocker naming DOCUMENT_CUTOVER_DATABASE_URL and writes no proof", async () => {
+    const { result, output, stored, files } = await goWithEnv({
+      SUPABASE_URL: LOCAL_TARGET_URL,
+      DOCUMENT_CUTOVER_SUPABASE_READ_KEY: FAKE_READ_KEY,
     });
 
-    expect(fakeDb.clients.length).toBeGreaterThan(0);
-    expect(fakeDb.clients.map(({ key }) => key)).toEqual(
-      fakeDb.clients.map(() => FAKE_READ_KEY),
-    );
+    expect(result.exitCode).not.toBe(0);
+    expect(output).toMatch(DATABASE_URL_BLOCKER);
+    expect(stored).toEqual([]);
+    expect(files).toEqual([]);
+    expect(fakeDb.clients).toEqual([]);
   });
 
-  it("DC4: `bun run cutover:assess:documents` with only SUPABASE_SERVICE_ROLE_KEY exits 1 with a read-only-credential blocker", () => {
+  it("criterion 3 (missing URL): `bun run cutover:assess:documents` with only SUPABASE_SERVICE_ROLE_KEY exits non-zero with a blocker naming DOCUMENT_CUTOVER_DATABASE_URL", () => {
     // Real process, no mocks; the URL is an unroutable loopback port and the
     // key is fake, so nothing real is contacted.
     const child = spawnSync("bun", ["run", "cutover:assess:documents"], {
@@ -95,9 +120,8 @@ describe("issue #2067 — DC4 read-only credential", () => {
     });
 
     expect(child.error).toBeUndefined();
-    expect(child.status).toBe(1);
-    expect(`${child.stdout}\n${child.stderr}`).toMatch(
-      READ_ONLY_CREDENTIAL_BLOCKER,
-    );
+    expect(child.status).not.toBe(0);
+    expect(child.status).not.toBeNull();
+    expect(`${child.stdout}\n${child.stderr}`).toMatch(DATABASE_URL_BLOCKER);
   }, 150_000);
 });

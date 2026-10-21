@@ -8,6 +8,9 @@
  * `attestationContext`), and the `--out` default / `.gitignore` change (spec §2
  * "Proof output").
  *
+ * Addendum 4 m4 (https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6308840307):
+ * the collision test's second run writes different bytes.
+ *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
 
@@ -40,6 +43,7 @@ import {
 vi.mock("@supabase/supabase-js", async (importOriginal) =>
   (await import("./fake-supabase")).mockSupabaseModule(await importOriginal()),
 );
+vi.mock("pg", async () => (await import("./fake-postgres")).mockPgModule());
 
 afterEach(() => {
   vi.useRealTimers();
@@ -82,29 +86,36 @@ describe("issue #2067 — DC1 append-only proof files under docs/ops/document-cu
     ).toBe(true);
   });
 
-  it("DC1: writing over an existing proof path throws — a colliding second run fails and leaves the first file's bytes unchanged", async () => {
+  it("DC1 (addendum 4 m4): writing over an existing proof path throws — a colliding second run with DIFFERENT bytes fails and leaves the first file's bytes unchanged", async () => {
+    // Same clock and proof id => same `<ISO>-<proofId>.json` path; a different
+    // statement => different bytes, so a `wx` -> `w` mutation in the writer
+    // would overwrite the first file and fail the byte comparison.
     cleanTarget();
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-10-20T19:00:00.000Z"));
     vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue(
       "00000000-0000-4000-8000-000000002067",
     );
-    const marker = proofRunMarker();
+    const firstMarker = proofRunMarker();
+    const secondMarker = proofRunMarker();
+    expect(secondMarker).not.toBe(firstMarker);
     const before = listProofFiles();
 
-    await recordNoGo(marker);
-    const first = newProofFiles(before, marker);
+    await recordNoGo(firstMarker);
+    const first = newProofFiles(before, firstMarker);
     expect(first).toHaveLength(1);
     const firstName = first[0] as string;
-    const firstBytes = readFileSync(path.join(PROOFS_DIR, firstName));
+    const firstPath = path.join(PROOFS_DIR, firstName);
+    const firstBytes = readFileSync(firstPath);
+    expect(firstBytes.toString("utf8")).toContain(firstMarker);
 
-    const second = await recordNoGo(marker);
+    const second = await recordNoGo(secondMarker);
 
     expect(second.exitCode).not.toBe(0);
-    expect(newProofFiles(before, marker)).toEqual(first);
-    expect(
-      readFileSync(path.join(PROOFS_DIR, firstName)).equals(firstBytes),
-    ).toBe(true);
+    expect(newProofFiles(before, secondMarker)).toEqual([]);
+    const afterBytes = readFileSync(firstPath);
+    expect(afterBytes.toString("utf8")).not.toContain(secondMarker);
+    expect(afterBytes.equals(firstBytes)).toBe(true);
   });
 });
 

@@ -30,12 +30,30 @@
  * 2. `digest` is the SHA-256 of the canonical JSON of the proof with the
  *    `digest` field left out (`expectedDigest()`); `--verify` recomputes it the
  *    same way and any one-byte change fails.
- * 3. The target schema version is read from the migrations table, not through
- *    an RPC (see ./fake-supabase.ts, where every `rpc` call is a write spy).
+ * 3. (Superseded by addendum 4.) The target schema version was read from the
+ *    migrations table, not through an RPC. Addendum 4 moves it into a
+ *    `document_cutover` function called over the reader connection; `rpc`
+ *    stays a write spy in ./fake-supabase.ts.
  * 4. A loopback target classifies as `non_production`.
- * 5. Detector names, proof ids from `crypto.randomUUID()` and the read-only
- *    credential blocker message (containing "read-only credential/key") are as
- *    these tests assume.
+ * 5. Detector names and proof ids from `crypto.randomUUID()` are as these
+ *    tests assume. (The "read-only credential/key" blocker wording went with
+ *    the read key; see addendum 4 below.)
+ *
+ * ## Addendum 4 (Blake-approved 2026-10-20 10:31 PM PT)
+ *
+ * {@link https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6308840307}
+ *
+ * `DOCUMENT_CUTOVER_SUPABASE_READ_KEY` is replaced by
+ * `DOCUMENT_CUTOVER_DATABASE_URL`, a `pg` connection as
+ * `document_cutover_reader` that calls only `document_cutover.*` functions
+ * (faked in ./fake-postgres.ts; every file that runs the command mocks `pg`
+ * with it). `LOCAL_TARGET_ENV` / `hostedTargetEnv()` carry both variables so
+ * that tests not about credentials keep one fixture across the switch: the
+ * pre-addendum gate reads the key (and now hits the committed-exposure errors
+ * Reviewer found), the post-addendum gate must ignore it (criterion 2,
+ * asserted in reader-connection.acceptance.test.ts). The target's identity
+ * (loopback vs hosted project ref) is still taken from `SUPABASE_URL`, and the
+ * database URL points at the same target.
  *
  * Addendum 3 item 2: proof field names other than `digest`, `recordedBy` and
  * `proofPath` are not pinned by the spec; these tests are the contract. Proof
@@ -53,7 +71,11 @@ import { fileURLToPath } from "node:url";
 
 import { vi } from "vitest";
 
-import { fakeDb } from "./fake-supabase";
+import { READER_ROLE, fakePg } from "./fake-postgres";
+import {
+  FAKE_SERVICE_ROLE_KEY as SERVICE_ROLE_KEY,
+  fakeDb,
+} from "./fake-supabase";
 import { digestCanonicalValue } from "../../../../packages/api/src/document-cutover";
 
 import type {
@@ -104,13 +126,39 @@ export interface CommandResult {
 }
 
 export const LOCAL_TARGET_URL = "http://127.0.0.1:54321";
-/** The restricted read key (#2067 Resolved decision 5); obviously fake value. */
-export const FAKE_READ_KEY = "acceptance-2067-fake-read-key";
-export const FAKE_SERVICE_ROLE_KEY = "acceptance-2067-fake-service-role-key";
+/** The replaced read key (rev 2 Resolved decision 5); obviously fake value. */
+export const FAKE_READ_KEY = ["acceptance", "2067", "fake", "read", "key"].join(
+  "-",
+);
+export const FAKE_SERVICE_ROLE_KEY = SERVICE_ROLE_KEY;
+export { READER_ROLE };
+
+/** Obviously fake, built at runtime; never a real credential. */
+const FAKE_DB_PASSWORD = ["acceptance", "2067", "not", "a", "password"].join(
+  "-",
+);
+
+/**
+ * A `DOCUMENT_CUTOVER_DATABASE_URL` for the fake target. `user` defaults to
+ * the reader role; `projectRef` adds the Supabase pooler suffix
+ * (`<role>.<ref>` on the pooler host).
+ */
+export function fakeDatabaseUrl(
+  user: string = READER_ROLE,
+  projectRef?: string,
+): string {
+  const login = projectRef ? `${user}.${projectRef}` : user;
+  const host = projectRef
+    ? "aws-0-us-east-1.pooler.supabase.com:6543"
+    : "127.0.0.1:54322";
+  return `postgresql://${login}:${FAKE_DB_PASSWORD}@${host}/postgres`;
+}
+
 export const LOCAL_TARGET_ENV: Record<string, string> = {
   SUPABASE_URL: LOCAL_TARGET_URL,
   NEXT_PUBLIC_SUPABASE_URL: LOCAL_TARGET_URL,
   DOCUMENT_CUTOVER_SUPABASE_READ_KEY: FAKE_READ_KEY,
+  DOCUMENT_CUTOVER_DATABASE_URL: fakeDatabaseUrl(),
 };
 
 export function hostedTargetEnv(projectRef: string): Record<string, string> {
@@ -119,6 +167,7 @@ export function hostedTargetEnv(projectRef: string): Record<string, string> {
     SUPABASE_URL: url,
     NEXT_PUBLIC_SUPABASE_URL: url,
     DOCUMENT_CUTOVER_SUPABASE_READ_KEY: FAKE_READ_KEY,
+    DOCUMENT_CUTOVER_DATABASE_URL: fakeDatabaseUrl(READER_ROLE, projectRef),
   };
 }
 
@@ -418,6 +467,23 @@ export function allowlistedOwner(): AllowlistOwner {
   return owner;
 }
 
+/**
+ * `authorization` for direct `recordDocumentCutoverApproval` calls: the
+ * allowlisted owners in every candidate shape (addendum 4 m2 moves the role
+ * check into the library; the shape is not pinned by the spec). See
+ * ./owner-role-library.acceptance.test.ts.
+ */
+export function authorizationFor(owners: AllowlistOwner[]) {
+  return {
+    allowedOwnerIds: owners.map((owner) => owner.id),
+    owners: owners.map((owner) => ({ id: owner.id, role: owner.role })),
+    allowedOwners: owners.map((owner) => ({
+      ownerId: owner.id,
+      ownerRole: owner.role,
+    })),
+  };
+}
+
 export function decisionArgs(
   decision: "go" | "no_go",
   owner: AllowlistOwner,
@@ -622,6 +688,7 @@ export function effectiveOwners(
 /** Fake target with no reliance anywhere and a DB schema version equal to the checkout's. */
 export function cleanTarget(): void {
   fakeDb.reset();
+  fakePg.reset();
   fakeDb.schemaVersion = checkoutSchemaVersion();
 }
 

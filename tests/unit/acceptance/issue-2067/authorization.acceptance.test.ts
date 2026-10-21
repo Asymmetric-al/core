@@ -10,6 +10,9 @@
  * projects classify as non_production), against the committed
  * docs/ops/document-cutover/allowlist.json.
  *
+ * Addendum 4 m4: the listed-project positive case moved to
+ * ./allowlist-schema.acceptance.test.ts (populated fixture, never skipped).
+ *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
 
@@ -35,6 +38,7 @@ import { InMemoryDocumentCutoverProofStore } from "../../../../packages/api/src/
 vi.mock("@supabase/supabase-js", async (importOriginal) =>
   (await import("./fake-supabase")).mockSupabaseModule(await importOriginal()),
 );
+vi.mock("pg", async () => (await import("./fake-postgres")).mockPgModule());
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -183,21 +187,8 @@ describe("issue #2067 — DC11 non-production classification comes only from the
     expect(proofs).toEqual([]);
   });
 
-  const listed = (() => {
-    try {
-      return readAllowlist().nonProductionProjects;
-    } catch {
-      return [];
-    }
-  })();
-
-  it.skipIf(listed.length === 0)(
-    "DC11: a hosted project listed in the repo allowlist classifies as non_production (skipped only while the committed list is empty)",
-    async () => {
-      const ref = listed[0] as string;
-      expect(await classificationFor(hostedTargetEnv(ref))).toBe(
-        "non_production",
-      );
-    },
-  );
+  // Addendum 4 m4: the positive case (a hosted project listed in
+  // nonProductionProjects classifies as non_production) now runs against a
+  // populated scripted allowlist in ./allowlist-schema.acceptance.test.ts,
+  // instead of an `it.skipIf` that skipped while the committed list is empty.
 });

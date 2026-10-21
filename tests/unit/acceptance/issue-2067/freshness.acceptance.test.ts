@@ -12,7 +12,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { allowlistedOwner } from "./command-harness";
+import { allowlistedOwner, authorizationFor } from "./command-harness";
 import {
   DOCUMENT_CUTOVER_ASSESSMENT_MAX_AGE_MS,
   DOCUMENT_CUTOVER_PROOF_MAX_AGE_MS,
@@ -50,8 +50,10 @@ async function approveAt(ageMs: number): Promise<unknown> {
       approvalStatement: "Acceptance #2067 freshness boundary.",
       decision: "go",
     },
+    // Addendum 4 m2: the library also checks the owner's role, so the
+    // authorization carries the allowlisted owner in every candidate shape.
     authorization: {
-      allowedOwnerIds: [owner.id],
+      ...authorizationFor([owner]),
       allowedApproverIds: [owner.id],
     },
     store: new InMemoryDocumentCutoverProofStore(),
