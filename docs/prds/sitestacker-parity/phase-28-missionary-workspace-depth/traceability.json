@@ -11,7 +11,7 @@
     "relationships.md": "230065e3ff2b69ddbd6adee8191f68532e898116584554ab3745d3514c064272",
     "finance-stewardship.md": "b8383fe32ef3c794f950f770f6342627c5217551a70e0d51d0e43b29b93db35c",
     "communications.md": "a89832314a87e0d0f63bfe490f26460f776f6f963617131b905776a46b7a7e6d",
-    "coaching-resources.md": "799d2c3b381e7218166d5527d10db840c3e186dd52acf89c0614371962bad83a"
+    "coaching-resources.md": "5248b6c6ad2c9a6bf43fb3aec02c3d6e49006e0ee9ea33451434b9c4d1656615"
   },
   "decisions": {
     "D1": [
@@ -4357,7 +4357,7 @@
         },
         {
           "id": "AC28-C05-05",
-          "text": "No admitted shared evidence is described neutrally. Empty or unavailable information does not mean that a missionary did no work, failed to report or lacks support."
+          "text": "Admitted shared evidence is described neutrally. Empty or unavailable information does not mean that a missionary did no work, failed to report or lacks support."
         },
         {
           "id": "AC28-C05-06",

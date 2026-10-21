@@ -39,6 +39,16 @@ server-derived; a caller-selected target remains a proposal. Old and resulting
 state, source revision, field purpose and current authority are checked together.
 Import cannot infer donor identity, staff visibility, verification or consent.
 
+P30's closed D17 self-import profile admits the permitted missionary as reviewer
+and committer only for their own restricted-preparation target, through P9/P4
+commands and current P12 grants. P29 owns the private source file and parser
+derivatives under the target-purpose access, retention, hold, disposal and
+restore rules. The [P29/P30 owner contracts](../../program-roadmap/owner-constraints.md#phase-30)
+carry this bounded amendment: ordinary staff import, high-band auto-merge and
+stable-ID bulk-update rules cannot widen this profile. Qualify the actual target,
+review/commit, custody, current authority, replay and per-row recovery seams
+before activating self-import; no existing importer or stored file proves them.
+
 Referral access, approved minimal Expired history and continued active work are
 separate source purposes. Expired history contains only currently approved
 identifying information, never contact details/private referral context.
@@ -337,7 +347,7 @@ permitted facts continue while an affected financial measure is unavailable.
 ## OA-11 — Qualification, retained data and optional-feature transitions
 
 **Owners:** each exact source producer, P3/P4/P10/P12 safety, P29 custody and
-qualified consumers. **Trace:** completeness C01–C20.
+P30 bounded intake/review plus qualified consumers. **Trace:** completeness C01–C20.
 
 Activation must bind the actual source command/projection, version, producer,
 current-role/row/field/purpose authority, retained-data migration, idempotent

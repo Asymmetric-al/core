@@ -75,7 +75,7 @@ The portfolio shall enumerate only currently admitted subjects within the active
 - **AC28-C05-02:** A Ministry Project uses its canonical subject identity. Project/team participation does not automatically disclose all members, child subjects or their financial information.
 - **AC28-C05-03:** Portfolio cards provide bounded useful metadata and clear access/currentness states. Detailed charts and histories load only for the selected authorized subject rather than for every portfolio card.
 - **AC28-C05-04:** Detail can present shared focus/goals, independently qualified support or activity summaries, shared check-ins and selected next steps. Failure of one source leaves independent safe modules usable.
-- **AC28-C05-05:** No admitted shared evidence is described neutrally. Empty or unavailable information does not mean that a missionary did no work, failed to report or lacks support.
+- **AC28-C05-05:** Admitted shared evidence is described neutrally. Empty or unavailable information does not mean that a missionary did no work, failed to report or lacks support.
 - **AC28-C05-06:** The portfolio contains no financial sum across people, ranking, effort score, donor list, gift-row drilldown or restricted precise location. Chart and text alternatives expose the same admitted values.
 
 ## REQ28-C06 — Preview the actual proposed disclosure

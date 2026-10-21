@@ -8,7 +8,7 @@ Read the [main specification](../../../docs/prds/sitestacker-parity/phase-28-mis
 
 Compose the existing missionary shell, shared Base UI/base-maia components, approved browser collections/hooks and canonical business API. Domain commands derive current Tenant/principal/source context server-side, validate both current and resulting state, bind expected revisions and permanent semantic operation identity, and expose truthful accepted/pending/conflict/unavailable outcomes. Responses contain only current permitted projections and source-backed result references.
 
-Use P9 Parties, preparation, referrals, interactions and shared Tasks; P27 partnerships/Requests/Appeals; P13/P14/P16/P21 financial facts and projections; P15 intake; P17 content/source compilation/release and P6 prepared-artifact/sealed-submission/recipient/dispatch; P12 grants; P22/P23 public-safe content; P29 custody; P31 qualified connections. New bounded source purposes are added to their owners, not duplicated in local workspace stores. Logical shapes and state/constraint/permission rules are in the normative volumes. Physical names follow existing qualified source conventions rather than historic research prototypes.
+Use P9 Parties, preparation, referrals, interactions and shared Tasks; P27 partnerships/Requests/Appeals; P13/P14/P16/P21 financial facts and projections; P15 intake; P17 content/source compilation/release and P6 prepared-artifact/sealed-submission/recipient/dispatch; P12 grants; P22/P23 public-safe content; P29 private file/derivative custody; P30 bounded missionary import review/commit into qualified restricted preparation; P31 qualified connections. New bounded source purposes are added to their owners, not duplicated in local workspace stores. Logical shapes and state/constraint/permission rules are in the normative volumes. Physical names follow existing qualified source conventions rather than historic research prototypes.
 
 ## Atomicity, retries and providers
 
@@ -37,6 +37,12 @@ Inventory actual legacy task/contact/pledge/profile/source rows, audiences, cons
 The precise Phase 6 preparation/sealed-submission producer remains a real delivery dependency; a plan compiler or draft editor is not its substitute. Other source implementation issues remain open as recorded in the evidence volume. Qualify exact capabilities without blocking independent native work or silently dropping specified functionality.
 
 ## Confirmed tests and observability
+
+Repository documentation checks run the read-only Phase 28 projection renderer
+and archival byte/inventory verifier in CI integrity and local preflight. They
+reject stale generated views or missing/altered historical evidence without
+executing probe programs or freezing living normative documents against dated
+publication hashes. These checks do not complete feature acceptance.
 
 Primary acceptance uses existing Playwright real user journeys across missionary/staff/coach/public surfaces. Supporting canonical API tests, real PostgreSQL grants/RLS/concurrency tests and existing Auth/provider contracts cover guarantees a browser cannot prove. No new parallel framework. Mandatory qualification cannot pass through skipped fixtures, demo Auth, mocked storage or old research models. Native outcomes, accessibility, representative workload, migration and restore all need their own evidence.
 

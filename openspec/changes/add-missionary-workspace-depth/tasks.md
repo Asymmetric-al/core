@@ -8,6 +8,7 @@ This is the specification's high-level acceptance sequence, not a published impl
 - [ ] 1.2 Reconcile and prove P13/P14/P15/P16/P21 financial, intake, correction, attribution and native follow-up source contracts.
 - [ ] 1.3 Identify and qualify the actual P6 preparation/sealed-submission producer and P17 native newsletter contracts; retain existing issue ownership and independently deliverable work.
 - [ ] 1.4 Qualify public-reader Auth/signup, own-principal coaching, resource custody/publication and narrow P31 provider contracts.
+- [ ] 1.5 Qualify P30 missionary review/commit and the P9/P4 restricted-preparation target with P29 private source-file/derivative custody and P12 grants; prove no staff-role substitution, automatic merge/contact update, unintended sharing, or duplicate effects on retry before enabling self-import.
 
 ## 2. Deliver complete native journeys with TDD
 

@@ -28,7 +28,7 @@ The published `owner-amendments.patch` is a dated publication artifact. The PR a
 Use the repository-pinned Bun and installed tooling. These commands verify documentation; they do not claim runtime qualification:
 
 ```sh
-node docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/tools/render-spec.mjs --check
+bun run verify:phase28-spec
 bun run verify:phase27-spec
 bun run verify:program-roadmap
 bun run openspec -- validate add-missionary-workspace-depth --strict
@@ -36,3 +36,9 @@ bun run ci:preflight
 ```
 
 After intentional canonical edits, regenerate Phase 28 with its renderer's `--write` option. Roadmap master-table changes use the program-roadmap renderer for both generated phase indexes. Keep historical evidence manifests and the published receipt distinct from these living projections.
+
+`verify:phase28-spec` checks the generated views and all 911 tracked archive
+files without writing or executing the historical corpus. It runs in the
+blocking CI integrity job and local preflight. Changes after the original
+publication are repository amendments; the 17 published-file hashes remain
+dated receipts for their original revision, not current-content invariants.

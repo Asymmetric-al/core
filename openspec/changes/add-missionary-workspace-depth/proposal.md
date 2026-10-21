@@ -22,11 +22,11 @@ The complete canonical specification is [Phase 28](../../../docs/prds/sitestacke
 
 ### Modified Capabilities
 
-Existing CRM, identity, communication, contribution, recurring, Page/CMS and donor-development owner contracts receive only the explicit coordinated amendments listed in the owner-reconciliation volume. Their existing active projections remain synchronized with their canonical sources. This consumer phase does not acquire their write authority.
+Existing CRM, identity, communication, contribution, recurring, Page/CMS, P29 private custody, P30 bounded import and donor-development owner contracts receive only the explicit coordinated amendments listed in the owner-reconciliation volume. Their existing active projections remain synchronized with their canonical sources. This consumer phase does not acquire their write authority.
 
 ## Impact
 
-The missionary, authorized Mission Control, own-principal coach and public/donor-reader experiences consume canonical API/auth/database and shared UI modules. P9/P12 source extensions, P13/P14/P15/P16 financial sources, P6/P17 communication, P21/P22/P23/P27/P29/P31 purpose interfaces and exact existing implementation issues remain separately qualified dependencies. Optional products do not back-gate native work.
+The missionary, authorized Mission Control, own-principal coach and public/donor-reader experiences consume canonical API/auth/database and shared UI modules. P9/P12 source extensions, P13/P14/P15/P16 financial sources, P6/P17 communication, P21/P22/P23/P27/P29/P30/P31 purpose interfaces and exact existing implementation issues remain separately qualified dependencies. P30's missionary review/commit and restricted-preparation target plus P29's private file/derivative custody must qualify before the self-import journey activates. Optional products do not back-gate native work.
 
 ## Non-goals
 

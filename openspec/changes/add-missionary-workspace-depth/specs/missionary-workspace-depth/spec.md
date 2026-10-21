@@ -5508,7 +5508,7 @@ Story: US28-C05. Source: coaching-resources.md. Decision basis: D8 portfolio and
 
 #### Scenario: AC28-C05-05
 
-- **THEN** No admitted shared evidence is described neutrally. Empty or unavailable information does not mean that a missionary did no work, failed to report or lacks support.
+- **THEN** Admitted shared evidence is described neutrally. Empty or unavailable information does not mean that a missionary did no work, failed to report or lacks support.
 
 #### Scenario: AC28-C05-06
 

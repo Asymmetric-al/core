@@ -461,7 +461,7 @@ Contract (binding):
 
 #### C.4 `getSupporterRoster` — named here, specified in section H [D5]
 
-`getSupporterRoster(missionary_scope, lens)` is the **designation-centric dual of `getPartyCreditActivity`**: same substrate (hard-credit effective lines UNION credits through the ONE A.3 fold), **zero copies**, cursor-keyed, one row per `(tenant, missionary_scope, party)` with `paths[]`. Its "perfectly aligned" acceptance fixture — every roster row's path sums ≡ `getPartyCreditActivity` filtered to scope, both lenses — is what enforces that the two duals can never drift. Grain, projections, churn policy, and the never-leak fixture list are section H's lane.
+`getSupporterRoster(missionary_scope, lens)` is the **designation-centric dual of `getPartyCreditActivity`** for recognized giving: hard-credit effective lines UNION credits through the ONE A.3 fold, with **zero copies**. Phase 28 C04 adds independently qualifying typed Phase 16 commitment subjects to the candidate-party union, never to recognition or Legal amounts. There is one row per `(tenant, missionary_scope, party)` with recognized `paths[]` and separate source-backed commitment evidence. Invalidation includes the P13 fold cursor, the qualified Phase 16 eligibility revision and applicable time boundaries. Its "perfectly aligned" acceptance fixture — every roster row's path sums ≡ `getPartyCreditActivity` filtered to scope, both lenses — remains binding, including commitment-only rows with no recognized-giving paths. Grain, projections, churn policy, and the never-leak fixture list are section H's lane.
 
 #### C.5 The MAX-per-(party, header) rollup rule [D4.13]
 
@@ -1053,7 +1053,27 @@ The design load case is the real one: a church remitting for **~20 members every
 
 **`getSupporterRoster(missionary_scope, lens)`** is a **named read model** — the **designation-centric dual of `getPartyCreditActivity`** (Implementation Decision C.2 answers "what has this party given?"; the roster answers "who supports this missionary?"). It is named in C.4; this is its owning specification.
 
-**Substrate — SAME substrate, ZERO copies.** The roster is a query shape, not a table: **hard-credit effective lines (the P13 fold) UNION `contribution_credits ⋈ lines ⋈ headers` through the ONE D1.4 recognition fold, keyed on the P13 `effective_seq` cursor** — cursor-invalidated like every P13 read model. **No roster table, no counters, no nightly rebuild.** (FORWARD: the `effective_seq` cursor and fold are the Phase 13 PRD's cached-effective-read-model contract, §E rule 8 — groomed, not built.) A correction that changes the fold advances the cursor, and the roster is correct on the next read; there is no pipeline to drift.
+**Giving-path substrate — same recognition fold, zero copies.** The giving paths are a query shape, not a table: **hard-credit effective lines (the P13 fold) UNION `contribution_credits ⋈ lines ⋈ headers` through the ONE D1.4 recognition fold, keyed on the P13 `effective_seq` cursor** — cursor-invalidated like every P13 read model. **No roster table, no counters, no nightly rebuild.** (FORWARD: the `effective_seq` cursor and fold are the Phase 13 PRD's cached-effective-read-model contract, §E rule 8 — groomed, not built.) A correction that changes the fold advances the cursor, and the roster is correct on the next read; there is no pipeline to drift.
+
+**Phase 28 C04 candidate extension.** Union the canonical Party subjects of
+independently qualifying typed Phase 16 commitments with the recognition-fold
+candidate set, within the same Tenant and missionary scope. The Phase 16 owner
+proves current commitment kind, state, eligibility and scope; an expectancy,
+unresolved identity or inaccessible subject is not a candidate. Apply the same
+current projection/privacy floor before enumeration. Deduplicate at the existing
+`(tenant, missionary_scope, party)` grain. Separate source-backed commitment
+evidence carries its qualification; it creates no credit row, giving path,
+received money or contact authority. A commitment-only row has no recognized
+paths and no invented giving amounts. The giving-path reconciliation fixture
+still compares the unchanged recognition fold on both sides.
+
+Cache validity also consumes the Phase 16 eligibility revision and its effective
+time boundaries; the P13 cursor alone cannot detect a changed or expired
+commitment. A historical-recognition cutoff cannot remove an independently
+qualifying commitment row. Prove current-commitment-only inclusion, expiry of
+recognition with commitment retained, end/revocation of the last qualifying
+source, and one deduplicated row when both sources qualify. Unavailable source
+qualification remains unavailable rather than becoming an empty or zero result.
 
 **Grain — ONE row per `(tenant, missionary_scope, party)`.** Mrs. Jones who gives directly AND through her church is **one row**, with the mechanism detail carried in `paths[]`. The path shape, verbatim from the ratified design:
 

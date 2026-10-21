@@ -159,6 +159,15 @@ remaining producer qualification; publication is not runtime activation.
 
 ## Phase 29 — files-documents
 
+- **Phase 28 D17 self-import custody:** the existing private Upload Intake owns
+  the exact source file and parser derivatives for a permitted missionary's
+  bounded contact-assertion import. P30 owns parsing/review mechanics; P9/P4
+  own target admission and P12 owns authority. Upload permission grants neither
+  staff migration access nor ordinary staff/coach visibility of restricted
+  preparation. Apply the exact target-purpose classification, access, malware,
+  retention/hold/disposal and restore rules to the file and its derivatives;
+  qualify this narrow custody seam before self-import activation. No second
+  file store or invented retention period is introduced.
 - **One storage-object/access model**: immutable digest and byte identity,
   owner-domain and owner-record reference, kind, Phase 10 classification,
   owner-supplied retention-policy reference, storage class, and provenance;
@@ -321,6 +330,29 @@ define domain truth.
 
 ## Phase 30 — imports-migration
 
+- **Phase 28 D17 restricted self-import profile:** admit a currently authorized
+  missionary as the reviewer/committer for their own same-Tenant restricted
+  preparation, without a staff-role substitution or routine second reviewer.
+  The closed target profile consumes the qualified P9/P4 admission command and
+  P29 private custody under P12 current authority; parsing or upload permission
+  cannot authorize arbitrary target commands. Choose file → Review → Import
+  and results preserves per-row outcomes, source provenance and same-intent
+  recovery through those owners.
+  Only qualified name/display, email, phone and mailing-address assertions are
+  admitted, with explicit multiple-value mappings. A usable name/label, email
+  or phone suffices; no universal email, location or Party-kind requirement is
+  added. Unsupported notes, care/history, money, goals, credentials, schema and
+  automation fields are shown excluded. Source/type/context labels remain
+  provenance rather than new Party facts.
+  This profile creates eligible restricted preparation or safely reuses an
+  authorized reference. It never auto-merges, bulk-updates existing contacts,
+  shares, verifies, enrolls, sends or grants consent. The general high-band
+  auto-merge and stable-ID update rules below do not authorize those effects
+  for this profile; ambiguous matches require the target's permitted explicit
+  choice without disclosing inaccessible candidates. Other import profiles
+  retain their existing rules. Qualify exact missionary review/commit grants,
+  target and custody boundaries, replay, partial failure, disclosure and
+  retained-data recovery before enabling self-import.
 - **Import wizard** to the 2026 embedded-importer bar (Flatfile/OneSchema/
   Dromo): CSV/XLSX upload, deterministic mapping suggestions with
   tenant-confirmed remembered mappings, template generation from the live

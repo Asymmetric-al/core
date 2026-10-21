@@ -4236,6 +4236,15 @@ Read the [complete retained Phase 28 owner obligations](../program-roadmap/owner
 
 One governed document service for CRM attachments, applicant evidence, missionary resources, donor documents, import files and public media custody. Staff should find and share the right file without confusing a public image, confidential document or executable development artifact. Asym owns classification, access, provenance and retention; storage providers hold bytes.
 
+For Phase 28 D17, this same private Upload Intake holds the permitted
+missionary's contact-import file and parser derivatives under their exact
+restricted-preparation purpose. P30 owns review/commit mechanics and P9/P4/P12
+own target acceptance and authority. File upload grants no staff migration
+power or staff/coach access to restricted preparation. Qualify current access,
+malware handling, purpose retention/hold/disposal and restore for both original
+and derivatives before activation; neither a public upload nor a second file
+store substitutes for this private custody seam.
+
 **Primary surface:** Mission Control File Manager and embedded document controls across the product. **Stable slug:** `files-documents`.
 
 <a id="phase-29-why-it-sits-here"></a>
@@ -4316,6 +4325,13 @@ Read the [complete retained Phase 29 owner obligations](../program-roadmap/owner
 
 The embedded migration product for bringing an organization's legacy data into Asym safely. Staff upload a file, understand the proposed mapping and effects, resolve errors and duplicates, commit authorized changes, and reconcile what actually arrived. The SiteStacker migration kit is a named delivery requirement, not an incidental example.
 
+Phase 28 D17 adds one bounded self-import journey: a permitted missionary
+reviews and commits their own eligible contact assertions into P9 restricted
+preparation through P30 mechanics and P29 private custody. This is not staff
+migration access, ordinary CRM sharing or a second importer. The exact target,
+review/commit grants, source-file/derivative custody, replay and per-row recovery
+must qualify before that journey activates.
+
 **Primary surface:** Mission Control Data Tools. **Stable slug:** `imports-migration`.
 
 <a id="phase-30-why-it-sits-here"></a>
@@ -4328,11 +4344,21 @@ The embedded migration product for bringing an organization's legacy data into A
 
 #### What it covers
 
-**Upload and mapping.** Support CSV/XLSX intake, source-specific templates generated from the field catalog, remembered tenant mappings, row-level validation, bulk correction and annotated error downloads. Mapping assistance may propose matches, but staff review determines the accepted plan; optional AI is not a prerequisite.
+**Upload and mapping.** Support CSV/XLSX intake, source-specific templates generated from the field catalog, remembered tenant mappings, row-level validation, bulk correction and annotated error downloads. Mapping assistance may propose matches, but the authorized reviewer determines the accepted plan: staff for staff import profiles, or the permitted missionary for their own qualified D17 restricted-preparation profile without a routine second reviewer. Optional AI is not a prerequisite.
 
 **Dry-run and reviewed commit.** Produce a no-write plan showing records to create, update, skip or queue for merge, dependencies, warnings and expected totals. Bind the plan to exact source bytes, mapping/version, scope and target revisions. Reprove authority and affected target state at commit; a changed target is a conflict, not permission to overwrite newer work.
 
 **Consistent duplicate handling.** Separate matching rules from permitted actions. Use the accepted exact/fuzzy identity evidence, confidence review and source-owned merge command across UI entry, APIs and bulk import. Do not make import an alternate path around classification, consent or duplicate controls. Any automated merge must already be permitted by the identity owner.
+
+The D17 self-import profile admits only qualified name/display, email, phone
+and mailing-address assertions, with explicit multiple-value mappings and no
+universal email/location/Party-kind requirement. It creates restricted
+preparation or safely reuses an authorized reference. No confidence band or
+stable external ID authorizes automatic merge, existing-contact bulk update,
+sharing, verification, enrollment, sending or consent in this profile.
+Unsupported fields are visibly excluded; ambiguous results use the target's
+permitted explicit choice without exposing inaccessible candidates. Other
+profiles retain their owner-qualified matching and update behavior.
 
 **Stable source identities and provenance.** Preserve external IDs, source system, batch identity, occurrence and recorded times, historical/cutover disposition and coverage. Reimport converges on the same permitted target identity instead of creating another copy. Provide per-record lineage and reconciliation against the source export.
 
@@ -4381,6 +4407,11 @@ Run a representative SiteStacker migration with reviewed exceptions and recovery
 #### Open decisions
 
 Choose importer build-versus-adopt, the first supported source export profiles, mapping-assistance data handling, per-target chunking and safe reversal policies. Resolve unsupported legacy fields and whether a target supports update, append, merge or reference-only import. Any uncertainty in historic finance, media rights or identity is decided by its existing owner, not by this transport phase.
+
+The bounded Phase 28 D17 reviewer and restricted-preparation target are already
+selected: qualify those exact contracts without reopening them as general
+import-policy choices. Other target profiles retain their own unresolved
+decisions and qualification gates.
 
 #### Existing owner requirements
 

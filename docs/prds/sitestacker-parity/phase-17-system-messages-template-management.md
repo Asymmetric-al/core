@@ -2552,6 +2552,31 @@ membership, and history/result constraints include `(scope_kind,
 scope_owner_id)`. This prevents NULL-unique gaps and cross-scope attachment.
 
 Tenant recipient identity ordinarily uses the existing same-tenant Party/contact-point arc. The narrow Phase 28 D43 native-confirmation branch instead binds its exact same-Tenant non-constituent recipient-authority revision and source occurrence, without a Party/contact row. Its immutable identity, preparation, dispatch, history and current access checks must all use that closed branch; no other producer gains recipient authority from this exception.
+
+The concrete tenant arc has closed `tenant_recipient_authority_kind` values
+`party_contact` and `native_newsletter_confirmation`. Recipient-bearing intent,
+preparation, result/history and action records carry that discriminator and the
+same immutable authority reference. The ordinary branch requires its existing
+same-Tenant Party/contact fields and nulls every native-confirmation authority
+field. The confirmation branch requires `native_confirmation_occurrence_id`,
+`native_confirmation_authority_id` and `native_confirmation_authority_revision`,
+and nulls Party/contact and platform-authority fields. A composite same-Tenant
+FK binds that exact occurrence/id/revision tuple to the qualified source's
+immutable confirmation-recipient revision; child/result FKs preserve the branch
+and tuple rather than accepting a different authority of the same Tenant.
+Database CHECK constraints enforce both exclusive field sets and reject unknown
+or missing kinds. Platform records null the entire tenant-recipient arc.
+
+Only the code-owned D43 native-newsletter email-confirmation purpose can consume
+the confirmation branch. It cannot create an in-product notification, Auth
+identity, Party or general recipient grant. Preparation and dispatch re-prove
+the source occurrence, frozen target/address, current authority and original
+expiry, using restricted encrypted delivery material for the actual address.
+Prepared-artifact AAD and recovered result/history access bind the exact branch
+and authority revision; a caller address, template or provider response cannot
+mint or replace that authority. Its required source uniqueness and composite
+keys must qualify before this branch activates; no generic recipient registry
+or substitute Party is introduced.
 Platform recipient identity is a closed, mutually exclusive authority union;
 platform v1 has exactly one branch, `eve_platform_owner`, containing an exact
 `platform_owner_notification_record_id`, authority revision, and
@@ -2659,8 +2684,9 @@ are excluded from the platform branch.
 
 Every `ExecutionScope` row expands the complete discriminator, owner arc, and
 composite constraints above, never a fake tenant. The recipient and connection
-arcs are both checked: the tenant branch requires Party/contact and a tenant
-delivery profile while nulling platform authority/settings; the platform branch
+arcs are both checked: the tenant branch requires one of the two exclusive
+tenant-recipient field sets above and a tenant delivery profile while nulling
+platform authority/settings; the platform branch
 requires `platform_recipient_authority_kind = eve_platform_owner`, its verified
 authority revision, and the platform delivery profile while nulling
 tenant/Party/contact/site and tenant-business relation fields. Unknown or future
@@ -2717,7 +2743,7 @@ proof; no live dependency may be stranded.
 14. Provider suppression is connection-region/contact-revision evidence, not a Sender Profile flag or Phase 3 consent replacement; only the owning remediation contract can supersede it.
 15. A secret revision cannot move directly from retired to verified erasure. Live purge, backup/escrow reachability, destruction-ledger application, and restore proof are explicit and monotonic.
 16. Scope ownership is an exclusive database arc, propagated through composite parent/result FKs and prefixed uniqueness/indexes; a provider batch/request is single-scope and cannot mix tenant or platform owners.
-17. Platform recipient authority is a closed mutually exclusive union; v1 permits only an exact revisioned FK to a currently verified app-owned Eve platform-owner record, not an address supplied by content or a caller. Tenant Party/contact and platform authority columns are mutually exclusive, and unknown/future authority kinds fail before intent creation.
+17. Recipient authority is a closed mutually exclusive union. Tenant scope admits only the required `party_contact` field set or the exact revisioned same-Tenant D43 `native_newsletter_confirmation` occurrence/authority tuple, never both. Platform v1 permits only an exact revisioned FK to a currently verified app-owned Eve platform-owner record. Tenant/native-confirmation and platform authority columns are mutually exclusive; a content/caller address, unknown kind or missing branch field fails before intent creation. Composite child/result FKs preserve the exact authority branch and revision.
 18. Tenant/client RLS predicates always require `scope_kind = tenant` plus the active tenant. Platform rows deny every tenant/client role and are accessible only through service-only platform commands. Provider ingress resolves a proved connection revision before scope lookup.
 19. Provider-event correlation is durable and address-free. The opaque route
     verifies one connection revision, derives its exact scope/owner, and binds
