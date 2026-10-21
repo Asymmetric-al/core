@@ -56,10 +56,13 @@
  * Environment:
  *   SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL   Target identity (loopback or
  *                             <ref>.supabase.co).
- *   DOCUMENT_CUTOVER_DATABASE_URL             Required. postgres:// URL with
- *                             user and password for document_cutover_reader
- *                             (pooler user document_cutover_reader.<ref>, or a
- *                             direct db.<ref>.supabase.co host). Its project
+ *   DOCUMENT_CUTOVER_DATABASE_URL             Required. postgres:// URL for
+ *                             document_cutover_reader: the Supabase session-mode
+ *                             pooler (port 5432, user
+ *                             document_cutover_reader.<ref>), or a direct
+ *                             db.<ref>.supabase.co host. It must name the
+ *                             host, port, database, user and password, and its
+ *                             only query parameter may be sslmode. Its project
  *                             ref must match SUPABASE_URL's. PG* variables,
  *                             DATABASE_URL and SUPABASE_SERVICE_ROLE_KEY are
  *                             never used.
@@ -74,6 +77,7 @@ import {
   realpathSync,
 } from "node:fs";
 import { writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -450,8 +454,75 @@ const PRIVILEGED_ROLES = [
   "postgres",
   "service_role",
   "authenticator",
+  "authenticated",
+  "dashboard_user",
+  "pg_read_all_data",
+  "pg_write_all_data",
   "supabase_admin",
+  "supabase_auth_admin",
+  "supabase_storage_admin",
+  "supabase_functions_admin",
+  "supabase_realtime_admin",
+  "supabase_replication_admin",
 ];
+
+/** The only query parameter the reader URL may carry. */
+const ALLOWED_SSLMODES = new Set([
+  "disable",
+  "prefer",
+  "require",
+  "verify-ca",
+  "verify-full",
+  "no-verify",
+]);
+
+/** A DNS hostname, IPv4 address or bracketed IPv6 address (never a socket path). */
+const NETWORK_HOST =
+  /^(?:\[[0-9a-f:.]+\]|[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*)$/i;
+
+const GATE_APPLICATION_NAME = "document-cutover-gate";
+
+type PgClientConfig = {
+  connectionString: string;
+  application_name: string;
+  connectionTimeoutMillis: number;
+  statement_timeout: number;
+  ssl?: false;
+};
+
+/** The connection fields pg resolves for a client config (its own resolver). */
+type PgEffectiveConnection = Record<string, unknown>;
+
+const requireFromGate = createRequire(import.meta.url);
+
+/**
+ * Runs `build` while no environment variable whose name starts with PG is
+ * visible, so pg never reads PG* variables when it resolves the connection;
+ * they are put back afterwards, exactly as they were.
+ */
+function withoutPgEnvironment<T>(build: () => T): T {
+  const saved = Object.keys(process.env)
+    .filter((key) => key.startsWith("PG"))
+    .map((key) => [key, process.env[key]] as const);
+  for (const [key] of saved) delete process.env[key];
+  try {
+    return build();
+  } finally {
+    for (const [key, value] of saved) process.env[key] = value;
+  }
+}
+
+/** What pg will actually use for `config`, resolved by pg itself. */
+function effectivePgConnection(config: PgClientConfig): PgEffectiveConnection {
+  const ConnectionParameters = requireFromGate(
+    "pg/lib/connection-parameters.js",
+  ) as new (config: PgClientConfig) => PgEffectiveConnection;
+  return withoutPgEnvironment(() => {
+    const params = new ConnectionParameters(config);
+    // `password` is defined non-enumerable by pg; read it explicitly.
+    return { ...params, password: params.password };
+  });
+}
 
 function withDeadline<T>(
   promise: Promise<T>,
@@ -491,13 +562,15 @@ function targetScope(
 
 /**
  * Checks DOCUMENT_CUTOVER_DATABASE_URL before any connection: present, a
- * postgres URL carrying the reader's user and its password (the URL is the
- * only source; PG* fallbacks are never used), and pointing at the same project
- * as SUPABASE_URL. Returns the URL, or a blocker.
+ * postgres URL whose only query parameter is sslmode, naming a network host,
+ * port, database, the reader's user and its password, and pointing at the
+ * same project as SUPABASE_URL. The URL is the only source; PG* fallbacks are
+ * never used. The config pg will actually use is then resolved by pg itself
+ * and must match the URL field by field. Returns that config, or a blocker.
  */
 function checkDatabaseUrl(
   env: CommandEnv,
-): { url: string } | { blocker: string } {
+): { config: PgClientConfig } | { blocker: string } {
   const raw = env.DOCUMENT_CUTOVER_DATABASE_URL?.trim();
   if (!raw) return { blocker: DATABASE_URL_MISSING_BLOCKER };
 
@@ -517,14 +590,57 @@ function checkDatabaseUrl(
     };
   }
 
-  const login = decodeURIComponent(parsed.username);
+  const urlBlocker = (detail: string) => ({
+    blocker: `STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL ${detail}; the URL alone decides the connection.`,
+  });
+
+  const keys = [...parsed.searchParams.keys()];
+  const extra = keys.find((key) => key !== "sslmode");
+  if (extra !== undefined) {
+    return urlBlocker(
+      `carries the query parameter "${extra}", but only sslmode is allowed`,
+    );
+  }
+  const sslmodes = parsed.searchParams.getAll("sslmode");
+  const sslmode = sslmodes[0];
+  if (
+    sslmodes.length > 1 ||
+    (sslmode !== undefined && !ALLOWED_SSLMODES.has(sslmode))
+  ) {
+    return urlBlocker("has an unsupported or repeated sslmode");
+  }
+  if (parsed.hash) return urlBlocker("carries a fragment");
+
+  let host: string;
+  let database: string;
+  let login: string;
+  let password: string;
+  try {
+    host = decodeURIComponent(parsed.hostname);
+    database = decodeURIComponent(parsed.pathname.replace(/^\//, ""));
+    login = decodeURIComponent(parsed.username);
+    password = decodeURIComponent(parsed.password);
+  } catch {
+    return urlBlocker("is not validly percent-encoded");
+  }
+  if (!host) return urlBlocker("names no host");
+  if (!NETWORK_HOST.test(parsed.hostname) || host.includes("/")) {
+    return urlBlocker(
+      "host is not a network hostname or IP address (a Unix socket path is never used)",
+    );
+  }
+  if (!parsed.port) return urlBlocker("names no port");
+  if (!database || database.includes("/")) {
+    return urlBlocker("names no database");
+  }
+
   const [role, ...refParts] = login.split(".");
   if (role !== READER_ROLE) {
     return {
       blocker: `STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL connects as "${role || "(no user)"}", not ${READER_ROLE}; the gate never reads the target as a privileged user.`,
     };
   }
-  if (!parsed.password) {
+  if (!password) {
     return {
       blocker:
         "STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL carries no password; the URL is the only connection source (PG* variables are never read).",
@@ -532,7 +648,6 @@ function checkDatabaseUrl(
   }
 
   const target = targetScope(env);
-  const host = parsed.hostname;
   const userRef = refParts.length > 0 ? refParts.join(".") : null;
   const hostRef = /^db\.([a-z0-9]+)\.supabase\.co$/.exec(host)?.[1] ?? null;
   const databaseIsLocal = LOOPBACK_HOSTS.has(host);
@@ -547,7 +662,14 @@ function checkDatabaseUrl(
         "SUPABASE_URL is a loopback target but the database URL names a hosted project ref.",
       );
     }
-    return { url: raw };
+    return resolvedConfig(raw, {
+      host,
+      port: Number(parsed.port),
+      database,
+      login,
+      password,
+      sslmode,
+    });
   }
   if (!target.ref) {
     return mismatch("SUPABASE_URL has no <ref>.supabase.co project ref.");
@@ -563,15 +685,70 @@ function checkDatabaseUrl(
       `the database URL's project ref (${refs.join(", ")}) is not ${target.ref}.`,
     );
   }
-  return { url: raw };
+  return resolvedConfig(raw, {
+    host,
+    port: Number(parsed.port),
+    database,
+    login,
+    password,
+    sslmode,
+  });
+}
+
+/**
+ * Builds the pg client config for a checked URL and requires that pg itself
+ * resolves exactly the URL's host, port, database, user and password, with no
+ * startup options, replication, binary mode or client encoding from anywhere.
+ */
+function resolvedConfig(
+  raw: string,
+  expected: {
+    host: string;
+    port: number;
+    database: string;
+    login: string;
+    password: string;
+    sslmode: string | undefined;
+  },
+): { config: PgClientConfig } | { blocker: string } {
+  const config: PgClientConfig = {
+    connectionString: raw,
+    application_name: GATE_APPLICATION_NAME,
+    connectionTimeoutMillis: 10_000,
+    statement_timeout: DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS,
+    ...(expected.sslmode === undefined ? { ssl: false as const } : {}),
+  };
+  const effective = effectivePgConnection(config);
+  const unbracket = (value: unknown) =>
+    String(value).replace(/^\[(.*)\]$/, "$1");
+  const mismatches = [
+    unbracket(effective.host) !== unbracket(expected.host) && "host",
+    effective.isDomainSocket !== false && "host (Unix socket)",
+    effective.port !== expected.port && "port",
+    effective.database !== expected.database && "database",
+    effective.user !== expected.login && "user",
+    effective.password !== expected.password && "password",
+    Boolean(effective.options) && "options",
+    Boolean(effective.replication) && "replication",
+    Boolean(effective.binary) && "binary",
+    Boolean(effective.client_encoding) && "client_encoding",
+    effective.application_name !== GATE_APPLICATION_NAME && "application_name",
+  ].filter((field): field is string => typeof field === "string");
+  if (mismatches.length > 0) {
+    return {
+      blocker: `STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL does not resolve to the connection it names (${mismatches.join(", ")}); the URL alone decides the connection.`,
+    };
+  }
+  return { config };
 }
 
 const SESSION_IDENTITY_SQL =
-  "select current_user as session_role, r.rolsuper, r.rolbypassrls from pg_catalog.pg_roles r where r.rolname = current_user";
+  "select session_user as login_role, current_user as active_role, r.rolsuper, r.rolbypassrls from pg_catalog.pg_roles r where r.rolname = current_user";
 const PRIVILEGED_MEMBERSHIP_SQL = `select r.rolname from pg_catalog.pg_roles r where r.rolname in (${PRIVILEGED_ROLES.map((role) => `'${role}'`).join(", ")}) and pg_has_role(current_user, r.oid, 'member')`;
 
 /**
- * The connected session must be document_cutover_reader, without rolsuper or
+ * The connected session (session_user and current_user) must be
+ * document_cutover_reader, without rolsuper or
  * rolbypassrls, and with no membership (direct or inherited) in a privileged
  * role. Returns a blocker, or null when the identity holds.
  */
@@ -583,8 +760,11 @@ async function readerIdentityBlocker(
   if (self.rows.length !== 1 || !row) {
     return `STOP THE LINE — the reader connection's role could not be confirmed as ${READER_ROLE}.`;
   }
-  if (row.session_role !== READER_ROLE) {
-    return `STOP THE LINE — the reader connection is "${String(row.session_role)}", not ${READER_ROLE}.`;
+  if (row.login_role !== READER_ROLE) {
+    return `STOP THE LINE — the reader connection's session_user is "${String(row.login_role)}", not ${READER_ROLE} (current_user "${String(row.active_role)}"); a session that switched role is never accepted.`;
+  }
+  if (row.active_role !== READER_ROLE) {
+    return `STOP THE LINE — the reader connection's current_user is "${String(row.active_role)}", not ${READER_ROLE} (session_user "${String(row.login_role)}").`;
   }
   if (row.rolsuper !== false || row.rolbypassrls !== false) {
     return `STOP THE LINE — ${READER_ROLE} has rolsuper=${String(row.rolsuper)} rolbypassrls=${String(row.rolbypassrls)}; the gate requires an unprivileged reader.`;
@@ -638,17 +818,17 @@ async function openReaderConnection(
   const checked = checkDatabaseUrl(env);
   if ("blocker" in checked) return checked;
 
-  const connection = new pg.Client({
-    connectionString: checked.url,
-    application_name: "document-cutover-gate",
-    connectionTimeoutMillis: 10_000,
-    statement_timeout: DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS,
+  // pg resolves its connection parameters when the client is built and
+  // connected; PG* variables are never visible to it at that point.
+  const { connection, connecting } = withoutPgEnvironment(() => {
+    const created = new pg.Client(checked.config);
+    // A dropped connection surfaces through the pending query; never crash.
+    created.on("error", () => undefined);
+    return { connection: created, connecting: created.connect() };
   });
-  // A dropped connection surfaces through the pending query; never crash.
-  connection.on("error", () => undefined);
   const client = serialReader(connection);
   try {
-    await withDeadline(connection.connect(), "connecting as the reader");
+    await withDeadline(connecting, "connecting as the reader");
     const blocker = await withDeadline(
       readerIdentityBlocker(client),
       "checking the reader identity",

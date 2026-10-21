@@ -17,7 +17,7 @@
 -- SQL editor); no password lives in this repository.
 --
 -- Function names, arguments and result columns follow
--- tests/unit/acceptance/issue-2067/document-cutover-contract.ts.
+-- packages/api/src/document-cutover/database-contract.ts.
 
 DO $$
 BEGIN
