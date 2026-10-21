@@ -12,7 +12,13 @@
 
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,6 +33,30 @@ import {
 } from "../packages/api/document-cutover-test-fixture";
 
 const createClientCalls = vi.hoisted(() => ({ count: 0 }));
+const approvalCalls = vi.hoisted(() => ({
+  authorizations: [] as unknown[],
+}));
+
+// Transparent wrapper: records the authorization the command passes to the
+// library approval, then runs the real implementation.
+vi.mock(
+  "../../../packages/api/src/document-cutover",
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import("../../../packages/api/src/document-cutover")
+      >();
+    return {
+      ...actual,
+      recordDocumentCutoverApproval: (
+        input: Parameters<typeof actual.recordDocumentCutoverApproval>[0],
+      ) => {
+        approvalCalls.authorizations.push(input.authorization);
+        return actual.recordDocumentCutoverApproval(input);
+      },
+    };
+  },
+);
 
 vi.mock("@supabase/supabase-js", async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -136,6 +166,46 @@ describe("#2066 command seam — injected detectors", () => {
     expect(stdout).toMatch(/^Status: complete$/m);
     expect(stdout.match(/^ {4}- /gm)).toHaveLength(1);
     expect(stdout).toContain("schema version unreadable");
+  });
+});
+
+describe("#2067 approval path — owners from allowlist.json, never allowedOwnerIds", () => {
+  it("passes authorization { owners: [{ id, role }] } from the committed allowlist and no allowedOwnerIds", async () => {
+    const allowlist = JSON.parse(
+      readFileSync(
+        path.join(REPO_ROOT, "docs/ops/document-cutover/allowlist.json"),
+        "utf8",
+      ),
+    ) as { owners: Array<{ id: string; role: string }> };
+    const [owner] = allowlist.owners;
+    if (!owner) throw new Error("allowlist.json lists no owner");
+    approvalCalls.authorizations = [];
+    const store = new InMemoryDocumentCutoverProofStore();
+
+    const exitCode = await runDocumentCutoverCommand({
+      argv: [
+        "--decision",
+        "no_go",
+        "--owner",
+        owner.id,
+        "--owner-role",
+        owner.role,
+        "--statement",
+        "Seam #2067: owners-only authorization.",
+      ],
+      env: { SUPABASE_URL: LOOPBACK_URL },
+      detectors: cleanDetectors(),
+      store,
+    });
+
+    expect(exitCode).not.toBe(0);
+    expect(await store.list()).toHaveLength(1);
+    expect(approvalCalls.authorizations).toEqual([
+      { owners: allowlist.owners },
+    ]);
+    expect(approvalCalls.authorizations[0]).not.toHaveProperty(
+      "allowedOwnerIds",
+    );
   });
 });
 

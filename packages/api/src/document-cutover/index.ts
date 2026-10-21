@@ -39,6 +39,14 @@ export {
   digestDestructiveCutoverPlan,
   validateDestructiveCutoverPlan,
 } from "./plan";
+export {
+  DOCUMENT_CUTOVER_FUNCTIONS,
+  DOCUMENT_CUTOVER_READER_ROLE,
+  DOCUMENT_CUTOVER_SCHEMA,
+  type DocumentCutoverDatabaseFunction,
+  type DocumentCutoverFunctionName,
+  type DocumentCutoverRoute,
+} from "./database-contract";
 export { redactDiagnosticText, redactExternalReference } from "./redaction";
 export {
   InMemoryDocumentCutoverProofStore,

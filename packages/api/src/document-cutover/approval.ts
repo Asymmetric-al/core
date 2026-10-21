@@ -67,7 +67,10 @@ export interface RecordDocumentCutoverApprovalInput {
     /**
      * @deprecated Id-only allowlist from before the owner-role check moved
      * into this library. Used only when `owners` is absent; it cannot check
-     * the role, so new callers must pass `owners`.
+     * the role, so new callers must pass `owners`. The #2067 operator gate
+     * always passes `owners` from allowlist.json and never this field.
+     * TODO(https://github.com/Asymmetric-al/core/issues/2066): remove once the
+     * #2066 acceptance harness passes `owners` instead.
      */
     allowedOwnerIds?: readonly string[];
   };

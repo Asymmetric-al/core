@@ -386,6 +386,38 @@ describe("approval re-derives safety from primitive evidence", () => {
     expect(proof.outcome).toBe("clean_preproduction_proof");
   });
 
+  it("ignores the deprecated allowedOwnerIds whenever owners is given (the #2067 path)", async () => {
+    const store = new InMemoryDocumentCutoverProofStore();
+    const assessment = await cleanAssessment();
+
+    // Listed by id in the legacy list, but the owners list has another role.
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment,
+        owner: OWNER,
+        approval: goApproval(),
+        authorization: {
+          owners: [{ id: OWNER.ownerId, role: "other_role" }],
+          allowedOwnerIds: [OWNER.ownerId],
+        },
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "owner_unauthorized" });
+
+    // An empty owners list is not rescued by the legacy list.
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment,
+        owner: OWNER,
+        approval: goApproval(),
+        authorization: { owners: [], allowedOwnerIds: [OWNER.ownerId] },
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "owner_unauthorized" });
+
+    expect(await store.list()).toEqual([]);
+  });
+
   it("records the caller's non-authorizing provenance and proof directory", async () => {
     const proof = await recordDocumentCutoverApproval({
       assessment: await cleanAssessment(),

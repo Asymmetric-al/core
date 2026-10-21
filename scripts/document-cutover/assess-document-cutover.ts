@@ -88,6 +88,8 @@ import {
 import {
   DOCUMENT_CUTOVER_ALLOWLIST_PATH,
   DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS,
+  DOCUMENT_CUTOVER_FUNCTIONS,
+  DOCUMENT_CUTOVER_READER_ROLE as READER_ROLE,
   DOCUMENT_CUTOVER_PROOFS_DIR,
   PHASE_18_DESTRUCTIVE_CUTOVER_PLAN,
   PHASE_18_INTEGRATION_SURFACES,
@@ -98,12 +100,6 @@ import {
   redactDiagnosticText,
   verifyDocumentCutoverEnvironmentProof,
 } from "../../packages/api/src/document-cutover";
-// The pinned document_cutover function contract (names, arguments, result
-// columns), shared with the migration checks and the fakes (#2067 ruling 2).
-import {
-  DOCUMENT_CUTOVER_FUNCTIONS,
-  READER_ROLE,
-} from "../../tests/unit/acceptance/issue-2067/document-cutover-contract";
 
 import type {
   DocumentCutoverAssessment,
@@ -112,6 +108,7 @@ import type {
   DocumentCutoverDetector,
   DocumentCutoverEnvironmentIdentity,
   DocumentCutoverEnvironmentProof,
+  DocumentCutoverFunctionName,
   DocumentCutoverProofStore,
   DocumentCutoverSurfaceInspection,
   DocumentCutoverSurfaceKind,
@@ -444,7 +441,7 @@ interface ReaderClient {
   end(): Promise<void>;
 }
 type ContractFunction = (typeof DOCUMENT_CUTOVER_FUNCTIONS)[number];
-type ContractFunctionName = ContractFunction["name"];
+type ContractFunctionName = DocumentCutoverFunctionName;
 
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
 
