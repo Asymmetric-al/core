@@ -3,7 +3,7 @@ source_name: Fission-AI/OpenSpec (openspec-explore)
 source_url: https://github.com/Fission-AI/OpenSpec/tree/v1.14.3/skills/openspec-explore
 source_type: github
 upstream_path: skills/openspec-explore/
-skills_lock_hash: 2ba7c3b2bc2a8003723487003e27095e4635aaa91b80671967cc8d9d60fb15a3
+skills_lock_hash: 40732f0d2a14bacb5a70e1ba81dff66c239dadb66648928cc2ccc9c08dbbb5ed
 last_reviewed: 2026-10-21
 ---
 
@@ -16,7 +16,7 @@ Canonical copy in this repo: `docs/ai/skills/openspec-explore/` (mirrored to `.c
 - **Commit reviewed:** `c794978f4f8845ce59693373c9dd882ee776588c`
 - **Upstream path:** `skills/openspec-explore/`
 - **Lock skillPath:** `skills/openspec-explore/SKILL.md`
-- **Computed hash:** `2ba7c3b2bc2a8003723487003e27095e4635aaa91b80671967cc8d9d60fb15a3`
+- **Computed hash:** `40732f0d2a14bacb5a70e1ba81dff66c239dadb66648928cc2ccc9c08dbbb5ed`
 
 ## Refresh from upstream
 

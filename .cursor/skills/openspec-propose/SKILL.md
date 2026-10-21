@@ -69,7 +69,7 @@ When the user is ready to implement, they must start the apply workflow explicit
 
 ---
 
-**Project check:** Before writing, run `bun run openspec -- list --json` and confirm the root is the local Core `openspec/` tree. A missing root, Store declaration, or external root is a configuration error: stop before writing and report it. Do not initialize a root or select an external Store.
+**Project check:** Before writing, run `bun run openspec -- list --json` and confirm the root is the Core checkout containing its local `openspec/` tree. A missing root, Store declaration, or external root is a configuration error: stop before writing and report it. Do not initialize a root or select an external Store.
 
 **Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
 
@@ -89,7 +89,7 @@ When the user is ready to implement, they must start the apply workflow explicit
 
 2. **Load project context**
 
-   Run `bun run openspec -- context --json` from the Core checkout and confirm `root.path` is its local `openspec/` tree. Stop before writing on a missing, external, or Store-backed root or any context error; report the error without initializing or selecting another root.
+   Run `bun run openspec -- context --json` from the Core checkout and confirm `root.path` identifies that checkout containing `openspec/`. Stop before writing on a missing, external, or Store-backed root or any context error; report the error without initializing or selecting another root.
 
    Only when context returns a resolved `root.path`, read `<root.path>/openspec/config.yaml`. Use `config.yml` only when `config.yaml` does not exist. If neither file exists, continue without project context. Do not fall back to `config.yml` if `config.yaml` is unreadable or invalid.
 

@@ -3,7 +3,7 @@ source_name: Fission-AI/OpenSpec (openspec-sync-specs)
 source_url: https://github.com/Fission-AI/OpenSpec/tree/v1.14.3/skills/openspec-sync-specs
 source_type: github
 upstream_path: skills/openspec-sync-specs/
-skills_lock_hash: a0dee8be594d0b9bb39aa0c2be8744b36696bc88ff561b5a91f0a3e074e9e8e2
+skills_lock_hash: c628a0f79596e724f678fd0e840ffebe0e88258bbd2d946aff5d3bc39e0dda3a
 last_reviewed: 2026-10-21
 ---
 
@@ -16,7 +16,7 @@ Canonical copy in this repo: `docs/ai/skills/openspec-sync-specs/` (mirrored to 
 - **Commit reviewed:** `c794978f4f8845ce59693373c9dd882ee776588c`
 - **Upstream path:** `skills/openspec-sync-specs/`
 - **Lock skillPath:** `skills/openspec-sync-specs/SKILL.md`
-- **Computed hash:** `a0dee8be594d0b9bb39aa0c2be8744b36696bc88ff561b5a91f0a3e074e9e8e2`
+- **Computed hash:** `c628a0f79596e724f678fd0e840ffebe0e88258bbd2d946aff5d3bc39e0dda3a`
 
 ## Refresh from upstream
 

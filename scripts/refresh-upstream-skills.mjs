@@ -1889,7 +1889,7 @@ async function ensureOpenSpecRepositoryScope(skillName, targetRoot) {
   let content = await readFile(skillPath, "utf8");
   content = content.replace(
     /\*\*Store selection:\*\*[\s\S]*?do not let a command create it\.\n/,
-    "**Project check:** Before writing, run `bun run openspec -- list --json` and confirm the root is the local Core `openspec/` tree. A missing root, Store declaration, or external root is a configuration error: stop before writing and report it. Do not initialize a root or select an external Store.\n",
+    "**Project check:** Before writing, run `bun run openspec -- list --json` and confirm the root is the Core checkout containing its local `openspec/` tree. A missing root, Store declaration, or external root is a configuration error: stop before writing and report it. Do not initialize a root or select an external Store.\n",
   );
   content = content
     .replaceAll(
@@ -1908,7 +1908,7 @@ async function ensureOpenSpecRepositoryScope(skillName, targetRoot) {
     )
     .replace(
       /^   Run `openspec context --json`[^\n]+$/m,
-      "   Run `bun run openspec -- context --json` from the Core checkout and confirm `root.path` is its local `openspec/` tree. Stop before writing on a missing, external, or Store-backed root or any context error; report the error without initializing or selecting another root.",
+      "   Run `bun run openspec -- context --json` from the Core checkout and confirm `root.path` identifies that checkout containing `openspec/`. Stop before writing on a missing, external, or Store-backed root or any context error; report the error without initializing or selecting another root.",
     )
     .replace(
       /^   - Asks to "show workflows"[^\n]+$/m,

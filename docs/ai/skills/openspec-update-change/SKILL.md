@@ -54,7 +54,7 @@ Allowed-tools metadata includes `Bash(bun:*)` so the local wrapper can run.
 
 Revise a change's existing planning artifacts and keep them coherent. Never edit code.
 
-**Project check:** Before writing, run `bun run openspec -- list --json` and confirm the root is the local Core `openspec/` tree. A missing root, Store declaration, or external root is a configuration error: stop before writing and report it. Do not initialize a root or select an external Store.
+**Project check:** Before writing, run `bun run openspec -- list --json` and confirm the root is the Core checkout containing its local `openspec/` tree. A missing root, Store declaration, or external root is a configuration error: stop before writing and report it. Do not initialize a root or select an external Store.
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 

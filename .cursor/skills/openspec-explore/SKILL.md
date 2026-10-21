@@ -58,7 +58,7 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 
 **This is a stance, not a workflow.** There are no fixed steps, no required sequence, no mandatory outputs. You're a thinking partner helping the user explore.
 
-**Project check:** Before writing, run `bun run openspec -- list --json` and confirm the root is the local Core `openspec/` tree. A missing root, Store declaration, or external root is a configuration error: stop before writing and report it. Do not initialize a root or select an external Store.
+**Project check:** Before writing, run `bun run openspec -- list --json` and confirm the root is the Core checkout containing its local `openspec/` tree. A missing root, Store declaration, or external root is a configuration error: stop before writing and report it. Do not initialize a root or select an external Store.
 
 ---
 

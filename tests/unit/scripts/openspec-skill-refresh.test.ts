@@ -172,7 +172,7 @@ describe("OpenSpec skill refresh", () => {
       expect(content).toContain("Keep the upstream workflow body.");
       expect(content).not.toContain("--store");
       expect(content).not.toContain("openspec store list");
-      expect(content).toContain("local Core");
+      expect(content).toContain("Core checkout containing its local");
       if (name === "openspec-update-change") {
         const description = content.match(/^description: (.+)$/m)?.[1];
         expect(description).not.toContain("run that command instead");
