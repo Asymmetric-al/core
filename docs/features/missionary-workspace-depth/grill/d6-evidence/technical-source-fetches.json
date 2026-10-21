@@ -1,0 +1,92 @@
+[
+  {
+    "name": "supabase-changelog",
+    "url": "https://supabase.com/changelog.md",
+    "status": 200,
+    "path": "/tmp/phase28-d6-primary/supabase-changelog.txt",
+    "bytes": 102319,
+    "sha256": "15b3d0d1a7dc3b3f2c0af4788e49acfdf2d2edbd2613f22de0705fa43b1cf58b",
+    "retrieved_utc": "2026-10-16T06:38:53.385443+00:00"
+  },
+  {
+    "name": "supabase-rls",
+    "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+    "status": 200,
+    "path": "/tmp/phase28-d6-primary/supabase-rls.txt",
+    "bytes": 30344,
+    "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+    "retrieved_utc": "2026-10-16T06:38:53.671634+00:00"
+  },
+  {
+    "name": "supabase-api",
+    "url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+    "status": 200,
+    "path": "/tmp/phase28-d6-primary/supabase-api.txt",
+    "bytes": 18172,
+    "sha256": "d2c47fd37a58003f294e11f47cdb05bdd2bb853f350c006a9e6a2c4249868e46",
+    "retrieved_utc": "2026-10-16T06:38:53.945482+00:00"
+  },
+  {
+    "name": "postgres-policy",
+    "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+    "status": 200,
+    "path": "/tmp/phase28-d6-primary/postgres-policy.txt",
+    "bytes": 46910,
+    "sha256": "4a75de7338882ab78829708c3c4de9caa309508f8ba7261702889e3d211139e1",
+    "retrieved_utc": "2026-10-16T06:38:56.490473+00:00"
+  },
+  {
+    "name": "postgres-constraints",
+    "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+    "status": 200,
+    "path": "/tmp/phase28-d6-primary/postgres-constraints.txt",
+    "bytes": 44707,
+    "sha256": "cce33512bf9c9dcc29db138e888b72710c8e38a1eff18e0c74afff1ff16f2f57",
+    "retrieved_utc": "2026-10-16T06:38:57.946720+00:00"
+  },
+  {
+    "name": "rfc8058",
+    "url": "https://www.rfc-editor.org/rfc/rfc8058.txt",
+    "status": 200,
+    "path": "/tmp/phase28-d6-primary/rfc8058.txt",
+    "bytes": 18219,
+    "sha256": "94f4529f3545fd0d6e7faac0f57d59ab7933b8fdf6e700017114c783b526c68f",
+    "retrieved_utc": "2026-10-16T06:38:58.453455+00:00"
+  },
+  {
+    "name": "owasp-token",
+    "url": "https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html",
+    "status": 200,
+    "path": "/tmp/phase28-d6-primary/owasp-token.txt",
+    "bytes": 79869,
+    "sha256": "a7b4ddd1151b8ae6ba1ec8883b3a64b3b83c10db2bbc5a5b4d5fc71aba44b96f",
+    "retrieved_utc": "2026-10-16T06:38:59.108765+00:00"
+  },
+  {
+    "name": "supabase-data-exposure-change",
+    "url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+    "status": 200,
+    "path": "/tmp/phase28-d6-primary/supabase-data-exposure-change.txt",
+    "bytes": 163464,
+    "sha256": "de0ed17c759de0ffa9d7b654adc27583f0058cf79ba30abf1ec8fd78feb6d813",
+    "retrieved_utc": "2026-10-16T06:40:30.626811+00:00"
+  },
+  {
+    "name": "supabase-postgres-minors",
+    "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+    "status": 200,
+    "path": "/tmp/phase28-d6-primary/supabase-postgres-minors.txt",
+    "bytes": 246966,
+    "sha256": "88c6bbf611fdef020f2b8624991cb0d9a29018e6ee7f8b0f6f96293d60d58e68",
+    "retrieved_utc": "2026-10-16T06:40:31.077797+00:00"
+  },
+  {
+    "name": "supabase-tls-change",
+    "url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+    "status": 200,
+    "path": "/tmp/phase28-d6-primary/supabase-tls-change.txt",
+    "bytes": 87726,
+    "sha256": "4b0f3d383da057f36baa97acfd2ca56e83ea953422168806c1b7551a9349fbe3",
+    "retrieved_utc": "2026-10-16T06:40:31.866941+00:00"
+  }
+]

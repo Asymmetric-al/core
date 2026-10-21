@@ -1,0 +1,221 @@
+{
+  "scope": "Synthetic D24 aggregate disclosure and period-authority counterexamples only; no safe-profile, source, database, permission or UX qualification",
+  "python": "3.12.14",
+  "case_count": 18,
+  "reproduced": 18,
+  "cases": [
+    {
+      "id": "S01",
+      "shortcut": "Remove protected details after counting all source rows",
+      "observation": {
+        "raw_count_returned": 7,
+        "post_floor_count": 5,
+        "details_removed_did_not_remove_count_contribution": 2
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S02",
+      "shortcut": "A larger activity count proves a larger protected population",
+      "observation": {
+        "activity_count": 10,
+        "distinct_supporters": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S03",
+      "shortcut": "Withholding an outcome count is enough while its complements are shown",
+      "observation": {
+        "total_calls": 5,
+        "answered_calls": 2,
+        "withheld_unanswered_recovered": 3
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S04",
+      "shortcut": "Hide the numerator but expose target and exact percent",
+      "observation": {
+        "target": 8,
+        "percent": "125/2",
+        "recovered_count": "5"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S05",
+      "shortcut": "Hide the count but expose target and remaining-to-target",
+      "observation": {
+        "target": 8,
+        "remaining": 3,
+        "recovered_count": 5
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S06",
+      "shortcut": "Each separately released total can be assessed without the prior release",
+      "observation": {
+        "previous_release": 4,
+        "current_release": 5,
+        "single_added_contribution_recovered": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S07",
+      "shortcut": "Overlapping authorized-looking windows reveal no finer interval",
+      "observation": {
+        "full_window_count": 5,
+        "overlapping_count": 4,
+        "excluded_interval_count": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S08",
+      "shortcut": "A protected subject total stays hidden when sibling and parent totals remain",
+      "observation": {
+        "public_total": 11,
+        "other_admitted_subject": 7,
+        "protected_subject": 4,
+        "recovered_protected": 4
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S09",
+      "shortcut": "A permission-reduced numerator means complete personal attainment",
+      "observation": {
+        "owner_known_count": 5,
+        "admitted_subset_count": 3,
+        "target": 8,
+        "owner_ratio": "5/8",
+        "subset_ratio": "3/8"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S10",
+      "shortcut": "Refresh the denominator while a cached old count remains current-looking",
+      "observation": {
+        "old": {
+          "target_revision": 1,
+          "quantity": 8,
+          "source_revision": 1,
+          "count": 5
+        },
+        "current": {
+          "target_revision": 2,
+          "quantity": 4,
+          "source_revision": 2,
+          "count": 3
+        },
+        "mixed_ratio": "5/4",
+        "current_ratio": "3/4"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S11",
+      "shortcut": "Both an empty cohort and unavailable evidence can use count-or-zero",
+      "observation": {
+        "complete_empty": [],
+        "unavailable": null,
+        "same_naive_display": [0, 0]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S12",
+      "shortcut": "Tenant/coach/subject cache key proves current sharing authority",
+      "observation": {
+        "same_naive_key": true,
+        "different_share_evidence": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S13",
+      "shortcut": "A view date filter may define the shared period grant",
+      "observation": {
+        "selected": ["2026-W42"],
+        "view_filter": ["2026-W42", "2026-W43"],
+        "newly_exposed": ["2026-W43"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S14",
+      "shortcut": "No scheduled share end determines fixed versus ongoing period scope",
+      "observation": {
+        "same_duration": {
+          "active": true,
+          "scheduled_end": null
+        },
+        "fixed_period_scope": ["2026-W42"],
+        "possible_stream_scope": ["2026-W42", "2026-W43"],
+        "duration_does_not_choose_between_them": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S15",
+      "shortcut": "Sharing a stable target ID authorizes every later definition/scope",
+      "observation": {
+        "reviewed": {
+          "target_id": "t1",
+          "measure": "calls",
+          "subject": "ministryA"
+        },
+        "changed": {
+          "target_id": "t1",
+          "measure": "meetings",
+          "subject": "ministryB"
+        }
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S16",
+      "shortcut": "A correction's new recorded timestamp keeps a fact in shared dates",
+      "observation": {
+        "granted_periods": ["2026-W42"],
+        "original_occurrence_period": "2026-W42",
+        "corrected_occurrence_period": "2026-W41",
+        "correction_recorded_period": "2026-W42",
+        "naive_count": 1,
+        "source_period_count": 0
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S17",
+      "shortcut": "Unavailable now is enough state to decide future recovery",
+      "observation": {
+        "temporarily_withheld": {
+          "grant_valid": true,
+          "profile_ready": false
+        },
+        "removed_grant": {
+          "grant_valid": false,
+          "profile_ready": true
+        },
+        "both_currently_unavailable": true,
+        "grant_after_profile_recovers": [true, false]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "S18",
+      "shortcut": "A missing-records badge is harmless even if raw identities are hidden",
+      "observation": {
+        "shown_admitted_count": 5,
+        "shown_excluded_badge": 2,
+        "recovered_full_count": 7
+      },
+      "counterexample_reproduced": true
+    }
+  ]
+}

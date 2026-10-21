@@ -227,9 +227,11 @@ These are product/architecture decision gates, not a claim that source work or
 qualification has completed. Details and current safe boundaries are in the
 [decision record](../../../docs/ai/audits/2026-09-23-contract-congruence.md#unresolved-owner-decisions).
 
-- [ ] Resolve C-01 with the founder and synchronize the Phase 13/15 correction
-      approval rule, affected acceptance and issue #766 before dispatching that
-      policy implementation.
+- [ ] Implement and qualify the Phase 28 D48 C-01 ruling now reconciled in
+      Phase 13/15: existing organization correction policy, current-policy
+      admission, independent mandatory controls and pending-work behavior.
+      Reconcile the affected execution issue before dispatch; policy settlement
+      does not mark runtime work complete.
 - [x] Record the founder's C-02 ruling in ADR-0206 and synchronize Phase 13–15
       target storage and OpenSpec: separate operational records, fully immutable
       posted financial rows and coherent owner projections.

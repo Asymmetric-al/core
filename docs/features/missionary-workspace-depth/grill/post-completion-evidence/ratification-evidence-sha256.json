@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-18",
+  "timezone": "Asia/Bangkok",
+  "scope": "All original completeness evidence and exact main/coverage/session snapshots before explicit ratification. Earlier programs are data only.",
+  "sha256": {
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/coverage-before-review.txt": "c67573061ab1d9561900b4d9590a2b6381e2053c041f8dc28f780aeca9a3af49",
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/cross-review-resolution.md": "61a0d96409d4fa7bc527c29881f409f1021c1cb33fa8aba74575326a59818e6d",
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/current-source-and-safety.md": "c02c0e8f24d9fc362a05f5297d633ad4fa81c40af3722cc6db0bdd8c652a85ab",
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/journey-coverage.md": "44b7e2ef2edf488dac41e1f6443149910fc3b90eab86ab358a06d57a790a60cf",
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/lifecycle-tenant-controls.md": "64cdd11376b3045612ee33fdd45849803004efc081cd3a35a48b90e8e560bebb",
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/owner-governance.md": "19dee95d0f16f779f3c0e9769d322b20875d6b40446380eb2d78959d66f5d320",
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/prior-evidence-sha256.json": "25cd7254597a8cb446eaacd2617bf3963e94f5edf06bdc2b6d0c74e08c5829fc",
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/root-research.md": "4b24b3e8c5529cd400c9ddb4a8a7a634afddaca8dd8b182bdb9d663cc5448387",
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/session-before-review.txt": "42e66f5008b4af028fe72683a60dc301ff0253a2a2380ad10a6ac65152bc443f",
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/ux-primary-research.md": "7528fe79d9cd12088427d8ea2a2aa341bee7658e15209f38b1f9f9aefc0f24dc",
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/verification.json": "826c3b1d0135f1179b85572c467fafa6806968febded8ae0da04ea438bbe0faf",
+    "docs/features/missionary-workspace-depth/grill/completion-evidence/verify-completion.py": "323eb17b3a52067e00e25d82e8241dc6c42c4d7ba9b03ddac540e518983238a9",
+    "docs/features/missionary-workspace-depth/grill/post-completion-evidence/coverage-before-ratification.txt": "6785252b7916359ef13f0760d59ee32cca2056a141c1b4b2e4d5d0840e24af4a",
+    "docs/features/missionary-workspace-depth/grill/post-completion-evidence/review-before-ratification.txt": "bb327a301e7e98abffd8af88da55c44cd40a6a48e22d524e4291a5ed50747ba8",
+    "docs/features/missionary-workspace-depth/grill/post-completion-evidence/session-before-ratification.txt": "59f7f95184f0d8622d16ab190a8794a71d88d17ebdccd77056ff204b25f1dc5f"
+  }
+}

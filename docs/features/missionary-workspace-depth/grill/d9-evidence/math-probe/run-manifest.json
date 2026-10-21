@@ -1,0 +1,25 @@
+{
+  "kind": "research-only actual-source financial summary model probe",
+  "started_at_utc": "2026-10-16T09:28:08.567998+00:00",
+  "finished_at_utc": "2026-10-16T09:28:08.648957+00:00",
+  "cwd": "/workspace/core",
+  "command": "node --input-type=module < docs/features/missionary-workspace-depth/grill/d9-evidence/math-probe/probe.mjs",
+  "runtime": "v24.19.0",
+  "exit_code": 0,
+  "stderr": "",
+  "source_hashes_match_before_after": true,
+  "source_sha256": {
+    "packages/api/src/missionary-portal/model.ts": "3e3b18309de7dd564fb6768fdc55e0c2d598a4a5ae677b92bce6d3472c8dd786",
+    "packages/api/src/missionary-portal/redaction.ts": "4f99c68f33b30f199132803a2411f1e418dc98085350e5dbaacee3bcd04cfd40",
+    "packages/missionary/components/dashboard-view.ts": "f24132c584ffefa7001c96da4b7388af1e7d466589ead5d1d15d89b3343d9ab3"
+  },
+  "probe_sha256": "3ed06765b008449e0f6b6ae622198cebf91311b89cc562f8728583eea2506569",
+  "stdout_file": "docs/features/missionary-workspace-depth/grill/d9-evidence/math-probe/results.json",
+  "stdout_sha256": "9f210b4c491568701a38098cc24578369a7a87bc4ff4b275a4a77542a2f04031",
+  "scope": [
+    "Checks assert observed current behavior, including defects; they do not certify desired financial semantics",
+    "No API, database, browser, React hook, JSX formatter, authorization, notification or provider pipeline executed",
+    "The extra refund_amount fixture is intentionally ignored by the current model, matching the separate static finding that its query does not select refund facts",
+    "Currency fixtures prove helper behavior, not that these values were observed in live production data"
+  ]
+}

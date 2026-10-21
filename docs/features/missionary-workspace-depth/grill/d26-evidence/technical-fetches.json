@@ -1,0 +1,104 @@
+{
+  "scope": "Public primary docs fetched for design review; not installed-runtime or live-project evidence.",
+  "sources": [
+    {
+      "url": "https://supabase.com/changelog.md",
+      "final_url": "https://supabase.com/changelog.md",
+      "status": 200,
+      "bytes": 102319,
+      "sha256": "15b3d0d1a7dc3b3f2c0af4788e49acfdf2d2edbd2613f22de0705fa43b1cf58b",
+      "retrieved_at": "2026-10-17T09:54:50.348785+00:00",
+      "temporary_body_path": "/tmp/d26-source-aa90bcae2149.txt"
+    },
+    {
+      "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "final_url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "status": 200,
+      "bytes": 246967,
+      "sha256": "bf03bf7495c416acf8f0a644011e52233346799830285faaacdc25a66437269b",
+      "retrieved_at": "2026-10-17T09:54:50.538426+00:00",
+      "temporary_body_path": "/tmp/d26-source-fb677bb21301.txt"
+    },
+    {
+      "url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+      "final_url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+      "status": 200,
+      "bytes": 87727,
+      "sha256": "a30fada46a23fd695b5abdf475e22f36fd04a7b82e6631d8a1a80e598255a938",
+      "retrieved_at": "2026-10-17T09:54:50.343171+00:00",
+      "temporary_body_path": "/tmp/d26-source-7d4c7191698a.txt"
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "final_url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "status": 200,
+      "bytes": 30344,
+      "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "retrieved_at": "2026-10-17T09:54:50.375531+00:00",
+      "temporary_body_path": "/tmp/d26-source-725feb9a5833.txt"
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/functions.md",
+      "final_url": "https://supabase.com/docs/guides/database/functions.md",
+      "status": 200,
+      "bytes": 10713,
+      "sha256": "9fe4a331db51fc7b91139c9ac62de0765477fb04f25a6960d38b9c57bc8b486d",
+      "retrieved_at": "2026-10-17T09:54:50.355829+00:00",
+      "temporary_body_path": "/tmp/d26-source-1d7858f91f05.txt"
+    },
+    {
+      "url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+      "final_url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+      "status": 200,
+      "bytes": 18172,
+      "sha256": "d2c47fd37a58003f294e11f47cdb05bdd2bb853f350c006a9e6a2c4249868e46",
+      "retrieved_at": "2026-10-17T09:54:50.587191+00:00",
+      "temporary_body_path": "/tmp/d26-source-2beedcc2ca99.txt"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "status": 200,
+      "bytes": 46910,
+      "sha256": "1772bf6791789204d77a0ed3e35c0ff2f7ea988fb71f64a0b4b3a19908fad6a6",
+      "retrieved_at": "2026-10-17T09:54:51.791753+00:00",
+      "temporary_body_path": "/tmp/d26-source-5f2b94c3f310.txt"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "final_url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "status": 200,
+      "bytes": 31181,
+      "sha256": "4cdf084d8e36009d03790c508585bd7c4c237aac4165dbbc9173866dbffc980e",
+      "retrieved_at": "2026-10-17T09:54:52.058390+00:00",
+      "temporary_body_path": "/tmp/d26-source-52dac3455751.txt"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "final_url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "status": 200,
+      "bytes": 47618,
+      "sha256": "e3475df0c76b214dbda0bc681015099763b83778e1355e17ee7b908e6fd38a26",
+      "retrieved_at": "2026-10-17T09:54:51.466932+00:00",
+      "temporary_body_path": "/tmp/d26-source-58b009b38ab1.txt"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "status": 200,
+      "bytes": 51069,
+      "sha256": "887e05c52a98890006d7d63cd1dcbb933309376ff78967bef6693f247dddbf43",
+      "retrieved_at": "2026-10-17T09:54:51.466811+00:00",
+      "temporary_body_path": "/tmp/d26-source-2f7ecfe23661.txt"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "final_url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "status": 200,
+      "bytes": 44707,
+      "sha256": "dadc6166e3dcae0a1c91ada5373ef046682876b6db32e8c771338a4cb9b8c4be",
+      "retrieved_at": "2026-10-17T09:54:51.798161+00:00",
+      "temporary_body_path": "/tmp/d26-source-b1773158297e.txt"
+    }
+  ]
+}

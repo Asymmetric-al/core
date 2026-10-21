@@ -630,14 +630,21 @@ provider material, or an existing id until same-scope ownership is proved.
 ### Requirement: Protected Actions Remain Producer-owned And Scanner-resistant
 
 Protected actions MUST be tenant-scope-only in this generation and MUST bind one
-exact Party/contact authority. Every platform-scoped contract MUST declare
+exact qualified recipient authority. The ordinary branch is Party/contact. The
+qualified Phase 28 native newsletter confirmation producer MAY instead bind its
+exact same-Tenant non-constituent recipient-authority revision and source
+occurrence under D43. This narrow exception SHALL use the existing protocol,
+fixed verified Tenant Donor Portal origin and current assurance/source checks; it
+SHALL create no Party, contact, Auth user, account claim, workforce assignment
+or general private-access grant and SHALL admit no arbitrary other producer.
+Every platform-scoped contract MUST declare
 `action: none`, and compilation MUST reject a platform protected-action
 descriptor. A later platform action requires a separately ratified authority
 contract and MUST NOT borrow tenant Party, site, session, or Supabase-invitation
 semantics.
 
-The producing domain MUST own every protected action's purpose, tenant, Party,
-resource, issuance credential, expiry, revocation, redemption, completion
+The producing domain MUST own every protected action's purpose, tenant, exact
+qualified recipient authority, resource, issuance credential, expiry, revocation, redemption, completion
 postcondition, and audit. Phase 17 MAY render only a typed action descriptor in
 the contract-approved protected-action node. Templates, imports, tests, and
 tenant staff MUST NOT create, reveal, rewrite, duplicate, relabel, track, or
@@ -798,6 +805,13 @@ provider acceptance MUST remain indeterminate under the same frozen identity.
   `CDN-Cache-Control: no-store`, and `Vercel-CDN-Cache-Control: no-store`
 - AND no cache, transform, stale response, optimizer, or service worker handles
   it
+
+#### Scenario: A native newsletter confirmation has no CRM Party
+
+- GIVEN the qualified P28 native confirmation occurrence binds one same-Tenant non-constituent recipient-authority revision
+- WHEN the reader deliberately confirms through the shared protected doorway
+- THEN current source/recipient/expiry rules are re-proved without creating a Party, contact, Auth account or workforce assignment
+- AND another producer cannot use this exception, while a scanner GET performs no enrollment
 
 ### Requirement: In-product Notifications Are One Role-safe Attention Projection
 
@@ -1028,8 +1042,34 @@ connection/profile, and MUST leave platform-authority fields null. The no-Party
 branch MUST leave Party/contact fields null and retain only its body-free,
 scope-safe authority/reference in durable execution and history. Its transport
 address MAY exist only in encrypted, short-lived prepared-delivery material and
-MUST NOT become identity or provider-event correlation authority. Platform
-recipient authority MUST be a closed mutually exclusive union. Platform v1 MUST admit exactly
+MUST NOT become identity or provider-event correlation authority.
+
+For the system-message and native-issue purposes specified here, the shared
+tenant arc MUST admit exactly the matching qualified `party_contact`,
+`native_newsletter_confirmation` or `native_newsletter_membership` field set.
+Other explicitly contract-permitted Phase 6 no-Party source profiles MUST retain
+their independently qualified typed arcs; no producer may fall through to
+another profile or select an arbitrary authority kind.
+The issue-email membership branch MUST require `native_newsletter_id`,
+`native_newsletter_membership_id` and `native_newsletter_membership_revision`
+with an exact same-Tenant/newsletter composite FK to positive membership
+authority. It MUST also bind `native_newsletter_issue_occurrence_id` to the
+authorized issue and sealed audience member of that same Tenant/newsletter.
+Party/contact, confirmation and platform-authority fields MUST be null.
+Intent, preparation, result and body-free history MUST preserve the exact
+branch, membership revision and issue occurrence. The qualified P28 issue
+producer MUST re-prove current membership, frozen destination revision,
+consent/suppression and source fences before preparation and attempt admission;
+withdrawal MUST narrow unstarted work without expanding or retargeting the
+sealed audience. A confirmed guest MUST need no Party. This issue-only branch
+MUST NOT authorize confirmation redemption, an in-product item, Auth identity
+or general private access, and MUST NOT change existing Target Live system
+recipient resolvers or add human-authored issues to the system-message catalog.
+The P28 exact-scope footer/RFC 8058 withdrawal protocol remains separately
+source-owned. Source uniqueness, composite keys and the actual producer MUST
+qualify before activation; unknown kinds or mixed field sets MUST reject.
+
+Platform recipient authority MUST be a closed mutually exclusive union. Platform v1 MUST admit exactly
 `eve_platform_owner`, carrying an enabled, verified app-owned
 platform-owner-notification-record revision and identity/permission epoch plus
 the fixed platform connection/profile, and MUST leave every tenant, Party,
@@ -1132,6 +1172,21 @@ platform proof pack. A generic catch-all Eve key is prohibited.
 - AND the address exists only in encrypted, short-lived prepared-delivery
   material while durable execution and history retain only the body-free
   scope-safe authority/reference
+
+#### Scenario: A confirmed guest receives an authorized native newsletter issue
+
+- GIVEN an active same-Tenant/newsletter membership revision with no Party
+- AND an authorized issue seals that membership and its destination revision
+- WHEN the qualified P28 producer prepares and admits the issue email
+- THEN Phase 6 preserves the exact membership branch and issue through history
+- AND it creates no Party and grants no native-confirmation authority
+
+#### Scenario: A newsletter recipient no longer matches its sealed authority
+
+- GIVEN a sealed member is withdrawn, changes destination or names another
+  newsletter's membership
+- WHEN preparation or attempt admission re-proves its authority
+- THEN the unstarted member is blocked without retargeting or audience expansion
 
 #### Scenario: Eve requests a platform-owner email and Discord alert
 

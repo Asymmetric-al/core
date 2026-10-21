@@ -1,0 +1,93 @@
+{
+  "scope": "All 21 existing D32 evidence files plus exact pre-ratification review preserved; no original evidence/model/probe/verifier rerun",
+  "artifacts": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/artifact-pins.json",
+      "sha256": "d79c0204e97a422569c5b1c759e3c0339d75b9e55145eb2d397bf19f1238b71b"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/combined-counterexamples.json",
+      "sha256": "6f4c5c459574ac8f95ec86f4e7df48b221ab56e45b9814f7fb463ed43e514ecd"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/combined-counterexamples.py",
+      "sha256": "6eb9ce99596d0e100682b8805eb84e92d0fb28aa79cdc6d82d821941bc68da4b"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/comparable-products.md",
+      "sha256": "8a3bfb98c378d88e5972bdc1b4abba3aea3516e5f2c07bef5588a7bf31f22c4a"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/cross-review-resolution.md",
+      "sha256": "ce9dd924ef59c30f0dbac2ab735e9f16fb8132efbaa6f0f4bdc537350ab177ef"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/d32-before-scope-reply.txt",
+      "sha256": "201ed55bca8f3862843dcfdcdc7d885f8dd219189413130be1da6555676329f1"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/database-authorization.md",
+      "sha256": "b17ed83e2c2ebc35b6425af92aeafe97ed341e8e2d386fe01503382de6cb720c"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/financial-fulfillment-lifecycle.md",
+      "sha256": "3553d7965d9d6ff296b7dada3d49c67611f4984a4b86c88052e69938288da9c6"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/governance-and-policy.md",
+      "sha256": "a1e4068ffbf7888bdd8879769055819a4235a7e1429638ecbba74e62bb75f5af"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/initial-model-readme.md",
+      "sha256": "dcab46829ac579f8e6a2bab0a85118b767724acb3261daa0faa145fad8e10415"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/initial-model.json",
+      "sha256": "dc8325d837538b5c81f78e0757f8ef67e56aa9348351b7442b775d98ac0cc563"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/initial-model.py.txt",
+      "sha256": "adbe5b291f3d6ff1337f19882d2cb010276879d4b48446a31c1fa79b27a95f94"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/model-readme.md",
+      "sha256": "63964b8b76501407e0d25fdce2ba834a4584f47d3ad739e9c95155d1c9d0aa2c"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/prior-evidence-sha256.json",
+      "sha256": "244e84485d0ed7d920f91ab27b98650e578b70da328693185403641add83262b"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/q32-before-answer.txt",
+      "sha256": "827a163187730c3efc01e59d3f5010a47946833b8eebe9efec1028cdd5a576e4"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/review-before-scope-reply.json",
+      "sha256": "4c8c3cafda24737e03f33ca1cfb650547c1aa2f52abe9418cd8e63b93571d8c0"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/review-verification.json",
+      "sha256": "7b09d5687eea13beeaffc07fcbbe6587e69f44ef06f707fc2ed7596f96505668"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/root-reproduction.json",
+      "sha256": "cfbe833bd8e8a7f5f7fc629a99853055cdf11b674d5491e598e7828840aafe88"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/scope-clarification.md",
+      "sha256": "ce83200db6ae85c0b4444337fc8f69c9dd64130a2159e7ca8c7c84918048e2df"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/ux-and-primary-research.md",
+      "sha256": "5826b7386693cf54c1bda84c90ef45387769000f855702ff0420217dc0435a46"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/verify-review.py",
+      "sha256": "a101c6f06ec43c917442b597e0abdabd504f6009054da34de7b271e824ac457f"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d32-evidence/d32-before-ratification.txt",
+      "sha256": "998b29572c783392b17b84b749b8dce6cf7bba970e161976e3b056554be54a85"
+    }
+  ]
+}

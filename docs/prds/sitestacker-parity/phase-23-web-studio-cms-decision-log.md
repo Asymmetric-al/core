@@ -6551,10 +6551,14 @@ a complete 17-category adversarial review.
 > 13. **Purpose-aware product handoffs.** Donation uses Phase 13 Giving rather
 >     than a generic form. Applications use Phase 34/37's future certified
 >     definition and Mobilize adapter. Classified care/crisis uses Phase 38.
->     Uploads wait for Phase 29. Newsletter consent/confirmation uses the
->     Phase 32 subscription owner through Phase 3's consent seam. Disabled
->     choices state the exact setup action; D26 does not invent placeholder
->     records.
+>     Uploads wait for Phase 29. Native missionary newsletter Join uses the
+>     Phase 28 recipient-purpose owner through the qualified Phase 3/12 consent
+>     and public-intake seams (Phase 28 D6/D7/D42–D45 amendment, 2026-10-18).
+>     Phase 32 retains separately governed external synchronization; the Phase 25
+>     Request newsletter handoff remains request-only and creates no enrollment.
+>     Each adapter must be qualified before activation; CMS placement, Auth
+>     verification and contact import alone provide no consent. Disabled choices
+>     state the exact setup action; D26 creates no placeholder records.
 > 14. **Accessible visitor journey.** Forms are short, predominantly single-
 >     column, visibly labeled, grouped, mobile/zoom safe, and server validated.
 >     Errors preserve answers, focus and link an accessible summary, appear at

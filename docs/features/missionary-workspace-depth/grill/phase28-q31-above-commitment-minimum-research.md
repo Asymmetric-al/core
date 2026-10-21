@@ -1,0 +1,157 @@
+# Q31 — minimum amount for verified above-commitment follow-up
+
+Research date: **October 18, 2026 UTC**. D30 and its required amendments are
+explicitly ratified, including one organization-wide On/Off setting initially
+Off. **The founder subsequently selected A.** The
+[D31 completed review](phase28-d31-confirmed-excess-follow-up-adversarial-review.md)
+returns **Accept with required amendments**. The corrected decision and required
+amendments were explicitly ratified on October 18, 2026 UTC. This original question research remains historical
+context, with the [unanswered snapshot](d31-evidence/q31-before-answer.txt) preserved.
+It does not establish an implemented classifier, financial editor, authorization
+grant or formal specification. References below to the open choice describe the
+pre-answer question, not its current status.
+
+## The single choice
+
+Grace's applicable commitment for Maya's ministry was fulfilled by earlier
+gifts. A later received gift contains **$5 of source-confirmed support beyond
+that commitment**. It is not catch-up, advance support, fee cover, another
+commitment's support or excess created by reducing the recorded commitment.
+No other automatic follow-up reason applies: this is not first support, a gift
+for a specific one-time need, an explicitly additional-purpose statement, a
+whole-gift amount-rule match or the gift that fulfilled the commitment.
+
+This is an illustrative design scenario, not a reported ministry workflow or
+proof that today's source can already produce the required comparison. The
+source must qualify the exact live gift/application, applicable target and
+terms, scope, currency and genuine positive excess before either option can act.
+
+**Should even a small, verified excess qualify for personal follow-up?**
+
+- **A — Follow up on any confirmed excess (recommended).** Any eligible positive
+  excess qualifies, however small. Maya sees the factual reason in her existing
+  compatible follow-up; no additional amount setting is needed.
+- **B — Let the organization set a minimum excess.** This reason qualifies only
+  when the verified excess reaches the organization's minimum for that currency.
+  Other independently qualifying follow-up remains unchanged.
+
+The example's $5 is not a suggested threshold. A is simpler and preserves
+qualified native attention without introducing another setting. B is the strongest
+alternative if tenants need to suppress very small above-commitment reasons;
+it adds configuration and a prospective policy/correction contract. Neither
+option changes money, proves donor intent, labels a donor, sends a message or
+creates a duplicate gift/task. D20 grouping and reviewed coverage still apply.
+
+## Why this choice is open
+
+- The [founder brief](phase28-founder-brief.md:165), [program owner constraints](../../../prds/program-roadmap/owner-constraints.md:74)
+  and [D21-C03](phase28-d21-explicit-gift-follow-up-adversarial-review.md:187)
+  already require qualified native above-commitment work. Asking whether to
+  replace all such work with manual Add, or require D29's additional-purpose
+  statement, would reopen or collapse that requirement. This question concerns
+  its materiality filter only.
+- [D21-C04](phase28-d21-explicit-gift-follow-up-adversarial-review.md:198)
+  requires the exact live gift/application, comparison target, terms and currency.
+  It rejects no-commitment/unmatched-money inference, catch-up, advance coverage,
+  reduced terms and current excess without new money as new special occurrences.
+  It selects no positive minimum for genuine new above-commitment support.
+- [D22's ratified amount rule](phase28-d22-amount-based-gift-follow-up-adversarial-review.md:16)
+  compares the **whole source-certified eligible gift amount** with a tenant
+  amount. It explicitly preserves other qualified reasons and does not decide
+  a minimum for only the excess portion. Reusing its setting would conflate two
+  different predicates.
+- [D29](phase28-d29-additional-gift-purpose-adversarial-review.md#exact-corrected-decision-to-record)
+  qualifies donor-stated additional purpose, and
+  [D30](phase28-d30-one-time-need-follow-up-adversarial-review.md#exact-corrected-decision-to-record)
+  qualifies a specific donor-accepted one-time purpose. Neither substitutes for
+  mathematical above-commitment evidence or settles this minimum.
+- B would be an explicit narrowing of this required native reason, not an
+  existing authority to disable every native reason. Its exact control, defaults
+  and temporal mechanics would require answer review; no per-donor/missionary
+  override, percentage formula or history heuristic is selected here.
+
+## Financial owner and application boundaries
+
+[P16 F.1–F.7](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:961)
+separates money, expectations, applications, recognition and review certainty.
+The same currency, exact source/target capacity, current authority, immutable
+applications and conserved correction remain its responsibility. A gift can be
+received while its commitment match needs review; that is not proof of excess.
+An installment overage can have a different meaning from support above the
+applicable commitment. An unresolved comparison withholds this reason rather
+than pretending the gift or commitment is zero.
+
+[P16 F.6](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1019)
+forbids automatic debt/prepayment/lifecycle inference. Fixed-pledge money may
+cover only explicitly named current/future targets or valid unscheduled balance
+through the owner's authority. P28 must not make a missionary apply money,
+change an installment plan or reinterpret a provider's payment to qualify a task.
+
+[P16 M.2–M.3](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1378)
+allows **Applied above current commitment** after a donor-requested reduction
+below earlier fulfillment. That does not mean a new gift arrived. Q31 deliberately
+excludes that case. The [active recurring-creation proposal](../../../../openspec/changes/add-recurring-giving/proposal.md)
+and its [donation lifecycle delta](../../../../openspec/changes/add-recurring-giving/specs/donation-lifecycle/spec.md)
+retain distinct terms, occurrences, payment/ledger truth and source ownership;
+they are not proof of an implemented P28 excess-purpose producer.
+
+The exact financial comparison contract remains a required owner qualification,
+not a fact the founder must invent. That implementation gate does not prevent
+choosing whether a _qualified_ positive result needs a materiality threshold.
+
+## Fresh primary research
+
+The following public primary pages were opened on October 18. Public instructions
+are evidence of documented behavior, not authenticated testing, empirical
+missionary feedback or authority to copy Core financial/access rules.
+
+| Source/date                                                                                                                                                                         | Documented behavior                                                                                                                                     | Useful lesson and boundary                                                                                                                                                                                                             |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [TntConnect — Dealing with gifts](https://www.tntware.com/tntconnect/help/en/pages/gifts_dealingwith.aspx), undated                                                                 | Describes automatic extra-gift thanks using pledge amount/currentness, a catch-up assumption when behind, and a smaller extra gift its detector misses. | Illustrates why size/history heuristics can miss or misclassify support. Do not import those heuristics, manual money workarounds or donor statuses into Core. It establishes no optimum excess minimum.                               |
+| [Blackbaud Altru — Apply a payment](https://webfiles-sc1.blackbaud.com/files/support/helpfiles/altru/help/content/tkApplyAPaymentToAnOutstandingCommitmentOfTheDonor.html), undated | A payment above the due installment can be directed to the next installment or overall pledge balance.                                                  | An installment overage is not automatically additional support. Core P16 owns the actual permitted application, never a new missionary-side shortcut.                                                                                  |
+| [Bloomerang — Create or edit split payments](https://help.bloomerang.com/en/articles/17568336-create-or-edit-split-payments), displays “Updated this week”; exact date unavailable  | A payment may contain different donation/pledge/recurring portions; recurring application distinguishes a scheduled versus extra payment.               | Keep gift total, applicable component and task reason distinguishable. Do not import its splitting permissions, automatic acknowledgement or arbitrary part limit.                                                                     |
+| [MPDX — Processing-fee adjustment](https://help.mpdx.org/article/1085-adjusting-a-recurring-gift-amount-to-reflect-the-eft-credit-card-processing-fee), updated May 3, 2021         | Documents a larger-than-commitment notification caused by small fee-covered differences and a workaround that changes the recorded commitment.          | Confirms a specific unwanted-alert scenario, not its prevalence or an optimum threshold. Core must qualify fee cover correctly rather than change financial terms to silence attention. The page's historical fee rate is not adopted. |
+
+None of these sources supplies evidence for a universally correct minimum
+excess, proves a small gift is unwanted, or demonstrates improved retention from
+one threshold. The recommendation for A is a product judgment: one fewer control,
+consistent evidence requirements and existing task grouping. B may suit an
+organization's desired workload, but choosing it should be deliberate rather
+than hidden in a default amount or borrowed from D22.
+
+## Journey and counterexamples checked before asking
+
+The donor follows the normal giving journey. Financial owners resolve received
+support and its exact application/extra meaning. Only a qualified source result
+can reach the native task producer. Maya sees a clear reason on the existing
+compatible task and its permitted exact gifts; she does not need to learn how
+the financial comparison was computed or edit a commitment. A display such as
+**Support above the recorded commitment** is illustrative pending answer review;
+it is not an assertion that the donor said the gift was additional.
+
+- A payment of $105 against a $100 expectation could also fulfill it; that
+  confounds the choice. Here earlier gifts already fulfilled the same source-qualified commitment
+  comparison scope, and the later gift creates no fulfillment transition.
+- $200 against a monthly $100 expectation may be authorized advance/catch-up or
+  relate to more than one target. A larger total is not sufficient evidence.
+- A $5 newly qualified excess must not be rejected merely because the whole new
+  gift is smaller than a usual installment. Conversely, unmatched $5 is not
+  automatically extra.
+- Reducing a promise after prior fulfillment creates no new monetary occurrence
+  and cannot replay gratitude work.
+- Zero, negative amounts, reversals, fees, rounding artifacts, hidden source,
+  unknown application and cross-currency comparisons cannot manufacture a
+  positive qualified excess.
+- D29/D30/D22 or another reason may independently qualify the same gift; they
+  are excluded in this scenario, and D20 must prevent duplicate handling if
+  they coexist in reality.
+- Multiple reasons or a later correction must not reopen already handled work.
+- B's threshold cannot silently become a filter for first support, one-time
+  needs, donor-stated additional purpose or other native reasons.
+
+Governance and financial reviewers independently confirmed that this narrow
+materiality choice remains open and is distinct from source qualification.
+Fresh benchmark review supplies semantic counterexamples, not proof of a
+particular minimum. No finite model, database experiment or prior test was rerun
+for this question. **Q31 is answered A; the corrected D31 decision and amendments are explicitly ratified.**
+No Q32 is posed during its answer review.

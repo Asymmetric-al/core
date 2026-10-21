@@ -1,0 +1,14 @@
+{
+  "actual_sha256": "6f4c5c459574ac8f95ec86f4e7df48b221ab56e45b9814f7fb463ed43e514ecd",
+  "byte_identical": true,
+  "counts": {
+    "counterexample_families": 18,
+    "passed_outcome_assertions": 137,
+    "positive_controls": 7
+  },
+  "date": "2026-10-18",
+  "expected_sha256": "6f4c5c459574ac8f95ec86f4e7df48b221ab56e45b9814f7fb463ed43e514ecd",
+  "limits": "Synthetic sequential cases, not real source causation, SQL/RLS, locks/concurrency, provider, migration, performance or UI proof.",
+  "scope": "Independent root execution of final D32 standard-library semantic model only; original D32 model and D31/older evidence were not executed.",
+  "script_sha256": "6eb9ce99596d0e100682b8805eb84e92d0fb28aa79cdc6d82d821941bc68da4b"
+}

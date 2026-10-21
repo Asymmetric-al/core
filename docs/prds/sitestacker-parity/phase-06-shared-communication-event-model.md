@@ -185,6 +185,19 @@ prepared-delivery material and never in durable communication history. No fake
 person is created, and an unresolved address cannot become identity or provider-
 event correlation authority.
 
+**Phase 28 native newsletter recipient qualification.** Human-authored issue
+email uses the closed `native_newsletter_membership` branch in the
+[shared concrete recipient model](phase-17-system-messages-template-management.md#target-data-model):
+an exact same-Tenant/newsletter positive membership id/revision, bound to the
+authorized issue occurrence and sealed audience member. A confirmed guest needs
+no Party/contact. Intent, preparation and body-free history retain that exact
+authority; preparation and attempt admission re-prove current membership,
+frozen destination revision, consent/suppression and source fences. Withdrawal
+narrows unstarted work, never rewrites submitted truth or retargets mail.
+This is distinct from native signup confirmation and grants no other producer,
+system-message catalog key or in-product recipient authority. Source keys and
+the actual producer remain qualification gates before activation.
+
 ### B. Deep modules (server-only, under `packages/api/src/communications`)
 
 Each is a deep module — a simple, testable interface hiding real complexity — with thin app routes and thin app pages calling in.

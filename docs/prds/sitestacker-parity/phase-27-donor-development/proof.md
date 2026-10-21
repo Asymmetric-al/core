@@ -258,19 +258,19 @@ Use one primary integrated product acceptance setup: actual authenticated owner 
 
 **Trace:** D22 R07/R15; D25; D29 R05; owner conflict register.
 
-E7 remains an explicit P13-owned unresolved temporal meaning: live source-code-to-campaign reporting versus posting-time/frozen campaign attribution and post-gift mapping immutability. The owner must define prior gifts including previously unmapped codes, hierarchy versus mapping changes, correction/refund/recurring-origin effects and current/historical measures. P27 SHALL NOT choose a hidden policy or drop the required native financial report: affected received-toward-appeal results are unavailable until the exact adapter is qualified; independent Requests, nonfinancial work and permitted financial source facts continue. C-01 separately concerns optional tenant separation versus mandatory different approver for posted-gift corrections. Affected correction implementation remains undispatched until the owner ruling. Request review, physical intake and assignment policy do not settle it. The spec records these gates without reopening any settled Phase 27 decision or pretending upstream policy is complete.
+Phase 28 D48–D50 settle the C-01/E7 owner choices and reconcile P13/P15/P16. P27 SHALL consume the qualified owner implementations, never infer readiness from policy publication. Earlier campaign association and accepted recurring origin remain stable except their authorized source corrections/prospective amendments; coherent current hierarchy and issued history remain distinct. Affected received-toward-appeal measures remain unavailable until exact source/association/coverage qualification. Independently permitted work remains usable. Correction commands SHALL obey the current organization policy and independent mandatory controls; a Request review or intake record supplies neither financial authority nor approval.
 
 ### AC27-Q15-01
 
-- **GIVEN** E7 attribution meaning is unresolved.
-- **WHEN** an affected appeal asks for received-toward-goal.
-- **THEN** the measure is explicitly unavailable, no live/frozen assumption is made, and independent work remains usable.
+- **GIVEN** the settled E7 policy lacks a qualified association/coverage adapter for an affected appeal.
+- **WHEN** it asks for received-toward-goal.
+- **THEN** the measure is explicitly unavailable, no live-map substitution or fabricated historical campaign is made, and independent work remains usable.
 
 ### AC27-Q15-02
 
-- **GIVEN** a reviewed Request or finance-intake record is used as authority to correct a posted gift before C-01 resolution.
-- **WHEN** the dependent command is proposed.
-- **THEN** that lane remains blocked by the financial owner, without manufacturing correction approval.
+- **GIVEN** a reviewed Request or intake record is offered as authority to correct a posted gift.
+- **WHEN** the dependent command is proposed under the settled C-01 policy.
+- **THEN** the P13 command requires actual correction authority, current policy and any required independent approval; the Request/intake record cannot bypass them, and an unqualified command lane remains unavailable.
 
 ## REQ27-Q16 — Truthful release evidence and staff pilot
 

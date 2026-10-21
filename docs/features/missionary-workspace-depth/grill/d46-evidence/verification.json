@@ -1,0 +1,92 @@
+{
+  "generated_at_utc": "2026-10-18T14:49:29.530715+00:00",
+  "scope": "D46 initial Off selection, surviving-clause reconciliation and unanswered Q47. Documentary checks only; no earlier executable/model run.",
+  "all_checks_pass": true,
+  "checks": [
+    {
+      "name": "Prior evidence untouched",
+      "pass": true,
+      "detail": 785
+    },
+    {
+      "name": "Glossary unchanged",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D13 original review preserved",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase28-d42-verified-email-newsletter-signup-adversarial-review.md ratified clauses unchanged",
+      "pass": true,
+      "detail": 24
+    },
+    {
+      "name": "phase28-d43-pending-newsletter-confirmation-adversarial-review.md ratified clauses unchanged",
+      "pass": true,
+      "detail": 15
+    },
+    {
+      "name": "phase28-completeness-adversarial-review.md ratified clauses unchanged",
+      "pass": true,
+      "detail": 20
+    },
+    {
+      "name": "D46 narrow selected Off recorded",
+      "pass": true,
+      "detail": "Selected Off for new organizations; existing choices and source permissions preserved. Corrected an inverted documentary assertion; product text unchanged."
+    },
+    {
+      "name": "Q46 answered; Q47 remains unanswered",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D11 untouched; no inferred date adoption",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Local links resolve",
+      "pass": true,
+      "detail": {
+        "checked": 705,
+        "broken": []
+      }
+    }
+  ],
+  "changed_documents": [
+    "docs/features/missionary-workspace-depth/grill/phase28-completeness-adversarial-review.md",
+    "docs/features/missionary-workspace-depth/grill/phase28-q46-regional-discovery-default-research.md",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md",
+    "docs/features/missionary-workspace-depth/grill/phase28-d13-regional-map-decision.md",
+    "docs/features/missionary-workspace-depth/grill/phase28-q45-newsletter-confirmation-duration-research.md",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md",
+    "docs/features/missionary-workspace-depth/grill/phase28-q44-newsletter-confirmation-period-research.md",
+    "docs/features/missionary-workspace-depth/grill/phase28-d43-pending-newsletter-confirmation-adversarial-review.md",
+    "docs/features/missionary-workspace-depth/grill/phase28-d44-standard-confirmation-period-decision.md",
+    "docs/features/missionary-workspace-depth/grill/phase28-d42-verified-email-newsletter-signup-adversarial-review.md"
+  ],
+  "new_documents": [
+    "docs/features/missionary-workspace-depth/grill/phase28-q47-coaching-end-date-research.md",
+    "docs/features/missionary-workspace-depth/grill/phase28-d46-regional-discovery-default-decision.md",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d46-amendment-reconciliation.md"
+  ],
+  "current_file_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-completeness-adversarial-review.md": "beb0ec83a78a09412e4255b38e42147a369923e90d72d8c1b60fef135cb6d2de",
+    "docs/features/missionary-workspace-depth/grill/phase28-q46-regional-discovery-default-research.md": "b6f4cb05d74f7ac22dc2fcb60184bf97ddaf928a31c8810633130f2ab2f9583e",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "dfe79509672667ae892642834e970f097de39e44a2c07485ef3769da798cb7e0",
+    "docs/features/missionary-workspace-depth/grill/phase28-d13-regional-map-decision.md": "96920ec7a45a041018e7d9ff2cd45151306dddad8765958ef42deedcc402be0b",
+    "docs/features/missionary-workspace-depth/grill/phase28-q45-newsletter-confirmation-duration-research.md": "0db9335b1b6ccb353d1078eb4436babd73cd4643b6ac68c4f7fecdfe082af4ab",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md": "c0b480292bea9f41e202cb184ac7a17aa6dd1be4019529f485fe8a4f9fee0407",
+    "docs/features/missionary-workspace-depth/grill/phase28-q44-newsletter-confirmation-period-research.md": "ee4a7d75d7fd004deafb1951e963d395898e7b771796f2fa4bd24fd740f40110",
+    "docs/features/missionary-workspace-depth/grill/phase28-d43-pending-newsletter-confirmation-adversarial-review.md": "106620cc7a1efe833298f899565fe1d4555aeb1a7f02173ede50a7d5af6d9152",
+    "docs/features/missionary-workspace-depth/grill/phase28-d44-standard-confirmation-period-decision.md": "ea08d6d9d487e15b7c5ba5af6cc0259bc7c4b417ebc3d8b3dfaca80faeda0ad7",
+    "docs/features/missionary-workspace-depth/grill/phase28-d42-verified-email-newsletter-signup-adversarial-review.md": "9991f512b8bfe2d44f09b648254d3d8d24bf0381e7cf7a1a141d0f4d35b3b4dd",
+    "docs/features/missionary-workspace-depth/grill/phase28-q47-coaching-end-date-research.md": "f71a0a0bb3514791ac64e1bd53618b201017e334192a211994add07715dba5c9",
+    "docs/features/missionary-workspace-depth/grill/phase28-d46-regional-discovery-default-decision.md": "3bfd328f90a389befec2c14138f8cdcb14862b825ad78f505e5bb96c6d125b29",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d46-amendment-reconciliation.md": "446b436cce7bf30072df94264d939aaeac91d9d16e0cc1e48f56b0e77820679c"
+  }
+}

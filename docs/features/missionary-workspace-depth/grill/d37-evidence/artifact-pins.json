@@ -1,0 +1,19 @@
+{
+  "purpose": "D37 reviewed documentation inputs, including this new structural verifier; no prior program execution.",
+  "sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d37-starting-guide-research-and-design.md": "58e57b52c2d56c11aff84acc335ad5ba4bd2d48b51040a63975bd2303fdf26bb",
+    "docs/features/missionary-workspace-depth/grill/phase28-q37-getting-started-guidance-research.md": "ba0308cf8c684b936bce7dfcc51f093e2c3c077a46f3fe3a81ce80fa6e0d9429",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "2bc79b8b862ed23082676d654621f431c81e225fa97269d10daff6b4dc4291bd",
+    "CONTEXT.md": "015ff48f5b3ba86958939aad613b345c8b359bd6f04c59233db1b28c0f4c18d1",
+    "docs/features/missionary-workspace-depth/grill/d37-evidence/coaching-campaigns-and-ux.md": "3b29b064390050bb5331d8c19b52ffc6ba7ba9bf08a3cb2c96604385915693cf",
+    "docs/features/missionary-workspace-depth/grill/d37-evidence/cross-review-resolution.md": "4720cc4daa6ec95031d88e52e6e5be41ca8dfb6b56a5b08813a251bdfeb93604",
+    "docs/features/missionary-workspace-depth/grill/d37-evidence/journey-counterexamples.md": "767eb0326dbce7af1824c62337bb1c6066831eadff7db2f813e5c656d295c1b7",
+    "docs/features/missionary-workspace-depth/grill/d37-evidence/missionary-methods-and-products.md": "926a0f37fb1628d57ee042aaddfa235647a679ed6ca108020ae8e334b5062d2d",
+    "docs/features/missionary-workspace-depth/grill/d37-evidence/prior-evidence-sha256.json": "9e26762277d2a5e7ab440c892646cef6d53f8dcc1a24468418ada5ca081c76c8",
+    "docs/features/missionary-workspace-depth/grill/d37-evidence/publication-and-access-safety.md": "25d379f4c46f35317fe6492614347146be5be87418a04c2ca7cc125ca9ccdde2",
+    "docs/features/missionary-workspace-depth/grill/d37-evidence/q37-before-answer.txt": "4d7ebd7547bcf7d8982a7f5607e8281a78155cda6e0bd364d8ea47f9b26b013d",
+    "docs/features/missionary-workspace-depth/grill/d37-evidence/repository-governance.md": "f631d2af388680530c8d8ce63337536559ab62d580d0f460612cff99f7a6c359",
+    "docs/features/missionary-workspace-depth/grill/d37-evidence/root-ux-research.md": "1103b757d3fae9e249dc9f97ccbe11e5a6d1246ba9d999e97caf8a536b8b4cd1",
+    "docs/features/missionary-workspace-depth/grill/d37-evidence/verify-review.py": "56208be69f19d07c2b2330ddc47145168b014f817b4aa8d0fcdbacc781fcaaf7"
+  }
+}

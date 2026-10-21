@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-18",
+  "scope": "Documentation-only specification verification; no feature runtime qualification.",
+  "counts": {
+    "stories": 205,
+    "requirements": 205,
+    "acceptance": 768
+  },
+  "volumes": [
+    {
+      "file": "proof.md",
+      "requirements": 27,
+      "acceptance": 82
+    },
+    {
+      "file": "relationships.md",
+      "requirements": 43,
+      "acceptance": 162
+    },
+    {
+      "file": "finance-stewardship.md",
+      "requirements": 44,
+      "acceptance": 129
+    },
+    {
+      "file": "communications.md",
+      "requirements": 42,
+      "acceptance": 130
+    },
+    {
+      "file": "coaching-resources.md",
+      "requirements": 49,
+      "acceptance": 265
+    }
+  ],
+  "decisionCoverage": 50,
+  "completenessCoverage": 20,
+  "checks": {
+    "requiredSevenTemplateSections": true,
+    "sourceProjectionExact": true,
+    "allRequiredIdsUnique": true,
+    "oldPhase27IdsPreserved": true,
+    "oldPhase27ProjectionExact": true,
+    "strictOpenSpec": [
+      "add-missionary-workspace-depth",
+      "add-donor-development",
+      "add-recurring-giving",
+      "sitestacker-parity"
+    ],
+    "newPackageFormatting": true,
+    "whitespace": true,
+    "newLocalLinks": true,
+    "protectedProductAndGlossaryUnchanged": true,
+    "originalGrillUnchangedExceptAuthorizedSessionTransition": true,
+    "allDeliveryChecklistItemsRemainUnchecked": true
+  },
+  "runtimeTests": "Not run: no feature implementation was performed.",
+  "publication": "Exact remote readback is recorded separately in publication.json."
+}

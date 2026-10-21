@@ -1,0 +1,831 @@
+# Phase 28 D42 — deliberate signup with a verified account email
+
+October 18, 2026, Core `9cada8f3d8ab59db391d3fd20df77fcadeb09813` and
+the research working tree. **Q42 B and its required amendments are explicitly
+ratified on October 18, 2026.** Review disposition: **Accept with required
+amendments**; those amendments are now adopted as planning requirements.
+This is a finished research and decision artifact, not implemented or
+release-qualified software.
+
+## Exact corrected decision to record
+
+> **B — Join using the reader's current verified account email.** When the
+> organization permits this option, a signed-in reader deliberately choosing
+> **Join newsletter** or **Rejoin newsletter** subscribes immediately to that
+> named newsletter using the same current verified account address shown to
+> them. The server validates the current Supabase identity and qualified
+> verification evidence for that exact address. Signing in alone never
+> subscribes anyone. Guests, other addresses and accounts without suitable
+> verification evidence use the ordinary email-confirmation path, without
+> needing an account.
+>
+> An already active identical subscription stays unchanged. A fresh permitted
+> rejoin replaces only that newsletter's prior withdrawal; it cannot clear
+> broader objections, complaints, hard bounces or other applicable restrictions.
+> A retry of an older Join cannot undo a later withdrawal. Changing an account
+> email never moves existing subscriptions automatically.
+>
+> Authorized staff have one organization-wide control, **Let signed-in readers
+> use their verified email**. When it is Off, subsequent new signups and rejoins
+> confirm by email. Existing subscriptions and their evidence are unchanged.
+> Existing organization and Page controls govern whether native signup is
+> offered at all. These controls do not unsubscribe readers or authorize sends.
+>
+> Both signup paths use one native subscription and consent authority. Signup
+> grants no donor claim, CRM relationship, tenant membership, protected reading
+> or other access. Personalized address and subscription feedback are private
+> interaction data, outside shared public Page caches. Success means the source
+> has accepted the subscription; it does not mean an email was delivered.
+
+This preserves B's actual convenience. A permanent implementation that sends
+confirmation to everyone because it never qualifies a reusable proof path does
+**not** satisfy B. Conversely, `email_confirmed_at` alone does not satisfy it.
+
+## Explicit ratification
+
+The founder instructed: “Ratify this decision and amendment. Then continue with
+this phase 28 grill-with-docs session. use the /grill-with-docs skill”. This
+adopts the exact corrected B decision, C01–C24, P01–P40 as future proof, and the
+bounded operating responsibilities in this review. It includes the single
+organization option/default, qualified current authenticator and mailbox
+evidence, private read/management assurance, and safe rejoin/recovery behavior.
+The corrected decision and behavioral clauses are unchanged; C24's status is
+updated to record this actual adoption.
+
+D6-C05's universal-confirmation recommendation is superseded only for the
+qualified current-address branch. D6-C07 pending-after-Page-entry-Off and C15's
+remaining finite proof/retention policy remain unadopted. Earlier independent
+packet statuses, ratified completeness C04/C05, and E7/C-01 are unchanged.
+Ratification is not implementation, runtime qualification or formal publication.
+
+All original D42 evidence and exact pre-ratification documents are
+[preserved](d42-evidence/ratification-evidence-sha256.json). The
+[new ratification verification](d42-evidence/ratification-verification.json)
+checks the unchanged requirements, status updates and preserved evidence without
+running previous programs. The next single question was
+[Q43 — pending confirmation when signup is hidden](phase28-q43-pending-newsletter-confirmation-research.md).
+The founder has subsequently selected A; the
+[D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)
+records that separate choice with its required amendments now explicitly
+ratified. [Q44](phase28-q44-newsletter-confirmation-period-research.md) addresses
+the remaining confirmation-period choice. No timing policy or blanket D6 adoption follows. This later status
+does not rewrite D42's ratified behavioral clauses.
+
+## Scope, alternatives and explicit supersession
+
+The strongest alternative is email confirmation for every new signup/rejoin.
+It has one proof ceremony and avoids evidence-reuse qualification, but adds an
+inbox round trip even when the exact current account address has suitable proof.
+B separates two facts: the new deliberate Join establishes newsletter-specific
+intent; qualified account evidence establishes the address assurance. It does
+not claim fresh inbox possession on every Join. This is a proportionate product
+judgment, not a legal rule or a measured conversion claim.
+
+B supersedes the **unadopted** universal-confirmation/no-verified-shortcut
+recommendation in [D6 C05](phase28-d6-adversarial-review.md:346), including
+dependent form/test wording for this branch. It retains active-identical no-op,
+purpose-specific consent, ordinary guest confirmation and stronger restrictions.
+[D7](phase28-d7-adversarial-review.md:13) expressly did not ratify D6. Ratified
+[completeness C07](phase28-completeness-adversarial-review.md#c07--amendment-status-and-genuine-policy-gates)
+preserves that distinction. This answer is not blanket D6 adoption.
+
+The user's new tenant-control request also replaces Q42's earlier proposal to
+add no confirmation-mode setting. One organization-wide narrowing option meets
+that request; per-reader, missionary, project, provider and Page exceptions do
+not have an evidenced need. The new-capability default is On only after the
+native capability is deliberately enabled and technically qualified. Existing
+stricter policy and Page-entry Off are preserved; missing policy is never On.
+
+D6-C07's pending-confirmation-after-Page-Off policy and D6-C15's proposed
+72-hour/24-hour timing and retention are **still separate, unadopted choices**.
+No such number or default completion policy is adopted here. Completeness
+C04/C05 remain ratified. E7/C-01 remain in their financial owning scope.
+
+## Evidence and what it establishes
+
+Four fresh independent workstreams supplied [Auth proof](d42-evidence/auth-proof.md),
+[database/authorization](d42-evidence/database-authorization.md),
+[owner reconciliation](d42-evidence/owner-reconciliation.md), and
+[UX/primary research](d42-evidence/ux-research.md). Root review reconciles them
+below. Prior evidence and the pre-answer documents are
+[preserved](d42-evidence/prior-evidence-sha256.json). Earlier probes, models and
+checkers are historical bytes; none is executed or imported for this review.
+
+| Evidence class                   | Verified finding or explicit limit                                                                                                                                                                                                                                                                                   |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Repository fact                  | [Local Auth configuration](../../../../supabase/config.toml:196) disables initial email confirmations and enables double-confirm email changes. This is committed local configuration, not hosted configuration evidence.                                                                                            |
+| Repository fact                  | [Demo seeding](../../../../packages/database/scripts/seed-demo-users.ts:154) administratively confirms addresses. A confirmed timestamp cannot universally establish mailbox possession.                                                                                                                             |
+| Repository fact                  | [Shared Auth context](../../../../packages/auth/context.ts:240) calls `getUser`, then depends on an operational profile and its tenant. A reader without that profile needs a narrow public-reader admission path, not a fabricated donor/staff profile.                                                             |
+| Repository fact                  | [Email consent helper](../../../../packages/api/src/email/consent.ts:110) checks negative restrictions; the inspected helper does not create or prove positive newsletter membership.                                                                                                                                |
+| Repository fact                  | [Later email grants migration](../../../../supabase/migrations/20260426100000_resend_email_rls_grants.sql:1) enables RLS and revokes browser access to suppression/provider tables. The earlier disabled-RLS foundation is superseded; no public-table exploit is established.                                       |
+| Repository fact                  | The [donor settings handler](<../../../../apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx:511>) changes local newsletter state and displays delayed success without a subscription source write in the inspected handler. It is not an authoritative exact-newsletter preference implementation. |
+| Repository fact                  | Committed Supabase SDK/SSR versions are 2.117.3/0.12.7. Deployed Auth server version, hosted configuration, effective grants, native proof provenance and production behavior were not inspected.                                                                                                                    |
+| Verified external fact           | Supabase explicitly documents implicit confirmation when Confirm Email is disabled, administrative confirmation, current `getUser` reads and the revoked-session limitation of local claims validation. These disprove a generic verified-flag shortcut.                                                             |
+| Inference                        | Reusing the existing staff-context tenant or negative-only consent helper without a new qualified source contract would either exclude legitimate readers or admit the wrong scope/evidence. This is a design risk, not an observed incident.                                                                        |
+| Product judgment                 | One visible exact address, one intentional Join, an obvious other-address path, one organization option, and no account requirement offer the clearest small journey.                                                                                                                                                |
+| Unknown requiring delivery proof | The actual producer, current-proof fence, migration compatibility, UI accessibility, end-to-end consent/delivery behavior and representative user success. No model or document check proves these.                                                                                                                  |
+
+### Current primary research and bounded transfer
+
+Sources were freshly opened on October 18, 2026; detailed observations and
+retrieval limits are in the linked evidence notes. None establishes that a
+competitor implements Core's exact proof-reuse contract.
+
+| Primary source                                                                                                                                                                                                                                                    | Useful established practice                                                           | Limit or rejected transfer                                                                                                                                   |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [Ghost newsletter setup](https://ghost.org/help/setup-email-newsletters/)                                                                                                                                                                                         | Named newsletters have distinct subscription choices and account preferences.         | Do not import automatic enrollment of existing members.                                                                                                      |
+| [Mailchimp opt-in settings](https://mailchimp.com/help/set-signup-preferences/)                                                                                                                                                                                   | Both single and double opt-in are supported product patterns.                         | Its form-only setting does not govern integrations/API; Core must enforce its rule at every source admission path.                                           |
+| [Mailchimp resubscription](https://mailchimp.com/help/resubscribe-a-contact/)                                                                                                                                                                                     | Readers can deliberately rejoin through signup, with permission evidence.             | Do not copy administrative override or treat a rejoin as clearing all restrictions.                                                                          |
+| [GoFundMe Pro contact opt-in](https://prosupport.gofundme.com/hc/en-us/articles/37288768563483-Customize-your-contact-opt-in-settings)                                                                                                                            | Organization communication choices and wording are separated from platform email.     | No preselected opt-in, donation prerequisite or campaign configuration matrix.                                                                               |
+| [Supabase Auth configuration](https://supabase.com/docs/guides/auth/general-configuration), [admin createUser](https://supabase.com/docs/reference/javascript/auth-admin-createuser)                                                                              | A confirmed database email may be implicit or administrative.                         | A timestamp or arbitrary verification Boolean is insufficient.                                                                                               |
+| [Supabase SSR guide](https://supabase.com/docs/guides/auth/server-side/advanced-guide), [sessions](https://supabase.com/docs/guides/auth/sessions)                                                                                                                | Current identity checks, request-scoped clients and cache controls matter.            | A separate Auth read and database write are not automatically atomic. Apply Core's Cache Components rules, not an incompatible copied route-segment example. |
+| [PostgreSQL policies](https://www.postgresql.org/docs/current/sql-createpolicy.html), [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)                                                                                       | Check effective grants, old-row access, allowed resulting state and privileged paths. | Omitted `WITH CHECK` can inherit `USING`; its absence alone is not a vulnerability. This corrects the loaded skill's overbroad warning.                      |
+| [W3C redundant entry](https://www.w3.org/WAI/WCAG22/Understanding/redundant-entry.html), [status messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html), [target size](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html) | Avoid needless retyping; announce asynchronous outcomes; preserve usable targets.     | Security exceptions remain valid. WCAG AA's 24 CSS pixel rule is not Core's stronger 44px control convention.                                                |
+
+The current Supabase changelog was fetched directly after the web renderer
+rejected Markdown content. Relevant Auth/runtime notices were checked in the
+Auth note. No unrelated upgrade or TLS exception is introduced. No ministry
+interview, authenticated competitor test, legal conclusion or conversion gain
+is claimed. A ministry pilot must verify comprehension and actual task success,
+not manufacture evidence of a workflow from plausible examples.
+
+## The complete small user journey
+
+### Organization setup and discoverability
+
+Place **Let signed-in readers use their verified email** with existing newsletter
+settings. Helper: “Readers who choose Join can subscribe with their current
+verified account email. Other readers confirm by email.” Off helper: “New
+signups and rejoins confirm by email. Existing subscriptions stay as they are.”
+Use existing settings authority and a real saved result. Technical unavailability
+is distinct from a staff-selected Off. Staff cannot self-certify a proof source.
+
+Keep the existing capability and **Show newsletter signup on this page**
+controls for availability. Explain once that hiding signup leaves existing
+subscriptions and independently authorized sends unchanged. A broader source
+shutdown, withdrawal and Page unpublishing retain their own meanings. No new
+dashboard, approval queue or per-contact switch is needed.
+
+The public ministry Page presents the named newsletter, public-safe organization
+name and useful description. Promise cadence only when supported. Signup is
+outside giving; neither gift entry nor a donation receipt implies consent.
+Do not use a forced popup or an account modal. A custom domain without a valid
+current session gets the guest form; no cross-domain cookie bridge is needed.
+
+### Qualified signed-in reader
+
+```text
+Maya's newsletter
+News from [public ministry name], from [organization].
+
+Join using reader@example.org
+[ Join newsletter ]
+Use another email
+
+You can unsubscribe from this newsletter at any time.
+Privacy information
+```
+
+Use the existing Base UI, exact `base-maia`, Zinc semantic colors, spacing,
+typography and focus patterns from [shared UI configuration](../../../../packages/ui/components.json).
+The address is visible and wraps. Do not require email/name re-entry, an extra
+checkbox, verification badge, password, second confirmation dialog or a wizard.
+The one deliberate action records the instruction. The private resulting view
+says **You're subscribed to Maya's newsletter**, shows the address and provides
+the qualified unsubscribe/manage action. It promises no issue delivery.
+
+**Use another email** opens the ordinary short form without signing out or
+changing the account. If the user switches accounts through existing account
+navigation, refresh the private signup context. Never silently substitute the
+new account's address for the one approved in an already open form.
+
+### Guest, other-address and unqualified-proof reader
+
+Use required Email and optional single Name, one Join action, readable purpose
+and withdrawal information. No account, password, postal address, phone or gift
+is required. A known unqualified signed-in address can be prefilled with clear
+“Confirm by email” guidance. An unavailable Auth service is not proof that an
+instruction was accepted; retain a deliberate guest option and honest retry.
+
+After durable public intake, use non-enumerating feedback such as **Signup
+received** with “If a confirmation email is needed and can be sent, we'll send
+you a link. Existing subscriptions stay unchanged.” A qualified private pending
+receipt may say **Check your email to confirm**. Never expose an arbitrary
+address's membership, suppression or donor status, or falsely assert that a
+pending membership exists in every branch.
+
+The email identifies this newsletter. Opening a link shows an explicit
+confirmation action; GET, scanners and previews do not subscribe. Confirmation
+works without login and without requiring the original device. Provide typo
+correction and bounded reader-requested resend through the same source. Do not
+silently enroll both addresses, reset lifetimes or turn this into Supabase login.
+
+### Rejoin and edge-case feedback
+
+| Situation                                                                               | Clear outcome and next step                                                                                                                                                                                   |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current exact membership already active                                                 | **You're already subscribed.** No duplicate, confirmation, welcome series or acquisition count.                                                                                                               |
+| Ordinary prior newsletter withdrawal                                                    | Private permitted view shows **Not subscribed** and **Rejoin newsletter**. One fresh deliberate eligible action suffices.                                                                                     |
+| Complaint, hard bounce, broader objection or applicable safety restriction              | Do not override it or promise subscription/delivery. Show only the authorized own-result explanation and source-approved remedy. Changing email is not an escape from person/organization-level restrictions. |
+| Pending guest signup followed by qualified account Join                                 | Converge on one membership; consume/supersede obsolete pending proof. Do not send an unnecessary second confirmation or leave an old link able to revive consent.                                             |
+| Email changed, including A→B→A                                                          | The current address revision must qualify; matching old text is insufficient. Existing memberships remain at their originally chosen destinations.                                                            |
+| Shared mailbox or two accounts with the same address                                    | One current membership for that exact newsletter/destination. Do not merge people, reveal CRM matches or infer household identity.                                                                            |
+| Account has no usable email, is anonymous Auth, or has only administrative confirmation | Use the ordinary explicit email path. Do not invent a verified address.                                                                                                                                       |
+| Policy changed before acceptance                                                        | Use current saved policy, explain the now-required path and retain safe input. Do not claim immediate subscription under an obsolete setting.                                                                 |
+| Page entry Off before new acceptance                                                    | New intake from that entry is unavailable; show clear availability copy. Existing accepted memberships and unsubscribe remain intact.                                                                         |
+| Already pending when Page entry becomes Off                                             | This remains the separate D6-C07 policy decision. This review does not invent its outcome. Purpose closure and stronger restrictions retain their own authority.                                              |
+| Lost response after possible acceptance                                                 | **We couldn't confirm the result yet. Check again.** Recover the same operation; do not manufacture another Join.                                                                                             |
+| Offline, timeout or definitely rejected save                                            | Preserve safe form input, truthful inline status and deliberate retry. No durable offline auto-Join queue or success-on-a-timer.                                                                              |
+| Sign-out/account/host change while resolving                                            | Clear private rendered data and fence stale responses. Accepted source work is not undone, but recovery requires current narrow authority.                                                                    |
+| Expired, superseded or withdrawn confirmation                                           | Explain that the link cannot finish signup; offer current allowed signup. Opening an old link creates no new intent.                                                                                          |
+
+Labels, errors and status messages must work by keyboard and screen reader,
+without color-only or toast-only meaning. Preserve focus and entered values,
+email autocomplete, one international-friendly optional name, 320 CSS pixel
+reflow, zoom, long addresses, translated text and reduced motion. Use supported
+international email handling; do not strip plus tags/dots or invent ASCII-only
+validation. If the actual delivery lane lacks an address capability, explain
+that limitation truthfully before accepting unsupported delivery. Dates in
+history are localized; authoritative timestamps are UTC instants. Basic signup
+must stay light on a poor mobile connection, without trackers or editor bundles.
+
+## Ownership and invariants
+
+| Authoritative fact                                                        | Owner and consumer boundary                                                                                                                                                                                                                                                                      |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Supabase principal/session/current credential                             | Shared Auth/P4; no newsletter-owned account directory. [ADR0214](../../../adr/0214-path2-tenant-isolation-with-shared-native-credential.md) retains tenant isolation; [ADR0215](../../../adr/0215-guest-attribution-exact-claim-proof-and-current-access.md) retains stronger donor-claim proof. |
+| Qualified reusable account-address evidence                               | P4 proof/current-address contract. One exact subject/address revision and qualified provenance; not client metadata, a profile copy or arbitrary linked identity.                                                                                                                                |
+| Native membership and deliberate consent history                          | P28 native source under P3 consent governance. [D6](phase28-d6-adversarial-review.md) supplies the proposed source extension; this must be formally reconciled before activation.                                                                                                                |
+| Recipient eligibility, suppression, sealed dispatch and delivery evidence | P6, with P17 protected system-action/content responsibilities. Positive membership is required independently of a negative suppression check.                                                                                                                                                    |
+| Exact public target/host and allowed source command                       | P22/P23 with P12 authority. Public projection stays read-only; a qualified public-intake server command performs mutations. No fifth context or union of staff/donor hats.                                                                                                                       |
+| Contact/Party facts and existing donor newsletter request                 | P9 and P25 respectively. Native Join creates neither. Existing external handoff requests are not migrated into subscribers.                                                                                                                                                                      |
+| Per-issue send authorization                                              | D7 and its source owners; a new member does not enlarge an already accepted/frozen issue audience or authorize any future issue.                                                                                                                                                                 |
+
+The [owner audit](d42-evidence/owner-reconciliation.md) maps precise source clauses.
+Formal reconciliation must explicitly extend the P23/ADR0170 P32-only handoff
+wording for the selected native P28 branch; optional P32 is not a native runtime
+prerequisite. It must preserve P4 A10/G01 for affected OAuth linking, P25's
+external request boundaries, D17 import limits and P12's four contexts.
+
+No current native producer or proof adapter was qualified by the static search.
+The permanent path is one source-owned admission command through
+[`packages/api`](../../../guides/architecture/data-access-boundary.md), using
+shared Auth and thin app routes. Do not attach the feature to the present local
+donor settings Boolean, add browser table writes or send directly through a
+provider. Replace misleading touched preference behavior with actual named
+source results when integrating, preserving any independently governed donor
+preferences.
+
+Minimal invariants, without prematurely choosing table/function names:
+
+1. At most one current membership per trusted tenant, exact newsletter purpose
+   and canonical destination; different newsletters/tenants remain independent.
+   Neither global email nor Auth subject alone is the membership key.
+2. Active consent requires both deliberate purpose intent and qualifying address
+   evidence. Current eligibility and delivery are separate facts. No absence of
+   a suppression row can supply positive consent.
+3. Tenant/purpose/destination/actor/proof/policy attribution comes from trusted
+   server sources and cannot be changed through an allowed pending-row update.
+4. Accepted intent, evidence, result and necessary identifier-only downstream
+   intent commit together. Optional confirmation transport does not own consent.
+5. New human rejoin can supersede ordinary withdrawal; old accepted/pending
+   intent cannot. Active-identical operations do not manufacture new consent.
+6. Auth/address/policy changes have a defined order relative to admission. They
+   cannot substitute another destination or retrospectively rewrite history.
+7. Optional Auth linkage is not a tenant access grant. Auth deletion cannot
+   silently cascade away required consent/withdrawal evidence or transfer a
+   subscription. Privacy owners govern minimization and eventual erasure.
+8. No money amount, receipt, commitment, balance, supporter edge or fundraiser
+   task is created by joining. No new financial data type or precision rule is
+   needed for this decision.
+
+## Material findings
+
+Likelihood is conditional design risk without the prevention, not a numerical
+incident estimate. Severity describes potential user/domain harm. The exact
+normative text is in the cited C clauses; the linked P cases make it falsifiable.
+
+### F01 — A confirmed flag is mistaken for mailbox evidence
+
+**High severity; likely if the obvious flag-only implementation is used.**
+Implicit/admin confirmation and arbitrary identity metadata can qualify an
+unproved destination. This matters because B promises reuse of verified evidence,
+not removal of address assurance. Evidence: local configuration, seeding and
+current Supabase documentation. **Narrows B**, without rejecting it. Permanent
+fix: P4-qualified provenance/current revision and a real ordinary mailbox proof
+producer, with safe legacy fallback. **Exact change: C02–C04; P03–P07.**
+
+### F02 — Public reader admission inherits the wrong tenant or privileged hat
+
+**Critical severity; plausible.** Reusing the member-only context can exclude
+legitimate readers, provision them as donors or admit/query another tenant's
+data. Current Auth context and P12 public projection have different purposes.
+**Clarifies B's authority.** Permanent fix: trusted public target resolution,
+the certified source command and narrow self-Join; no role fabrication or
+privileged impersonation of consent. **Exact change: C05/C13/C17; P08–P11/P28.**
+
+### F03 — A UI Boolean or provider list becomes shadow consent truth
+
+**High severity; likely if current settings/helper code is copied.** The
+inspected local settings save does not persist a native subscription; the
+suppression helper is negative-only. The UI can falsely report success or send
+without positive purpose consent. **Changes integration requirements.** Use one
+native authority, explicit recipient qualification and source-derived UI;
+preserve independent preferences. **Exact change: C06/C12/C16; P01/P12/P29.**
+
+### F04 — Rejoin or retry resurrects withdrawn or suppressed consent
+
+**High severity; plausible.** A global subscribe upsert clears the wrong scope;
+new transport keys replay stale intent, while permanent per-address dedupe blocks
+legitimate fresh rejoin. Evidence: separate existing restriction owners, consent
+cardinality, and the new bounded counterexample model. **Narrows rejoin and
+changes lifecycle precision.** Use durable intent identity, withdrawal ordering,
+fresh deliberate rejoin and active-identical no-op. **C10/C14/C16; P13–P18.**
+
+### F05 — Current proof is checked before a later, unguarded write
+
+**High severity; plausible under concurrent native Auth changes.** A completed
+email change, logout, policy change or closure can invalidate the old branch
+between `getUser` and commit. Matching A→B→A text hides changed proof. Direct
+native Auth endpoints make a newsletter-only cache lock insufficient. **Adds
+required acceptance semantics.** P4 must qualify the authoritative current-state
+fence and its ordering with admission; no asynchronous-cache or HTTP-read
+atomicity claim. **Exact change: C11/C15; P19–P23.**
+
+### F06 — Convenience exposes identity, list membership or other organizations
+
+**High severity; plausible.** Shared Page HTML, personalized RSC/cache responses,
+raw unique-key errors, telemetry or a recovery lookup can reveal private reader
+data. Current Page audience invariance and Supabase SSR cache warnings support
+the concern. **Narrows rendering and disclosure.** Private request-scoped state,
+non-enumerating public outcomes, safe errors and current recovery authority
+prevent it. **Exact change: C05/C17/C19/C20; P24–P28/P38.**
+
+### F07 — Partial success is presented as failure, pending or delivery
+
+**Medium severity; likely on unreliable networks without explicit recovery.**
+An accepted operation with a lost response may be repeated; an enqueue failure
+may be mislabeled “email sent”; an Auth outage may trigger unsolicited fallback
+mail. The current timer-success pattern and missing exact producer are evidence
+of an integration obligation, not a production incident. **Changes feedback and
+recovery requirements.** Atomic durable result, same-operation recovery and
+separate delivery states. **Exact change: C09/C16/C18; P20/P29–P31.**
+
+### F08 — Controls and steps obscure a simple deliberate choice
+
+**Medium severity; likely if every technical exception becomes a setting.**
+Ambiguous “Enable newsletters,” extra confirmation dialogs, required login,
+disabled unexplained buttons and proof-age/provider rules create friction and
+misconfiguration. Evidence: the selected user journey, D6/D7 distinct controls,
+W3C requirements and bounded product comparisons. **Simplifies B.** One org
+option plus existing entry controls, obvious address/other-address choice and
+accessible truthful states. **Exact change: C07–C09/C18; P01/P02/P32–P35.**
+
+### F09 — The shortcut silently expands another domain's authority
+
+**High severity; plausible.** Generic PKCE success, native OTP, automatic social
+linking, imported contacts or a provider callback could be treated as permission
+to claim a donor, create an account, subscribe or send. P4 A10/G01, P25 request
+scope and P6/P17 producer contracts explicitly disagree. **Narrows dependencies
+and requires explicit owner reconciliation.** No new Auth system, OTP login
+shortcut or provider subscriber master. **C03–C06/C16/C23; P06–P12/P29/P40.**
+
+### F10 — Unbounded lookup, replay or confirmation work creates cost and delay
+
+**Medium severity; plausible under concentrated public traffic.** Broad email
+scans, N+1 proof reads, unbounded pending records or unrestricted resends can
+degrade service and invite email bombing. No benchmark justifies a throughput
+claim. **Adds bounded operating requirements, not new product settings.** Exact
+indexed scope, bounded source queues and shared abuse controls, measured query
+and lock behavior. **Exact change: C19/C21; P36/P37/P39.**
+
+### F11 — Rollout, deletion or restore fabricates or loses consent history
+
+**High severity; plausible during adoption or recovery.** A profile/email-based
+backfill invents opt-in; Auth cascade deletion loses withdrawal evidence; old
+writers bypass safeguards; rollback or restore reenables removed consent.
+Evidence: current profile cascade, unqualified historical provenance and absence
+of a qualified native migration. **Adds lifecycle safeguards.** Evidence-based
+adoption, writer fencing, privacy-owned minimization and restore reconciliation.
+**Exact change: C20/C22; P07/P38/P39.**
+
+### F12 — A selected direction is advertised as ratified or working software
+
+**High severity; likely if the session's many prior decisions are summarized
+loosely.** It can silently adopt D6 Off/retention policy, copy a stale owner
+constraint or mark runtime proof complete from a model. **Changes traceability
+and readiness claims.** Clause-level supersession, separated selected/reviewed/
+ratified/formal/implemented/proved states and exact production-shaped tests.
+**Exact change: C23/C24; P40 and the full proof matrix.**
+
+## Independent review of all 22 categories
+
+Each row explicitly reports whether a material concern exists. F references
+carry the required harm, importance, severity, likelihood, evidence, answer
+effect and permanent prevention; C/P references supply exact changes and proof.
+
+| #   | Category                                                     | Material concern and result                                                                                                                                                                                                                                                                                                                             |
+| --- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Problem validity, necessity and alternatives                 | **Yes — F01/F08/F12.** B removes a real chosen inbox step; universal confirmation is the strongest alternative. User demand is verified; conversion benefit is not. C01–C04/C07–C09 avoid freezing tables, proof ages or a rule builder.                                                                                                                |
+| 2   | Brittleness                                                  | **Yes — F01/F05/F09.** Checked provider/admin/legacy proof, current session, custom domains, direct Auth changes and policy races. C02–C05/C11/C15; P03–P11/P19–P23.                                                                                                                                                                                    |
+| 3   | Technical debt                                               | **Yes — F03/F09/F11.** Checked duplicate identity/consent stores, fake save, legacy request conversion, source boundaries and writer cutover. C03/C06/C12/C22/C23; P12/P29/P39/P40.                                                                                                                                                                     |
+| 4   | Edge cases                                                   | **Yes — F04–F07.** Checked shared mailbox, ABA email, other address, missing email/profile, pending merge, restrictions, stale tabs and lost responses. C09–C18; P02/P07–P31.                                                                                                                                                                           |
+| 5   | Footguns                                                     | **Yes — F01/F04/F08/F09.** Checked auto-confirm flag, arbitrary email upsert, toggles, native OTP and silent retarget. C02–C04/C07/C10/C11/C14; P03–P07/P13–P23/P32.                                                                                                                                                                                    |
+| 6   | Tenant safety                                                | **Yes — F02/F06.** Checked trusted operational/CMS scope, same email across tenants, membership independence, private caches and privileged hats. C05/C12/C13/C17; P08–P11/P24–P28.                                                                                                                                                                     |
+| 7   | Database, RLS and authorization safety                       | **Yes — F02–F06/F11.** Checked non-null scope, tenant-aware FKs, uniqueness, optional Auth linkage, check constraints, deletes, indexes, evidence immutability, effective grants, both old/new predicates, views/RPC/service role and forged actor/proof. No money arithmetic is introduced. C12–C15/C20/C22; P08–P28/P38/P39.                          |
+| 8   | Overengineering                                              | **Yes — F08/F09.** Checked extra account, rules, proof-age knobs, approval queue, identity graph, welcome automation and cross-domain SSO. None is required. C03–C09/C18/C23 constrain the solution.                                                                                                                                                    |
+| 9   | UX/UI and user friction                                      | **Yes — F03/F06–F08.** Full discovery/settings/Join/other-address/guest/rejoin/recovery path, mobile, localization, names, email support, AT, shared devices and donation separation examined. C07–C09/C16–C18; P01/P02/P24–P35.                                                                                                                        |
+| 10  | Source of truth, ownership and invariants                    | **Yes — F01/F03/F04/F09.** Auth proof, deliberate consent, eligibility, send authorization and delivery have separate owners. C02–C06/C10/C12/C14/C23; P03–P18/P29/P40.                                                                                                                                                                                 |
+| 11  | Hidden coupling                                              | **Yes — F02/F05/F09.** Staff-context tenant, native auth callback, donor settings, P32-only wording and managed Auth internals cannot become hidden dependencies. C03–C06/C15/C23; P06/P08–P12/P19–P23/P40.                                                                                                                                             |
+| 12  | Failure modes                                                | **Yes — F05–F07.** Auth unknown, commit/response loss, confirmation enqueue and ambiguous provider acceptance examined. C09/C15–C17; P19–P31.                                                                                                                                                                                                           |
+| 13  | Lifecycle, temporal correctness, concurrency and idempotency | **Yes — F04/F05/F11.** Pending/active/withdrawn/restricted, accepted replay, genuinely new rejoin, proof and policy revisions, two tabs and current acceptance time examined. C10/C11/C14–C16/C22; P13–P23/P38/P39.                                                                                                                                     |
+| 14  | Data integrity risks                                         | **Yes — F03–F05/F11.** Checked one scoped membership, immutable evidence, no alias/person merge, stale source updates and migration/restore. C06/C10–C16/C22; P12–P23/P38/P39.                                                                                                                                                                          |
+| 15  | Security and privacy risks                                   | **Yes — F01/F02/F06/F09/F11.** Checked current principal, CSRF, exact-purpose proof, guest token separation, private missionary affiliations, logs, exports, backups, erasure and account deletion. C02–C05/C13/C17/C19/C20/C22; P03–P11/P24–P28/P38/P39.                                                                                               |
+| 16  | Scalability and performance risks                            | **Yes — F10.** Public bursts, hot destinations, lookup/queue bounds and repeated Auth calls need actual budgets and query/load evidence. No fabricated scale claim. C19/C21; P36/P37/P39.                                                                                                                                                               |
+| 17  | Operational burden                                           | **Yes — F08/F10/F11.** Checked routine rejoin without staff, no manual subscriber-flag repair, failed effect recovery, safe rollout and source-owned diagnostics. C07/C10/C16/C19–C22; P13–P18/P29–P39.                                                                                                                                                 |
+| 18  | Observability and auditability gaps                          | **Yes — F03/F07/F11/F12.** Technical traces differ from durable consent evidence, policy/proof provenance and current delivery state. C16/C20/C21/C23; P29–P31/P36–P40.                                                                                                                                                                                 |
+| 19  | Dependency and integration risks                             | **Yes — F01/F05/F09/F10.** SDK pin is not deployed Auth proof; provider callback/list is not consent; P6 owns required sends and adverse events. C02–C06/C15/C16/C19/C23; P03–P12/P19–P23/P29–P31/P40.                                                                                                                                                  |
+| 20  | Migration, rollout and upgrade risks                         | **Yes — F11.** Checked mixed versions, old writers, evidence-based classification, explicit activation, rollback after accepted consent and restore. C22; P07/P38/P39.                                                                                                                                                                                  |
+| 21  | Testability, traceability and proof                          | **Yes — F12.** Exact selected B and D6 supersession, glossary distinction, owner/OpenSpec mapping, future tickets/tests/release evidence examined. C23/C24 and P01–P40 are falsifiable future requirements, not reported passes.                                                                                                                        |
+| 22  | Other development hazards                                    | **No additional material concern found.** Checked monetization/gift coupling, workflow side effects, new dependency/license need, language implying guaranteed delivery, universal legal assertions and changes to unrelated financial gates. Those that create risk are already assigned above; no extra engine, policy claim or feature is justified. |
+
+## Exact required amendments
+
+The following language is ratified for the developing decision/design; formal
+publication still awaits `/to-prd`. SHALL denotes the adopted planning contract,
+not a claim that current code already enforces it.
+
+### C01 — Exact selected admission behavior
+
+A new native newsletter signup or rejoin SHALL require deliberate intent for
+one named newsletter. Where organization policy allows and C02–C05 qualify the
+same current displayed account address, Join SHALL activate through the native
+source without another mailbox-confirmation step. Other readers SHALL retain
+the ordinary confirmation path without an account requirement. Login, donation,
+follow, import and Page viewing SHALL NOT create subscriptions.
+
+### C02 — Qualified reusable address evidence
+
+Immediate admission SHALL require server-validated current Supabase principal
+and session plus P4-accepted mailbox-verification provenance for the exact current
+subject/address revision. `email_confirmed_at`, cached JWT email, `getSession`,
+profile/CRM email, editable metadata, arbitrary linked identity, autoconfirm,
+administrative marking or unknown imported proof alone SHALL NOT qualify. The
+current authentication and credential-admission path SHALL independently satisfy
+P4's applicable native/provider gates. Prior mailbox evidence SHALL NOT qualify
+an otherwise unadmitted attached authenticator. Proof
+reuse SHALL NOT be described as fresh mailbox possession or donor-claim proof.
+
+### C03 — A real proof-producing path, owned once
+
+Before B is enabled, the shared Auth owner SHALL qualify at least the ordinary
+native mailbox-verification path and its exact challenge/destination/redemption
+evidence. A generic successful PKCE callback SHALL NOT be treated as that proof.
+Provider evidence MAY qualify only through its separately admitted P4 lane;
+affected A10/G01 gates remain. Store only necessary proof/current-revision facts
+in the existing application-owned private identity scope. Do not add newsletter
+identity truth or custom objects in managed Auth schemas. Unknown historical
+provenance SHALL use ordinary newsletter confirmation, not fabricated backfill.
+
+### C04 — No identity or access elevation from newsletter signup
+
+Newsletter Join/confirmation SHALL NOT create an Auth account/session, change
+account email, link identities, upgrade account-verification assurance, claim a
+Party/donor, infer a person match or grant protected access. Anonymous newsletter
+confirmation SHALL use the non-auth exact-purpose source capability, not native
+`signInWithOtp`/`verifyOtp`. No arbitrary proof-age limit or forced repeated
+reauthentication is added by this decision; the qualified P4 policy governs.
+
+### C05 — Trusted public target and narrow reader authority
+
+The command SHALL resolve operational Tenant, Site/Page and exact newsletter
+from the trusted published target contract, not posted tenant IDs or the reader's
+profile tenant. The caller SHALL prove only the exact self-Join evidence needed;
+no target-tenant workforce/donor membership is required or created. Public
+projection remains read-only; mutation uses the qualified P23/P28 server source
+command and existing service authority. Staff/view-as/impersonation SHALL NOT
+manufacture a reader's deliberate instruction. No fifth P12 context or role
+union is introduced.
+
+### C06 — One subscription source and positive eligibility
+
+Both paths SHALL converge on one native membership/consent authority under P3.
+All touched preference displays and actions SHALL use its actual outcomes;
+local booleans and delayed success displays are not consent. P6 eligibility
+SHALL require positive exact-purpose membership and current independent
+restrictions. Provider contacts/lists, negative-only suppression helpers,
+P25 external requests and imports SHALL NOT become positive admission sources.
+D7 issue authorization and frozen audience remain separate.
+
+### C07 — One organization option and honest disablement
+
+Authorized staff SHALL control **Let signed-in readers use their verified email**
+once per organization. On permits only the qualified branch; Off sends subsequent
+new signups/rejoins through ordinary confirmation. The recommended default is On
+for newly and deliberately enabled, qualified native capability. Existing
+stricter policy and Page Off SHALL survive rollout; missing/invalid policy is
+not On. A saved change SHALL be versioned and checked at admission. It SHALL NOT
+rewrite existing consent, activate pending work or replay old intent. Existing
+source and Page availability controls retain their own effects. No per-reader,
+project, missionary, Page or provider confirmation exceptions are added.
+
+### C08 — One-action signed-in UI
+
+The private signup interaction SHALL show the exact current address, named
+newsletter, one **Join newsletter**/**Rejoin newsletter** action and **Use another
+email**. It SHALL require no duplicate email/name input or second consent dialog
+for the qualified branch. Other-address choice SHALL enter ordinary confirmation
+without changing Auth. Active-identical membership SHALL be truthfully displayed
+without new admission or confirmation. One action is measured from a ready,
+qualified signup view, not from discovering or loading the Page.
+
+### C09 — Guest and fallback remain first-class
+
+The ordinary form SHALL require only Email, with optional single Name, clear
+purpose and one submission action. It SHALL require no login, gift or account.
+Known ineligible proof MAY use that explicit path with clear confirmation copy.
+Unknown Auth/authorization failure SHALL NOT automatically send mail or claim
+pending/active status; offer deliberate recovery or the ordinary form. Public
+outcomes SHALL not enumerate membership, restrictions or CRM matches. Only a
+qualified narrow receipt may disclose exact pending state.
+
+### C10 — Rejoin and stronger restrictions
+
+A fresh eligible reader instruction MAY replace only that newsletter/destination's
+ordinary withdrawal, preserving its history. It SHALL NOT clear organization-wide
+objection, complaint, hard bounce, person-level restriction or other current
+safety constraint. Scope and remedy follow the owning restriction. An identical
+active membership SHALL be a no-op. Rejoin SHALL need no staff ticket or second
+dialog solely because it is a rejoin. Source-accepted consent, deliverability
+and observed delivery SHALL remain distinct.
+
+### C11 — Address and account lifecycle
+
+The approved destination and current account-address revision SHALL match at
+admission. Changed account/address requires review of the new displayed choice;
+the command SHALL NOT silently substitute it. A→B→A SHALL not reuse retired
+revision evidence merely because text matches. Subsequent account changes SHALL
+not move subscriptions, rewrite evidence or grant new consent. Shared mailbox
+proof SHALL not merge people. Account deletion SHALL follow C20/C22 rather than
+cascading away required source history or assuming withdrawal of all independent
+newsletter memberships.
+
+### C12 — Database identity and legal states
+
+The native source SHALL enforce non-null trusted tenant/purpose/destination
+identity, tenant-aware relationships and at most one current membership per
+exact scope. Optional Auth linkage SHALL have explicit null/delete behavior and
+shall not be the only membership identity. Evidence SHALL bind the approved
+destination/revision, intent, qualified proof reference, policy/disclosure
+revision, trusted actor or guest capability and server acceptance instant.
+Constraints and the single mutation boundary SHALL prevent active-without-proof,
+scope transformation and duplicate durable effects. Corrections append meaning;
+they do not rewrite past consent. Use source-owned supported email comparison;
+no invented plus/dot equivalence or global-email person key.
+
+### C13 — Effective grants, RLS and every privileged path
+
+Browser roles SHALL have no raw positive-admission/proof/evidence mutation
+capability. All APIs, workers and RPCs SHALL preserve old-row access, allowed
+new state and immutable tenant/actor/purpose fields. Review effective grants,
+`USING`, `WITH CHECK`, policy composition, views and function execution rights;
+literal absence of `WITH CHECK` alone is not a finding. Privileged commands must
+enforce the same source rules despite service-role RLS bypass. Definer functions
+require narrow execute grants, fixed safe search paths and qualified objects.
+No public proof table, subscriber Realtime feed, storage policy or raw constraint
+error may leak membership. Supported state mutations need readback proof.
+
+### C14 — Durable intent, withdrawal ordering and same-effect retry
+
+Admission SHALL serialize on the exact consent aggregate and atomically record
+the business effect, evidence, durable operation outcome and any required
+identifier-only secondary intent. Retry SHALL recover the same effect without
+reapplying it after newer withdrawal. A new HTTP key alone is not a new human
+rejoin; a permanent per-address idempotency key SHALL not prevent a genuinely
+new later instruction. Concurrent active-identical joins yield one membership.
+Old pending confirmation and pre-withdrawal intent SHALL not resurrect consent.
+
+### C15 — Currentness at a defined acceptance point
+
+P4 and the native source SHALL qualify a defined authoritative acceptance point
+ordering current session/address proof, source availability, current policy and
+restrictions with admission. A change ordered before that point must prevent
+use of the invalidated branch; a change after accepted admission does not
+retroactively retarget its destination. A `getUser` request followed by an
+unrelated write, asynchronous invalidation or a lock only on a newsletter cache
+SHALL NOT be claimed to establish this order. The supported P4 adapter must
+cover direct native Auth mutations and prove the actual race. No scattered
+managed-schema dependency or new distributed transaction framework is prescribed.
+An unqualified immediate path SHALL remain unavailable rather than fail open.
+
+### C16 — Pending proof, dispatch and recovery
+
+Qualified immediate Join SHALL require no redundant confirmation message. When
+confirmation is needed, it SHALL be purpose/destination/generation-bound and
+complete only through the explicit protected action; GET/scanners/opening do
+not mutate. A later qualified Join SHALL converge with pending work and make
+obsolete proof unable to revive consent. Required messages SHALL use P6/P17's
+qualified durable seam, not direct provider calls. Lost responses recover the
+same accepted operation under current authority. Success is source acceptance;
+queued/sent/delivered remain separately evidenced states. Retry never invents a
+welcome sequence or enlarges an accepted issue audience.
+
+### C17 — Private interaction and public non-enumeration
+
+Public Page content SHALL remain audience-invariant. Exact account email,
+subscription state, receipts and session-dependent controls SHALL be private,
+request-scoped and excluded from shared HTML/RSC/CDN caches, URLs, previews and
+public analytics. Sign-out/account/host/context changes SHALL fence stale
+responses and clear private UI data. Use shared clients per request, not shared
+mutable session clients. Public results/errors/timing SHALL avoid address-state
+enumeration. Address-keyed subscription status, manage/rejoin and recovery SHALL
+require qualified current same-address proof or an exact still-authorized source
+capability admitting that disclosure/action. An authenticated but unqualified
+address alone SHALL NOT reveal prior membership. A guest intake receipt admits
+only its own permitted operation result, not existing address-wide history or
+management. No path reveals other tenant/list/CRM relationships.
+
+### C18 — Accessible and honest feedback
+
+The existing design system SHALL provide visible labels, field-associated errors,
+keyboard/focus operation, inline announced status and adequate touch targets.
+Test 320 CSS pixel reflow, zoom, long/localized text, international-friendly name
+entry and actual supported email transport. Preserve safe inputs through errors;
+never display timed success before commit. Low bandwidth/offline handling SHALL
+offer honest deliberate retry, not automatic future enrollment. No color-only
+status, disappearing-toast-only outcome, mandatory animation or new UI library.
+
+### C19 — Abuse and capability boundaries
+
+All consent-increasing actions SHALL use protected state-changing requests with
+the existing origin/CSRF defenses, bounded validation and exact intent scope.
+GET/prefetch and a valid session alone cannot increase consent. Confirmation
+and recovery capabilities SHALL be narrowly scoped, expiring, non-enumerating
+and protected at rest; do not log raw secrets. Resend and public intake SHALL
+use qualified shared abuse/rate controls without account lockout or address
+reservation that lets an attacker block a real reader indefinitely. An accessible
+challenge, if necessary, follows established adaptive controls rather than being
+mandatory on every Join. Login-free reduction-only unsubscribe remains usable.
+
+### C20 — Evidence, retention and privacy
+
+Durable source history SHALL distinguish intent, proof provenance/reference,
+policy version, actor attribution, acceptance, withdrawal and correction from
+technical logs and provider events. Retain only what the governing privacy/source
+schedule permits; no indefinite raw-email/credential archive for dedupe. Exports,
+backups, logs and generated messages SHALL honor the same privacy boundary.
+Auth deletion, erasure and purge require explicit treatment of optional identity
+links and the minimum lawful anti-resurrection evidence. D42 SHALL NOT adopt
+D6-C15's proposed timing constants or invent a new verification-age policy.
+
+### C21 — Bounded performance and operating ownership
+
+Exact membership, policy, proof and recovery lookup SHALL use bounded indexed
+paths; pending/dispatch work SHALL use bounded batches and fair tenant scope.
+Avoid broad mailbox scans and per-row remote Auth checks in list rendering.
+Record dataset sizes, concurrency, query/lock plans and measured latency against
+an approved release budget. No throughput number is claimed by this review.
+The monitoring table below supplies signals, thresholds, accountable owners and
+responses; monitoring SHALL NOT substitute for permission or currentness proof.
+
+### C22 — Safe adoption, mixed versions and rollback
+
+Activation SHALL require the exact native producer, qualified proof lane,
+effective grants and old-writer fencing. No donation, profile, provider contact,
+external request, imported opt-in or confirmation timestamp alone SHALL be
+backfilled as consent/proof. Preserve legitimate existing policy/effects and
+classify unknown provenance without granting new assurance. New code/old schema
+must fail closed; old code/new schema must not bypass admission invariants.
+Rollback disables new affected admissions while preserving accepted history,
+recovery and withdrawal. Restore SHALL reconcile later withdrawals/restrictions
+before sends resume; reenable SHALL not replay old intent.
+
+### C23 — Exact owner and artifact traceability
+
+Formalization SHALL map D42 to P3/P4/P6/P12/P17/P22/P23/P25 and native P28 source
+contracts, explicitly reconcile D6-C05 and P32-only handoff wording, and preserve
+unrelated identity, financial, import and send rules. Use shared Auth/API/database
+boundaries and current components. The glossary records purpose intent versus
+address evidence, not table/API design. Later authorized tickets, tests and
+release evidence SHALL link the exact adopted C/P clauses. No duplicated consent
+resolver, premature ticket or implicit formal ADR change is authorized here.
+
+### C24 — Preserve unresolved policy and actual completion state
+
+Q42 B and this review's amendments are explicitly ratified. D6
+pending-after-Page-Off and its remaining finite proof/retention policy
+SHALL remain visible unresolved choices. No Q43 answer, blanket D6 adoption,
+financial ruling, implementation or release success is inferred. `/to-prd` and
+`/to-issues` remain the separate transitions. Documentation/model results SHALL
+state their bounds and never substitute for deployed Auth/RLS, browser, provider,
+migration, performance or representative-user proof.
+
+## Falsifiable acceptance and release proof
+
+Every P case below is a **future implementation requirement**, not a passed test.
+The separate new behavioral model tests only its stated abstract assumptions.
+
+| ID  | Independently observable outcome                                                                                                                                                                                                                                                                                        | Clauses         |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| P01 | Ready qualified signed-in reader chooses Join once; one authoritative membership is created without email/name/password re-entry or confirmation mail; refresh shows persisted state.                                                                                                                                   | C01/C06/C08     |
+| P02 | Use another email works without sign-out and changes neither Auth nor CRM; guest signup needs no account or donation.                                                                                                                                                                                                   | C04/C08/C09     |
+| P03 | Autoconfirm/admin-marked/demo/imported/metadata-only proof cannot take the immediate branch; known ineligible proof gets ordinary confirmation.                                                                                                                                                                         | C02/C03         |
+| P04 | At least the ordinary native mailbox-verification path actually supplies trusted current-revision proof and permits B end to end; global fallback-only implementation fails.                                                                                                                                            | C02/C03         |
+| P05 | Missing email, anonymous Auth and forged client address/proof/actor are rejected for immediate admission without fabricating an account/address.                                                                                                                                                                        | C02/C04         |
+| P06 | Unqualified OAuth/linking path remains gated even when its session presents an older valid native-mailbox proof; generic callback cannot mint proof; eligible independent native path remains usable.                                                                                                                   | C02–C04         |
+| P07 | Unknown legacy proof does not become qualified by timestamp/email matching; later actual qualified Auth verification can make future eligible Join immediate without retroactive consent.                                                                                                                               | C03/C11/C22     |
+| P08 | Reader without an operational profile can join the qualified public newsletter without donor/staff provisioning.                                                                                                                                                                                                        | C05             |
+| P09 | Reader signed into organization A can join B's public newsletter using exact qualified evidence, with no A relationship disclosure or B role grant.                                                                                                                                                                     | C05/C17         |
+| P10 | Forged tenant/Page/Site/purpose and CMS/operational-ID substitution produce no consent or disclosure.                                                                                                                                                                                                                   | C05/C12/C13     |
+| P11 | Staff, service and impersonation paths cannot use their privilege to manufacture another reader's self-Join; actual permitted command still works.                                                                                                                                                                      | C05/C13         |
+| P12 | Negative-only send allowance, local settings Boolean, external request, import and provider contact never substitute for positive membership.                                                                                                                                                                           | C06/C12         |
+| P13 | Active-identical Join is a no-op across two tabs; one membership, no extra proof mail or acquisition count.                                                                                                                                                                                                             | C08/C10/C14     |
+| P14 | Fresh post-withdrawal eligible Rejoin creates one new deliberate consent effect while preserving old history.                                                                                                                                                                                                           | C10/C14         |
+| P15 | Retried pre-withdrawal Join/old confirmation cannot reactivate; recovery describes accepted history and current state under current authority.                                                                                                                                                                          | C14/C16         |
+| P16 | Complaint, hard bounce, global objection and person-level restriction remain effective after attempted rejoin/other-email choice.                                                                                                                                                                                       | C10             |
+| P17 | Pending guest plus later eligible signed-in Join converge without duplicate membership/mail or a stale capability able to revive after withdrawal.                                                                                                                                                                      | C14/C16         |
+| P18 | Distinct lists/tenants, shared mailbox and two Auth identities follow scoped uniqueness without person merge; a valid fresh rejoin is not blocked by permanent email dedupe.                                                                                                                                            | C10–C14         |
+| P19 | Email/account change between display and acceptance cannot silently retarget; A→B→A requires current revision evidence.                                                                                                                                                                                                 | C11/C15         |
+| P20 | Race logout, deletion, banning/session invalidation and native email change against the actual acceptance boundary; prove the documented ordering, including lost response.                                                                                                                                             | C02/C15/C16     |
+| P21 | Race policy Off and Page-entry Off with new admission: no acceptance through a branch invalidated before the defined boundary.                                                                                                                                                                                          | C07/C15         |
+| P22 | Purpose closure and current restrictions are checked at admission; stale events/policy caches cannot reauthorize.                                                                                                                                                                                                       | C10/C15         |
+| P23 | Actual direct native Auth mutation and concurrent Join tests prove the P4 currentness fence; a mocked sequential `getUser` test does not count.                                                                                                                                                                         | C03/C15         |
+| P24 | Public/other-address outcomes, timing and raw constraint errors do not enumerate subscription, suppression, donor or other tenant state. A signed-in auto/admin-confirmed address cannot read prior mailbox membership/manage/rejoin state without qualified proof; guest receipt reveals only its own admitted result. | C09/C13/C17     |
+| P25 | Shared caches, public HTML/RSC, previews, URLs, telemetry and reused request clients expose no personalized address/result/session.                                                                                                                                                                                     | C17/C20         |
+| P26 | Sign-out/account/host change fences in-flight private UI/result data without undoing accepted original effects.                                                                                                                                                                                                         | C11/C17         |
+| P27 | GET, scanner, prefetch, CSRF/cross-origin and capability replay cannot create consent; valid explicit confirmation works without login/original device.                                                                                                                                                                 | C16/C19         |
+| P28 | Applied grants, policies, views, function execute rights and service commands reject tenant/purpose/actor/proof reassignment; positive writes return/read back real state and denied writes leave it unchanged.                                                                                                         | C12/C13         |
+| P29 | Fail before commit, after commit before response and before secondary publication: none or the same complete source effect, with recoverable truthful UI.                                                                                                                                                               | C14/C16         |
+| P30 | Ambiguous provider success/replay does not duplicate required confirmation; sent/delivered states require their own evidence and do not change consent.                                                                                                                                                                 | C16             |
+| P31 | Auth outage, timeout and offline state never show fake success or automatically send fallback mail; deliberate ordinary signup remains available where independently eligible.                                                                                                                                          | C09/C16/C18     |
+| P32 | Tenant option On/Off/unavailable/missing/legacy-stricter states have documented effects; reenable does not enroll pending/history or change accepted members.                                                                                                                                                           | C07/C22         |
+| P33 | Current Page availability, native capability, sending, withdrawal and purpose closure remain independently meaningful; outstanding pending-after-Off policy is tested only after its separate adoption.                                                                                                                 | C07/C24         |
+| P34 | Real browser keyboard/AT, focus, error announcements, 320px reflow, zoom, long/localized text and existing touch targets pass the supported accessibility baseline.                                                                                                                                                     | C18             |
+| P35 | Supported international email/name input is retained accurately; unsupported transport is explained before unsupported delivery acceptance; no invented alias merge.                                                                                                                                                    | C12/C18         |
+| P36 | Representative reader/staff tests can identify the newsletter/address, join/rejoin/choose another address, recover an uncertain result and explain Off without coaching; observe actual task success.                                                                                                                   | C07–C09/C18/C21 |
+| P37 | Public bursts, hot destinations, large tenant datasets and queue recovery meet approved measured budgets using bounded indexed queries and no raw-email telemetry.                                                                                                                                                      | C19–C21         |
+| P38 | Privacy erasure, Auth deletion, purge, export and backup restore obey lawful retention and preserve restrictions against resurrection; no indefinite raw proof archive.                                                                                                                                                 | C20/C22         |
+| P39 | Mixed-version rollout, invalid/missing schema, old-writer route, feature disable, restore and roll-forward preserve accepted history and available unsubscribe; no invented opt-in.                                                                                                                                     | C21/C22         |
+| P40 | Selected/adopted/formal/implemented/tested states, owner clauses, glossary, later tickets and exact tests agree; D6 pending/retention and unrelated financial gates are not silently adopted.                                                                                                                           | C23/C24         |
+
+## Ruthless synthesis and order of work
+
+**Resolved before recording this answer:** B replaces the exact unadopted D6-C05
+universal-confirmation branch; intent and reusable address evidence are distinct;
+the shortcut has no identity/tenant privilege side effect; tenant control is one
+organization option with existing availability controls. The clear user journey
+and all 22 categories above are reconciled. No additional reader-facing setting,
+welcome automation or identity system is justified.
+
+**Capture now in the developing decision/design:** C01–C24, the exact owner map,
+UI states, one authoritative membership identity, accepted-operation recovery,
+all P01–P40 and separate unresolved D6-C07/C15 policy. Formal owner/OpenSpec/ADR
+edits await `/to-prd`; tickets await `/to-issues`. The founder's subsequent
+explicit ratification adopts this packet without adopting remaining D6 policy.
+
+**Required implementation order:** (1) qualify shared P4 current-address evidence
+and native source ownership/public admission; (2) implement one transactional
+consent/result lifecycle, scope constraints, currentness fence and effective
+grants; (3) qualify P6/P17 confirmation and current recipient eligibility;
+(4) connect Page/signup and touched preference UI to the same source; (5) prove
+Auth/RLS/concurrency/migration/rollback, then browser/accessibility/poor-network
+journeys and production-shaped capacity; (6) deliberately activate only the
+qualified capability with preserved existing policy. These are dependency
+requirements, not dispatched implementation tasks.
+
+**Monitor only after the required proof passes:** thresholds below are explicit
+operating judgments, not measured baselines. Safety invariants have zero
+tolerance. Existing owner on-call roles must be assigned before activation.
+
+| Signal                                                                      | Threshold                                                                                      | Accountable owner                | Response                                                                                                                                                                                                     |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unauthorized/incorrect-address immediate admission; wrong-tenant disclosure | One confirmed event                                                                            | P4 identity + P28 source on-call | Disable the affected immediate-admission lane, preserve withdrawal/recovery and evidence; investigate and correct only through source owners before requalification.                                         |
+| Stale replay resurrects withdrawal; duplicate durable effect                | One confirmed event                                                                            | P28 consent/source on-call       | Contain the affected mutation path, reconcile exact effects and withdrawal generations, prove fix; do not bulk delete or resubscribe.                                                                        |
+| A source accepted outcome disagrees with displayed success or recovery      | One reproducible mismatch                                                                      | P28 API/UI owner                 | Correct source-result projection; prevent new misleading success while retaining accepted history.                                                                                                           |
+| Required confirmation intent remains unprocessed                            | More than 5 minutes in a healthy dependency window                                             | P6 delivery on-call              | Inspect durable queue/provider state, recover the same effect and expose honest delay; never blindly resend an ambiguous success. Five minutes is a proposed operating threshold, not an email-delivery SLA. |
+| Join API failure ratio                                                      | Over 1% for 15 minutes with at least 100 attempts in the measured lane                         | API/SRE owner                    | Inspect dependency/current-proof errors and safe recovery; contain affected lane if integrity uncertain. Low-volume incidents still follow individual safety thresholds above.                               |
+| Lost-response recovery unresolved                                           | Over 5 minutes for one durable operation                                                       | P28 source on-call               | Inspect operation/outbox state and repair through the owner; do not tell the reader to create duplicate intent.                                                                                              |
+| Valid user cannot explain address, other-email path or control effects      | One repeatable critical failure in moderated qualification; any verified production recurrence | P28 product/design owner         | Fix copy/interaction and rerun the affected journey before broader rollout. Do not interpret silent funnel abandonment as proven confusion.                                                                  |
+
+No permission, consent, tenant isolation or Auth proof risk is deferred to
+monitoring. Quantitative performance budgets still require measured release
+qualification; the fixed alert examples above do not certify capacity.
+
+## Verification and completion limits
+
+The [new behavioral model](d42-evidence/behavior-model.md) explores stale retry,
+fresh rejoin and current-context counterexamples under explicit abstract
+assumptions. It does not prove real database/Auth atomicity. The
+[new documentary verification](d42-evidence/verification.json) checks preserved
+evidence, clause/proof/category structure, statuses and local references. The
+[independent challenge](d42-evidence/independent-review.md) records resolution
+of review findings. No previous executable evidence was rerun.
+
+The decision/research deliverable is complete and explicitly ratified. Actual Auth, applied RLS/grants,
+source producers, migration, provider delivery and accessible implemented UI
+remain unqualified; no production or pilot success is claimed. No code/schema,
+live setting, GitHub artifact or real communication was changed. Phase28 is not
+declared closed. No Q43 was asked in the original answer review; the subsequent
+ratified continuation prepared Q43. Its subsequent A answer and completed
+[D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)
+now have explicit amendment ratification; finite policy remains unresolved.

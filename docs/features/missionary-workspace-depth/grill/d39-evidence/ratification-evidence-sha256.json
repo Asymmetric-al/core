@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-18",
+  "timezone": "Asia/Bangkok",
+  "scope": "All ten original D39 evidence files and exact D39/Q39 pre-ratification snapshots",
+  "sha256": {
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/calendar-examples.json": "29e63b65d1000113d0f246e2b48576b829670e403820d0d101d8af6bcf50bc1e",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/calendar-examples.py": "acfa5eeb189ebe26c4efa4e706a699b7a111b0a01fd96969ed350cce9f93dbf3",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/cross-review-resolution.md": "b083bf391fb4d55c07dac6e0535cae0cdd6eee1fd54a8e34d3746337b638c7e0",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/governance.md": "96ee531afb60579367d9101a829005edd395dadd29abc059a0aa0f1143448c90",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/prior-evidence-sha256.json": "0799fb930bfcae3993f3cc644f3feb5c0187863f3eaad4e7f51ea015c80de04e",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/q39-before-answer.txt": "b10f81c05a70e8f35f97e9fcea64699d259482d1f18424484f136b33fc673573",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/review-verification.json": "5a639d3ff9e173b76d98aad77d7a1230fd8cd0c7a78ef1a309264e3cb115355f",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/temporal-and-authorization.md": "a16c823b63f4c5ebf147935cec97ebbf9bf566774159025d7673974aed7e5e3a",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/ux-and-primary-research.md": "4f4b3c0b6d73df4bbfd196cc8ffbd7c00e37cd6d2bb0555135b01c18c5547172",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/verify-review.py": "fed92cf05a9f943b68ce1bdc41f9b381d9a55c079174216d842d7c3030c3baba",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/d39-before-ratification.txt": "885ca8d5387fe34370b4db5fddfe50e15d7d4a3cef112d92e9338ac6f76cf8d4",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/q39-before-ratification.txt": "72b9fc1aaf389437ea8284cd178536939d882f1982667716d4acd8bfc8e9d29c"
+  }
+}

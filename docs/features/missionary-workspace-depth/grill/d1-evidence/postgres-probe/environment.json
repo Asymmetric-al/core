@@ -1,0 +1,7 @@
+{
+  "read_at": "2026-10-16T04:03:19.307906+00:00",
+  "container": "phase28-d1-pg",
+  "isolation": "\"none\" {} [{\"Type\":\"volume\",\"Name\":\"3123d042a0fac1f0d2e2eba2299e82a7d03b517fa04878c262af44dd8bef68b9\",\"Source\":\"/var/lib/docker/volumes/3123d042a0fac1f0d2e2eba2299e82a7d03b517fa04878c262af44dd8bef68b9/_data\",\"Destination\":\"/var/lib/postgresql/data\",\"Driver\":\"local\",\"Mode\":\"\",\"RW\":true,\"Propagation\":\"\"}]",
+  "server": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+  "image": "[\"postgres@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3\"]"
+}

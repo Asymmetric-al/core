@@ -1,0 +1,520 @@
+{
+  "tables": [
+    {
+      "relname": "aliases",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "aliases",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "aliases",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "aliases",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "audit",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "audit",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "audit",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "audit",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "effect_sentinel",
+      "rolname": "command_executor",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "effect_sentinel",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "effect_sentinel",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "effect_sentinel",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "event_receipts",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "event_receipts",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "event_receipts",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "event_receipts",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "gates",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "gates",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "gates",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "gates",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "ministries",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "ministries",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "ministries",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "ministries",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "outcomes",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "outcomes",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "outcomes",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "outcomes",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "parties",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "parties",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "parties",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "parties",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "responsibility",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "responsibility",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "responsibility",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "responsibility",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "signals",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "signals",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "signals",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "signals",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "source_heads",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "source_heads",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "source_heads",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "source_heads",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "source_versions",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "source_versions",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "source_versions",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "source_versions",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "tasks",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "tasks",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "tasks",
+      "rolname": "missionary_b",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "tasks",
+      "rolname": "source_worker",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    }
+  ],
+  "functions": [
+    {
+      "proname": "change_source",
+      "owner": "command_executor",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=pg_catalog, probe, pg_temp"
+      ],
+      "proacl": [
+        "command_executor=X/command_executor",
+        "source_manager=X/command_executor"
+      ]
+    },
+    {
+      "proname": "consume",
+      "owner": "command_executor",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=pg_catalog, probe, pg_temp"
+      ],
+      "proacl": [
+        "command_executor=X/command_executor",
+        "source_worker=X/command_executor"
+      ]
+    },
+    {
+      "proname": "finish",
+      "owner": "command_executor",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=pg_catalog, probe, pg_temp"
+      ],
+      "proacl": [
+        "command_executor=X/command_executor",
+        "missionary_a=X/command_executor",
+        "missionary_b=X/command_executor",
+        "other_tenant=X/command_executor"
+      ]
+    },
+    {
+      "proname": "immutable",
+      "owner": "postgres",
+      "prosecdef": false,
+      "proconfig": null,
+      "proacl": [
+        "postgres=X/postgres"
+      ]
+    },
+    {
+      "proname": "read_task",
+      "owner": "command_executor",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=pg_catalog, probe, pg_temp"
+      ],
+      "proacl": [
+        "command_executor=X/command_executor",
+        "missionary_a=X/command_executor",
+        "missionary_b=X/command_executor",
+        "other_tenant=X/command_executor"
+      ]
+    },
+    {
+      "proname": "reassign",
+      "owner": "command_executor",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=pg_catalog, probe, pg_temp"
+      ],
+      "proacl": [
+        "command_executor=X/command_executor",
+        "source_manager=X/command_executor"
+      ]
+    },
+    {
+      "proname": "task_identity",
+      "owner": "postgres",
+      "prosecdef": false,
+      "proconfig": null,
+      "proacl": [
+        "postgres=X/postgres"
+      ]
+    },
+    {
+      "proname": "tenant",
+      "owner": "postgres",
+      "prosecdef": false,
+      "proconfig": null,
+      "proacl": [
+        "postgres=X/postgres",
+        "command_executor=X/postgres",
+        "missionary_a=X/postgres",
+        "missionary_b=X/postgres",
+        "other_tenant=X/postgres",
+        "source_worker=X/postgres",
+        "source_manager=X/postgres",
+        "policy_manager=X/postgres"
+      ]
+    }
+  ]
+}

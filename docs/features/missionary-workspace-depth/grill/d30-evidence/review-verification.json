@@ -1,0 +1,50 @@
+{
+  "kind": "D30 current documentation, provenance and bounded-model consistency only",
+  "passed": true,
+  "decision": "A selected; Accept with required amendments; amendments await ratification",
+  "customization": "Organization-wide On/Off is proposed; clarification unanswered, no per-need selection inferred",
+  "category_count": 22,
+  "finding_count": 18,
+  "clause_count": 24,
+  "proof_count": 32,
+  "local_links_checked": 421,
+  "line_links_checked": 83,
+  "anchors_checked": 45,
+  "prior_d29_artifacts_unchanged": 20,
+  "earlier_d28_artifacts_unchanged": 23,
+  "current_pinned_evidence_count": 13,
+  "semantic_model_summary": {
+    "all_passed": true,
+    "assertions_passed": 38,
+    "counterexample_families": 13,
+    "positive_controls": 4
+  },
+  "root_reproduction_identical": true,
+  "primary_technical_fetches": 12,
+  "q30_answered_a": true,
+  "q31_posed": false,
+  "reviewed_documents": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-d30-one-time-need-follow-up-adversarial-review.md",
+      "sha256": "baf08824092dd9d2b7a504c21c9af9b03df43b73bb975b113b8b2d371d8909da"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-q30-one-time-need-purpose-research.md",
+      "sha256": "dd0345024a6f389cad250520712a0dd8e697cbd388a836e1bd6e531976ce84e4"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-session.md",
+      "sha256": "f805e9b0638801853cae948eddae27aebf57d7f0aa91a2450c5948bddeff9e3d"
+    },
+    {
+      "path": "CONTEXT.md",
+      "sha256": "d39eeed814e5ac9a45f9610a737f5d0a657e973e2b9317018c56551dbbdb14ae"
+    }
+  ],
+  "limitations": [
+    "No real SQL/RLS, runtime, concurrency, financial/source qualification, migration, capacity, accessibility or user study.",
+    "No prior model or database probe rerun; prior results retain their historical point-in-time status.",
+    "Link/structure checks validate references and document shape, not every linked assertion or future implementation."
+  ],
+  "errors": []
+}

@@ -1,0 +1,857 @@
+{
+  "recorded_at": "2026-10-17T04:21:12.849712+00:00",
+  "scope": "Synthetic D22 captured policy revision/generation, prospective amount admission, durable accepted intent and current-authority mechanics only; not Core/financial/recognition/P12/Supabase/Auth/PostgREST qualification.",
+  "outcomes": 29,
+  "passed": 29,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "5f99fd531238f1c507806fd48f9cefcf1a09601211a3b7a0333489e287037ec0",
+    "run.py": "8f262ca56689fd9cc6566783f69f56efe9023232c88b7328055c403a7ff2047e",
+    "sources.json": "4d2f2e0b8a437b7ebc6493b7d5d866dfd724a50b0d3356384dba37fa2adad802"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "fixture_steps": [
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gates VALUES(1,'policy_editor',true),(1,'source_worker',true),(1,'source_owner',true),(2,'other_tenant',true); INSERT INTO probe.policy_versions VALUES(1,'USD',1,1,true,100),(1,'JPY',1,1,true,100),(1,'KWD',1,1,true,100); INSERT INTO probe.policy_heads VALUES(1,'USD',1),(1,'JPY',1),(1,'KWD',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('USD',1,80,true,'live');",
+      "exit_code": 0,
+      "stdout": "captured:1",
+      "stderr": ""
+    },
+    {
+      "role": "policy_editor",
+      "sql": "SELECT probe.save_policy('USD',1,true,50,'policy');",
+      "exit_code": 0,
+      "stdout": "policy:2",
+      "stderr": ""
+    },
+    {
+      "role": "policy_editor",
+      "sql": "SELECT probe.save_policy('USD',2,true,100,'policy');",
+      "exit_code": 0,
+      "stdout": "policy:3",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('USD',2,NULL,false,'live');",
+      "exit_code": 0,
+      "stdout": "captured:3",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(2,'admission');",
+      "exit_code": 0,
+      "stdout": "source_pending",
+      "stderr": ""
+    },
+    {
+      "role": "policy_editor",
+      "sql": "SELECT probe.save_policy('USD',3,true,200,'policy');",
+      "exit_code": 0,
+      "stdout": "policy:4",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.change_source(2,1,100,true);",
+      "exit_code": 0,
+      "stdout": "source:2",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('USD',3,999,true,'history');",
+      "exit_code": 0,
+      "stdout": "captured:4",
+      "stderr": ""
+    },
+    {
+      "role": "policy_editor",
+      "sql": "SELECT probe.save_policy('USD',4,true,100,'policy');",
+      "exit_code": 0,
+      "stdout": "policy:5",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('USD',4,100,true,'live');",
+      "exit_code": 0,
+      "stdout": "captured:5",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(4,'admission');",
+      "exit_code": 0,
+      "stdout": "accepted",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('USD',5,100,true,'live');",
+      "exit_code": 0,
+      "stdout": "captured:5",
+      "stderr": ""
+    },
+    {
+      "role": "policy_editor",
+      "sql": "SELECT probe.save_policy('USD',5,false,100,'policy');",
+      "exit_code": 0,
+      "stdout": "policy:6",
+      "stderr": ""
+    },
+    {
+      "role": "policy_editor",
+      "sql": "SELECT probe.save_policy('USD',6,true,100,'policy');",
+      "exit_code": 0,
+      "stdout": "policy:7",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('USD',6,100,true,'live');",
+      "exit_code": 0,
+      "stdout": "captured:7",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(6,'admission');",
+      "exit_code": 0,
+      "stdout": "accepted",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.change_source(6,1,0,true);",
+      "exit_code": 0,
+      "stdout": "source:2",
+      "stderr": ""
+    },
+    {
+      "role": "policy_revoker",
+      "sql": "UPDATE probe.gates SET allowed=false WHERE tenant=1 AND actor='source_worker';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "policy_revoker",
+      "sql": "UPDATE probe.gates SET allowed=true WHERE tenant=1 AND actor='source_worker';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "policy_editor",
+      "sql": "SELECT probe.save_policy('USD',8,true,100,'policy');",
+      "exit_code": 0,
+      "stdout": "policy:9",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('USD',7,100,true,'live');",
+      "exit_code": 0,
+      "stdout": "captured:9",
+      "stderr": ""
+    },
+    {
+      "role": "policy_editor",
+      "sql": "SELECT probe.save_policy('USD',10,true,100,'policy');",
+      "exit_code": 0,
+      "stdout": "policy:11",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('USD',8,100,true,'live');",
+      "exit_code": 0,
+      "stdout": "captured:11",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.materialize(8);",
+      "exit_code": 0,
+      "stdout": "materialized",
+      "stderr": ""
+    },
+    {
+      "role": "policy_editor",
+      "sql": "SELECT probe.save_policy('USD',12,true,100,'policy');",
+      "exit_code": 0,
+      "stdout": "policy:13",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(9,'admission');",
+      "exit_code": 0,
+      "stdout": "below",
+      "stderr": ""
+    },
+    {
+      "role": "policy_editor",
+      "sql": "SELECT probe.save_policy('USD',14,true,100,'policy');",
+      "exit_code": 0,
+      "stdout": "policy:15",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(10,'admission');",
+      "exit_code": 0,
+      "stdout": "accepted",
+      "stderr": ""
+    },
+    {
+      "role": "policy_editor",
+      "sql": "SELECT probe.save_policy('USD',16,true,100,'policy');",
+      "exit_code": 0,
+      "stdout": "policy:17",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('USD',11,100,true,'live');",
+      "exit_code": 0,
+      "stdout": "captured:17",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('USD',12,100,true,'live');",
+      "exit_code": 0,
+      "stdout": "captured:17",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.materialize(12);",
+      "exit_code": 0,
+      "stdout": "source_changed",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('JPY',13,100,true,'live');",
+      "exit_code": 0,
+      "stdout": "captured:1",
+      "stderr": ""
+    },
+    {
+      "role": "source_owner",
+      "sql": "SELECT probe.capture('KWD',14,99,true,'live');",
+      "exit_code": 0,
+      "stdout": "captured:1",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "name": "unsafe_numeric_typmod_rounds_fractional_minor_unit",
+      "role": "policy_editor",
+      "counterexample": true,
+      "sql": "SELECT 99.5::numeric(20,0)=100 AND 99.5::numeric(20,0)>=100;",
+      "expected": "t",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "t",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "fractional_minor_unit_threshold_rejected",
+      "role": "policy_editor",
+      "counterexample": false,
+      "sql": "SELECT probe.save_policy('USD',1,true,'99.5','policy');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: value for domain minor_units violates check constraint \"minor_units_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.policy_versions VALUES(t,c,head+1,gen,onoff,amount)\"\nPL/pgSQL function save_policy(text,integer,boolean,numeric,text) line 11 at SQL statement\nSCHEMA NAME:  probe\nDATATYPE NAME:  minor_units\nCONSTRAINT NAME:  minor_units_check\nLOCATION:  ExecEvalConstraintCheck, execExprInterp.c:3941",
+      "passed": true
+    },
+    {
+      "name": "nonfinite_threshold_rejected",
+      "role": "policy_editor",
+      "counterexample": false,
+      "sql": "SELECT probe.save_policy('USD',1,true,'NaN','policy');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: value for domain minor_units violates check constraint \"minor_units_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.policy_versions VALUES(t,c,head+1,gen,onoff,amount)\"\nPL/pgSQL function save_policy(text,integer,boolean,numeric,text) line 11 at SQL statement\nSCHEMA NAME:  probe\nDATATYPE NAME:  minor_units\nCONSTRAINT NAME:  minor_units_check\nLOCATION:  ExecEvalConstraintCheck, execExprInterp.c:3941",
+      "passed": true
+    },
+    {
+      "name": "zero_is_not_off",
+      "role": "policy_editor",
+      "counterexample": false,
+      "sql": "SELECT probe.save_policy('USD',1,true,0,'policy');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"policy_versions\" violates check constraint \"policy_versions_threshold_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.policy_versions VALUES(t,c,head+1,gen,onoff,amount)\"\nPL/pgSQL function save_policy(text,integer,boolean,numeric,text) line 11 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  policy_versions\nCONSTRAINT NAME:  policy_versions_threshold_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true
+    },
+    {
+      "name": "enabled_requires_amount",
+      "role": "policy_editor",
+      "counterexample": false,
+      "sql": "SELECT probe.save_policy('USD',1,true,NULL,'policy');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"policy_versions\" violates check constraint \"policy_versions_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.policy_versions VALUES(t,c,head+1,gen,onoff,amount)\"\nPL/pgSQL function save_policy(text,integer,boolean,numeric,text) line 11 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  policy_versions\nCONSTRAINT NAME:  policy_versions_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true
+    },
+    {
+      "name": "cross_currency_source_reference_rejected",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.occurrences VALUES(1,999,'EUR',10,1,'live');",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"occurrences\" violates foreign key constraint \"occurrences_tenant_currency_original_policy_fkey\"\nDETAIL:  Key (tenant, currency, original_policy)=(1, EUR, 1) is not present in table \"policy_versions\".\nSCHEMA NAME:  probe\nTABLE NAME:  occurrences\nCONSTRAINT NAME:  occurrences_tenant_currency_original_policy_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "raw_policy_update_denied",
+      "role": "policy_editor",
+      "counterexample": false,
+      "sql": "UPDATE probe.policy_heads SET revision=1 WHERE tenant=1;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table policy_heads\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "policy_evidence_is_immutable",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "UPDATE probe.policy_versions SET threshold=1 WHERE tenant=1;",
+      "expected": null,
+      "expected_sqlstate": "55000",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  55000: immutable source evidence\nCONTEXT:  PL/pgSQL function probe.immutable() line 1 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "other_tenant_cannot_edit_policy",
+      "role": "other_tenant",
+      "counterexample": false,
+      "sql": "SELECT probe.save_policy('USD',1,true,1,'policy');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "stale_settings_editor_rejected",
+      "role": "policy_editor",
+      "counterexample": false,
+      "sql": "SELECT probe.save_policy('USD',0,true,200,'policy');",
+      "expected": "stale",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "stale",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unchanged_settings_create_no_version_or_audit",
+      "role": "policy_editor",
+      "counterexample": false,
+      "sql": "SELECT probe.save_policy('USD',1,true,100,'policy');",
+      "expected": "unchanged",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unchanged",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "3:0:0:0",
+        "after": "3:0:0:0"
+      }
+    },
+    {
+      "name": "policy_audit_failure_rolls_back_head",
+      "role": "policy_editor",
+      "counterexample": false,
+      "sql": "SELECT probe.save_policy('USD',1,true,200,'FAIL_AUDIT');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"audit\" violates check constraint \"audit_reference_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.audit(tenant,kind,reference) VALUES(t,'policy',note)\"\nPL/pgSQL function save_policy(text,integer,boolean,numeric,text) line 13 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  audit\nCONSTRAINT NAME:  audit_reference_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true,
+      "counts": {
+        "before": "3:0:0:0",
+        "after": "3:0:0:0"
+      }
+    },
+    {
+      "name": "lowered_threshold_does_not_reclassify_old_live_gift",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(1,'admission');",
+      "expected": "below",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "below",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "4:0:0:1",
+        "after": "4:0:0:1"
+      }
+    },
+    {
+      "name": "held_same_generation_uses_original_rule_at_equality",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(2,'admission');",
+      "expected": "accepted",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "history_import_is_effect_dark",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(3,'admission');",
+      "expected": "history_only",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "history_only",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "off_blocks_unadmitted_candidate",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(5,'admission');",
+      "expected": "inactive_generation",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "inactive_generation",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "accepted_receipt_and_intent_survive_off",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(4,'admission'); SELECT probe.materialize(4);",
+      "expected": "receipt:accepted\nmaterialized",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "receipt:accepted\nmaterialized",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "reenable_does_not_revive_unadmitted_old_generation",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(5,'admission');",
+      "expected": "inactive_generation",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "inactive_generation",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "old_receipt_is_not_current_materialization_permission",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(6,'admission'); SELECT probe.materialize(6);",
+      "expected": "receipt:accepted\nsource_changed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "receipt:accepted\nsource_changed",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "revoked_worker_cannot_disclose_receipt_or_materialize",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(4,'admission'); SELECT probe.materialize(4);",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "two_setting_editors_one_expected_head",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "policy_editor",
+      "second_role": "policy_editor",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.save_policy('USD',7,true,150,'policy'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "policy:8\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.save_policy('USD',7,true,250,'policy'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "stale\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "policy:8\nFIRST_READY\n",
+        "second": "stale\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "off_first_prevents_new_admission",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "policy_editor",
+      "second_role": "source_worker",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.save_policy('USD',9,false,100,'policy'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "policy:10\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.admit(7,'admission'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "inactive_generation\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "policy:10\nFIRST_READY\n",
+        "second": "inactive_generation\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "admission_first_survives_off_as_existing_work",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_worker",
+      "second_role": "policy_editor",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.admit(8,'admission'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.save_policy('USD',11,false,100,'policy'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "policy:12\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted\nFIRST_READY\n",
+        "second": "policy:12\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "threshold_edit_first_binds_new_rule_at_capture",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "policy_editor",
+      "second_role": "source_owner",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.save_policy('USD',13,true,200,'policy'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "policy:14\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.capture('USD',9,150,true,'live'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "captured:14\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "policy:14\nFIRST_READY\n",
+        "second": "captured:14\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "live_capture_first_retains_prior_rule",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_owner",
+      "second_role": "policy_editor",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.capture('USD',10,150,true,'live'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "captured:15\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.save_policy('USD',15,true,200,'policy'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "policy:16\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "captured:15\nFIRST_READY\n",
+        "second": "policy:16\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "source_correction_first_blocks_admission",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_owner",
+      "second_role": "source_worker",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.change_source(11,1,0,true); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "source:2\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.admit(11,'admission'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "below\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "source:2\nFIRST_READY\n",
+        "second": "below\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "admission_first_retains_receipt_before_correction",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_worker",
+      "second_role": "source_owner",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.admit(12,'admission'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.change_source(12,1,0,true); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "source:2\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted\nFIRST_READY\n",
+        "second": "source:2\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "repeat_materialization_does_not_repeat_effect",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.materialize(4);",
+      "expected": "receipt:materialized",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "receipt:materialized",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "19:6:2:22",
+        "after": "19:6:2:22"
+      }
+    },
+    {
+      "name": "currency_specific_minor_units_equality_and_below",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(13,'admission'); SELECT probe.admit(14,'admission');",
+      "expected": "accepted\nbelow",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted\nbelow",
+      "stderr": "",
+      "passed": true
+    }
+  ]
+}

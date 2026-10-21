@@ -1227,14 +1227,7 @@ It restates the counts, the dollar total, and the **plan- and tender-conditional
 
 ### Mod 3 — Amend a posted gift = compensating correction
 
-**Pending cross-owner approval clarification (C-01, 2026-09-23).** The recorded
-Phase 13 default permits a capability-authorized correction with reason/audit
-and optional tenant separation of duties; Phase 15 D5 Mod3 separately requires
-a different approver for post-commit amends. The founder ruling between those
-rules is pending in the [congruence decision record](../../ai/audits/2026-09-23-contract-congruence.md#one-unresolved-owner-decision).
-Do not dispatch an implementation that silently chooses either rule. Preserve
-independent append-only correction, source ownership and separately required
-risk/money-out controls while this narrow approval question is resolved.
+**Resolved approval policy (C-01, Phase 28 D48; 2026-10-18).** Authorized organization staff choose the existing Phase 12/P13 posted-correction approval policy for supported categories and amount thresholds. The default remains capability-authorized correction with required reason/audit and no routine second approver; preserve an existing explicit stronger tenant policy. Where the winning policy or independent governing control requires separation, server enforcement compares the same human, not merely different accounts. No per-request bypass or new approval engine is introduced. Current-policy changes do not automatically approve or execute pending corrections; continuation revalidates the exact correction, actor and applicable requirement. Append-only effects and independent risk/money-out controls remain binding. This resolves the policy conflict recorded in the [dated audit](../../ai/audits/2026-09-23-contract-congruence.md#one-unresolved-owner-decision); runtime qualification remains required under [OA-07](phase-28-missionary-workspace-depth/owner-reconciliation.md#oa-07).
 
 #### Pre-commit is a free edit; post-commit is a correction only [D5 Mod3, Call-back B, Amd 7]
 
@@ -1254,7 +1247,7 @@ not a parallel runtime ledger. The Phase 13 BEFORE-UPDATE immutability trigger
 enforces this at the database floor: a raw mutation of a posted money row
 **fails loud in tests**, and the trigger is never disabled.
 
-The asymmetry is the only way Mod 3 coexists with IRS Pub 1771 and P13 without either blocking ordinary entry (kills low friction) or allowing raw edits of already-issued tax facts (corrupts the ledger). Ordinary _entry_ stays un-gated; **amending an already-issued tax fact is capability-gated** (AL-261 requester ≠ approver) — that is the one place the friction is warranted.
+The asymmetry is the only way Mod 3 coexists with IRS Pub 1771 and P13 without either blocking ordinary entry (kills low friction) or allowing raw edits of already-issued tax facts (corrupts the ledger). Ordinary _entry_ stays un-gated; **amending an already-issued tax fact is capability-gated and uses the current organization correction policy**; AL-261 requester/approver separation applies when that policy or an independently binding control requires it. A source review or intake task never supplies financial approval.
 
 #### Receipt-affecting versus non-affecting amends [D5 Amd 7]
 
@@ -1300,7 +1293,7 @@ Mod 3's compensating-correction spine rides the **P13 append-only posting ledger
 #### Invariants (Mod 3)
 
 - Zero `UPDATE` statements ever touch a posted money row; every post-commit change is an append-only compensating correction (enforced by the P13 immutability trigger + a property test that a raw mutation fails).
-- A post-commit amend is capability-gated (requester ≠ approver, AL-261); a draft-stage amend is not.
+- A post-commit amend is capability-gated and obeys current organization correction policy; requester/approver separation applies when that policy or an independent mandatory control requires it (Phase 28 D48). A draft-stage amend needs its ordinary draft-edit authority, not the posted-correction approval workflow.
 - A receipt-affecting amend always emits the exact compensating source occurrence for Phase 7 evaluation. Phase 7 owns corrected official facts; Phase 14 owns acknowledgment purpose, audience, readiness, coverage, and release; Phase 18 owns the canonical artifact; Phase 17 owns governed content, template, sender, and reply; and Phase 6 owns communication policy, scheduling, dispatch, provider outcome, and history. A non-affecting amend emits no donor-communication intent.
 - The corrected/void-receipt op and the batch-scoped reverse op exist and are tested in the same phase as the auto-post default.
 

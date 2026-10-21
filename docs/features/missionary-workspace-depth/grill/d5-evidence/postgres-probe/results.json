@@ -1,0 +1,421 @@
+{
+  "recorded_at": "2026-10-16T06:00:23.599775+00:00",
+  "scope": "Synthetic D5 effective selected-field authority, atomic corrections and retry mechanics; not Core P12 evaluator/schema/API, Supabase/JWT or consequence qualification.",
+  "outcomes": 25,
+  "passed": 25,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "e0228fd5033f1f5b0d65685eaebf543daef9208d85507c8da240271d0cfe5325",
+    "run.py": "142f62d3d3686508cce2ca174a65d9491996e5eed5553bac0c382a3250c249e1",
+    "sources.json": "36dbf665980b62048186ab2129f8031e61d43f71d8be0b14c0a1a7cbbfa42994"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "results": [
+    {
+      "name": "selected_field_correction_commits_source_audit_and_receipt",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',1,1,'phone-one','{\"phone\":\"phone-one\"}'); SELECT phone||':'||revision FROM probe.contacts WHERE id=1;",
+      "expected": "accepted:2\nphone-one:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:2\nphone-one:2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "forbidden_unchanged_field_in_full_snapshot_rejects_whole_patch",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',2,1,'full-snapshot','{\"phone\":\"phone-two\",\"email\":\"original@example.invalid\"}'); SELECT phone||':'||revision FROM probe.contacts WHERE id=1;",
+      "expected": "forbidden_fields\nphone-one:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "forbidden_fields\nphone-one:2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "changed_only_authorized_patch_succeeds",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',2,1,'phone-two','{\"phone\":\"phone-two\"}'); SELECT phone||':'||revision FROM probe.contacts WHERE id=1;",
+      "expected": "accepted:3\nphone-two:3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:3\nphone-two:3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "editable_row_does_not_allow_tenant_author_or_revision_patch",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',3,1,'tenant-write','{\"tenant\":2}'); SELECT probe.correct(1,'missionary',3,1,'author-write','{\"source_author\":\"staff\"}'); SELECT probe.correct(1,'missionary',3,1,'version-write','{\"revision\":99}'); SELECT tenant||':'||source_author||':'||revision FROM probe.contacts WHERE id=1;",
+      "expected": "forbidden_fields\nforbidden_fields\nforbidden_fields\n1:missionary:3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "forbidden_fields\nforbidden_fields\nforbidden_fields\n1:missionary:3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "raw_SQL_cannot_bypass_qualified_command",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "UPDATE probe.contacts SET tenant=2,source_author='staff' WHERE id=1;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table contacts\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "wrong_active_hat_cannot_use_staff_field_authority",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'staff',3,1,'wrong-hat','{\"email\":\"wrong@example.invalid\"}');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "currently_authorized_staff_can_correct_email",
+      "role": "staff",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'staff',3,1,'staff-email','{\"email\":\"staff@example.invalid\"}'); SELECT phone||':'||email||':'||revision FROM probe.contacts WHERE id=1;",
+      "expected": "accepted:4\nphone-two:staff@example.invalid:4",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:4\nphone-two:staff@example.invalid:4",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "invalid_value_type_does_not_partially_apply_valid_name",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',4,1,'bad-type','{\"name\":\"Must not persist\",\"phone\":123}'); SELECT name||':'||revision FROM probe.contacts WHERE id=1;",
+      "expected": "invalid\nSynthetic One:4",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "invalid\nSynthetic One:4",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "database_field_constraint_aborts_whole_patch",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',4,1,'bad-length',jsonb_build_object('name','Must not persist','phone',repeat('x',33)));",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"contacts\" violates check constraint \"contacts_phone_check\"\nCONTEXT:  SQL statement \"UPDATE probe.contacts SET\n    name=CASE WHEN p_patch?'name' THEN p_patch->>'name' ELSE name END,\n    phone=CASE WHEN p_patch?'phone' THEN p_patch->>'phone' ELSE phone END,\n    email=CASE WHEN p_patch?'email' THEN p_patch->>'email' ELSE email END,\n    revision=revision+1 WHERE tenant=1 AND id=p_id\"\nPL/pgSQL function correct(integer,text,integer,integer,text,jsonb) line 34 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  contacts\nCONSTRAINT NAME:  contacts_phone_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true
+    },
+    {
+      "name": "failed_patch_leaves_source_audit_and_receipts_unchanged",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT name||':'||phone||':'||revision FROM probe.contacts WHERE id=1;",
+      "expected": "Synthetic One:phone-two:4",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "Synthetic One:phone-two:4",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "required_audit_failure_aborts_prior_source_update",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',4,1,'audit-fault','{\"phone\":\"must-not-persist\"}');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: injected required audit failure\nCONTEXT:  PL/pgSQL function inject_audit_failure() line 4 at RAISE\nSQL statement \"INSERT INTO probe.change_audit VALUES(1,p_id,r.revision+1,session_user,p_hat,p_operation,fields_changed)\"\nPL/pgSQL function correct(integer,text,integer,integer,text,jsonb) line 39 at SQL statement\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "audit_failure_preserves_source_version",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT phone||':'||revision FROM probe.contacts WHERE id=1;",
+      "expected": "phone-two:4",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "phone-two:4",
+      "stderr": "",
+      "passed": true,
+      "internal_admin_readback": {
+        "sql": "SELECT (SELECT count(*) FROM probe.change_audit)||':'||(SELECT count(*) FROM probe.receipts);",
+        "expected": "3:3",
+        "actual": "3:3"
+      }
+    },
+    {
+      "name": "accepted_receipt_retry_does_not_overwrite_newer_staff_data",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',1,1,'phone-one','{\"phone\":\"phone-one\"}'); SELECT phone||':'||email||':'||revision FROM probe.contacts WHERE id=1;",
+      "expected": "accepted-history:2\nphone-two:staff@example.invalid:4",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted-history:2\nphone-two:staff@example.invalid:4",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "same_retry_key_different_patch_conflicts",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',1,1,'phone-one','{\"phone\":\"different\"}');",
+      "expected": "operation_conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "operation_conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "policy_revoke_first_fences_selected_field_save",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "policy_manager",
+      "second_role": "missionary",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.effective_authority SET allowed_fields=ARRAY['name'],revision=revision+1 WHERE actor='missionary'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.correct(2,'missionary',1,1,'revoked-save','{\"phone\":\"must-not-persist\"}'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "forbidden_fields\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "second": "forbidden_fields\nSECOND_DONE\n",
+        "final": "phone-original:original@example.invalid:1"
+      }
+    },
+    {
+      "name": "revoked_field_authority_blocks_old_write_receipt_recovery",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',1,1,'phone-one','{\"phone\":\"phone-one\"}'); SELECT count(*) FROM probe.contacts WHERE id=1;",
+      "expected": "forbidden_fields\n1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "forbidden_fields\n1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "authority_A_B_A_detects_stale_fresh_command_evidence",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',4,1,'aba-stale','{\"phone\":\"must-not-persist\"}'); SELECT phone||':'||revision FROM probe.contacts WHERE id=1;",
+      "expected": "authority_conflict\nphone-two:4",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "authority_conflict\nphone-two:4",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "current_authority_can_recover_exact_accepted_receipt_after_A_B_A",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',1,1,'phone-one','{\"phone\":\"phone-one\"}'); SELECT phone||':'||revision FROM probe.contacts WHERE id=1;",
+      "expected": "accepted-history:2\nphone-two:4",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted-history:2\nphone-two:4",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "current_authority_does_not_rescue_stale_source_version",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',3,3,'stale-source','{\"phone\":\"must-not-persist\"}');",
+      "expected": "source_conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "source_conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "fresh_source_and_authority_evidence_allow_correction",
+      "role": "missionary",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(1,'missionary',4,3,'fresh-save','{\"phone\":\"phone-fresh\"}');",
+      "expected": "accepted:5",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:5",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "save_first_commits_before_waiting_policy_revocation",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary",
+      "second_role": "policy_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.correct(2,'missionary',1,3,'save-before-revoke','{\"phone\":\"accepted-before-revoke\"}'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted:2\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.effective_authority SET allowed_fields=ARRAY['name'],revision=revision+1 WHERE actor='missionary'; SELECT allowed_fields::text FROM probe.effective_authority WHERE actor='missionary'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "{name}\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted:2\nFIRST_READY\n",
+        "second": "{name}\nSECOND_DONE\n",
+        "final": "accepted-before-revoke:original@example.invalid:2"
+      }
+    },
+    {
+      "name": "same_contact_staff_and_missionary_revision_fence",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary",
+      "second_role": "staff",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.correct(3,'missionary',1,5,'missionary-race','{\"phone\":\"missionary-won\"}'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted:2\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.correct(3,'staff',1,1,'staff-race','{\"email\":\"must-not-persist@example.invalid\"}'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "source_conflict\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted:2\nFIRST_READY\n",
+        "second": "source_conflict\nSECOND_DONE\n",
+        "final": "missionary-won:original@example.invalid:2"
+      }
+    },
+    {
+      "name": "staff_refresh_changes_only_selected_field_preserving_missionary_edit",
+      "role": "staff",
+      "counterexample": false,
+      "sql": "SELECT probe.correct(3,'staff',2,1,'staff-refreshed','{\"email\":\"refreshed@example.invalid\"}'); SELECT phone||':'||email||':'||revision FROM probe.contacts WHERE id=3;",
+      "expected": "accepted:3\nmissionary-won:refreshed@example.invalid:3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:3\nmissionary-won:refreshed@example.invalid:3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unsafe_table_UPDATE_survives_column_revoke_and_row_RLS",
+      "role": "missionary",
+      "counterexample": true,
+      "sql": "UPDATE probe.unsafe_fields SET protected_classification='unauthorized-change' WHERE id=1; SELECT tenant||':'||actor||':'||protected_classification FROM probe.unsafe_fields WHERE id=1; SELECT has_column_privilege(current_user,'probe.unsafe_fields','protected_classification','UPDATE');",
+      "expected": "1:missionary:unauthorized-change\nt",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1:missionary:unauthorized-change\nt",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "all_accepted_source_revisions_have_one_audit_and_receipt",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "SELECT (SELECT sum(revision-1) FROM probe.contacts)||':'||(SELECT count(*) FROM probe.change_audit)||':'||(SELECT count(*) FROM probe.receipts);",
+      "expected": "7:7:7",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "7:7:7",
+      "stderr": "",
+      "passed": true
+    }
+  ]
+}

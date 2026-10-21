@@ -70,20 +70,21 @@ bun run ci:preflight
 2. `skills:verify`
 3. `verify:phase25-spec`
 4. `verify:phase27-spec`
-5. `openspec:validate`
-6. `verify:openspec-deltas` (includes `verify:phase24-authority`)
-7. `lint`
-8. `verify:data-boundary`
-9. `verify:cms-public-sole-entry`
-10. `verify:workspace-contract`
-11. `verify:bun-lock-drift`
-12. `verify:eslint`
-13. `verify:shadcn-config`
-14. `verify:shadcn-diff`
-15. `verify:shadscan`
-16. `typecheck`
-17. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
-18. `test:unit`
+5. `verify:phase28-spec`
+6. `openspec:validate`
+7. `verify:openspec-deltas` (includes `verify:phase24-authority`)
+8. `lint`
+9. `verify:data-boundary`
+10. `verify:cms-public-sole-entry`
+11. `verify:workspace-contract`
+12. `verify:bun-lock-drift`
+13. `verify:eslint`
+14. `verify:shadcn-config`
+15. `verify:shadcn-diff`
+16. `verify:shadscan`
+17. `typecheck`
+18. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
+19. `test:unit`
 
 For edits to the adopted roadmap and Studio packets, also run
 `bun run verify:program-roadmap` in the canonical WSL/Linux workspace before
@@ -199,11 +200,17 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 - _What it checks:_ Runs `bun run skills:verify` (skill mirrors),
   `bun run verify:phase25-spec`, `bun run verify:phase27-spec`,
+  `bun run verify:phase28-spec`,
   `bun run openspec:validate`, and
   `bun run verify:openspec-deltas` (including the read-only Phase 24 authority validator).
 - _Why it exists:_ Prevents mirror and specification drift under its own check
   name. `ci-gate` requires it alongside format, lint, typecheck, build, and unit
   tests.
+- _Phase 28 proof:_ Checks current generated stories, traceability and OpenSpec
+  against canonical volumes, then verifies the exact 911-file tracked historical
+  archive without executing its programs. Both checks are read-only and block
+  drift; publication and archival consistency do not establish feature runtime
+  qualification.
 - _Phase 27 proof:_ Checks generated stories, OpenSpec scenarios and traceability
   against their canonical sources, then verifies the preserved publication
   evidence and tracked historical probe logs. Both checks are read-only and

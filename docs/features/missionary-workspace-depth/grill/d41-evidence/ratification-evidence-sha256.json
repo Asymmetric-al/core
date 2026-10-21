@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-18",
+  "timezone": "Asia/Bangkok",
+  "scope": "All 9 original D41 evidence files and exact D41/Q41 pre-ratification snapshots; earlier programs preserved and never executed",
+  "sha256": {
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/cross-review-resolution.md": "e7724fb259dc5b563dc95bf77750beb07108f939a497658564531acfef324478",
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/governance.md": "4d8a47cde0e2c94eba494f3d01e89490e4a6fe8abc6a5139a080b1146b758c12",
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/prior-evidence-sha256.json": "ad4af218d8709f7ec4779a6da3575f299eb096c5025e8d72d86fbcc6d3bfde52",
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/q41-before-answer.txt": "194b744ae1aab3cd06ca1140e6e5fae1c62245f9c802af0875872b0ea17412f0",
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/review-verification.json": "7a57e051f4d0081fccfd57281932a8b72aeb58654dbe416365939fa5f2f74b67",
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/root-research.md": "0f7eafa3d76fd6c7234d0c72d71cbccc9a515ca0adf4115f38ebebf35850d119",
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/source-and-authorization.md": "5bd0862fb476cc27f9ed8cb83e631e0cbfd26d27f59cc8ee2ecb515e1ca16235",
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/ux-and-primary-research.md": "ae463d1ed653ae96ffdbe11334a3dc7689626edcb51c9909a29778c4cce6a797",
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/verify-review.py": "6d2ec6202d9299532737cd2b817c45aef45b8e3e4c05b2b7e6d589dbfa43922b",
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/d41-before-ratification.txt": "be072b90a8a1c6290b1e7d2897bc14bad20c98f52bae0fd6ad1cda9a20045c12",
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/q41-before-ratification.txt": "735f0dd6d0dd6788e0ae4fda066b6be69fac25ea8fca793cc5de2f752314d7b2"
+  }
+}

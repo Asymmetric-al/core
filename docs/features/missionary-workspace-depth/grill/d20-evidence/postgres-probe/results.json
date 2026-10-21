@@ -1,0 +1,1456 @@
+{
+  "recorded_at": "2026-10-16T16:51:40.040588+00:00",
+  "scope": "Synthetic D20 exact reviewed special-gift membership, durable purpose coverage, independent shared task and current-authority mechanics only; not Core/financial/recognition/P12/Supabase/Auth/PostgREST qualification.",
+  "outcomes": 38,
+  "passed": 38,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "ea756abc3c56e5154ee2c274dcaba5e6c9670011a2550d7291ff59d5235b9df8",
+    "run.py": "c6bffcfb951baa9acf2f70d873735111d038568a20a93631e51a4f0c9e6e0f15",
+    "sources.json": "1ff35656df03cf668aa3868dc673133050653ae3ae9ca8d2b397f661049dd4e3"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "fixture_steps": [
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,1,'missionary_a'); INSERT INTO probe.gates VALUES(1,1,'missionary_a',true,1),(1,1,'missionary_b',true,1),(1,1,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,1,1,true,'history'); INSERT INTO probe.gift_heads VALUES(1,1,1,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,1,1,false,'live'); INSERT INTO probe.gift_heads VALUES(1,2,1,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,2,'missionary_a'); INSERT INTO probe.gates VALUES(1,2,'missionary_a',true,1),(1,2,'missionary_b',true,1),(1,2,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,2,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,2,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,3,'missionary_a'); INSERT INTO probe.gates VALUES(1,3,'missionary_a',true,1),(1,3,'missionary_b',true,1),(1,3,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,3,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,3,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(3,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:2",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,3,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,3,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(3,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:2",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(2,ARRAY[1,2]::int[],'review-3');",
+      "exit_code": 0,
+      "stdout": "review:1",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,3,3,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,3,3,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(3,3,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:2",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(2,ARRAY[3]::int[],'residual-3');",
+      "exit_code": 0,
+      "stdout": "review:2",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,4,3,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,4,3,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(3,4,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:4",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,4,'missionary_a'); INSERT INTO probe.gates VALUES(1,4,'missionary_a',true,1),(1,4,'missionary_b',true,1),(1,4,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,4,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,4,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(4,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:5",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,4,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,4,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(4,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:5",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(5,ARRAY[1,2]::int[],'review-4');",
+      "exit_code": 0,
+      "stdout": "review:3",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "SELECT probe.change_source(4,1,1,true);",
+      "exit_code": 0,
+      "stdout": "source:2",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,5,'missionary_a'); INSERT INTO probe.gates VALUES(1,5,'missionary_a',true,1),(1,5,'missionary_b',true,1),(1,5,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,5,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,5,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(5,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:6",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,5,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,5,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(5,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:6",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(6,ARRAY[1,2]::int[],'review-5');",
+      "exit_code": 0,
+      "stdout": "review:4",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.finish(4,'not_needed','finish-4');",
+      "exit_code": 0,
+      "stdout": "not_needed",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "SELECT probe.change_source(5,1,1,false);",
+      "exit_code": 0,
+      "stdout": "source:2",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "SELECT probe.change_source(5,1,2,true);",
+      "exit_code": 0,
+      "stdout": "source:3",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,6,'missionary_a'); INSERT INTO probe.gates VALUES(1,6,'missionary_a',true,1),(1,6,'missionary_b',true,1),(1,6,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,6,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,6,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(6,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:7",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,6,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,6,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(6,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:7",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(7,ARRAY[1,2]::int[],'review-6');",
+      "exit_code": 0,
+      "stdout": "review:5",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1 AND scope=6 AND actor='missionary_b';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,7,'missionary_a'); INSERT INTO probe.gates VALUES(1,7,'missionary_a',true,1),(1,7,'missionary_b',true,1),(1,7,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,7,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,7,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,7,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,7,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,8,'missionary_a'); INSERT INTO probe.gates VALUES(1,8,'missionary_a',true,1),(1,8,'missionary_b',true,1),(1,8,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,8,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,8,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(8,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:9",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,8,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,8,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(8,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:9",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(9,ARRAY[1,2]::int[],'review-8');",
+      "exit_code": 0,
+      "stdout": "review:6",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,3,8,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,3,8,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,9,'missionary_a'); INSERT INTO probe.gates VALUES(1,9,'missionary_a',true,1),(1,9,'missionary_b',true,1),(1,9,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,9,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,9,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(9,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:10",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,9,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,9,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(9,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:10",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(10,ARRAY[1,2]::int[],'review-9');",
+      "exit_code": 0,
+      "stdout": "review:7",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,3,9,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,3,9,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,10,'missionary_a'); INSERT INTO probe.gates VALUES(1,10,'missionary_a',true,1),(1,10,'missionary_b',true,1),(1,10,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,10,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,10,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(10,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:12",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,10,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,10,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(10,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:12",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(12,ARRAY[1,2]::int[],'review-10');",
+      "exit_code": 0,
+      "stdout": "review:8",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,11,'missionary_a'); INSERT INTO probe.gates VALUES(1,11,'missionary_a',true,1),(1,11,'missionary_b',true,1),(1,11,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,11,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,11,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(11,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:13",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,11,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,11,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(11,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:13",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(13,ARRAY[1,2]::int[],'review-11');",
+      "exit_code": 0,
+      "stdout": "review:9",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,12,'missionary_a'); INSERT INTO probe.gates VALUES(1,12,'missionary_a',true,1),(1,12,'missionary_b',true,1),(1,12,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,12,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,12,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(12,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:14",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,12,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,12,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(12,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:14",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(14,ARRAY[1,2]::int[],'review-12');",
+      "exit_code": 0,
+      "stdout": "review:10",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,13,'missionary_a'); INSERT INTO probe.gates VALUES(1,13,'missionary_a',true,1),(1,13,'missionary_b',true,1),(1,13,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,13,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,13,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(13,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:15",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,13,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,13,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(13,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:15",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(15,ARRAY[1,2]::int[],'review-13');",
+      "exit_code": 0,
+      "stdout": "review:11",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,14,'missionary_a'); INSERT INTO probe.gates VALUES(1,14,'missionary_a',true,1),(1,14,'missionary_b',true,1),(1,14,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,14,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,14,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(14,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:16",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,14,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,14,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(14,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:16",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(16,ARRAY[1,2]::int[],'review-14');",
+      "exit_code": 0,
+      "stdout": "review:12",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.scopes(tenant,id,assignee) VALUES(1,15,'missionary_a'); INSERT INTO probe.gates VALUES(1,15,'missionary_a',true,1),(1,15,'missionary_b',true,1),(1,15,'source_worker',true,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,1,15,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,1,15,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(15,1,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:17",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.gift_versions VALUES(1,2,15,1,true,'live'); INSERT INTO probe.gift_heads VALUES(1,2,15,1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.admit(15,2,'request');",
+      "exit_code": 0,
+      "stdout": "admitted:17",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.review_group(17,ARRAY[1,2]::int[],'review-15');",
+      "exit_code": 0,
+      "stdout": "review:13",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "SELECT probe.handoff(17,2,'missionary_a');",
+      "exit_code": 0,
+      "stdout": "reassigned",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "name": "history_does_not_admit_group",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(1,1,'request');",
+      "expected": "history_only",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "history_only",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "0:0:0:0:0",
+        "after": "0:0:0:0:0"
+      }
+    },
+    {
+      "name": "ineligible_does_not_admit_group",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(1,2,'request');",
+      "expected": "not_qualified",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "not_qualified",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "0:0:0:0:0",
+        "after": "0:0:0:0:0"
+      }
+    },
+    {
+      "name": "required_admission_audit_rolls_back",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(2,1,'FAIL_AUDIT');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"audit\" violates check constraint \"audit_note_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.audit(tenant,group_id,kind,note) VALUES(t,b.id,'admitted',CASE WHEN k='FAIL_AUDIT' THEN k ELSE 'identifier-only' END)\"\nPL/pgSQL function admit(integer,integer,text) line 17 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  audit\nCONSTRAINT NAME:  audit_note_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true,
+      "counts": {
+        "before": "0:0:0:0:0",
+        "after": "0:0:0:0:0"
+      }
+    },
+    {
+      "name": "cross_tenant_member_foreign_key",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.gift_heads VALUES(2,1,2,1);",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"gift_heads\" violates foreign key constraint \"gift_heads_tenant_gift_scope_revision_fkey\"\nDETAIL:  Key (tenant, gift, scope, revision)=(2, 1, 2, 1) is not present in table \"gift_versions\".\nSCHEMA NAME:  probe\nTABLE NAME:  gift_heads\nCONSTRAINT NAME:  gift_heads_tenant_gift_scope_revision_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "raw_member_read_denied",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT * FROM probe.coverage;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table coverage\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "raw_task_mutation_denied",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.groups SET state='done' WHERE id=2;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table groups\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "group_scope_cannot_be_relabelled",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "UPDATE probe.groups SET scope=2 WHERE id=2;",
+      "expected": null,
+      "expected_sqlstate": "55000",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  55000: immutable group identity\nCONTEXT:  PL/pgSQL function probe.identity_guard() line 1 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "member_identity_cannot_be_relabelled",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "UPDATE probe.coverage SET gift=99 WHERE scope=3 AND gift=1;",
+      "expected": null,
+      "expected_sqlstate": "55000",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  55000: immutable member identity\nCONTEXT:  PL/pgSQL function probe.identity_guard() line 1 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "one_open_compatible_group_constraint",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.groups(tenant,scope,assignee,state) VALUES(1,3,'missionary_a','open');",
+      "expected": null,
+      "expected_sqlstate": "23505",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23505: duplicate key value violates unique constraint \"one_open_compatible_group\"\nDETAIL:  Key (tenant, scope)=(1, 3) already exists.\nSCHEMA NAME:  probe\nTABLE NAME:  groups\nCONSTRAINT NAME:  one_open_compatible_group\nLOCATION:  _bt_check_unique, nbtinsert.c:666",
+      "passed": true
+    },
+    {
+      "name": "cross_tenant_review_and_finish_denied",
+      "role": "other_tenant",
+      "counterexample": false,
+      "sql": "SELECT probe.review_group(2,ARRAY[1]::int[],'alien'); SELECT probe.finish(1,'done','finish-1');",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "different_assignee_no_read_or_finish",
+      "role": "missionary_b",
+      "counterexample": false,
+      "sql": "SELECT probe.read_group(2); SELECT probe.finish(1,'done','finish-1');",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "trusted_actor_not_session_setting",
+      "role": "missionary_b",
+      "counterexample": false,
+      "sql": "SET request.jwt.claim.sub='missionary_a'; SELECT probe.finish(1,'done','spoof');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "normalize_exact_review_retry",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.review_group(2,ARRAY[2,1,1]::int[],'review-3');",
+      "expected": "review:1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "review:1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "changed_review_key_meaning_conflicts",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.review_group(2,ARRAY[1]::int[],'review-3');",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "foreign_or_null_review_members_conflict",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.review_group(2,ARRAY[1,999]::int[],'foreign'); SELECT probe.review_group(2,ARRAY[1,NULL],'null');",
+      "expected": "conflict\nconflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict\nconflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "null_disposition_rejected",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(1,NULL,'null');",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "1:2:0:2:0",
+        "after": "1:2:0:2:0"
+      }
+    },
+    {
+      "name": "exact_review_rows_immutable",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "UPDATE probe.review_items SET gift_revision=2 WHERE review_id=1;",
+      "expected": null,
+      "expected_sqlstate": "55000",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  55000: immutable evidence\nCONTEXT:  PL/pgSQL function probe.immutable() line 1 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "required_completion_audit_rolls_back",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(1,'done','FAIL_AUDIT');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"audit\" violates check constraint \"audit_note_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.audit(tenant,group_id,kind,note) VALUES(t,r.group_id,'finished',CASE WHEN k='FAIL_AUDIT' THEN k ELSE 'identifier-only' END)\"\nPL/pgSQL function finish(bigint,text,text) line 18 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  audit\nCONSTRAINT NAME:  audit_note_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true,
+      "counts": {
+        "before": "1:2:0:2:0",
+        "after": "1:2:0:2:0"
+      }
+    },
+    {
+      "name": "reviewed_subset_finishes_same_task_residual_open",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(1,'done','finish-1');",
+      "expected": "done",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "done",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "lost_receipt_new_key_never_consumes_residual",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(1,'done','retry-3');",
+      "expected": "receipt:done",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "receipt:done",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "1:3:1:4:0",
+        "after": "1:3:1:4:0"
+      }
+    },
+    {
+      "name": "changed_disposition_retry_conflicts",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(1,'not_needed','finish-1');",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "finish_key_cannot_rebind_another_review",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(2,'done','finish-1');",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "last_reviewed_members_close_same_task",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(2,'done','finish-2');",
+      "expected": "done",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "done",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "completed_gift_coverage_survives_new_group",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(3,1,'new-transport');",
+      "expected": "covered:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "covered:2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "material_revision_change_conflicts_whole_review",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(3,'done','finish-3');",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "3:6:2:8:0",
+        "after": "3:6:2:8:0"
+      }
+    },
+    {
+      "name": "not_needed_coverage_survives_requalification",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.admit(5,1,'request');",
+      "expected": "covered:6",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "covered:6",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "handoff_does_not_grant_authority",
+      "role": "source_manager",
+      "counterexample": false,
+      "sql": "SELECT probe.handoff(7,1,'missionary_b');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "parallel_admissions_one_compatible_task",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_worker",
+      "second_role": "source_worker",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.admit(7,1,'request'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "admitted:8\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.admit(7,2,'request'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "admitted:8\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "admitted:8\nFIRST_READY\n",
+        "second": "admitted:8\nSECOND_DONE\n",
+        "coverage": "1:open,2:open"
+      }
+    },
+    {
+      "name": "addition_first_review_finishes_residual",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_worker",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.admit(8,3,'request'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "admitted:9\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(6,'done','finish-6'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "done\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "admitted:9\nFIRST_READY\n",
+        "second": "done\nSECOND_DONE\n",
+        "members": "1:done,2:done,3:open",
+        "same_group": 9
+      }
+    },
+    {
+      "name": "finish_first_new_gift_gets_next_task",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "source_worker",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(7,'done','finish-7'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "done\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.admit(9,3,'request'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "admitted:11\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "done\nFIRST_READY\n",
+        "second": "admitted:11\nSECOND_DONE\n",
+        "members": "1:done,2:done,3:open"
+      }
+    },
+    {
+      "name": "two_finish_keys_one_review_receipt",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(8,'done','parallel-A'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "done\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(8,'done','parallel-B'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "receipt:done\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "done\nFIRST_READY\n",
+        "second": "receipt:done\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "correction_first_conflicts_entire_review",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_manager",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.change_source(11,1,1,false); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "source:2\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(9,'done','finish-9'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "conflict\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "source:2\nFIRST_READY\n",
+        "second": "conflict\nSECOND_DONE\n",
+        "members": "1:open,2:open"
+      }
+    },
+    {
+      "name": "finish_first_retains_human_history",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "source_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(10,'done','finish-10'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "done\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.change_source(12,1,1,false); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "source:2\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "done\nFIRST_READY\n",
+        "second": "source:2\nSECOND_DONE\n",
+        "source_revision": "2"
+      }
+    },
+    {
+      "name": "revoke_first_denies_review_completion",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "policy_manager",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1 AND scope=13 AND actor='missionary_a'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(11,'done','finish-11'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "finish_first_precedes_revocation",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "policy_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(12,'done','finish-12'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "done\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1 AND scope=14 AND actor='missionary_a'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "done\nFIRST_READY\n",
+        "second": "SECOND_DONE\n"
+      }
+    },
+    {
+      "name": "revoked_read_and_receipt_disclosure_denied",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.read_group(16); SELECT probe.finish(12,'done','finish-12');",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "handoff_fences_old_read_and_completion",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_manager",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.handoff(17,1,'missionary_b'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "reassigned\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.read_group(17); SELECT probe.finish(13,'done','finish-13'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nunavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "reassigned\nFIRST_READY\n",
+        "second": "unavailable\nunavailable\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "handoff_A_B_A_does_not_revalidate_old_review",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(13,'done','finish-13');",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true,
+      "final_interaction_send_gift_enrollment_effects": 0
+    }
+  ]
+}

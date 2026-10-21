@@ -1,0 +1,121 @@
+{
+  "scope": "D23 document and provenance checks only; no probe or product command executed",
+  "checked_at_utc": "2026-10-17T05:10:27.223327+00:00",
+  "passed": true,
+  "errors": [],
+  "local_references": 398,
+  "line_references": 105,
+  "anchor_references": 37,
+  "clauses": 24,
+  "proof_obligations": 32,
+  "material_findings": 14,
+  "categories": 22,
+  "selected": "A; supported activity types with personal customization",
+  "amendments_ratified": true,
+  "q24_posed": true,
+  "q24_prepared_unanswered": true,
+  "initial_d23_artifacts_unchanged": 13,
+  "initial_verification_preserved": true,
+  "prior_artifacts_unchanged": 26,
+  "finite_counterexamples_reproduced": 27,
+  "new_database_experiment": false,
+  "prior_experiments_rerun": false,
+  "technical_sources": [
+    {
+      "url": "https://supabase.com/changelog.md",
+      "group": "fresh",
+      "fetched_at": "2026-10-17T04:49:45.390375+00:00"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/functions-aggregate.html",
+      "group": "fresh",
+      "fetched_at": "2026-10-17T04:50:30.647538+00:00"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/datatype-datetime.html",
+      "group": "fresh",
+      "fetched_at": "2026-10-17T04:50:29.842644+00:00"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createview.html",
+      "group": "fresh",
+      "fetched_at": "2026-10-17T04:50:29.737517+00:00"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/rules-materializedviews.html",
+      "group": "fresh",
+      "fetched_at": "2026-10-17T04:50:29.202445+00:00"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "group": "same_day_reused",
+      "fetched_at": "2026-10-17T03:56:52.656824+00:00"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "group": "same_day_reused",
+      "fetched_at": "2026-10-17T03:56:52.431806+00:00"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "group": "same_day_reused",
+      "fetched_at": "2026-10-17T03:56:53.025706+00:00"
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "group": "same_day_reused",
+      "fetched_at": "2026-10-17T03:56:50.984597+00:00"
+    },
+    {
+      "url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+      "group": "same_day_reused",
+      "fetched_at": "2026-10-17T03:56:51.752095+00:00"
+    },
+    {
+      "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "group": "same_day_reused",
+      "fetched_at": "2026-10-17T03:56:52.272493+00:00"
+    }
+  ],
+  "unavailable_temporary_source_paths": [],
+  "unchanged_local_source_hashes": [
+    "docs/prds/program-roadmap/owner-constraints.md",
+    "docs/prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md",
+    "docs/prds/sitestacker-parity/phase-27-donor-development/context.md",
+    "docs/prds/sitestacker-parity/phase-27-donor-development/partnerships.md",
+    "docs/prds/sitestacker-parity/phase-12-full-role-permission-configuration.md",
+    "docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md",
+    "packages/api/src/missionary-portal/donors.ts",
+    "supabase/migrations/20250101000000_init_schema.sql",
+    "openspec/specs/crm-core/spec.md"
+  ],
+  "q23_hash_in_database_note": "pre-answer inspection snapshot; updated status verified separately",
+  "new_artifact_pins": {
+    "prior-evidence-sha256.json": "f91f45e50fe463c36df7170ac87eead79ee9fc2e6a123768a4867a9b8555982f",
+    "counterexample-probe/probe.py": "bd4230b7b052a1d323ce9086ef70a3500f9ad932fbc7bec00e652ca64bb6e854",
+    "counterexample-probe/results.json": "0a81678c61327c7381eb4dd4e1a3e659e8819c5573e50a24dcdd024014193ac4",
+    "primary-sources.json": "d8c8cf66fc13d8ddd819a13ccfc55e7a2e5eaa1f199246a457f8467db2eb4e07",
+    "review-verification-initial.json": "cd029a8a37866ccf6173de03417241e26ec22241e794ceeb0c07c65f70285110",
+    "verify-review-initial.py": "20df64e92018c2a6ecf0189b511a85d7a198ef452384ac4bbc7fa44ff9f33e74",
+    "ratification-evidence-sha256.json": "44456611a85ab52face6bc81ec4754270bb018fe04f5b82a4f462d350f07e532"
+  },
+  "document_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d23-activity-targets-adversarial-review.md": "8c1497a28da9071a1c92af157625219013c31379c1006092de6a88cf7da9913a",
+    "docs/features/missionary-workspace-depth/grill/phase28-q23-activity-target-measures-research.md": "20b2cbb4b1f98e0814ba36d676f8f8da7bd5c29434af28950676343a5da6903b",
+    "docs/features/missionary-workspace-depth/grill/phase28-q24-coaching-activity-summary-research.md": "b10691c7e8e67965bb8de89b9139d3702669c726d69ae14f530c860896541122",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "657edc57d1729d680eb06d71c62dfebec636c9f742a20edb70c24830d4151e14",
+    "docs/features/missionary-workspace-depth/grill/d23-evidence/activity-source-semantics.md": "a6c15eab769fa6c06ea3ff44466e6c629c4b99763ecf8e9570d59061ecfeeb8f",
+    "docs/features/missionary-workspace-depth/grill/d23-evidence/activity-target-ux.md": "e7454be45ebd20075d034e52d282097ae86772e21d6a357bca991049d401886d",
+    "docs/features/missionary-workspace-depth/grill/d23-evidence/cross-review-reconciliation.md": "87669401fadc7b4db0618a1b9d61e3d4d468f001605ee12cf5f6a93d1a05710c",
+    "docs/features/missionary-workspace-depth/grill/d23-evidence/current-activity-source.md": "1cf6f5cd249ab6a3f94743a4d66ca2d3512127c06339d04b0b744a16980869b1",
+    "docs/features/missionary-workspace-depth/grill/d23-evidence/database-target-lifecycle.md": "1fad9041f0a4b88c92e29e45bbab54fb8561418883a0cf5840ee4bbec2707886",
+    "docs/features/missionary-workspace-depth/grill/d23-evidence/owner-target-boundaries.md": "ca377014813c52c10cf99495a1412f397b1359e83b136727d75c0503a7cfb1f2",
+    "docs/features/missionary-workspace-depth/grill/d23-evidence/period-and-count-counterexamples.md": "f2a1e86f913bbd8c1b4423a718a5e762714b677f409b759d1c2d5677d130d69a"
+  },
+  "limits": [
+    "No actual Core source/P12/target command qualification",
+    "No hosted Supabase or provider test",
+    "No browser/accessibility/user study",
+    "No production workload proof"
+  ]
+}

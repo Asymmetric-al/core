@@ -1,0 +1,21 @@
+{
+  "d31-evidence/artifact-pins.json": "2ddf11a112d925401721a948093a20a4ff9180be06273d32dfdb73cea4df5a7a",
+  "d31-evidence/cross-review-resolution.md": "3deb895b9fe8b97dd37577012da960ed6baac80de2d5793f83df4bbd9cadc50a",
+  "d31-evidence/d31-before-ratification.txt": "e539d706ade0dc7165c0e8ebb22abdff32e8fcecba40891148a4a27ce5952c39",
+  "d31-evidence/database-precision-authorization.md": "85f2dd45fedef7cf36072d3ce48ac39a9400809191a2b628d9e26b5098d64f93",
+  "d31-evidence/excess-counterexamples.json": "b6d60bd45f948f7472562c110c8a0cdbd30a5db5ff0bdb5a047eb1aef2d620e6",
+  "d31-evidence/excess-counterexamples.py": "ab34413bca930916027a54fef9d569eaaa4edbaba1aa9cb180d303d0399744b1",
+  "d31-evidence/financial-excess-and-lifecycle.md": "f542d3c2bde469665bcb64c4f21687c1f99bd91fadd29616c8702aed7bfb3c8f",
+  "d31-evidence/governance-and-admission.md": "f735d1ee05c6b362e328279663ca775c1e530b4477d4c51f3d932b0bc6b5f11a",
+  "d31-evidence/model-readme.md": "e9ffbacb2a5c71ae2084562116cb09bcb8844fe6504ef0eb797dec6a33a6621b",
+  "d31-evidence/prior-evidence-sha256.json": "425428e5704f928b2867dd2b4b7d6a87ac610b0be15c2d503fcda98339ec3622",
+  "d31-evidence/q31-before-answer.txt": "2d69e8571e894fcfcd6593ee455c9e8963650ce3abebf22af1c8d80b7cfa56e2",
+  "d31-evidence/ratification-evidence-sha256.json": "ddcc92d5ea41313217b22fdad51379a833c3902efdcf6aa195274ccf8b5f1657",
+  "d31-evidence/ratification-verification.json": "8351c46048365d0c4324d295b8717da434e1c4b3544b272a8706a0e402eba218",
+  "d31-evidence/review-verification.json": "22e671993ac1984eef188db6e98d34309ae66e0a9710517a1be5794c127f5ddf",
+  "d31-evidence/root-reproduction.json": "33064cf650696702146862a748f76b25852d374f9fa8fb9c8c2b686af32c38c0",
+  "d31-evidence/technical-fetches.json": "abe8e01f0bb581541b2f090ad4f52510270bb9134529db1d20bcdae68d0500f1",
+  "d31-evidence/ux-and-primary-research.md": "e5493c231e8095b67891c9696f07cd8aa9c96d35c572810c8664075f5871c3e4",
+  "d31-evidence/verify-ratification.py": "0c835ba8cd004820e376c9f6c469419f4120d8469c510539ac7febb7f388f782",
+  "d31-evidence/verify-review.py": "81504a2cfd67860b5e2af391593c0c088aac981dd2bc98ee6fbcdeea8f5b7c71"
+}

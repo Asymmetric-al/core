@@ -233,7 +233,7 @@ Stories are grouped by actor and numbered continuously. Every story traces to a 
 82. As a **missionary**, I want a do-not-contact supporter visible with the contact affordance suppressed and no reason shown, so that I respect the boundary without learning private details. `[D5]`
 83. As a **missionary**, I want members visible-NOT-contactable in v1 — no contact details, no contact affordance, zero auto-enrollment into any Phase 6 stream; a member becomes contactable only by acting directly (direct gift, portal signup, explicit opt-in with consent provenance) — so that I can never accidentally email 200 church members who have never heard of us. `[D5 close-out 1]`
 84. As a **missionary**, I want roster AGGREGATE tiles in the Legal vocabulary only, per-row display in Recognition with via-chips, so that my totals reconcile to real money while rows tell the recognition story. `[D5, D1.4]`
-85. As a **missionary**, I want roster membership via `supports_policy_v2` — recognized fold > 0 on any effective line in scope trailing 365 days OR a typed Phase 16 active commitment; lapsed band 365–730d display-only; drop after 730d — so that a church skipping a month never falsely lapses a supporter. `[D5]` _(Amended 2026-07-13, Phase 16 A13.)_
+85. As a **missionary**, I want the recognition roster to preserve current qualified support and show neutral historical recognition, so that an old gift does not label a person lapsed and an independently qualifying current Phase 16 commitment is not removed by a historical-recency cutoff. The existing 365–730-day historical band and 730-day exclusion apply only to historical inclusion. Phase 9 retains its distinct `supports_policy_v1`. `[D5; Phase 28 completeness C04]`
 86. As a **missionary**, I want corrections to self-heal silently through the recognition fold (no notification to me), so that bookkeeping noise never reaches my dashboard. `[D5]`
 87. As a **missionary**, I want a member who changes churches to simply grow a second path (nothing migrates), and two churches attributing the same member to be legal distinct facts — with multi-currency shown as per-currency subtotals, never a scalar — so that real-world messiness never corrupts the roster. `[D5]`
 88. As a **missionary who left the field**, I want my roster to end at designation un-assignment and my successor to inherit it — designation assignment effective-dated, resolved at read — so that roster scope always reflects who holds the designation. `[D5]`
@@ -461,7 +461,7 @@ Contract (binding):
 
 #### C.4 `getSupporterRoster` — named here, specified in section H [D5]
 
-`getSupporterRoster(missionary_scope, lens)` is the **designation-centric dual of `getPartyCreditActivity`**: same substrate (hard-credit effective lines UNION credits through the ONE A.3 fold), **zero copies**, cursor-keyed, one row per `(tenant, missionary_scope, party)` with `paths[]`. Its "perfectly aligned" acceptance fixture — every roster row's path sums ≡ `getPartyCreditActivity` filtered to scope, both lenses — is what enforces that the two duals can never drift. Grain, projections, churn policy, and the never-leak fixture list are section H's lane.
+`getSupporterRoster(missionary_scope, lens)` is the **designation-centric dual of `getPartyCreditActivity`** for recognized giving: hard-credit effective lines UNION credits through the ONE A.3 fold, with **zero copies**. Phase 28 C04 adds independently qualifying typed Phase 16 commitment subjects to the candidate-party union, never to recognition or Legal amounts. There is one row per `(tenant, missionary_scope, party)` with recognized `paths[]` and separate source-backed commitment evidence. Invalidation includes the P13 fold cursor, the qualified Phase 16 eligibility revision and applicable time boundaries. Its "perfectly aligned" acceptance fixture — every roster row's path sums ≡ `getPartyCreditActivity` filtered to scope, both lenses — remains binding, including commitment-only rows with no recognized-giving paths. Grain, projections, churn policy, and the never-leak fixture list are section H's lane.
 
 #### C.5 The MAX-per-(party, header) rollup rule [D4.13]
 
@@ -1053,7 +1053,27 @@ The design load case is the real one: a church remitting for **~20 members every
 
 **`getSupporterRoster(missionary_scope, lens)`** is a **named read model** — the **designation-centric dual of `getPartyCreditActivity`** (Implementation Decision C.2 answers "what has this party given?"; the roster answers "who supports this missionary?"). It is named in C.4; this is its owning specification.
 
-**Substrate — SAME substrate, ZERO copies.** The roster is a query shape, not a table: **hard-credit effective lines (the P13 fold) UNION `contribution_credits ⋈ lines ⋈ headers` through the ONE D1.4 recognition fold, keyed on the P13 `effective_seq` cursor** — cursor-invalidated like every P13 read model. **No roster table, no counters, no nightly rebuild.** (FORWARD: the `effective_seq` cursor and fold are the Phase 13 PRD's cached-effective-read-model contract, §E rule 8 — groomed, not built.) A correction that changes the fold advances the cursor, and the roster is correct on the next read; there is no pipeline to drift.
+**Giving-path substrate — same recognition fold, zero copies.** The giving paths are a query shape, not a table: **hard-credit effective lines (the P13 fold) UNION `contribution_credits ⋈ lines ⋈ headers` through the ONE D1.4 recognition fold, keyed on the P13 `effective_seq` cursor** — cursor-invalidated like every P13 read model. **No roster table, no counters, no nightly rebuild.** (FORWARD: the `effective_seq` cursor and fold are the Phase 13 PRD's cached-effective-read-model contract, §E rule 8 — groomed, not built.) A correction that changes the fold advances the cursor, and the roster is correct on the next read; there is no pipeline to drift.
+
+**Phase 28 C04 candidate extension.** Union the canonical Party subjects of
+independently qualifying typed Phase 16 commitments with the recognition-fold
+candidate set, within the same Tenant and missionary scope. The Phase 16 owner
+proves current commitment kind, state, eligibility and scope; an expectancy,
+unresolved identity or inaccessible subject is not a candidate. Apply the same
+current projection/privacy floor before enumeration. Deduplicate at the existing
+`(tenant, missionary_scope, party)` grain. Separate source-backed commitment
+evidence carries its qualification; it creates no credit row, giving path,
+received money or contact authority. A commitment-only row has no recognized
+paths and no invented giving amounts. The giving-path reconciliation fixture
+still compares the unchanged recognition fold on both sides.
+
+Cache validity also consumes the Phase 16 eligibility revision and its effective
+time boundaries; the P13 cursor alone cannot detect a changed or expired
+commitment. A historical-recognition cutoff cannot remove an independently
+qualifying commitment row. Prove current-commitment-only inclusion, expiry of
+recognition with commitment retained, end/revocation of the last qualifying
+source, and one deduplicated row when both sources qualify. Unavailable source
+qualification remains unavailable rather than becoming an empty or zero result.
 
 **Grain — ONE row per `(tenant, missionary_scope, party)`.** Mrs. Jones who gives directly AND through her church is **one row**, with the mechanism detail carried in `paths[]`. The path shape, verbatim from the ratified design:
 
@@ -1068,14 +1088,15 @@ The design load case is the real one: a church remitting for **~20 members every
 
 **The "perfectly aligned" acceptance fixture (BLOCKER-class):** **every roster row's path sums ≡ `getPartyCreditActivity` filtered to scope, both lenses.** The founder's "perfectly aligned and tied closely to the records" is not a vibe — it is this fixture: the party-centric view and the designation-centric view are duals over one substrate, and the test suite proves they can never diverge.
 
-#### H.4 Churn policy — `supports_policy_v2`, minted for the roster only [D5]
+#### H.4 Recognition roster recency — distinct from the P9 derived edge [D5; Phase 28 C04]
 
-Phase 9 pinned **`supports_policy_v1` = "a settled (adjustment-folded) gift in the trailing 365 days OR an active pledge/recurring commitment"** as the named, versioned derived-edge policy (REAL anchor: `docs/prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md`, B3). That policy is hard-credit-grained — a church member has no settled gift of record and would never qualify. Phase 14 therefore mints:
+Phase 9 retains its actual named `supports_policy_v1`: an adjustment-folded settled gift in the trailing 365 days, an eligible current recurring intent, or an explicitly qualifying fixed-total pledge under its B3/Phase 16 rules. Phase 28 does not upgrade that derived relationship edge to recognition credit.
 
-- **`supports_policy_v2` = "recognized fold > 0 on any effective line in scope trailing 365d OR typed Phase 16 active commitment"** — evaluated over the recognition fold, so via-church members, DAF advisors, and matched employees qualify as supporters without recognition itself manufacturing a commitment.
-- **Scope: the ROSTER only.** **Phase 9's v1 EDGE stays untouched this phase** — the derived `supports` edge in the relationship graph continues to run `supports_policy_v1`; revisiting whether the edge itself should upgrade to v2 is **deferred to Phase 28 (Missionary Workspace Depth & Support-Raising CRM)**. Minting v2 for one consumer, versioned, is the lean shape; silently changing the meaning of an already-groomed edge is not.
-- **Lapsed band: 365–730 days, display-only.** A supporter whose last recognized activity falls in the trailing 365–730d window renders in a "lapsed" band (a visual state on the roster, never a stored status, never a trigger for any automation). **Drop after 730d** — the row leaves the roster entirely.
-- **Refund-to-zero exits active at the next cursor advance** — no special machinery; the fold going to 0 simply stops satisfying the predicate. **A church skipping a month is irrelevant until the 365d cliff** — the policy is deliberately coarse so ordinary remittance jitter produces zero roster churn.
+The Phase 14 roster uses its distinct recognition-grained `supports_policy_v2`: positive effective recognized support in scope in the trailing 365 days, or an independently qualifying typed Phase 16 commitment. Via-church members, DAF advisors and matched employees may therefore qualify for recognition without manufacturing received money, commitment, contact authority or graph enrollment.
+
+- **Historical recognition, not a person-level lapse.** The existing 365–730-day display band uses neutral dated recognition language. The 730-day exclusion applies only to that historical inclusion path; it never removes a row that independently qualifies through current Phase 16 commitment evidence.
+- **Corrections use current source folds.** Refund-to-zero removes only the recognition qualification it actually negates. Other recognition paths and current commitment qualification remain independently evaluated. No inferred person decline, solicitation permission or automatic task follows.
+- **No deferred edge-policy fork remains.** Completeness C04 retains the P9 edge and P14 roster as separate consumers. H3's exact grain/reconciliation and H5's field/privacy floor remain binding. See [OA-03](phase-28-missionary-workspace-depth/owner-reconciliation.md#oa-03).
 
 #### H.5 The missionary projection — v1 field set, view-only, safety floor [D5]
 
@@ -1998,7 +2019,7 @@ Reserved as seams (plumbed, not built), owned by a named later phase, or deliber
 - **Donor-development ranking semantics** — formally deferred to Phase 27 (Donor Development & Portfolio Management); Phase 14 ships zero ranking semantics; Phase 27 consumes `getPartyCreditActivity` + `getMatchingActivity` + `getSupporterRoster`, so staff and missionary ranking can never diverge [D5 close-out 5].
 - **Donor-portal recognition depth** — Phase 25 (Donor Dashboard Depth); Phase 19 may expose only the optional, separately purposed **Support overview — Not a tax document** for the Phase 19 D15 launch allow-list. No recognition is inserted into an official statement, and no missionary-workspace matching surface ships in v1 [D4.10].
 - **Member thank-you letters** — **killed, not deferred** [D5 founder ruling]: no member correspondence of any kind, no tenant toggle; the church-member acknowledgment stream named in D2's scope note is SUPERSEDED by D5 [D5 close-out 4b]. Platform-mediated member thank-you affordances are a Phase 28 (Missionary Workspace Depth & Support-Raising CRM) question [D5 close-out 1].
-- **`supports` edge revision** — Phase 9 (Full CRM Depth & Relationship Graph)'s v1 edge stays untouched; `supports_policy_v2` is roster-only; reconciliation revisits at Phase 28 (Missionary Workspace Depth & Support-Raising CRM) [D5].
+- **`supports` edge revision** — Phase 28 completeness C04 settles this boundary: Phase 9 retains `supports_policy_v1`; `supports_policy_v2` remains the separate recognition-roster consumer. No edge-v2 policy question remains deferred [D5; P28 C04].
 - **Public tribute capture** — arrives when Phase 5 (Public Website Runtime Contract) plumbs it; the binding rule ships now: publicly-captured named parties quarantine behind staff review before any letter (Phase 4 (Identity & Account-Claiming Foundation) A5) [D1 forward-carry].
 - **Tenant-editable tribute templates or a Phase 14 renderer** — Phase 17 owns
   governed content/template editing within the Phase 14 fact contract, and

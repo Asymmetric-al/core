@@ -1,0 +1,13 @@
+{
+  "container": "phase28-d22-pg",
+  "container_id": "186acea5b03d01b4c255b7cd85d694f18a9f78a9885954f79c8ffa1450752434",
+  "volume_names": [
+    "523656869e86136903274aa71fb085e5d416dbe856ecef89f6f1dd9c10313687"
+  ],
+  "stop_exit_code": 0,
+  "container_absent": true,
+  "volumes_absent": {
+    "523656869e86136903274aa71fb085e5d416dbe856ecef89f6f1dd9c10313687": true
+  },
+  "verified_at": "2026-10-17T04:21:12.848971+00:00"
+}

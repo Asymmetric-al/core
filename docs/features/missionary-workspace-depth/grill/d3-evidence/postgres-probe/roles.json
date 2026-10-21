@@ -1,0 +1,10 @@
+[
+  {
+    "rolname": "d3_deleter",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  }
+]

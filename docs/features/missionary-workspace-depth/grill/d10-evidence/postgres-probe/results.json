@@ -1,0 +1,562 @@
+{
+  "recorded_at": "2026-10-16T10:09:11.179706+00:00",
+  "scope": "Synthetic D10 fixed historical range, preview and source revision mechanics only; not Core/P12/Supabase/Auth/PostgREST/API qualification.",
+  "outcomes": 23,
+  "passed": 23,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "f8d2c4b76e22c07b8d131b2fbeebde4cfc4ff5e6f7e5b193cafffad8a19fc04c",
+    "run.py": "81ca93aaad8f186e5c3a20338b9c3c2f0a460a5e9f2f348e04fd2b0982864be3",
+    "sources.json": "e0b138fb7f1def2aafc02ee4f04b1ae2311bb6b564cb2ee743520e26425c2700"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "fixture_steps": [
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.previews SELECT g.tenant,2,'missionary_a',g.target,g.module,g.revision,h.revision,'[2026-08-01,2026-11-01)'::daterange FROM probe.grants g JOIN probe.heads h USING(tenant,target,module);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "UPDATE probe.grants SET active=true,revision=revision+1,periods='[2026-07-01,2026-10-01)'::daterange;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.coverage VALUES(1,10,'received','2026-07-01',1,true);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; UPDATE probe.heads SET revision=2; INSERT INTO probe.facts SELECT tenant,target,module,source_id,2,CASE WHEN source_id=5 THEN date '2026-09-15' ELSE source_date END,created_at,amount_minor FROM probe.facts WHERE revision=1; UPDATE probe.coverage SET revision=2; COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "UPDATE probe.grants SET active=true,revision=revision+1,periods='[2026-09-01,2026-10-01)'::daterange;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.previews SELECT g.tenant,3,'missionary_a',g.target,g.module,g.revision,1,'[2026-08-01,2026-10-01)'::daterange FROM probe.grants g JOIN probe.heads h USING(tenant,target,module);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.previews SELECT g.tenant,4,'missionary_a',g.target,g.module,g.revision,h.revision,'[2026-08-01,2026-10-01)'::daterange FROM probe.grants g JOIN probe.heads h USING(tenant,target,module);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "UPDATE probe.grants SET active=true,revision=revision+1,periods='[2026-09-01,2026-10-01)'::daterange;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.previews SELECT g.tenant,5,'missionary_a',g.target,g.module,g.revision,h.revision,'[2026-08-01,2026-10-01)'::daterange FROM probe.grants g JOIN probe.heads h USING(tenant,target,module);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "UPDATE probe.grants SET active=true,revision=revision+1,periods='[2026-08-01,2026-10-01)'::daterange;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.previews SELECT g.tenant,6,'missionary_a',g.target,g.module,g.revision,h.revision,'[2026-07-01,2026-10-01)'::daterange FROM probe.grants g JOIN probe.heads h USING(tenant,target,module);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "UPDATE probe.grants SET active=true,revision=revision+1,periods='[2026-09-01,2026-10-01)'::daterange;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.previews SELECT g.tenant,7,'missionary_a',g.target,g.module,g.revision,h.revision,'[2026-08-01,2026-10-01)'::daterange FROM probe.grants g JOIN probe.heads h USING(tenant,target,module);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "coach_a",
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-09-01,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;",
+      "exit_code": 0,
+      "stdout": "360",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "name": "source_period_half_open_includes_start_excludes_end",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-09-01,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;",
+      "expected": "300",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "300",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unsafe_created_time_moves_gifts_to_wrong_period",
+      "role": "coach_a",
+      "counterexample": true,
+      "sql": "SELECT probe.unsafe_created_month();",
+      "expected": "100",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "100",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "caller_cannot_widen_server_captured_history",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-08-01,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "future_period_not_granted",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-10-01,2026-11-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unbounded_infinite_empty_midmonth_rejected",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','(,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-09-01,infinity)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','empty'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-09-15,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;",
+      "expected": "unavailable\nunavailable\nunavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable\nunavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "different_tenant_subject_module_not_history_authority",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.history(2,10,'received','[2026-09-01,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;WITH s AS MATERIALIZED(SELECT probe.history(1,20,'received','[2026-09-01,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;WITH s AS MATERIALIZED(SELECT probe.history(1,10,'expected','[2026-09-01,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;",
+      "expected": "unavailable\nunavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "missionary_cannot_rewrite_captured_preview",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.previews SET new_periods='[2026-01-01,2026-10-01)';",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table previews\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "coach_cannot_rewrite_history_range",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.grants SET periods='[2026-01-01,2026-10-01)';",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table grants\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "exact_captured_preview_accepted",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_preview(1);",
+      "expected": "accepted",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "selected_earlier_months_have_distinct_source_totals",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-08-01,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;",
+      "expected": "100|300",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "100|300",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "rolling_formula_silently_adds_unselected_month",
+      "role": "coach_a",
+      "counterexample": true,
+      "sql": "SELECT daterange((date '2026-11-01'-interval '2 months')::date,date '2026-11-01')::text||':'||(daterange((date '2026-11-01'-interval '2 months')::date,date '2026-11-01') @> date '2026-10-15')::text||':'||('[2026-08-01,2026-10-01)'::daterange @> date '2026-10-15')::text;",
+      "expected": "[2026-09-01,2026-11-01):true:false",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "[2026-09-01,2026-11-01):true:false",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "preview_cannot_grant_future_beyond_captured_cutoff",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_preview(2);",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "missing_historical_month_is_not_zero",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-07-01,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "complete_empty_month_can_be_zero",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-07-01,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;",
+      "expected": "0|100|300",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0|100|300",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "date_correction_moves_cohort_and_invalidates_old_snapshot",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-07-01,2026-10-01)'::daterange,false) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-07-01,2026-10-01)'::daterange,true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;",
+      "expected": "unavailable\n0|40|360",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\n0|40|360",
+      "stderr": "",
+      "passed": true,
+      "retained_prior_source_snapshots": "1:[{\"start\": \"2026-07-01\", \"amount_minor\": \"0\", \"end_exclusive\": \"2026-08-01\"}, {\"start\": \"2026-08-01\", \"amount_minor\": \"100\", \"end_exclusive\": \"2026-09-01\"}, {\"start\": \"2026-09-01\", \"amount_minor\": \"300\", \"end_exclusive\": \"2026-10-01\"}];2:[{\"start\": \"2026-07-01\", \"amount_minor\": \"0\", \"end_exclusive\": \"2026-08-01\"}, {\"start\": \"2026-08-01\", \"amount_minor\": \"40\", \"end_exclusive\": \"2026-09-01\"}, {\"start\": \"2026-09-01\", \"amount_minor\": \"360\", \"end_exclusive\": \"2026-10-01\"}]"
+    },
+    {
+      "name": "source_changed_after_preview_conflicts",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_preview(3);",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "revoke_first_blocks_old_history_preview",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_manager",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.grants SET active=false,revision=revision+1 WHERE tenant=1 AND target=10 AND module='received'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_preview(4); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n",
+        "current": "false:5:[2026-09-01,2026-10-01)"
+      }
+    },
+    {
+      "name": "history_extend_first_then_revoke",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "source_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_preview(5); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.grants SET active=false,revision=revision+1 WHERE tenant=1 AND target=10 AND module='received'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted\nFIRST_READY\n",
+        "second": "SECOND_DONE\n",
+        "current": "false:8:[2026-08-01,2026-10-01)"
+      }
+    },
+    {
+      "name": "narrow_first_conflicts_stale_extension",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_manager",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.grants SET periods='[2026-09-01,2026-10-01)',revision=revision+1 WHERE tenant=1 AND target=10 AND module='received'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_preview(6); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "conflict\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "conflict\nSECOND_DONE\n",
+        "current": "true:10:[2026-09-01,2026-10-01)"
+      }
+    },
+    {
+      "name": "history_extend_first_then_narrow",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "source_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.apply_preview(7); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.grants SET periods='[2026-09-01,2026-10-01)',revision=revision+1 WHERE tenant=1 AND target=10 AND module='received'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted\nFIRST_READY\n",
+        "second": "SECOND_DONE\n",
+        "current": "true:13:[2026-09-01,2026-10-01)"
+      }
+    },
+    {
+      "name": "old_accepted_preview_cannot_undo_later_narrow",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.apply_preview(7);",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "old_snapshots_do_not_release_removed_months",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-08-01,2026-10-01)'::daterange,false) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-09-01,2026-10-01)'::daterange,false) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s;",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "source_change_first_blocks_snapshot_release",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_manager",
+      "second_role": "coach_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.heads SET revision=revision+1 WHERE tenant=1 AND target=10 AND module='received'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; WITH s AS MATERIALIZED(SELECT probe.history(1,10,'received','[2026-09-01,2026-10-01)'::daterange,false) AS x) SELECT CASE x->>'status' WHEN 'available' THEN (SELECT string_agg(v->>'amount_minor','|' ORDER BY v->>'start') FROM jsonb_array_elements(x->'values')v) ELSE x->>'status' END FROM s; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n",
+        "source_head": "3"
+      }
+    }
+  ]
+}

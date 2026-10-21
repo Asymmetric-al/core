@@ -74,3 +74,10 @@ tooling/eslint-config/patches/*.patch text eol=lf whitespace=-space-before-tab
 *.7z binary
 *.mp4 binary
 *.webm binary
+
+# Phase 28's dated grill evidence is retained byte-for-byte, including captured
+# CRLF and Markdown hard breaks. Its source manifest verifies exact contents.
+docs/features/missionary-workspace-depth/grill/** -text -eol whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
+
+# Published owner-diff snapshot: blank context lines contain a required space.
+docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/owner-amendments.patch whitespace=-blank-at-eol,-space-before-tab

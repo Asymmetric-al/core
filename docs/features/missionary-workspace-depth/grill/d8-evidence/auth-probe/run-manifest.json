@@ -1,0 +1,20 @@
+{
+  "kind": "research-only actual-source auth helper probe",
+  "rerun_reason": "Persist the exact previously executed five-check script and timestamped reproducible evidence; scope unchanged.",
+  "started_at_utc": "2026-10-16T08:51:03.094067+00:00",
+  "finished_at_utc": "2026-10-16T08:51:03.153806+00:00",
+  "cwd": "/workspace/core",
+  "command": "node --input-type=module < docs/features/missionary-workspace-depth/grill/d8-evidence/auth-probe/probe.mjs",
+  "runtime": "v24.19.0",
+  "exit_code": 0,
+  "stderr": "",
+  "source_hashes_match_before_after": true,
+  "source_sha256": {
+    "packages/auth/permissions.ts": "b268c48093d630ebafc2e0f60e8895e910f70f42dc5604f40899235bae104d25",
+    "packages/auth/roles.ts": "2c800b12e3d7d43c806b595b5ed931e98a3e84957d5776cba0da23cd5b8eb3dc"
+  },
+  "probe_sha256": "0d02a5ec43b35efc1aabe31a52aca5a310a0b99cec648a7382b688af6d806ad8",
+  "stdout_file": "docs/features/missionary-workspace-depth/grill/d8-evidence/auth-probe/results.json",
+  "stdout_sha256": "8c5ac881d5b9d669d638c255cb4bb4d562b6c7a1ce2e19ce6fbd16ae3f96325c",
+  "scope": "Five pure helper behavior checks only; no app/server/browser/database/JWT/RLS/invitation/provider behavior executed."
+}

@@ -1,0 +1,218 @@
+{
+  "tables": [
+    {
+      "relname": "attempts",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "attempts",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "audit",
+      "rolname": "command_executor",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "audit",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "authority",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "authority",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "finance",
+      "rolname": "command_executor",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "finance",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "goal_versions",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "goal_versions",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "heads",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "heads",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "intents",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "intents",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "public_pin",
+      "rolname": "command_executor",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "public_pin",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "receipts",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "receipts",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "subjects",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "subjects",
+      "rolname": "missionary_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    }
+  ],
+  "functions": [
+    {
+      "proname": "current_goal",
+      "owner": "command_executor",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=pg_catalog, probe, pg_temp"
+      ],
+      "proacl": [
+        "command_executor=X/command_executor",
+        "missionary_a=X/command_executor",
+        "staff_a=X/command_executor"
+      ]
+    },
+    {
+      "proname": "immutable_history",
+      "owner": "postgres",
+      "prosecdef": false,
+      "proconfig": [
+        "search_path=pg_catalog"
+      ],
+      "proacl": [
+        "postgres=X/postgres"
+      ]
+    },
+    {
+      "proname": "save_goal",
+      "owner": "command_executor",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=pg_catalog, probe, pg_temp"
+      ],
+      "proacl": [
+        "command_executor=X/command_executor",
+        "missionary_a=X/command_executor",
+        "staff_a=X/command_executor"
+      ]
+    },
+    {
+      "proname": "tenant",
+      "owner": "postgres",
+      "prosecdef": false,
+      "proconfig": [
+        "search_path=pg_catalog"
+      ],
+      "proacl": [
+        "postgres=X/postgres",
+        "command_executor=X/postgres",
+        "missionary_a=X/postgres",
+        "staff_a=X/postgres",
+        "policy_manager=X/postgres"
+      ]
+    }
+  ]
+}
