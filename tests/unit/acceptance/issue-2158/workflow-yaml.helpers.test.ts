@@ -9,7 +9,9 @@ import {
   ciGateFailsClosedWhenHeavyNeedsSkippedOnFork,
   containsSameRepoGuard,
   hostedGateFailsClosedWhenHeavyNeedsSkipped,
+  renderNeedsContextExpressions,
   requiredJobFailsClosedOnFork,
+  stripExpressionWrapper,
   type WorkflowJob,
 } from "./workflow-yaml";
 
@@ -156,5 +158,45 @@ describe("requiredJobFailsClosedOnFork", () => {
       ],
     };
     expect(requiredJobFailsClosedOnFork(nameOnly)).toBe(false);
+  });
+});
+
+describe("renderNeedsContextExpressions", () => {
+  it("renders needs results and outputs", () => {
+    expect(
+      renderNeedsContextExpressions(
+        '{"unit":"${{ needs.test-unit.result }}"} ${{ needs.compilation-plan.outputs.requested }}',
+        {
+          results: { "test-unit": "skipped" },
+          outputs: { "compilation-plan": { requested: "true" } },
+        },
+      ),
+    ).toBe('{"unit":"skipped"} true');
+  });
+
+  it("throws when a need result is not supplied", () => {
+    expect(() =>
+      renderNeedsContextExpressions("${{ needs.build.result }}", {
+        results: {},
+      }),
+    ).toThrow(/needs\.build/);
+  });
+
+  it("throws when a non-needs expression would be left unrendered", () => {
+    expect(() =>
+      renderNeedsContextExpressions("${{ github.event_name }}", {
+        results: {},
+      }),
+    ).toThrow(/Unrendered expression/);
+  });
+});
+
+describe("stripExpressionWrapper", () => {
+  it("removes one ${{ }} wrapper and normalizes whitespace", () => {
+    expect(stripExpressionWrapper("${{  a ==\n  'b' }}")).toBe("a == 'b'");
+  });
+
+  it("leaves bare expressions unchanged apart from whitespace", () => {
+    expect(stripExpressionWrapper("  always() ")).toBe("always()");
   });
 });
