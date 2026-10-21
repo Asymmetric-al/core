@@ -96,6 +96,21 @@ const ROLLBACK_PROCEDURE = {
     "f33970631c86629179d4a188bfa560574a01b7322af15e5c1d513d0cdb933042",
 };
 
+type CommandEnv = Record<string, string | undefined>;
+
+/**
+ * Minimal test seam (#2066): everything the command would otherwise read from
+ * the process. Omitted detectors/store fall back to the real Supabase and
+ * repo-inventory detectors and the on-disk proof store.
+ */
+export type DocumentCutoverCommandDeps = {
+  /** CLI arguments only, without the runtime/script prefix. */
+  argv: string[];
+  env: CommandEnv;
+  detectors?: DocumentCutoverDetector[];
+  store?: DocumentCutoverProofStore;
+};
+
 type CliArgs = {
   decision?: "go" | "no_go";
   owner?: string;
@@ -192,9 +207,10 @@ function supabaseIdentity(url: string | undefined): {
 }
 
 function nonProductionProjectAllowlist(
+  env: CommandEnv,
   cliAllowed: readonly string[],
 ): string[] {
-  const fromEnv = (process.env.DOCUMENT_CUTOVER_NON_PRODUCTION_PROJECTS ?? "")
+  const fromEnv = (env.DOCUMENT_CUTOVER_NON_PRODUCTION_PROJECTS ?? "")
     .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean);
@@ -217,14 +233,15 @@ function parseIdentityAllowlist(raw: string | undefined): string[] | undefined {
  * loopback databases classify as non-production on their own.
  */
 async function resolveEnvironment(
+  commandEnv: CommandEnv,
   allowedNonProductionProjects: readonly string[],
 ): Promise<DocumentCutoverEnvironmentIdentity> {
   const env = {
-    VERCEL_ENV: process.env.VERCEL_ENV,
-    VERCEL_TARGET_ENV: process.env.VERCEL_TARGET_ENV,
+    VERCEL_ENV: commandEnv.VERCEL_ENV,
+    VERCEL_TARGET_ENV: commandEnv.VERCEL_TARGET_ENV,
   };
   const supabaseUrl =
-    process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+    commandEnv.SUPABASE_URL ?? commandEnv.NEXT_PUBLIC_SUPABASE_URL;
   const database = supabaseIdentity(supabaseUrl);
 
   let productionClassification: DocumentCutoverEnvironmentIdentity["productionClassification"];
@@ -251,15 +268,15 @@ async function resolveEnvironment(
       database.id === "unknown" ? "unknown" : `${database.id}/storage/v1`,
     schemaVersion: latestMigrationVersion(),
     codeVersion: gitCommit(),
-    deploymentVersion: process.env.VERCEL_DEPLOYMENT_ID,
+    deploymentVersion: commandEnv.VERCEL_DEPLOYMENT_ID,
   };
 }
 
 type SupabaseReadClient = ReturnType<typeof createClient> | null;
 
-function createReadClient(): SupabaseReadClient {
-  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+function createReadClient(env: CommandEnv): SupabaseReadClient {
+  const url = env.SUPABASE_URL ?? env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
 
   return createClient(url, key, {
@@ -569,6 +586,18 @@ function repoInventoryDetector(
   };
 }
 
+function realDetectors(client: SupabaseReadClient): DocumentCutoverDetector[] {
+  return [
+    tableDetector(client),
+    storageDetector(client),
+    externalReferenceDetector(client),
+    jobDetector(client),
+    repoInventoryDetector("route"),
+    repoInventoryDetector("configuration"),
+    repoInventoryDetector("prototype_test"),
+  ];
+}
+
 class FileDocumentCutoverProofStore implements DocumentCutoverProofStore {
   constructor(private readonly directory: string) {
     mkdirSync(directory, { recursive: true });
@@ -710,8 +739,12 @@ async function verifyStoredProof(proofPath: string): Promise<number> {
   return 1;
 }
 
-async function main(): Promise<number> {
-  const args = parseArgs(process.argv.slice(2));
+/** Runs the operator command and resolves to its process exit code. */
+export async function runDocumentCutoverCommand(
+  deps: DocumentCutoverCommandDeps,
+): Promise<number> {
+  const { env } = deps;
+  const args = parseArgs(deps.argv);
   if (args.help) {
     console.log(
       "See the header of scripts/document-cutover/assess-document-cutover.ts for usage.",
@@ -722,22 +755,18 @@ async function main(): Promise<number> {
     return verifyStoredProof(args.verify);
   }
 
-  const client = createReadClient();
+  // Injected detectors never need the real client, so it is only built (and
+  // its credentials only read) for the real detectors.
+  const detectors = deps.detectors ?? realDetectors(createReadClient(env));
   const allowedNonProductionProjects = nonProductionProjectAllowlist(
+    env,
     args.allowNonProductionProjects,
   );
   const assessment = await assessDocumentCutoverEnvironment({
     plan: PHASE_18_DESTRUCTIVE_CUTOVER_PLAN,
-    resolveEnvironment: () => resolveEnvironment(allowedNonProductionProjects),
-    detectors: [
-      tableDetector(client),
-      storageDetector(client),
-      externalReferenceDetector(client),
-      jobDetector(client),
-      repoInventoryDetector("route"),
-      repoInventoryDetector("configuration"),
-      repoInventoryDetector("prototype_test"),
-    ],
+    resolveEnvironment: () =>
+      resolveEnvironment(env, allowedNonProductionProjects),
+    detectors,
     procedures: {
       resetRebuild: RESET_PROCEDURE,
       rollbackBeforeFirstCanonicalWrite: ROLLBACK_PROCEDURE,
@@ -771,10 +800,10 @@ async function main(): Promise<number> {
   }
 
   const allowedOwnerIds = parseIdentityAllowlist(
-    process.env.DOCUMENT_CUTOVER_OWNER_ALLOWLIST,
+    env.DOCUMENT_CUTOVER_OWNER_ALLOWLIST,
   );
   const allowedApproverIds = parseIdentityAllowlist(
-    process.env.DOCUMENT_CUTOVER_APPROVER_ALLOWLIST,
+    env.DOCUMENT_CUTOVER_APPROVER_ALLOWLIST,
   );
   if (args.decision === "go") {
     if (!allowedOwnerIds || allowedOwnerIds.length === 0) {
@@ -791,9 +820,9 @@ async function main(): Promise<number> {
     }
   }
 
-  const store = new FileDocumentCutoverProofStore(
-    path.resolve(repoRoot, args.out),
-  );
+  const store =
+    deps.store ??
+    new FileDocumentCutoverProofStore(path.resolve(repoRoot, args.out));
 
   try {
     const proof = await recordDocumentCutoverApproval({
@@ -836,4 +865,12 @@ async function main(): Promise<number> {
   }
 }
 
-process.exitCode = await main();
+// Run only when executed as a script (`bun run cutover:assess:documents`);
+// importing the module (tests) must not run the command. `process.argv[1]`
+// cannot tell the two apart, so this relies on the runtime's `import.meta.main`.
+if (import.meta.main) {
+  process.exitCode = await runDocumentCutoverCommand({
+    argv: process.argv.slice(2),
+    env: process.env,
+  });
+}
