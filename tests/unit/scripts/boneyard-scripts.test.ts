@@ -76,7 +76,7 @@ describe("boneyard maintenance contract", () => {
   it("uses origin-only URLs in root boneyard build scripts", () => {
     const scripts = boneyardBuildScripts(parsePackageJson());
     const buildScripts = Object.entries(scripts).filter(([, command]) =>
-      command.includes("boneyard-js build"),
+      /\bboneyard-js(?:@[^\s]+)?\s+build\s/.test(command),
     );
     const expectedNames = Object.keys(expectedBoneyardBuildScriptOrigins);
 
@@ -90,7 +90,9 @@ describe("boneyard maintenance contract", () => {
           name as keyof typeof expectedBoneyardBuildScriptOrigins
         ];
 
-      expect(command, name).toContain(`boneyard-js build ${origin}`);
+      expect(command, name).toContain(
+        `bunx boneyard-js@1.10.0 build ${origin}`,
+      );
       expect(command, name).not.toMatch(/\/boneyard\//);
     }
   });

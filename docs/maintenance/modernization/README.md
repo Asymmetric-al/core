@@ -40,14 +40,14 @@ donor 61, missionary 47. Existing floors remain binding.
 
 ## Checkpoints
 
-| Checkpoint             | Exact initial target                                            | Status       | Qualification                                                              |
-| ---------------------- | --------------------------------------------------------------- | ------------ | -------------------------------------------------------------------------- |
-| Framework security     | Next family 16.4.2, React/DOM 19.3.1, Node 24.22.1, Bun 1.4.3   | Merged       | [Checkpoint record](framework-security.md)                                 |
-| Tools / infrastructure | Supported ESLint 10, current tools and reproducible executables | Implementing | [Tooling record](development-tools.md); infrastructure follows             |
-| Data / workflows / API | Current supported cohorts, GraphQL 17 product / 16 CMS boundary | Pending      | Not qualified                                                              |
-| Payload                | Public 4.0.0-beta.3 coherent cohort                             | Pending      | Migration/restore rehearsal required                                       |
-| PDF source / artifacts | Recover shipped Phase 47, then modernize in owner repository    | Pending      | Source provenance and baseline required                                    |
-| UI / telemetry / AI    | Current compatible families and pre-call governance             | Pending      | Behavior/provider checks required                                          |
-| Payments / legal       | Stripe 23 / Endive; OpenPolicy current + owned Terms            | Pending      | Sandbox drain/abort and document equality required                         |
-| Nested security / docs | Complete graph, owned exceptions, current active instructions   | Pending      | Final SBOM/manual reconciliation required                                  |
-| Combined release       | All merged exact versions                                       | Pending      | Clean install, deployed previews and immutable production package required |
+| Checkpoint             | Exact initial target                                            | Status                                    | Qualification                                                                              |
+| ---------------------- | --------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Framework security     | Next family 16.4.2, React/DOM 19.3.1, Node 24.22.1, Bun 1.4.3   | Merged                                    | [Checkpoint record](framework-security.md)                                                 |
+| Tools / infrastructure | Supported ESLint 10, current tools and reproducible executables | Tools merged; infrastructure implementing | [Tooling record](development-tools.md); [infrastructure record](runtime-infrastructure.md) |
+| Data / workflows / API | Current supported cohorts, GraphQL 17 product / 16 CMS boundary | Pending                                   | Not qualified                                                                              |
+| Payload                | Public 4.0.0-beta.3 coherent cohort                             | Pending                                   | Migration/restore rehearsal required                                                       |
+| PDF source / artifacts | Recover shipped Phase 47, then modernize in owner repository    | Pending                                   | Source provenance and baseline required                                                    |
+| UI / telemetry / AI    | Current compatible families and pre-call governance             | Pending                                   | Behavior/provider checks required                                                          |
+| Payments / legal       | Stripe 23 / Endive; OpenPolicy current + owned Terms            | Pending                                   | Sandbox drain/abort and document equality required                                         |
+| Nested security / docs | Complete graph, owned exceptions, current active instructions   | Pending                                   | Final SBOM/manual reconciliation required                                                  |
+| Combined release       | All merged exact versions                                       | Pending                                   | Clean install, deployed previews and immutable production package required                 |

@@ -31,3 +31,5 @@
 .oss-scanner/results
 apps/admin/media
 media
+# Tracked upstream development state is opaque and is not a scanner fixture.
+vendor/payload-upstream/payload.db

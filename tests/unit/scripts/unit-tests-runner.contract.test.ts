@@ -9,12 +9,12 @@ describe("unit test runner contract", () => {
 
   it("runs the Bun version guard through Node on Windows", () => {
     const windowsBranch = source.slice(
-      source.indexOf('if (process.platform === "win32")'),
-      source.indexOf("process.exit(runVitest"),
+      source.indexOf("export function runBunVersionGuard"),
+      source.indexOf("export function runUnitTests"),
     );
 
     expect(source).toContain("bun-version.mjs");
-    expect(windowsBranch).toContain("bun-version.mjs");
+    expect(windowsBranch).toContain("bunVersionScript");
     expect(windowsBranch).toContain("process.execPath");
     expect(windowsBranch).not.toContain('spawnSync("bash"');
     expect(windowsBranch).not.toContain("bun-version.sh");

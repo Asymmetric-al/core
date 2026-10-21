@@ -8,8 +8,8 @@ alwaysApply: false
 
 When editing or debugging Next.js apps under `apps/admin`, `apps/donor`, or `apps/missionary`:
 
-1. If a dev server is already running for the relevant app, use the **next-devtools** MCP tools first (`get_errors`, `get_logs`, `get_routes`, `get_page_metadata`, `get_project_metadata`, etc.) instead of guessing routes or console output.
-2. Start the correct app if nothing is running (ports: donor `3000`, admin `3030`, missionary `4000` — see root `AGENTS.md`).
-3. Config lives in root `.mcp.json` and `.cursor/mcp.json` (`next-devtools-mcp@latest` via `bunx`).
+1. Read the installed Next.js docs for API work. For live verification, discover the relevant running app with `nextjs_index`, inspect its advertised tools, and call them through `nextjs_call`.
+2. Start the correct app when live verification requires it and nothing is running (ports: donor `3000`, admin `3030`, missionary `4000` — see root `AGENTS.md`).
+3. Config lives in root `.mcp.json`, `.cursor/mcp.json` and `.codex/config.toml`. The tested `bunx` launcher uses the exact `next-devtools-mcp@0.4.0` pin. Qualify future bumps through `docs/maintenance/modernization/runtime-infrastructure-inventory.json`.
 
 Reference: https://nextjs.org/docs/app/guides/mcp

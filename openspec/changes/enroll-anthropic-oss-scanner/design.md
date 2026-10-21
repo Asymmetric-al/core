@@ -15,10 +15,21 @@ Use a strict build with synthetic loopback configuration. Exercise Eve's service
 dispatcher separately as preview artifacts without sandbox prewarming. Runtime
 helpers construct an allowlisted environment and reject source-local env files.
 
-Run disposable PostgreSQL 15 under its service user on loopback. Reuse Core's
+The initial environment selected PostgreSQL 15. The approved repository
+modernization supersedes that selection with PostgreSQL 17, aligning this
+disposable investigation environment with CI and restore qualification. Run it
+under its service user on loopback, pin the tested patch, and refuse an existing
+cluster with an incompatible major; rebuild and start a fresh disposable
+container instead of deleting or upgrading investigation state. Reuse Core's
 local-only migration verifier and committed Payload migrations. Real SQL/RLS
 proofs are separate from mocked provider unit seams. Normal app health remains
 degraded without full Supabase; demo flags exist only in explicit demo commands.
+
+Freeze both Debian package archives at a dated snapshot so exact PostgreSQL
+packages remain rebuildable. Keep archive signature verification enabled; disable
+only historical metadata expiry for the snapshot stanzas. OS/security updates
+refresh both archive dates and package pins together, then rebuild the image,
+refresh its installed package inventory and rerun the offline checks.
 
 The existing field-policy census checks an actual historical Git object. Fetch
 that object anonymously into a separate bare store for standalone image checks;

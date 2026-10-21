@@ -24,7 +24,7 @@ function readComponentsConfig() {
 }
 
 function commandArgs(item) {
-  return ["--yes", "shadcn@latest", "view", item, "--cwd", SHADCN_CWD];
+  return ["--yes", "shadcn@4.22.1", "view", item, "--cwd", SHADCN_CWD];
 }
 
 function commandText(item) {

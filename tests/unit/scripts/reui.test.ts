@@ -17,16 +17,22 @@ const testLicense = "test-reui-license";
 type RpcRequest = {
   id?: number;
   method: string;
-  params?: { name?: string; arguments?: Record<string, unknown> };
+  params?: {
+    name?: string;
+    arguments?: Record<string, unknown>;
+    _meta?: Record<string, unknown>;
+  };
 };
 
 function remoteFixture({
   json = false,
   openStream = false,
+  modern = false,
   override,
 }: {
   json?: boolean;
   openStream?: boolean;
+  modern?: boolean;
   override?: (
     body: RpcRequest | undefined,
     url: string,
@@ -51,6 +57,32 @@ function remoteFixture({
         ],
         dependencies: ["@base-ui/react"],
       });
+    }
+    if (body?.method === "server/discover") {
+      return modern
+        ? Response.json({
+            jsonrpc: "2.0",
+            id: body.id,
+            result: {
+              resultType: "complete",
+              supportedVersions: ["2026-07-28"],
+              capabilities: { tools: {} },
+              _meta: {
+                "io.modelcontextprotocol/serverInfo": {
+                  name: "ReUI",
+                  version: "1.2.0",
+                },
+              },
+            },
+          })
+        : Response.json(
+            {
+              jsonrpc: "2.0",
+              id: body.id,
+              error: { code: -32601, message: "Method not found" },
+            },
+            { status: 400 },
+          );
     }
     if (body?.method === "notifications/initialized")
       return new Response(null, { status: 202 });
@@ -107,6 +139,8 @@ function remoteFixture({
         ],
       };
     }
+    if (modern && typeof result === "object" && result !== null)
+      result = { ...result, resultType: "complete" };
     const message = JSON.stringify({ jsonrpc: "2.0", id: body?.id, result });
     if (json)
       return new Response(message, {
@@ -304,6 +338,7 @@ describe("ReUI readiness verification", () => {
     expect(
       requests.map((request) => request.body?.method ?? "registry"),
     ).toEqual([
+      "server/discover",
       "initialize",
       "notifications/initialized",
       "tools/list",
@@ -322,7 +357,9 @@ describe("ReUI readiness verification", () => {
       expect(request.headers.get("Accept")).toBe(
         "application/json, text/event-stream",
       );
-      if (request.body?.method !== "initialize") {
+      if (
+        !["server/discover", "initialize"].includes(request.body?.method ?? "")
+      ) {
         expect(request.headers.get("Mcp-Session-Id")).toBe("test-session");
       }
     }
@@ -377,8 +414,277 @@ describe("ReUI readiness verification", () => {
         fetchImpl,
       }),
     ).rejects.toThrow("unsupported MCP protocol version");
-    expect(requests).toHaveLength(1);
+    expect(requests).toHaveLength(2);
   });
+
+  it("uses current discovery and matching per-request metadata without a legacy handshake", async () => {
+    const { root } = fixture();
+    const { fetchImpl, requests } = remoteFixture({ modern: true });
+    await expect(
+      verifyReui({
+        root,
+        live: true,
+        env: { REUI_LICENSE_KEY: testLicense },
+        fetchImpl,
+      }),
+    ).resolves.toMatchObject({
+      checks: expect.arrayContaining(["authenticated MCP tools and Pro plan"]),
+    });
+    expect(requests[0].body?.method).toBe("server/discover");
+    expect(
+      requests.some(
+        (request) =>
+          request.body?.method === "initialize" ||
+          request.body?.method === "notifications/initialized",
+      ),
+    ).toBe(false);
+    for (const request of requests.filter((request) => request.body)) {
+      expect(request.headers.get("MCP-Protocol-Version")).toBe("2026-07-28");
+      expect(request.headers.get("Mcp-Method")).toBe(request.body?.method);
+      expect(request.headers.get("Mcp-Session-Id")).toBeNull();
+      if (request.body?.method === "tools/call")
+        expect(request.headers.get("Mcp-Name")).toBe(request.body.params?.name);
+      expect(
+        request.body?.params?._meta?.[
+          "io.modelcontextprotocol/protocolVersion"
+        ],
+      ).toBe("2026-07-28");
+      expect(
+        request.body?.params?._meta?.["io.modelcontextprotocol/clientInfo"],
+      ).toMatchObject({ name: "core-reui-readiness" });
+    }
+  });
+
+  it.each([
+    undefined,
+    "text/plain",
+    "application/octet-stream",
+    "application/json-seq",
+    "text/event-stream-other",
+  ])(
+    "rejects a successful MCP response with unsupported media type %s",
+    async (contentType) => {
+      const { root } = fixture();
+      const cancel = vi.fn();
+      const { fetchImpl, requests } = remoteFixture({
+        modern: true,
+        override: (body) =>
+          body?.method === "server/discover"
+            ? new Response(
+                new ReadableStream({
+                  start(controller) {
+                    controller.enqueue(
+                      new TextEncoder().encode(
+                        JSON.stringify({
+                          jsonrpc: "2.0",
+                          id: body.id,
+                          result: {
+                            resultType: "complete",
+                            supportedVersions: ["2026-07-28"],
+                            capabilities: { tools: {} },
+                          },
+                        }),
+                      ),
+                    );
+                    controller.close();
+                  },
+                  cancel,
+                }),
+                { headers: contentType ? { "Content-Type": contentType } : {} },
+              )
+            : undefined,
+      });
+      await expect(
+        verifyReui({
+          root,
+          live: true,
+          env: { REUI_LICENSE_KEY: testLicense },
+          fetchImpl,
+        }),
+      ).rejects.toThrow("unsupported response content type");
+      expect(requests).toHaveLength(1);
+      expect(cancel).toHaveBeenCalledOnce();
+    },
+  );
+
+  it("does not downgrade a recognized modern version rejection to initialize", async () => {
+    const { root } = fixture();
+    const { fetchImpl, requests } = remoteFixture({
+      override: (body) =>
+        body?.method === "server/discover"
+          ? Response.json(
+              {
+                jsonrpc: "2.0",
+                id: body.id,
+                error: {
+                  code: -32022,
+                  message: "Unsupported protocol version",
+                  data: { supported: ["2099-01-01"], requested: "2026-07-28" },
+                },
+              },
+              { status: 400 },
+            )
+          : undefined,
+    });
+    await expect(
+      verifyReui({
+        root,
+        live: true,
+        env: { REUI_LICENSE_KEY: testLicense },
+        fetchImpl,
+      }),
+    ).rejects.toThrow("mutually supported modern MCP protocol");
+    expect(requests.map((request) => request.body?.method)).toEqual([
+      "server/discover",
+    ]);
+  });
+
+  it.each([-32000, -32601, -32602])(
+    "supports legacy HTTP discovery rejection%s and the current legacy protocol",
+    async (code) => {
+      const { root } = fixture();
+      const { fetchImpl, requests } = remoteFixture({
+        override: (body) =>
+          body?.method === "server/discover"
+            ? Response.json(
+                {
+                  jsonrpc: "2.0",
+                  id: body.id,
+                  error: { code, message: "Legacy pre-initialization error" },
+                },
+                { status: 400 },
+              )
+            : body?.method === "initialize"
+              ? Response.json({
+                  jsonrpc: "2.0",
+                  id: body.id,
+                  result: {
+                    protocolVersion: "2025-11-25",
+                    serverInfo: { name: "ReUI" },
+                    capabilities: { tools: {} },
+                  },
+                })
+              : undefined,
+      });
+      await expect(
+        verifyReui({
+          root,
+          live: true,
+          env: { REUI_LICENSE_KEY: testLicense },
+          fetchImpl,
+        }),
+      ).resolves.toMatchObject({
+        checks: expect.arrayContaining([
+          "authenticated MCP tools and Pro plan",
+        ]),
+      });
+      expect(
+        requests.map((request) => request.body?.method).slice(0, 3),
+      ).toEqual(["server/discover", "initialize", "notifications/initialized"]);
+      expect(
+        requests
+          .filter((request) => request.body?.method?.startsWith("tools/"))
+          .every(
+            (request) =>
+              request.headers.get("MCP-Protocol-Version") === "2025-11-25",
+          ),
+      ).toBe(true);
+    },
+  );
+
+  it.each([-32020, -32021])(
+    "does not downgrade a recognized modern header or capability error%s",
+    async (code) => {
+      const { root } = fixture();
+      const { fetchImpl, requests } = remoteFixture({
+        override: (body) =>
+          body?.method === "server/discover"
+            ? Response.json(
+                {
+                  jsonrpc: "2.0",
+                  id: body.id,
+                  error: { code, message: "Modern request rejected" },
+                },
+                { status: 400 },
+              )
+            : undefined,
+      });
+      await expect(
+        verifyReui({
+          root,
+          live: true,
+          env: { REUI_LICENSE_KEY: testLicense },
+          fetchImpl,
+        }),
+      ).rejects.toThrow(`JSON-RPC error (${code})`);
+      expect(requests.map((request) => request.body?.method)).toEqual([
+        "server/discover",
+      ]);
+    },
+  );
+
+  it.each(["input_required", "unnegotiated_extension"])(
+    "rejects unsupported modern result type%s instead of accepting embedded successful content",
+    async (resultType) => {
+      const { root } = fixture();
+      const { fetchImpl } = remoteFixture({
+        modern: true,
+        override: (body) =>
+          body?.method === "tools/call" &&
+          body.params?.name === "get_project_context"
+            ? Response.json({
+                jsonrpc: "2.0",
+                id: body.id,
+                result: {
+                  resultType,
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({
+                        plan: "pro",
+                        projectStyle: {
+                          current: { style: "base-maia", base: "base" },
+                        },
+                      }),
+                    },
+                  ],
+                },
+              })
+            : undefined,
+      });
+      await expect(
+        verifyReui({
+          root,
+          live: true,
+          env: { REUI_LICENSE_KEY: testLicense },
+          fetchImpl,
+        }),
+      ).rejects.toThrow("Unsupported MCP result type");
+    },
+  );
+
+  it.each(["application/json", "text/event-stream"])(
+    "bounds response bytes for %s",
+    async (contentType) => {
+      const { root } = fixture();
+      const { fetchImpl } = remoteFixture({
+        override: (body) =>
+          body?.method === "initialize"
+            ? new Response("x".repeat(4 * 1024 * 1024 + 1), {
+                headers: { "Content-Type": contentType },
+              })
+            : undefined,
+      });
+      await expect(
+        verifyReui({
+          root,
+          live: true,
+          env: { REUI_LICENSE_KEY: testLicense },
+          fetchImpl,
+        }),
+      ).rejects.toThrow("MCP response exceeds the byte limit");
+    },
+  );
 
   it("also accepts standard JSON MCP responses", async () => {
     const { root } = fixture();
