@@ -5,6 +5,8 @@ import { lstatSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { repositoryGitEnvironment } from "../../../../../scripts/git/environment.mjs";
+
 const archive = "docs/features/missionary-workspace-depth/grill/";
 
 export function verifyEvidenceFiles(root, records) {
@@ -45,6 +47,7 @@ export function verifyEvidenceFiles(root, records) {
   const tracked = execFileSync("git", ["ls-files", "-z", "--", archive], {
     cwd: root,
     encoding: "utf8",
+    env: repositoryGitEnvironment(),
   })
     .split("\0")
     .filter(Boolean);

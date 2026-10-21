@@ -10,9 +10,10 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { verifyEvidenceFiles } from "../../../docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/tools/verify-evidence.mjs";
+import { repositoryGitEnvironment } from "../../../scripts/git/environment.mjs";
 
 const archive = "docs/features/missionary-workspace-depth/grill";
 let root: string;
@@ -21,7 +22,10 @@ function capture(name: string, content: string) {
   const file = `${archive}/${name}`;
   mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
   writeFileSync(path.join(root, file), content);
-  execFileSync("git", ["add", "--", file], { cwd: root });
+  execFileSync("git", ["add", "--", file], {
+    cwd: root,
+    env: repositoryGitEnvironment(),
+  });
   return {
     path: file,
     sha256: createHash("sha256").update(content).digest("hex"),
@@ -31,10 +35,15 @@ function capture(name: string, content: string) {
 
 beforeEach(() => {
   root = mkdtempSync(path.join(tmpdir(), "core-phase28-evidence-"));
-  execFileSync("git", ["init", "-q", root]);
+  execFileSync("git", ["init", "-q", root], {
+    env: repositoryGitEnvironment(),
+  });
 });
 
-afterEach(() => rmSync(root, { recursive: true, force: true }));
+afterEach(() => {
+  vi.unstubAllEnvs();
+  rmSync(root, { recursive: true, force: true });
+});
 
 describe("Phase 28 historical evidence verification", () => {
   it("reads captured bytes without executing historical programs or freezing living documents", () => {
@@ -73,7 +82,10 @@ describe("Phase 28 historical evidence verification", () => {
 
   it("rejects a present file removed from Git tracking", () => {
     const record = capture("capture.txt", "original\n");
-    execFileSync("git", ["rm", "--cached", "--", record.path], { cwd: root });
+    execFileSync("git", ["rm", "--cached", "--", record.path], {
+      cwd: root,
+      env: repositoryGitEnvironment(),
+    });
     expect(() => verifyEvidenceFiles(root, [record])).toThrow(
       "archive inventory",
     );
@@ -104,5 +116,18 @@ describe("Phase 28 historical evidence verification", () => {
     expect(() =>
       verifyEvidenceFiles(root, [{ ...record, path: "CONTEXT.md" }]),
     ).toThrow("Invalid archive path");
+  });
+
+  it("selects its own repository despite inherited hook routing", () => {
+    const record = capture("capture.txt", "original\n");
+    const foreign = path.join(root, "foreign");
+    execFileSync("git", ["init", "-q", foreign], {
+      env: repositoryGitEnvironment(),
+    });
+    vi.stubEnv("GIT_DIR", path.join(foreign, ".git"));
+    vi.stubEnv("GIT_WORK_TREE", foreign);
+    vi.stubEnv("GIT_COMMON_DIR", path.join(foreign, ".git"));
+    vi.stubEnv("GIT_INDEX_FILE", path.join(foreign, ".git", "index"));
+    expect(verifyEvidenceFiles(root, [record])).toBe(1);
   });
 });
