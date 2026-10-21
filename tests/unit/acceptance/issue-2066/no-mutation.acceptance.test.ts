@@ -19,6 +19,7 @@ import {
   runCommand,
   serializeProof,
   serverResolvedLocalIdentity,
+  cleanupWrittenProofFiles,
   writeTempProofFile,
 } from "./command-harness";
 import { InMemoryDocumentCutoverProofStore } from "../../../../packages/api/src/document-cutover";
@@ -31,6 +32,7 @@ const guard = vi.hoisted(() => ({
   armed: false,
   calls: [] as string[],
   clientsCreated: 0,
+  pgConnections: 0,
   migrationsVersion: null as string | null,
 }));
 
@@ -114,15 +116,43 @@ vi.mock("@supabase/supabase-js", async (importOriginal) => {
   };
 });
 
+/**
+ * #2067 addendum 4: the gate reads over a `pg` connection as
+ * document_cutover_reader. Fake target (../issue-2067/fake-postgres.ts):
+ * identity checks pass, the schema-version function reports
+ * `guard.migrationsVersion`, other functions report zero, and every write
+ * statement (DML, DDL, GRANT, COPY, SET ROLE, nextval, ...) is recorded in
+ * `guard.calls` and throws.
+ */
+vi.mock("pg", async () => {
+  const { createFakePgModule, createFakePgState } =
+    await import("../issue-2067/fake-postgres");
+  const state = createFakePgState({
+    schemaVersion: () => guard.migrationsVersion,
+    userCount: () => 0,
+    tableRows: () => [],
+    mode: () => "happy",
+  });
+  state.onWrite = (sql) => guard.calls.push(`pg:${sql}`);
+  const connections = state.connections;
+  connections.push = (...items) => {
+    guard.pgConnections += items.length;
+    return Array.prototype.push.apply(connections, items);
+  };
+  return createFakePgModule(state);
+});
+
 beforeEach(() => {
   guard.armed = false;
   guard.calls = [];
   guard.clientsCreated = 0;
+  guard.pgConnections = 0;
   guard.migrationsVersion = null;
 });
 
 afterEach(() => {
   guard.armed = false;
+  cleanupWrittenProofFiles();
 });
 
 async function armed<T>(run: () => Promise<T>): Promise<T> {
@@ -143,6 +173,7 @@ describe("issue #2066 — test seam: importing the script does not run it (adden
     expect(command.ranOnImport).toBe(false);
     expect(guard.calls).toEqual([]);
     expect(guard.clientsCreated).toBe(0);
+    expect(guard.pgConnections).toBe(0);
     expect(process.exitCode).toBe(exitCodeBefore);
   });
 });
@@ -163,6 +194,7 @@ describe("issue #2066 — DC7 no mutation at the command layer", () => {
     expect(result.exitCode).toBe(0);
     expect(guard.calls).toEqual([]);
     expect(guard.clientsCreated).toBe(0);
+    expect(guard.pgConnections).toBe(0);
     expect(result.envMutations).toEqual([]);
   });
 
@@ -205,7 +237,9 @@ describe("issue #2066 — DC7 no mutation at the command layer", () => {
     );
 
     expect(result.exitCode).not.toBe(0);
-    expect(guard.clientsCreated).toBeGreaterThan(0);
+    // Before #2067 addendum 4 the real detectors use a Supabase client; after
+    // it they use the pg connection. Either way they reached a fake target.
+    expect(guard.clientsCreated + guard.pgConnections).toBeGreaterThan(0);
     expect(guard.calls).toEqual([]);
     expect(result.envMutations).toEqual([]);
   });

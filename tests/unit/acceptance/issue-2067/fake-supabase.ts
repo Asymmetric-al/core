@@ -8,20 +8,67 @@
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  *
- * What the fake target supports (contract the implementation reads through):
- * - `client.from(table)` / `client.schema(name).from(table)` read chains
- *   (`select`, `not(col, "is", null)`, `eq`, `order`, `limit`, `range`,
- *   `single`, `maybeSingle`, ...) resolving to `{ data, count, error }`.
- * - The target's applied schema version is served from any table whose name
- *   (or schema name) contains `migrations` (e.g. `supabase_migrations.schema_migrations`)
- *   as rows `{ version }`. It is NOT served through `rpc` (spec addendum 2
- *   item 3: read from the migrations table, not through an RPC); #2066 DC7
- *   treats `rpc` as a write method, so every `rpc` call is a throwing write spy.
- * - `client.auth.admin.listUsers()` resolving to `{ data: { users }, error }`.
- * - `client.storage.listBuckets()` / `client.storage.from(bucket).list()`.
- * Every write method (insert/update/upsert/delete/rpc, storage upload/remove/
- * move/copy, bucket and user writes) records itself and throws.
+ * Addendum 4 (Blake-approved 2026-10-20 10:31 PM PT,
+ * https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6308840307)
+ * replaces the PostgREST read key with a `pg` connection as
+ * `document_cutover_reader` (faked in ./fake-postgres.ts). The gate must no
+ * longer create a Supabase client at all; `fakeDb.clients` records any that
+ * it does. Criterion 10 item 1: this fake now models only the committed
+ * exposure, so an unexposed or ungranted read errors as it would in
+ * production (Reviewer M1/M2 on PR #2169):
+ *
+ * - `client.schema(name)` for a schema not listed in `supabase/config.toml`
+ *   `[api] schemas` (committed: `public`, `graphql_public`) resolves every
+ *   read to PostgREST's `PGRST106` error. That covers
+ *   `.schema("supabase_migrations")` and `.schema("document_cutover")`.
+ * - `client.auth.admin.*` with any key other than the service-role key fails
+ *   with `403 User not allowed` (only a service_role/secret key may call it).
+ * - Table reads with any key other than the service-role key return what RLS
+ *   gives a restricted PostgREST role on the RLS-protected prototype tables:
+ *   zero rows, count 0, no error.
+ *
+ * Read chains supported: `client.from(table)` / `client.schema(name).from(table)`
+ * (`select`, `not(col, "is", null)`, `eq`, `order`, `limit`, `range`,
+ * `single`, `maybeSingle`, ...) resolving to `{ data, count, error }`;
+ * `client.auth.admin.listUsers()`; `client.storage.listBuckets()` /
+ * `client.storage.from(bucket).list()`. Every write method (insert/update/
+ * upsert/delete/rpc, storage upload/remove/move/copy, bucket and user writes)
+ * records itself and throws.
  */
+
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+/** The only key the fake treats as service_role (never passed by these tests to the gate as a read credential). */
+export const FAKE_SERVICE_ROLE_KEY = [
+  "acceptance",
+  "2067",
+  "fake",
+  "service",
+  "role",
+  "key",
+].join("-");
+
+const CONFIG_TOML = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../../../supabase/config.toml",
+);
+
+/** `[api] schemas` from the committed supabase/config.toml. */
+export function committedExposedSchemas(): string[] {
+  const text = readFileSync(CONFIG_TOML, "utf8");
+  const api = /^\[api\]\s*$([\s\S]*?)(?=^\[)/m.exec(text)?.[1] ?? "";
+  const list = /^\s*schemas\s*=\s*\[([^\]]*)\]/m.exec(api)?.[1];
+  if (list === undefined) {
+    throw new Error(
+      "#2067 acceptance: supabase/config.toml has no [api] schemas list",
+    );
+  }
+  return [...list.matchAll(/"([^"]+)"/g)].map((match) => match[1] as string);
+}
+
+const EXPOSED_SCHEMAS = new Set(committedExposedSchemas());
 
 export type FakeMode =
   | "happy"
@@ -116,6 +163,7 @@ function failureResult() {
 }
 
 interface QueryContext {
+  key: string;
   schema?: string;
   table: string;
   head: boolean;
@@ -125,8 +173,28 @@ interface QueryContext {
 
 function respond(ctx: QueryContext) {
   fakeDb.reads.push(`${ctx.schema ? `${ctx.schema}.` : ""}${ctx.table}`);
+  if (ctx.schema !== undefined && !EXPOSED_SCHEMAS.has(ctx.schema)) {
+    return {
+      data: null,
+      count: null,
+      error: {
+        message: `The schema must be one of the following: ${[...EXPOSED_SCHEMAS].join(", ")}`,
+        code: "PGRST106",
+      },
+      status: 406,
+    };
+  }
   const failure = failureResult();
   if (failure) return failure;
+  if (ctx.key !== FAKE_SERVICE_ROLE_KEY) {
+    // RLS on the prototype tables filters every row for a restricted role.
+    return {
+      data: ctx.single ? null : ctx.head ? null : [],
+      count: 0,
+      error: null,
+      status: 200,
+    };
+  }
 
   const isMigrations =
     /migrations/i.test(ctx.table) || /migrations/i.test(ctx.schema ?? "");
@@ -210,9 +278,16 @@ function storageResult(data: unknown) {
   return { data, error: null };
 }
 
-export function makeFakeClient(): Record<string, unknown> {
+export function makeFakeClient(key = ""): Record<string, unknown> {
   const from = (schema?: string) => (table: string) =>
-    queryBuilder({ schema, table, head: false, single: false, notNull: [] });
+    queryBuilder({
+      key,
+      schema,
+      table,
+      head: false,
+      single: false,
+      notNull: [],
+    });
   const bucket = (name: string) => {
     const api: Record<string, unknown> = {
       list: async () => storageResult([]),
@@ -232,6 +307,16 @@ export function makeFakeClient(): Record<string, unknown> {
   const admin: Record<string, unknown> = {
     listUsers: async () => {
       fakeDb.reads.push("auth.admin.listUsers");
+      if (key !== FAKE_SERVICE_ROLE_KEY) {
+        return {
+          data: { users: [] },
+          error: {
+            message: "User not allowed",
+            status: 403,
+            code: "not_admin",
+          },
+        };
+      }
       const failure = failureResult();
       if (failure) {
         return failure.error
@@ -264,7 +349,7 @@ export function mockSupabaseModule(actual: unknown): Record<string, unknown> {
     ...(actual as Record<string, unknown>),
     createClient: (url: string, key: string) => {
       fakeDb.clients.push({ url, key });
-      return makeFakeClient();
+      return makeFakeClient(key);
     },
   };
 }

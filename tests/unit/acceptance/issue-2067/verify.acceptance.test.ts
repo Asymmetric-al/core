@@ -34,6 +34,7 @@ import type { MintedProof } from "./command-harness";
 vi.mock("@supabase/supabase-js", async (importOriginal) =>
   (await import("./fake-supabase")).mockSupabaseModule(await importOriginal()),
 );
+vi.mock("pg", async () => (await import("./fake-postgres")).mockPgModule());
 
 afterEach(() => {
   vi.useRealTimers();

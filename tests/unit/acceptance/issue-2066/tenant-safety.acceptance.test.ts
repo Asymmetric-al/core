@@ -15,7 +15,7 @@
  * (except #2067 flipping `it.fails` to `it`, as its spec requires).
  */
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   ACCEPTANCE_OWNER,
@@ -25,6 +25,7 @@ import {
   runCommand,
   serializeProof,
   serverResolvedLocalIdentity,
+  cleanupWrittenProofFiles,
   writeTempProofFile,
 } from "./command-harness";
 import {
@@ -41,6 +42,10 @@ import {
 
 const OPERATOR_PROJECT = "operatorsubstitutedproject";
 const OPERATOR_ENV = "production";
+
+afterEach(() => {
+  cleanupWrittenProofFiles();
+});
 
 describe("issue #2066 — DC5 tenant safety: caller-supplied identity cannot override server-resolved identity", () => {
   it.each([

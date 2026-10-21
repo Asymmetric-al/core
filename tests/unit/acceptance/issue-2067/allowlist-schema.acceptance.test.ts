@@ -18,6 +18,10 @@
  *    through node:fs during each run (not via a static JSON import, and not
  *    cached at module import).
  *
+ * Addendum 4 m4 (https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6308840307):
+ * the allowlisted non-production path is tested here with a populated
+ * `nonProductionProjects` fixture, so it is never skipped.
+ *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
 
@@ -32,6 +36,7 @@ import {
   cleanTarget,
   cleanupProofFiles,
   decisionArgs,
+  hostedTargetEnv,
   readAllowlist,
   runCommand,
 } from "./command-harness";
@@ -48,6 +53,7 @@ const scripted = vi.hoisted(() => ({
 vi.mock("@supabase/supabase-js", async (importOriginal) =>
   (await import("./fake-supabase")).mockSupabaseModule(await importOriginal()),
 );
+vi.mock("pg", async () => (await import("./fake-postgres")).mockPgModule());
 
 function isScriptedAllowlist(target: unknown): boolean {
   if (scripted.text === null) return false;
@@ -186,4 +192,30 @@ describe("issue #2067 — addendum 3: the command's allowlist loader rejects bad
       expect(proofs).toEqual([]);
     },
   );
+});
+
+describe("issue #2067 addendum 4 m4 — DC11 with a populated nonProductionProjects fixture (never skipped)", () => {
+  const LISTED_REF = "acceptance2067listedref";
+  const UNLISTED_REF = "acceptance2067otherref";
+
+  async function classificationWith(projectRef: string) {
+    scripted.text = allowlistText([LISTED_REF]);
+    cleanTarget();
+    const store = new InMemoryDocumentCutoverProofStore();
+    await runCommand({
+      argv: decisionArgs("no_go", MOCK_OWNER),
+      env: hostedTargetEnv(projectRef),
+      store,
+    });
+    const [proof] = await store.list();
+    return proof?.environment?.productionClassification;
+  }
+
+  it("DC11 (m4): a hosted project listed in the scripted allowlist's nonProductionProjects classifies as non_production", async () => {
+    expect(await classificationWith(LISTED_REF)).toBe("non_production");
+  });
+
+  it("DC11 (m4) control: with the same populated allowlist, an unlisted hosted project stays unknown", async () => {
+    expect(await classificationWith(UNLISTED_REF)).toBe("unknown");
+  });
 });
