@@ -1,5 +1,13 @@
-import { createHash } from "node:crypto";
-import { lstat, mkdir, readFile, realpath, writeFile } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
+import {
+  lstat,
+  mkdir,
+  readFile,
+  realpath,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -93,7 +101,10 @@ function activeText(content) {
       mask[index] || /^(?: {4}|\t)/.test(line) ? "" : line,
     )
     .join("\n")
-    .replace(/<!--[\s\S]*?(?:-->|$)/g, (match) => match.replace(/[^\n]/g, ""));
+    .replace(
+      /<!--[\s\S]*?(?:-->|$)|<(pre|code)\b[^>]*>[\s\S]*?(?:<\/\1\s*>|$)/gi,
+      (match) => match.replace(/[^\n]/g, ""),
+    );
 }
 
 export async function readContracts(repoRoot, capability) {
@@ -163,6 +174,15 @@ export async function verifyContractReferences(
   { allowLegacyInline = false } = {},
 ) {
   const entries = await readContracts(repoRoot, capability);
+  verifyReferences(capability, content, entries, { allowLegacyInline });
+}
+
+function verifyReferences(
+  capability,
+  content,
+  entries,
+  { allowLegacyInline = false } = {},
+) {
   const backedNames = new Set([...entries.values()].map((entry) => entry.name));
   for (const block of requirementBlocks(content)) {
     const { body } = splitRequirement(block);
@@ -248,11 +268,19 @@ export async function renderContractView({
     const replacement = `${block.headerLine}\n\n${summary}\n\n${pointer}${scenarios ? `\n\n${scenarios}` : ""}`;
     compact = compact.replace(block.raw, () => replacement);
   }
+  verifyReferences(capability, compact, entries);
   if (changed) {
     const file = await safeContractFile(repoRoot, capability);
     await mkdir(path.dirname(file), { recursive: true });
-    await writeFile(file, renderContracts(capability, entries));
+    const temporary = `${file}.${randomUUID()}.tmp`;
+    try {
+      await writeFile(temporary, renderContracts(capability, entries), {
+        flag: "wx",
+      });
+      await rename(temporary, file);
+    } finally {
+      await rm(temporary, { force: true });
+    }
   }
-  await verifyContractReferences(repoRoot, capability, compact);
   return compact;
 }

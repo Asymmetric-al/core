@@ -142,7 +142,7 @@ Every clause in `openspec/contracts/platform-product-intent.md#contract-a8b17c05
 
 Initial staff entry of offline gifts MUST flow through the single gift-entry-batch commit service, the Phase 15 D1 front door.
 
-Every clause in `openspec/contracts/platform-product-intent.md#contract-b118e812a4cb0cf5073d` MUST apply without exception.
+Every clause in `openspec/contracts/platform-product-intent.md#contract-124061655f11836c2178` MUST apply without exception.
 
 #### Scenario: Staff-entered offline money is committed
 

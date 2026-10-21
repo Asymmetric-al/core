@@ -1,0 +1,14 @@
+[
+  {
+    "rolname": "projector",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolinherit": false
+  },
+  {
+    "rolname": "sharer",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolinherit": false
+  }
+]

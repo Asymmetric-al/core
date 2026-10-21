@@ -1,0 +1,15 @@
+{
+  "activity-source-semantics.md": "a6c15eab769fa6c06ea3ff44466e6c629c4b99763ecf8e9570d59061ecfeeb8f",
+  "activity-target-ux.md": "e7454be45ebd20075d034e52d282097ae86772e21d6a357bca991049d401886d",
+  "counterexample-probe/probe.py": "bd4230b7b052a1d323ce9086ef70a3500f9ad932fbc7bec00e652ca64bb6e854",
+  "counterexample-probe/results.json": "0a81678c61327c7381eb4dd4e1a3e659e8819c5573e50a24dcdd024014193ac4",
+  "cross-review-reconciliation.md": "87669401fadc7b4db0618a1b9d61e3d4d468f001605ee12cf5f6a93d1a05710c",
+  "current-activity-source.md": "1cf6f5cd249ab6a3f94743a4d66ca2d3512127c06339d04b0b744a16980869b1",
+  "database-target-lifecycle.md": "1fad9041f0a4b88c92e29e45bbab54fb8561418883a0cf5840ee4bbec2707886",
+  "owner-target-boundaries.md": "ca377014813c52c10cf99495a1412f397b1359e83b136727d75c0503a7cfb1f2",
+  "period-and-count-counterexamples.md": "f2a1e86f913bbd8c1b4423a718a5e762714b677f409b759d1c2d5677d130d69a",
+  "primary-sources.json": "d8c8cf66fc13d8ddd819a13ccfc55e7a2e5eaa1f199246a457f8467db2eb4e07",
+  "prior-evidence-sha256.json": "f91f45e50fe463c36df7170ac87eead79ee9fc2e6a123768a4867a9b8555982f",
+  "review-verification-initial.json": "cd029a8a37866ccf6173de03417241e26ec22241e794ceeb0c07c65f70285110",
+  "verify-review-initial.py": "20df64e92018c2a6ecf0189b511a85d7a198ef452384ac4bbc7fa44ff9f33e74"
+}

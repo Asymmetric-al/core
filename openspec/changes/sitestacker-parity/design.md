@@ -260,9 +260,12 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
 The [congruence decision record](../../../docs/ai/audits/2026-09-23-contract-congruence.md#unresolved-owner-decisions)
 is the current route for the discovered conflicts and explicit owner rulings:
 
-- **C-01:** Phase 13's optional tenant separation of duties versus Phase 15's
-  mandatory different approver for post-commit corrections. Preserve independent
-  audit, append-only correction and risk/money-out controls.
+- **C-01 — settled by Phase 28 D48, formally reconciled 2026-10-18:** the
+  organization chooses the existing supported posted-correction approval policy.
+  New configuration retains the light default; preserve explicit stronger
+  policy, current-policy admission, immutable audit, append-only correction
+  and independently required risk/money-out controls. Pending work is never
+  approved or executed merely because policy changes.
 - **C-02 — accepted September 23:** follow
   [ADR-0206](../../../docs/adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md).
   Keep the entire posted financial header, lines and postings immutable; place
@@ -273,8 +276,8 @@ is the current route for the discovered conflicts and explicit owner rulings:
   activation; acceptance does not prove that runtime exists.
 
 Qualification cannot supply a missing policy decision. Independent source work
-may proceed under its settled contract, but an agent must not silently choose
-C-01's approval rule or declare unqualified implementation complete.
+may proceed under its settled contract; C-01 now has its explicit ruling, but
+policy publication cannot declare its implementation qualified.
 
 ## Phase 3 foundation governance — AL-490
 

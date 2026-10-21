@@ -3,7 +3,7 @@ source_name: Fission-AI/OpenSpec (openspec-propose)
 source_url: https://github.com/Fission-AI/OpenSpec/tree/v1.14.3/skills/openspec-propose
 source_type: github
 upstream_path: skills/openspec-propose/
-skills_lock_hash: c2d44d00750814f8fe8921155f36276c552990b41808efa805a57de040fe475d
+skills_lock_hash: 11e22389189680dece41338c6ef6a2c017df0e8779b36a61e27a696964d3018d
 last_reviewed: 2026-10-21
 ---
 
@@ -16,7 +16,7 @@ Canonical copy in this repo: `docs/ai/skills/openspec-propose/` (mirrored to `.c
 - **Commit reviewed:** `c794978f4f8845ce59693373c9dd882ee776588c`
 - **Upstream path:** `skills/openspec-propose/`
 - **Lock skillPath:** `skills/openspec-propose/SKILL.md`
-- **Computed hash:** `c2d44d00750814f8fe8921155f36276c552990b41808efa805a57de040fe475d`
+- **Computed hash:** `11e22389189680dece41338c6ef6a2c017df0e8779b36a61e27a696964d3018d`
 
 ## Refresh from upstream
 

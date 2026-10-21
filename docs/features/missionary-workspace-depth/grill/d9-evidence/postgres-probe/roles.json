@@ -1,0 +1,50 @@
+[
+  {
+    "rolname": "coach_a",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "coach_b",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "coach_tenant_two",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "command_executor",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": false,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "fixture_owner",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": false,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "source_manager",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  }
+]

@@ -1,0 +1,650 @@
+# Phase 28 D31 — any positive confirmed commitment excess
+
+**Disposition: Accept with required amendments.**
+
+**Status: A selected; this corrected decision and its engineering amendments await explicit ratification.**
+Reviewed **October 18, 2026 UTC**, against
+`9cada8f3d8ab59db391d3fd20df77fcadeb09813` and the current working tree.
+D30 remains ratified. This is a research/grill artifact under the
+[founder's boundary](phase28-founder-brief.md:21), not a formal PRD, ADR,
+OpenSpec change, implementation, activated financial source or release approval.
+
+## Exact corrected decision to record
+
+> **D31 — Follow up on any confirmed excess.** Any strictly positive, exact
+> source-confirmed excess attributable to an eligible new received gift or
+> identified portion qualifies for native personal follow-up. One valid minor
+> currency unit is sufficient. There is no additional minimum, percentage,
+> rounding tolerance or tenant amount setting for this reason.
+>
+> The financial owner must establish the applicable commitment scope, original
+> terms, exact currency, lawful gift association, complete comparison and that
+> gift's attributable excess. A larger installment, unmatched remainder, absent
+> commitment, fee cover, advance/catch-up payment, another commitment's money,
+> exchange difference or later reduction of a commitment is not this proof.
+> Donor-stated additional purpose and one-time-need purpose remain independent;
+> neither is required or inferred.
+>
+> Maya sees **“Support above the recorded commitment”** in her existing compatible
+> follow-up, with the permitted exact amount and a concise explanation when useful.
+> Multiple reasons do not duplicate the same gift's work. Every gift retains its
+> own evidence and D20 reviewed-group coverage. Sending or recording an actual
+> interaction remains a separate deliberate decision.
+>
+> Corrections revalidate the affected source evidence without changing received
+> money, applying a gift, rewriting completed human history or replaying handled
+> work. Incomplete or stale evidence withholds this reason; other valid reasons
+> and correctly received money remain intact. Finance staff resolve genuine
+> source problems through the owning workflow; Maya is not asked to edit money
+> or commitment terms to obtain or silence a task.
+
+**Required owner amendment:** P16's capped fulfillment applications and its
+current aggregate excess are insufficient to implement this decision. Add a
+bounded P16-owned comparison-association and per-gift excess proof as specified
+below. P28 consumes that proof and owns task-purpose admission; it does not own
+a new money ledger or calculate excess from portal totals. The exact producer
+contract must be reconciled into P16 and its declared OpenSpec projections when
+formal specification is authorized. Publication of this review does not amend
+those contracts by implication.
+
+## Evidence, necessity and the strongest alternative
+
+| Evidence class                     | Finding and limit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Founder fact                       | A explicitly selects any eligible positive excess and no new amount setting. It does not grant finance permissions or establish that an existing classifier is correct.                                                                                                                                                                                                                                                                                                                                                |
+| Governing intent                   | [Founder brief](phase28-founder-brief.md:165), [program owners](../../../prds/program-roadmap/owner-constraints.md:74) and [D21-C03–C04](phase28-d21-explicit-gift-follow-up-adversarial-review.md:187) require native qualified above-commitment work. D22's optional whole-gift threshold and D30's narrow Off exception do not filter or disable D31.                                                                                                                                                               |
+| Platform/ADR                       | [Platform principles](../../../../openspec/specs/platform-principles/spec.md), [boundaries](../../../../openspec/specs/platform-boundaries/spec.md), [ADR-0183](../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md), [ADR-0206](../../../adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md) and [ADR-0208](../../../adr/0208-currency-aware-minor-units.md) preserve source truth, one task hub, immutable financial facts, tenant scope and exact currency-aware units. |
+| Financial contract                 | [P16 F1–F7](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:961) caps applications at target capacity and distinguishes received money from matching. [M2–M3](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1378) permits applied-above-current-commitment after a reduction without new money. Neither is a per-new-gift excess producer.                                                                                                                     |
+| Current implementation             | Static inspection found useful exact money primitives, but legacy pledge counters, donation links, portal totals/rounding and generic task edits do not supply this contract. A bounded search did not establish an implemented D31 producer. No deployed defect, exploit or real source qualification was demonstrated.                                                                                                                                                                                               |
+| Active OpenSpec                    | [Recurring-giving proposal](../../../../openspec/changes/add-recurring-giving/proposal.md) and [delta](../../../../openspec/changes/add-recurring-giving/specs/donation-lifecycle/spec.md) explicitly supersede a legacy pledge/subscription topology. They require source-owned versioned occurrences and money; their presence does not prove implementation.                                                                                                                                                        |
+| Primary external evidence          | Freshly read TntConnect, MPDX, Blackbaud, Bloomerang and Givebutter documentation supplies concrete matching, fees, split-payment and task examples. Current PostgreSQL, Supabase, RFC 8259, MDN and W3C sources establish relevant technical constraints. Exact links/dates/limitations are in the evidence notes.                                                                                                                                                                                                    |
+| Product judgment                   | Any proved positive amount, no extra control, one reason in existing work and exact disclosure are a simpler consistent design. No source establishes a universally optimal minimum, prevalence of tiny excesses or increased fundraising results.                                                                                                                                                                                                                                                                     |
+| Unresolved implementation evidence | Actual source adapters, SQL/RLS/grants, concurrency, correction, currency transport, load, migration and assistive/mobile behavior require release proof. No real missionary interview or usability study was conducted.                                                                                                                                                                                                                                                                                               |
+
+Detailed evidence: [financial semantics](d31-evidence/financial-excess-and-lifecycle.md),
+[governance/admission](d31-evidence/governance-and-admission.md),
+[database/precision/authorization](d31-evidence/database-precision-authorization.md),
+[UX and primary research](d31-evidence/ux-and-primary-research.md).
+The [unanswered Q31 snapshot](d31-evidence/q31-before-answer.txt) is preserved.
+
+**The root problem is meaningful stewardship without manufactured “extra” gifts.**
+The earlier commitment was already fulfilled in Q31's scenario, so its later
+$5 gift does not also create fulfillment work and hide this choice. Manual
+follow-up remains useful, but substituting it for every small confirmed excess
+would fail the selected native behavior.
+
+**Strongest alternative: a tenant minimum excess per currency.** It might reduce
+task volume for an organization that wants a materiality policy, but adds a second
+amount rule, excludes some genuine small gifts and needs its own temporal rules.
+No evidence establishes the correct minimum. The founder selected A. A hidden
+epsilon, provider minimum, whole-dollar rounding or D22 threshold would silently
+implement B. Normal task handling remains available; a classifier error must be
+fixed at source, not concealed with a larger threshold.
+
+**Comparable practices do not override Core.** MPDX's May 3, 2021 fee article
+documents a fee-covered difference producing an alert and a workaround that edits
+the commitment. Adopt the counterexample, not the workaround or its old fee rate.
+Blackbaud's installment-overage application and Bloomerang's scheduled/extra
+parts show why a payment total is insufficient. TntConnect's pledge/currentness
+heuristics can miss small extra gifts; its task-updating description is only a
+limited UX precedent. None proves Core's financial semantics or permissions.
+
+## Source of truth and exact comparison
+
+| Fact                                                                    | Authority                                     | Consumer boundary                                                                                    |
+| ----------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Received support, financial allocation, fees and reversal               | P13 and qualified financial correction owners | Provider success, net settlement and task state cannot replace posted truth.                         |
+| Party/recognition and permitted ministry/project association            | P14 and applicable source owners              | Household, soft credit, shared email or remitter similarity does not establish the comparison Party. |
+| Terms, occurrence/pledge scope, lawful application and comparison proof | P16                                           | P28 consumes a current source proof; it cannot change applications or use a smaller visible subset.  |
+| Native reason, prospective admission and durable intent                 | P28                                           | One operational source record references finance; no mutable flag on a posted financial row.         |
+| Ordinary task, reviewed gift membership, handling/interaction           | P9 with D20                                   | Task completion is not a receipt, payment, contact consent, actual conversation or sent message.     |
+| Actor/action/scope and disclosure                                       | P12, enforced by each owning command          | Role names, service credentials, task access and reason wording grant no additional authority.       |
+
+The proposed P16 extension is necessary and deliberately bounded. Its two
+comparison profiles are:
+
+- **Recurring:** the exact recurring occurrence line and its applicable accepted
+  amount-per-occurrence terms. No monthly equivalent, average, latest amount or
+  comparison against a different occurrence.
+- **Fixed pledge:** the exact pledge designation line's complete agreed scope,
+  including scheduled future and valid undated capacity. One installment is not
+  the full promise. Different designation lines or commitments remain distinct.
+
+An exact gift portion must have a lawful, complete comparison association to
+that scope through the owner's closed authority. P16's provider lineage,
+authenticated gift-bound donor instruction, approved authenticated structured
+remittance mapping or separately authorized staff resolution retains its own
+conditions. A memo, donor name, equal amount, import column or D29/D30 purpose
+confirmation is not financial authority. Authority covering only capped
+application entries does not certify their leftover by implication: it must
+cover the entire compared received-support portion. Attributed amounts cannot be reused
+across comparison scopes; recurring-to-fixed derived coverage is not new money.
+
+The association is **not an application above available capacity**. It records
+why the received support belongs to this comparison, with exact source references,
+terms and correction lineage. Actual fulfillment applications retain all P16
+capacity, allocation and inverse rules. This extension cannot route, reserve,
+refund, settle or reapply money.
+
+**Per-gift attribution must conserve the excess.** P16 serializes accepted
+comparison associations under its existing typed source/target lock discipline
+and assigns a durable order within the exact comparison scope. A P13 header
+sequence cannot order different gifts to one scope. A lawful first association,
+including genuine later resolution of an earlier live gift's original intent,
+appends its position at that owner command. It never backdates itself ahead of
+accepted associations or silently changes their prefixes. Either valid concurrent
+source acceptance order is permissible. The rule does not claim independence
+from the timing of those legitimate first commands.
+
+Delayed processing of an already accepted association must recover its original
+position. Provider redelivery, downstream worker scheduling, user-entered dates
+and query order cannot change it or create another ordinal. If that original
+position/completeness cannot be proved, this comparison remains unavailable.
+The distinction permits late first matching without inventing historical order.
+
+For a qualified gift portion `g`, let `T` be its applicable agreed target in
+canonical minor units, `B` the complete owner-certified prefix of previously
+accepted associations to the same scope, and `G` this portion. `B` does not mean
+all gifts with earlier receipt dates. Both use eligible gross received support
+before processor fees, excluding separately classified fee cover, and the same
+exact currency. The owner's per-gift original excess proof is:
+
+```text
+E_g = max(B + G - T, 0) - max(B - T, 0)
+0 <= E_g <= G
+```
+
+`B` is not a portal aggregate, a paginated/RLS-filtered list, a mutable pledge
+counter or an extra financial balance to edit. It is an exact source projection
+over conserved, nonduplicated association evidence. `B`, `G` and `T` must share
+one immutable scope and applicable-terms interpretation. Each gift freezes its own
+genuinely applicable terms; ordinary later term versions apply prospectively and
+require a freshly source-certified baseline under that version. Existing term
+versions carry this boundary; no separate configurable epoch engine is needed.
+Excess figures across different terms versions are not an additive financial balance.
+Recomputing an old gift against today's smaller target is forbidden. This
+formula is insufficient without the preceding authority, completeness and
+scope proof. It does not authorize inference from any unapplied remainder.
+
+For two $60 gifts in one applicable $100 scope, canonical A then B yields
+**$0 for A and $20 for B**. A leave-one-out calculation can incorrectly award
+$20 to both. Replaying either gift yields the same evidence/effect, not another
+$20. When prior gifts already fulfilled the scope, a new qualified $0.01 portion
+can have $0.01 excess. No new checkout or source minimum follows.
+
+**Original evidence and current validity are distinct.** Keep original terms,
+prefix and result. Revalidate that same causal comparison against qualified
+source corrections; ordinary surviving excess cannot exceed the original proved
+amount. If A above is reversed, B's current attributable excess becomes zero;
+withdraw its unhandled reason while preserving the original $20 explanation as
+history. Do not silently apply B's money to replace A. A qualified restoration
+may restore the same reason only if its D20 effect is still unhandled. An actual
+correction proving the original captured facts wrong explicitly supersedes that
+certificate under source authority; it is not an ordinary later amendment or a
+new gift. A corrected result never bypasses permanent handling coverage.
+
+A dependency revision is essential: reversing A can invalidate B while B's own
+gift revision is unchanged. Admission and handling must fence the comparison's
+relevant dependency revision as well as gift, terms, scope and current authority.
+Ambiguous partial reversals follow P16's unresolved/inverse behavior; P28 cannot
+choose a proportional surviving excess. Missing evidence is not confirmed zero.
+
+A lawful accepted association survives ordinary consumption, expiry or future-use
+revocation of its originating instruction, recorder departure and later scope
+closure. Those events do not make its historical acceptance false. New source
+commands and applications require their own current authority; corrections require
+qualified correction authority, and current consumer action/disclosure remains
+independently checked. A delayed first match retains the terms actually applicable
+to its original gift, even when newer terms exist at association acceptance.
+
+The lifecycle below describes required domain outcomes, not another configurable
+state machine or a new set of task statuses:
+
+| Situation                                                    | Valid next outcome                                                                                                                 | Forbidden shortcut                                                                 |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Money received, comparison unresolved                        | Owner resolution can establish a positive, zero or still-unavailable result; independent work continues.                           | Unknown as zero/excess, missing money, or a new missionary finance task.           |
+| Qualified positive result, live and unhandled                | Atomically admit reason and durable task intent after current revision/authority checks.                                           | Eligibility-only manual fallback or silent small-amount filter.                    |
+| Accepted intent, projection delayed                          | Retry/upsert the same business effect, reconciling intervening source corrections.                                                 | Duplicate gift/task or falsely showing an invalidated reason as current.           |
+| Current task, reviewed gifts                                 | Accept only the still-valid reviewed set; new unrelated members remain pending.                                                    | Completing unseen members or requiring a second interaction after a lost response. |
+| Evidence becomes uncertain or is conclusively corrected      | Uncertain dependent use pauses; confirmed invalid reason withdraws. Preserve independent reasons/promises and historical evidence. | Treating an outage as falsehood, moving money or erasing human history.            |
+| Reason withdrawn and original evidence legitimately repaired | Restore the same unhandled effect if valid; permanent handling coverage still wins.                                                | New identity, automatic reopening or historical task sweep.                        |
+| Gift-purpose work handled                                    | Preserve coverage and history; correct under D20's scoped rules.                                                                   | Another follow-up because a certificate, amount, reason or transport ID changed.   |
+
+## Complete journey and UI
+
+**Staff:** no amount configuration or new financial review queue. Contextual help
+can say: **“Any confirmed support above the applicable commitment can create
+personal follow-up. There is no minimum excess amount.”** Do not display a fake
+zero-minimum field or borrow D30's switch. Genuine source issues use the existing
+finance resolution workflow with a safe reason and exact record references.
+Already qualified evidence requires no second human confirmation. A deployment
+qualification gate is an engineering control, not a tenant policy setting.
+
+**Grace:** the ordinary giving experience is unchanged. She answers no extra
+question, approves no stewardship rule and receives no automatic message from
+D31. The system does not assert that she intended an additional gift, change her
+future instruction or treat an excess as debt, credit or overpayment. A received
+gift remains received even if **Commitment match: Needs review**.
+
+**Maya:** use the existing task row and detail. A representative permitted view:
+
+```text
+Follow up with Grace
+Maya's ministry · 1 gift
+
+Support above the recorded commitment
+Received gift                         USD 5.00
+Above the applicable commitment       USD 5.00
+
+Why this follow-up?                 [disclosure]
+```
+
+Money is supporting context; the personal next action remains primary. For a
+partly qualifying gift, label received gift/eligible portion and excess separately.
+Never disclose other allocations or organization-wide giving to justify a local
+reason. The factual category itself requires permission; generic wording is not
+a way around source privacy. No sensitive hidden fields are sent to the browser.
+
+**Why this follow-up?** gives a short permitted source explanation. Where original
+and current terms differ or the comparison period affects meaning, identify the
+permitted applicable scope/period and say **“Based on the commitment terms
+applicable to this gift.”** Do not imply comparison with today's terms or disclose
+restricted current terms. It need not expose the calculation or make Maya
+review a ledger. Correctly explain received-but-unresolved and accepted-but-still-
+updating states. Unknown is neither zero nor “not eligible.” Do not turn every
+uncertain gift into a missionary research task.
+
+**Tiny values stay legible:** one valid minor unit displays exactly, for example
+USD 0.01, JPY 1 or BHD 0.001 in a source-qualified lane. Canonical metadata also
+contains four-decimal units; this does not launch those currencies. Use canonical
+currency formatting and explicit locale, not a fixed USD helper, compact numbers,
+rounded zero or converted estimate. Do not imply a higher future recurring amount
+or donor value. No flashing badge or urgent priority follows from excess alone.
+
+**Two gifts:** the existing D20 task shows both distinct permitted gift entries
+and their reasons. Maya reviews and handles the selected current group once.
+Adding a second reason to one gift does not add another gift, total, activity or
+completion. An unrelated new gift stays pending without invalidating a still-
+current reviewed subset. A material correction to a reviewed gift does require
+refresh/review; retain Maya's draft and explain what changed without exposing
+restricted facts.
+
+**Correction or source delay:** preserve genuine human work. If the sole unhandled
+reason is conclusively withdrawn, apply D20's source-withdrawal behavior; other
+independent reasons remain. If the source is merely unavailable, show an honest
+updating/unavailable state and withhold dependent action rather than invent a
+negative fact. Completed history stays historical; a late source repair cannot
+create another handled event. A network-lost completion response must recover
+the accepted result, not ask Maya to repeat the interaction.
+
+**Mobile/accessibility:** reuse exact `base-maia`, Base UI and semantic Zinc tokens
+through shared `@asym/ui`. Use stacked gift entries, clear text labels, ordinary
+typography/spacing and a secondary disclosure. Support keyboard/focus, screen
+readers, 320 CSS-pixel reflow, zoom, non-color status and established touch targets.
+Announce successful actions or material refresh needs without focus theft.
+Display the source's relevant period/timezone; do not infer financial periods
+from the browser clock. Low bandwidth can delay a projection without losing a
+draft or making a retry duplicate work. No animation, gamification, new dashboard,
+ledger editor, donor score or alternative component library is needed.
+
+## Required decision and specification language
+
+These clauses are the exact amendments proposed for ratification and later
+canonical specification. They are requirements, not claims about current code.
+
+**C01 — Materiality.** The native above-commitment reason SHALL qualify every
+eligible source-confirmed `excess_minor > 0`. It SHALL have no additional amount,
+percentage, epsilon, provider-unit minimum or tenant On/Off setting. D22/D30 and
+other reasons remain independent; operational pause is not a tenant policy.
+When qualification, current authority and uncovered-effect conditions hold,
+P28 SHALL admit the reason through D20's durable native path without manual Add
+or Workflow Studio enrollment.
+
+**C02 — Authority and truth.** P13 owns money, P14 recognition, P16 comparison/
+application, P28 reason/admission, P9/D20 work and P12 authorization. Posted
+financial facts SHALL remain immutable. Operational evidence SHALL reference
+their exact owner facts without changing designation, recognition, fulfillment,
+receipts, recurring instructions, contact permission, sending or interaction.
+
+**C03 — Comparison scope.** A recurring comparison SHALL bind the exact occurrence
+line and applicable accepted terms. A fixed-pledge comparison SHALL bind the
+complete exact pledge designation-line scope, including scheduled future and
+valid undated capacity. Missing, hidden or unmatched targets SHALL NOT be zero;
+one installment, monthly equivalent or unrelated scope SHALL NOT substitute.
+
+**C04 — Source association.** P16 SHALL supply a closed, authorized, complete
+association of exact received gift portions to comparison scopes, independently
+of capped fulfillment application. Provider lineage, authenticated donor
+instruction, approved structured remittance and authorized staff resolution
+retain their governing conditions. No caller assertion, memo, purpose confirmation,
+matching heuristic or service credential SHALL create financial authority.
+Authority SHALL cover the full compared portion; authority limited to capped
+application entries does not certify the leftover by implication.
+
+**C05 — Conserved per-gift proof.** P16 SHALL certify per-gift attributable excess
+using its authoritative scope order and complete exact prefix, applicable terms,
+currency and nonoverlapping portions, with `E=max(B+G−T,0)−max(B−T,0)` and
+`0≤E≤G`. The prefix, gift and target SHALL share one frozen applicable-terms/scope
+interpretation; a prospective new version requires a newly certified baseline,
+not reuse of a differently defined cached prefix. `B` is the complete preceding
+accepted-association prefix, not all earlier-dated receipts; `B` and `G` use
+eligible gross support before processor fees and exclude separately classified
+fee cover. A lawful first owner association SHALL append once at its actual
+serialized command, including a later original-intent match, without backdating.
+Either valid concurrent source acceptance order is permissible. Delayed processing
+or replay of an already accepted association SHALL preserve its ordinal; provider
+redelivery/downstream worker/query order SHALL NOT change attribution. No valid
+certificate exists without qualified order/completeness. Derived recurring-to-fixed
+coverage SHALL NOT duplicate source support or create another gift effect.
+
+**C06 — Evidence identity.** Proof SHALL bind Tenant, financial Legal Entity,
+canonical gift/portion, typed ministry/project, eligible Party, comparison kind/
+scope, original applicable terms, currency metadata meaning, causal association,
+source and dependency revisions, original live provenance and current correction
+status. Provider account/environment/binding SHALL be bound where applicable.
+Opaque references MAY expose these facts through one adapter; duplicate ledgers
+or a new universal proof platform are not required.
+
+**C07 — Exact units.** All monetary inputs, sums, intermediates, comparisons and
+transport SHALL be exact checked canonical integer units with validated currency.
+Reject unsupported precision, nonfinite values and overflow before coercion.
+Do not silently round or cast unbounded BIGINT/NUMERIC to JavaScript numbers.
+Use existing safe-number bounds where sufficient and a qualified lossless owner
+representation otherwise. Provider charge/payout constraints SHALL NOT quantize
+stewardship excess or widen transactable currency lanes.
+
+**C08 — Exclusions and uncertainty.** Fee cover, net-settlement difference, FX,
+catch-up, authorized advance, other targets, absent commitment and current aggregate
+excess alone SHALL NOT establish a qualifying occurrence. Financial owners SHALL
+resolve the exact meaning. Unknown/stale/incomplete/denied is distinct from zero
+or false; withhold only dependent qualification while preserving other truth.
+
+**C09 — Live admission.** D31 SHALL have a prospective qualified live received-support
+cohort, not a tenant materiality interval. Genuine later first source resolution
+or correction may admit the same original still-unhandled live gift. Historical
+acquisition, ordinary term edits, new later repurposing instructions, remaps or
+criterion revisions SHALL NOT manufacture a new live receipt. Historical valid
+support MAY contribute to the comparison baseline; its own tasks are not replayed.
+
+**C10 — Corrections and terms.** Preserve original proof/terms. Revalidate current
+surviving excess against qualified corrections of the same scope/order, bounded
+by original proved excess unless an authorized correction explicitly supersedes
+erroneous original facts. Ordinary later term changes are prospective, not
+recalculation of old-gift eligibility. Withdrawing earlier coverage SHALL invalidate
+dependent proofs without silently reapplying another gift. Ambiguous reversals
+SHALL follow source-owned unresolved treatment, not guessed proportions.
+Ordinary instruction consumption/expiry/future-use revocation, recorder departure
+or later scope closure SHALL NOT invalidate a lawful historical association.
+New association/application and correction commands require their respective
+current authority; current consumer action/disclosure remains independent.
+
+**C11 — Durable work identity.** Reuse D20's canonical contribution/Party/typed-
+subject/purpose member and compatible task. Reason codes, certificate revisions,
+amount changes, provider events and retries SHALL NOT create new gift effects.
+Done/Not needed coverage remains permanent under D20 correction rules. Independent
+valid reasons and unrelated new members remain distinct. Withdrawal of the sole
+D31 reason SHALL NOT erase an independently promised/planned human deliverable;
+preserve that work under D20's source-withdrawal rules.
+
+**C12 — Atomic acceptance and recovery.** P28 acceptance SHALL atomically persist
+the source-purpose state/revision, semantic command receipt, safe audit and durable
+identifier-only task intent. Cross-owner processing SHALL use the qualified durable
+version protocol, not an assumed distributed transaction. Current source and
+dependency revisions and P12 authority SHALL be revalidated at the final boundary,
+including after waits. Time-based authority SHALL use the actual acceptance time,
+not a transaction-start timestamp that predates expiry. Pending projection SHALL
+be retriable from durable intent.
+
+**C13 — Reviewed handling.** D20 completion SHALL bind the exact reviewed eligible
+gift set and relevant evidence/authority revisions. A correction to a reviewed
+member invalidates stale handling; an unrelated new member does not invalidate
+the unchanged reviewed subset. Lost responses recover the existing accepted result
+only under current disclosure authority. Otherwise return the existing safe denied/
+unavailable outcome without protected existence/details; never re-execute the effect.
+Completion SHALL NOT assert actual sending or create an extra interaction.
+
+**C14 — Persistence invariants.** Tenant, scope, actor, author and audit attribution
+SHALL derive from trusted command context. Use tenant-aware keys/FKs, typed
+relationships, required non-null scope/currency, valid state/amount checks,
+unique source/correction/reason identity and tenant-scoped command idempotency.
+Protected associations SHALL NOT be generically retargeted. Deletion SHALL NOT
+cascade away required source history or permanent handling coverage; source-owned
+redaction/retention applies. No mutable purpose field belongs on posted money.
+
+**C15 — Database authorization.** Grants, RLS `USING` and `WITH CHECK`, views,
+RPCs, security-definer functions, storage, realtime and service-role paths SHALL
+preserve the same tenant/action/scope and protected-transition boundaries.
+Permitted old rows SHALL NOT be transformed into forbidden new states. Review
+effective policies and bypass roles; table-owner/service access is not domain
+authority. Fence source-relevant legacy generic task mutations before reuse.
+
+**C16 — Disclosure.** Every surface, cache, export, notice and generated artifact
+SHALL resolve current permission for the reason category, exact amount and each
+detail. A task relation, generic label or shared identity SHALL NOT grant access.
+Compute from complete authorized source truth, then disclose a minimal permitted
+projection; do not compute from an audience-filtered subset or return hidden
+financial fields to the browser. Authorize the combined arithmetic disclosure:
+gift amount plus excess can reveal restricted commitment capacity even when
+individual fields appear innocuous. Recheck at final disclosure release; reject
+late responses after Tenant/actor/scope changes. Revoke reached cached access
+through P12 rules; already released information cannot be recalled.
+
+**C17 — Ordinary UX.** Reuse the existing task list/detail with the factual reason
+“Support above the recorded commitment,” exact permitted gift/portion/excess,
+optional concise explanation and existing group handling. Explain the applicable
+historical terms/scope/period when needed to distinguish today's commitment,
+without exposing restricted facts. Add no minimum field,
+new queue, donor question, extra routine confirmation or missionary finance editor.
+Preserve drafts, clarify saved/pending/unavailable outcomes and never use guilt,
+donor-value labels, inferred intent or excess-driven urgency.
+
+**C18 — Presentation and accessibility.** Use canonical currency/locale formatting
+that preserves one supported minor unit, source-defined dates/periods and shared
+Core UI. Prove keyboard/focus, non-color status, screen reader messages, 320 CSS-pixel
+reflow, zoom, touch and low-bandwidth recovery. Render the exact permitted value;
+compact rounding, fallback USD and currency conversion SHALL NOT explain admission.
+
+**C19 — Bounded performance.** Process affected exact scopes/revisions with indexed
+tenant/source/cursor queries, keyset pages, bounded jobs and fair per-tenant
+capacity. Do not rescan every donor's history per task read or hold financial
+locks while awaiting a provider/UI. Rebuildable source checkpoints MAY accelerate
+complete prefixes, but SHALL be versioned projections with correction invalidation,
+not write authority. Qualify concrete load and latency limits before activation.
+
+**C20 — Repair and diagnosis.** Distinguish received money, comparison unresolved,
+qualified reason, accepted intent, projected task, handled effect and withdrawn
+reason. Provide source-owned diagnosis/retry without direct database repair or
+manual fake tasks. Durable business evidence SHALL retain source/terms/correction
+and actor lineage separately from minimized technical telemetry and security audit.
+Logs SHALL NOT include supporter names, message bodies, credentials or unnecessary
+financial payloads; retention/export follows the owning privacy policy.
+
+**C21 — Provider boundaries.** Consume qualified canonical financial evidence;
+never call a provider from the task renderer or treat a webhook as a new gift.
+Account/mode, duplicate/out-of-order delivery, corrections, provider amount units
+and source schema versions require adapter proof. Unqualified lanes SHALL remain
+unavailable for this reason; they SHALL NOT silently fall back to amount heuristics.
+No new provider, AI classifier, CRM vendor or Workflow Studio dependency is needed.
+
+**C22 — Migration and rollout.** Use additive versioned records, default-denied
+new writes, explicit source/schema capability checks and a prospective cohort.
+Old code SHALL NOT fabricate proof, bypass protected mutations or discard handling
+coverage. Backfill qualified comparison history separately from task admission;
+do not replay historical tasks. Pilot, pause, reconcile and roll forward through
+the owning runbook. Rollback after writes SHALL preserve evidence/coverage and
+resume accepted intents safely, not restore old heuristic producers.
+
+**C23 — Proof and traceability.** Carry D31/C01–C24/P01–P32 through later authorized
+P16/P28 glossary/owner clauses, ADR decision if needed, OpenSpec, design/tasks,
+tickets, implementation tests and release evidence with exact links. No public
+documentation, synthetic model or passed link check SHALL be labeled runtime,
+financial-source, database, performance or usability qualification.
+
+**C24 — Monitoring and accountability.** Adopt the signal/threshold/owner/response
+table below before activation. Correctness, isolation and exact-money violations
+are release blockers and incidents, not tolerable monitored risks. Observed task
+volume or low-value feedback MAY inform a future explicit product decision; no
+hidden materiality threshold may be introduced operationally.
+
+## Consolidated adversarial findings
+
+Severity describes consequence **if the unsafe design ships**. Likelihood is a
+qualitative engineering assessment, not an observed incident rate: High means a
+normal workflow can trigger it, Medium requires plausible conditions, Low means
+a narrower exposure. Each finding changes or narrows the bare answer; none
+requires replacing the selected no-minimum product decision.
+
+| ID  | What can go wrong; why it matters                                                                                                                        | Severity / likelihood; evidence                                                                                      | Effect, permanent fix and exact required language                                                                                                  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F01 | “Confirmed” hides a missing source producer; unapplied money is called excess despite capacity-capped application. False gratitude work becomes routine. | High / High; P16 F3 and M2–M3 distinguish capped application from current X.                                         | **Changes engineering answer.** Add P16 association/proof, not a P28 boolean or money edit: C02–C06.                                               |
+| F02 | A single installment or monthly average ignores future/catch-up/undated scope and assigns other money to this reason.                                    | High / High; P16 F2/F6, Blackbaud and Bloomerang documented cases.                                                   | **Narrows qualification.** Exact recurring occurrence or full fixed designation-line scope and complete lawful portions: C03–C05/C08.              |
+| F03 | Every gift receives the same aggregate excess; concurrent $60/$60 against $100 yields duplicate $20 claims. Worker arrival changes who qualifies.        | High / Medium; explicit arithmetic counterexample; P13 header sequence cannot serialize one comparison across gifts. | **Changes source design.** Owner causal order, complete marginal proof and dependency fence: C05/C06/C12.                                          |
+| F04 | Fees, floating error, fixed `/100`, provider multiples or rounded display turn invalid residuals into excess or erase real tiny amounts.                 | High / High; MPDX fee article, ADR-0208, inspected legacy formatters, PG/RFC precision limits.                       | **Narrows inputs, preserves A.** Exact canonical units end to end; no tolerance/minimum and no financial-term workaround: C07/C08/C18.             |
+| F05 | A later term reduction or new instruction manufactures a new old-gift event; a reversal of prior coverage leaves another gift's reason stale.            | High / Medium; P16 M2/M3 and two-gift reversal counterexample.                                                       | **Changes temporal contract.** Frozen applicable terms, prospective cohort, explicit corrections and dependency-aware reproof: C09/C10/C12.        |
+| F06 | A retry/new certificate/reason reopens handled work; completion covers gifts Maya never reviewed.                                                        | High / High; D20 and source/task identity boundaries.                                                                | **Narrows effect identity.** Stable gift member and exact reviewed coverage, independent residual work: C11/C13.                                   |
+| F07 | Same tenant but wrong Entity, Party, allocation or subject creates false or private task context; cross-tenant keys leak data.                           | Critical / Medium; P12/P13/P14/P16 scopes and platform boundaries.                                                   | **Narrows every relationship.** Trusted exact scope and composite invariants, no null/default fallback: C06/C14–C16.                               |
+| F08 | RLS protects selection but allows forbidden retargeting; privileged worker or definer bypasses action/approval checks, including after a wait.           | Critical / Medium; PG/Supabase role/policy semantics; existing generic task handlers are insufficient.               | **Changes mutation boundary.** Grants plus old/new-state checks, protected-field immutability and final authorization fence: C12/C14/C15.          |
+| F09 | Reason wording, amount, exports, cache or logs reveal restricted giving/missionary associations. A filtered subset also corrupts the comparison.         | High / Medium; source-derived fact remains sensitive; P12/current row policies do not prove field disclosure.        | **Narrows projections.** Complete source computation, separately authorized minimal disclosure and retention: C16/C20.                             |
+| F10 | Source acceptance succeeds but task projection fails; uncertain source read looks like withdrawal; users repeat successful actions.                      | High / Medium; durable source/task boundary and asynchronous failure analysis.                                       | **Changes recovery.** Atomic intent/receipt, distinct states, revision-aware retry and truthful UI: C08/C12/C20.                                   |
+| F11 | Tenant customization grows into another policy engine, or D22/D30 settings unexpectedly suppress required D31 work.                                      | Medium / Medium; explicit scope of ratified exceptions and the selected A.                                           | **Narrows scope.** No new setting, shared native evaluator, no workflow dependency: C01/C17/C21.                                                   |
+| F12 | UI calls mathematical excess donor intent/overpayment, rounds it to zero, or asks Maya to reconcile finance. Small facts become confusing or coercive.   | Medium / High; comparator wording and current money helpers; UI walkthrough.                                         | **Changes presentation.** Factual reason, exact secondary detail, one task, optional disclosure, existing finance repair: C17/C18.                 |
+| F13 | Full-history scans/long locks, unbounded prefix rebuilds or one large tenant make normal task use slow or delay corrections.                             | High / Medium; prefix dependencies and SQL query shape; no production benchmark exists.                              | **Changes implementation safeguards.** Affected-scope indexed processing, bounded checkpoints/jobs and actual load gates: C19/C24.                 |
+| F14 | Staff cannot explain or repair a missing/withdrawn reason without direct SQL, or logs substitute for durable evidence.                                   | Medium / Medium; multiple authoritative and projected states.                                                        | **Changes operations.** Safe lineage, explicit state, source-owned repair, separate audits/telemetry: C20/C24.                                     |
+| F15 | Provider events/units/schemas are trusted directly; old imports or migration defaults acquire current provenance.                                        | High / Medium; ADR-0208, active recurring delta, legacy counters and adapter boundaries.                             | **Narrows dependencies and migration.** Qualified adapters, no legacy inferred proof or replay, source census and dual-version gates: C09/C21/C22. |
+| F16 | Deployment starts task writes before source/correction/auth guards; rollback loses evidence or restores unsafe heuristics.                               | High / Medium; changed owner contract and mixed-version behavior.                                                    | **Changes release order.** Source first, additive compatibility, prospective pilot, durable pause/roll-forward: C22.                               |
+| F17 | Review is treated as implementation, invented feedback or proof; glossary/OpenSpec/tickets contradict each other.                                        | High / Medium; document authority explicitly distinguishes states; research only.                                    | **Changes traceability.** Status labels, exact owner amendment and independent outcome tests: C23 and P01–P32.                                     |
+| F18 | A future repair silently broadens the financial classifier or a privacy/retention shortcut preserves sensitive payloads indefinitely.                    | High / Low–Medium; correction/version and evidence retention boundaries.                                             | **Narrows future changes.** Stable effect identity, explicit semantic supersession and owner-controlled minimized retention: C06/C10/C11/C20/C22.  |
+
+## Every requested review category
+
+Every category was assessed independently. “Material concern” means the bare
+answer needs the cited safeguard; it does not mean a production incident was
+found. The finding table supplies severity, likelihood, evidence, effect and
+exact corrective language for every listed concern.
+
+| Category                                                     | Material concern? | Checked conclusion and controlling findings                                                                                                                                                               |
+| ------------------------------------------------------------ | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Problem validity, necessity and alternatives                 | **Yes**           | Need is selected native stewardship; threshold alternative is weaker for A. Undefined confirmation is unimplementable: F01/F11/F17.                                                                       |
+| Brittleness                                                  | **Yes**           | Tested changed terms, incomplete baselines, provider order, precision and source uncertainty; assumptions fail ordinary edge conditions: F02–F05/F10/F15.                                                 |
+| Technical debt                                               | **Yes**           | Reusing legacy counters/USD helpers or adding a second ledger would make repair harder. Reuse sound money/UI primitives only: F01/F04/F11/F15.                                                            |
+| Edge cases                                                   | **Yes**           | Tiny/zero units, concurrent crossing, split targets, future capacity, fees, partial reversals, late matching and terms correction need exact treatment: F02–F06.                                          |
+| Footguns                                                     | **Yes**           | Generic retargeting, inferred confirmation, finance edits to silence alerts and unchecked group completion invite mistakes: F01/F06/F08/F12.                                                              |
+| Tenant safety                                                | **Yes**           | Checked tenant plus Entity/Party/typed subject, provider binding, jobs, caches and exports; same-tenant mismatches also matter: F07/F09/F15.                                                              |
+| Database, RLS and authorization safety                       | **Yes**           | Keys/FKs, nullability, exact types, uniqueness, delete behavior, append-only evidence, grants, old/new-state policies and privileged paths require proof: F04/F07/F08/F16.                                |
+| Overengineering                                              | **Yes**           | New materiality controls, custom rule builders, duplicated task queues and generic proof infrastructure would expand the product unnecessarily: F01/F11/F13.                                              |
+| UX/UI and user friction                                      | **Yes**           | Donor/staff/Maya journey, precise wording/amounts, names/privacy, mobile, keyboard, localization, periods and low-bandwidth recovery reviewed: F09/F10/F12. No new name/address collection is introduced. |
+| Source of truth, ownership and domain invariants             | **Yes**           | Existing P16 applications/current X cannot own per-gift excess; no provider/read-model/operational flag may become money authority: F01–F05/F15.                                                          |
+| Hidden coupling                                              | **Yes**           | Threshold policies, current pledge edits, prior-gift revisions, provider state and source-task projection must not be implicitly coupled: F03/F05/F10/F11/F15.                                            |
+| Failure modes                                                | **Yes**           | Checked lost responses, accepted source/pending task, unavailable proof, ambiguous partial reversal and post-acceptance correction: F05/F08/F10/F14.                                                      |
+| Lifecycle, temporal correctness, concurrency and idempotency | **Yes**           | Source order, effective terms, original live provenance, corrections, duplicate delivery and reviewed completion races require explicit fences: F03/F05/F06/F08/F16.                                      |
+| Data integrity risks                                         | **Yes**           | Double attribution, transport precision loss, stale dependency proof, historical replay and broken relationships can create false work: F03–F08/F15.                                                      |
+| Security and privacy risks                                   | **Yes**           | Authentication/action authority, inference, sensitive ministry association, exports/backups/logs and retention checked; no new secret/provider credential is needed: F07–F09/F18.                         |
+| Scalability and performance risks                            | **Yes**           | Prefix/correction fan-out and aggregate widths are real; no measured throughput claim exists. Bound jobs and qualify concrete capacity: F04/F13.                                                          |
+| Operational burden                                           | **Yes**           | Silent unresolved sources/manual SQL cleanup or extra missionary finance work would be unsustainable: F10/F12/F14.                                                                                        |
+| Observability and auditability gaps                          | **Yes**           | Evidence, security audit, technical traces, projection state and accepted handling need separate durable meanings: F05/F10/F14/F18.                                                                       |
+| Dependency and integration risks                             | **Yes**           | Account/mode/source schema, provider ordering/units and financially qualified adapters are required. No new external dependency is justified: F01/F15.                                                    |
+| Migration, rollout and upgrade risks                         | **Yes**           | Mixed versions, legacy units, historical baseline without task replay, pause and post-write rollback evaluated: F15/F16.                                                                                  |
+| Testability, traceability and proof                          | **Yes**           | Falsifiable contracts and exact owner reconciliation are needed; a passing synthetic model cannot qualify actual finance/auth/UI: F17.                                                                    |
+| Other development hazards                                    | **Yes**           | Checked semantic repair creep, destructive cleanup, unqualified rollback and inappropriate donor labels; resolved by bounded owner amendment and evidence status: F12/F16/F18.                            |
+
+## Acceptance criteria and release proof
+
+All criteria verify user-visible/domain results. None is satisfied merely by
+checking a helper call, returned flag or test fixture containing `qualified=true`.
+
+| ID  | Falsifiable required outcome                                                                                                                                                                                                                                                                                                                                                                                                      |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P01 | Earlier valid support fulfills the exact scope; a subsequent otherwise-unqualified live gift containing one valid positive minor unit creates one D31 reason and compatible follow-up. No new amount setting is required.                                                                                                                                                                                                         |
+| P02 | Exact zero, negative, missing target, unknown comparison and unsupported precision create no D31 reason; unknown remains distinct from zero.                                                                                                                                                                                                                                                                                      |
+| P03 | USD 0.01 and source-qualified 0/3/4-exponent examples survive parse, database, API and UI exactly. Test individually safe inputs whose sum/intermediate exceeds transport bounds, SQL `sum(bigint)` returning NUMERIC, and invalid original precision before NUMERIC coercion. Out-of-bound values fail without rounding; provider multiples do not filter canonical excess.                                                      |
+| P04 | Fee cover and settlement deductions do not manufacture excess; accepted support amount remains truthful. Changing commitment terms is not required to silence a false fee alert.                                                                                                                                                                                                                                                  |
+| P05 | Recurring catch-up/advance split across exact occurrences produces only the owner's actual excess, never whole-payment-minus-one-occurrence.                                                                                                                                                                                                                                                                                      |
+| P06 | A payment larger than a fixed installment but within its full qualified pledge designation-line capacity produces no D31 excess. Future/undated capacity is considered without silently applying money.                                                                                                                                                                                                                           |
+| P07 | Mixed designations, commitments, currencies, Entities and Parties cannot be collapsed. Recurring-to-fixed derived coverage is not counted twice.                                                                                                                                                                                                                                                                                  |
+| P08 | Two accepted $60 portions against the same $100 scope produce original excess $0/$20 under the owner order, independent of consumer event order. No leave-one-out duplicate $20 is possible.                                                                                                                                                                                                                                      |
+| P09 | Concurrent first associations serialize once at the financial owner; either valid acceptance order is consistent. A lawful late first match appends without backdating; delayed/repeated processing of an already accepted association recovers its original ordinal and never changes prior attribution. Missing proof of an existing ordinal/completeness remains unavailable. Prove real database behavior.                    |
+| P10 | Lowering a commitment after previous fulfillment creates no old-gift D31 task. Ordinary later increases/decreases do not rewrite original proof.                                                                                                                                                                                                                                                                                  |
+| P11 | Reverse earlier A after B's proof: B's current excess is revalidated, its unhandled reason is withdrawn if zero, and no B application changes. Unknown partial reversal does not guess a survivor.                                                                                                                                                                                                                                |
+| P12 | Restoring qualified source evidence can restore the same unhandled reason; handled coverage prevents another task. An original-fact correction uses explicit supersession with stable gift identity. Ordinary originating instruction expiry/consumption or later scope closure does not erase a lawful association. Withdrawal preserves independently promised human work.                                                      |
+| P13 | A later original-live first match may qualify still-unhandled work; historical import/new repurposing/remap does not masquerade as a live receipt. Valid historical support may inform the baseline without its own task replay.                                                                                                                                                                                                  |
+| P14 | D22 Off/high amount, D30 Off and absence of D29 additional-purpose statement do not suppress D31; D31 uncertainty does not suppress independently valid reasons.                                                                                                                                                                                                                                                                  |
+| P15 | Same gift with multiple reasons appears once; distinct compatible gifts group once with separate evidence. Provider event/command/certificate retries cannot duplicate work.                                                                                                                                                                                                                                                      |
+| P16 | Maya completes a reviewed set once. A new unrelated gift stays pending; a relevant correction forces review before acceptance. Neither path loses drafts or silently expands coverage.                                                                                                                                                                                                                                            |
+| P17 | A lost successful completion response returns the accepted result on retry only when currently permitted; after revocation it reveals no protected existence/details and never repeats the effect. No extra task, interaction, message or receipt occurs.                                                                                                                                                                         |
+| P18 | Cross-tenant and same-tenant wrong Entity/Party/subject/portion substitutions fail through API, RPC, direct SQL, worker and realtime paths.                                                                                                                                                                                                                                                                                       |
+| P19 | Authenticated callers cannot forge tenant/actor/author/audit fields or retarget protected source bindings through an otherwise permitted UPDATE; validate both old-row visibility and new-row acceptability.                                                                                                                                                                                                                      |
+| P20 | Revoke or expire current command/projection authority, or correct an earlier baseline gift during a lock wait: stale acceptance fails at the actual final time even if the current gift revision did not change. Transaction-start time cannot extend authority. Historical instruction expiry alone does not invalidate an accepted association.                                                                                 |
+| P21 | Every supported production entry point running under table-owner/BYPASSRLS/service-role/security-definer privileges enforces domain action/scope checks; infrastructure privilege is not product authorization. Inspect/exercise effective grants/policies/views/search_path and approved browser collections. Unrestricted database owners/superusers inherently can bypass controls; no RLS claim conceals that trust boundary. |
+| P22 | Unauthorized reason category/amount/details and their arithmetic combination never appear in UI payload, cache, export, notices, logs or generated artifacts. Tenant/actor/scope changes reject late responses. A filtered recipient view cannot alter authoritative computation.                                                                                                                                                 |
+| P23 | Qualified reason acceptance followed by worker outage recovers one task from durable intent; task failure does not roll back or fabricate money. Source uncertainty is visible without claiming a false withdrawal.                                                                                                                                                                                                               |
+| P24 | Accessible mobile/keyboard/screen-reader testing proves exact reason/amount, focus retention, status announcements, reflow, zoom and touch behavior. Slow/retried connections preserve drafts and semantic outcomes.                                                                                                                                                                                                              |
+| P25 | Moderated task scenarios with representative missionary and staff participants show they distinguish gift amount from excess, mathematical reason from donor intent, unresolved match from missing money, and original applicable terms from changed current terms. Any material misunderstanding blocks that surface until corrected and retested. No numerical success claim is predeclared as measured.                        |
+| P26 | Real load tests declare tenant count, largest comparison history/affected suffix, writes and corrections per second, batch size, queue depth and p95/p99 durations. Financial locks stay bounded; a busy tenant cannot starve others. Release budgets are explicit and passed.                                                                                                                                                    |
+| P27 | Legacy rows/counters/units are inventoried; backfill builds only qualified baseline/evidence and no historical tasks. An invalid precision/provenance row is quarantined with repair ownership, not defaulted.                                                                                                                                                                                                                    |
+| P28 | Old-code/new-schema and new-code/old-schema tests deny unsupported writes safely; disable/pause/rollback after accepted data preserves evidence/coverage and recovers durable intent without old heuristic fallback.                                                                                                                                                                                                              |
+| P29 | Current live source order, concurrent scopes, source inverses and partial failure are proved against actual owner adapters and database boundaries, beyond finite arithmetic fixtures.                                                                                                                                                                                                                                            |
+| P30 | Staff diagnose a pending/withdrawn reason from safe source/terms/dependency/command lineage and perform an authorized repair without direct database edits or a fake manual task. Audit and technical logs have separate verified retention/export rules.                                                                                                                                                                         |
+| P31 | The exact D31 contract links to canonical P16/P28 amendments and generated OpenSpec only after authorized conversion; no glossary, task, ticket or test uses “extra support” as inferred donor intent or a monetary minimum.                                                                                                                                                                                                      |
+| P32 | Operational monitors below fire with their defined thresholds/owners/responses; zero-tolerance integrity/isolation faults stop dependent activation/processing and retain recovery evidence.                                                                                                                                                                                                                                      |
+
+## Ruthless synthesis and delivery order
+
+**Before recording the answer:** A's materiality is settled. The source gap,
+comparison scopes, nonoverlapping ordered marginal proof, original/current
+correction distinction and no-setting boundary must be included in the corrected
+decision. They cannot be deferred as “implementation will confirm excess.” This
+review supplies them as explicit amendments, with no additional founder question.
+Ratification of these amendments is a distinct future conversation step.
+
+**In the later authorized spec/design:** reconcile the exact P16 comparison
+association and dependency revision with F1–F7/M2–M3, ADR-0206/0208 and their
+canonical/generated OpenSpec surfaces. Preserve source locks and financial
+permissions. P28 records the native admission/intent; D20 remains the task/handling
+contract. Carry C01–C24/P01–P32 and the glossary meaning together. P27 E7/C-01
+gates continue to block only adapters dependent on those unresolved policies;
+they are not solved by this review or a blanket block on every valid source.
+
+**Implementation safeguards, in dependency order:** qualify source currency/
+scope/association/order/corrections first; then schema/grants/command authority
+and dependency fences; then durable admission/task projection and reviewed
+handling; then minimal permitted UX and exact formatting; then migration/load/
+privacy/accessibility/field proof and a prospective pilot. Source proof, current
+authority, money integrity and no-duplicate handling cannot be placed in monitor
+instead of passing acceptance. Unqualified lanes remain clearly unavailable.
+
+**Operational monitoring:** the following are proposed concrete initial
+operating controls, not measured SLOs or fundraising benchmarks. Role owners must
+be assigned a named on-call person before activation. A correctness fault is an
+incident even below any volume or timing threshold.
+
+| Signal                                                                                              | Threshold                                                                                                                                      | Accountable owner                                    | Required response                                                                                                                                                                          |
+| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Scope/disclosure violation, duplicate handled effect, precision loss or excess conservation failure | Any confirmed occurrence                                                                                                                       | Security/on-call plus P16 and P28 engineering owners | Stop affected dependent processing/disclosure, preserve evidence, investigate blast radius and repair under owners; do not change money or raise a minimum.                                |
+| Accepted reason intent without projected/reconciled task state                                      | Oldest age over 5 minutes for 2 consecutive 1-minute checks                                                                                    | P28 operations on-call                               | Inspect queue/source cursor, retry durable intent; escalate to source owner if dependency unavailable. Never recreate the gift or manual task.                                             |
+| Comparison correction accepted but affected proof not reconciled                                    | Oldest age over 1 minute for 2 consecutive 1-minute checks                                                                                     | P16 operations on-call                               | Verify stale-proof action fence, pause affected reason use if necessary, reconcile exact dependencies and investigate lag. Stale acceptance is an immediate integrity incident.            |
+| Qualified source lane unable to produce required comparison evidence                                | Any sustained occurrence over 15 minutes                                                                                                       | P16 integration owner                                | Diagnose source/authority/completeness; mark affected lane unavailable and repair. Never assume unmatched money is excess.                                                                 |
+| Duplicate/malformed/source-schema inputs                                                            | Any schema violation; duplicate rate above the qualified adapter's documented baseline for 15 minutes                                          | Financial integration owner                          | Preserve idempotent results, inspect adapter change/delivery loop, quarantine malformed inputs and reconcile the source; duplicates alone are not new gifts.                               |
+| Small-confirmed-excess work reported as confusing or unhelpful                                      | Any feedback about wrong amount/meaning; 3 independent eligible-user complaints about otherwise correct small-excess work in a rolling 30 days | Missionary product owner with UX lead                | Immediately investigate factual/UX error; for correct-but-unwanted work, review anonymized evidence and task grouping with users. Any materiality change requires a new explicit decision. |
+| Load exceeds qualified envelope                                                                     | Any declared capacity limit exceeded, or p95 processing duration above its approved release budget for 15 minutes                              | Platform performance owner                           | Apply tenant-fair backpressure, bound jobs and expand qualified capacity; keep truth/authority fences. Do not drop qualifying tiny gifts.                                                  |
+
+## Review evidence and proof limits
+
+The new [bounded counterexample model](d31-evidence/excess-counterexamples.py)
+and [results](d31-evidence/excess-counterexamples.json) exercise **14 counterexample
+families, 5 positive controls and 88 outcome assertions**, with exact arithmetic
+witnesses and specified consumer outcomes. The [model readme](d31-evidence/model-readme.md)
+states what is assumed. A separate [root reproduction](d31-evidence/root-reproduction.json)
+matched the new result byte-for-byte. Neither is an implementation of the
+authoritative financial source, live SQL locking, RLS, provider behavior or UI.
+
+Independent financial, governance, database/security and UX findings are reconciled
+in [cross-review resolution](d31-evidence/cross-review-resolution.md).
+[Documentation verification](d31-evidence/review-verification.json) checks the
+complete review, links/anchors, decision status and preserved earlier artifacts.
+The [prior manifest](d31-evidence/prior-evidence-sha256.json) preserves 19 D30
+artifacts; no earlier model, probe or verifier is rerun or rewritten.
+
+No application, schema, dependency, live data, provider, external message,
+formal PRD/ADR/OpenSpec, GitHub ticket or release state changed. The exact D31
+decision is **Accept with required amendments**, with A selected and amendments
+awaiting explicit ratification. No Q32 is posed in this answer review.

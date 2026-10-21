@@ -1,0 +1,57 @@
+{
+  "scope": "D29 answer-review evidence after selected actor clarification; mutable session/review status checked separately",
+  "artifacts": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/actor-clarification.md",
+      "sha256": "e2e759acd7c0bd24b328d9fb2a3608355a4531458d0b08fbe27c23ade842a89f"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/cross-review-resolution.md",
+      "sha256": "f026e65c43bf6b48cc10d09500e512972e5621f6dd08b85f36e7c220d878abd5"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/database-and-authorization.md",
+      "sha256": "6d668191725e2379cb4e392fcc05b622ac037f601e829265d2c6456f04f709fb"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/financial-purpose-and-lifecycle.md",
+      "sha256": "60223eb933dfc2d3c6bb960447c15d0ae380c165559fb0efa1e3d8e36368a3e0"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/governance-and-ownership.md",
+      "sha256": "5444d334b65f563588e4930f1550f48b7ba559caa800155344ace31aa330aa85"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/model-readme.md",
+      "sha256": "185e151a62993864ecdfded3e6e98e199cedf0ca5e2f34d6d348e9870c27f54f"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/prior-evidence-sha256.json",
+      "sha256": "2f1a4ebdecffa9a2c9f9aeee6d2681d5ad487cbfeff5fe1b3c197d07f7696ba2"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/purpose-counterexamples.json",
+      "sha256": "79e218bb57a986fa5b310519ba298bdf15a2dc0e62ddc48a934cf1a2e49421eb"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/purpose-counterexamples.py",
+      "sha256": "17e7e655ccf3341e994ff2503a4fd69ee11abbe28508582ee17067421da834a3"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/q29-before-answer.txt",
+      "sha256": "185d919cfcbda9be9ffbb3ea18b4374c3bddc947611c163492a82a1452ae816d"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/root-reproduction.json",
+      "sha256": "d9884c419c257c37e36e71109d382a5ec0153ac3d3cdb63f91bcf30488be887a"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/technical-fetches.json",
+      "sha256": "1767c5fb8cb0f53902698fb2e6c00485cae98ac22e52263179ae858d839f3dee"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d29-evidence/ux-and-primary-research.md",
+      "sha256": "ecb439f10e382529ad45b7aa5491e9dd95d2ffa11c54e466b5f4db70ad19bdd8"
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "scope": "Primary mechanics sources; D7 fetches coordinated by root, reviewed locally. Not product policy or hosted runtime proof.",
+  "sources": [
+    {
+      "name": "supabase-rls",
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "final_url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "http_status": 200,
+      "bytes": 30344,
+      "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "fetched_utc": "2026-10-16T07:53:13.529909+00:00",
+      "local_path": "/tmp/phase28-d7-primary/supabase-rls.txt"
+    },
+    {
+      "name": "supabase-api",
+      "url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+      "final_url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+      "http_status": 200,
+      "bytes": 18172,
+      "sha256": "d2c47fd37a58003f294e11f47cdb05bdd2bb853f350c006a9e6a2c4249868e46",
+      "fetched_utc": "2026-10-16T07:53:13.560277+00:00",
+      "local_path": "/tmp/phase28-d7-primary/supabase-api.txt"
+    },
+    {
+      "name": "postgres-policy",
+      "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "http_status": 200,
+      "bytes": 46910,
+      "sha256": "4a75de7338882ab78829708c3c4de9caa309508f8ba7261702889e3d211139e1",
+      "fetched_utc": "2026-10-16T07:53:15.280665+00:00",
+      "local_path": "/tmp/phase28-d7-primary/postgres-policy.txt"
+    },
+    {
+      "name": "postgres-constraints",
+      "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "final_url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "http_status": 200,
+      "bytes": 44707,
+      "sha256": "cce33512bf9c9dcc29db138e888b72710c8e38a1eff18e0c74afff1ff16f2f57",
+      "fetched_utc": "2026-10-16T07:53:15.403284+00:00",
+      "local_path": "/tmp/phase28-d7-primary/postgres-constraints.txt"
+    },
+    {
+      "name": "postgres-locks",
+      "url": "https://www.postgresql.org/docs/17/explicit-locking.html",
+      "final_url": "https://www.postgresql.org/docs/17/explicit-locking.html",
+      "http_status": 200,
+      "bytes": 46799,
+      "sha256": "ac8f5253bba1cbc0e358932019b94e013953dc3a7a0136a21e97fd47cdf9e0e5",
+      "fetched_utc": "2026-10-16T07:53:14.797071+00:00",
+      "local_path": "/tmp/phase28-d7-primary/postgres-locks.txt"
+    },
+    {
+      "name": "postgres-15-19-17-11-breaking-changes",
+      "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "final_url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "http_status": 200,
+      "bytes": 246966,
+      "sha256": "c77e355069e3e3c41ebf88cfa81723cf1d23b4e8e7df19733237742d43c750d1",
+      "fetched_utc": "2026-10-16T07:55:37.255556+00:00",
+      "local_path": "/tmp/phase28-d7-primary/postgres-15-19-17-11-breaking-changes.html"
+    },
+    {
+      "id": "transactions",
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "raw_sha256": "32a32972bb04a3d539cbbc89914ff80573023bd900a8710a03bda487feb03000",
+      "local_text": "/tmp/phase28-d6-transactions.txt",
+      "text_sha256": "457bf019a88dba9800363f44afe2ea21fb9ecc1a835c715b06165f401af84d12",
+      "section": "13.2.1 Read Committed",
+      "inspected_points": [
+        "Conflicting updates/SELECT FOR UPDATE or SHARE wait and re-evaluate the updated row.",
+        "All fixture source writers lock purpose, then address, then subscription; five real overlapping transaction cases inspect the actual lock waits."
+      ],
+      "provenance": "Reused D6 retrieval; exact local text rechecked for this mechanics review"
+    },
+    {
+      "id": "atomicity",
+      "url": "https://www.postgresql.org/docs/17/tutorial-transactions.html",
+      "raw_sha256": "a99cbd8c8568a12bcca0d2650569de10da24eafece4fe8010d51a39868a51b40",
+      "local_text": "/tmp/phase28-d6-atomicity.txt",
+      "text_sha256": "860dee0213cf1bc236c79f4c4e88a40986af522749409ca88971019d283eb2a7",
+      "section": "3.4 Transactions",
+      "inspected_points": [
+        "Transactional updates commit as a unit or leave no partial effect on failure.",
+        "Injected failure during confirmation-intent insert rolls back the pending source, attempt and evidence. No crash/restart or provider-durability claim."
+      ],
+      "provenance": "Reused D6 retrieval; exact local text rechecked for this mechanics review"
+    }
+  ],
+  "notes": [
+    "For ALL/UPDATE policies omitted WITH CHECK inherits USING; effective old/new policy behavior must be tested.",
+    "SECURITY DEFINER uses its owner privileges, not automatic RLS bypass; command_executor is nonowner NOLOGIN NOSUPERUSER NOBYPASSRLS.",
+    "Provider idempotency is not permanent source intent identity. This fixture invokes no provider."
+  ]
+}

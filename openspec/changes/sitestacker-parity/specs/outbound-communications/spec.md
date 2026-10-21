@@ -243,9 +243,9 @@ Every clause in `openspec/contracts/outbound-communications.md#contract-d3dc1377
 
 ### Requirement: Protected Actions Remain Producer-owned And Scanner-resistant
 
-Protected actions MUST be tenant-scope-only in this generation and MUST bind one exact Party/contact authority.
+Protected actions MUST be tenant-scope-only in this generation and MUST bind one exact qualified recipient authority.
 
-Every clause in `openspec/contracts/outbound-communications.md#contract-ff11d25cc28b0477f45a` MUST apply without exception.
+Every clause in `openspec/contracts/outbound-communications.md#contract-6df1d820fc807bf9a32f` MUST apply without exception.
 
 #### Scenario: An email scanner opens a protected link
 
@@ -306,6 +306,13 @@ Every clause in `openspec/contracts/outbound-communications.md#contract-ff11d25c
   `CDN-Cache-Control: no-store`, and `Vercel-CDN-Cache-Control: no-store`
 - AND no cache, transform, stale response, optimizer, or service worker handles
   it
+
+#### Scenario: A native newsletter confirmation has no CRM Party
+
+- GIVEN the qualified P28 native confirmation occurrence binds one same-Tenant non-constituent recipient-authority revision
+- WHEN the reader deliberately confirms through the shared protected doorway
+- THEN current source/recipient/expiry rules are re-proved without creating a Party, contact, Auth account or workforce assignment
+- AND another producer cannot use this exception, while a scanner GET performs no enrollment
 
 ### Requirement: In-product Notifications Are One Role-safe Attention Projection
 
@@ -403,7 +410,7 @@ Every clause in `openspec/contracts/outbound-communications.md#contract-5121b0ac
 
 Platform-scoped system email MUST use one separately proved Asym-owned Resend connection and domain, an Asym-fixed publication, verified platform recipient authority, Phase 17 compiler/profile proofs, and the same Phase 6 preparation, idempotency, provider-event, recovery, and body-free history contracts as tenant email.
 
-Every clause in `openspec/contracts/outbound-communications.md#contract-b2d69f7e799977aae3b6` MUST apply without exception.
+Every clause in `openspec/contracts/outbound-communications.md#contract-862ef28a8ac58a9ad5ca` MUST apply without exception.
 
 #### Scenario: Eve requests email before an exact contract exists
 
@@ -422,6 +429,21 @@ Every clause in `openspec/contracts/outbound-communications.md#contract-b2d69f7e
 - AND the address exists only in encrypted, short-lived prepared-delivery
   material while durable execution and history retain only the body-free
   scope-safe authority/reference
+
+#### Scenario: A confirmed guest receives an authorized native newsletter issue
+
+- GIVEN an active same-Tenant/newsletter membership revision with no Party
+- AND an authorized issue seals that membership and its destination revision
+- WHEN the qualified P28 producer prepares and admits the issue email
+- THEN Phase 6 preserves the exact membership branch and issue through history
+- AND it creates no Party and grants no native-confirmation authority
+
+#### Scenario: A newsletter recipient no longer matches its sealed authority
+
+- GIVEN a sealed member is withdrawn, changes destination or names another
+  newsletter's membership
+- WHEN preparation or attempt admission re-proves its authority
+- THEN the unstarted member is blocked without retargeting or audience expansion
 
 #### Scenario: Eve requests a platform-owner email and Discord alert
 

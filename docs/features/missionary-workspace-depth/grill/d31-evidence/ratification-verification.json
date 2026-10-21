@@ -1,0 +1,25 @@
+{
+  "continuation": "Q32 posed and unanswered; two options; no Q33; no shared-purpose contract selected",
+  "date": "2026-10-18",
+  "limits": "Structural verification only. No initial verifier, semantic model or database probe rerun. No application, source producer, SQL/RLS, provider, UI, load or release qualification.",
+  "links": {
+    "anchors": 49,
+    "line_references": 13,
+    "local": 373
+  },
+  "preserved_artifacts": {
+    "D29": 20,
+    "D30": 19,
+    "D31_initial": 15,
+    "D31_original_review": 1
+  },
+  "ratification": "D31 corrected decision, C01\u2013C24, P01\u2013P32 and operational controls explicitly ratified",
+  "status": "passed",
+  "unchanged_review": {
+    "acceptance_criteria": 32,
+    "categories": 22,
+    "clauses": 24,
+    "decision_quote": true,
+    "findings": 18
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "fetched_at": "2026-10-16",
+  "scope": "Primary PostgreSQL 17 technical mechanics; effective-authority fixture is illustrative, not Core P12 implementation.",
+  "sources": [
+    {
+      "id": "grant",
+      "url": "https://www.postgresql.org/docs/17/sql-grant.html",
+      "raw_sha256": "64ca19d0a6ce68aa0332260b59902bd638e354d0f8cc8e95c8d1afe0347307f2",
+      "local_text": "/tmp/phase28-d5-grant.txt",
+      "text_sha256": "bc49a4bf1999ed10e38bb0c93abdeced8639e226265964cef540a06546bd0cee",
+      "section": "GRANT description and Notes",
+      "inspected_points": [
+        "Privileges are additive through direct grants, memberships and PUBLIC.",
+        "A column is writable when UPDATE is held for that column or the whole table; a column-level revoke does not remove a table-level grant.",
+        "The unsafe fixture grants table UPDATE then revokes a column, demonstrating why that combination does not protect the field. This PostgreSQL fact is not an implementation of P12."
+      ]
+    },
+    {
+      "id": "rls",
+      "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "raw_sha256": "549fe56f4eedf6fba605c42d3b90522fb6fb431e55b64d16f4ff7e31f1ca80c0",
+      "local_text": "/tmp/phase28-d5-rls.txt",
+      "text_sha256": "8e09cd6e88a959aa4f812b7e84147b893dbcfae833fa5cf52d083f3bc50da04a",
+      "section": "5.9 Row Security Policies",
+      "inspected_points": [
+        "RLS controls which rows are selected or changed and does not alone impose an arbitrary per-field patch allowlist.",
+        "Superusers/BYPASSRLS and ordinarily table owners bypass policies. The command executor is neither a bypass role nor table owner.",
+        "Mutable-policy subqueries can race; cooperating writes use a current effective-authority row lock before their source row lock in this fixture."
+      ]
+    },
+    {
+      "id": "transactions",
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "raw_sha256": "32a32972bb04a3d539cbbc89914ff80573023bd900a8710a03bda487feb03000",
+      "local_text": "/tmp/phase28-d5-transactions.txt",
+      "text_sha256": "457bf019a88dba9800363f44afe2ea21fb9ecc1a835c715b06165f401af84d12",
+      "section": "13.2.1 Read Committed Isolation Level",
+      "inspected_points": [
+        "A row updater/SELECT FOR UPDATE or SHARE waits for another updater, then evaluates the updated row.",
+        "Real policy-save and staff-missionary sessions demonstrate lock ordering and source revision checks; no stale browser snapshot is trusted as final authority."
+      ]
+    },
+    {
+      "id": "transaction-atomicity",
+      "url": "https://www.postgresql.org/docs/17/tutorial-transactions.html",
+      "raw_sha256": "a99cbd8c8568a12bcca0d2650569de10da24eafece4fe8010d51a39868a51b40",
+      "local_text": "/tmp/phase28-d5-transaction-atomicity.txt",
+      "text_sha256": "860dee0213cf1bc236c79f4c4e88a40986af522749409ca88971019d283eb2a7",
+      "section": "3.4 Transactions",
+      "inspected_points": [
+        "Multiple transactional steps commit together or have no effect after failure.",
+        "The source update, required audit and acceptance receipt execute in one SQL transaction. A constraint fault and an injected required-audit fault verify rollback.",
+        "The test observes committed rows through fresh SQL sessions; it does not crash/restart the database or qualify hosted durability/recovery."
+      ]
+    }
+  ]
+}

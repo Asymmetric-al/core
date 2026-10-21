@@ -1,0 +1,104 @@
+{
+  "runtime": "v24.19.0",
+  "scenario": "utc",
+  "timezone": "UTC",
+  "initialClock": "2026-10-16T12:00:00.000Z",
+  "finalClock": "2026-11-16T12:00:00.000Z",
+  "fixtures": [
+    {
+      "id": "last-day",
+      "amount": 10000,
+      "donation_type": "one_time",
+      "status": "completed",
+      "created_at": "2026-09-30T12:00:00.000Z"
+    },
+    {
+      "id": "imported-earlier-gift",
+      "amount": 20000,
+      "donation_type": "one_time",
+      "status": "completed",
+      "created_at": "2026-10-10T12:00:00.000Z",
+      "gift_date": "2026-03-10T12:00:00.000Z"
+    }
+  ],
+  "passed": 5,
+  "checks": [
+    {
+      "name": "Final-day noon receipt is in September breakdown but absent from Last Month total",
+      "observation": {
+        "lastMonthTotal": 0,
+        "septemberBreakdownTotal": 10000,
+        "receiptCreatedAt": "2026-09-30T12:00:00.000Z"
+      }
+    },
+    {
+      "name": "Earlier gift_date input does not move an October-created gift into March",
+      "observation": {
+        "thisMonthTotal": 20000,
+        "marchBreakdownTotal": 0,
+        "createdAt": "2026-10-10T12:00:00.000Z",
+        "giftDate": "2026-03-10T12:00:00.000Z"
+      }
+    },
+    {
+      "name": "Actual six/twelve-month selectors change local window without a second request",
+      "observation": {
+        "sixLabels": [
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct"
+        ],
+        "twelveLabels": [
+          "Nov",
+          "Dec",
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct"
+        ],
+        "requests": [
+          {
+            "url": "/api/missionaries/fixture-missionary/metrics",
+            "hasAbortSignal": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "Same-subject rerender after calendar rollover keeps memoized October period",
+      "observation": {
+        "clockNow": "2026-11-16T12:00:00.000Z",
+        "retainedThisMonthTotal": 20000,
+        "retainedLastLabel": "Oct",
+        "requestCount": 1
+      }
+    },
+    {
+      "name": "Clearing subject input retains previous data with loading false",
+      "observation": {
+        "subject": "",
+        "retainedThisMonthTotal": 20000,
+        "isLoading": false,
+        "error": null,
+        "requestCount": 1
+      }
+    }
+  ],
+  "scope": "Actual unchanged useDonationMetrics React hook and selectGivingTrend helper; installed real React/testing-library/jsdom; controlled fetch response and clock inputs only",
+  "limits": [
+    "No actual HTTP endpoint, Supabase, database, browser, JSX chart, authorization, revocation command, notification or provider executed",
+    "Assertions capture current behavior, including defects; not desired D10 acceptance behavior",
+    "gift_date is an extra fixture input ignored by the hook; the actual endpoint omits it entirely",
+    "Empty subject proves hook state behavior, not that a production revocation invokes this input transition",
+    "Clock rollover rerenders without a remount or changed donation payload; it does not model every application navigation path"
+  ]
+}

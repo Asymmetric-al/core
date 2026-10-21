@@ -203,7 +203,7 @@
       "slug": "missionary-workspace-depth",
       "name": "Missionary Workspace Depth & Support-Raising CRM",
       "startingDependencies": "9, 13, 16, 6, 3, 27",
-      "status": "roadmap scope adopted; phase grooming/qualification required"
+      "status": "formal Phase 28 specification; source qualification and implementation pending"
     },
     {
       "phase": 29,

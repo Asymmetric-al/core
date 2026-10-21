@@ -1,0 +1,280 @@
+{
+  "cases": [
+    {
+      "corrected": {
+        "active_access": false,
+        "qualified_history": "Expired"
+      },
+      "id": "B01",
+      "kind": "counterexample",
+      "schedule": [
+        "active display at9",
+        "deadline10 reached",
+        "read before any sweeper update"
+      ],
+      "title": "Authority time expires active access before the sweeper",
+      "unsafe": true
+    },
+    {
+      "corrected": {
+        "cannot_pursue": {
+          "status": "unavailable"
+        },
+        "invalidated": {
+          "status": "unavailable"
+        },
+        "revoked": {
+          "status": "unavailable"
+        },
+        "withdrawn": {
+          "status": "unavailable"
+        }
+      },
+      "id": "B02",
+      "kind": "counterexample",
+      "title": "Ordinary expiry is not every terminal source disposition",
+      "unsafe": true
+    },
+    {
+      "corrected": {
+        "label": "Grace",
+        "referral": "referral-1",
+        "status": "Expired"
+      },
+      "id": "B03",
+      "kind": "counterexample",
+      "title": "Limited history never becomes ordinary Party or referral-body access",
+      "unsafe": {
+        "contact": "555-SECRET-CONTACT",
+        "context": "PRIVATE-INTRODUCTION-DETAIL"
+      }
+    },
+    {
+      "corrected": {
+        "history": "unavailable",
+        "ordinary_contact": "independently permitted"
+      },
+      "id": "B04",
+      "kind": "counterexample",
+      "title": "Historical and independent current access do not grant or cancel each other",
+      "unsafe": {
+        "Off_removes_all_contact": true,
+        "Party_read_opens_old_body": true
+      }
+    },
+    {
+      "corrected": {
+        "creator": {
+          "status": "unavailable"
+        },
+        "inactive_assignment": {
+          "status": "unavailable"
+        },
+        "new_assignee": {
+          "status": "unavailable"
+        },
+        "past_recipient_without_current_grant": {
+          "status": "unavailable"
+        }
+      },
+      "id": "B05",
+      "kind": "counterexample",
+      "title": "Creator, reassignment or historical membership is insufficient",
+      "unsafe": "use creator/assignee/history alone"
+    },
+    {
+      "corrected": {
+        "next": null,
+        "permitted_count": 0,
+        "rows": []
+      },
+      "id": "B06",
+      "kind": "counterexample",
+      "title": "No safe useful label means no row or count",
+      "unsafe": {
+        "count": 1,
+        "label": "Private referral"
+      }
+    },
+    {
+      "corrected": {
+        "approved_label_query_matches": 1,
+        "private_query_matches": 0
+      },
+      "id": "B07",
+      "kind": "counterexample",
+      "title": "Searching hidden fields leaks even when returned rows are redacted",
+      "unsafe": true
+    },
+    {
+      "corrected": {
+        "hidden_insertion_changes_continuation": false,
+        "later_private_row_reappears_on_continuation": false,
+        "one_visible_has_next": false
+      },
+      "id": "B08",
+      "kind": "counterexample",
+      "title": "Count and cursor derive from permitted rows only",
+      "unsafe": true
+    },
+    {
+      "corrected": {
+        "Off": {
+          "status": "unavailable"
+        },
+        "context_changed": {
+          "status": "unavailable"
+        },
+        "grant_revoked": {
+          "status": "unavailable"
+        },
+        "label_revoked": {
+          "status": "unavailable"
+        },
+        "source_withdrawn": {
+          "status": "unavailable"
+        }
+      },
+      "id": "B09",
+      "kind": "counterexample",
+      "schedule": [
+        "prepare permitted projection",
+        "policy/grant/source/context changes",
+        "disclose"
+      ],
+      "title": "A previously permitted response must pass current disclosure",
+      "unsafe": "return cached Grace row"
+    },
+    {
+      "corrected": {
+        "fresh_read": "Grace",
+        "old_response": "unavailable"
+      },
+      "id": "B10",
+      "kind": "counterexample",
+      "title": "Re-enable requires fresh evaluation rather than reviving a response",
+      "unsafe": {
+        "boolean_enabled_again": true
+      }
+    },
+    {
+      "corrected": {
+        "erased": {
+          "status": "unavailable"
+        },
+        "foreign_tenant": {
+          "status": "unavailable"
+        },
+        "hold_only": {
+          "status": "unavailable"
+        },
+        "merged_identity_not_requalified": {
+          "status": "unavailable"
+        },
+        "other_ministry": {
+          "status": "unavailable"
+        },
+        "unknown_expiry": {
+          "status": "unavailable"
+        }
+      },
+      "id": "B11",
+      "kind": "counterexample",
+      "title": "Source identity, scope, retention and purpose remain separate gates",
+      "unsafe": "organization permits history, so show retained rows"
+    },
+    {
+      "corrected": {
+        "expired_projection_count": 0,
+        "source_retained": true
+      },
+      "id": "B12",
+      "kind": "counterexample",
+      "title": "Active-again source leaves Expired projection without deleting history",
+      "unsafe": "once expired, always in history list"
+    },
+    {
+      "corrected": {
+        "denied_and_missing_logical_response_equal": true,
+        "revoked": "unavailable",
+        "wrong_context": "unavailable",
+        "wrong_query": "unavailable"
+      },
+      "id": "B13",
+      "kind": "counterexample",
+      "title": "Cursor reuse cannot bypass current authority, query or context",
+      "unsafe": "cursor is a durable historical read grant"
+    },
+    {
+      "corrected": {
+        "active_or_ordinary_access_added": false,
+        "expiry_retention_source_state_unchanged": true,
+        "history": "Expired"
+      },
+      "id": "C01",
+      "kind": "positive_control",
+      "title": "Eligible expired-only history is readable without expanding authority",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "current_history": "Expired",
+        "first_recipient_only_rule": false
+      },
+      "id": "C02",
+      "kind": "positive_control",
+      "title": "A qualified pre-expiry handoff recipient can have current history authority",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "original_name_search_matches": 0,
+        "shown_label": "Approved alias Q"
+      },
+      "id": "C03",
+      "kind": "positive_control",
+      "title": "A separately source-approved useful alias is sufficient",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "current_qualified_read": "Expired",
+        "source_state_unchanged": true
+      },
+      "id": "C04",
+      "kind": "positive_control",
+      "title": "Enabling permits current minimal reads without a lifecycle action",
+      "unsafe": null
+    }
+  ],
+  "counts": {
+    "counterexample_families": 13,
+    "passed_outcome_assertions": 68,
+    "positive_controls": 4
+  },
+  "decision": "D34 organization-permitted limited expired-referral history; contact/private context excluded; continuation separate",
+  "evidence_kind": "bounded_stdlib_projection_semantic_model",
+  "limitations": [
+    "Only synthetic finite standard-library examples ran; no application, database, provider, network, private data, previous model or probe was executed.",
+    "Exact source-qualified pre-expiry recipients, ordinary expiry, current grants, retention and safe useful labels are fixture inputs, not a proven P9/P12 producer.",
+    "Policy is explicitly supplied for each world. Arbitrary example instants are not selected product defaults, time windows or retention periods.",
+    "Ordered reads assume authoritative current time and serialized owner facts; no actual clock, expiry scheduler, SQL/RLS, locks, transactions, real concurrency or distributed cache behavior is proved.",
+    "Opaque cursor tokens use an in-memory lookup for semantic illustration only, not a token format, security scheme, pagination implementation or schema proposal.",
+    "Logical unavailable responses are compared only for shape/value; no timing, statistical noninterference, network oracle or production privacy proof is supplied.",
+    "Independent ordinary contact-read authority is an opaque current grant; active-relationship production, contactability, consent and sending are not implemented.",
+    "Source identity merge/reassignment/retention results are supplied facts; actual canonicalization, erasure, legal holds, handoff provenance, restored data and lineage producers remain untested.",
+    "Read examples preserve source state. There are no continuation, interaction, send or task-writing methods; absence of effects here does not test real downstream integrations.",
+    "No UI/client late-response enforcement, exports, logs, analytics, realtime, multiple-source watermarks or user studies are exercised.",
+    "Passing the finite examples establishes no deployed grant, source availability, release readiness or runtime enforcement."
+  ],
+  "reproduction": "python3 docs/features/missionary-workspace-depth/grill/d34-evidence/history-counterexamples.py",
+  "script_sha256": "561371d18104792e8ad9dd6d9f7c190a4645bc013b00bd342a41c706db791f95",
+  "status": "proposed source-purpose boundaries illustrated; no implementation or ratification claim",
+  "unspecified": [
+    "organization default",
+    "expiry duration",
+    "retention period",
+    "continuation actor",
+    "renewal workflow"
+  ]
+}

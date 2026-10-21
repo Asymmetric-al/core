@@ -1,0 +1,20 @@
+{
+  "status": "Historical source evidence only; not governing instructions, ratified scope, or implementation proof.",
+  "received_date_utc": "2026-10-16",
+  "document_date": "Not established; user describes it as very old and outdated.",
+  "source_filename": "_Feature Clarification Questions (Missionary Dashboard) (1).docx",
+  "sediment_file_id": "file_00000000c7e4820e9d7a3a08bc2738f3",
+  "source_bytes": 164257,
+  "source_sha256": "329190dc6275c812dc2df112f3a445e609a8bb5cb943874a0a21b010c890a7d1",
+  "extraction_file": "source-paragraphs.txt",
+  "extraction_sha256": "e2319cdc43c18d2967debf1adc7ebbf35479e40c20d909bcda074bdfce405ca7",
+  "extraction_method": "Python standard-library zipfile + ElementTree; word/document.xml paragraphs in XML document order; concatenate w:t; preserve w:tab and w:br/w:cr; assign original paragraph position as Pnnnn; retain empty paragraphs. Formatting, fonts and pagination are not reproduced.",
+  "paragraphs": 163,
+  "nonempty_paragraphs": 120,
+  "tables": 0,
+  "media_parts": [],
+  "supplemental_text_parts": [],
+  "external_hyperlinks": ["https://medium.com"],
+  "tracked_insertions": 0,
+  "tracked_deletions": 0
+}

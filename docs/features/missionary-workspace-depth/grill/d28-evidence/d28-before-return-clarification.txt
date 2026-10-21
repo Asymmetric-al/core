@@ -1,0 +1,618 @@
+# Phase 28 D28 — organization-set preparation retention after departure
+
+**Disposition: Accept with required amendments.**
+
+**Status: A selected; the corrected decision and amendments await explicit
+ratification.** Reviewed **October 17, 2026 UTC** against
+`9cada8f3d8ab59db391d3fd20df77fcadeb09813` and the current working tree.
+D27 remains ratified. This is a research/grill decision review under the
+[founder's boundary](phase28-founder-brief.md:21), not implementation or a formal
+PRD, ADR, OpenSpec change or ticket. No Q29 is posed.
+
+## Exact corrected decision to record
+
+> **D28 — Organization-set retention for unshared preparation after departure.**
+> Authorized staff may set one finite organization-wide period for this narrowly
+> defined preparation source, within its qualified privacy and records rules.
+> The setting controls how long eligible preparation may be kept for the
+> original author's possible return; it grants nobody access to its contents.
+>
+> Use one clearly labeled duration with a fixed unit, concise help choosing the
+> shortest justified period, and a plain explanation of what happens at expiry.
+> There is no invented universal recommended number, hidden infinite default,
+> per-person timer or generic retention-rule builder. A missing policy is an
+> unresolved setup state, never permission to keep everything forever or delete
+> everything immediately.
+>
+> A confirmed departure binds the exact original author, organization, ministry,
+> source episode, effective departure time and policy revision. Ordinary edits
+> to the organization setting apply to future departures. Existing episodes keep
+> their recorded deadlines. Independently required erasure, lawful restrictions
+> and source corrections still apply to existing records through their qualified
+> owner; this is not a way to preserve an obsolete unlawful schedule.
+>
+> At expiry, ordinary discovery and access stop even if physical cleanup is
+> delayed. Required held evidence remains restricted. Cleanup disposes only the
+> qualified preparation and its actual derivatives, preserves separately governed
+> facts and minimal scheduled evidence, and prevents backup restoration from
+> re-exposing disposed content. Do not claim permanent destruction until the
+> relevant copy outcomes have been verified.
+>
+> Maya sees the applicable policy and, where she is currently authorized to see
+> an entry, its actual availability deadline. Her ordinary work remains simple.
+> Staff see settings and permitted operational status, not private preparation
+> inventories. No departure wizard, new recipient notice, successor access,
+> restarted sharing or automatic export follows.
+
+> **Recommended return amendment:** a deliberate, authorized D27 Resume accepted
+> **before** expiry admits only that same selected entry to the qualified
+> current-work retention purpose and ends applicability of its departure
+> schedule. Original departure/deadline history remains intact. Login,
+> reactivation, viewing or resuming another entry does not preserve the rest.
+> Expired, hold-only or purged content cannot enter this path.
+
+**Selection versus recommendation:** the founder selected organization control.
+The return clarification is still unanswered. The return paragraph and C07 are
+therefore an explicit recommended amendment for ratification, not a founder
+answer or an already-effective exception to D27-C07. D27's ratified text remains
+unchanged. This review supplies the complete preferred replacement rather than
+quietly choosing an implementation or treating elapsed time as consent.
+
+The selected organization control is accepted in principle. The period's actual
+number and supported bounds cannot be inferred from this answer. They require
+the concrete source/privacy profile described below. That is a specific delivery
+gate, not a substitute for selecting the product direction.
+
+## Evidence, current behavior and ownership
+
+Evidence labels matter: **repository intent** is an owning contract;
+**current source** is inspected code, not deployed behavior; **external fact** is
+directly read primary documentation; **judgment** is our proposed product/design
+amendment; **unqualified** means actual runtime or participant evidence is absent.
+
+- **Repository intent:** [D3-C06](phase28-d3-adversarial-review.md:249),
+  [D4](phase28-d4-adversarial-review.md:58) and
+  [D27-C07](phase28-d27-resume-preparation-adversarial-review.md#d27-c07--retention-holds-and-erasure)
+  expressly reserve exact disposition. P9 owns preparation, P12 owns current
+  administration/access, and P4 owns canonical identity. A policy administrator
+  is not thereby a private-content reader. See the
+  [governance evidence](d28-evidence/governance-and-ownership.md).
+- **Scoped precedent:** [ADR-0038](../../../adr/0038-purpose-owned-records-schedules-and-verified-disposal.md)
+  separates access, retention, hold and disposal and requires verified recovery.
+  Its Phase 21 precision amendment explicitly rejects platform-wide semantic
+  ownership. Its seven document obligations, financial periods, tenant extension
+  model and grace rules are not silently imported into preparation.
+- **Current source:** the inspected workspace has no qualified D28 preparation
+  policy/source contract. Existing CRM notes have a different audience. Eve
+  retention is a different source with different policy and external-delete
+  behavior; it is not proof that preparation disposal is ready. Exact current
+  source references and limits are in the
+  [database review](d28-evidence/database-and-authorization.md).
+- **Possible public-policy conflict:** [current policy configuration](../../../../apps/donor/openpolicy.ts:109)
+  states periods for other named data classes and backups. Classification of P9
+  preparation and the applicable MSA/DPA must be reconciled before activation.
+  The [Phase 21 gate](../../../guides/features/openpolicy-legal-pages.md:164)
+  is a scoped precedent, not a universal P9 owner. Departure, account closure,
+  inactivity and an erasure request must not become synonyms.
+- **External fact:** [HubSpot retention settings](https://knowledge.hubspot.com/privacy-and-consent/manage-data-retention-policy-settings),
+  updated September 28, 2026, demonstrate authorized period configuration and
+  explicit deletion consequences. Their inactivity triggers and numerical
+  periods do not establish Asym's period or trigger.
+- **External guidance:** the [ICO storage-limitation guidance](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/data-protection-principles/a-guide-to-the-data-protection-principles/storage-limitation/)
+  supports purpose-based, justifiable periods and early deletion where appropriate,
+  rather than a universal duration. This is UK guidance, currently marked under
+  review, not a global legal determination or permission to retain solely because
+  future usefulness is imaginable.
+- **Product judgment:** prospective setting changes, one duration field, no
+  default number and proportionate review give the clearest bounded feature.
+  An Asym-standard period was the strongest simpler alternative; it reduces
+  configuration but cannot accommodate the tenant control the founder selected.
+
+The [UX/primary evidence](d28-evidence/ux-and-primary-research.md) records additional
+comparisons and accessibility sources. No ministry interview, authenticated
+competitor test, production database test or legal approval is claimed.
+
+## The complete user journey
+
+**Staff setup.** Place **Preparation after departure** in the existing authorized
+organization settings, using Core's shared Maia/Base UI components and semantic
+tokens. One compact card states what is covered and that setting the period does
+not reveal private preparation. Show **Not configured** when no qualified tenant
+choice exists. Do not use an On/Off switch for a policy whose absence would have
+ambiguous retention consequences.
+
+The duration label is **Keep unshared preparation for** with a whole-number
+**days after departure** suffix. Use a fixed unit rather than days/months/years
+toggles with unequal conversions. Show the supported limits from the exact
+qualified source profile. Explain a day as a 24-hour duration; display resulting
+deadlines in the reader's locale with an explicit time zone when relevant. Do not
+silently reinterpret an entered day as a calendar month or a local midnight.
+
+Suggested helper copy: **“Choose the shortest period your organization can
+justify for someone returning to their ministry. Consider your actual return
+needs, the sensitivity of the information and your records policy. This setting
+does not keep financial records or give staff access to private preparation.”**
+A small **How to choose** disclosure links the organization's applicable policy
+or responsible role and source-linked guidance. It is not a mandatory checklist,
+legal certification, new policy-document library or recommendation to retain
+everything “just in case.” A qualified deployment may offer its approved
+recommendation; without that evidence the field is not prefilled with a guess.
+
+**Save and change.** Show the new period and effective time in a short inline
+review, with **“Applies to departures taking effect after this change is saved.
+Preparation already retained keeps its existing deadline.”** The saved result
+shows the exact server-accepted effective instant; no future-date picker is needed. No private-record
+count is needed. One deliberate **Save period** commits the reviewed revision.
+Preserve input on failure, prevent lost-update overwrites, and recover an accepted
+save after a lost response. Routine configuration does not need a second
+approver, typed confirmation phrase or multi-page wizard unless independently
+required by the actual P12 capability. Mandatory changes to existing records use
+their qualified source correction process, not a hidden side effect of Save.
+
+**Maya's ordinary work and departure.** Provide a quiet **How preparation is kept**
+explanation in existing preparation settings/help. Confirmed departure revokes
+access according to its source rules; the period does not grant a departed user
+a grace login. Do not contact supporters, automatically export private content,
+force a departure survey or invent a new email notification. Any existing
+authorized departure communication retains its own owner and scope.
+
+**Return.** D27's currently authorized **Earlier preparation** list remains the
+entry point. Where disclosure is allowed, show the actual deadline and its
+meaning before a consequential action. No inaccessible-record count, stale
+cached preview, staff inventory or claim that missing data must have been deleted
+is allowed. The proposed return amendment above supplies the recommended Resume copy; it
+remains subject to explicit ratification. Login alone never admits all earlier
+preparation to current work.
+
+**Expiry and support.** Use **No longer available to resume** when that is the
+verified ordinary-access outcome. Reserve **Deleted from live preparation** or a
+stronger copy-specific statement for verified disposal evidence. An access-denied
+response does not reveal a protected record's existence, hold or contents.
+Operational staff receive a compact permitted status and a repair action, not a
+second record browser or a “restore everything” button.
+
+**Accessibility and field conditions.** Use persistent labels, text alongside
+status/color, keyboard-operable controls, focus-visible errors and a nonintrusive
+save status. Keep the form single-column at narrow widths, preserve typed input
+on slow or failed requests, and do not present offline saving as committed.
+Dates and numbers are localized; policy identity and deadline arithmetic are not.
+No display-name, address, language or time-zone assumption changes ownership or
+expiry. Public/donor giving flows acquire no additional step.
+
+## Exact required amendments
+
+These are proposed requirements for the later authorized specification. They
+select no live policy, migration or new access grant.
+
+### D28-C01 — One scoped organization control
+
+The tenant MAY configure one finite ordinary post-departure period for the
+qualified unshared-preparation source. Only a current P12-authorized policy
+administrator MAY change it. The policy MUST NOT become a per-record timer,
+department/ministry override hierarchy, generic rule builder or authority over
+CRM, consent, finance, communications, care or coach grants. Retention
+administration MUST NOT confer body, hidden-count or private-inventory access.
+
+### D28-C02 — Qualified profile and honest unset state
+
+The preparation owner MUST qualify covered bodies/derivatives, purpose, departure
+trigger, finite supported duration bounds, controlling privacy/records limits,
+holds, ordinary-work rules, evidence schedules and recovery before activation. It MUST distinguish the
+ordinary-return cutoff from verified physical-disposal deadlines for each actual
+copy class; a queue delay cannot extend an applicable privacy ceiling.
+The UI MUST offer only that profile's supported positive whole-day choices; no
+zero/blank/negative/overflow/forever encoding is accepted. No universal numerical
+default is selected. With no configured choice or qualified existing baseline,
+the affected new preparation capability MUST remain unactivated; independent CRM
+work continues. Missing policy MUST neither purge legacy content nor retain it
+indefinitely by convention. Existing unknown cohorts require bounded restricted
+source-owner assessment with an owner and resolution deadline.
+
+### D28-C03 — Purpose-based help and simple configuration
+
+Show the policy's exact source scope, fixed unit, supported limits, selected
+period, effective time and consequences in the existing settings surface. Help
+MUST direct staff to justified continuity needs and governing obligations without
+claiming a legally safe universal number. Policy guidance MUST remain distinct
+from actual approved policy. One deliberate save and proportional error handling
+MUST suffice; no content inspection, compelled reason for every ordinary save,
+new approval queue or generic compliance wizard is introduced.
+
+### D28-C04 — Prospective, versioned ordinary changes
+
+Each accepted change MUST create immutable revision/effect evidence and change
+the current setting atomically under expected-version and current-authority
+checks. An ordinary Save is effective at its authoritative server acceptance
+time; callers cannot backdate it. Exactly one revision governs each effective
+instant; overlapping or retroactively inserted/reordered ordinary revisions are
+forbidden. Equal-clock acceptance attempts must be ordered without ambiguity
+before any affected departure admission; they cannot silently rewrite history.
+Ordinary changes apply to source departures effective on or after that
+revision's effective time; existing episodes retain their pinned revision and
+deadline. The UI MUST state this before acceptance. No retroactive extension,
+shortening or reset to the save time is implied. Mandatory source/legal/privacy
+changes MUST use an independently qualified, auditable correction transition for
+the affected records; obsolete invalid schedules cannot be grandfathered forever.
+
+### D28-C05 — Authoritative departure and exact time
+
+Only the source-authorized departure event for the relevant preparation ownership
+context MAY start its episode. Preserve effective and observed timestamps,
+durable source event identity, exact tenant/ministry/original-author binding and
+the policy effective at that departure instant. A missing login, inactive tab,
+archived preparation, grant suspension or departure from another scope MUST NOT
+substitute. Duplicate or out-of-order delivery MUST NOT create a new clock.
+Late/backdated events use their authoritative instant and validated historical
+policy; missing/conflicting historical evidence enters restricted owner review,
+not guessed deletion. A later genuine departure may schedule only preparation
+previously admitted to that participation/current-work retention context. It
+MUST NOT restart an unselected earlier entry or move its original deadline.
+Deadline arithmetic MUST use checked UTC instants and the
+fixed duration unit; read eligibility is strictly before the deadline.
+
+### D28-C06 — Expiry controls reads independently of cleanup
+
+At or after the deadline, the ordinary retained body MUST be unavailable to all
+dependent discovery/read/resume paths even when the cleanup worker is late,
+paused or failing. Current source/history authority remains independently
+required before deadline. APIs, RPCs, views, search, counts, cache responses,
+Realtime and result recovery MUST preserve the same boundary. No signed URL or
+cache lifetime may outlast a relevant authorization/availability boundary.
+Previously delivered copies cannot be recalled by deleting a server record; the
+product MUST not promise that guarantee.
+
+### D28-C07 — Return must have one explicit retention meaning
+
+**Proposed explicit refinement of D27-C07, requiring ratification:** an authorized
+D27 Resume accepted strictly before the controlling deadline MUST atomically
+admit only the selected same preparation to its qualified ordinary current-work
+retention purpose and end applicability of that departure schedule. The original
+departure instant, policy, deadline and admission history MUST remain truthful;
+they are not reset, overwritten or used to mark information newly verified.
+
+The source MUST reprove current original-author/history/purpose authority and
+ordinary-work retention qualification. Missing qualification rejects the
+admission without cancelling the existing obligation. Login, matching email,
+reactivation, reading, archive/return alone or resuming a different entry MUST NOT
+extend unselected preparation. D4 Return MAY compose this exact admission and
+its existing archive transition with one clear action, as D27 already permits
+composition. Resume of Active versus Archived work preserves D27 semantics.
+
+Held-only, expired, erased or purged preparation MUST NOT be admitted. A hold that
+merely prevents disposal before expiry does not by itself remove an independently
+valid ordinary access path; any hold-specific use restriction still governs.
+A later genuine departure schedules only work admitted to that later context,
+without restarting unselected older episodes. The UI MUST explain **“Resuming
+keeps this preparation as current work under your organization's normal retention
+rules.”** No guaranteed permanence or automatically resumed sharing follows.
+
+This is the review's exact preferred amendment while the clarification remains
+unanswered. Until accepted, it SHALL NOT be presented as existing D27 behavior or
+implemented under the earlier ratification. The alternative—keeping the old
+deadline on resumed work—is simpler mechanically but risks surprising loss of
+current work; it is evaluated in the finite model and not selected here.
+
+### D28-C08 — Holds and required evidence remain separate
+
+A hold MUST preserve only its qualified exact scope under restricted custody; it
+MUST NOT create ordinary read or Resume authority. Its expiry/review date MUST
+not automatically release it. Placement/release and irreversible disposition
+MUST serialize at the same owning record boundary. Retention conflicts require
+restricted records review with accountable resolution, not guessed deletion or
+unbounded ordinary access. Minimal disposal/authorization evidence needs its own
+qualified schedule; neither audit nor a hold justifies unlimited plaintext.
+
+### D28-C09 — Source truth and database integrity
+
+Asym Postgres MUST retain the preparation/policy/episode/disposition authority
+behind `packages/api`. Use non-null tenant and source identities, tenant-aware
+foreign keys, constrained positive durations and valid time/state combinations,
+immutable origin/policy/trigger evidence, and uniqueness for the business effects.
+At most one controlling ordinary departure episode per preparation is allowed;
+multiple historical episodes may exist with their distinct original contexts. Current setting/revision changes must be atomic. Delete
+behavior MUST preserve independently scheduled attribution/evidence and MUST NOT
+cascade from auth/profile/tenant cleanup into unrelated domains or held records.
+Retained readable content and disposition evidence are different payloads, not
+one forever JSON snapshot. Money types and ledger mutations are out of scope.
+
+### D28-C10 — Authorization across every path
+
+Derive tenant, actor, administrative scope, policy authority, author and audit
+attribution from validated server context and authoritative relationships. A
+requested target ID is a selector to authorize, never proof. Base grants/RLS,
+views/RPCs, worker credentials and storage access MUST preserve exact scope.
+Policy/source mutations use the qualified command boundary, not unrestricted
+browser CRUD. Explicitly verify old-row `USING` and resulting-row `WITH CHECK`
+semantics, immutable tenant/author/source fields and legal state transitions;
+no allowed update may move a row into another tenant or privilege tier. PostgreSQL
+can reuse `USING` as an implicit check; omission alone is not proof of a bypass.
+Function-owner, table-owner and BYPASSRLS behavior must be tested, not assumed
+safe from an RLS flag or assumed unsafe solely from a definer label.
+
+### D28-C11 — Atomic acceptance, concurrency and idempotency
+
+Policy save, departure admission/correction, hold/disposition and any qualified
+return transition MUST have explicit linearization points. Re-read authority,
+expected source/policy revision, hold and current time after waits before
+acceptance. Transaction-start time alone cannot prove the deadline still holds.
+No stale worker, old client or prior policy snapshot may destroy now-ineligible
+content. Effect identity MUST bind durable business scope, not merely one HTTP
+request. Duplicate delivery returns the same accepted result under current
+authorization; a lost response never demands a duplicate policy or source entry.
+
+### D28-C12 — Verified, bounded disposal
+
+For a database-only body, the source MUST atomically establish final eligibility,
+remove the qualified ordinary payload and record minimal disposition evidence.
+An actual external derivative requires a durable deletion-commit boundary,
+idempotent exact-object operation and truthful reconciliation of ambiguous
+outcomes. A short claim lease or its timeout is not proof a paused worker can no
+longer delete. Hold/return acceptance MUST not falsely promise preservation after
+an irreversible external deletion commitment. No generic storage service or new
+copy is required where the actual preparation source has none. Purge jobs use
+bounded indexed batches, per-tenant fairness and resumable progress, scheduled
+to satisfy the qualified physical-disposal deadlines; errors never
+widen access or report success before verification.
+
+### D28-C13 — Derivatives, backups and recovery
+
+Qualify the actual body/copy inventory: projections, search indexes, caches,
+exports, storage objects, logs, backups and any generated material. No speculative
+export/provider is introduced. A restore MUST replay complete forward-only
+disposition, hold and revocation authority before readers or workers reopen;
+that evidence cannot exist solely inside the older snapshot being restored.
+Missing complete recovery evidence blocks reopening the affected source.
+Backup expiry/overwrite and external-copy limits MUST be stated accurately.
+Purged preparation MUST never reappear through identity merge, import, re-invite,
+rollback or a larger future period.
+
+### D28-C14 — Accurate UI, cache and accessibility
+
+Use the journey above with Core's shared UI system. Show saved versus pending
+policy state, applicable original deadline and confirmed unavailable/disposal
+state without exposing hidden content or holds. Preserve input on conflict or
+network failure and offer a current refresh/review action. Cache keys and
+invalidation MUST include tenant/actor/scope and relevant policy/source/access
+revisions; a same-account membership change or deadline passage is not caught
+only by sign-out invalidation. Keyboard, screen reader, focus, reflow, error
+association, localized dates/numbers and slow-network behavior need actual proof.
+No donor checkout, public site or coach task receives an extra step.
+
+### D28-C15 — Bounded operation and no unnecessary engine
+
+Keep one duration setting, versioned source effects and the existing preparation
+workflow. No retention workflow designer, per-entry exception timer, new
+eDiscovery product, generic archive or vendor dependency is selected. Index
+pending disposal by tenant, deadline and stable ID with plan/lock proof. Publish
+an actual deployment profile for population, peak departures/expiry, batch size,
+query/lock latency, retry and copy-completion budgets before activation. D27's
+25-row list and 100-row request maximum remain its initial display profile;
+they are not a source-record cap or measured capacity claim. Do not claim
+scalability from a tiny state model.
+
+### D28-C16 — Audit and operational truth
+
+Keep durable, access-controlled policy revision, source episode, authority,
+correction/return/disposition effect and copy-outcome evidence sufficient to
+explain what happened. Separate it from technical logs and from private content.
+Body text, contact identities and raw provider payloads MUST NOT become default
+telemetry. Minimal opaque references still require scope and retention review.
+Record effective, accepted and observed times accurately. Staff repair uses
+qualified source commands; no direct SQL patch, invented success or silent
+manual cleanup is the normal operating workflow.
+
+### D28-C17 — Safe activation, migration and rollback
+
+Qualify exact source/privacy/public-policy obligations first. Deploy constrained
+source schema, access enforcement and compatible readers/writers before enabling
+policy-driven disposal. Inventory legacy records without assuming departure,
+author or policy from `updated_at`; unresolved cohorts stay restricted under
+bounded owner review and no guessed purge. Prove dry-run selection, real negative
+authorization, races, recovery and copy outcomes before a small qualified cohort.
+Stopping cleanup MUST NOT restore expired access; stopping new admissions MUST
+not discard existing disposition duties. After irreversible disposal, rollback
+means compatible roll-forward/containment, never restoration of erased bodies or
+an old reader that ignores deadlines. Reconcile public and contractual claims
+for the actual P9 source; do not rewrite legal pages as a grill side effect.
+
+### D28-C18 — Traceability and release evidence
+
+Trace this answer and each applicable clause to the later authorized P9/P12 owner
+amendment, glossary, canonical ADR/OpenSpec sources and generated projections,
+design, tasks/tickets, implementation tests and release evidence. No current
+ticket is claimed created or changed. Preserve initial question and prior
+ratification evidence. Complete the proof obligations below with actual source,
+database, service, UI and operations evidence before activation. A selected
+answer, documentation check or synthetic model is not runtime qualification.
+
+## Lifecycle and valid transitions
+
+These are distinct facts, not a requirement to build one giant status enum.
+
+| Axis/state                                                     | Valid next effect                                                                                                                | Forbidden shortcut                                                                         |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Policy unconfigured                                            | Qualified authorized first revision; independent existing valid schedules continue                                               | Blank means forever, purge immediately or invent a historical baseline                     |
+| Unsaved policy edit                                            | Cancel with no effect, or one currently authorized version-fenced save                                                           | UI optimism reports policy activation before durable acceptance                            |
+| Accepted policy revision                                       | A later prospective revision; separately qualified mandatory correction where required                                           | Backdating/reordering history or undoing a saved revision by deleting its evidence         |
+| Ordinary current preparation                                   | Confirmed relevant departure binds one exact episode and historical policy                                                       | Archive, inactivity or unrelated departure starts a timer                                  |
+| Retained after departure, before deadline                      | Currently authorized discovery; proposed selected-entry current-work admission if ratified; required erasure/restriction; expiry | Old role, email, login, hold or viewing grants access or resets the deadline               |
+| Current-work admission proposed by C07                         | Same record under qualified active rules; a later genuine relevant departure may bind a later episode                            | Renew all earlier entries or treat resume as newly verified/shared work                    |
+| Ordinary availability expired                                  | Restricted applicable hold/evidence custody, or verified due disposal                                                            | Purge lag, a longer future period, hold release or restore revives ordinary access         |
+| Applicable hold                                                | Continue required restricted custody; explicit authorized release then current-rule re-evaluation                                | Auto-release on review date, new ordinary reader or fresh retention period                 |
+| Queued/retryable disposal                                      | Reprove current source, deadline, hold and generation before destructive acceptance                                              | Queue claim or stale worker result is permanent deletion authority                         |
+| Irreversible external deletion committed, if such copies exist | Reconcile actual outcome and truthful remaining copy obligations                                                                 | Clear fence on timeout, promise a later hold saved bytes, or retry a broader object set    |
+| Qualified body disposal verified                               | Retain only independently scheduled minimal evidence; reconcile future restore                                                   | Rollback/reinvite/import resurrects disposed body or evidence is called a readable archive |
+
+Original history remains truthful through corrections. A missed response can
+recover an accepted result only under current authority. Cancelling an unsaved
+form changes nothing; stopping a worker does not cancel accepted retention duties.
+Physical deletion has no ordinary Undo. The source's independently qualified
+correction process handles errors without manufacturing an earlier event or
+recreating erased content.
+
+## Material concern register
+
+Severity and likelihood below are qualitative engineering estimates for a naive
+implementation, not measured incident frequencies. Each finding names its
+consequence, evidence/reasoning, effect on A, permanent prevention and exact
+required language via C/P references.
+
+| ID  | What could go wrong and why it matters                                                                                                                                       | Severity / likelihood                                 | Evidence and effect on A                                                                                                                                | Permanent fix and exact amendment                                                                                                                                                            |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F01 | A guessed default, blank, zero or enormous value becomes immediate deletion or effectively permanent storage. Staff believe the product chose a safe period.                 | High / likely without explicit semantics              | No P9 duration established; ICO/HubSpot supply no universal Asym number. **Clarifies/narrows A.**                                                       | One explicit positive supported value; purpose-based help; Unconfigured gate, checked arithmetic and no implied legal approval. **C02–C03; P02–P03.**                                        |
+| F02 | Policy control exposes private bodies/counts, or cleanup deletes canonical people, financial facts or other work. Privacy and independent truth are lost.                    | Critical / plausible under broad admin/cascade reuse  | D3/D27/P12 separate administration, readership and domain ownership. **Narrows scope and audience.**                                                    | Exact source class, no private inventory, tenant-aware relations and independent disposition. **C01, C08–C10; P01, P05, P17.**                                                               |
+| F03 | An Eve, staff-note or financial mechanism is treated as the preparation producer. Wrong defaults, late-worker races and incompatible readers follow.                         | High / plausible under superficial reuse              | Fresh source review finds different audiences/timers; ADR0038 explicitly limits its ownership. **Changes implementation path.**                         | P9-owned source contract and shared qualified mechanisms only; no copied category policy or new external store. **C09, C12, C15, C17; P06, P18, P23.**                                       |
+| F04 | Inactivity, a client flag, delivery time or out-of-order event starts/restarts a departure clock. Useful work expires early or expired work survives.                        | High / plausible                                      | Membership flags/timestamps do not establish the required departure episode; event delivery may be late/duplicate. **Narrows trigger.**                 | Authoritative exact-context effective event, pinned historical revision, idempotency and restricted review for unknown history. **C04–C05; P04, P07.**                                       |
+| F05 | Login preserves all old preparation, or deliberate resumed work unexpectedly expires under an old departure deadline. The user journey and D27 conflict.                     | High / plausible unless explicitly resolved           | D27-C07 forbids retention reset; Q28 alone does not choose current-work admission. **Requires an explicit narrow refinement.**                          | Resolve the pending return choice; no implicit resurrection, selected-entry-only atomic admission if chosen. **C07, C11; P08–P10.**                                                          |
+| F06 | Saving a new period rewrites all prior deadlines, uses today as a new start or ignores mandatory privacy changes. Causes mass loss, surprise extension or invalid retention. | High / plausible                                      | Dynamic recalculation from a mutable global setting is tempting; legal/source constraints can change separately. **Narrows ordinary editing.**          | Prospective immutable revisions; existing schedule stable; mandatory qualified correction separate and cannot be ignored. **C04, C16; P07, P11.**                                            |
+| F07 | A delayed purge or a hold is interpreted as continued ordinary availability; hold release starts a new return period.                                                        | High / likely without distinct state meanings         | Access, retention and physical deletion differ in D3/D27 and primary technical evidence. **Adds necessary state boundaries.**                           | Strict deadline admission independent of cleanup; hold-only custody grants no access and release re-evaluates existing obligation. **C06, C08; P12–P13.**                                    |
+| F08 | RLS exists but broad grants, caller-controlled attribution, views, RPCs or service roles cross tenants or mutate protected fields.                                           | Critical / plausible if only UI/API checks are tested | Supabase/PG privilege semantics and current coarse membership/note patterns. **Changes authorization proof.**                                           | Server authority, same-tenant constraints, effective USING/WITH CHECK tests, narrow grants and equivalent privileged predicates. **C09–C10; P05–P06, P14.**                                  |
+| F09 | A queued/paused worker deletes after a hold or valid return; a transaction that started before expiry accepts after it. Irreversible data loss or unlawful read follows.     | Critical / plausible under concurrency or long waits  | Static Eve late-worker schedule; PG time and cross-row ordering semantics. **Adds irreversible-boundary safeguards.**                                   | One source ordering protocol, current time/state after waits, durable external deletion commitment where actually needed. **C11–C12; P09–P10, P15–P16.**                                     |
+| F10 | Retries create extra policy revisions/episodes, an unknown response causes repeated effects, or stale writes overwrite policy.                                               | High / plausible on normal networks                   | Durable business effects are distinct from request attempts. **Clarifies lifecycle.**                                                                   | Expected versions, semantic uniqueness, transactional result evidence, current-authority result recovery. **C04–C05, C11, C16; P07, P11, P16.**                                              |
+| F11 | Search, caches, logs, signed links, backups or exports reveal expired content or revive it on restore. A SQL deletion is falsely reported as complete erasure.               | High / plausible                                      | Supabase DB backups exclude Storage bytes; issued links/copies have distinct lifetimes. **Narrows claims and broadens actual proof perimeter.**         | Actual copy inventory, strict served-read gates, minimal logs and forward suppression before recovery opens. **C06, C12–C14; P18–P20.**                                                      |
+| F12 | Ambiguous units, dates, status or confirmation flows make an attractive screen misleading or unusable on mobile/assistive technology.                                        | Medium / plausible                                    | UX/primary evidence; plain numeric field hides temporal scope and access versus disposal. **Refines experience.**                                       | One labeled fixed-unit input, proportionate review, truthful states, current deadline, preserved input and manual accessibility proof. **C03, C14; P03, P21–P22.**                           |
+| F13 | Expiry scans, one huge tenant or long transactions starve cleanup and ordinary work. Claims of scalability hide unmeasured limits.                                           | Medium / plausible as volume grows                    | No production-shaped performance proof; worker and read workloads differ. **Changes implementation qualification.**                                     | Indexed bounded batches, fair tenant work, explicit deployment budgets and measured plans/locks. **C12, C15; P23.**                                                                          |
+| F14 | Silent cleanup failures, unresolved records-review states or body-bearing audit logs require manual database repair or create a shadow archive.                              | High / plausible without operational contract         | Retention execution and durable evidence have different purposes; an unowned exception queue is indefinite retention. **Adds operations requirements.** | Content-minimal scheduled evidence, named owners, bounded exception response and source commands for repair. **C02, C16; P20, P24.**                                                         |
+| F15 | Rollout guesses legacy dates, old code ignores deadlines, rollback resurrects erased data, or tenant choices contradict actual public/provider terms.                        | High / plausible in mixed deployment                  | Current producer unqualified; public policy classes and source policy need reconciliation. **Gates activation.**                                        | Inventory and exact cohort qualification, compatible readers before writes, dry-run then bounded activation, separate cleanup/access controls and safe roll-forward. **C13, C17; P19, P25.** |
+| F16 | The answer is called implemented or legally qualified because documents/models pass; ambiguous terminology propagates into tickets and tests.                                | High / plausible in long specification work           | Governing document-authority states separate selection, ratification, integration and qualification. **Changes traceability/reporting.**                | Precise glossary, original evidence preservation, clause-to-proof mapping and actual release evidence. **C18; P26.**                                                                         |
+
+### All 22 requested categories, independently evaluated
+
+The concerns above are consolidated to avoid duplicating a fix. Each row below
+states its own result and the specific boundary checked; the referenced finding
+supplies severity, likelihood, evidence, decision impact and exact amendment.
+
+| Category                                                          | Material concern? | Independent result and applicable findings                                                                                                                                                                                                                                         |
+| ----------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Problem validity, necessity, and alternatives                  | **Yes**           | Organization control is selected, but a universal default or generic retention platform solves a different problem. Compare one standard period, no-build manual policy and one scoped setting; A plus bounded source execution is the permanent path. **F01, F03; C01–C03, C15.** |
+| 2. Brittleness                                                    | **Yes**           | Generic membership flags, current global policy and cached availability fail when departure history, policy or source eligibility changes. **F04, F06–F07; C04–C06.**                                                                                                              |
+| 3. Technical debt                                                 | **Yes**           | Copying Eve timers or staff notes creates a second rule/audience and imports known adjacent hazards. Use the qualified source owner and one mutation/read boundary. **F03, F08; C09–C12.**                                                                                         |
+| 4. Edge cases                                                     | **Yes**           | Backdated departure, repeat participation, partial hold, expiry during review, zero/overflow input and deleted identity need precise outcomes. **F01, F04–F07, F09; C02, C05–C08, C11.**                                                                                           |
+| 5. Footguns                                                       | **Yes**           | Blank-as-forever, hidden retroactive Save, a misleading restore button and unqualified private impact preview can cause loss/exposure. **F01–F02, F06, F12; C01–C04, C14.**                                                                                                        |
+| 6. Tenant safety                                                  | **Yes**           | Policy, episode, jobs, result recovery and cache keys must retain exact tenant/source identity. Same user in multiple tenants is not one scope. **F02, F08, F11; C09–C10, C13–C14.**                                                                                               |
+| 7. Database, RLS, and authorization safety                        | **Yes**           | Checked keys, non-null ownership, positive finite units, valid state/time combinations, delete behavior, indexes, grants and effective mutation predicates are required. No financial amount column or ledger write is needed. **F02, F08–F10; C09–C12.**                          |
+| 8. Overengineering                                                | **Yes**           | A policy builder, per-person timers, private inventory, new Storage or generic records suite add cost without this workflow's evidence. **F01, F03, F12–F13; C01–C03, C12, C15.**                                                                                                  |
+| 9. UX/UI and user friction                                        | **Yes**           | Staff need scope/effective time and guidance; Maya needs honest availability without a departure wizard or financial-screen changes. Fixed units, local display and accessible slow-network states matter. **F05, F12; C03, C07, C14.**                                            |
+| 10. Source of truth, ownership, and domain invariants             | **Yes**           | P9 preparation, P12 authority, departure source, policy revision, held evidence and copy outcomes have distinct authority. Projections cannot become write owners. **F02–F04, F07; C01, C05, C08–C09.**                                                                            |
+| 11. Hidden coupling                                               | **Yes**           | Auth deletion cascades, public-policy text, archive state and generic updated_at cannot silently drive preparation disposal. **F02–F04, F15; C05, C09, C17.**                                                                                                                      |
+| 12. Failure modes                                                 | **Yes**           | Unknown Save success, partial external deletion, unavailable historical policy and failed cleanup require visible safe outcomes and qualified recovery. **F09–F11, F14; C11–C13, C16.**                                                                                            |
+| 13. Lifecycle, temporal correctness, concurrency, and idempotency | **Yes**           | Policy/departure effective time, exact expiry, return, holds, queued work and duplicate effects need explicit ordering. **F04–F10; C04–C12.**                                                                                                                                      |
+| 14. Data integrity risks                                          | **Yes**           | Duplicate episodes, lost attribution, mutated original deadlines and unsupported legacy backfills corrupt retention truth. **F04, F06, F10, F15; C04–C05, C09, C17.**                                                                                                              |
+| 15. Security and privacy risks                                    | **Yes**           | Administration/read conflation, stale links, held-body reuse, body-bearing logs and unqualified retention periods are material. **F01–F02, F07–F08, F11; C01–C02, C06, C08, C10, C13.**                                                                                            |
+| 16. Scalability and performance risks                             | **Yes**           | Large expiry cohorts and cross-tenant worker starvation require measured budgets and indexed bounded work. No invented throughput or legal duration is presented as fact. **F13; C12, C15.**                                                                                       |
+| 17. Operational burden                                            | **Yes**           | Unowned review queues and direct-DB repair would turn an ordinary setting into ongoing manual work. **F03, F14; C02, C12, C16.**                                                                                                                                                   |
+| 18. Observability and auditability gaps                           | **Yes**           | Technical logs do not explain accepted policy/source effects; an audit containing bodies defeats minimization. **F10–F11, F14; C11, C13, C16.**                                                                                                                                    |
+| 19. Dependency and integration risks                              | **Yes**           | Actual Supabase backup/Storage and any existing derivative provider have different deletion/recovery guarantees. Vendors remain infrastructure, not source-policy owners. **F03, F11, F15; C12–C13, C17.**                                                                         |
+| 20. Migration, rollout, and upgrade risks                         | **Yes**           | Unclassified existing rows, incompatible readers and irreversible deletion make ordinary rollback unsafe. **F15; C13, C17.**                                                                                                                                                       |
+| 21. Testability, traceability, and proof                          | **Yes**           | The selected sentence alone is not falsifiable enough. Exact scope, timelines, negative access, race, restore, UX and performance evidence must trace to clauses. **F16; C18 and P01–P26.**                                                                                        |
+| 22. Other development hazards                                     | **Yes**           | Calling finite retention a guaranteed return window or compliance certification, and treating draft policy as approved terms, creates additional product/contract hazards. **F01, F12, F15–F16; C02–C03, C14, C17–C18.**                                                           |
+
+## Falsifiable acceptance and proof obligations
+
+These are required future outcome tests. The finite model is a bounded reasoning
+check for some of them; it does not execute the actual database, application,
+provider, browser or recovery system.
+
+| ID  | Falsifiable acceptance criterion                                                                                                                                                                                                                                                                                                                         | Trace             |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| P01 | An authorized policy administrator without independent source/history read authority can change the scoped setting while private-body, hidden-count and private-inventory endpoints remain denied. Any independently authorized own preparation retains ordinary permissions. A coach or missionary cannot administer policy without separate authority. | C01, C10          |
+| P02 | Unconfigured, blank, zero, negative, fractional, nonfinite, out-of-range and overflow values produce no policy activation or destructive effect. Valid boundary values succeed within the qualified profile.                                                                                                                                             | C02               |
+| P03 | Staff can identify the unit, scope, prospective effect and absence of a universal safe duration from the actual UI; localized input cannot silently change the chosen integer.                                                                                                                                                                           | C02–C03, C14      |
+| P04 | Only a confirmed exact-context departure creates an episode. Login inactivity, archive, temporary grant suspension and unrelated ministry departure create none.                                                                                                                                                                                         | C05               |
+| P05 | Cross-tenant policy/source/episode/hold IDs, spoofed actor/author and unsupported state changes fail in API and direct database paths with no existence leak or mutation.                                                                                                                                                                                | C09–C10           |
+| P06 | Actual grants, exposed views/RPCs, invoker/definer ownership and privileged workers preserve the same domain predicates. RLS old/new-row tests reject reparenting and unsafe payload transformations.                                                                                                                                                    | C09–C10           |
+| P07 | A duplicate or late event produces one business episode with the authoritative departure instant and historically valid policy. A missing historical version cannot be replaced by current policy or delivery time; ordinary revisions cannot be backdated. A later genuine departure cannot restart an unselected earlier entry.                        | C04–C05, C11      |
+| P08 | The resolved return rule is explicit in decision, UI and actual source transition. Mere login/reassignment cannot alter any episode; unselected preparation remains unchanged.                                                                                                                                                                           | C07               |
+| P09 | Under an explicitly selected current-work admission, Resume before expiry affects only the selected same record and qualified current-work purpose; original history/archive/author remain intact and unknown active policy fails safely. If not selected, this behavior must remain unavailable.                                                        | C07, C11          |
+| P10 | A Resume/read that starts before the deadline but waits until at/after it is denied at acceptance. Return versus purge/hold/correction has exactly one valid ordered result; a stale job cannot undo accepted admission.                                                                                                                                 | C06–C08, C11–C12  |
+| P11 | Shorter/longer ordinary policy saves affect future departures only. Concurrent edits cannot overwrite a revision unseen by the editor; retried accepted saves return the same effect. Mandatory governing corrections still reach existing affected records.                                                                                             | C04, C11          |
+| P12 | Exact deadline, deadline minus the supported clock precision, and deadline plus it produce the expected admission results. A stopped cleanup worker grants no additional read/resume time.                                                                                                                                                               | C05–C06           |
+| P13 | Hold placement/release never creates ordinary access or a new period. An expired held body stays restricted; releasing a hold re-evaluates the current disposal obligation.                                                                                                                                                                              | C08               |
+| P14 | Auth/profile/tenant deletion and every relevant FK action neither orphan provenance nor cascade into independent facts/held records. Archived state and author identity cannot be rewritten to bypass expiry.                                                                                                                                            | C09–C10           |
+| P15 | A hold inserted when none existed serializes with purge; row locking an empty hold lookup is insufficient. A paused worker cannot delete after a newly accepted preservation guarantee.                                                                                                                                                                  | C08, C11–C12      |
+| P16 | Duplicate jobs, retries, crashes before/after the irreversible point and lost responses preserve one effective disposition and truthful per-copy status. Unknown external success is reconciled without false success or unrestricted replay.                                                                                                            | C11–C12, C16      |
+| P17 | Disposing preparation removes only qualified source payload/derivatives. Contacts, gifts, commitments, consent, independent tasks, communication history and required evidence remain under their owners.                                                                                                                                                | C01, C08–C09, C12 |
+| P18 | Search snippets, caches, Realtime, signed/download routes and any actual exports obey current expiry/access; logs/audit do not retain bodies. Existing provider and Storage semantics are tested rather than inferred from SQL.                                                                                                                          | C06, C12–C14, C16 |
+| P19 | Restore an older snapshot containing now-disposed preparation and stale grants. Complete newer suppression/hold/revocation authority is recovered before any read/job; missing recovery authority prevents reopening.                                                                                                                                    | C13, C17          |
+| P20 | Technical errors, business effect history and security audit are separately useful and access-controlled. Every claimed deletion stage matches actual known copy outcomes; evidence has a qualified schedule.                                                                                                                                            | C13, C16          |
+| P21 | Keyboard/screen-reader users can configure, review, correct and recover Save; status announcements, focus, error association and touch controls pass manual checks alongside automated tests.                                                                                                                                                            | C03, C14          |
+| P22 | At 320 CSS pixels, zoom, long/translated labels, RTL, locale/DST changes and slow/lost requests, the unit, consequence, action and actual deadline remain clear and reachable. No inaccessible-data flash occurs.                                                                                                                                        | C05–C06, C14      |
+| P23 | Production-shaped cohorts, one dominant tenant and concurrent expiry/return/hold work meet the documented query/lock/backlog budgets with fair bounded work; skipped rows are revisited and source records are not silently capped.                                                                                                                      | C12, C15          |
+| P24 | Expired access, stalled cleanup, unresolved source review and ambiguous provider outcomes produce the specified safe alert/repair path without direct SQL or new content access.                                                                                                                                                                         | C02, C12, C16     |
+| P25 | Mixed old/new deployments, legacy records with missing triggers, source-profile changes, disabled workers and post-disposal rollback pass qualification. Public/contractual claims match the actual source/copy behavior.                                                                                                                                | C17               |
+| P26 | The selected answer, any explicit return refinement, glossary, owner amendments and later canonical/generated spec/ticket/test/release artifacts agree on trigger, unit, scope and status. Original evidence is unchanged; no model result is called runtime proof.                                                                                      | C18               |
+
+## Synthesis, dependencies and operational thresholds
+
+1. **Before recording the corrected answer:** keep A as selected and the exact
+   return/expiry amendment clearly proposed while the clarification is unanswered.
+   The review settles one scoped setting,
+   no fabricated number, prospective ordinary edits, exact departure and separate
+   access/disposal. Record all amendments as proposed until ratified; C07 must be explicitly accepted
+   before it changes D27. No new source
+   permission or legal period is claimed.
+2. **Capture in the later authorized design:** the P9 source-owned schedule and
+   P12 administration boundary, the exact qualified duration profile, ordinary
+   active-work rules, body/evidence/hold/derivative inventory, safe recovery and
+   concise staff/Maya journeys. Any required D27 refinement must replace the
+   conflicting current clause with preserved provenance; a side note alone is
+   not formal owner integration. No PRD/ADR/OpenSpec/ticket is created now.
+3. **Require in implementation:** constrained source relations and transactional
+   command/read boundaries first; actual RLS/grants and hold/expiry/return races
+   next; durable disposition/restore proof next; source-backed UI, cache and
+   accessibility proof next. Do not expose a setting that only updates UI state
+   or reuse a staff-note table/private-body reader to make the demo appear ready.
+4. **Before activation:** reconcile source/public/MSA/DPA obligations and numerical
+   bounds; qualify real confirmed-departure and any active-purpose admission;
+   inventory legacy cohorts and actual copies; pass P01–P26; record deployment
+   latency/lock/disposal/recovery budgets and representative user results. Missing
+   legal/source/authorization proof blocks this capability, not unrelated CRM.
+5. **Operate and monitor residual failures:** the following signals belong to
+   named accountable roles. Set the exact source-dependent duration budgets in
+   release evidence before activation; “we will monitor” cannot replace them.
+
+| Signal                                                                                                                        | Threshold                                                                                     | Accountable owner                                               | Response                                                                                                                                                                             |
+| ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Confirmed cross-scope/body disclosure or ordinary access accepted at/after expiry                                             | **1 confirmed event**                                                                         | P12 authorization owner with security incident lead             | Contain the affected read/resume paths and caches; preserve minimal incident evidence; fix and requalify before re-enabling. Cleanup delay is no excuse for disclosure.              |
+| Source/body removed despite an earlier accepted applicable hold or valid preservation transition; independent record affected | **1 confirmed invariant violation**                                                           | P9 preparation/disposition owner                                | Stop affected destructive work, retain access restrictions, investigate ordering/copy evidence and use authorized incident recovery without reviving forbidden data.                 |
+| Duplicate effective episode/disposition, altered origin/departure history or unknown accepted policy result                   | **1 confirmed integrity violation**                                                           | P9 API/source owner                                             | Fence the affected command, reconcile accepted effects, repair through source authority and add exact regression proof.                                                              |
+| Cleanup/copy outcome or restricted records-review item exceeds its qualified completion/review deadline                       | **1 overdue obligation**                                                                      | P9 operations owner; privacy/records owner for review conflicts | Page the responsible operator, retain restricted access, diagnose/reconcile through owner commands and escalate before the documented response deadline. No indefinite silent queue. |
+| Query/lock/error/backlog budget exceeded in the measured rollout profile                                                      | **2 consecutive 5-minute windows, with the predeclared minimum sample size**                  | Platform API/database on-call                                   | Inspect safe traces/plans; limit new rollout/load or pause affected cleanup; preserve expiry enforcement and mandatory obligations.                                                  |
+| Staff or Maya misunderstands private access, old-record effect or loss of resumability                                        | **1 critical misunderstanding in release testing, or 2 distinct substantiated pilot reports** | Missionary Workspace product/UX owner                           | Block release for the test failure; otherwise pause expansion, correct copy/flow and repeat representative testing. Do not capture private content as analytics.                     |
+
+No material authorization, deletion-ordering or retention-policy uncertainty is
+placed in monitor-only status. Thresholds above are proposed operating contracts,
+not claims of measured performance or legal safe-harbor periods.
+
+## Verification and limits
+
+The review covers **all 22 requested categories**, with **16 consolidated material
+findings**, **18 exact amendment clauses** and **26 falsifiable proof obligations**.
+Independent governance, database/security and UX review found and resolved the
+material scope, temporal wording, backdated-policy, repeat-departure and
+independent-authority issues documented in
+[cross-review resolution](d28-evidence/cross-review-resolution.md).
+
+The root independently reproduced **15 unsafe alternatives, six positive
+controls and 139 assertions**, with byte-identical output. The
+[finite model](d28-evidence/retention-counterexamples.py),
+[results](d28-evidence/retention-counterexamples.json) and
+[reproduction record](d28-evidence/root-reproduction.json) state their limits.
+Both return branches were evaluated as hypothetical; no unanswered clarification
+is represented as a founder decision. These cases test logical examples, not
+real SQL/RLS, concurrency, provider copies or crash recovery.
+
+[Technical retrieval metadata](d28-evidence/technical-fetches.json) records 17
+fresh primary responses. [Prior hashes](d28-evidence/prior-evidence-sha256.json)
+preserve sixteen D27 evidence artifacts; the
+[original Q28](d28-evidence/q28-before-answer.txt) is retained. No older model or
+database experiment was rerun. Structural checks and evidence pins are recorded
+in [current verification](d28-evidence/review-verification.json).
+
+The finished artifact is the researched corrected decision, exact recommended
+amendments, complete category review and ordered delivery/proof plan. It selects
+no numerical legal duration and claims no participant, runtime, accessibility,
+load, production, public-policy or source-owner qualification. D28's amendments,
+including the explicitly proposed D27-C07 refinement, await ratification. No
+application code, schema, dependency, live data, provider, external communication,
+formal PRD/ADR/OpenSpec/ticket or GitHub state was changed.

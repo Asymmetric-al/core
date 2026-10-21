@@ -1883,8 +1883,56 @@ async function ensureOpenSpecWrapperPermission(skillName, targetRoot) {
   await writeFile(skillPath, lines.join("\n"), "utf8");
 }
 
+async function ensureOpenSpecRepositoryScope(skillName, targetRoot) {
+  if (!openspecSkillNames.includes(skillName)) return;
+  const skillPath = path.join(targetRoot, "SKILL.md");
+  let content = await readFile(skillPath, "utf8");
+  content = content.replace(
+    /\*\*Store selection:\*\*[\s\S]*?do not let a command create it\.\n/,
+    "**Project check:** Before writing, run `bun run openspec -- list --json` and confirm the root is the local Core `openspec/` tree. A missing root, Store declaration, or external root is a configuration error: stop before writing and report it. Do not initialize a root or select an external Store.\n",
+  );
+  content = content
+    .replaceAll(
+      ', and append `--store "<id>"` only for a registered standalone store',
+      "",
+    )
+    .replaceAll(" (same `--store` rule)", "")
+    .replaceAll(" (with `--store <id>` when applicable)", "")
+    .replaceAll(
+      ' (append the confirmed `--store "<id>"` only for a registered standalone store)',
+      "",
+    )
+    .replaceAll(
+      " Keep the selected `--store <id>` on every applicable follow-up `status` and `instructions` command.",
+      "",
+    )
+    .replace(
+      /^   Run `openspec context --json`[^\n]+$/m,
+      "   Run `bun run openspec -- context --json` from the Core checkout and confirm `root.path` is its local `openspec/` tree. Stop before writing on a missing, external, or Store-backed root or any context error; report the error without initializing or selecting another root.",
+    )
+    .replace(
+      /^   - Asks to "show workflows"[^\n]+$/m,
+      '   - Asks to "show workflows" or asks "what workflows" exist → use Core\'s existing `spec-driven` schema and selected workflows; do not enable custom schemas or additional workflows.',
+    )
+    .replace(
+      /^   Choose one schema form below\. If a registered store[^\n]+$/m,
+      "   Use Core's existing `spec-driven` schema with the local pinned wrapper below.",
+    );
+  if (skillName === "openspec-update-change")
+    content = content.replace(
+      "If the user means the openspec update CLI command, which refreshes generated files, run that command instead.",
+      "Requests for the openspec update CLI must use Core's repository-safe refresh workflow; never run the updater against this customized checkout.",
+    );
+  if (/--store|openspec store list|run that command instead/.test(content))
+    throw new Error(
+      `Unsupported OpenSpec routing in ${skillName}; reconcile Core's local-only workflow before refreshing.`,
+    );
+  await writeFile(skillPath, content, "utf8");
+}
+
 async function applyPostRefreshReplacements(skillName, targetRoot) {
   await ensureOpenSpecWrapperPermission(skillName, targetRoot);
+  await ensureOpenSpecRepositoryScope(skillName, targetRoot);
 
   if (skillName === "emil-design-engineering") {
     const formsControlsPath = path.join(targetRoot, "forms-controls.md");

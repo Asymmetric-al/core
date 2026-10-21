@@ -1,0 +1,129 @@
+# Q40 — review work for one missed recurring gift
+
+Researched **October 18, 2026 (Asia/Bangkok)** against Core
+`9cada8f3d8ab59db391d3fd20df77fcadeb09813` and its research working tree.
+[D39 and its required amendments are explicitly ratified](phase28-d39-original-referral-clock-adversarial-review.md#explicit-ratification).
+**Q40 is unanswered. No D40 decision or amendment is ratified.** This question
+continues the [founder research session](phase28-founder-brief.md:21); it does not
+implement a task producer, change communication eligibility or publish a formal
+specification.
+
+## The next question
+
+One scheduled automatic gift was not received, and its recovery window has
+ended. The next normal gift is still scheduled. Maya can see the factual status.
+
+**Should this situation also create an internal review task?**
+
+- **A — Keep it informational (recommended).** Maya sees the missed gift and the
+  next scheduled gift. She can deliberately add follow-up when useful.
+- **B — Add an internal review task.** Maya reviews this missed gift once and
+  decides whether further action is appropriate. Nothing contacts the supporter
+  automatically.
+
+This is one confirmed missed occurrence with a current, authoritative continuing
+schedule. It is not an initial payment failure, recovery still in progress,
+unsettled processing, stale or contradictory source data, voluntary Skip/Pause,
+or a recurring arrangement that can no longer collect. Neither answer removes
+other independently qualified attention work or grants contact permission.
+
+## Recommendation and strongest alternative
+
+Recommend **A** for this narrow case. It retains visible financial information
+without requiring Maya to complete a review when the regular schedule already
+continues. Existing deliberate task creation supplies a useful response when
+she has additional relationship context. Avoiding an unnecessary obligation is
+a product judgment, not measured evidence that all ministries prefer fewer
+tasks. No selected answer is inferred from that recommendation.
+
+**B** is a meaningful alternative: a tenant may want an accountable human review
+of every confirmed missed occurrence even when future gifts remain scheduled.
+Its purpose would be to review current permitted facts and decide whether any
+further action is useful. It would not tell Maya to collect a debt or contact the
+supporter. It would require an exact native task-purpose contract, source-owned
+completion/correction, durable deduplication and current audience qualification.
+Simply calling an outreach task a review does not satisfy those boundaries.
+
+Two independent document reviewers found this an unresolved product seam and
+challenged the proposed scope. Both favored A for this case after checking the
+existing recurring requirements. That is adversarial document review, not
+interviews, a usability test or proof of fundraising outcomes.
+
+## Repository evidence and reconciliation
+
+| Source                                                                                                                                                                                                                            | Settled meaning                                                                                                                                                                                                                   | Consequence for this question                                                                                                                                                                                                                                      |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [P28 owner constraints](../../../prds/program-roadmap/owner-constraints.md:74) and [founder brief](phase28-founder-brief.md:165)                                                                                                  | Native gift-event tasks include review of a named Phase 16 attention transition. P28 owns task/audience purpose; P16 owns communication eligibility; P17 content/profile; P6 dispatch/history.                                    | Q40 selects whether this particular transition warrants internal review. It does not reopen all recurring attention or remove required qualified work.                                                                                                             |
+| [D21 C03](phase28-d21-explicit-gift-follow-up-adversarial-review.md:187)                                                                                                                                                          | Required qualified first-support, special-gift, fulfilled-commitment and permitted recurring-attention work survives the rejection of historical anomaly inference.                                                               | A cannot be interpreted as disabling independently qualified attention transitions.                                                                                                                                                                                |
+| [P16 missionary journey](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:335) and [communication contract](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:888)             | Terminal miss stays visible in the safe source projection. A grouped in-product notice is permitted only after its exact key becomes Live; no email or automatic donor-outreach task. Reserved-to-Live does not catch up history. | Status visibility is already settled. Neither option introduces a notification system, changes Live/Reserved behavior or authorizes donor outreach. B needs explicit owner reconciliation for this additional internal obligation; renaming alone is insufficient. |
+| [P16 support-health contract](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1033)                                                                                                                    | Attention attaches to a named line/occurrence. One miss, elapsed time or failure count cannot declare a person lapsed; source-conflicted/stale state suppresses negative outreach.                                                | The scenario requires reliable current facts and future regular scheduling. No new missed-count threshold, donor label or inferred cause.                                                                                                                          |
+| [ADR-0183](../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:24)                                                                                                                                          | Concrete required human action needs a finite source work contract; source truth and task/notification presentation have distinct owners. Read/unread is not completion.                                                          | If B is chosen, the qualified source owns the review obligation. A task projection cannot create financial truth or a second task state machine.                                                                                                                   |
+| [P28 relationship/finance seam](phase28-relationship-finance-evidence.md:193) and [session C5](phase28-session.md#dependency-and-conflict-register)                                                                               | Exact recurring-attention purpose remains an identified integration seam.                                                                                                                                                         | This is a genuine unresolved branch, not another referral-clock setting.                                                                                                                                                                                           |
+| [OpenSpec index](../../../../openspec/project.md:6), [CRM capability](../../../../openspec/specs/crm-core/spec.md), [active recurring change](../../../../openspec/changes/add-recurring-giving/specs/donation-lifecycle/spec.md) | Intended behavior, active changes and implemented capability are distinct. Asym-native source ownership remains binding.                                                                                                          | Neither the active change nor this question proves a qualified recurring-task producer or deployed UI.                                                                                                                                                             |
+
+The wording “Maya can see” describes the intended qualified journey, not an
+assertion that a deployed source, hosted database or complete UI was exercised.
+This continuation uses the earlier source review and current owner contracts;
+it does not certify existing code or perform a new runtime audit.
+
+## Fresh primary comparisons
+
+The following official documentation was opened on October 18, 2026. Retrieval
+is distinct from the publisher's date. No authenticated competitor installation
+was tested, and these sources do not establish Asym users' preferences.
+
+| Source                                                                                                                                                                | Documented behavior                                                                                                                                  | Useful lesson and limits                                                                                                                                                                                                               |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [MPDX Notifications](https://help.mpdx.org/article/1199-notifications), updated September 26, 2022                                                                    | Users select In App, Email or Task for events including a missed gift; selecting Task adds work to the associated contact.                           | Direct missionary-software evidence that event awareness and task creation can be distinct choices. Its event definition is not Core's confirmed terminal-miss definition; do not copy its person-level labels or notification matrix. |
+| [Planning Center Donation notifications](https://help.planningcenter.com/en/138360-donation-notifications.html), page currently displays publication October 15, 2026 | Profile notification choices include recurring donations that fail to process. Bookkeeper settings require administrator action.                     | Demonstrates configurable awareness. This article does not establish that the product lacks tasks, nor that every failure warrants Maya's intervention.                                                                                |
+| [REACH General Settings](https://www.reachapp.co/reach-knowledge-base/organization-settings/reach-general-settings/), no publication date shown                       | Separate settings cover donor failure notices and an administrator follow-up task after a chosen number of failures.                                 | Strong comparison for B's accountability benefit. Do not import its failure-count rules, automatic cancellation, payment-method substitution or donor messaging into Core.                                                             |
+| [Donately recurring plan statuses](https://support.donately.com/help/recurring-donation-management), updated September 29, 2026                                       | Documents temporary failures requiring no action yet, donor action, inability to charge and provider-side investigation, plus failure notifications. | Explain actual state and permitted next action. Its retry count, suspension and payment-email behavior are not Core's adopted contract. Its shared Paused display for distinct causes is not a pattern to copy.                        |
+
+These comparisons show plausible alternatives, not a universal best practice.
+The permanent Core boundary is to explain the source-owned condition accurately
+and introduce required work only for an explicitly chosen, qualified purpose.
+
+## User journey boundaries preserved under either answer
+
+1. Maya encounters the permitted status within the existing recurring-support
+   view, with occurrence amount/currency/date and the next ordinary scheduled
+   gift when currently known. No separate failure inbox or technical retry
+   details are introduced.
+2. Language stays factual: a gift was not received. Do not blame the supporter,
+   infer refusal, call the person lapsed, claim a balance is owed or imply an
+   extra charge will occur.
+3. Current source truth controls visible facts. If information is updating,
+   the UI says so; it cannot present an uncertain next gift as confirmed.
+4. A retains deliberate follow-up through existing workspace actions. B would
+   require an exact review action in existing task presentation, without making
+   financial correction, contact or message sending part of completion.
+5. Current tenant, source and role permissions govern every view/action. Contact
+   methods, provider diagnostics, private staff notes and hidden sibling lines
+   do not become visible because a task or notice exists.
+6. An informational notice, when its exact catalog contract is Live, retains
+   the existing grouped in-product treatment. Reading it cannot complete work;
+   a Reserved key cannot be bypassed by a new task-notification side channel.
+7. Shared Base UI/base-maia components, clear text states, keyboard access,
+   phone reflow and existing localization patterns remain the design baseline.
+   No extra daily acknowledgement, generic automation builder or settings
+   matrix is introduced by asking this question.
+
+Tenant enablement/defaults, the precise action contract, correction behavior,
+retry semantics and acceptance evidence must be reviewed against the selected
+answer. They are not silently selected here. Existing tenant controls and
+mandatory finance/source rules remain in force. A proposed review task must not
+become a disguised donor-contact instruction or an override of those rules.
+
+## Frontier and status
+
+D38/D39 settle the independent referral periods, original-date calendar anchor,
+late entry and correction rules. Their remaining source qualification and
+operational measurements are implementation obligations, not new founder
+micro-decisions. Newsletter scheduling/reuse, send-only email boundaries,
+optional coaching and the optional starting guide retain their previous scope.
+
+**Q40 is the sole next unanswered question.** No D40 answer, tenant default,
+producer registration, formal PRD/OpenSpec amendment, ticket, notification or
+external communication is created by this research. After the founder answers,
+review that answer and its exact consequences before recording an amendment as
+ratified.

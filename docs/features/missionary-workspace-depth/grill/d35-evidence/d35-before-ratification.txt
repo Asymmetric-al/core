@@ -1,0 +1,554 @@
+# Phase 28 D35 — deliberate referral continuation with simple tenant control
+
+**Disposition: Accept with required amendments.**
+
+**A and tenant customization/disable are selected. The corrected decision and
+required amendments below await explicit ratification.** Reviewed October 18,
+2026 Asia/Bangkok against `9cada8f3d8ab59db391d3fd20df77fcadeb09813` and its
+working tree. D34 remains ratified. This is a researched grill decision under
+the [founder boundary](phase28-founder-brief.md:21), not a formal PRD/ADR/OpenSpec,
+implementation, live permission change or release qualification. No Q36 is posed.
+
+## Exact corrected decision to record
+
+> **D35 — Optional missionary continuation of an eligible expired referral.**
+> Authorized staff can enable or disable **Allow missionaries to continue
+> expired referrals** through one organization-wide control. It starts Off for
+> new or unconfigured tenants; upgrades preserve an existing explicit qualified
+> choice. Existing permissions determine which missionaries may act and within
+> which scope. No second permission hierarchy or per-project setting matrix is
+> introduced. Authorized staff retain their independently governed action rights.
+>
+> When enabled and currently authorized, Maya can deliberately choose
+> **Continue referral** for an eligible, ordinarily expired referral. The
+> source returns that same referral lineage to active work through one new
+> follow-up cycle, preserving the original introduction and prior expiry/history.
+> The effect and any source-defined new window are explained before action.
+> Unknown or unqualified window terms cannot be replaced with an invented
+> deadline or an Active label. No universal duration is selected here.
+>
+> Use one contextual action with clear feedback. No routine approval per item,
+> mandatory explanation, new referrer-reconfirmation form or duplicate task is
+> required by this decision. A source-required prerequisite remains binding and
+> must be explained honestly. Success is shown only after authoritative
+> acceptance; the current permitted view shows where the work is now. If the response is lost,
+> safe recovery finds the original outcome without continuing it a second time.
+>
+> Turning the control Off stops new missionary continuations at acceptance.
+> It does not undo accepted continuation, expire active work, remove otherwise
+> permitted history, cancel independent follow-up or revoke staff's separate
+> authority. Re-enabling never submits or replays an old rejected or stale action.
+> Tenants also retain their ordinary controls over staff and missionary action
+> grants; the missionary setting is not a global CRM shutdown switch.
+>
+> Continuation is not contact consent, a donor response, a new introduction,
+> cultivation reopening or a completed interaction. It does not send anything,
+> revive old tasks or restore revoked grants or protected historical content.
+> Current policy is evaluated anew for active-work fields: a legitimate active
+> relationship can satisfy an existing current read condition, but cannot bypass
+> privacy or contact restrictions. Withdrawal, invalidation and privacy
+> revocation cannot be bypassed by calling them ordinary expiry.
+>
+> Preserve source identity, current responsibility, prior-cycle evidence and
+> applicable retention. Do not restart old retention deadlines or restore erased
+> bodies. A genuine new source cycle follows its own qualified lifecycle rules.
+> Retrying, competing actors and an old response after another expiry produce no
+> duplicate cycle or revived side effects. Correction remains a separate
+> authorized source action, not a generic Undo.
+
+The founder explicitly selected missionary continuation and requested tenant
+control. The one-setting shape and initial Off default are **proposed product
+judgments**, not claimed founder-selected defaults or measured industry norms.
+They make optional authorization expansion deliberate while preserving current
+staff work. The feature being disabled is missionary self-service. Tenants can
+also restrict staff action grants through normal permission administration; no
+additional all-CRM switch is necessary to provide that control.
+
+## Evidence, current behavior and strongest alternative
+
+| Evidence class            | Finding and practical consequence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Founder selection         | Maya may deliberately continue eligible referrals when the organization authorizes it; independently authorized staff can still act. Tenant customization and disable are required. A, not an implementation or permission grant, is selected.                                                                                                                                                                                                                                                                                                                                   |
+| Ratified predecessor      | [D34](phase28-d34-expired-referral-history-adversarial-review.md#explicit-ratification) permits only qualified minimal history and explicitly reserves the continuation actor. Its read-only history guarantee remains: viewing never continues anything. D35 adds a separate source action, not an implicit click-through grant.                                                                                                                                                                                                                                                |
+| Governing source          | [Founder brief](phase28-founder-brief.md:137), [owner constraints](../../../prds/program-roadmap/owner-constraints.md:81), [P9 A4](../../../prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md:353), [CRM Core](../../../../openspec/specs/crm-core/spec.md) and [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md) put referral identity, provenance and lifecycle in native CRM. The exact continuation producer and window policy are not established by naming that owner.                                                      |
+| Governing write boundary  | [P9 A17](../../../prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md:581) requires one native write/audit/activity transaction and explicitly rejects a generic provider gate or command journal for ordinary CRM writes. Duplicate/lost-response safety must fit source change evidence; the donation idempotency header and async-provider command log are not borrowed.                                                                                                                                                                                    |
+| Governing authorization   | [P12](../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md:1552) allows bounded missionary capabilities without making the person staff; current tenant/action/purpose/field authority governs. Readable, writable and contactable are distinct. [ADR-0209](../../../adr/0209-static-field-policies-and-subtract-only-projection.md:16) owns static field classification. [ADR-0211](../../../adr/0211-distinct-human-approval-for-projection-widening.md:16) governs actual projection-policy widening, not routine approval of every source action. |
+| Adjacent lifecycle        | [P27 return](../../../prds/sitestacker-parity/phase-27-donor-development/partnerships.md:377) preserves history and current eligibility, but a cultivation reopening command is not referral continuation. [ADR-0183](../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:622) preserves independent follow-up; source changes cannot casually complete or cancel it.                                                                                                                                                                                      |
+| Current implementation    | Bounded inspection of the missionary donor API reveals contact-wide status/field mutation and legacy assignment/service-role paths, not an exact expired-cycle continuation contract. The broad donor DTO is also not D34's closed history projection. [Database review](d35-evidence/database-authorization.md) identifies the inspected files and limitations. Static findings are not confirmed deployed exploits.                                                                                                                                                            |
+| Current external evidence | Fresh official missionary/nonprofit/CRM documentation supports deliberate actions under configured authority and separates visibility from action rights. Generic restore often revives more data or effects than Core permits. [Comparisons](d35-evidence/comparable-products.md) and [UX research](d35-evidence/ux-and-primary-research.md) record dates and limits.                                                                                                                                                                                                           |
+| Unknowns                  | No actual Core referral/window producer, live grants catalog, user interviews, authenticated competitor testing, browser accessibility run or production-shaped workload was qualified in this review. Those facts are not inferred from a roadmap, vendor guide or finite model.                                                                                                                                                                                                                                                                                                |
+
+**Strongest alternative: authorized staff only.** It keeps missionary authority
+narrower and can suit an organization that wants centralized judgment. It adds a
+handoff whenever Maya wants to resume otherwise eligible work. The proposed Off
+default preserves this operating choice; enabling qualified missionary action
+removes the routine handoff without creating an approval queue.
+
+**Existing generic contact-status editing** is an unsuitable shortcut: it mixes
+person-wide status with a particular referral cycle and lacks the necessary
+history and retry meaning. **A required approval or explanation for every
+continuation** adds friction unsupported by this selection or the researched
+examples. **A general renewal engine, automatic renewal or a switch matrix**
+solves speculative workflows. The permanent solution is one native source action
+consumed by the existing list and controlled through existing tenant governance.
+
+## Whole journey and UX decisions
+
+| Moment                          | Clear experience                                                                                                                                                                                                                                                    | Required behavior                                                                                                                                                                                                                                                                        |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Staff configuration             | Existing relationship/missionary administration exposes **Allow missionaries to continue expired referrals** with an explicit Off/On state. Help: **“Let permitted missionaries return eligible expired referrals to active work. Nothing is sent automatically.”** | Off initially for unconfigured tenants. Link to existing permission administration for who may act. No separate role editor, per-ministry overrides or donor setting. Preserve existing settings-page Save behavior; no surprise persistence convention.                                 |
+| Enabling                        | Staff sees who can use the enabled capability through existing permission summaries.                                                                                                                                                                                | Enable is not a blanket grant. Existing policy-change authorization and any actual projection-widening approval still apply. Show pending versus effective state truthfully where the governing process requires it.                                                                     |
+| Ordinary day                    | Active referrals remain the default.                                                                                                                                                                                                                                | No expiry alarm, mandatory cleanup, score, overdue penalty or reactivation campaign. The D34 history choice remains separate.                                                                                                                                                            |
+| Finding prior work              | Maya selects Expired and recognizes a currently permitted entry.                                                                                                                                                                                                    | Fetch only D34-admitted history. Availability of Continue uses the exact action contract, not name visibility or a previous role.                                                                                                                                                        |
+| Deciding                        | An eligible row/detail offers a clear **Continue referral** button and concise effect text. Show source-known window terms when material.                                                                                                                           | Prefer one explicit action over a routine confirmation modal. No mandatory reason, contact edit, renewed introduction or donor contact. Real source prerequisites may require an explained additional step, not a hidden assumption.                                                     |
+| Waiting                         | Button state becomes **Continuing…** and prevents accidental repeat clicks.                                                                                                                                                                                         | Do not optimistically mark Active. The server still proves current authority and one-cycle acceptance; disabled client controls are not idempotency.                                                                                                                                     |
+| Accepted                        | Show **“Referral continued.”** Show current Active state and **View active referral** only when separately confirmed and permitted. In Expired, the row leaves after current-state reconciliation.                                                                  | Preserve the filter. Announce success and place focus at a sensible surviving control/list position; do not dump focus into the document or silently navigate away. Safe outcome/recovery feedback remains available after a toast expires. A past acceptance never promises Active now. |
+| Definitive rejection            | A safe, specific explanation when permitted: **“Your organization no longer allows this action.”** or **“This referral has changed. Review its current status.”**                                                                                                   | No effect and no background replay. Keep independently readable history. Do not disclose a hidden restriction, new assignee or another person's record.                                                                                                                                  |
+| Response lost                   | **“We couldn’t confirm the result. Check status.”**                                                                                                                                                                                                                 | Recover the original intent outcome through the same source, with current response authorization. Do not encourage a fresh action that could open another cycle. Honest unknown is distinct from definite rejection.                                                                     |
+| Another actor already continued | Show the current permitted active state rather than duplicate work.                                                                                                                                                                                                 | One expired cycle has one accepted continuation. Do not claim Maya performed a staff action; retain correct original attribution.                                                                                                                                                        |
+| Disabled or not permitted       | No actionable Continue control; show a short explanation in an already authorized context if it helps the user.                                                                                                                                                     | No disabled control with a hover-only reason, locked private record or staff-contact demand on every row. Existing generic assistance is optional; no new request queue.                                                                                                                 |
+| Staff turns Off later           | Settings explain: **“Stops new missionary continuations. Turning this off does not undo referrals already continued.”**                                                                                                                                             | Other source/privacy changes can still affect active work. Off itself does not undo history, staff rights or independent follow-up.                                                                                                                                                      |
+| Mistaken action                 | Use the existing qualified correction route if one is available and currently authorized.                                                                                                                                                                           | Do not promise Undo before its domain semantics exist. Never erase the accepted history or pretend the action was merely a local view preference.                                                                                                                                        |
+
+Use exact shared [Base UI/base-maia](../../../../packages/ui/AGENTS.md) controls
+and [semantic token configuration](../../../../packages/ui/components.json).
+Visual polish comes from quiet hierarchy, readable spacing, one obvious action,
+consistent status treatment and restrained feedback, not new chrome. A row's
+name remains read-only unless an independently authorized navigation exists.
+Avoid an icon-only restore symbol whose meaning depends on familiarity.
+
+Preserve keyboard activation, visible focus, accessible names, non-colour-only
+state, appropriate live status and 320 CSS-pixel reflow. Button focus and feedback
+must work when a row disappears. Use shared touch targets, reduced motion and
+existing settings form semantics. International names/aliases and unknown dates
+remain truthful; date-only and instant values keep source timezone meaning.
+No new name/address field, mandatory email or desktop-only form is introduced.
+On weak connections, never queue an offline privileged continuation for later
+automatic submission. A deliberate retry/recovery still uses current authority.
+
+This is an evidence-informed design direction. Intended missionaries and staff
+must later demonstrate that they can configure, find, continue and recover the
+flow and understand that nothing was sent and prior restrictions were not waived.
+Neither a mockup nor an automated accessibility scan proves those outcomes.
+
+## Ownership, lifecycle and invariants
+
+| Fact                                                                                  | Authority                                                                 | Consumer consequence                                                                              |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Logical referral identity, original introduction, expiry and current cycle            | Qualified P9 source                                                       | Preserve lineage and prior facts; no copied referral/Party or app-owned active flag.              |
+| Whether ordinary expired work can continue and resulting window                       | Qualified referral source policy                                          | Explicit terms must exist before action activation; missing terms are not a usable Active state.  |
+| Tenant missionary self-service setting and effective revision                         | Existing tenant configuration owner through P12-authorized administration | One organization-wide choice; exact acceptance ordering and current staff rights remain distinct. |
+| Actor, work scope, current responsibility, read/action/contact authority              | P12 and applicable source/P10 floors                                      | Server-derived current context, not client-selected role/tenant/owner.                            |
+| Accepted continuation, terminal no-effect outcome, performer and same-intent recovery | Native source transition/audit/change evidence                            | Exactly one effect for an expired cycle, with safe recovery of original outcomes.                 |
+| Lists, buttons, counts and success state                                              | Derived shared UI/read projection                                         | They display authoritative state; they cannot authorize or implement the transition.              |
+| Tasks, cultivation, communications, giving and retention                              | Existing respective owners                                                | No implied cross-domain command, consent, payment, interaction or old-body restoration.           |
+
+An accepted continuation preserves one logical referral lineage and records a
+new active follow-up cycle without rewriting the original introduction or
+prior expiry. This is a **semantic requirement**, not a prescribed new table,
+event-sourced architecture or reuse of a particular graph row. The P9 owner must
+reconcile its exact representation with canonical time-bound edge/history rules.
+
+| Effective case                                                                                              | Correct outcome                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ordinary expired cycle, enabled missionary lane, current scoped action authority and qualified source terms | One accepted continuation of that cycle.                                                                                                                   |
+| Eligible independent staff action while missionary setting Off                                              | Staff's own current source/action authority determines acceptance; no fabricated missionary bypass or role-string shortcut.                                |
+| Off, missing grant, ineligible source or unknown window terms before acceptance                             | No new missionary continuation. Offer only permitted status/error information.                                                                             |
+| Two actors or different requests target the same expired cycle                                              | At most one transition; the other sees a current permitted outcome/conflict, never a second cycle.                                                         |
+| Accepted transition response is lost, then setting turns Off                                                | Recovery may disclose the original outcome under current read authority, without executing the action again.                                               |
+| Definitive denial, then time-only expiry, Off→On or grant restored                                          | Old command stays stale/no-effect; current deliberate review is needed for a new attempt.                                                                  |
+| Original accepted command arrives after its new active cycle later expires                                  | Recover its original result, not another continuation. A new cycle requires a new deliberate command tied to current source facts.                         |
+| Withdrawal, invalidation, privacy revocation, reassignment or identity correction wins first                | Re-evaluate exact eligibility; never coerce an adverse state into ordinary expiry.                                                                         |
+| Accepted continuation followed by a valid later restriction/correction                                      | Preserve acceptance history while current state/access follows the later authoritative change. Do not display stale success as a current active guarantee. |
+| Read, filter, login, import, message or timer                                                               | No continuation.                                                                                                                                           |
+
+Core invariants: exact trusted tenant and source scope; one accepted continuation
+per expired cycle; no replay into a later cycle; original performer/history
+preserved; no generic grant restoration; no contact/send effect; one source of
+current state; no old retention reset or erased-body resurrection; independent
+staff authority and valid unrelated work remain independent.
+
+## Exact required amendments
+
+These are proposed decision/design amendments for later authorized owner
+reconciliation, not formal source contracts or implementation in this turn.
+
+**C01 — Scope and organization control.** Offer the optional missionary
+continuation lane through one organization-wide **Allow missionaries to continue
+expired referrals** control, initially Off for new/unconfigured tenants. Preserve
+existing explicit qualified choices during upgrades. Existing P12 grants control
+eligible actors/scopes; no per-ministry setting matrix, custom role engine or
+missionary personal toggle is introduced.
+
+**C02 — Independent staff authority.** Off blocks new missionary-lane acceptance,
+not independently authorized staff action, current reads or accepted active work.
+Staff remain subject to their own tenant/source/action grants, which tenants may
+restrict through ordinary permission administration. A caller-controlled role,
+surface or mode SHALL NOT convert a missionary request to staff authority.
+
+**C03 — Exact eligible source and responsibility.** Admit only a currently
+source-qualified ordinary expired referral and exact current work scope and
+responsibility. D34 history visibility, authorship, former assignment, same
+email, a guessed identifier or a generic archived/ended status is insufficient.
+A historical recipient may read history yet lack current action responsibility.
+Use qualified work scope without manufacturing a ministry or cultivation record.
+The action purpose must admit eligible expired inputs: requiring an already-
+active referral before Continue is circular. Do not create a fake relationship
+or staff assignment to satisfy that prerequisite.
+
+**C04 — One continuing lineage and truthful history.** Continue the same logical
+referral through one new active cycle, preserving original introduction, prior
+expiry/cycles, corrections and attribution. Do not create another Party, merge
+same-name referrals, clear historical dates or overwrite provenance. The source
+owner SHALL qualify the representation against canonical relationship/history
+invariants; this decision does not prescribe a new archive or table.
+
+**C05 — Qualified new-window terms.** Before acceptance, the source must determine
+the valid new active-window terms under an explicit current policy and disclose
+their permitted user-relevant effect before action. No old expired deadline,
+invented duration, ambiguous Active flag or silent perpetual extension is valid.
+D35 selects no universal duration, recurrence limit or mandatory fresh-referrer
+evidence. The missing exact window/eligibility policy remains an explicit next
+source/product decision and a gate for this action only, not all workspace work.
+
+**C06 — Current authority at acceptance.** Derive tenant, actor, attribution and
+eligible responsibility from trusted server context. Recheck source/cycle,
+relevant policy/grant revisions, current time, privacy and window terms at the
+qualified atomic acceptance boundary after waits. A relevant change ordered
+before acceptance that removes required continuation eligibility or authority
+prevents the effect; otherwise re-evaluate under current qualified terms. An
+unrelated read-field/grant change is not itself grounds to cancel still-
+authorized continuation. An accepted action is not silently rolled back when
+the setting later changes.
+
+**C07 — One atomic native effect.** Commit the source state/revision, required
+audit/activity and minimal accepted intent/outcome correlation together under
+P9 A17. At most one continuation may consume
+the same expired cycle, including distinct requests and staff/missionary races.
+Do not rely on disabling a button, dedupe scans or a transport retry key alone.
+Any required secondary projection receives its minimal durable intent with the
+source transaction; replay projects that accepted result, never re-executes
+Continue. External I/O does not belong inside the source transaction.
+Use the existing native source boundary; no generic provider gate, CRM command
+journal, donation idempotency header or new workflow service is introduced.
+
+**C08 — Recovery across policy and later cycles.** Bind intent/outcome recovery
+to trusted tenant, actor, action and the exact source/cycle/context and reviewed
+relevant revisions. Reusing correlation with different reviewed intent conflicts.
+Persist
+minimal correlation with qualified source transition/change evidence. A retry
+of accepted intent recovers that outcome without mutation; a stale or definitively
+rejected intent cannot later gain effect through policy/grant restoration or
+time alone making its old source eligible. Preserve that terminal no-effect
+guarantee through minimal qualified source-owned outcome correlation or an
+equivalent proven source safeguard; a new deliberate action needs a fresh intent.
+Do not create business records for unauthorized or nonexistent-source probes. An old
+accepted retry cannot open a later expired cycle. Return only currently permitted
+result information, preserving original performer attribution.
+Recovery evidence follows its qualified retention rules. Preserve terminal
+outcome evidence through the intent's admissible lifetime, or prove a source-owned
+expiry/revision fence permanently rejects that old intent after evidence retires.
+If evidence is lawfully unavailable, return a safe unavailable/unconfirmed outcome
+without re-executing the command or inventing a new intent. No arbitrary TTL or
+permanent recovery ledger is implied.
+
+**C09 — Clear retry and state feedback.** Distinguish success, current already-
+continued state, definitive rejection and unknown transport outcome. Never
+report Active optimistically or treat lost response as certain failure. Safe
+Check status/retry must recover the original intent before any new attempt.
+After later source changes, show current state plus permitted historical outcome
+without claiming an earlier success still means Active now.
+
+**C10 — Read/action/contact separation.** History admission does not grant
+continuation; continuation does not grant consent, waive Never Ask or restore
+revoked permissions. A legitimate active source relationship may satisfy an
+existing current read predicate; evaluate the post-action projection anew under
+all current field/source/privacy rules. Do not freeze the active view to the
+expired projection or blindly restore old contact fields/private context.
+
+**C11 — No implied cross-domain effects.** No send, donor response, interaction,
+goal credit, receipt, money, new introduction, cultivation reopening, automatic
+task or revival of completed/cancelled work follows solely from Continue.
+Required source continuation audit/activity is not an outreach interaction.
+Preserve independently valid promised follow-up; other source effects require
+their own explicit qualified contract.
+
+**C12 — Adverse states and corrections.** Withdrawal, invalidation, privacy
+revocation, retention loss, changed scope/responsibility and identity merges
+require current source evaluation. They cannot be bypassed through Continue.
+Another active edge or source-distinct introduction cannot be silently merged
+or treated as this intent's acceptance to satisfy active logical uniqueness.
+Use the qualified source collision/reconciliation outcome.
+Mistaken expiry/continuation correction remains a separate authorized source
+operation with preserved history; no generic Undo or role-based override is
+introduced. Multiple referrals remain distinct even for the same Party.
+
+**C13 — Database and privileged-path equivalence.** Qualify exact grants, RLS,
+views, functions/RPCs, service-role paths and direct-table routes. Old-row and
+new-state constraints must preserve tenant-aware relationships, valid cycle
+state and trusted actor attribution; an allowed update cannot move the source
+to another tenant/owner or smuggle a forbidden state. Check actual USING and
+effective WITH CHECK, invoker/definer ownership and grants; omitted WITH CHECK
+or SECURITY DEFINER alone is not proof of a bypass. No money column is added.
+
+**C14 — Minimized disclosure and all egress.** Register/classify action-review
+and result projections through ADR-0209 and use the shared current resolver.
+Do not expose a broad source DTO, hidden refusal reason, referrer identity,
+private note, contact details or new owner through denial/success/recovery.
+Counts, search, cursors, caches, Realtime, logs, exports and generated artifacts
+retain their existing qualified purposes. D35 grants no new export/AI/offline
+roster privilege. Preserve P12 denied/missing uniformity, including its required
+statistical timing proof.
+
+**C15 — Response and context fences.** Re-evaluate current disclosure at the
+server release boundary; revocation before release blocks unpermitted result
+fields even if the action previously committed. Do not undo that accepted action
+to simplify the response. Controlled clients discard known-obsolete tenant/
+context/revision results and evict forbidden content. Later revocation cannot
+recall bytes already lawfully released or external copies.
+
+**C16 — Retention and deletion.** Preserve lawfully required source history and
+applicable erasure/hold rules. Continuation SHALL NOT reset old personal-data
+retention deadlines or restore erased/held-only bodies. A genuine new source
+cycle may have its own qualified retention trigger; do not mistake this for
+permission to retain old content. Restore and projection rebuild reapply current
+privacy, erasure and cycle state before serving. D27/D28 preparation rules are
+not referral rules.
+
+**C17 — Minimal configurable UX.** Use the existing settings and referral list.
+Show a clear contextual Continue referral action only where currently available,
+with concise effects/window terms and source-required prerequisites. Require no
+routine modal, explanation, approval-per-item or new referrer form. Preserve
+existing settings-save semantics and truthful effective/pending policy state.
+No new archive, queue, bulk continuation or switch hierarchy is selected.
+
+**C18 — Accessible result and recovery journey.** Preserve exact shared Base UI/
+base-maia components, semantic tokens, keyboard/touch support and WCAG 2.2 AA
+outcomes. Prove focus after a disappearing row, non-colour state, useful live
+feedback, persistent permitted outcome or recovery information, 320 CSS-pixel
+reflow, zoom, international
+names and source-accurate localized dates. Essential errors/help must not depend
+on hover or a disappearing toast. No offline automatic privileged submission.
+
+**C19 — Source policy and configuration governance.** Use existing authorized
+tenant configuration and scoped action grants, with a relevant effective
+revision, including a stable governed absent/unconfigured state. Do not generate
+a new default revision on every read or treat absence as permission. Enabling
+alone does not grant every missionary authority. Policy
+narrowing, stale settings saves and concurrent enabling obey existing owner
+ordering. Policy saves atomically commit the selected value/revision, required
+audit and source-owned outcome. Policy save and continuation acceptance share a
+stable authoritative ordering fence, including absent-policy/first-enable races;
+stale saves conflict. Actual projection-policy widening requires ADR-0211; ordinary source
+continuation under already-qualified policy does not acquire routine distinct-
+human approval merely because a current read predicate now becomes true.
+
+**C20 — Operations and audit.** Preserve source lifecycle history and identifiers-
+only actor/policy/transition evidence separate from technical diagnostics and
+outreach metrics. Record original performer and any separate recovery observer
+truthfully. Operators must diagnose unavailable policy/source, unknown outcomes
+and projection disagreement through existing tools, without copying private
+bodies, direct DB repair or creating another continuation.
+
+**C21 — Performance and quantitative proof.** Use bounded indexed exact-source
+operations and shared permission/list contracts. Contend at the affected source
+and relevant authorization boundary rather than serializing every tenant or
+loading all referral history. Measure exact query/page/latency/recovery budgets
+with production-shaped tenant and concurrency fixtures; inherit applicable P12
+budgets and test boundary values. Do not invent throughput or use cache freshness
+as authority. Avoid per-row network authorization fan-out.
+
+**C22 — Retained data, rollout and containment.** Census actual old statuses,
+referral identity/cycle/provenance, permissions and policy. Default unconfigured
+missionary continuation Off; preserve explicit qualified choices. Do not turn
+old ended/imported rows into eligible expiry or infer grants by role. Qualify
+mixed-version routes, raw grants, restores and old clients before activation.
+Contain new missionary acceptance without deleting history or reversing already
+accepted work; rollback must not reintroduce broad legacy status mutation.
+
+**C23 — Dependencies and unresolved scope.** Reuse native P9/P12/P10/P4 and shared
+UI/API sources. Qualify the exact continuation, window/eligibility, correction
+and recovery contracts before activating affected behavior. Missing support gates
+that lane, not independent staff/missionary work. No external CRM, AI, Studio,
+email provider or new package owns this transition. Do not silently settle the
+separate window-policy choice, infer consent or import cultivation reopening.
+
+**C24 — Traceability and honest proof.** Carry selected D35, glossary and exact
+clauses through the later authorized owner reconciliation, OpenSpec/design/tasks/
+tickets, implementation tests and release evidence. Preserve original research.
+Distinguish selected, ratified, integrated, implemented and qualified states.
+Finite examples and vendor documentation are not real RLS, concurrency,
+accessibility, usability or production proof.
+
+## Consolidated adversarial findings
+
+Likelihood is a reasoned risk if the safeguard is omitted, not measured
+incidence. Each finding supplies the harm, evidence, effect on the answer and
+permanent correction; the C clauses above are the exact wording to carry forward.
+
+| ID  | What could go wrong and why it matters                                                                                                               | Severity / likelihood                            | Evidence or reasoning                                                                                                   | Effect on answer and permanent fix                                                                                                                                   |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F01 | Routine staff approval, a second queue or a generic renewal engine makes a simple action slow and confusing.                                         | Medium / high if copied from unrelated workflows | Founder requests minimal friction; primary products document direct actions, not a compulsory new queue.                | Narrows implementation to C01/C17/C23; P01/P02/P03/P31. Staff-only remains a legitimate tenant choice.                                                               |
+| F02 | Ambiguous Off disables staff/history or silently rewinds active work; initial On grants new power without a deliberate choice.                       | High / medium                                    | User preserves staff action; optional source authority and retained data differ from a UI toggle.                       | Changes configuration/lifecycle wording, C01/C02/C06/C19/C22; P01/P04–P08/P35. Explicit missionary scope, initial Off recommendation and accepted-work preservation. |
+| F03 | Readable history, role name or stale assignment becomes authority to resume another person's work.                                                   | Critical / medium                                | D34 is a narrow read purpose; P12 names and membership are not action grants.                                           | Requires C02/C03/C06/C13; P09–P11/P25/P26. Exact current scope, responsibility and action proof, including staff path.                                               |
+| F04 | A status flag invents a new deadline, instantly re-expires or creates perpetual renewal; original introduction/history is rewritten.                 | High / high without qualified source             | P9 time-bound canonical history; exact continuation/window producer remains unqualified.                                | Narrows acceptance to qualified C04/C05/C23; P12–P15/P38. Explicit source/window gate, one continuing lineage and truthful terms.                                    |
+| F05 | Double click, two actors or different request keys create two new cycles.                                                                            | High / medium                                    | Separate valid requests can race; client disabling and transport keys do not enforce a source invariant.                | Requires C06/C07/C08; P16/P17/P24. Atomic same-expired-cycle consumption with source evidence.                                                                       |
+| F06 | Lost response, Off→On, time-only expiry after rejection or an old accepted retry produces an unintended continuation.                                | High / medium                                    | Request identity alone is weaker than durable business occurrence; cycles recur.                                        | Changes retry semantics, C08/C09; P18–P23. Recover accepted intent, fence reviewed source/policy versions, require a new deliberate intent for a later cycle.        |
+| F07 | Setting Off or privacy/source correction races acceptance; ambiguous result is reported as failure or Active.                                        | High / medium                                    | Authority can change while work waits; accepted effect and current disclosure are distinct.                             | Requires C06/C09/C15/C19; P07/P08/P18/P20/P27. Define ordered acceptance and release boundaries, preserve accepted truth, fail safely before acceptance.             |
+| F08 | Continue restores old contact fields, consent, donor interest, tasks or cultivation.                                                                 | Critical / medium                                | P12 read/action/contact separation and P27 owner scope; generic restore products revive broader state.                  | Narrows effects, C10/C11/C12; P28–P30/P33. Recompute current reads, preserve current restrictions, no implied cross-domain command.                                  |
+| F09 | Continuation is rejected for everyone because expired-history fields remain frozen after a lawful return, or it removes valid independent follow-up. | High / medium                                    | Ordinary active relationship can satisfy current read rules; ADR-0183 independent work remains valid.                   | Changes C02/C10/C11/P28/P29. Distinguish recomputed current admission from restoration of revoked grants; preserve independent work.                                 |
+| F10 | Generic donor PATCH, direct DB update, definer function or service-role route bypasses same-cycle/tenant/state checks.                               | Critical / medium                                | Bounded current API inspection; actual grants and effective RLS determine behavior.                                     | Requires C07/C13/P24–P26/P35/P36. One owner command and actual old/new-state/role-path proof; no UI-only safeguard.                                                  |
+| F11 | Same-name duplicate, Party merge, reassignment or correction targets the wrong referral/cycle or erases prior facts.                                 | High / medium                                    | Native identity/provenance rules; historic recipient and current responsibility differ.                                 | Requires C03/C04/C12/P10/P11/P14/P15. Exact lineage/scope, no implicit transfer or heuristic merge.                                                                  |
+| F12 | A convenient source snapshot leaks contact/private context through errors, result recovery, Realtime, cached data or another tenant.                 | Critical / medium                                | P12 all-egress and D34 closed history; delayed responses survive UI changes.                                            | Requires C14/C15/P25–P27/P34. Closed classified projections, current release authority and client-context fences; no impossible recall promise.                      |
+| F13 | Continuing resets old retention, resurrects erased content or makes a legal hold readable.                                                           | High / medium                                    | Retained structural history is distinct from current readable content; true new cycles may have their own source rules. | Requires C16/P32/P36. Preserve old disposition while honoring legitimate new-cycle rules; no copied body archive.                                                    |
+| F14 | Blanket confirmation/Undo, disappearing rows, ambiguous disabled controls or unreliable mobile feedback cause mistaken actions and repeat attempts.  | Medium / high without deliberate UX              | Source transition is not view navigation; W3C focus/status and current action patterns.                                 | Changes C09/C17/C18/P02/P03/P18/P20/P31. One explicit action, clear effects, honest recovery, stable focus and no unqualified Undo.                                  |
+| F15 | A new command journal/provider dependency or app-local rule engine violates governing architecture and adds repair burden.                           | High / medium                                    | P9 A17 explicitly reserves provider logs; ADR-0001/0209 centralize source and projection policy.                        | Requires C07/C08/C14/C23/P37/P38. Minimal source-owned correlation, existing policy and native write path.                                                           |
+| F16 | Old clients, migrations or restore enable missionary actions or reintroduce broad legacy writes.                                                     | Critical / medium                                | Retained data and current legacy compatibility paths are unqualified for D35.                                           | Requires C22/P35/P36. Exact census, default-Off/explicit-choice preservation, mixed-version tests and safe containment.                                              |
+| F17 | Hot-source contention, unbounded history scans, missing audit or developer-only recovery make operation unreliable.                                  | High / medium, workload dependent                | Atomic source/permission proof is necessary; current capacity and diagnostic qualification are unknown.                 | Requires C20/C21/P24/P37/P39. Indexed bounded work, measured budgets, source-backed diagnosis and named owners/signals.                                              |
+| F18 | Proposed defaults, finite tests or a polished review are mistaken for ratified policy or deployed proof; owner docs contradict the selected action.  | High / high if statuses are collapsed            | Document-authority distinctions and explicit research-only boundary; exact source/window contract not yet qualified.    | Requires C05/C23/C24/P38–P40. Clear status, explicit dependencies, traceable source reconciliation and real release evidence.                                        |
+
+## Every requested review category
+
+| Category                                                     | Material concern?                             | Independent assessment and exact correction                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Problem validity, necessity and alternatives                 | **Yes**                                       | F01/F04/F18. A direct action serves the selected work; staff-only is the strongest alternative. C01/C05/C17/C23 keep the scope concrete and avoid freezing a generic engine or invented deadline.                                                                                                        |
+| Brittleness                                                  | **Yes**                                       | F03/F04/F06/F11. Old role, status, recipient or deadline assumptions fail with changed source facts. C03–C09/C12 and P09–P23 require current exact evidence.                                                                                                                                             |
+| Technical debt                                               | **Yes**                                       | F10/F15. Generic donor PATCH, duplicate referral storage and provider journals would become durable wrong abstractions. C04/C07/C08/C13/C23 keep the native source contract.                                                                                                                             |
+| Edge cases                                                   | **Yes**                                       | F04–F07/F11/F13. Multi-cycle retries, two actors, unknown windows, same names, merges, Off after acceptance and erasure are addressed in the lifecycle table and P07–P24/P32/P36.                                                                                                                        |
+| Footguns                                                     | **Yes**                                       | F02/F08/F14. Ambiguous Off, generic Restore/Undo, optimistic Active and compulsory input encourage mistakes. C01/C02/C09–C12/C17/C18 make effects and limits explicit.                                                                                                                                   |
+| Tenant safety                                                | **Yes**                                       | F03/F10/F12. Current actor context, staff lane selection, scopes and late results can cross boundaries. C02/C03/C06/C13–C15; P25/P26/P27/P34.                                                                                                                                                            |
+| Database, RLS and authorization safety                       | **Yes**                                       | F03/F05/F10/F11. Check tenant-aware keys, cycle uniqueness, valid states, immutable attribution, delete/retention behavior, actual grants and effective old/new policies. C04/C06–C08/C13/P24–P26. No new money fields or arithmetic.                                                                    |
+| Overengineering                                              | **Yes**                                       | F01/F14/F15. Extra queues, switch matrices, reason forms and command journals are unnecessary. C01/C07/C08/C17/C23 select one control and source action.                                                                                                                                                 |
+| UX/UI and user friction                                      | **Yes**                                       | F02/F09/F14. Discoverability, accepted-row disappearance, unknown results, disabled explanation and mobile/a11y require a complete journey. C09/C17/C18/P01–P03/P18/P20/P31/P33. No donor/public checkout burden is introduced.                                                                          |
+| Source of truth, ownership and domain invariants             | **Yes**                                       | F04/F05/F08/F11/F15. The source owns cycles, windows and effects; settings and projections cannot author them. Ownership table plus C03–C08/C10–C12/P12–P17/P28–P30.                                                                                                                                     |
+| Hidden coupling                                              | **Yes**                                       | F02/F08/F09/F15. History, contact permission, cultivation, tasks, metrics and provider logs must not hitchhike on continuation. C02/C10/C11/C23/P28–P30/P37/P38.                                                                                                                                         |
+| Failure modes                                                | **Yes**                                       | F06/F07/F12/F17. Lost response, accepted-write/later-read failure, rollback and projection disagreement need distinct recovery. C07–C09/C15/C20/P18–P24/P27/P37. No external send/provider success is introduced.                                                                                        |
+| Lifecycle, temporal correctness, concurrency and idempotency | **Yes**                                       | F04–F07/F11. Source cycle identity and policy ordering govern retries, later expiry and competing actors. C04–C09/C12/C19/P12–P24. One authoritative acceptance; old intent cannot renew a later cycle.                                                                                                  |
+| Data integrity risks                                         | **Yes**                                       | F04/F05/F11/F13. Duplicated cycles, backdated history, merges and retention resets corrupt meaning. C04/C05/C07/C08/C12/C16/P12–P17/P32/P36.                                                                                                                                                             |
+| Security and privacy risks                                   | **Yes**                                       | F03/F08/F10/F12/F13. Authorization may change after history read or acceptance; denial/recovery can leak. C03/C06/C10/C13–C16/P25–P28/P32/P34. Current privacy applies to all reached paths.                                                                                                             |
+| Scalability and performance risks                            | **Yes**                                       | F17. Atomic source effects and authorization can create contention or history scans. C21/P24/P39 require measured budgets, selectivity, same-source contention and tenant fairness; no claimed throughput.                                                                                               |
+| Operational burden                                           | **Yes**                                       | F01/F07/F15/F17. Blanket approvals or unexplained unknown outcomes create manual repair. C09/C17/C20/P18/P20/P37 retain owned normal diagnostics and simple recovery.                                                                                                                                    |
+| Observability and auditability gaps                          | **Yes**                                       | F07/F12/F17/F18. Need durable correct actor/cycle history without logging protected bodies or counting a continuation as outreach. C07/C08/C11/C14/C20/P23/P29/P37/P40.                                                                                                                                  |
+| Dependency and integration risks                             | **Yes**                                       | F04/F15/F18. Exact native source/window/correction contracts remain required; competitors and generic providers cannot supply authority. C05/C07/C23/P37/P38. No new runtime vendor/package or webhook.                                                                                                  |
+| Migration, rollout and upgrade risks                         | **Yes**                                       | F02/F13/F16. Old data/routes/defaults/restore can create authority or resurrect effects. C01/C16/C22/P35/P36 preserve explicit choices and accepted evidence while containing new effects.                                                                                                               |
+| Testability, traceability and proof                          | **Yes**                                       | F18. Clear clauses and outcome tests must connect answer to owner contracts and eventual release; proposals are not deployed proof. C24/P01–P40 and dated evidence preserve the chain.                                                                                                                   |
+| Other development hazards                                    | **No additional material concern identified** | Checked payment precision, financial posting, provider success, new billing/package dependency, public/donor burden and automatic bulk messaging: this action adds none. Rollback, ownership, correction and unsupported assumptions are already covered; no speculative compliance engine is warranted. |
+
+## Acceptance criteria and release proof
+
+These are future observable requirements. A finite semantic model or document
+checker, if recorded below, proves only its explicitly bounded scope.
+
+| ID  | Falsifiable outcome                                                                                                                                                                                                                                                                                                                                                                                                |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| P01 | New/unconfigured tenant shows missionary continuation Off. One organization control and existing permissions configure the feature; explicit existing qualified choices survive upgrade.                                                                                                                                                                                                                           |
+| P02 | An eligible permitted Maya can discover and deliberately invoke Continue referral with clear effects/current window terms and no routine reason form, second approval or redundant modal.                                                                                                                                                                                                                          |
+| P03 | No new archive, queue, permission builder, personal switch or per-ministry setting matrix is needed; existing shared design and settings-save conventions are preserved.                                                                                                                                                                                                                                           |
+| P04 | Enabled does not grant an otherwise unauthorized missionary; staff authority remains independently checked while missionary control is Off.                                                                                                                                                                                                                                                                        |
+| P05 | Removing staff's own grant denies staff despite their role; a request-supplied staff mode/actor/tenant cannot bypass the missionary lane or scope.                                                                                                                                                                                                                                                                 |
+| P06 | Off leaves independently permitted D34 history, accepted active referrals, ordinary reads and valid separate follow-up unchanged.                                                                                                                                                                                                                                                                                  |
+| P07 | Off or source invalidation ordered before acceptance prevents the new missionary effect; the same change after accepted continuation preserves its history and any later legitimate source state.                                                                                                                                                                                                                  |
+| P08 | On→Off→On and stale settings saves never revive an old unaccepted command; a fresh deliberate reviewed action may succeed under current terms. Missing policy remains stably Off and cannot yield an invented fresh default revision. Race first enable against a request that observed absence, and Off against an acceptance that observed On before waiting.                                                    |
+| P09 | History-readable, creator-only, formerly assigned, same-email, guessed-ID and unrelated current-assignee cases do not imply continuation authority. Conversely, a qualified expired-source action succeeds without requiring a fabricated already-active relationship.                                                                                                                                             |
+| P10 | A qualified handoff/current responsible actor may act under exact source permissions; a historic reader without current responsibility may only read permitted history.                                                                                                                                                                                                                                            |
+| P11 | Cross-ministry/work scope, reassignment and Party merge preserve exact referral identity and do not transfer another actor's action rights or require dummy ministry/enrollment. Another active edge/source occurrence follows qualified collision handling, never silent merger or false same-intent success.                                                                                                     |
+| P12 | Continuation preserves original introduction and prior expiry/cycles while establishing exactly one new source-defined active cycle on the same logical lineage.                                                                                                                                                                                                                                                   |
+| P13 | Unknown/unqualified new-window policy prevents action activation; old deadline or invented duration never produces an Active success. Source-known terms and precision are shown honestly.                                                                                                                                                                                                                         |
+| P14 | Before/at/after deadline, waiting across expiry, date-only/timezone/DST, backdated correction and future source revision obey the owning source policy; UI age and transaction-start time do not authorize.                                                                                                                                                                                                        |
+| P15 | Withdrawal, invalidation, privacy revocation, erased/held-only source and incorrect imported status cannot be converted into ordinary eligible expiry through Continue.                                                                                                                                                                                                                                            |
+| P16 | Two missionary requests with different transport keys targeting one expired cycle produce at most one accepted transition.                                                                                                                                                                                                                                                                                         |
+| P17 | Concurrent qualified staff and missionary actions in both orderings produce one cycle and correct original performer attribution.                                                                                                                                                                                                                                                                                  |
+| P18 | Acceptance followed by lost response then policy Off recovers the original currently permitted result without another transition; definite rejection and unknown outcome are visibly distinct.                                                                                                                                                                                                                     |
+| P19 | Repeating accepted intent after that active cycle expires again never opens the later cycle; a new deliberate intent against the new expired cycle is required. If old recovery evidence has lawfully expired, the old command remains no-effect and gets a safe unavailable result. Reusing correlation for another source/cycle/payload conflicts; another actor cannot replay the original intent as their own. |
+| P20 | An unknown transport outcome offers safe Check status/recovery; it does not encourage an uncorrelated second action or falsely assert no change.                                                                                                                                                                                                                                                                   |
+| P21 | A definitive rejected/stale request cannot gain effect through background retry or offline replay after policy/grant restoration or time-only expiry without a revision change. A newly reviewed deliberate intent may succeed. Lawful retirement of recovery evidence cannot reactivate the old command.                                                                                                          |
+| P22 | Current active state resulting from another action yields a truthful permitted already-continued outcome/conflict without claiming the current actor performed it.                                                                                                                                                                                                                                                 |
+| P23 | An accepted old outcome and later current restriction/expiry remain distinguishable; recovery does not imply the referral is still Active or expose the original protected response.                                                                                                                                                                                                                               |
+| P24 | Real transaction failure/crash/competing writes prove source transition, audit/activity, accepted-intent correlation and required secondary projection intent commit together. Inject failure after the source write but before correlation/projection persistence: complete rollback or one recoverable accepted result, never partial acceptance. Policy value/revision/audit/outcome similarly commit together. |
+| P25 | Real authenticated, service-role, operator and unauthenticated paths prove tenant/scope/action boundaries, negative direct-table/RPC/view cases and trusted attribution.                                                                                                                                                                                                                                           |
+| P26 | Actual grants, effective USING/WITH CHECK and invoker/definer roles prevent permitted rows becoming forbidden tenant/owner/cycle/state, including bypass routes and stale owners.                                                                                                                                                                                                                                  |
+| P27 | Revocation before server result release removes forbidden disclosure without undoing accepted work; already lawfully released bytes are not claimed recalled; controlled clients discard known-stale context results.                                                                                                                                                                                              |
+| P28 | A legitimate active relation can satisfy existing current read rules, while revoked grants, contact restrictions and old private referral bodies remain protected. Neither frozen expired-field ceiling nor blanket restore is correct.                                                                                                                                                                            |
+| P29 | Continue creates no send, donor response, outreach interaction/target credit, automatic task, receipt or money; source activity/audit is classified correctly and independent promised follow-up survives.                                                                                                                                                                                                         |
+| P30 | Cultivation reopening, mistaken-expiry correction and continuation remain distinct commands; no generic Undo erases history or revives completed/cancelled tasks.                                                                                                                                                                                                                                                  |
+| P31 | Real mobile/320px reflow, zoom, touch, keyboard, screen reader, reduced motion and disappearing-row focus pass; intended users understand effects, Off and lost-response recovery without training prompts.                                                                                                                                                                                                        |
+| P32 | Old retention and erasure remain effective; lawful new-cycle retention follows its explicit owner rules, without old-body resurrection or held-only disclosure.                                                                                                                                                                                                                                                    |
+| P33 | International names/aliases, same-name referrals, honest unknown dates, localized source precision, empty/error/loading and unavailable-action explanations remain usable without extra donor fields.                                                                                                                                                                                                              |
+| P34 | Search/count/cursor, action-review/result/error, cache/Realtime/log/export surfaces expose only admitted data; P12 denied/missing response and statistical timing requirements are proved.                                                                                                                                                                                                                         |
+| P35 | Retained-data census and mixed-version tests reject unproved old statuses/grants/clients; turning Off safely contains new missionary effects without deleting source/history or bypassing independent staff rights.                                                                                                                                                                                                |
+| P36 | Restore/rollback cannot reopen an old cycle, resurrect erased data or reintroduce broad raw status updates; current source/privacy/correlation facts are reapplied before activation.                                                                                                                                                                                                                              |
+| P37 | Authorized operators can distinguish source-accepted, rejected, unknown and projection-lag cases and repair through owner tools without direct DB edits, private-body logs or a new continuation.                                                                                                                                                                                                                  |
+| P38 | Qualified source/window/correction/recovery contracts are identified before affected action activation. Native continuation functions without Studio, AI, email or an external CRM/provider dependency.                                                                                                                                                                                                            |
+| P39 | Recorded production-shaped source/permission/query budgets pass exact boundaries, same-source contention, large-tenant and cross-tenant fairness cases; no unbounded scan or per-row network fan-out.                                                                                                                                                                                                              |
+| P40 | Q35→D35→glossary→owner reconciliation→authorized OpenSpec/design/tasks/tickets→implementation/tests/release remains consistent; selected defaults, later ratification and real qualification are labeled accurately.                                                                                                                                                                                               |
+
+## Ruthless synthesis and order
+
+1. **Resolve before recording this answer:** retain A; scope disable to the
+   missionary lane while preserving independently governed staff rights; propose
+   one organization control with initial Off; define one source-owned cycle,
+   current acceptance, safe recovery and honest UI. The exact corrected decision
+   and C01–C24 resolve these consequences. No extra actor/configuration question
+   is necessary to document this review.
+2. **Capture in the later authorized owner/specification transition:** reconcile
+   P9/P12 continuation and D34 history purposes, exact lineage/window/eligibility
+   and source change-evidence recovery. The numeric or configurable expiry policy
+   remains a separate product/source choice; no missing contract is hidden by the
+   word qualified. Decide it before building/activating that action. Do not
+   silently reopen P27 cultivation or introduce a provider command ledger.
+3. **Require before activation:** real atomic source/authorization proof,
+   current action/result projections, mixed-version/retained-data/restore tests,
+   measured budgets and complete phone/assistive/user-comprehension evidence.
+   Source-unknown or policy-unknown continuation stays unavailable; independent
+   safe work continues. Assign actual people to the functional owner roles below.
+4. **Monitor residual operation only after prevention passes:** these thresholds
+   are proposed operational triggers, not measured incident rates or capacity.
+
+| Signal                                                                                                                                                                                | Threshold                                                             | Accountable owner                                       | Response                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unauthorized acceptance or protected result/metadata disclosure                                                                                                                       | Any 1 confirmed occurrence                                            | P12 security owner with P9 referral owner               | Contain affected action/egress, preserve minimized evidence, correct and requalify before reopening.                                                                   |
+| Duplicate/wrong-cycle effect, missing required audit or replay into a later cycle                                                                                                     | Any 1 confirmed occurrence                                            | P9 CRM owner                                            | Stop affected acceptance path, recover source truth with preserved history, fix invariant and add the exact regression.                                                |
+| Accepted transition/change evidence and the current projection disagree without a legitimate intervening source transition, or recovery terminates without an explainable disposition | Any 1 reproducible occurrence                                         | P9/API operations owner                                 | Diagnose acceptance/change evidence and projection, repair through owners; never create another continuation as repair.                                                |
+| Critical misunderstanding of Off, consent, sent messages or unknown-result recovery; blocking accessible flow                                                                         | Any 1 credible unsafe misunderstanding or reproducible access blocker | P28 product/UX owner with shared UI accessibility owner | Block/contain affected rollout, fix copy/interaction and repeat the actual user journey before expansion.                                                              |
+| Exact measured release query/latency/recovery budget exceeded                                                                                                                         | 3 consecutive 5-minute windows                                        | API/SRE owner with P9 query owner                       | Inspect scoped load/lock/authorization evidence, contain expensive work and correct without weakening invariants. Concrete budgets must be recorded before activation. |
+
+Security, one-cycle integrity, retention, source eligibility and current authority
+are prevention gates, never monitor-only risks. No new mandatory daily review,
+donor-facing warning campaign or universal referral lifetime is introduced.
+
+## Evidence and verification limits
+
+Independent [governance/lifecycle](d35-evidence/governance-and-lifecycle.md),
+[database/authorization](d35-evidence/database-authorization.md),
+[UX](d35-evidence/ux-and-primary-research.md),
+[comparisons](d35-evidence/comparable-products.md) and
+[counterexample review](d35-evidence/counterexample-review.md) inform this review.
+The [original Q35](d35-evidence/q35-before-answer.txt) and all 20 D34 evidence
+files are preserved by [hash manifest](d35-evidence/prior-evidence-sha256.json).
+
+The [cross-review resolution](d35-evidence/cross-review-resolution.md) records
+material corrections, including a time-only rejected-intent gap found by root
+in the first new D35 model. All four initial artifacts and their 102-assertion
+result remain [byte-exact](d35-evidence/initial-model-artifact-sha256.json).
+The revised [finite model](d35-evidence/continuation-counterexamples.py) passes
+**122 assertions across 17 counterexample families and six positive controls**.
+Root [independently reproduced](d35-evidence/root-reproduction.json) its output
+byte-for-byte after inspecting the revised source. The model's qualified inputs,
+serialized acceptance and persistent in-memory correlation are explicit
+[abstractions and limits](d35-evidence/model-readme.md), not implemented owners.
+
+The new [structural checker](d35-evidence/verify-review.py) and
+[verification result](d35-evidence/review-verification.json) check 24 clauses,
+40 acceptance criteria, 18 findings, all 22 categories, answer/ratification status,
+local references and [artifact pins](d35-evidence/artifact-pins.json). It executes
+no model or previous verifier. No actual Core continuation/window producer,
+real grants/RLS, locks/concurrency, browser, assistive/user-study, retention/
+restore, migration or production performance qualification is claimed. No older
+model, probe or verifier is rerun. No formal PRD/ADR/OpenSpec, implementation
+ticket, application/schema, live data, external communication or GitHub state
+is changed.
+
+**Final disposition: Accept with required amendments.** Retain deliberate
+missionary continuation with one explicit tenant control, source-owned current
+acceptance and clear recovery. The corrected decision and required amendments
+are ready for explicit ratification. No Q36 is posed during this answer review.

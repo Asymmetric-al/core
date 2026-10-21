@@ -3,7 +3,7 @@ source_name: Fission-AI/OpenSpec (openspec-verify-change)
 source_url: https://github.com/Fission-AI/OpenSpec/tree/v1.14.3/skills/openspec-verify-change
 source_type: github
 upstream_path: skills/openspec-verify-change/
-skills_lock_hash: a368c816241480716b55d7899118780434136d8862d66539f47454fa275229a4
+skills_lock_hash: 2a3e5ca3abca07240fd7d6082f93b7b1c159f8bd5133e5fae2f5cd6d1babc267
 last_reviewed: 2026-10-21
 ---
 
@@ -16,7 +16,7 @@ Canonical copy in this repo: `docs/ai/skills/openspec-verify-change/` (mirrored 
 - **Commit reviewed:** `c794978f4f8845ce59693373c9dd882ee776588c`
 - **Upstream path:** `skills/openspec-verify-change/`
 - **Lock skillPath:** `skills/openspec-verify-change/SKILL.md`
-- **Computed hash:** `a368c816241480716b55d7899118780434136d8862d66539f47454fa275229a4`
+- **Computed hash:** `2a3e5ca3abca07240fd7d6082f93b7b1c159f8bd5133e5fae2f5cd6d1babc267`
 
 ## Refresh from upstream
 

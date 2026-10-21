@@ -106,7 +106,7 @@ Every clause in `openspec/contracts/contribution-operations.md#contract-0522e0b7
 
 The system MUST keep the complete posted contribution header, designation lines and postings immutable, including subsequently added columns.
 
-Every clause in `openspec/contracts/contribution-operations.md#contract-36bb4c1c2a05e22ce3a8` MUST apply without exception.
+Every clause in `openspec/contracts/contribution-operations.md#contract-d6b571035769419c0620` MUST apply without exception.
 
 #### Scenario: Operational transitions preserve all posted financial columns
 

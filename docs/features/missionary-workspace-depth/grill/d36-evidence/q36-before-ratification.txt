@@ -1,0 +1,129 @@
+# Q36 — how a continued referral gets its new follow-up period
+
+Research and D35 ratification date: **October 18, 2026 Asia/Bangkok**.
+Repository `9cada8f3d8ab59db391d3fd20df77fcadeb09813` and current working tree.
+The [corrected D35 decision and amendments](phase28-d35-referral-continuation-adversarial-review.md#explicit-ratification)
+are explicitly ratified. **Q36 is answered A: use the organization's configured
+finite period without an individual date choice.** The founder explicitly asked
+to avoid needless complexity. The [D36 answer review](phase28-d36-configured-referral-period-adversarial-review.md)
+returns **Accept with required amendments**; those amendments await ratification.
+This remains research under the [founder boundary](phase28-founder-brief.md:21),
+not a formal specification, numerical policy selection or implementation authorization.
+
+## The single choice
+
+Maya deliberately chooses **Continue referral** for an eligible expired referral.
+She needs to understand when its new active follow-up period will end. This is
+an illustrative decision scenario, not an observed ministry incident.
+
+**How should the new follow-up period be set?**
+
+- **A — Use the organization's configured period (recommended).** Authorized
+  staff set the finite period. Maya sees the resulting end date and continues
+  without choosing another date.
+- **B — Allow a permitted missionary to adjust the end date.** The organization
+  supplies a default and supported limits; Maya may keep the proposed date or
+  adjust it for that continuation.
+
+Both preserve D35's optional tenant control, current source/action/privacy rules,
+independent staff authority and deliberate acceptance. Applying the chosen terms
+is part of that one continuation; neither option automatically renews a referral
+in the background or treats activity/editing as an extension. Nothing is sent.
+
+A is recommended because it keeps the ordinary action short and predictable.
+B is the strongest flexibility alternative: a case-specific end date can fit a
+particular piece of work, but it adds an editable date control and bounded date-setting
+power. B need not force a date choice: the organization's proposed date can be kept. These are product judgments, not measured ministry preferences or claims
+that missionaries need different periods. The organization remains in control
+under both options.
+
+## Why this is the next ready question
+
+D35 settled who may continue and the tenant Off/On behavior; it deliberately did
+not settle how the source obtains the renewed-window terms. Its C05 explicitly
+identifies a separate period-policy choice. Current governing documents establish
+source ownership and current authority, but the inspected clauses do not supply
+a numerical duration or select organization defaults versus individual dates.
+
+| Evidence inspected                                                                                                                                                                                                                                           | What it establishes                                                                                    | What it does not settle                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| [D35 exact decision](phase28-d35-referral-continuation-adversarial-review.md#exact-corrected-decision-to-record), [C05/C23](phase28-d35-referral-continuation-adversarial-review.md#exact-required-amendments)                                               | Deliberate source-owned continuation, visible valid new-window terms, explicit source-policy frontier. | Number of days, whether Maya chooses a date, or the initial-referral period.                        |
+| [Founder referral journey](phase28-founder-brief.md:137)                                                                                                                                                                                                     | Source-linked provenance, expiry and deliberate continuation without granting contact permission.      | A universal clock or authority to extend through ordinary edits.                                    |
+| [P9 owner constraint](../../../prds/program-roadmap/owner-constraints.md:81) and [A4](../../../prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md:353)                                                                                    | Native CRM owns relationship identity, time-bound history and referral lifecycle.                      | A complete qualified referral-window producer or duration-setting policy.                           |
+| [P12 current authority](../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md:1464) and [contactability](../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md:1654)                                     | Current action rights and independently governed contact permissions remain binding.                   | A renewed referral window cannot lengthen a grant or supply contact consent.                        |
+| [P27 genuine return](../../../prds/sitestacker-parity/phase-27-donor-development/partnerships.md:377), [CRM delta](../../../../openspec/changes/add-donor-development/specs/crm-core/spec.md) and [durable CRM](../../../../openspec/specs/crm-core/spec.md) | Source history, deliberate reopening and current restrictions are preserved.                           | Cultivation reopening is not the referral continuation/window command. Its rules do not answer Q36. |
+
+The D35 current-code inspection remains bounded static evidence. Neither a generic
+donor status mutation nor a browser date field supplies the missing owner
+contract. No deployed database, live authorization or current production referral
+behavior was qualified in this question review.
+
+## Fresh primary evidence and its limits
+
+The following official pages were freshly opened on **October 18, 2026**.
+Publication/update dates are separate from retrieval. Public documentation is
+not an authenticated product test, a Core usability study or an expiry standard.
+
+| Source and document date                                                                                                    | Documented behavior                                                                                                                                      | Consequence for this choice                                                                                                                           |
+| --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [TntConnect — TNT Phase](https://www.tntware.com/tntconnect/help/en/pages/contacts_mpdphase.aspx), undated manual           | Expired Referral means a reasonable contact period has passed; the guide suggests checking with the referrer.                                            | No numerical duration or renewed-window rule. It cannot justify a mandatory new introduction or a copied timer.                                       |
+| [MPDX — Add Referrals to Contacts](https://help.mpdx.org/article/194-add-referrals-to-contacts), updated June 8, 2023       | Referral dates are recorded. Recent shows referrals added within two weeks; On Hand uses selected active statuses.                                       | **Two weeks is a display filter, not referral expiry.** Do not convert it into Core's deadline.                                                       |
+| [Dynamics 365 — Reopen leads](https://learn.microsoft.com/en-us/dynamics365/sales/re-open-lead-sales), updated May 29, 2026 | Explicit reactivation preserves previously gathered lead information.                                                                                    | No documented renewed referral deadline. Sales disqualification and Core referral expiry have different meaning.                                      |
+| [Pipedrive — Rotting feature](https://support.pipedrive.com/en/article/the-rotting-feature), updated September 3, 2026      | A configurable inactivity period produces a visual warning; many edits and email/activity actions reset it. Some resets may not be visible to all users. | This is attention signaling, not referral expiry. Copying the reset behavior would silently change Core's follow-up window through unrelated actions. |
+
+Independent governance and product-comparison reviews agree that no inspected
+source establishes a universal number. A single Asym-fixed period would reduce
+configuration, but lacks evidence for a particular duration and gives less
+control than the requested tenant customization. Organization configuration versus
+bounded per-continuation adjustment is the more useful narrow decision here.
+
+## Simple journey under either answer
+
+Maya discovers eligible work in the existing Expired view. Current authorization
+admits the action; permitted source terms are explained before acceptance.
+Under A, the source supplies the resulting period with no routine date form.
+Under B, the proposed date can be kept; an optional adjustment control must communicate the organization's limits
+and reject unsupported terms without exposing hidden source data. Shared Core
+controls, current source precision/timezone and accessible error/focus behavior
+remain governed by D35; no separate timer builder or permission system is implied.
+
+An accepted action still says **Referral continued**. Current Active state remains
+a separate current permitted fact. A rejected or unknown result follows the
+ratified recovery journey; changing a date cannot repurpose the original intent.
+Neither answer reopens completed tasks, rewrites past cycles or revives private
+referral context. No amount, gift, coaching or donor-facing step is introduced.
+
+## Scope left unselected by the original question
+
+This question selects only how the **renewed** period is set. It does not choose:
+
+- Numerical days, minimum/maximum bounds or a universal default.
+- The initial-referral period or separate versus reused configuration for it.
+- Retrospective changes to existing cycles or tenant-policy changes mid-cycle.
+- An indefinite window, automatic renewal, recurring extension or bulk action.
+- Personal-data retention, history access, grant duration or contact consent.
+- Mandatory fresh-referrer evidence or a new approval/request queue.
+
+Reusing an appropriate ordinary referral policy may later avoid duplicate
+settings, but it is not a settled source fact and is not silently bundled into A.
+The [D36 review](phase28-d36-configured-referral-period-adversarial-review.md#exact-required-amendments)
+now proposes exact elapsed whole days, fresh source acceptance, fixed accepted
+terms, prospective changes and shared ordinary staff terms. These are explicit
+amendments awaiting ratification. It requires a published qualified supported
+range before activation without selecting a universal default or inventing a
+ministry norm. Initial-referral policy remains outside this decision. No
+engineering-storage decision needs a founder vote.
+
+## Status and preservation
+
+D35 and C01–C24/P01–P40 are ratified. Its exact pre-ratification review and Q35
+research plus all 20 original evidence files are preserved by the
+[ratification manifest](d35-evidence/ratification-evidence-sha256.json).
+The new [ratification verification](d35-evidence/ratification-verification.json)
+checks unchanged exact decision/amendments, current status, references and hashes.
+The [original unanswered Q36](d36-evidence/q36-before-answer.txt) is preserved;
+the [D36 prior-evidence manifest](d36-evidence/prior-evidence-sha256.json) pins all
+25 D35 evidence files. No earlier model, probe or verifier is executed. D36 now
+records the completed answer review; no Q37 is posed. No formal owner document,
+PRD/ADR/OpenSpec, ticket, application/schema, live data, external communication
+or GitHub state is changed.

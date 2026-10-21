@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-18",
+  "historical_pin_note": "Current D35/Q35 status changes are checked separately; exact pre-ratification bytes match the original pins.",
+  "historical_pins": 20,
+  "limits": "Read-only structural/hash verification. No model, probe or earlier verifier executed. No live source, SQL/RLS, concurrency, provider, migration, performance, accessibility or usability qualification.",
+  "links": {
+    "anchors": 67,
+    "line_references": 93,
+    "local": 555,
+    "source_documents": 12
+  },
+  "preserved_artifacts": {
+    "D29": 20,
+    "D30": 19,
+    "D31": 19,
+    "D32": 25,
+    "D33": 23,
+    "D34": 20,
+    "D35_original_evidence_plus_review_and_question_snapshots": 22
+  },
+  "review": {
+    "acceptance_criteria": 40,
+    "categories": 22,
+    "clauses": 24,
+    "findings": 18
+  },
+  "scope": "D35 ratification and Q36 frontier documentation only",
+  "status": "passed",
+  "status_checks": [
+    "D35 decision and all amendments ratified",
+    "Q35 answered A",
+    "D34 remains ratified",
+    "Q36 one unanswered A/B choice",
+    "no D36 or Q37",
+    "session and glossary consistent"
+  ],
+  "timezone": "Asia/Bangkok",
+  "unchanged_exact_sections": ["decision", "C01-C24", "P01-P40"]
+}

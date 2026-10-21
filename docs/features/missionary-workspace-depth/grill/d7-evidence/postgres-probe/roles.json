@@ -1,0 +1,66 @@
+[
+  {
+    "rolname": "actor_a",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "actor_other",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "actor_tenant_two",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "authority_manager",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "command_executor",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": false,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "dispatch_worker",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "fixture_owner",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": false,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "mutation_probe",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  }
+]

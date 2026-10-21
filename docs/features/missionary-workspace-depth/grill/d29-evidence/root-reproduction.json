@@ -1,0 +1,17 @@
+{
+  "kind": "Independent root reproduction of final bounded D29 semantic model; not Core or database/runtime qualification",
+  "executed_utc": "2026-10-17T16:53:04.298168+00:00",
+  "command": "python3 docs/features/missionary-workspace-depth/grill/d29-evidence/purpose-counterexamples.py",
+  "passed": true,
+  "script_sha256": "17e7e655ccf3341e994ff2503a4fd69ee11abbe28508582ee17067421da834a3",
+  "saved_result_sha256": "79e218bb57a986fa5b310519ba298bdf15a2dc0e62ddc48a934cf1a2e49421eb",
+  "reproduced_result_sha256": "79e218bb57a986fa5b310519ba298bdf15a2dc0e62ddc48a934cf1a2e49421eb",
+  "summary": {
+    "all_passed": true,
+    "assertions_passed": 47,
+    "counterexample_families": 14,
+    "positive_controls": 5
+  },
+  "earlier_models_rerun": false,
+  "actual_database_or_application_tested": false
+}

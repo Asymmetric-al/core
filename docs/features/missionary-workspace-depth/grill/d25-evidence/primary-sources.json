@@ -1,0 +1,96 @@
+{
+  "scope": "Fresh official technical fetch provenance from independent database review; temporary local paths are ephemeral, URLs and content hashes are retained. UX primary register is check-in-ux.md S01\u2013S15.",
+  "technical_fetches": [
+    {
+      "url": "https://supabase.com/changelog.md",
+      "fetched_at": "2026-10-17T05:41:13.161603+00:00",
+      "sha256": "15b3d0d1a7dc3b3f2c0af4788e49acfdf2d2edbd2613f22de0705fa43b1cf58b",
+      "path": "/tmp/phase28-d25-primary/changelog.md"
+    },
+    {
+      "name": "api-grants",
+      "url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+      "fetched_at": "2026-10-17T05:41:31.916457+00:00",
+      "sha256": "2aca1bab12bbbf44192096f39862f9a03fa0aa2d464885566a8d854a44bc7b7b",
+      "text_sha256": "7b58473834e50d26eb26c9972a254cf1bc08730c0e0ec47f4b01125f0dfd6876",
+      "raw_path": "/tmp/phase28-d25-primary/api-grants.raw",
+      "text_path": "/tmp/phase28-d25-primary/api-grants.txt"
+    },
+    {
+      "name": "supabase-rls",
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "fetched_at": "2026-10-17T05:41:31.149392+00:00",
+      "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "text_sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "raw_path": "/tmp/phase28-d25-primary/supabase-rls.raw",
+      "text_path": "/tmp/phase28-d25-primary/supabase-rls.txt"
+    },
+    {
+      "name": "pg17-policies",
+      "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "fetched_at": "2026-10-17T05:41:33.428169+00:00",
+      "sha256": "1772bf6791789204d77a0ed3e35c0ff2f7ea988fb71f64a0b4b3a19908fad6a6",
+      "text_sha256": "3409e3fff2cbe4678cd2a8bf21742ec48a4868a19d0c8656918793fa9794f185",
+      "raw_path": "/tmp/phase28-d25-primary/pg17-policies.raw",
+      "text_path": "/tmp/phase28-d25-primary/pg17-policies.txt"
+    },
+    {
+      "name": "pg17-constraints",
+      "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "fetched_at": "2026-10-17T05:41:32.627854+00:00",
+      "sha256": "dadc6166e3dcae0a1c91ada5373ef046682876b6db32e8c771338a4cb9b8c4be",
+      "text_sha256": "25b647ad40269d7884fc004fc72a02e574f669236d0e9bece3e728dc494b5ea4",
+      "raw_path": "/tmp/phase28-d25-primary/pg17-constraints.raw",
+      "text_path": "/tmp/phase28-d25-primary/pg17-constraints.txt"
+    },
+    {
+      "name": "pg17-view",
+      "url": "https://www.postgresql.org/docs/17/sql-createview.html",
+      "fetched_at": "2026-10-17T05:41:32.568704+00:00",
+      "sha256": "528ba275d3b79ff228d32985c6833387b50ca918b275c96cf7c43bbd95ad1ef4",
+      "text_sha256": "6480b3f7ebd8f4f1cd4f5037b14e3685b84f39a5213c35da9a440ad85474576b",
+      "raw_path": "/tmp/phase28-d25-primary/pg17-view.raw",
+      "text_path": "/tmp/phase28-d25-primary/pg17-view.txt"
+    },
+    {
+      "name": "pg17-functions",
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "fetched_at": "2026-10-17T05:41:33.010565+00:00",
+      "sha256": "887e05c52a98890006d7d63cd1dcbb933309376ff78967bef6693f247dddbf43",
+      "text_sha256": "9a8f6ad43a69f3e57851799d9a3b88e12ebbbee61b499a35d732a4e2b9a3c66c",
+      "raw_path": "/tmp/phase28-d25-primary/pg17-functions.raw",
+      "text_path": "/tmp/phase28-d25-primary/pg17-functions.txt"
+    },
+    {
+      "name": "pg17-isolation",
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "fetched_at": "2026-10-17T05:41:33.305926+00:00",
+      "sha256": "e3475df0c76b214dbda0bc681015099763b83778e1355e17ee7b908e6fd38a26",
+      "text_sha256": "df22a7bf3811ccaf9e1835cad0e14e46d2836c4a3fb16f823f7728bc83df7758",
+      "raw_path": "/tmp/phase28-d25-primary/pg17-isolation.raw",
+      "text_path": "/tmp/phase28-d25-primary/pg17-isolation.txt"
+    }
+  ],
+  "root_web_reads": [
+    {
+      "url": "https://design-system.service.gov.uk/patterns/check-answers/",
+      "retrieved": "2026-10-17",
+      "tool_ref": "turn417959view0"
+    },
+    {
+      "url": "https://www.w3.org/WAI/tutorials/forms/notifications/",
+      "retrieved": "2026-10-17",
+      "tool_ref": "turn417959view1"
+    },
+    {
+      "url": "https://www.w3.org/WAI/tutorials/forms/instructions/",
+      "retrieved": "2026-10-17",
+      "tool_ref": "turn417959view2"
+    },
+    {
+      "url": "https://help.mpdx.org/article/1253-mpdx-quick-reference-guide-reports",
+      "retrieved": "2026-10-17",
+      "tool_ref": "turn417959view3"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "purpose": "Independent root-agent reproduction of the D25 synthetic counterexamples; not Core/runtime/DB/concurrency qualification",
+  "python": "3.12.14",
+  "cases": 17,
+  "matched_stored_results": true,
+  "probe_sha256": "6167e05fc9ef7d0187d77b3ad4ea9b5b6c7dc0e7bc405955cd755dbc4a3f9301",
+  "results_sha256": "c4244a377def523c361d73e284d3117f34a84dff1127ded6123aee03a783fffa"
+}

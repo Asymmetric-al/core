@@ -1,0 +1,620 @@
+{
+  "recorded_at": "2026-10-16T13:12:38.486971+00:00",
+  "scope": "Synthetic D16 immutable goal, exact intent, authority/CAS and source-separation mechanics only; not Core/P12/Supabase/Auth/PostgREST/API qualification.",
+  "outcomes": 25,
+  "passed": 25,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "da5ebc27e7c356f1933872469b03adf8177ce0d619595cd20c3d3066cf765f35",
+    "run.py": "802820512d8c6a6da5e2ed225fa3348f458c16b856f08c4ddf611fafba8cbae3",
+    "sources.json": "fb2e7654eba7aabf0377a1edc3f9a30cb188a429c01aa0e2b8d9b79230df058e"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "fixture_steps": [
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'first',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,15000,'USD','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'project',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,200000,'JPY','finite_period',date '2026-10-01',date '2026-12-01',date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='project' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'changed-payload',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,16000,'USD','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT tenant,'stale-editor',entity,kind,subject,actor,1,authority_revision,amount_input,currency,basis,period_start,period_end,effective_from,audit_note FROM probe.intents WHERE id='changed-payload';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'zero',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,0,'USD','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'null',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,NULL,'USD','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'fraction',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,1.5,'USD','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'nan',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,'NaN'::numeric,'USD','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'overflow',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,9223372036854775808,'USD','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'currency-change',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,30000,'JPY','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'bad-basis',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,15000,'USD','monthly_equivalent',date '2026-10-01',date '2026-12-01',date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'audit-failure',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,99999,'USD','monthly_equivalent',NULL,NULL,date '2026-10-16','FAIL_FIXTURE_AUDIT' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'parallel-duplicate',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,31000,'JPY','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'missionary-editor',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,32000,'JPY','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'staff-editor',h.entity,h.kind,h.subject,'staff_a',h.revision,a.revision,33000,'JPY','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='staff_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'off-first',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,34000,'JPY','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.authority SET can_edit=true,revision=revision+1 WHERE tenant=1 AND kind='missionary' AND actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'save-first',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,35000,'JPY','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'old-policy-evidence',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,36000,'JPY','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.authority SET can_edit=true,revision=revision+1 WHERE tenant=1 AND kind='missionary' AND actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.intents SELECT h.tenant,'restored-fresh',h.entity,h.kind,h.subject,'missionary_a',h.revision,a.revision,37000,'JPY','monthly_equivalent',NULL,NULL,date '2026-10-16','ok' FROM probe.heads h JOIN probe.authority a ON (h.tenant,h.entity,h.kind,h.subject)=(a.tenant,a.entity,a.kind,a.subject) WHERE h.tenant=1 AND h.entity=10 AND h.kind='missionary' AND h.subject=1 AND a.actor='missionary_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "name": "unset_goal_is_not_zero",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.current_goal('project',1);",
+      "expected": "unset",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unset",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "save_appends_goal_and_advances_head",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('first','first');SELECT probe.current_goal('missionary',1);",
+      "expected": "accepted:2:current\n2:15000:USD:monthly_equivalent",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:2:current\n2:15000:USD:monthly_equivalent",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "immutable_version_rejects_in_place_mutation",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "UPDATE probe.goal_versions SET amount_minor=999 WHERE kind='missionary' AND version=1;",
+      "expected": null,
+      "expected_sqlstate": "55000",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  55000: immutable fixture history\nCONTEXT:  PL/pgSQL function probe.immutable_history() line 1 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "direct_goal_write_denied",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.goal_versions SET amount_minor=1 WHERE tenant=1;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table goal_versions\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "cross_tenant_entity_subject_FK_rejected",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.goal_versions VALUES(1,20,'missionary',1,99,100,'USD','monthly_equivalent',NULL,NULL,'2026-10-16','staff_a');",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"goal_versions\" violates foreign key constraint \"goal_versions_tenant_entity_kind_subject_fkey\"\nDETAIL:  Key (tenant, entity, kind, subject)=(1, 20, missionary, 1) is not present in table \"subjects\".\nSCHEMA NAME:  probe\nTABLE NAME:  goal_versions\nCONSTRAINT NAME:  goal_versions_tenant_entity_kind_subject_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "typed_project_goal_is_separate_source",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('project','project');SELECT probe.current_goal('project',1); SELECT probe.current_goal('missionary',1);",
+      "expected": "accepted:1:current\n1:200000:JPY:finite_period\n2:15000:USD:monthly_equivalent",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:1:current\n1:200000:JPY:finite_period\n2:15000:USD:monthly_equivalent",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "duplicate_save_same_request_is_one_effect",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('first','first');",
+      "expected": "accepted:2:current",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:2:current",
+      "stderr": "",
+      "passed": true,
+      "source_atomicity": {
+        "before": "2:3:2:2:2",
+        "after": "2:3:2:2:2"
+      }
+    },
+    {
+      "name": "same_intent_new_request_key_has_no_new_version",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('first','first-retry');",
+      "expected": "accepted:2:current",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:2:current",
+      "stderr": "",
+      "passed": true,
+      "semantic_effect_counts": {
+        "before": "2:3:2:2:2",
+        "after": "2:3:2:2:3"
+      }
+    },
+    {
+      "name": "same_request_key_cannot_change_semantic_intent",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('changed-payload','first');",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "stale_editor_cannot_overwrite_head",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('stale-editor','stale-editor');",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "invalid_minor_unit_inputs_do_not_create_goals",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('zero','zero');SELECT probe.save_goal('null','null');SELECT probe.save_goal('fraction','fraction');SELECT probe.save_goal('nan','nan');SELECT probe.save_goal('overflow','overflow');",
+      "expected": "invalid_amount\ninvalid_amount\ninvalid_amount\ninvalid_amount\ninvalid_amount",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "invalid_amount\ninvalid_amount\ninvalid_amount\ninvalid_amount\ninvalid_amount",
+      "stderr": "",
+      "passed": true,
+      "source_atomicity": {
+        "before": "2:3:2:2:3",
+        "after": "2:3:2:2:3"
+      }
+    },
+    {
+      "name": "unsafe_integer_cast_rounds_fractional_input",
+      "role": "missionary_a",
+      "counterexample": true,
+      "sql": "SELECT (1.5::numeric)::bigint;",
+      "expected": "2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "currency_change_is_new_explicit_goal_not_FX",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('currency-change','currency-change');SELECT probe.current_goal('missionary',1);",
+      "expected": "accepted:3:current\n3:30000:JPY:monthly_equivalent",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:3:current\n3:30000:JPY:monthly_equivalent",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "incompatible_period_basis_rejected",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('bad-basis','bad-basis');",
+      "expected": "invalid_meaning",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "invalid_meaning",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "audit_failure_rolls_back_version_head_receipt",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('audit-failure','audit-failure');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"audit\" violates check constraint \"audit_note_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.audit VALUES(i.tenant,p_intent,i.entity,i.kind,i.subject,next_version,session_user,i.audit_note)\"\nPL/pgSQL function save_goal(text,text) line 25 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  audit\nCONSTRAINT NAME:  audit_note_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true,
+      "source_atomicity": {
+        "before": "3:4:3:3:4",
+        "after": "3:4:3:3:4"
+      }
+    },
+    {
+      "name": "public_pin_and_finance_are_not_goal_write_effects",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "SELECT p.version||':'||v.amount_minor||':'||v.currency||':'||f.approved_plan_amount||':'||f.recorded_gifts||':'||f.commitments FROM probe.public_pin p JOIN probe.goal_versions v USING(tenant,entity,kind,subject,version) JOIN probe.finance f USING(tenant);",
+      "expected": "1:10000:USD:12000:5000:3000",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1:10000:USD:12000:5000:3000",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "same_intent_different_keys_one_version",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.save_goal('parallel-duplicate','duplicate-a'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted:4:current\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.save_goal('parallel-duplicate','duplicate-b'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "accepted:4:current\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted:4:current\nFIRST_READY\n",
+        "second": "accepted:4:current\nSECOND_DONE\n",
+        "before": "3:4:3:3:4",
+        "after": "4:5:4:4:6"
+      }
+    },
+    {
+      "name": "missionary_staff_edit_same_head_CAS",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "staff_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.save_goal('missionary-editor','missionary-editor'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted:5:current\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.save_goal('staff-editor','staff-editor'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "conflict\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted:5:current\nFIRST_READY\n",
+        "second": "conflict\nSECOND_DONE\n",
+        "current": "5:6:5:5:7"
+      }
+    },
+    {
+      "name": "permission_off_first_blocks_save",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "policy_manager",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.authority SET can_edit=false,revision=revision+1 WHERE tenant=1 AND kind='missionary' AND actor='missionary_a'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.save_goal('off-first','off-first'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n",
+        "current": "5:6:5:5:7",
+        "policy": "false:2"
+      }
+    },
+    {
+      "name": "save_first_then_permission_off",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "policy_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.save_goal('save-first','save-first'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted:6:current\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.authority SET can_edit=false,revision=revision+1 WHERE tenant=1 AND kind='missionary' AND actor='missionary_a'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted:6:current\nFIRST_READY\n",
+        "second": "SECOND_DONE\n",
+        "current": "6:7:6:6:8",
+        "policy": "false:4"
+      }
+    },
+    {
+      "name": "edit_permission_off_preserves_visible_goal",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.current_goal('missionary',1);",
+      "expected": "6:35000:JPY:monthly_equivalent",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "6:35000:JPY:monthly_equivalent",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "old_accepted_receipt_does_not_bypass_current_edit_gate",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('save-first','off-retry');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "permission_restore_does_not_accept_stale_evidence",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('old-policy-evidence','old-policy-evidence');",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "fresh_authorized_intent_after_restore_succeeds",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('restored-fresh','restored-fresh');",
+      "expected": "accepted:7:current",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:7:current",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "accepted_receipt_is_not_current_goal",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.save_goal('first','late-first-retry');",
+      "expected": "accepted:2:superseded",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:2:superseded",
+      "stderr": "",
+      "passed": true,
+      "final_independent_sources": "1:10000:USD:12000:5000:3000"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "kind": "D29 current documentation, provenance, selected actor clarification and bounded-model consistency only",
+  "passed": true,
+  "decision": "A selected; Accept with required amendments; remaining amendments await ratification",
+  "actor_class": "Authorized staff and missionaries when organization permits exact qualified action/scope",
+  "category_count": 22,
+  "finding_count": 16,
+  "clause_count": 24,
+  "proof_count": 32,
+  "local_links_checked": 449,
+  "line_links_checked": 101,
+  "anchors_checked": 45,
+  "prior_d28_artifacts_unchanged": 23,
+  "current_pinned_evidence_count": 13,
+  "semantic_model_summary": {
+    "all_passed": true,
+    "assertions_passed": 47,
+    "counterexample_families": 14,
+    "positive_controls": 5
+  },
+  "root_reproduction_identical": true,
+  "primary_technical_fetches": 14,
+  "q29_answered_a": true,
+  "actor_clarification_selected": true,
+  "q30_posed": false,
+  "reviewed_documents": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-d29-additional-gift-purpose-adversarial-review.md",
+      "sha256": "7d82938a6f1b0dcb7f2cc3b364981dbbcc87bd21bda6e88e44ebba7d24678174"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-q29-special-gift-purpose-research.md",
+      "sha256": "14b370f84e314d1b1ef536b5bcb02791ce5a85cb71336d25198aca19507b2ff9"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-session.md",
+      "sha256": "01c4b63265b83f9c84398d8a41741cb9d2036fa4ef886f3d7a2d1d732fe5e45c"
+    }
+  ],
+  "limitations": [
+    "No application, live database, RLS/role, real concurrency, provider, migration, capacity, accessibility or user qualification.",
+    "No prior finite model or database experiment rerun; old D28 verification retains its original historical state.",
+    "Link and structure checks establish document consistency, not truth of every linked source or correctness of future implementation."
+  ],
+  "errors": []
+}

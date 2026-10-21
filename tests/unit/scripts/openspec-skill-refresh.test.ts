@@ -56,7 +56,7 @@ async function fixture() {
       path.join(source, "SKILL.md"),
       `---
 name: ${name}
-description: Refresh permission regression fixture
+description: ${name === "openspec-update-change" ? "Update planning artifacts. If the user means the openspec update CLI command, which refreshes generated files, run that command instead. Never edits code." : "Refresh permission regression fixture"}
 allowed-tools: Bash(openspec:*), Bash(other:*)
 license: MIT
 ---
@@ -64,6 +64,14 @@ license: MIT
 Upstream workflow prose without a title.
 
 Keep the upstream workflow body.
+
+**Store selection:** Discover a named store with \`openspec store list --json\` and keep \`--store <id>\` on commands.
+
+**Project check:** Run \`openspec list --json\` with the selected store before writing. If no root exists, offer \`openspec init\` or an external store.
+
+In both branches, never create the root as a side effect: do not run \`openspec init\` until the user asks for it, do not hand-create \`openspec/\` files, and do not let a command create it.
+
+**Input**: A change name.
 
 \`\`\`markdown
 # Example spec title
@@ -162,6 +170,14 @@ describe("OpenSpec skill refresh", () => {
         "Use the repository's bun run openspec wrapper.",
       );
       expect(content).toContain("Keep the upstream workflow body.");
+      expect(content).not.toContain("--store");
+      expect(content).not.toContain("openspec store list");
+      expect(content).toContain("local Core");
+      if (name === "openspec-update-change") {
+        const description = content.match(/^description: (.+)$/m)?.[1];
+        expect(description).not.toContain("run that command instead");
+        expect(description).toContain("repository-safe");
+      }
       const endOfFrontmatter = content.indexOf("\n---\n", 4) + 5;
       expect(content.indexOf("<!-- CORE-OVERLAY-START -->")).toBeLessThan(
         content.indexOf("Upstream workflow prose"),

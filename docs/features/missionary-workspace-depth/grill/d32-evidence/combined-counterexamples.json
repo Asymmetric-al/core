@@ -1,0 +1,421 @@
+{
+  "cases": [
+    {
+      "corrected": "all five rejected",
+      "id": "B01",
+      "kind": "counterexample",
+      "title": "Zero remaining is not the fulfillment milestone",
+      "unsafe": [
+        {
+          "qualified": false,
+          "scenario": "internal_release",
+          "unsafe_remaining_zero": true
+        },
+        {
+          "qualified": false,
+          "scenario": "donor_end",
+          "unsafe_remaining_zero": true
+        },
+        {
+          "qualified": false,
+          "scenario": "ordinary_terms_reduction",
+          "unsafe_remaining_zero": true
+        },
+        {
+          "qualified": false,
+          "scenario": "zero_capacity",
+          "unsafe_remaining_zero": true
+        },
+        {
+          "qualified": false,
+          "scenario": "recurring_schedule_end",
+          "unsafe_remaining_zero": true
+        }
+      ]
+    },
+    {
+      "corrected": {
+        "partial_overapplied_unknown_currency_mismatch_unconserved": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "id": "B02",
+      "kind": "counterexample",
+      "title": "One paid installment or aggregate total cannot fulfill every line",
+      "unsafe": {
+        "aggregate_offsets_unpaid_line": true,
+        "any_installment_paid": true
+      }
+    },
+    {
+      "corrected": {
+        "semantic_intents": 1,
+        "stable_purposes": 1
+      },
+      "id": "B03",
+      "kind": "counterexample",
+      "title": "One continuing fixed pledge has one fulfillment purpose",
+      "unsafe": {
+        "line_delivery_purposes": 6
+      }
+    },
+    {
+      "corrected": {
+        "fulfillment_remaining": true,
+        "handled_purposes": 1
+      },
+      "id": "B04",
+      "kind": "counterexample",
+      "title": "Task identity is not purpose identity",
+      "unsafe": {
+        "task_keyed_coverage_would_cover": 2
+      }
+    },
+    {
+      "corrected": {
+        "coverage": 0,
+        "fulfillment_placement": "task-1",
+        "gift_anchor": "task-1",
+        "old_shell": "superseded"
+      },
+      "id": "B05",
+      "kind": "counterexample",
+      "title": "Changing pending placement does not handle or duplicate work",
+      "unsafe": {
+        "clone_fulfillment_active_placements": 2,
+        "empty_shell_generic_terminal_status": "done"
+      }
+    },
+    {
+      "corrected": {
+        "authority": {
+          "accepted": "unavailable",
+          "coverage": 0,
+          "unsafe_cached_ready": true
+        },
+        "placement": {
+          "accepted": "conflict",
+          "coverage": 0,
+          "unsafe_cached_ready": true
+        },
+        "policy": {
+          "accepted": "conflict",
+          "coverage": 0,
+          "unsafe_cached_ready": true
+        },
+        "source": {
+          "accepted": "conflict",
+          "coverage": 0,
+          "unsafe_cached_ready": true
+        }
+      },
+      "id": "B06",
+      "kind": "counterexample",
+      "schedule": [
+        "review gift and fulfillment",
+        "wait; relevant owner state changes",
+        "joint handling rechecks before any effect"
+      ],
+      "title": "Recheck all relevant fences after waiting",
+      "unsafe": "accept from cached precheck"
+    },
+    {
+      "corrected": {
+        "new_coverage": 0,
+        "result": "conflict"
+      },
+      "id": "B07",
+      "kind": "counterexample",
+      "title": "A changed selected source rejects the complete reviewed command",
+      "unsafe": {
+        "best_effort_new_coverage_count": 1
+      }
+    },
+    {
+      "corrected": {
+        "additional_coverage": 0,
+        "result": "conflict"
+      },
+      "id": "B08",
+      "kind": "counterexample",
+      "schedule": [
+        "review both",
+        "another command handles fulfillment",
+        "original joint command conflicts atomically"
+      ],
+      "title": "Concurrent handling of a selected purpose causes no partial second effect",
+      "unsafe": {
+        "skip_handled_then_cover": 1
+      }
+    },
+    {
+      "corrected": {
+        "covered_reviewed_count": 2,
+        "new_gift_pending": true
+      },
+      "id": "B09",
+      "kind": "counterexample",
+      "title": "An unrelated new gift neither blocks nor joins reviewed coverage",
+      "unsafe": {
+        "complete_current_group_count": 3,
+        "global_group_cas_conflicts": true
+      }
+    },
+    {
+      "corrected": {
+        "changed_payload": "payload_conflict",
+        "read_revoked": "unavailable",
+        "same_payload": "original_receipt"
+      },
+      "id": "B10",
+      "kind": "counterexample",
+      "title": "Retry recovers the old exact outcome after a policy flip",
+      "unsafe": {
+        "reexecute_with_new_outcome": "false second effect",
+        "revalidate_policy_before_receipt": "false conflict"
+      }
+    },
+    {
+      "corrected": {
+        "late_fulfillment_pending": true,
+        "new_gift_pending": true,
+        "old_task": "done"
+      },
+      "id": "B11",
+      "kind": "counterexample",
+      "title": "Late work does not reopen a handled task or inherit its coverage",
+      "unsafe": {
+        "reuse_done_anchor": "task-1",
+        "same_context_inherits_done": true
+      }
+    },
+    {
+      "corrected": {
+        "gift_preserved": true,
+        "handled_replays": false,
+        "stable_fulfillment_id": true,
+        "unhandled_restores": true
+      },
+      "id": "B12",
+      "kind": "counterexample",
+      "title": "Correction restores only the same unhandled pledge purpose",
+      "unsafe": {
+        "source_revision_as_new_purpose": [
+          1,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "corrected": {
+        "completion_authority": {
+          "handling": "conflict",
+          "unsafe_same_display_label": true
+        },
+        "entity": {
+          "handling": "conflict",
+          "unsafe_same_display_label": true
+        },
+        "ministry": {
+          "handling": "conflict",
+          "unsafe_same_display_label": true
+        },
+        "party": {
+          "handling": "conflict",
+          "unsafe_same_display_label": true
+        },
+        "responsibility": {
+          "handling": "conflict",
+          "unsafe_same_display_label": true
+        },
+        "tenant": {
+          "handling": "conflict",
+          "unsafe_same_display_label": true
+        }
+      },
+      "id": "B13",
+      "kind": "counterexample",
+      "title": "Every financial, recipient and responsibility boundary remains exact",
+      "unsafe": {
+        "same_display_name_groups_all": true
+      }
+    },
+    {
+      "corrected": {
+        "empty_selection": "invalid_selection",
+        "fulfillment_only": true,
+        "gift_admitted": false
+      },
+      "id": "B14",
+      "kind": "counterexample",
+      "title": "Combination requires independently qualified, explicitly selected purposes",
+      "unsafe": {
+        "empty_all_true_validation": true,
+        "final_payment_automatically_special": true
+      }
+    },
+    {
+      "corrected": {
+        "new_gift_anchor": "task-2",
+        "residue_container": "task-1",
+        "residue_covered": false
+      },
+      "id": "B15",
+      "kind": "counterexample",
+      "schedule": [
+        "handle all gifts",
+        "retain unhandled fulfillment container",
+        "clear gift-group slot",
+        "unrelated new gift starts its current group"
+      ],
+      "title": "Fulfillment-only residue cannot absorb unrelated future gifts",
+      "unsafe": {
+        "retained_current_gift_slot_would_route_to": "task-1"
+      }
+    },
+    {
+      "corrected": {
+        "late_milestone_separate": true,
+        "old_gift_reopened": false,
+        "unrelated_joint": "conflict"
+      },
+      "id": "B16",
+      "kind": "counterexample",
+      "title": "Only a pending completing or restoring gift permits new attachment",
+      "unsafe": {
+        "handled_causal_gift_reused": "would attach to unrelated pending gift",
+        "scope_only_matches": true
+      }
+    },
+    {
+      "corrected": {
+        "joint_with_current_Separate_before_repair": "conflict",
+        "unchanged_gift": "handled"
+      },
+      "id": "B17",
+      "kind": "counterexample",
+      "title": "A policy revision alone does not invalidate unchanged gift handling",
+      "unsafe": {
+        "global_policy_revision_would_conflict": true
+      }
+    },
+    {
+      "corrected": {
+        "qualified_original_proof_with_current_above_terms": true,
+        "reduction_without_money_milestone": false
+      },
+      "id": "B18",
+      "kind": "counterexample",
+      "title": "Current amount equality is not the financial domain rule",
+      "unsafe": {
+        "equality_rejects_preserved_money_milestone": true
+      }
+    },
+    {
+      "corrected": {
+        "fulfillment_purposes": 1,
+        "qualified_lines": 2
+      },
+      "id": "C01",
+      "kind": "positive_control",
+      "title": "Whole fixed pledge money fulfillment admits one native purpose",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "coverage": 0,
+        "gift_anchor_stable": true,
+        "no_op_revision_changes": 0,
+        "purpose_count": 2
+      },
+      "id": "C02",
+      "kind": "positive_control",
+      "title": "Combine, Separate and recombine preserve pending identities",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "covered_fulfillment": true,
+        "gift_pending": true,
+        "task": "current"
+      },
+      "id": "C03",
+      "kind": "positive_control",
+      "title": "An explicitly chosen nonempty subset is legitimate",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "covered_purposes": 2,
+        "financial_and_interaction_facts_unchanged": true,
+        "receipt_count": 1,
+        "task": "done"
+      },
+      "id": "C04",
+      "kind": "positive_control",
+      "title": "Exact compatible joint handling records distinct purpose coverage",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "independently_handled_purposes": 2,
+        "separate_tasks": 2
+      },
+      "id": "C05",
+      "kind": "positive_control",
+      "title": "Separate changes placement, not eligibility or completion rights",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "accepted_amended_promise": 90,
+        "money_before": 80,
+        "new_applied_money": 10,
+        "original_promise": 100,
+        "qualified_money_milestone": true
+      },
+      "id": "C06",
+      "kind": "positive_control",
+      "title": "A valid amended promise can be completed by later new money",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "current_restoring_gift_joined": true,
+        "fulfillment_identity_preserved": true,
+        "original_gift_coverage_preserved": true
+      },
+      "id": "C07",
+      "kind": "positive_control",
+      "title": "Current restoring evidence can attach the same unhandled milestone",
+      "unsafe": null
+    }
+  ],
+  "contract_status": "proposed owner amendments illustrated; no implementation or ratification claim",
+  "counts": {
+    "counterexample_families": 18,
+    "passed_outcome_assertions": 137,
+    "positive_controls": 7
+  },
+  "decision": "D32 A: one compatible follow-up may show and deliberately handle distinct gift and fixed-pledge-fulfillment purposes",
+  "evidence_kind": "bounded_stdlib_semantic_counterexamples",
+  "limitations": [
+    "Synthetic inputs only. No application, SQL, live database, provider, network, private data or earlier model/probe was executed.",
+    "Pledge line capacities, conserved received applications, original money-caused milestone, current completing/restoring gift set and original-live eligibility are supplied owner facts; no actual financial producer, ledger, refunds, matching or FX is implemented.",
+    "Finite sequential schedules assume serialized owner boundaries. They do not prove locks, waits, transaction isolation, database constraints, RLS, durable outbox, crash recovery or real concurrency.",
+    "Purpose maps and placement revisions are reasoning variables, not selected schema, a second task engine or an operational implementation.",
+    "Authority is abstract current permission and exact scope. Actual role grants, tenant policy storage, denial audit and privacy surfaces are untested.",
+    "The single modeled policy is a supplied effective organization setting. Multiple organizations' policy administration, migrations, mixed-version writers, configuration retry and activation are outside this model.",
+    "No UI, communication, consent or real interaction command is modeled. Existing interaction and financial fixtures are checked for preservation only.",
+    "D20/D32 examples cover selected-purpose versions, placement, exact coverage and recovery; full responsibility lifecycle, Undo, task pagination and partial-disclosure results are not implemented.",
+    "Passing assertions establish only these finite modeled outcomes, not runtime producer availability, enforcement, release readiness or production behavior."
+  ],
+  "reproduction": "python3 docs/features/missionary-workspace-depth/grill/d32-evidence/combined-counterexamples.py",
+  "revision_reason": "root audit found retained gift-slot, missing causal gift link, overbroad policy-revision conflict and overly narrow amount equality; initial artifacts are preserved separately",
+  "script_sha256": "6eb9ce99596d0e100682b8805eb84e92d0fb28aa79cdc6d82d821941bc68da4b"
+}

@@ -8772,23 +8772,23 @@ The system SHALL provide this observable outcome: As a delivery owner, I want a 
 
 ### Requirement: US27-Q15 — Financial owner gates E7 and C-01
 
-The system SHALL provide this observable outcome: As an authorized operator, I want financial owner gates E7 and C-01, so that unresolved source policy cannot turn into invented financial truth. The complete normative contracts are REQ27-Q15.
+The system SHALL provide this observable outcome: As an authorized operator, I want financial owner gates E7 and C-01, so that unqualified source implementations cannot turn settled policy into invented financial truth. The complete normative contracts are REQ27-Q15.
 
 #### Scenario: US27-Q15 AC27-Q15-01
 
-- **GIVEN** E7 attribution meaning is unresolved.
+- **GIVEN** the settled E7 policy lacks a qualified association/coverage adapter for an affected appeal.
 
-- **WHEN** an affected appeal asks for received-toward-goal.
+- **WHEN** it asks for received-toward-goal.
 
-- **THEN** the measure is explicitly unavailable, no live/frozen assumption is made, and independent work remains usable.
+- **THEN** the measure is explicitly unavailable, no live-map substitution or fabricated historical campaign is made, and independent work remains usable.
 
 #### Scenario: US27-Q15 AC27-Q15-02
 
-- **GIVEN** a reviewed Request or finance-intake record is used as authority to correct a posted gift before C-01 resolution.
+- **GIVEN** a reviewed Request or intake record is offered as authority to correct a posted gift.
 
-- **WHEN** the dependent command is proposed.
+- **WHEN** the dependent command is proposed under the settled C-01 policy.
 
-- **THEN** that lane remains blocked by the financial owner, without manufacturing correction approval.
+- **THEN** the P13 command requires actual correction authority, current policy and any required independent approval; the Request/intake record cannot bypass them, and an unqualified command lane remains unavailable.
 
 ### Requirement: US27-Q16 — Truthful release evidence and staff pilot
 

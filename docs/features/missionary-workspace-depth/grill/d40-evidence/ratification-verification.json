@@ -1,0 +1,254 @@
+{
+  "status": "passed",
+  "date": "2026-10-18",
+  "timezone": "Asia/Bangkok",
+  "scope": "D40 ratification and unanswered Q41 documentation only",
+  "checks": {
+    "frozen_evidence": {
+      "current_manifest_entries": 11,
+      "current_manifest_passed": 11,
+      "manifests_checked": 37,
+      "unique_frozen_files_checked": 401,
+      "manifest_entry_checks": 677,
+      "manifest_entry_passed": 677,
+      "manifests": [
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d40-evidence/ratification-evidence-sha256.json",
+          "entries": 11,
+          "passed": 11
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d40-evidence/prior-evidence-sha256.json",
+          "entries": 16,
+          "passed": 16
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d39-evidence/prior-evidence-sha256.json",
+          "entries": 15,
+          "passed": 15
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d39-evidence/ratification-evidence-sha256.json",
+          "entries": 12,
+          "passed": 12
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d38-evidence/prior-evidence-sha256.json",
+          "entries": 18,
+          "passed": 18
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d38-evidence/ratification-evidence-sha256.json",
+          "entries": 11,
+          "passed": 11
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d37-evidence/prior-evidence-sha256.json",
+          "entries": 20,
+          "passed": 20
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d37-evidence/ratification-evidence-sha256.json",
+          "entries": 14,
+          "passed": 14
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d36-evidence/prior-evidence-sha256.json",
+          "entries": 25,
+          "passed": 25
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d36-evidence/ratification-evidence-sha256.json",
+          "entries": 17,
+          "passed": 17
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d35-evidence/prior-evidence-sha256.json",
+          "entries": 20,
+          "passed": 20
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d35-evidence/ratification-evidence-sha256.json",
+          "entries": 22,
+          "passed": 22
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d34-evidence/prior-evidence-sha256.json",
+          "entries": 23,
+          "passed": 23
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d34-evidence/ratification-evidence-sha256.json",
+          "entries": 17,
+          "passed": 17
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d33-evidence/prior-evidence-sha256.json",
+          "entries": 25,
+          "passed": 25
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d33-evidence/ratification-evidence-sha256.json",
+          "entries": 20,
+          "passed": 20
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d32-evidence/prior-evidence-sha256.json",
+          "entries": 19,
+          "passed": 19
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d32-evidence/ratification-evidence-sha256.json",
+          "entries": 22,
+          "passed": 22
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d31-evidence/prior-evidence-sha256.json",
+          "entries": 19,
+          "passed": 19
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d31-evidence/ratification-evidence-sha256.json",
+          "entries": 16,
+          "passed": 16
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d30-evidence/prior-evidence-sha256.json",
+          "entries": 20,
+          "passed": 20
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d30-evidence/ratification-evidence-sha256.json",
+          "entries": 15,
+          "passed": 15
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d29-evidence/prior-evidence-sha256.json",
+          "entries": 23,
+          "passed": 23
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d29-evidence/ratification-evidence-sha256.json",
+          "entries": 16,
+          "passed": 16
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d28-evidence/prior-evidence-sha256.json",
+          "entries": 16,
+          "passed": 16
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d28-evidence/ratification-evidence-sha256.json",
+          "entries": 19,
+          "passed": 19
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d27-evidence/prior-evidence-sha256.json",
+          "entries": 16,
+          "passed": 16
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d27-evidence/ratification-evidence-sha256.json",
+          "entries": 13,
+          "passed": 13
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d26-evidence/prior-evidence-sha256.json",
+          "entries": 20,
+          "passed": 20
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d26-evidence/ratification-evidence-sha256.json",
+          "entries": 13,
+          "passed": 13
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d25-evidence/prior-evidence-sha256.json",
+          "entries": 20,
+          "passed": 20
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d25-evidence/ratification-evidence-sha256.json",
+          "entries": 15,
+          "passed": 15
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d24-evidence/prior-evidence-sha256.json",
+          "entries": 19,
+          "passed": 19
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d24-evidence/ratification-evidence-sha256.json",
+          "entries": 14,
+          "passed": 14
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d23-evidence/prior-evidence-sha256.json",
+          "entries": 26,
+          "passed": 26
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d23-evidence/ratification-evidence-sha256.json",
+          "entries": 13,
+          "passed": 13
+        },
+        {
+          "manifest": "docs/features/missionary-workspace-depth/grill/d22-evidence/prior-evidence-sha256.json",
+          "entries": 37,
+          "passed": 37
+        }
+      ]
+    },
+    "preserved_substance": {
+      "exact_decision": "unchanged except proposed-default status wording",
+      "amendment_clauses": "unchanged",
+      "concern_register": "unchanged",
+      "category_matrix": "unchanged",
+      "acceptance_criteria": "unchanged"
+    },
+    "review_structure": {
+      "clauses": 22,
+      "concerns": 15,
+      "categories": 22,
+      "material_concern_yes": 21,
+      "no_additional_concern": 1,
+      "acceptance_criteria": 34
+    },
+    "status": {
+      "d40": "explicitly ratified",
+      "q40": "answered A; amendments explicitly ratified",
+      "glossary": "ratified",
+      "session": "explicitly ratified",
+      "q41": "unanswered",
+      "d41": "absent"
+    },
+    "references": {
+      "local_references": 556,
+      "line_references": 84,
+      "anchor_references": 63,
+      "markdown_documents_checked": 9
+    }
+  },
+  "current_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d40-informational-missed-gift-adversarial-review.md": "89409a2f57a87db3e27eb1508fd2b4b61bc47e340b8a473c4fd2b7873608d7ff",
+    "docs/features/missionary-workspace-depth/grill/phase28-q40-missed-recurring-gift-review-research.md": "e116bd34bea1f27a74644a04ea941e20606f27e8a73ac67d6e54573f25ed558b",
+    "docs/features/missionary-workspace-depth/grill/phase28-q41-external-contact-continuity-research.md": "194b744ae1aab3cd06ca1140e6e5fae1c62245f9c802af0875872b0ea17412f0",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "b6901cc0ec1ac3b8a99f8b1b4c6d08266d9e760e9403f1d8c4c8fe1778ab41aa",
+    "CONTEXT.md": "5680d8260e87ec2a02c7156bfafa7c9029c8ba93b61d57a59640ee9ae74a533d",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/cross-review-resolution.md": "e5466c7a999c897bafefd2145fe07397e6e439f377647a74f2165897e932b61d",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/governance.md": "a56a6e63f4ad3415b335301fca70acd91f67ad6afa21a1bcfde2dd24ac0736bd",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/root-research.md": "7b9919ddc90ba36a72efa5336fd225a87dde94a0deedf5e604d843a766518bba",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/source-and-authorization.md": "f7bfb76ad000621573cf9fee96ea3a8b8424b8f37564ee711934fe4a757ebb16",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/ux-and-primary-research.md": "a329fae1f04b2e5b0e40652daa2a6a2bb63275dbfbb1c67f673c0b0be2d055c6",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/verify-ratification.py": "fd047a351d463b40d51df298099a84bec9ecd2b7b7f4cc2da3a40a2dd43c7a5c"
+  },
+  "limitations": [
+    "No prior verification, model, probe or example program was executed.",
+    "No application, database, RLS, provider, accessibility, usability or performance behavior was tested.",
+    "Local Markdown file/line/heading/explicit-HTML-anchor references were checked; external URL availability was not tested.",
+    "Ratification establishes accepted intended behavior, not formal specification publication, implementation, qualification or activation.",
+    "Line-bound validation verifies only that a cited local line exists, not that its current contents prove the surrounding business claim.",
+    "Recursive evidence checks cover only the explicit prior/ratification evidence manifests; old artifact-pin or runtime reports remain opaque preserved evidence, not current runtime claims."
+  ],
+  "errors": []
+}

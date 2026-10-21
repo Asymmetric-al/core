@@ -1,0 +1,221 @@
+# Phase 28 — coverage synthesis after D41 ratification
+
+October 18, 2026 (Asia/Bangkok), Core
+`9cada8f3d8ab59db391d3fd20df77fcadeb09813` and its research working tree.
+**D41 and its required amendments remain explicitly ratified. The earlier
+empty-frontier/shared-understanding conclusion is superseded by the
+[completeness adversarial review](phase28-completeness-adversarial-review.md).**
+The founder has now explicitly ratified the completeness decision and C01–C20,
+including the P9/P14 policy disposition and recurring-task scope correction.
+Phase28 is not complete: the three journey compositions require formal owner
+reconciliation and actual qualification, and six earlier amendment statuses and
+upstream policy gates remain open. Q42 is now answered B; the
+[D42 review](phase28-d42-verified-email-newsletter-signup-adversarial-review.md)
+records qualified verified-address Join with its required amendments now
+explicitly ratified. Q43 is now answered A; the
+[D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)
+records the pending-after-entry-Off choice with required amendments not yet
+separately ratified. No formal specification, implementation or activation is
+inferred.
+
+The [original version](completion-evidence/coverage-before-review.txt) is preserved
+as dated evidence. The current corrections below record the fresh challenge and subsequent explicit
+ratification; they do not alter D41's accepted wording.
+
+## Ratification recorded
+
+The earlier instruction explicitly ratifies the
+[completeness review](phase28-completeness-adversarial-review.md#explicit-ratification)
+and C01–C20/P01–P36 as planning requirements and future proof. C04/C05 are settled
+and are not on the question frontier. C07 preserves the six earlier packets'
+separate status. [Q42](phase28-q42-newsletter-confirmation-research.md) is now
+answered B. The subsequent ratification instruction adopted D42 and C01–C24/P01–P40;
+it supersedes only
+the surviving D6-C05 universal-confirmation recommendation for its qualified
+branch. [Q43](phase28-q43-pending-newsletter-confirmation-research.md) is now
+answered A, with the [D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)
+completed. Its detailed amendments remain recommendations until adopted;
+D6's finite proof/retention policy remains separately unresolved. No blanket
+D6 ratification is inferred.
+
+The earlier D41 ratification below remains unchanged in scope.
+
+The founder instructed: “Ratify this decision and amendment. Then continue with
+this phase 28 grill-with-docs session.” This ratifies the
+[D41 corrected decision and amendments](phase28-d41-native-contact-work-adversarial-review.md#explicit-ratification),
+including C01–C16, P01–P30, its qualification gates and operating responsibilities.
+Their reviewed wording is unchanged. No new external contact-update family is
+added this release; native permissions and the separately governed giving feed
+retain their exact boundaries.
+
+All nine original D41 evidence files and exact pre-ratification D41/Q41 snapshots
+are [preserved](d41-evidence/ratification-evidence-sha256.json). Earlier research,
+models, probes and verification programs remain historical evidence; none was
+executed for this ratification.
+
+## Why the earlier closure was replaced
+
+The founder asked whether an essential journey was still missing. A fresh audit
+of complete journeys, owner ADR/OpenSpec, reached source and current primary UX
+research found that feature coverage did not establish journey closure. P14
+expressly deferred its graph-edge policy choice to P28; the remaining recurring
+attention promise has no proved required missionary action. These are substantive
+policy seams, not merely unnamed adapters.
+
+The [new review](phase28-completeness-adversarial-review.md) gives the finished
+22-category challenge, exact ratified C01–C20 completion requirements and P01–P36
+future acceptance matrix. Its now-ratified disposition is **Reject and replace the prior
+closure conclusion**, while retaining every selected decision and actual adoption
+status. It credits already covered exits and negative paths rather than adding
+features to fill a checklist. Formal publication still requires `/to-prd`;
+tickets require `/to-issues` under the founder brief.
+
+## Selected scope, complete journey and remaining treatment
+
+“Covered” means selected or inherited product direction sufficient for later
+formal reconciliation. It does not mean that every reviewed amendment is ratified,
+that a producer exists, or that a runtime test passed. The next section identifies
+the six explicit amendment-status exceptions.
+
+| Journey or coverage area                    | Selected direction and evidence                                                                                                                                                                                              | Required owner treatment and proof                                                                                                                                                                                    |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tenant setup and first use                  | Individual capabilities exist in the decisions; no complete activation-to-first-value composition was established.                                                                                                           | New review C01: truthful owner readiness and useful native baseline with optional modules Off.                                                                                                                        |
+| Ordinary missionary context entry/switching | Existing context rights remain distinct; the current singular portal resolver is not proof of multi-context behavior.                                                                                                        | New review C02: zero/one/multiple contexts, deep-link admission, unsaved work and late-response isolation.                                                                                                            |
+| Joined daily work                           | D14/D19/P9/P27 already define component actions and outcomes.                                                                                                                                                                | New review C03/C08: compose task, actual outcome, Request response and next-work/owned-exception with truthful partial results.                                                                                       |
+| Find a person and prepare                   | D1–D5 distinguish restricted preparation, deliberate sharing, ordinary archive and qualified shared-contact correction; D17 bounds import.                                                                                   | P9/P4/P12 must qualify identity admission/reuse, exact audiences, current field authority and all derived disclosures. No hidden-match leak or parallel CRM.                                                          |
+| Leave, retain and return                    | D3 supplies no new continuity-access right; D4/D27/D28 cover archive, deliberate eligible resumption and finite organization-set departure retention.                                                                        | Same source/history and current access; source disposition and restore proof. Resumption before expiry ends that entry's departure deadline under D28 without reviving other rights.                                  |
+| Pursue a referral                           | D34–D39 cover limited expired history, deliberate continuation, tenant permissions, independent New/Continued periods and original-date New windows.                                                                         | P9/P12 must qualify actual sources, historic precision, correction, expiry, concurrency and recovery. A date or continuation never supplies contact consent.                                                          |
+| Plan a meeting or next action               | The [brief](phase28-founder-brief.md:119), P9/P27 and D14 preserve native appointments/tasks and optional calendar copies.                                                                                                   | Source-owned next work or an owned actionable exception, exact responsible actor, meaningful outcomes and one accepted effect. Opening a dialer or checking a task is not proof of an encounter.                      |
+| Individuals, households and churches        | The [brief](phase28-founder-brief.md:127), P9 and [P27 synthesis](../../donor-development/grill/phase27-post-d30-coverage-synthesis.md:109) retain distinct Parties, contacts, shared context and nonfinancial partnerships. | Current contact/participant authority, historic attribution, shared-mailbox privacy and source-owned correction. No church-specific workflow engine or household-wide access shortcut.                                |
+| Requests, appeals and stages                | P27 owns continuing work, configurable stages, financial/nonfinancial Requests and recorded appeal lists; the [brief](phase28-founder-brief.md:173) requires native composition.                                             | Use existing commands and frozen intended appeal membership. Resolve financial links and source corrections without changing stage/consent or inventing money.                                                        |
+| Goals and support visibility                | D16 qualifies missionary-managed goals; P13/P14/P16/P21 retain received money, recognition, commitments and finance visibility.                                                                                              | Separate Goal Versions and Support Plans, currency/period/scope/coverage, exact source metrics and financial gates below. Unknown/stale is not zero.                                                                  |
+| Gift-aware stewardship                      | D19–D22/D29–D32 qualify first, special, purpose, amount, excess and combined follow-up.                                                                                                                                      | Exact source-purpose identity, compatible grouping, independent purpose completion, corrections and anonymity. Required native work remains usable without optional automation.                                       |
+| Gifts awaiting finance                      | D33 permits optional missionary reporting, initially Off, into the same P15 intake continued by Finance.                                                                                                                     | Current action scope, accountable intake/recovery and truthful permitted status. A report is not posted money, a receipt or physical custody evidence.                                                                |
+| Recurring attention                         | D40 keeps one confirmed missed automatic occurrence informational while regular future giving remains scheduled; ordinary deliberate follow-up remains.                                                                      | Preserve P16 recovery/lifecycle truth and D40 notice rules. Bind other required recurring-attention tasks to an exact qualified purpose; D40 is not a blanket no-task policy.                                         |
+| Newsletter signup and complete sending      | D6 selects direct native signup with missionary Page control; D7 ratifies deliberate per-issue authorization and the full native email/print job.                                                                            | Reconcile exact recipient, consent, content/preparation, Page, test-send, dispatch, print and repair owners. No signup from gifts/old requests or automatic future digest. D6 amendments keep their separate status.  |
+| Personal email and calendar                 | D14/D15 ratify optional qualified one-way appointment copies and deliberate individual sending from supported personal accounts.                                                                                             | Exact account/provider scope, current authority, source effects, uncertain-outcome recovery and revocation. No general inbox, contact-book ingestion or meeting-completion inference.                                 |
+| Ministry Updates and writing help           | Existing P22 operations and D7 preserve approved content reuse; D18 ratifies optional bounded newsletter writing help.                                                                                                       | Approved content/audience, candidate privacy, certified purpose/provider/model, human acceptance and independent sending. No automatic publication or broader chatbot is inferred.                                    |
+| Invited coaching                            | D8–D11 and D23–D26 cover outside coaches when allowed, optional summaries/history, duration, activity, check-ins and selected next steps.                                                                                    | Current read-only module/audience/history authority, aggregation safety, tenant limits and explicit sharing. No default raw finances, compulsory logs, coaching writes or impersonation. D11 detail remains reviewed. |
+| Resources, guidance and geography           | D12 selects organization-curated resources; D13 selects region list/map with tenant control; D37 ratifies an optional editable starting guide.                                                                               | Resource publication distinct from file custody, approved broad-region projection, accessible list/map, truthful availability and current access. No compulsory course or precise private locations.                  |
+| Imports and external continuity             | D17 ratifies bounded source-validated contact intake; D41 excludes a new external contact-update family. P21/P31 giving scope remains independently governed.                                                                | Exact parser/source/provider qualification and safe retained-data adoption. Reimport is not reverse sync; financial credentials cannot request added contact fields.                                                  |
+| Daily usability, operations and adoption    | The [readiness requirements](phase28-founder-brief.md:311) and each decision require phone access, interruption recovery, source history and current authorization.                                                          | Real source/role/concurrency/provider tests, retained-data census, accessible complete journeys and representative measured budgets. No offline replay or blanket future-phase dependency.                            |
+
+The representative journey remains mandatory: referral → appointment → appropriate
+Request and source-owned commitment → qualifying received gift → follow-up handled
+once → permitted native newsletter → deliberately shared coach summary. Its
+alternative paths include nonfinancial support, a declined or paused request,
+an inaccessible contact, no coach, no enabled optional connection and no AI.
+None may require a fabricated gift, message, encounter or consent to continue.
+
+## Exact amendment-status exceptions
+
+The [session register](phase28-session.md#decision-register)
+remains authoritative for the recorded conversation status. **At the D41
+checkpoint, thirty-five decisions had explicit amendment ratification and six
+retained selected/reviewed status.** Later D42 ratification and D43's selected A
+do not silently approve those six reviews as a package.
+
+| Decision                                                                  | Already selected                                                                    | What this checkpoint does not newly ratify                                                                                                                                         |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [D1](phase28-d1-adversarial-review.md#corrected-decision-to-record)       | Restricted start for newly supplied preparation and contact assertions.             | The review's bounded source recommendation and remaining detailed safeguards. D2's later ratified sharing/admission treatment and D27/D28 lifecycle rules keep their exact scopes. |
+| [D3](phase28-d3-adversarial-review.md#exact-decision-to-record)           | No new continuity-access right on departure or incapacity.                          | A separate blanket ratification of the review's clauses. Later archive, return and retention decisions are independently ratified and must be reconciled rather than reopened.     |
+| [D6](phase28-d6-adversarial-review.md#exact-corrected-decision-to-record) | Direct native newsletter signup and missionary control of the exact Page entry.     | Reviewed confirmation/admission, Off behavior, retention details and owner amendments. D7 expressly does not ratify D6 by implication.                                             |
+| [D11](phase28-d11-coaching-duration-decision.md#decision)                 | Ongoing coaching sharing with an optional end date, subject to organization limits. | The detailed date/cutoff, change and recovery recommendations as separately ratified wording.                                                                                      |
+| [D12](phase28-d12-resource-library-decision.md#decision)                  | An organization-managed library without an ordinary missionary submission workflow. | The exact resource publication/custody extension and detailed reader/curator recommendations as separately ratified wording.                                                       |
+| [D13](phase28-d13-regional-map-decision.md#decision)                      | Region browsing plus a world map with tenant On/Off control.                        | The recommended initial Off/List defaults, control composition and exact geography-consumer amendment as separately ratified wording.                                              |
+
+These are visible approval-status exceptions, not permission to replace the
+selected directions or six newly invented feature choices. Formal reconciliation
+must preserve the approved later clauses, distinguish unresolved recommended
+language and obtain the applicable explicit adoption before treating a proposal
+as accepted. A general confirmation that the product direction is understood
+does not itself claim such adoption or authorize `/to-prd`.
+
+## Owner conflicts and proof that must remain open
+
+These include unresolved upstream product-policy rulings as well as engineering
+reconciliation and proof; they are not all implementation details. They cannot
+merely be monitored after release. Missing qualification blocks the affected effect; it
+does not delete that outcome from scope or block unrelated work. Current external
+tracker/provider state was not re-fetched; dated evidence remains dated.
+
+| Item                                                          | Evidence and owner                                                                                                                                                                                                                                           | Required treatment; safe boundary                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P9/P14 financial-support edge and roster meaning (session C4) | [P9 B3](../../../prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md:617), [P14 H4](../../../prds/sitestacker-parity/phase-14-donor-credit-operations.md:1070), and [recorded conflict](phase28-relationship-finance-evidence.md:173).     | P9/P14/P28 must explicitly reconcile the v1 edge and recognition-based v2 roster, including its 365–730-day display band and removal after 730 days. Do not infer that these financial cutoffs end a continuing or nonfinancial relationship, label a person lapsed, or supply contact authority. The completeness C04 disposition is now ratified: preserve purpose-specific predicates and neutral historical-recency meaning; carry the exact amendment into formal owner projections. |
+| E7 temporal financial attribution                             | P13 source-code/campaign reporting versus posting-time interpretation; exact conflicting clauses are retained in [P27 reconciliation](../../donor-development/grill/phase27-post-d30-coverage-synthesis.md#formal-owner-reconciliation-and-honest-blockers). | P13 must settle current/historical attribution and correction semantics. Affected received-toward-appeal measures remain unavailable until qualified; ordinary work and independent facts continue. Hierarchy, Site changes and posted-row immutability do not by themselves answer E7.                                                                                                                                                                                                   |
+| C-01 posted-correction approval                               | The [program gate](../../../prds/program-roadmap/decisions-and-gates.md:36) explicitly requires a founder ruling between P13 optional separation and P15 mandatory different approver.                                                                       | Obtain the founder/financial-owner ruling through its owning scope before reconciling P13/P15. D33 intake, P27 Request review and C-02 immutability do not answer it. Engineering cannot choose by convenience; affected correction implementation remains undispatched.                                                                                                                                                                                                                  |
+| Exact preparation and sealed submission                       | The session's dated inspected evidence reports the missing exact P6 producer; a general send ticket or current UI is insufficient.                                                                                                                           | P6/P17 and the source owner must provide preparation, approved content/recipient binding, sealed dispatch, recovery and result evidence. Recheck current producer/tracker state before formal mapping; no duplicate ticket or direct-provider substitute.                                                                                                                                                                                                                                 |
+| Recurring-attention scope reconciliation                      | [D40](phase28-d40-informational-missed-gift-adversarial-review.md) narrows one situation; [P28 retained owner obligations](../../../prds/program-roadmap/owner-constraints.md#phase-28) retain independent native work.                                      | Ratified completeness C05 explicitly narrows the additional automatic missionary recurring-review promise. Preserve factual P16 views, D40, deliberate ordinary follow-up and independently established staff/donor duties; formally reconcile the exact owner clauses.                                                                                                                                                                                                                   |
+| New or extended source-purpose producers                      | D1/D2/D6–D18/D23–D28/D34–D41 describe bounded preparation, signup, sharing, resources/geography and connection consumers.                                                                                                                                    | Reconcile exact P3/P4/P9/P10/P12/P6/P17/P21/P22/P29/P30/P31 ownership and actual source contracts. A generic table, file service, relationship or settings card is not the required producer. Do not wait for unrelated whole future phases.                                                                                                                                                                                                                                              |
+| Current native implementation gaps                            | [D41 current source review](d41-evidence/source-and-authorization.md), earlier native task/read/financial inspection.                                                                                                                                        | Qualify the actual field/actor inventory, source-shaped corrections, grants/RLS/privileged paths, idempotency and UI. Preserve legitimate edits and avoid hardcoded money/address defaults. Static findings do not establish deployed exploitation.                                                                                                                                                                                                                                       |
+| Retained-data adoption and restore                            | The brief and individual source reviews require a census and safe old/new writer cutover.                                                                                                                                                                    | Preserve source identities, lawful history, suppression, accepted effects and unresolved work. No blind reset, mass sharing, financial reclassification or restored consent/access. No migration ran today.                                                                                                                                                                                                                                                                               |
+| Complete user and performance proof                           | [Founder readiness requirements](phase28-founder-brief.md:311).                                                                                                                                                                                              | P28 design/release owners must observe representative missionary/staff/coach journeys and define measurable task-success, time/navigation and poor-network budgets. Validate phone/keyboard/screen-reader behavior, currencies, households, anonymity, partial success and revoked rights. Earlier probes and document checks cannot discharge this gate.                                                                                                                                 |
+
+The P14/P9 discrepancy deserves explicit treatment because financial support and
+relationship continuity are different facts. P14's roster v2 recognizes indirect
+paths; P9's v1 edge has its separately versioned predicate. Preserve these existing
+purpose-specific policies under ratified completeness C04. No automatic edge
+upgrade follows from ratification; formal owner reconciliation is still required. Native relationship work
+must be composed through its independently permitted source; the financial read
+model is not the contact directory. Its temporal bands do not establish retention,
+access, partnership lifecycle, D19 first-support history completeness or P16
+commitment health. Qualification must reconcile the current typed-commitment
+predicate with historical-recency wording rather than silently dropping current
+support based only on age. P14's financial field floor remains intact despite D5
+native editing. Source owners must resolve exact consumer behavior in canonical
+clauses and OpenSpec projections; a banner saying “follow the latest decision” is
+inadequate.
+
+[E7](../../../prds/program-roadmap/decisions-and-gates.md:51) likewise requires a
+financial temporal-policy ruling, not merely an adapter fix. The founder has now ratified C04 retaining purpose-specific financial predicates
+and C05 explicitly narrowing the additional automatic recurring-task promise.
+These are settled planning intent; their formal owner projections are not yet updated.
+
+## Declined artificial follow-on questions
+
+- Mandatory guide completion would contradict D37's selected optional behavior.
+- Automatic future digests would reopen D7's deliberate per-issue authorization.
+- General inbox synchronization would expand D15 beyond selected personal sending.
+- Full history/task migration would expand D17's bounded first-release intake.
+- Another contact-feed option would reverse the newly ratified D41 choice.
+- Continuing nonfinancial relationships remain required. However, the exact
+  P9/P14 edge disposition and remaining recurring human-job promise are genuine
+  policy seams; the new review now records their explicit ratified resolutions.
+- A new coach editor/chat, reminder engine, AI assistant or per-contact setting
+  needs demonstrated user need; it is not necessary to exhaust this coverage map.
+
+## Current completion status and next authorized transition
+
+The completeness decision and C01–C20 are explicitly ratified, including C04/C05.
+The founder answered [Q42](phase28-q42-newsletter-confirmation-research.md) **B**:
+deliberate Join may reuse qualified proof for the same current verified account
+address; other readers confirm by email. The
+[completed D42 review](phase28-d42-verified-email-newsletter-signup-adversarial-review.md)
+records C01–C24/P01–P40, one organization-wide control, actual Supabase proof and
+public-reader/RLS boundaries, and bounded verification. Its detailed amendments
+are now explicitly ratified as planning requirements and future proof.
+[Q43](phase28-q43-pending-newsletter-confirmation-research.md) asks whether already
+accepted pending signups may finish after the Page entry is hidden. It is
+unanswered. Proof lifetime and retention remain separate; no blanket D6 adoption
+or D43 answer is inferred.
+
+Six earlier amendment packets retain their separate status. The ordinary
+first-use/context/daily-loop requirements are adopted; actual source, UI,
+accessibility, migration and representative-user proof remains required.
+E7/C-01 remain upstream policy rulings. Formalization awaits `/to-prd`; tickets
+await `/to-issues`. Neither transition occurred.
+
+## Verification and evidence limits
+
+The [original completeness verification](completion-evidence/verification.json)
+checks its pre-ratification snapshot. The [new ratification verification](post-completion-evidence/ratification-verification.json)
+checks its ratification snapshot, Q42 framing and preserved original evidence.
+The [D42 verification](d42-evidence/verification.json) checks its selected-answer
+snapshot and preserved preceding evidence. The
+[D42 ratification verification](d42-evidence/ratification-verification.json)
+checks unchanged requirements, current ratification and Q43 framing. The earlier
+[D41 ratification verification](d41-evidence/ratification-verification.json)
+remains evidence of its original snapshot, not a current coverage test. No old
+checker/model/probe was executed for this review. No actual database, provider,
+browser, ministry interview or load test is claimed. The finished research review
+does not mean Phase 28 decisions or delivery are complete.

@@ -1,0 +1,153 @@
+{
+  "tables": [
+    {
+      "relname": "coverage",
+      "rolname": "coach_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "coverage",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "facts",
+      "rolname": "coach_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "facts",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "grants",
+      "rolname": "coach_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "grants",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "heads",
+      "rolname": "coach_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "heads",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "previews",
+      "rolname": "coach_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "previews",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "snapshots",
+      "rolname": "coach_a",
+      "can_select": false,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "snapshots",
+      "rolname": "command_executor",
+      "can_select": true,
+      "can_update": false,
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    }
+  ],
+  "functions": [
+    {
+      "proname": "apply_preview",
+      "owner": "command_executor",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=pg_catalog, probe, pg_temp"
+      ],
+      "proacl": [
+        "command_executor=X/command_executor",
+        "missionary_a=X/command_executor"
+      ]
+    },
+    {
+      "proname": "history",
+      "owner": "command_executor",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=pg_catalog, probe, pg_temp"
+      ],
+      "proacl": [
+        "command_executor=X/command_executor",
+        "coach_a=X/command_executor"
+      ]
+    },
+    {
+      "proname": "tenant",
+      "owner": "postgres",
+      "prosecdef": false,
+      "proconfig": [
+        "search_path=pg_catalog"
+      ],
+      "proacl": [
+        "postgres=X/postgres",
+        "command_executor=X/postgres",
+        "coach_a=X/postgres",
+        "missionary_a=X/postgres",
+        "source_manager=X/postgres"
+      ]
+    },
+    {
+      "proname": "unsafe_created_month",
+      "owner": "command_executor",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=pg_catalog, probe, pg_temp"
+      ],
+      "proacl": [
+        "command_executor=X/command_executor",
+        "coach_a=X/command_executor"
+      ]
+    }
+  ]
+}

@@ -20,6 +20,11 @@ describe("source-owned OpenSpec projection merging", () => {
       "operating controls remain binding",
     ],
     [
+      "add-missionary-workspace-depth",
+      "missionary-workspace-depth",
+      "canonical Phase 28 domain/proof volumes",
+    ],
+    [
       "add-web-studio-hybrid-contracts",
       "web-studio-hybrid-authoring",
       "requirements.json",

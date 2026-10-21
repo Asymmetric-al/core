@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-18",
+  "kind": "independent_root_reproduction_of_new_D31_model",
+  "command": "python3 docs/features/missionary-workspace-depth/grill/d31-evidence/excess-counterexamples.py",
+  "exit_code": 0,
+  "byte_identical": true,
+  "script_sha256": "ab34413bca930916027a54fef9d569eaaa4edbaba1aa9cb180d303d0399744b1",
+  "expected_sha256": "b6d60bd45f948f7472562c110c8a0cdbd30a5db5ff0bdb5a047eb1aef2d620e6",
+  "actual_sha256": "b6d60bd45f948f7472562c110c8a0cdbd30a5db5ff0bdb5a047eb1aef2d620e6",
+  "counts": {
+    "counterexample_families": 14,
+    "passed_outcome_assertions": 88,
+    "positive_controls": 5
+  },
+  "limits": "Finite synthetic model only; no real financial producer, SQL/RLS, concurrent execution, provider, migration, UI or usability qualification. Earlier models and probes were not rerun."
+}

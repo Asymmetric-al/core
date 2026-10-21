@@ -122,3 +122,27 @@ Every clause in `openspec/contracts/donation-lifecycle.md#contract-e0cfb2b09c424
 - THEN existing occurrences, signed events, refunds, and recovery continue to
   resolve through the frozen binding
 - AND only a separately authorized prospective replacement may bind later work
+
+### Requirement: Recurring Campaign Origin Survives Ordinary Changes
+
+The platform SHALL retain the accepted campaign association, including known absence, at the stable commitment-line and effective term-version grain.
+
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-7dbf2cca43f35c52ce36` MUST apply without exception.
+
+#### Scenario: Mapping changes while a recurring line continues
+
+- **GIVEN** a line has accepted campaign A or known no-campaign and its code now maps to B.
+- **WHEN** an ordinary amount edit, pause/resume or subsequent occurrence is accepted.
+- **THEN** the line and generated contribution retain their accepted campaign meaning; the live map does not rewrite it.
+
+#### Scenario: Staff deliberately amend future campaign attribution
+
+- **GIVEN** a current-authorized actor accepts a prospective campaign-only amendment with exact source eligibility and effective boundary.
+- **WHEN** future eligible work is created or qualified unclaimed work is superseded.
+- **THEN** it uses the new version while preserving the correct source code, earlier gifts and accepted/claimed/in-flight occurrences; retries create no duplicate effect.
+
+#### Scenario: An independent gift fulfills a recurring occurrence
+
+- **GIVEN** an independently captured gift has its own accepted attribution.
+- **WHEN** the source applies it to a compatible recurring occurrence.
+- **THEN** fulfillment coverage changes without rewriting the gift or occurrence attribution, even when their campaigns differ.

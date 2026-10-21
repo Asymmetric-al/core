@@ -112,11 +112,11 @@ Implement explicit owner commands for Request preparation/presentation/response/
 
 Same-intent retries return currently permitted evidence of the accepted effect without replacing newer state; changed semantic payload under the same operation key conflicts. Privileged/import/repair paths preserve the same boundaries. Source identity and tenant-aware required FKs remain independent of nullable financial details; immutable historical attribution cannot be modified by general patches. Deny ordinary destructive cascades and history rewrites. Retention/redaction/disposal obey exact source class and legal holds rather than indefinite sensitive snapshots. Counts, filters, logs, manifests, exports, document links, generated briefs, caches and notifications obey the same current existence/field/purpose floor. Restore re-proves newer restrictions, identity, consumed effects and disposal before affected readers/workers resume.
 
-### Explicit unresolved upstream financial gates
+### Settled upstream policy and remaining financial qualification gates
 
-**E7 — temporal campaign attribution:** financial ownership must reconcile the contradictory live source-code/campaign reparenting and posting-time frozen campaign attribution promises, including previously unmapped codes, hierarchy versus code-map changes, refunds/corrections, recurring-origin effects and current/historical reporting. Posted-row immutability alone does not select that external mapping policy. Until the exact association adapter and coherent coverage contract are qualified, affected received-toward-appeal results are Unavailable; ordinary Requests/nonfinancial work and independently permitted source facts continue. Native financial reporting remains required scope; this gate does not remove it or authorize a shadow association/ledger.
+**E7 — temporal campaign attribution:** Phase 28 D49/D50 and [OA-08–OA-10](../phase-28-missionary-workspace-depth/owner-reconciliation.md#oa-08) settle stable earlier-gift attribution, known no-campaign, explicit append-only corrections, continuing recurring origin and separately interpreted current hierarchy. A live source-code remap cannot alter an earlier gift or an independently captured gift applied to fulfillment. Until the exact association adapter, retained-data meaning and coherent coverage contract are qualified, affected received-toward-appeal results remain Unavailable; ordinary Requests/nonfinancial work and independently permitted source facts continue. Required native reporting remains in scope, with no shadow association ledger.
 
-**C-01 — posted-gift correction approval:** optional tenant separation versus mandatory independent approver remains an upstream finance policy decision. Request internal review cannot settle or bypass it. Affected posted-correction implementation remains undispatched until its governing owner decision is resolved; routine Request review and qualified intake reporting do not acquire that authority.
+**C-01 — posted-gift correction approval:** Phase 28 D48 / [OA-07](../phase-28-missionary-workspace-depth/owner-reconciliation.md#oa-07) settles organization choice of the existing supported correction approval policy. The light default, preservation of explicit stronger choices, current-policy admission and independent mandatory controls govern. Request review and qualified intake do not grant or bypass correction authority; implementation still requires exact owner qualification.
 
 The accepted P15 receipt-report extension, current P9/P12/source work and P6/P17/P32 admission contracts must be reconciled explicitly before affected activation. Broader future finance, event, files or workflow products are not universal prerequisites. Production-shaped source/authorization/concurrency/restore/accessibility/pilot evidence remains required; documentation completion neither qualifies runtime nor permits outreach.
 
@@ -763,7 +763,7 @@ the full gift header because one portion is related. Preserve the qualified sour
 monetary basis, including admitted charitable fee cover and finalized corrections;
 no processor-fee subtraction, expected gift, noncash valuation or liquidation
 proceeds substitution. Readers SHALL use a coherent source/association/coverage
-revision, not a maximum of unrelated per-record cursors.
+revision, not a maximum of unrelated per-record cursors. Campaign association SHALL follow P13/P16 as reconciled by Phase 28 D49/D50: ordinary mapping edits preserve earlier gifts and accepted recurring attribution; explicit source corrections/amendments remain. Current hierarchy measures SHALL identify their coherent hierarchy revision and SHALL NOT overwrite issued or closed-period evidence.
 
 #### REQ27-F80 — Authority at every boundary
 

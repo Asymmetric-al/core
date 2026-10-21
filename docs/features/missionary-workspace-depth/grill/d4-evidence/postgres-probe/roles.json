@@ -1,0 +1,34 @@
+[
+  {
+    "rolname": "command_executor",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": false,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "gate_manager",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "outsider",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "owner_a",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  }
+]

@@ -1,0 +1,96 @@
+{
+  "status": "passed",
+  "date": "2026-10-18",
+  "scope": "Eight illustrative calendar examples and DST elapsed-hours contrast only",
+  "python": "3.12.14",
+  "tzdata_header": "# version 2026b",
+  "cases": [
+    {
+      "case": "one_day",
+      "original_date": "2026-10-01",
+      "calendar_days": 1,
+      "zone": "Asia/Bangkok",
+      "last_nominal_day": "2026-10-01",
+      "exclusive_endpoint": "2026-10-02T00:00:00+07:00",
+      "expected": "2026-10-02T00:00:00+07:00",
+      "one_microsecond_before_is_before_target_date": true
+    },
+    {
+      "case": "thirty_days",
+      "original_date": "2026-10-01",
+      "calendar_days": 30,
+      "zone": "Asia/Bangkok",
+      "last_nominal_day": "2026-10-30",
+      "exclusive_endpoint": "2026-10-31T00:00:00+07:00",
+      "expected": "2026-10-31T00:00:00+07:00",
+      "one_microsecond_before_is_before_target_date": true
+    },
+    {
+      "case": "leap_day",
+      "original_date": "2028-02-28",
+      "calendar_days": 2,
+      "zone": "Etc/UTC",
+      "last_nominal_day": "2028-02-29",
+      "exclusive_endpoint": "2028-03-01T00:00:00+00:00",
+      "expected": "2028-03-01T00:00:00+00:00",
+      "one_microsecond_before_is_before_target_date": true
+    },
+    {
+      "case": "spring_dst",
+      "original_date": "2026-03-08",
+      "calendar_days": 1,
+      "zone": "America/New_York",
+      "last_nominal_day": "2026-03-08",
+      "exclusive_endpoint": "2026-03-09T00:00:00-04:00",
+      "expected": "2026-03-09T00:00:00-04:00",
+      "one_microsecond_before_is_before_target_date": true
+    },
+    {
+      "case": "fall_dst",
+      "original_date": "2026-11-01",
+      "calendar_days": 1,
+      "zone": "America/New_York",
+      "last_nominal_day": "2026-11-01",
+      "exclusive_endpoint": "2026-11-02T00:00:00-05:00",
+      "expected": "2026-11-02T00:00:00-05:00",
+      "one_microsecond_before_is_before_target_date": true
+    },
+    {
+      "case": "missing_midnight",
+      "original_date": "2018-11-03",
+      "calendar_days": 1,
+      "zone": "America/Sao_Paulo",
+      "last_nominal_day": "2018-11-03",
+      "exclusive_endpoint": "2018-11-04T01:00:00-02:00",
+      "expected": "2018-11-04T01:00:00-02:00",
+      "one_microsecond_before_is_before_target_date": true
+    },
+    {
+      "case": "repeated_midnight",
+      "original_date": "2020-10-31",
+      "calendar_days": 1,
+      "zone": "America/Havana",
+      "last_nominal_day": "2020-10-31",
+      "exclusive_endpoint": "2020-11-01T00:00:00-04:00",
+      "expected": "2020-11-01T00:00:00-04:00",
+      "one_microsecond_before_is_before_target_date": true
+    },
+    {
+      "case": "skipped_date",
+      "original_date": "2011-12-29",
+      "calendar_days": 1,
+      "zone": "Pacific/Apia",
+      "last_nominal_day": "2011-12-29",
+      "exclusive_endpoint": "2011-12-31T00:00:00+14:00",
+      "expected": "2011-12-31T00:00:00+14:00",
+      "one_microsecond_before_is_before_target_date": true
+    }
+  ],
+  "NY_calendar_day_elapsed_hours": [
+    23.0,
+    25.0
+  ],
+  "prior_programs_executed": false,
+  "Core_database_UI_runtime_or_user_study_proof": false,
+  "production_algorithm": false
+}

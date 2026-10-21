@@ -1,0 +1,120 @@
+{
+  "review": "Phase 28 D29 additional-support purpose \u2014 database and authorization evidence",
+  "retrieved_date_utc": "2026-10-17",
+  "repository_head": "9cada8f3d8ab59db391d3fd20df77fcadeb09813",
+  "evidence_kind": "Fresh public documentation HTTP retrievals; not deployed catalog, runtime, user research, or implementation proof",
+  "fetches": [
+    {
+      "url": "https://supabase.com/changelog.md",
+      "final_url": "https://supabase.com/changelog.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:31:49.324610+00:00",
+      "sha256": "15b3d0d1a7dc3b3f2c0af4788e49acfdf2d2edbd2613f22de0705fa43b1cf58b",
+      "bytes": 102319
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "final_url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:08.920512+00:00",
+      "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "bytes": 30344
+    },
+    {
+      "url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+      "final_url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:09.342847+00:00",
+      "sha256": "d2c47fd37a58003f294e11f47cdb05bdd2bb853f350c006a9e6a2c4249868e46",
+      "bytes": 18172
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:10.462323+00:00",
+      "sha256": "1772bf6791789204d77a0ed3e35c0ff2f7ea988fb71f64a0b4b3a19908fad6a6",
+      "bytes": 46910
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "final_url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:10.798139+00:00",
+      "sha256": "4cdf084d8e36009d03790c508585bd7c4c237aac4165dbbc9173866dbffc980e",
+      "bytes": 31181
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:12.698736+00:00",
+      "sha256": "887e05c52a98890006d7d63cd1dcbb933309376ff78967bef6693f247dddbf43",
+      "bytes": 51069
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "final_url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:10.242717+00:00",
+      "sha256": "e3475df0c76b214dbda0bc681015099763b83778e1355e17ee7b908e6fd38a26",
+      "bytes": 47618
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "final_url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:13.983268+00:00",
+      "sha256": "dadc6166e3dcae0a1c91ada5373ef046682876b6db32e8c771338a4cb9b8c4be",
+      "bytes": 44707
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/datatype-numeric.html",
+      "final_url": "https://www.postgresql.org/docs/17/datatype-numeric.html",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:10.727828+00:00",
+      "sha256": "c035350808ecf8ddfde2fa06ac2de5f2f1677da43515e3d48c2ab6a9b36f85b5",
+      "bytes": 41303
+    },
+    {
+      "url": "https://supabase.com/docs/guides/storage/security/ownership.md",
+      "final_url": "https://supabase.com/docs/guides/storage/security/ownership.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:10.593900+00:00",
+      "sha256": "1307a1ca2d3e1c0dc9514e523804d9f177cd1e8b19c1e2a3259746322a5302b9",
+      "bytes": 1436
+    },
+    {
+      "url": "https://supabase.com/docs/guides/platform/backups.md",
+      "final_url": "https://supabase.com/docs/guides/platform/backups.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:10.706592+00:00",
+      "sha256": "59f3bb7a169c6fa7682a818d6046f6b0031c923ec2376bf096bb7f08bea87944",
+      "bytes": 9134
+    },
+    {
+      "url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+      "final_url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:11.084620+00:00",
+      "sha256": "5a8b769a317852457dfcb6317dbc62063d599a0718f619ac518a7935f34ba4ff",
+      "bytes": 163465
+    },
+    {
+      "url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+      "final_url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:11.212731+00:00",
+      "sha256": "951230c75ba1735097c2664a6aea6e868d812ddf066c457917ea106a78d9bf2c",
+      "bytes": 87727
+    },
+    {
+      "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "final_url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T16:32:11.091007+00:00",
+      "sha256": "3df27e7bb4f86fdd15dbcb753d1ca05d963a6bc8299d112b4bf13ef90164a2df",
+      "bytes": 246967
+    }
+  ]
+}

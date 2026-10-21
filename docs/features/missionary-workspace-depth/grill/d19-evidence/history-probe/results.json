@@ -1,0 +1,190 @@
+{
+  "scope": "Synthetic counterexamples only; no Core, SQL, RLS, provider, financial owner, or performance qualification",
+  "python": "3.12.14",
+  "case_count": 20,
+  "reproduced": 20,
+  "cases": [
+    {
+      "id": "H01",
+      "shortcut": "MIN of the newest 250 rows proves first-ever",
+      "observation": {
+        "all_history_min": 0,
+        "viewport_min": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H02",
+      "shortcut": "The current supporter roster contains all first-support evidence",
+      "observation": {
+        "history_days_ago": [900, 1],
+        "roster_days_ago": [1]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H03",
+      "shortcut": "No visible older record means no older gift",
+      "observation": {
+        "visible_in_both_worlds": ["2026-10-16"],
+        "first_in_world_a": "2026-10-16",
+        "first_in_world_b": "2018-01-01"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H04",
+      "shortcut": "First event arrival is first support",
+      "observation": {
+        "first_arrival": "later",
+        "earliest_source": "earlier"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H05",
+      "shortcut": "Sorting only a shared date supplies unique historical order",
+      "observation": {
+        "forward_first": "a",
+        "reverse_first": "b"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H06",
+      "shortcut": "An initial recurring payment is first-ever support",
+      "observation": {
+        "first_support": ["one_time", "2025-01-01"],
+        "initial_recurring": ["new_recurring_initial", "2026-10-16"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H07",
+      "shortcut": "One task per allocation line preserves one task per supported subject",
+      "observation": {
+        "allocation_count": 3,
+        "subject_count": 2
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H08",
+      "shortcut": "Currency belongs in first-support identity",
+      "observation": {
+        "subject_currency_keys": 2,
+        "subjects": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H09",
+      "shortcut": "Worker or display-name change starts a new support relationship",
+      "observation": {
+        "worker_name_keys": 2,
+        "stable_subject_keys": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H10",
+      "shortcut": "Current designation assignment correctly attributes old support",
+      "observation": {
+        "gift_day": 5,
+        "effective_subject": "A",
+        "current_subject": "B"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H11",
+      "shortcut": "Import time means new live support",
+      "observation": {
+        "occurred": "2018-01-01",
+        "ingested": "2026-10-16",
+        "origin": "historical_import"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H12",
+      "shortcut": "Transport or workflow identity deduplicates the business effect",
+      "observation": {
+        "request_keys": 3,
+        "effect_keys": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H13",
+      "shortcut": "A 24-hour transport cache prevents permanent first-support repeats",
+      "observation": {
+        "replay_hours": 25.0,
+        "outside_documented_cache": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H14",
+      "shortcut": "Two check-then-insert callers cannot both create first work",
+      "observation": {
+        "duplicate_rows_after_interleaving": 2
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H15",
+      "shortcut": "Refund and undo reset a completed first-support purpose",
+      "observation": {
+        "effective_balances": [100, 0, 100],
+        "completed_effect_still_happened": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H16",
+      "shortcut": "Party merge cannot reveal overlapping first-support claims",
+      "observation": {
+        "pre_merge_keys": 2,
+        "resolved_keys": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H17",
+      "shortcut": "Same recipient/channel means the same obligation",
+      "observation": {
+        "purposes": 2,
+        "channels": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H18",
+      "shortcut": "A completed task proves a sent message",
+      "observation": {
+        "status": "completed",
+        "communication_events": []
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H19",
+      "shortcut": "Locally equal subject and Party IDs make a global effect key safe",
+      "observation": {
+        "fully_scoped_keys": 2,
+        "scope_omitted_keys": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "H20",
+      "shortcut": "Correction event type alone decides prospective task eligibility",
+      "observation": {
+        "same_event_type": "correction",
+        "different_original_origins": ["live", "historical_import"]
+      },
+      "counterexample_reproduced": true
+    }
+  ]
+}

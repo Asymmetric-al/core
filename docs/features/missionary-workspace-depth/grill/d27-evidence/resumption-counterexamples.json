@@ -1,0 +1,477 @@
+{
+  "counterexamples": [
+    {
+      "corrected_observation": {
+        "status": "unavailable"
+      },
+      "id": "B01",
+      "name": "Reused email treated as original authorship",
+      "passed": true,
+      "unsafe_observation": [
+        "saved-1"
+      ]
+    },
+    {
+      "corrected_observation": {
+        "status": "unavailable"
+      },
+      "id": "B02",
+      "name": "Canonical author treated as sufficient discovery permission",
+      "passed": true,
+      "unsafe_observation": [
+        "saved-1"
+      ]
+    },
+    {
+      "corrected_observation": "all four unavailable",
+      "id": "B03",
+      "name": "Person grant reused across exact context boundaries",
+      "passed": true,
+      "unsafe_observation": "source disclosed in all four variants",
+      "variants": [
+        {
+          "changed": "tenant",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": [
+            "saved-1"
+          ]
+        },
+        {
+          "changed": "ministry",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": [
+            "saved-1"
+          ]
+        },
+        {
+          "changed": "assignment",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": [
+            "saved-1"
+          ]
+        },
+        {
+          "changed": "generation",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": [
+            "saved-1"
+          ]
+        }
+      ]
+    },
+    {
+      "corrected_observation": "both unavailable",
+      "id": "B04",
+      "name": "Retained evidence mistaken for an ordinarily readable body",
+      "passed": true,
+      "unsafe_observation": "metadata yields a resumable item",
+      "variants": [
+        {
+          "body_state": "hold_only",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": [
+            "saved-1"
+          ]
+        },
+        {
+          "body_state": "erased",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": [
+            "saved-1"
+          ]
+        }
+      ]
+    },
+    {
+      "corrected_observation": {
+        "status": "unavailable"
+      },
+      "id": "B05",
+      "name": "Discovery cache omits current activation generation",
+      "passed": true,
+      "schedule": [
+        "generation 2 discovery cached",
+        "activation becomes generation 3",
+        "old cache read; fresh evaluator denies old grant"
+      ],
+      "unsafe_observation": {
+        "count": 1,
+        "records": [
+          "saved-1"
+        ],
+        "status": "eligible"
+      }
+    },
+    {
+      "corrected_observation": {
+        "assignment": "assignment-current",
+        "generation": 2,
+        "record": "saved-1",
+        "status": "resumed"
+      },
+      "id": "B06",
+      "name": "Copy saved preparation into a new source record",
+      "passed": true,
+      "unsafe_observation": {
+        "created_at": 100,
+        "origin_assignment": "assignment-current",
+        "record_count": 2,
+        "resumed_record": "saved-copy"
+      }
+    },
+    {
+      "corrected_observation": {
+        "assignment": "assignment-current",
+        "generation": 2,
+        "record": "saved-1",
+        "status": "resumed"
+      },
+      "id": "B07",
+      "name": "Old inclusion reused because record ID matches",
+      "passed": true,
+      "unsafe_observation": {
+        "returned_assignment": "assignment-original",
+        "returned_generation": 1
+      }
+    },
+    {
+      "corrected_observation": {
+        "archived": true,
+        "effects": [],
+        "result": {
+          "assignment": "assignment-current",
+          "generation": 2,
+          "record": "saved-1",
+          "status": "resumed"
+        }
+      },
+      "id": "B08",
+      "name": "Resume treated as restore-all or automatic archive return",
+      "passed": true,
+      "unsafe_observation": {
+        "archived": false,
+        "effects": [
+          "cancelled_task",
+          "coach_grant",
+          "completed_task",
+          "connector",
+          "old_share",
+          "reminder",
+          "scheduled_send",
+          "subscription"
+        ]
+      }
+    },
+    {
+      "corrected_observation": {
+        "status": "unavailable"
+      },
+      "deadlines": {
+        "corrected": 300,
+        "unsafe": 580
+      },
+      "id": "B09",
+      "name": "Resume resets source retention clock",
+      "passed": true,
+      "unsafe_observation": {
+        "body": "Historical contact assertion, not freshly verified.",
+        "status": "readable",
+        "version": 1
+      }
+    },
+    {
+      "corrected_observation": {
+        "status": "unavailable"
+      },
+      "id": "B10",
+      "name": "Separate precheck and write permits revoke race",
+      "passed": true,
+      "schedules": [
+        {
+          "corrected_writes": 0,
+          "order": [
+            "prepare",
+            "revoke",
+            "commit"
+          ],
+          "unsafe_writes": 1
+        },
+        {
+          "commit": {
+            "assignment": "assignment-current",
+            "generation": 2,
+            "record": "saved-1",
+            "status": "resumed"
+          },
+          "order": [
+            "prepare",
+            "commit",
+            "revoke",
+            "recover"
+          ],
+          "recover": {
+            "status": "unavailable"
+          }
+        }
+      ],
+      "unsafe_observation": {
+        "record": "saved-1",
+        "status": "resumed"
+      }
+    },
+    {
+      "corrected_observation": "correction reread; erasure denied",
+      "id": "B11",
+      "name": "Commit ignores a source change after selection",
+      "passed": true,
+      "schedules": [
+        {
+          "checked_version": 1,
+          "corrected": {
+            "status": "reevaluate"
+          },
+          "current_version": 2,
+          "source_change": "correction",
+          "unsafe": {
+            "record": "saved-1",
+            "status": "resumed"
+          }
+        },
+        {
+          "checked_version": 1,
+          "corrected": {
+            "status": "unavailable"
+          },
+          "current_version": 2,
+          "source_change": "erase",
+          "unsafe": {
+            "record": "saved-1",
+            "status": "resumed"
+          }
+        }
+      ],
+      "unsafe_observation": "old version resumes in both schedules"
+    },
+    {
+      "corrected_observation": {
+        "effect_count": 1,
+        "recovered": {
+          "assignment": "assignment-current",
+          "generation": 2,
+          "record": "saved-1",
+          "status": "resumed"
+        }
+      },
+      "id": "B12",
+      "name": "Lost response and second tab repeat an append-only effect",
+      "passed": true,
+      "schedule": [
+        "request one commits",
+        "reply lost",
+        "process restart",
+        "request one retries",
+        "request two from another tab commits"
+      ],
+      "unsafe_observation": {
+        "effect_count": 3
+      }
+    },
+    {
+      "corrected_observation": "both unavailable",
+      "id": "B13",
+      "name": "Policy re-enable resurrects expired or revoked admission",
+      "passed": true,
+      "unsafe_observation": "both cached entries restored",
+      "variants": [
+        {
+          "corrected": {
+            "status": "unavailable"
+          },
+          "invalidation": "expired",
+          "unsafe": {
+            "count": 1,
+            "records": [
+              "saved-1"
+            ],
+            "status": "eligible"
+          }
+        },
+        {
+          "corrected": {
+            "status": "unavailable"
+          },
+          "invalidation": "revoked",
+          "unsafe": {
+            "count": 1,
+            "records": [
+              "saved-1"
+            ],
+            "status": "eligible"
+          }
+        }
+      ]
+    },
+    {
+      "corrected_observation": "four unavailable",
+      "id": "B14",
+      "name": "Durable receipt treated as perpetual result-read permission",
+      "passed": true,
+      "unsafe_observation": "stored record/context disclosed in four cases",
+      "variants": [
+        {
+          "changed": "revoked",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": {
+            "assignment": "assignment-current",
+            "generation": 2,
+            "record": "saved-1",
+            "status": "resumed"
+          }
+        },
+        {
+          "changed": "policy_off",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": {
+            "assignment": "assignment-current",
+            "generation": 2,
+            "record": "saved-1",
+            "status": "resumed"
+          }
+        },
+        {
+          "changed": "generation_changed",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": {
+            "assignment": "assignment-current",
+            "generation": 2,
+            "record": "saved-1",
+            "status": "resumed"
+          }
+        },
+        {
+          "changed": "source_erased",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": {
+            "assignment": "assignment-current",
+            "generation": 2,
+            "record": "saved-1",
+            "status": "resumed"
+          }
+        }
+      ]
+    }
+  ],
+  "decision": "D27 proposed qualified resumption of own earlier private preparation",
+  "evidence_kind": "finite executable design counterexamples, not implementation verification",
+  "fixture": "synthetic; no database, app, provider, network, or production data access",
+  "limitations": [
+    "Explicit finite cases and selected two-operation schedules only; no exhaustive state-space exploration.",
+    "Python state transitions do not prove real SQL transactions, row locks, RLS, CAS, cache eviction, or isolation.",
+    "Context, grant, inclusion, receipt, epoch and source-version variables are abstract obligations, not a schema proposal.",
+    "Current identity and grants are synthetic inputs; no proof of session validation, grant issuance, author binding or administration.",
+    "Atomic commit and durable restart are assumptions under test as design requirements; no real crash recovery, WAL, unique constraint or distributed lock is exercised.",
+    "Discovery denial compares outward modeled responses only; no timing, query-plan, cross-record count, search-index or client-cache side-channel assessment.",
+    "One source and one current actor per case; no field/purpose lattice, independent D4 write-policy implementation or multi-source pagination proof.",
+    "Retention times are arbitrary test numbers; no retention duration, hold policy, physical erasure, backup restoration or readability is selected or verified.",
+    "Body snapshots represent historical assertions; no contact matching, canonical-person deduplication, correction UI or freshness-validation implementation is exercised.",
+    "No source-owner amendment, production permission, shipped behavior or runtime readiness is established by passing this model."
+  ],
+  "positive_controls": [
+    {
+      "id": "P01",
+      "name": "Qualified original author resumes same active source",
+      "passed": true,
+      "result": {
+        "assignment": "assignment-current",
+        "generation": 2,
+        "record": "saved-1",
+        "status": "resumed"
+      },
+      "source_unchanged": true
+    },
+    {
+      "explicit_return": {
+        "status": "active"
+      },
+      "id": "P02",
+      "name": "Archived resume and explicit qualified D4 return are separate",
+      "passed": true,
+      "resume": {
+        "assignment": "assignment-current",
+        "generation": 2,
+        "record": "saved-1",
+        "status": "resumed"
+      }
+    },
+    {
+      "id": "P03",
+      "name": "Fresh authority qualifies a new exact assignment and generation",
+      "passed": true,
+      "result": {
+        "assignment": "assignment-new",
+        "generation": 3,
+        "record": "saved-1",
+        "status": "resumed"
+      }
+    },
+    {
+      "fresh_result": {
+        "assignment": "assignment-current",
+        "generation": 2,
+        "record": "saved-1",
+        "status": "resumed"
+      },
+      "id": "P04",
+      "name": "Policy off preserves independent source authority; on evaluates afresh",
+      "off_independent_read": "readable",
+      "off_resumption": "unavailable",
+      "passed": true
+    },
+    {
+      "effect_count": 1,
+      "fresh_retry": {
+        "assignment": "assignment-current",
+        "generation": 2,
+        "record": "saved-1",
+        "status": "resumed"
+      },
+      "id": "P05",
+      "name": "Source correction and policy epoch require fresh evaluation",
+      "passed": true,
+      "result": {
+        "assignment": "assignment-current",
+        "generation": 2,
+        "record": "saved-1",
+        "status": "resumed"
+      }
+    }
+  ],
+  "reproduce": "python3 docs/features/missionary-workspace-depth/grill/d27-evidence/resumption-counterexamples.py > /tmp/d27-resumption-counterexamples.json",
+  "script_sha256": "c63c466f137d2f1aafae5b6a058b6aba320a480dd2be6d4b175e0e83973fb7c8",
+  "summary": {
+    "all_passed": true,
+    "assertions_passed": 94,
+    "positive_controls": 5,
+    "unsafe_alternatives": 14
+  }
+}

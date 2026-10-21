@@ -1,4 +1,5 @@
 import {
+  access,
   mkdir,
   mkdtemp,
   readFile,
@@ -32,6 +33,33 @@ afterEach(async () => {
 });
 
 describe("OpenSpec binding contract views", () => {
+  it.each([false, true])(
+    "leaves companions unchanged after rejected generation (existing: %s)",
+    async (existing) => {
+      const root = await mkdtemp(path.join(os.tmpdir(), "openspec-contract-"));
+      roots.push(root);
+      const file = path.join(root, "openspec/contracts/tenants.md");
+      if (existing)
+        await renderContractView({
+          repoRoot: root,
+          capability: "tenants",
+          content: delta,
+          write: true,
+        });
+      const before = existing ? await readFile(file, "utf8") : null;
+      await expect(
+        renderContractView({
+          repoRoot: root,
+          capability: "tenants",
+          content: `${delta.replaceAll("Tenant authority", "New authority")}\n### Requirement: Missing authority\n\nEvery clause in \`openspec/contracts/tenants.md#contract-00000000000000000000\` MUST apply without exception.\n\n${scenario}\n`,
+          write: true,
+        }),
+      ).rejects.toThrow(/missing|misidentified/i);
+      if (existing) expect(await readFile(file, "utf8")).toBe(before);
+      else await expect(access(file)).rejects.toThrow();
+    },
+  );
+
   it("rejects a symlinked companion directory without changing the external file", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "openspec-contract-"));
     const outside = await mkdtemp(path.join(os.tmpdir(), "openspec-outside-"));
@@ -60,6 +88,16 @@ describe("OpenSpec binding contract views", () => {
     ],
     ["commented", (line: string) => `<!-- ${line} -->`],
     ["fenced", (line: string) => `\`\`\`text\n${line}\n\`\`\``],
+    ["HTML preformatted", (line: string) => `<pre>\n\n${line}\n\n</pre>`],
+    [
+      "HTML code block",
+      (line: string) => `<pre><code>\n\n${line}\n\n</code></pre>`,
+    ],
+    [
+      "HTML code with attributes",
+      (line: string) => `<CODE class="example">\n\n${line}\n\n</CODE>`,
+    ],
+    ["unclosed HTML code", (line: string) => `<code>\n\n${line}`],
   ])("rejects a %s binding", async (_, mutate) => {
     const root = await mkdtemp(path.join(os.tmpdir(), "openspec-contract-"));
     roots.push(root);

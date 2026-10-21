@@ -1,0 +1,13 @@
+{
+  "recorded_at": "2026-10-16T08:01:52.112354+00:00",
+  "container": "phase28-d7-pg",
+  "container_id": "9a79e6e7f3459044a16bc6efdb15cbe011902764f888e6f3ab2db0a0aa3e8ba4",
+  "image": "postgres@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3",
+  "actual_image_id": "sha256:327daa8fae7178d61f93142f146b098467b345e10997b9eb79f63bd58e5c8f3c",
+  "network": "none",
+  "published_ports": {},
+  "volume_names": [
+    "fe3f77a8948d301b8f30ed60bf58086c7bb55a3f4f413335469d51ed49a27618"
+  ],
+  "server": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit"
+}
