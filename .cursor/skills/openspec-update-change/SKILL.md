@@ -58,7 +58,7 @@ Revise a change's existing planning artifacts and keep them coherent. Never edit
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
-This workflow revises artifacts that already exist; `/openspec-continue-change` is what creates the ones that do not.
+`/openspec-continue-change` is an optional workflow that Core does not install. Before suggesting it anywhere below, verify that it is available. If unavailable, `bun run openspec -- status --change "<name>" --json` shows the next artifact and `bun run openspec -- instructions "<artifact-id>" --change "<name>" --json` supplies its template and instructions. Creating that artifact is a separate authorized step; this Update workflow does not silently advance it.
 
 **Steps**
 
@@ -141,4 +141,4 @@ After each invocation, show:
 - Edit only the concrete files in `existingOutputPaths`, plus any confirmed concrete path allowed under a partly populated glob artifact (step 4); never write to a glob `resolvedOutputPath`.
 - Do not advance the build frontier: if an artifact has empty `existingOutputPaths` and status `ready` or `blocked`, that is `/openspec-continue-change`'s job. Leave `skipped` artifacts untouched. The only new-file scope is a confirmed concrete path under a glob artifact whose `existingOutputPaths` is non-empty.
 - Confirm every edit with the user before writing.
-- If the request changes the change's _intent_ rather than refining it, recommend starting fresh with `/openspec-new-change` (the "Update vs. Start Fresh" heuristic).
+- If the request changes the change's _intent_ rather than refining it, first verify whether the optional `/openspec-new-change` workflow is available. If it is, recommend starting fresh with it (the "Update vs. Start Fresh" heuristic). Core does not install that workflow; if unavailable, ask for a distinct unused change name and recommend `bun run openspec -- new change "<new-change-name>"` instead.

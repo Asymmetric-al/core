@@ -77,7 +77,8 @@ contract. All fourteen acceptance merges are ancestors of this base, and all
 
 Focused regressions reproduce and fix rejected generation modifying companion
 files, HTML code examples being treated as active bindings, and refresh
-restoring forbidden updater/Store routing. Companions are validated in memory
+restoring forbidden updater/Store routing or losing the supported CLI fallbacks
+for uninstalled optional workflows in Update and Apply. Companions are validated in memory
 before atomic replacement. The actual seven-skill refresh and mirror sync
 passed. Strict current validation passes 77 items, archive validation passes
 46, and effective-delta verification passes 73 updates without writes.

@@ -73,6 +73,9 @@ In both branches, never create the root as a side effect: do not run \`openspec 
 
 **Input**: A change name.
 
+${name === "openspec-update-change" ? 'This workflow revises artifacts that already exist; `/openspec-continue-change` is what creates the ones that do not.\n\n- If the request changes the change\'s _intent_ rather than refining it, recommend starting fresh with `/openspec-new-change` (the "Update vs. Start Fresh" heuristic).\n' : ""}
+${name === "openspec-apply-change" ? "- If `missingArtifacts` is non-empty: suggest using `/openspec-continue-change` to create them.\n" : ""}
+
 \`\`\`markdown
 # Example spec title
 \`\`\`
@@ -177,6 +180,30 @@ describe("OpenSpec skill refresh", () => {
         const description = content.match(/^description: (.+)$/m)?.[1];
         expect(description).not.toContain("run that command instead");
         expect(description).toContain("repository-safe");
+        expect(content).toContain("Before suggesting it anywhere below");
+        expect(content).toContain(
+          'bun run openspec -- status --change "<name>" --json',
+        );
+        expect(content).toContain(
+          'bun run openspec -- instructions "<artifact-id>" --change "<name>" --json',
+        );
+        expect(content).toContain(
+          "first verify whether the optional `/openspec-new-change` workflow is available",
+        );
+        expect(content).toContain(
+          'bun run openspec -- new change "<new-change-name>"',
+        );
+      }
+      if (name === "openspec-apply-change") {
+        expect(content).toContain(
+          "verify whether `/openspec-continue-change` is installed",
+        );
+        expect(content).toContain(
+          'bun run openspec -- status --change "<name>" --json',
+        );
+        expect(content).toContain(
+          'bun run openspec -- instructions "<artifact-id>" --change "<name>" --json',
+        );
       }
       const endOfFrontmatter = content.indexOf("\n---\n", 4) + 5;
       expect(content.indexOf("<!-- CORE-OVERLAY-START -->")).toBeLessThan(

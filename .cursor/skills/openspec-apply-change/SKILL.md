@@ -97,7 +97,7 @@ Implement tasks from an OpenSpec change.
 
    **Handle states:**
    - If `state: "blocked"`: show the message and pause implementation.
-     - If `missingArtifacts` is non-empty: suggest using `/openspec-continue-change` to create them.
+     - If `missingArtifacts` is non-empty: verify whether `/openspec-continue-change` is installed before suggesting it. Core does not install it; if unavailable, use `bun run openspec -- status --change "<name>" --json` to identify the next artifact and `bun run openspec -- instructions "<artifact-id>" --change "<name>" --json` for its template and instructions. Creating the missing artifact is a separate authorized step; keep implementation paused.
      - Otherwise, follow the CLI instruction to create or repair the schema-configured tracking file from existing planning artifacts. Do not assume another artifact is ready or start implementation while blocked.
    - If `state: "all_done"`: report that all tracked tasks are complete and suggest review or verification as appropriate before archiving
    - Otherwise: proceed to implementation

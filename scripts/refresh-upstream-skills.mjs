@@ -1918,10 +1918,25 @@ async function ensureOpenSpecRepositoryScope(skillName, targetRoot) {
       /^   Choose one schema form below\. If a registered store[^\n]+$/m,
       "   Use Core's existing `spec-driven` schema with the local pinned wrapper below.",
     );
-  if (skillName === "openspec-update-change")
+  if (skillName === "openspec-update-change") {
     content = content.replace(
       "If the user means the openspec update CLI command, which refreshes generated files, run that command instead.",
       "Requests for the openspec update CLI must use Core's repository-safe refresh workflow; never run the updater against this customized checkout.",
+    );
+    content = content
+      .replace(
+        "This workflow revises artifacts that already exist; `/openspec-continue-change` is what creates the ones that do not.",
+        '`/openspec-continue-change` is an optional workflow that Core does not install. Before suggesting it anywhere below, verify that it is available. If unavailable, `bun run openspec -- status --change "<name>" --json` shows the next artifact and `bun run openspec -- instructions "<artifact-id>" --change "<name>" --json` supplies its template and instructions. Creating that artifact is a separate authorized step; this Update workflow does not silently advance it.',
+      )
+      .replace(
+        '- If the request changes the change\'s _intent_ rather than refining it, recommend starting fresh with `/openspec-new-change` (the "Update vs. Start Fresh" heuristic).',
+        '- If the request changes the change\'s _intent_ rather than refining it, first verify whether the optional `/openspec-new-change` workflow is available. If it is, recommend starting fresh with it (the "Update vs. Start Fresh" heuristic). Core does not install that workflow; if unavailable, ask for a distinct unused change name and recommend `bun run openspec -- new change "<new-change-name>"` instead.',
+      );
+  }
+  if (skillName === "openspec-apply-change")
+    content = content.replace(
+      "- If `missingArtifacts` is non-empty: suggest using `/openspec-continue-change` to create them.",
+      '- If `missingArtifacts` is non-empty: verify whether `/openspec-continue-change` is installed before suggesting it. Core does not install it; if unavailable, use `bun run openspec -- status --change "<name>" --json` to identify the next artifact and `bun run openspec -- instructions "<artifact-id>" --change "<name>" --json` for its template and instructions. Creating the missing artifact is a separate authorized step; keep implementation paused.',
     );
   if (/--store|openspec store list|run that command instead/.test(content))
     throw new Error(
