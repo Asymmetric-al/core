@@ -4,21 +4,9 @@
 
 ### Requirement: Guest Giving Cover-Fees Use Gift Processing-Fee Policy
 
-Guest Giving `POST /api/donate` MUST treat `amount` as the donor-entered gift in
-dollars, not a client-grossed charge. Gift intake MUST recompute charged cents
-through the Core Gift processing-fee policy from `cover_fees` and
-`payment_method`, and MUST NEVER trust a client total. Checkout MUST remain a
-thin adapter over that policy and MUST NOT own Stripe rates or rounding.
+Guest Giving `POST /api/donate` MUST treat `amount` as the donor-entered gift in dollars, not a client-grossed charge.
 
-`cover_fees` MUST default to false and `payment_method` MUST default to `card`
-when omitted so older clients keep charging the posted amount as the gift.
-Copy MUST describe estimated processing costs and MUST NOT claim that 100% of
-the gift reaches the field. Live ACH and wallet confirmation MAY be quoted in
-the adapter and MUST remain blocked until those payment methods are enabled.
-
-This requirement does not change allocation-line conservation of a payment
-group's gross amount, does not apply cover-fees on the staff donations path,
-and does not reopen tenant processor-cost attribution.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-5170e83fc2e201e1c064` MUST apply without exception.
 
 #### Scenario: Donor covers estimated card processing costs
 

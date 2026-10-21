@@ -56,6 +56,48 @@
       "computedHash": "f7f9b3f8eddef18c6ae55c3e74216f0c26ccb375de651dfac4f0877d66bd47af",
       "treeHash": "0f7abd7ee020c906b44ab13b3716d96e4e7555f55abc73eada53a94b1843bc13"
     },
+    "better-accessibility": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-accessibility/SKILL.md",
+      "computedHash": "59a0d8ad310be843566a18bfd839a38f46335110aa31673c4468c9e0172c5350"
+    },
+    "better-colors": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-colors/SKILL.md",
+      "computedHash": "cde9dd40cb183b383514e1a2c76bf74c9d914f5f6722ee6079d3f9cd121862c1"
+    },
+    "better-interface": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-interface/SKILL.md",
+      "computedHash": "57412a685bd1a654f81def820099481b7df6ddf8f4bc06989a1b875b1d01c036"
+    },
+    "better-layout": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-layout/SKILL.md",
+      "computedHash": "f04c8d870fca110c8003aa8c0c82a7e121642a18443dfb114ee3d774d466c141"
+    },
+    "better-typography": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-typography/SKILL.md",
+      "computedHash": "717f615910470bd2b7c662cce2af2ebd11cd887379a6ea93455c45f3c5ba378d"
+    },
+    "better-ui": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-ui/SKILL.md",
+      "computedHash": "2482b7b89d851a3128d36edf5367f3223e113a4ef421b7358c7e6de3f2c83faf"
+    },
+    "better-writing": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-writing/SKILL.md",
+      "computedHash": "d53163382a058f06e00ac0b36312189108b006aa0b05869c71a70f5c213c44ae"
+    },
     "check-compiler-errors": {
       "source": "cursor/plugins",
       "sourceType": "github",
@@ -125,6 +167,12 @@
       "skillPath": "skills/deprecated/design-an-interface/SKILL.md",
       "computedHash": "f3f225914515407b8224e8ec6187db337c5e65bad0703936a0acb3f802947a7d"
     },
+    "design-taste-frontend": {
+      "source": "leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/taste-skill/SKILL.md",
+      "computedHash": "aa194351b246b8b4799099d4ed7b033d29eab6e6e3d58d8d2172978be7b3ec89"
+    },
     "deslop": {
       "source": "cursor/plugins",
       "sourceType": "github",
@@ -187,6 +235,12 @@
       "skillPath": "cursor-team-kit/skills/fix-merge-conflicts/SKILL.md",
       "computedHash": "738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76",
       "treeHash": "a6657bf563b3873959e54c8d4c03a8aae75dbad54c414244edda62437ef2b118"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3"
     },
     "get-pr-comments": {
       "source": "cursor/plugins",
@@ -267,6 +321,12 @@
       "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
       "computedHash": "4c4d2b6da48482c1a054aca0e09eafd61cdcbebe2bda10abd3f355bf5f6fc57c"
     },
+    "interface-review": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/interface-review/SKILL.md",
+      "computedHash": "65783ac261ee1a33da11bbbbdb6e71ab6162fc24a2450f91781457b41b9a6d13"
+    },
     "loop-me": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -292,6 +352,12 @@
       "sourceType": "github",
       "skillPath": "skills/misc/migrate-to-shoehorn/SKILL.md",
       "computedHash": "67fdd18f8f4f7c89b3003eb944220679272738c1deb680719fd2e282495d87f4"
+    },
+    "mobile-native": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mobile-native/SKILL.md",
+      "computedHash": "888b7651d66d66dbac4e72b7c554638eb19bd971d686d6cbdf030a5ef3788f55"
     },
     "nestjs-best-practices": {
       "source": "Kadajett/agent-nestjs-skills",
@@ -346,50 +412,50 @@
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-apply-change/SKILL.md",
-      "computedHash": "506400073fd2334270b05b780fd8c2ceff21dfc68f900831fe3c2030e034b835",
-      "treeHash": "927e3704dc0dd8839b0a1efeb74a02d30580623ee707a025aa6e62e24c6cf105"
+      "computedHash": "62320e7bb1ea01092211b8052cf693403fbfb93b5d356c0522f18581db31494e",
+      "treeHash": "ed0ba8f9ba72710d96c2a946af4b47a764152af6cdde10c34a2bf60ef0c3f262"
     },
     "openspec-archive-change": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-archive-change/SKILL.md",
-      "computedHash": "91b1fd6f81b345cc585c4e7509b092cf65e9d10323ec9789e7c24bd2702ec806",
-      "treeHash": "8e36b9fc46a370ddfe47c0a3423417e25d147951c90c9d619ca0ee97a6c8c9c7"
+      "computedHash": "87b82c957a502c3b45ac4c88b4f2e09b83e9db96822d3bd0637ece0427da8fbd",
+      "treeHash": "24dffa0f2ed2c8f33c13278e3f47a0da6dfefb198bb6687ccdeb5b4ecb58d03e"
     },
     "openspec-explore": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-explore/SKILL.md",
-      "computedHash": "c745db627e4f5176bcf103e6c955dd39e359860afd52b00407e78003be9f6995",
-      "treeHash": "95766a0771f5a4f43485187c22ac923a9fc3dca548caf91421f5cafbe7e7959f"
+      "computedHash": "40732f0d2a14bacb5a70e1ba81dff66c239dadb66648928cc2ccc9c08dbbb5ed",
+      "treeHash": "ff9b1f7b1ceaf1f3bae2826d14d782236ccd6a3fd805ab2f84e99a7cc9b5d60b"
     },
     "openspec-propose": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-propose/SKILL.md",
-      "computedHash": "5d238b5c4f2ea21bcb20fdb68a69f103001cff8d3a6617e6d71891479fc54a1f",
-      "treeHash": "a14122ba32e5f5e8d623ee6305c5be27a8152aeee3eac9c88d085e9bb0d2bf4b"
+      "computedHash": "09cee8a59595eddba679029ffb1cd6f48c0bc14ed0281da2b2957be3afa0c947",
+      "treeHash": "ee0b6b6ec860c544a6d9e2a67cd39493132886d46c6958a7b18e1380d2bd3bab"
     },
     "openspec-sync-specs": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-sync-specs/SKILL.md",
-      "computedHash": "04f51d5fc021955faa3ff95c69bd3bc4027c8c43823c8bc746a6f5ee8c1649d5",
-      "treeHash": "9d217963f956eef418c9d3d0292c8165808617767acb5df353ee6a4ebf0f16df"
+      "computedHash": "c628a0f79596e724f678fd0e840ffebe0e88258bbd2d946aff5d3bc39e0dda3a",
+      "treeHash": "62499d9bd9b38731adf03af24b3dbd3d2f7201644ae94900aa27563918fff6ea"
     },
     "openspec-update-change": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-update-change/SKILL.md",
-      "computedHash": "e6f64e06dbc67c4c2e44770ebf18f5be2c29f2fbb1bbdc386826a6ab08cb9921",
-      "treeHash": "eadb11a2c789377123841079975c92dfa0a6994841261ea7397535f851e436c6"
+      "computedHash": "ee7b8c94c13422eb126dcc98308bbf25b5bccd87d621f4d6458c3e352afa0ed2",
+      "treeHash": "42549146d3437da25484b379b87c1208dd241cf1e8b485ae897f8a81fb341195"
     },
     "openspec-verify-change": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-verify-change/SKILL.md",
-      "computedHash": "53d52c56bf4c20e4c693df80dedff5fcaa6df30978892b2295aba4f058e2b37a",
-      "treeHash": "2cac7a8826978603e0c1e02ebe1938a7aaad34284c8a53ac4d3cfce82afb37d7"
+      "computedHash": "7c3484e8e12763400db5da24decdc6fc2819e8222f3cd7ecb2c35614df3a8092",
+      "treeHash": "cc0d9918c018dda0c7641d8ce1dca4cf47409c025682034e32523e6f5ccfcddf"
     },
     "payload": {
       "source": "payloadcms/skills",
@@ -439,6 +505,12 @@
       "sourceType": "github",
       "skillPath": "skills/react-email/SKILL.md",
       "computedHash": "5d989d8109068b40bfc00111013d8488b577c21d8973013f0e810e946a670987"
+    },
+    "redesign-existing-projects": {
+      "source": "leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/redesign-skill/SKILL.md",
+      "computedHash": "98ad3e5b051bfb71b2795f7e8a6aa0d32b51ee095606c098a4b2822ac07926c9"
     },
     "request-refactor-plan": {
       "source": "mattpocock/skills",
@@ -725,78 +797,6 @@
       "sourceType": "github",
       "skillPath": "skills/in-progress/writing-shape/SKILL.md",
       "computedHash": "5f34ec8f61e2a4f0da9533b6049a71c3cde8c16b6d1077f4ccc1e3467dbebc2f"
-    },
-    "better-accessibility": {
-      "source": "jakubkrehel/skills",
-      "sourceType": "github",
-      "skillPath": "skills/better-accessibility/SKILL.md",
-      "computedHash": "59a0d8ad310be843566a18bfd839a38f46335110aa31673c4468c9e0172c5350"
-    },
-    "better-colors": {
-      "source": "jakubkrehel/skills",
-      "sourceType": "github",
-      "skillPath": "skills/better-colors/SKILL.md",
-      "computedHash": "cde9dd40cb183b383514e1a2c76bf74c9d914f5f6722ee6079d3f9cd121862c1"
-    },
-    "better-interface": {
-      "source": "jakubkrehel/skills",
-      "sourceType": "github",
-      "skillPath": "skills/better-interface/SKILL.md",
-      "computedHash": "57412a685bd1a654f81def820099481b7df6ddf8f4bc06989a1b875b1d01c036"
-    },
-    "better-layout": {
-      "source": "jakubkrehel/skills",
-      "sourceType": "github",
-      "skillPath": "skills/better-layout/SKILL.md",
-      "computedHash": "f04c8d870fca110c8003aa8c0c82a7e121642a18443dfb114ee3d774d466c141"
-    },
-    "better-typography": {
-      "source": "jakubkrehel/skills",
-      "sourceType": "github",
-      "skillPath": "skills/better-typography/SKILL.md",
-      "computedHash": "717f615910470bd2b7c662cce2af2ebd11cd887379a6ea93455c45f3c5ba378d"
-    },
-    "better-ui": {
-      "source": "jakubkrehel/skills",
-      "sourceType": "github",
-      "skillPath": "skills/better-ui/SKILL.md",
-      "computedHash": "2482b7b89d851a3128d36edf5367f3223e113a4ef421b7358c7e6de3f2c83faf"
-    },
-    "better-writing": {
-      "source": "jakubkrehel/skills",
-      "sourceType": "github",
-      "skillPath": "skills/better-writing/SKILL.md",
-      "computedHash": "d53163382a058f06e00ac0b36312189108b006aa0b05869c71a70f5c213c44ae"
-    },
-    "design-taste-frontend": {
-      "source": "leonxlnx/taste-skill",
-      "sourceType": "github",
-      "skillPath": "skills/taste-skill/SKILL.md",
-      "computedHash": "aa194351b246b8b4799099d4ed7b033d29eab6e6e3d58d8d2172978be7b3ec89"
-    },
-    "frontend-design": {
-      "source": "anthropics/skills",
-      "sourceType": "github",
-      "skillPath": "skills/frontend-design/SKILL.md",
-      "computedHash": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3"
-    },
-    "interface-review": {
-      "source": "jakubkrehel/skills",
-      "sourceType": "github",
-      "skillPath": "skills/interface-review/SKILL.md",
-      "computedHash": "65783ac261ee1a33da11bbbbdb6e71ab6162fc24a2450f91781457b41b9a6d13"
-    },
-    "mobile-native": {
-      "source": "emilkowalski/skills",
-      "sourceType": "github",
-      "skillPath": "skills/mobile-native/SKILL.md",
-      "computedHash": "888b7651d66d66dbac4e72b7c554638eb19bd971d686d6cbdf030a5ef3788f55"
-    },
-    "redesign-existing-projects": {
-      "source": "leonxlnx/taste-skill",
-      "sourceType": "github",
-      "skillPath": "skills/redesign-skill/SKILL.md",
-      "computedHash": "98ad3e5b051bfb71b2795f7e8a6aa0d32b51ee095606c098a4b2822ac07926c9"
     }
   }
 }

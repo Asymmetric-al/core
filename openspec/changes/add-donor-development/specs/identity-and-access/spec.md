@@ -4,7 +4,9 @@
 
 ### Requirement: Phase 27 bounded source actions preserve current authority
 
-P12 SHALL register exact Request preparation/submission/review decision/requirement administration/exception/reviewer reassignment/correction/presentation, P15 report/read/correct/routing and P9 shared create/read/history/correct/restrict capabilities. Ordinary edit or reviewer power does not waive required review or grant money authority. Source projection widening obeys ADR0211; routine eligible writes under a qualified policy do not require supervisory approval. Re-prove current human or service acting context, source classification and current recipient ceilings at execution and result recovery.
+P12 SHALL register exact Request preparation/submission/review decision/requirement administration/exception/reviewer reassignment/correction/presentation, P15 report/read/correct/routing and P9 shared create/read/history/correct/restrict capabilities.
+
+Every clause in `openspec/contracts/identity-and-access.md#contract-ea962786dbc04401b437` MUST apply without exception.
 
 #### Scenario: Revocation during recovery
 

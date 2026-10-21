@@ -1,6 +1,6 @@
-> Superseded by `../../../retire-git-attribution/specs/repository-contribution-workflow/spec.md`; attribution requirements below are historical proposed text.
-
 ## Purpose
+
+Superseded by `../../../retire-git-attribution/specs/repository-contribution-workflow/spec.md`; attribution requirements below are historical proposed text.
 
 Defines how trusted team developers, approved automation, GitHub platform
 commits, and public contributors participate in Core without weakening
@@ -43,13 +43,9 @@ independently allowlisting each field.
 
 ### Requirement: Canonical pushes validate the complete outgoing commit set
 
-The canonical pre-push path SHALL derive the union of commits introduced by all
-ref updates. A deletion MUST contribute no commits. An existing-ref update MUST
-include the full `remoteSha..localSha` ancestry. A new-ref update MUST include
-commits reachable from the resolved local commit but not from actual ref tips
-on the pushed remote. Duplicate SHAs across refs MUST be validated exactly once.
-The path MUST include merge parents and MUST NOT treat an inherited branch tip
-as if the current developer created it.
+The canonical pre-push path SHALL derive the union of commits introduced by all ref updates.
+
+Every clause in `openspec/contracts/repository-contribution-workflow.md#contract-4388fd5790cd44d87e99` MUST apply without exception.
 
 #### Scenario: Existing branch is updated
 
@@ -133,28 +129,9 @@ requests MAY participate without being added to the internal registry.
 
 ### Requirement: Remote CI uses event-bound commit scopes and proof
 
-The existing required `ci-gate` SHALL derive its attribution scope from
-immutable event data. For an in-scope pull request it MUST inspect every commit
-reachable from the event head but not the event base, including merge parents.
-For a protected push it MUST reject a non-fast-forward transition and inspect
-the introduced first-parent integration spine between `before` and `after`.
+The existing required `ci-gate` SHALL derive its attribution scope from immutable event data.
 
-Every protected integration commit MUST be an exact two-parent GitHub platform
-merge with a valid `web-flow` signature made by GitHub. A `develop` integration
-MUST match the exact closed Core pull request, target branch, merge commit SHA
-and second-parent head SHA. Its recorded PR base SHA MUST equal the first parent
-or be positively proven to be an ancestor of that first parent. A stale base
-snapshot alone MUST NOT reject an otherwise valid platform merge. Missing or
-invalid SHAs, unavailable history, failed ancestry commands, and unrelated or
-reversed ancestry MUST fail closed. A `production` promotion MUST already be
-reachable from canonical `develop`.
-
-A manual dispatch on a protected ref MUST use the protected integration rules.
-A dispatch on another branch MUST inspect the full `head --not baseline` graph
-and MUST NOT grant event-actor proof. A commit-email GitHub association is
-consistency metadata and MUST NOT authenticate a registered claim. Signature
-metadata MUST be fetched for every checked commit. Missing, partial, malformed,
-or contradictory GitHub metadata MUST fail closed.
+Every clause in `openspec/contracts/repository-contribution-workflow.md#contract-9521f7647d8b904d1832` MUST apply without exception.
 
 #### Scenario: Pull request contains merge ancestry
 

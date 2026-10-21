@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { format, resolveConfig } from "prettier";
+import { renderContractView } from "../../../../../scripts/lib/openspec-contracts.mjs";
 
 // Documentation projection only. Canonical requirement/story/acceptance text
 // lives in the five Markdown volumes; this never executes research evidence.
@@ -158,7 +159,7 @@ const mainText = beforeMain.replace(
 );
 
 let spec =
-  "# Phase 28 missionary workspace behavioral projection\n\n> Generated from the canonical Phase 28 domain/proof volumes. The full normative contracts, owner reconciliation and common safeguards remain binding. Regenerate through the specification renderer; do not edit independently.\n\n## ADDED Requirements\n";
+  "# Phase 28 missionary workspace behavioral projection\n\n## Purpose\n\nGenerated from the canonical Phase 28 domain/proof volumes. The full normative contracts, owner reconciliation and common safeguards remain binding. Regenerate through the specification renderer; do not edit independently.\n\n## ADDED Requirements\n";
 for (const r of records) {
   spec +=
     "\n### Requirement: " +
@@ -213,7 +214,16 @@ const outputs = new Map([
 let stale = false;
 for (const [file, raw] of outputs) {
   const config = await resolveConfig(file);
-  const text = await format(raw, { ...config, filepath: file });
+  let text = await format(raw, { ...config, filepath: file });
+  if (file.endsWith("/specs/missionary-workspace-depth/spec.md")) {
+    text = await renderContractView({
+      repoRoot: root,
+      capability: "missionary-workspace-depth",
+      content: text,
+      write,
+    });
+    text = await format(text, { ...config, filepath: file });
+  }
   if (write) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, text);

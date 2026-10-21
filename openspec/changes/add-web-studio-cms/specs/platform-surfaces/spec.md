@@ -4,22 +4,9 @@
 
 ### Requirement: Web Studio Presents One Page-First Authoring Journey
 
-Web Studio SHALL present ordinary Site authoring through one Page-first
-experience using the established staff shell, Base UI controls, semantic status
-language and responsive patterns. Tenant, environment, Site and exact locale
-SHALL remain visible. The Pages workspace SHALL provide searchable hierarchy
-and list views, New Page, New Article, one Page editor, semantic section
-outline, current web address, derived Navigation summary, Preview and the D1
-publication action. Staff SHALL NOT operate a second placement document,
-mutable Site Plan, provider draft/version, raw block tree or release manifest.
+Web Studio SHALL present ordinary Site authoring through one Page-first experience using the established staff shell, Base UI controls, semantic status language and responsive patterns.
 
-The ordinary sequence SHALL be Edit, Preview, Publish. One persistent status
-region next to Preview and the release action SHALL distinguish Unsaved changes,
-Saving, Saved just now, Scheduled, Published with unpublished changes, Updating
-public site, Live and one cause-owned exception. Saved SHALL mean exact server
-acknowledgement; Published, serving and downstream convergence SHALL remain
-separate. Routine success SHALL be quiet and no critical result SHALL exist only
-in a toast, color, animation, hover state or provider term.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-682c93855960905340a0` MUST apply without exception.
 
 #### Scenario: An occasional staff member edits and publishes a Page
 
@@ -41,20 +28,9 @@ in a toast, color, animation, hover state or provider term.
 
 ### Requirement: Structure Composition And Reuse Expose Consequences Without Noise
 
-Parent selection SHALL be searchable. Move, reorder and section arrangement MAY
-offer drag, but SHALL provide first-class Move up, Move down, Move to and named-
-position controls. A Page move or rename SHALL show Currently live and After
-publish only when different. Small effects SHALL receive concise review; a
-large descendant closure SHALL provide searchable resumable impact and one
-closure-level confirmation.
+Parent selection SHALL be searchable.
 
-The section chooser SHALL use plain-language names, representative previews and
-one-sentence purpose descriptions and show only family-qualified sections. Each
-placement SHALL be visibly Local or Shared. Reuse SHALL expose exactly the
-relevant explicit actions Save this section for reuse, Reuse existing, Change
-every use, Make a local copy and View uses. The surface SHALL not expose generic
-layout rows/columns, arbitrary style fields, provider block types or hidden
-shared mutation.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-a63e4168f965f887ab5e` MUST apply without exception.
 
 #### Scenario: Staff move a Page with many descendants
 
@@ -74,21 +50,9 @@ shared mutation.
 
 ### Requirement: Navigation And Dynamic Discovery Remain Plain-Language And Link-Native
 
-The Navigation workspace SHALL show exactly Primary Navigation and Footer
-Navigation as ordered semantic outlines. Add item SHALL offer a managed Page or
-registered Site destination, an HTTPS external website, or a non-navigating
-Group. Links and Groups SHALL be visually and semantically distinct and every
-reorder SHALL have a non-drag path. Page-aware Navigation assistance SHALL open
-the same Navigation draft and SHALL not create duplicate Page fields.
+The Navigation workspace SHALL show exactly Primary Navigation and Footer Navigation as ordered semantic outlines.
 
-Content-list authoring SHALL ask what to show, how to choose items and how
-visitors load more, never for a provider query. Curation choices SHALL be
-Updates automatically, Featured first or Choose every item, with a plain-
-language explanation of future changes and only relevant controls. Windowing
-SHALL be Show one set, Page links, button-led Load more or bounded Auto-load.
-Public lists SHALL preserve ordinary anchors, canonical one-lane URLs, focus,
-history, announcements, no-JavaScript behavior and independent ephemeral state
-for other lists.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-3f1e7f6c75254139dc09` MUST apply without exception.
 
 #### Scenario: Staff add a Page to Primary Navigation
 
@@ -107,28 +71,9 @@ for other lists.
 
 ### Requirement: Content Library Media And Health Stay Calm And Purpose-Bounded
 
-The Content Library SHALL be a calm content inventory rather than project-
-management or workflow software. It SHALL open on All content and offer Unfiled,
-optional authority-free folders, Topics, personal and shared Saved Library
-Views, Trash and one quiet Needs attention entry. Folder, Topic and view actions
-SHALL state that they do not change website address, permission or publication
-when that consequence could be misunderstood.
+The Content Library SHALL be a calm content inventory rather than project- management or workflow software.
 
-Content Health SHALL expose link-native Needs your action, Being handled
-automatically, Needs platform attention and Recently resolved views, plus the
-coverage notice Health check incomplete. Contextual and central presentations
-SHALL resolve the same stable issue, name owner and visitor impact, and offer at
-most one valid authorized next action. Healthy content SHALL remain quiet and
-the surface SHALL not expose queue/provider consoles, generic Retry/Replay/
-Force, scores or a second task system.
-
-Media SHALL provide All media, Needs attention, Recently used and Trash, grid
-and list views, restrained search/filters, optional five-level Media-only folder
-rail, persistent per-file upload tray and a detail inspector ordered Preview and
-status, Details, Rights & safety, Can be used on, Used in, Versions, Activity,
-Technical details. Choose media SHALL default to Ready for this Page and Site,
-then show actual slot Preview, accessibility treatment, crop and focus return.
-Upload, Ready, Allowed, Used, Live and Retained SHALL never be conflated.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-d30ce9d2f89669a80ce3` MUST apply without exception.
 
 #### Scenario: Staff open a healthy Content Library
 
@@ -159,30 +104,8 @@ Upload, Ready, Allowed, Used, Live and Retained SHALL never be conflated.
 ### Requirement: Locale Preview Forms And Portability Use Guided Explicit Journeys
 
 Single-locale Sites SHALL not show unnecessary localization machinery.
-Multilingual Sites SHALL show exact-locale status and explicit Start blank or
-Copy from actions. Missing translation SHALL be presented as missing, and
-Source changed SHALL compare without overwriting target work.
 
-Preview SHALL support acknowledged Page feedback, exact pinned Preview and
-deliberate Prepare site preview. Persistent whole-Site Preview chrome SHALL name
-Site, locale, prepared time, included change count and **Site preview · Not
-public**. Candidate links SHALL remain inside the candidate; stale, expired,
-revoked and blocked states SHALL never fall through to Live.
-
-The public-form builder SHALL use the short sequence Purpose, Questions,
-Delivery, Confirmation, Review & publish. Delivery SHALL explain Where the work
-goes, Who should be notified and What the visitor receives as a numbered
-outcome summary. Unavailable owner outcomes SHALL state the setup dependency
-rather than create placeholders. The staff builder SHALL reuse the version-
-pinned shared `useAsymForm` interaction adapter. The visitor form SHALL remain
-native semantic HTML with a no-JavaScript path and exact server validation.
-
-Imports SHALL use one saved full-page **Source → Destination → Match content →
-Check and resolve → Review plan** journey. **Check the import** SHALL be visibly
-no-write. Commit SHALL be a separate fresh privileged command outside that
-preparation journey and state that results are private drafts and nothing is
-published. Export and import status SHALL distinguish prepared, downloaded,
-expired, applied, partial, stale, reversed and outcome unknown.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-bccf369572cfa985de13` MUST apply without exception.
 
 #### Scenario: Staff begin a translation
 
@@ -223,21 +146,9 @@ expired, applied, partial, stale, reversed and outcome unknown.
 
 ### Requirement: Public Site Presents Exact Accessible Ordinary CMS Output
 
-The public Site SHALL render only the active exact Tenant × environment × Site ×
-locale × `public` generation through `PublishedContentReader`. It MAY include
-ordinary Pages and Articles, released hierarchy and breadcrumbs, curated
-Navigation, semantic sections, qualified Presentation Package output, dynamic
-lists, Site search, generated search/sharing metadata, purpose-bounded forms and
-qualified public still-image Media. It SHALL not expose drafts, Preview data,
-private identifiers, internal source types, permissions, operations, health,
-diagnostics, provider details, form answers or protected media evidence.
+The public Site SHALL render only the active exact Tenant × environment × Site × locale × `public` generation through `PublishedContentReader`.
 
-At an otherwise identical public scope, anonymous, donor, missionary, staff,
-expired-session and crawler requests SHALL receive auth-invariant CMS output.
-Public functionality SHALL remain meaningful without JavaScript. Navigation,
-lists, search, share and forms SHALL use native semantic behavior. Presentation
-motion SHALL be decorative, interruptible, reduced-motion respectful and never
-delay content, Navigation or Give entry points.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-aa636438a1e8f6b0cb8a` MUST apply without exception.
 
 #### Scenario: A visitor opens an ordinary public Page
 
@@ -259,17 +170,9 @@ delay content, Navigation or Give entry points.
 
 ### Requirement: Every Critical CMS Journey Meets The Platform Accessibility Floor
 
-Every critical Web Studio and public CMS journey SHALL support keyboard, screen
-reader and touch; 320 CSS-pixel reflow; 200-400 percent zoom; forced colors;
-reduced motion; long localized copy; CJK, RTL and bidirectional text; weak
-networks; suspended tabs; and expired sessions. Drag SHALL be optional. Every
-move, reorder and crop SHALL have named controls and programmatic status.
+Every critical Web Studio and public CMS journey SHALL support keyboard, screen reader and touch; 320 CSS-pixel reflow; 200-400 percent zoom; forced colors; reduced motion; long localized copy; CJK, RTL and bidirectional text; weak networks; suspended tabs; and expired sessions.
 
-Consequential dialogs and sheets SHALL preserve context, focus the least
-destructive action, expose visible Cancel and Escape, restore focus and use calm
-non-legalistic copy. Errors SHALL be linked to their field and summary where
-applicable. Important results SHALL not rely solely on toast, color, animation,
-position, pointer hover or inaccessible technical detail.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-c83cc86a59f65eefc7d7` MUST apply without exception.
 
 #### Scenario: A keyboard and screen-reader user completes a consequential task
 

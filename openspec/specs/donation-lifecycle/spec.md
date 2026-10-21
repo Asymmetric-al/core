@@ -13,18 +13,9 @@ canonical gift truth. Staff-side corrections live in
 
 ### Requirement: Donation Creation Is Server-Authoritative And Idempotent
 
-Every donation MUST be created through the server-side donation path, which
-validates the gross amount, currency, tenant, Legal Entity, Settlement Account
-Binding, and complete allocation-line set before any payment intent exists.
-Every allocation line MUST name one valid designation, use a positive amount,
-and the lines for a payment group MUST sum exactly to that group's gross amount
-in one currency. Donation creation MUST require an idempotency key, and
-retrying with the same key MUST NOT create a second donation, allocation,
-payment group, or Stripe payment intent.
+Every donation MUST be created through the server-side donation path, which validates the gross amount, currency, tenant, Legal Entity, Settlement Account Binding, and complete allocation-line set before any payment intent exists.
 
-The client MUST NOT decide payment success. Donation state transitions MUST be
-driven by server-confirmed Stripe outcomes, and Stripe remains the payment
-authority as defined in `workflow-orchestration`.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-9c61193885cf993da87a` MUST apply without exception.
 
 #### Scenario: A donor submits the same gift twice
 
@@ -43,17 +34,9 @@ authority as defined in `workflow-orchestration`.
 
 ### Requirement: Payment And Gift Lifecycle Folds Stay Separate And Honest
 
-The platform MUST preserve payment authorization and finality, canonical
-contribution/ledger posting, refund or adjustment state, receipt eligibility
-and issuance, and communication delivery as separately authoritative lifecycle
-folds. A role-appropriate summary MAY derive a simple display state, but no
-single mutable status MAY overwrite or imply the other folds.
+The platform MUST preserve payment authorization and finality, canonical contribution/ledger posting, refund or adjustment state, receipt eligibility and issuance, and communication delivery as separately authoritative lifecycle folds.
 
-For delayed rails such as ACH Direct Debit, the payment-finality fold MUST
-distinguish a started bank transfer from collected funds. Donor-facing copy
-MUST NOT present authorization as settlement, provider success as canonical
-posting, receipt eligibility as receipt issuance, or message acceptance as
-delivery.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-97ac5470f9e97dd1fe3d` MUST apply without exception.
 
 #### Scenario: An ACH gift is authorized but not settled
 
@@ -113,24 +96,9 @@ donor-side edit or an in-place rewrite.
 
 ### Requirement: Financial Execution Is Pinned To One Exact Legal Entity
 
-A Legal Entity is the organization-owned legal issuer and financial reporting
-boundary for a gift. A Settlement Account Binding is the effective-dated,
-capability-qualified link from one Legal Entity to one exact processor account,
-mode, currency, and collection context.
+A Legal Entity is the organization-owned legal issuer and financial reporting boundary for a gift.
 
-Every accepted payment group and independently authoritative financial root
-MUST store its exact `legal_entity_id`. Each processor-bound payment group MUST
-also store the exact Settlement Account Binding selected before provider
-creation. Processing, webhook routing, reconciliation, refunds, documents, and
-accounting handoffs MUST use those frozen identifiers rather than a mutable
-tenant, site, or current-default lookup. The Legal Entity boundary MAY only
-narrow the containing tenant's scope; it MUST NOT widen access across tenants.
-
-A one-entity tenant MAY receive a quiet preselected default in the UI, but the
-stored financial records MUST remain explicit. A checkout containing work for
-different Legal Entities, currencies, or incompatible Settlement Account
-Bindings MUST form separate, fully disclosed payment groups rather than one
-ambiguous charge.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-dc94c04915c4c62ff355` MUST apply without exception.
 
 #### Scenario: A tenant changes its default settlement account
 
@@ -150,17 +118,9 @@ ambiguous charge.
 
 ### Requirement: Legacy Recurring Reflection Does Not Define The Target Topology
 
-The currently shipped compatibility projection MAY reflect existing
-Stripe-subscription events into legacy `donor_pledges` state, including
-monotonic cancellation protection against out-of-order updates. That
-one-subscription-to-one-pledge shape is implementation evidence only: the
-platform MUST NOT extend it as the target recurring creation, occurrence,
-agreement, or fulfillment model, and MUST NOT rebuild recurring billing as
-manual loops of one-time donation attempts.
+The currently shipped compatibility projection MAY reflect existing Stripe-subscription events into legacy `donor_pledges` state, including monotonic cancellation protection against out-of-order updates.
 
-The active `add-recurring-giving` change supersedes this legacy topology for
-forward implementation. Donor-initiated recurring creation is not yet part of
-the shipped donor money path.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-0d63d3c5244bf083d750` MUST apply without exception.
 
 #### Scenario: A recurring invoice is paid
 
@@ -177,18 +137,9 @@ the shipped donor money path.
 
 ### Requirement: Receipts Follow The Governed Facts-To-Artifact-To-Delivery Pipeline
 
-The receipt/statement source domain MUST derive one immutable, versioned facts
-record from canonical posted gift truth and its frozen legal-donor, Legal
-Entity, allocation, currency, correction, and eligibility evidence. Payment
-success alone MUST NOT make a receipt eligible or issued.
+The receipt/statement source domain MUST derive one immutable, versioned facts record from canonical posted gift truth and its frozen legal-donor, Legal Entity, allocation, currency, correction, and eligibility evidence.
 
-The document-production subsystem MUST render an official receipt only from
-that approved facts version through an immutable published template version
-and MUST preserve the resulting canonical artifact and correction lineage.
-Outbound delivery MUST then use the platform communication spine and governed
-send seam, pinning the exact artifact, template, and facts versions and
-recording a communication event. Rendering MUST NOT send, and delivery MUST
-NOT recompute gift or receipt truth.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-66a763e96ce20c130643` MUST apply without exception.
 
 #### Scenario: A gift becomes eligible and a receipt is sent
 
@@ -262,3 +213,28 @@ used by Mission Control, with no donor-portal-local money state.
 - WHEN a staff correction alters donor-visible gift state
 - THEN the donor portal reflects the corrected truth from the shared records
 - AND no separate portal-side sync or shadow copy is involved
+
+### Requirement: Gift Begin Goes Through The Gift Intake Begin Command
+
+Every Gift begin MUST go through the Gift Intake Begin Command in `@asym/api`.
+
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-9df606f6d099db7fa0c2` MUST apply without exception.
+
+#### Scenario: GraphQL and HTTP start the same Gift
+
+- GIVEN an authenticated donor supplies a valid missionary, amount, currency,
+  and idempotency key
+- WHEN GraphQL `createDonation` or HTTP donate/donations begins the Gift
+- THEN the Gift Intake Begin Command calls `begin_donation_saga` once for that
+  key
+- AND retrying with the same key returns the existing donation and outbox ids
+- AND GraphQL does not process the outbox or create a PaymentIntent in that
+  request
+- AND HTTP donate/donations may process the outbox immediately after begin
+
+#### Scenario: GraphQL amount units stay adapter-owned
+
+- GIVEN GraphQL `createDonation` receives `input.amount` as stored cents
+- WHEN the adapter calls the Gift Intake Begin Command
+- THEN it passes that integer as `amountCents` without multiplying by 100
+- AND HTTP donate still converts dollar amounts to cents in its own adapter

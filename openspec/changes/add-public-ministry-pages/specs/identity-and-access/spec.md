@@ -29,23 +29,9 @@ inference SHALL NOT grant authority.
 
 ### Requirement: Ministry Participation And Separately Owned Grants Are Independent And Revocable
 
-Phase 9's organization-owned Ministry Assignment and Participant Membership MAY
-associate several separately authenticated people with one ministry subject but
-SHALL grant no Phase 22 or financial action. D1 Display Participants and Public
-Page Contributor Assignments, notification choices, Phase 21's optional exact
-Support Binding, and Phase 12 Support Workspace projection grants SHALL be
-distinct prospective facts under their own authorities. A Page grant SHALL NOT
-expose gifts or balances; a support grant SHALL NOT create Page or public-
-display rights. Each fact SHALL be independently revocable with immediate
-enforcement on the next request. Every support read or mutation SHALL resolve
-the validated Principal, Active Tenant Assignment, Tenant, Legal Entity, exact
-Support Assignment, purpose, projection, target, field set, history floor,
-capability, and current authorization/governance epoch at the server boundary;
-raw Data API or RLS visibility, JWT metadata, browser-selected scope, service
-credentials, table ownership, and `BYPASSRLS` SHALL NOT substitute for that
-decision. Rebinding a Ministry Assignment to another Support Assignment SHALL
-NOT transfer or resurrect grants, participants, fields, history, or
-notifications.
+Phase 9's organization-owned Ministry Assignment and Participant Membership MAY associate several separately authenticated people with one ministry subject but SHALL grant no Phase 22 or financial action.
+
+Every clause in `openspec/contracts/identity-and-access.md#contract-c53c471a8dbcd1fa57d6` MUST apply without exception.
 
 #### Scenario: A spouse receives Page and support access
 
@@ -98,19 +84,9 @@ access, an acknowledgement record, or a comment SHALL NOT grant either access.
 
 ### Requirement: Review Staff Editing Settings Operations And Adoption Use Separate Capabilities
 
-Phase 22 SHALL define distinct action capabilities for Page contribution, staff
-content editing, candidate review, release, preview, operations inspection,
-source-owner repair, settings read/change, measurement reporting, and D21 public
-surface activation. A capability SHALL grant only its named action and exact
-scope. Task assignment, operations-row visibility, content authorship, staff
-role, or access to a related screen SHALL NOT imply another capability.
-Operations-projection read, protected-evidence inspection, shared-task
-management, and each owner-domain action SHALL be separate current
-capabilities. Settings-summary read, protected history or consequence read, and
-each owner-domain setting change SHALL likewise be authorized independently
-before rows, counts, labels, timing, previews, or cached values are composed.
-Permission-filtered absence SHALL NOT be replaced by a revealing disabled
-control.
+Phase 22 SHALL define distinct action capabilities for Page contribution, staff content editing, candidate review, release, preview, operations inspection, source-owner repair, settings read/change, measurement reporting, and D21 public surface activation.
+
+Every clause in `openspec/contracts/identity-and-access.md#contract-86b5bcd7f124b502ad47` MUST apply without exception.
 
 #### Scenario: A staff editor lacks review authority
 
@@ -150,14 +126,9 @@ control.
 
 ### Requirement: Phase 22 Uses RLS And The Server Boundary As Defense In Depth
 
-Private Phase 22 tables SHALL use forced tenant-aware RLS, structurally complete
-same-scope foreign keys, explicit Data API grants, and server-only mutation
-paths. Complex Page assignment, purpose, field, history-floor, candidate,
-release, and action policy SHALL be evaluated by the server policy boundary;
-RLS SHALL provide coarse structural containment and SHALL NOT depend on
-recursive relationship queries, mutable user metadata, or large JWT grant
-lists. Service-role access SHALL remain private and SHALL NOT bypass domain
-authorization in application commands.
+Private Phase 22 tables SHALL use forced tenant-aware RLS, structurally complete same-scope foreign keys, explicit Data API grants, and server-only mutation paths.
+
+Every clause in `openspec/contracts/identity-and-access.md#contract-5bbb5cb71ecbee01498d` MUST apply without exception.
 
 #### Scenario: A browser queries a private table
 

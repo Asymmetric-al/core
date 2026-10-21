@@ -162,7 +162,8 @@ function renderPrd(current, stories) {
 }
 
 function renderOpenSpec(stories) {
-  const header = `## Purpose\n\nProvide one coherent donor self-service experience that preserves exact source authority, privacy, financial truth, accessible task completion and recoverable outcomes across the accepted Phase25 jobs.\n\n${marker}\n\n## ADDED Requirements\n\n`;
+  const sourceGuidance = marker.replace(/^<!-- | -->$/g, "");
+  const header = `## Purpose\n\nProvide one coherent donor self-service experience that preserves exact source authority, privacy, financial truth, accessible task completion and recoverable outcomes across the accepted Phase25 jobs.\n\n${sourceGuidance}\n\n## ADDED Requirements\n\n`;
   return (
     header +
     stories

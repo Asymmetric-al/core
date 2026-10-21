@@ -1,0 +1,366 @@
+{
+  "baseline": "e2761135d2952426e15be7d56c1d9680aa7b8c15",
+  "date": "2026-10-21",
+  "procedure": "Each change was separately reviewed, ancestry-checked, given current archive/spec instructions, strictly validated and archived through the pinned CLI, with compatibility checks before and after.",
+  "changes": [
+    {
+      "change": "add-curated-agent-skills",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "23dcde751edf33ff8eff950186a8a09d2e7a157a"
+        },
+        "mergedAt": "2026-07-16T19:30:16Z",
+        "number": 839,
+        "state": "MERGED",
+        "title": "feat(skills): add curated repo-local agent guidance",
+        "url": "https://github.com/Asymmetric-al/core/pull/839"
+      },
+      "archivedAs": "2026-10-21-add-curated-agent-skills",
+      "specsUpdated": true,
+      "operations": {
+        "added": 1,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "add-emilkowalski-agent-skills",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "0ebb0cc3494608f630f556c0a6c3a9ffcbbe59e7"
+        },
+        "mergedAt": "2026-07-12T11:40:12Z",
+        "number": 788,
+        "state": "MERGED",
+        "title": "feat(skills): add Emil and unknowns skill packs",
+        "url": "https://github.com/Asymmetric-al/core/pull/788"
+      },
+      "archivedAs": "2026-10-21-add-emilkowalski-agent-skills",
+      "specsUpdated": true,
+      "operations": {
+        "added": 1,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "add-grill-for-unknowns-agent-skill",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "0ebb0cc3494608f630f556c0a6c3a9ffcbbe59e7"
+        },
+        "mergedAt": "2026-07-12T11:40:12Z",
+        "number": 788,
+        "state": "MERGED",
+        "title": "feat(skills): add Emil and unknowns skill packs",
+        "url": "https://github.com/Asymmetric-al/core/pull/788"
+      },
+      "archivedAs": "2026-10-21-add-grill-for-unknowns-agent-skill",
+      "specsUpdated": true,
+      "operations": {
+        "added": 1,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "adopt-45-phase-program-roadmap",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "ea8086cf398fb20878994f5979cbeea7959a1845"
+        },
+        "mergedAt": "2026-09-23T03:31:11Z",
+        "number": 1897,
+        "state": "MERGED",
+        "title": "docs(AL-1892): adopt 45-phase roadmap and reconcile source contracts",
+        "url": "https://github.com/Asymmetric-al/core/pull/1897"
+      },
+      "archivedAs": "2026-10-21-adopt-45-phase-program-roadmap",
+      "specsUpdated": false,
+      "operations": null,
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "adopt-cn-class-merging",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "98e48b22fd75ca8d51aad78a705df0b9c930c72c"
+        },
+        "mergedAt": "2026-09-30T17:55:03Z",
+        "number": 1895,
+        "state": "MERGED",
+        "title": "chore(AL-1893): adopt shadcn cn and preserve class compatibility",
+        "url": "https://github.com/Asymmetric-al/core/pull/1895"
+      },
+      "archivedAs": "2026-10-21-adopt-cn-class-merging",
+      "specsUpdated": true,
+      "operations": {
+        "added": 3,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "canonical-supabase-tanstack-db",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "1224c5b512f2a48484b70a27186ab5f62bda6a5a"
+        },
+        "mergedAt": "2026-07-17T04:50:15Z",
+        "number": 412,
+        "state": "MERGED",
+        "title": "Add Supabase TanStack DB collection boundary",
+        "url": "https://github.com/Asymmetric-al/core/pull/412"
+      },
+      "archivedAs": "2026-10-21-canonical-supabase-tanstack-db",
+      "specsUpdated": true,
+      "operations": {
+        "added": 5,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "clarify-agent-task-completion",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "fda104e5c12ed95586c2ef0af6af88184d9bc6e9"
+        },
+        "mergedAt": "2026-09-23T03:31:12Z",
+        "number": 1891,
+        "state": "MERGED",
+        "title": "docs(AL-1861): reconcile product authority and retire Twenty guidance",
+        "url": "https://github.com/Asymmetric-al/core/pull/1891"
+      },
+      "archivedAs": "2026-10-21-clarify-agent-task-completion",
+      "specsUpdated": true,
+      "operations": {
+        "added": 1,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "correct-nextjs-architecture-core-boundaries",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "bd9acc44313761d3371996c85376373782da02fb"
+        },
+        "mergedAt": "2026-09-28T20:03:26Z",
+        "number": 1429,
+        "state": "MERGED",
+        "title": "docs(skills): add nextjs-app-architecture with Core overlay",
+        "url": "https://github.com/Asymmetric-al/core/pull/1429"
+      },
+      "archivedAs": "2026-10-21-correct-nextjs-architecture-core-boundaries",
+      "specsUpdated": true,
+      "operations": {
+        "added": 2,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "document-multi-site-foundation",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "38e91ba64abeeec40d94400d2ec51e5e1b937738"
+        },
+        "mergedAt": "2026-10-03T03:27:12Z",
+        "number": 1926,
+        "state": "MERGED",
+        "title": "docs(AL-478): document tenant multi-site foundation",
+        "url": "https://github.com/Asymmetric-al/core/pull/1926"
+      },
+      "archivedAs": "2026-10-21-document-multi-site-foundation",
+      "specsUpdated": false,
+      "operations": {
+        "added": 0,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "graphql-gift-engagement-command-adapters",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "b391e74dc697923f2dc4457cb1774eb519cc2fc4"
+        },
+        "mergedAt": "2026-09-22T02:38:15Z",
+        "number": 1331,
+        "state": "MERGED",
+        "title": "refactor(graphql): share Gift and engagement command modules",
+        "url": "https://github.com/Asymmetric-al/core/pull/1331"
+      },
+      "archivedAs": "2026-10-21-graphql-gift-engagement-command-adapters",
+      "specsUpdated": true,
+      "operations": {
+        "added": 2,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "modernize-openspec-1-9",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd"
+        },
+        "mergedAt": "2026-08-19T17:59:53Z",
+        "number": 1325,
+        "state": "MERGED",
+        "title": "chore(openspec): pin 1.9.0 and correct CRM authority context",
+        "url": "https://github.com/Asymmetric-al/core/pull/1325"
+      },
+      "archivedAs": "2026-10-21-modernize-openspec-1-9",
+      "specsUpdated": true,
+      "operations": {
+        "added": 7,
+        "modified": 1,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "prepare-reui-pro-agent-workflow",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "83ba7914161b5b7b5abd3ef7f4fe14d825302e2c"
+        },
+        "mergedAt": "2026-10-08T08:07:39Z",
+        "number": 1970,
+        "state": "MERGED",
+        "title": "chore(AL-1967): prepare authenticated ReUI Pro agent workflows",
+        "url": "https://github.com/Asymmetric-al/core/pull/1970"
+      },
+      "archivedAs": "2026-10-21-prepare-reui-pro-agent-workflow",
+      "specsUpdated": true,
+      "operations": {
+        "added": 1,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "slim-codex-agent-router",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "201f5d025284aa8b90acc0b90ed4d8fbe2bcadad"
+        },
+        "mergedAt": "2026-08-19T17:05:45Z",
+        "number": 1334,
+        "state": "MERGED",
+        "title": "AL-1333: Slim the Codex AGENTS.md router",
+        "url": "https://github.com/Asymmetric-al/core/pull/1334"
+      },
+      "archivedAs": "2026-10-21-slim-codex-agent-router",
+      "specsUpdated": false,
+      "operations": {
+        "added": 0,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    },
+    {
+      "change": "upgrade-base-ui-1-9",
+      "acceptance": {
+        "mergeCommit": {
+          "oid": "c30c8ffa26a9151871f036812a3bebf848fdd2c4"
+        },
+        "mergedAt": "2026-10-09T19:54:53Z",
+        "number": 1986,
+        "state": "MERGED",
+        "title": "chore(AL-1985): upgrade Base UI to 1.9.0 and adopt menu filtering",
+        "url": "https://github.com/Asymmetric-al/core/pull/1986"
+      },
+      "archivedAs": "2026-10-21-upgrade-base-ui-1-9",
+      "specsUpdated": true,
+      "operations": {
+        "added": 4,
+        "modified": 0,
+        "removed": 0,
+        "renamed": 0
+      },
+      "verification": {
+        "strictBefore": 0,
+        "compatibilityBefore": 0,
+        "compatibilityAfter": 0
+      }
+    }
+  ]
+}

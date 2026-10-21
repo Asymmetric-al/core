@@ -4,20 +4,9 @@
 
 ### Requirement: Staff Can Initiate Contribution Refunds
 
-Staff who hold the `contributions.run_refunds` capability MUST be able to
-initiate a full or partial refund of a Stripe-backed contribution from Mission
-Control, executed server-side through Stripe. That capability is held by finance
-approver, admin, and super_admin. The action MUST require
-`contributions.run_refunds`, a reason, and server-side confirmation, and MUST
-record the provider outcome truthfully without implying final refund completion
-before provider or webhook-confirmed truth supports it. Capability resolution
-follows `identity-and-access`.
+Staff who hold the `contributions.run_refunds` capability MUST be able to initiate a full or partial refund of a Stripe-backed contribution from Mission Control, executed server-side through Stripe.
 
-Bulk refunds MUST run per-record through the single-action contribution action
-contract with preview and confirmation, as a background batch, and each
-per-record refund MUST enforce the same high-risk policy and capability gate as
-a single refund. Trust-sensitive Stripe identifiers and credentials MUST stay
-behind server-side boundaries.
+Every clause in `openspec/contracts/contribution-operations.md#contract-e61bb6f0324d18799730` MUST apply without exception.
 
 #### Scenario: Authorized staff refunds a gift
 

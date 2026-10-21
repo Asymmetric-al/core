@@ -13,17 +13,9 @@ spec states the shipped enforcement that upholds it.
 
 ### Requirement: Identity, Tenant, And Role Resolve Server-Side
 
-The platform MUST establish a request's identity, tenant, and role server-side
-from a validated session, and the client MUST NOT assert any of them. Protected
-operations MUST require a validated Supabase session (the server validates the
-user, not an unverified token or cookie claim), and the server MUST resolve the
-acting profile, tenant, and role — including staff subrole and tenant
-memberships — before running the operation.
+The platform MUST establish a request's identity, tenant, and role server-side from a validated session, and the client MUST NOT assert any of them.
 
-The role model is a fixed set: donor, missionary, staff, admin, and
-super_admin, with staff subroles (finance, mobilizer, development, HR, member
-care) refining staff. Portal-routing aliases are presentation only and MUST NOT
-be treated as authorization.
+Every clause in `openspec/contracts/identity-and-access.md#contract-ff4ce6b4558ae3584acc` MUST apply without exception.
 
 #### Scenario: A protected operation runs
 
@@ -42,15 +34,9 @@ be treated as authorization.
 
 ### Requirement: Tenant Isolation Is Enforced In Depth
 
-Tenant isolation MUST be enforced so that no request reads or mutates data
-outside its own tenant and role scope. Application-layer checks at the data-
-access boundary MUST be the primary enforcement, and database row-level
-security MUST provide defense-in-depth backup; RLS MUST NOT be the only line of
-defense, and UI hiding MUST NOT be treated as isolation.
+Tenant isolation MUST be enforced so that no request reads or mutates data outside its own tenant and role scope.
 
-Tenant-scoped tables MUST carry a tenant identifier and be governed by
-row-level security. Internal and backup tables that should never be
-publicly reachable MUST have access revoked rather than left open.
+Every clause in `openspec/contracts/identity-and-access.md#contract-ef4ef18d6b8f09f884c1` MUST apply without exception.
 
 #### Scenario: A request tries to reach another tenant's data
 
@@ -68,18 +54,9 @@ publicly reachable MUST have access revoked rather than left open.
 
 ### Requirement: Sensitive Actions Enforce Capabilities Server-Side
 
-Sensitive and high-risk actions MUST resolve fine-grained capabilities
-server-side from the actor's role, staff subrole, and tenant memberships, and
-MUST deny on mismatch; UI hiding MUST NOT be treated as sufficient protection.
-Capability resolution MUST happen behind the server boundary, not in the
-browser.
+Sensitive and high-risk actions MUST resolve fine-grained capabilities server-side from the actor's role, staff subrole, and tenant memberships, and MUST deny on mismatch; UI hiding MUST NOT be treated as sufficient protection.
 
-Today the platform enforces granular capabilities for sensitive contribution
-actions (for example, refunds, corrections, approvals, and provider actions
-resolve distinct capabilities) and gates automation management behind an
-explicit manage permission. Broader Mission Control access is currently uniform
-across staff subroles in the MVP posture, with per-subrole narrowing reserved as
-forward work; the durable direction is least privilege per subrole.
+Every clause in `openspec/contracts/identity-and-access.md#contract-b17832f6692565948454` MUST apply without exception.
 
 #### Scenario: Non-finance staff attempts a refund
 
@@ -97,16 +74,9 @@ forward work; the durable direction is least privilege per subrole.
 
 ### Requirement: Sensitive Operations And Secrets Stay Behind The Server Boundary
 
-Sensitive operations and secrets MUST stay behind the server-side boundary, as
-required by `platform-boundaries`. Payments, money movement, record mutation,
-refunds, and secret-bearing integrations MUST run through server-side contracts
-in the shared data-access layer, and the privileged admin data client MUST fail
-closed (denying the operation) when it is unavailable rather than proceeding
-without it.
+Sensitive operations and secrets MUST stay behind the server-side boundary, as required by `platform-boundaries`.
 
-Tenant secrets — payment keys, webhook secrets, and vendor credentials — MUST
-remain readable only server-side and MUST NOT reach the browser, logs, or route
-responses.
+Every clause in `openspec/contracts/identity-and-access.md#contract-02eb35fb111fae62bdbf` MUST apply without exception.
 
 #### Scenario: A sensitive operation runs without the admin client
 

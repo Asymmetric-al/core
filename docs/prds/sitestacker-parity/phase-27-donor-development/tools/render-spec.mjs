@@ -90,7 +90,9 @@ const updated = main.replace(
 const out = [
   "# Phase 27 donor-development behavioral projection",
   "",
-  "> Generated from the canonical Phase 27 story registry and normative volumes. Regenerate with its render-spec tool; do not edit independently. Complete REQ27 contracts and operating controls remain binding alongside these observable scenarios.",
+  "## Purpose",
+  "",
+  "Generated from the canonical Phase 27 story registry and normative volumes. Regenerate with its render-spec tool; do not edit independently. Complete REQ27 contracts and operating controls remain binding alongside these observable scenarios.",
   "",
   "## ADDED Requirements",
   "",
@@ -166,12 +168,27 @@ const outputs = [
   [path.join(base, "traceability.json"), trace],
 ];
 const { default: prettier } = await import("prettier");
+const { renderContractView } = await import(
+  path.join(repo, "scripts/lib/openspec-contracts.mjs")
+);
 const formatOptions = await prettier.resolveConfig(mainFile);
 for (const [file, content] of outputs) {
-  const formatted = await prettier.format(content, {
+  let formatted = await prettier.format(content, {
     ...formatOptions,
     filepath: file,
   });
+  if (file.endsWith("/specs/donor-development/spec.md")) {
+    formatted = await renderContractView({
+      repoRoot: repo,
+      capability: "donor-development",
+      content: formatted,
+      write,
+    });
+    formatted = await prettier.format(formatted, {
+      ...formatOptions,
+      filepath: file,
+    });
+  }
   if (write) await writeFile(file, formatted);
   else if ((await readFile(file, "utf8")) !== formatted)
     fail(`Generated content differs: ${path.relative(repo, file)}`);

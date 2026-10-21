@@ -33,6 +33,12 @@ human-oriented index. It does not prove that proposed work has shipped.
 `crm-core`, `identity-and-access`, `workflow-orchestration`,
 `agent-instruction-system`, `eve-autonomous-operations`.
 
+Read every unconditionally referenced `openspec/contracts/` section in full.
+The complete clauses, concise requirement, and original scenarios form one
+contract. These repository-root references survive sync and archive moves;
+their proposed, accepted, or historical status follows the referencing
+requirement. See [binding contract sections](contracts/README.md).
+
 Architecture trees and route tables stay in
 `docs/guides/architecture/overview.md`.
 

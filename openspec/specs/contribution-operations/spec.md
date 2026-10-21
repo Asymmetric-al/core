@@ -12,20 +12,9 @@ entry points.
 
 ### Requirement: Contribution Operations Core Owns Staff Gift Actions
 
-Mission Control contribution actions MUST pass through a shared
-Contribution Operations Core whenever staff read or mutate contribution
-operations state from the Contribution Hub, donor CRM record, automation, or
-future batch flows.
+Mission Control contribution actions MUST pass through a shared Contribution Operations Core whenever staff read or mutate contribution operations state from the Contribution Hub, donor CRM record, automation, or future batch flows.
 
-The Contribution Operations Core MUST be the server-side action and read-model
-boundary for staff contribution operations. It MUST own contribution detail,
-correction records, operation audit events, reason and confirmation policy,
-high-risk permission checks, provider outcome capture, donor-visible state
-updates, and action execution.
-
-The Contribution Hub and donor CRM record MAY present different layouts, but
-they MUST call the same backend contribution action layer and return the same
-canonical contribution truth after mutation.
+Every clause in `openspec/contracts/contribution-operations.md#contract-72571c0077f0d8d5eb90` MUST apply without exception.
 
 #### Scenario: Staff acts on a gift from the Contribution Hub
 
@@ -46,18 +35,9 @@ canonical contribution truth after mutation.
 
 ### Requirement: Contribution Corrections Preserve Money And Identity Truth
 
-Contribution operations MUST distinguish harmless internal metadata edits from
-corrections that affect money, donor identity, designation, provider state,
-refunds, official donor records, or donor-visible history.
+Contribution operations MUST distinguish harmless internal metadata edits from corrections that affect money, donor identity, designation, provider state, refunds, official donor records, or donor-visible history.
 
-Harmless internal metadata MAY update directly when it does not change money,
-identity, designation, official donor records, provider state, or donor-visible
-history.
-
-Corrections MUST be recorded for donor relinking, amount correction,
-fund/designation correction, missionary or project allocation correction,
-refund correction, receipt or statement correction, payment state correction,
-Stripe replay, and other provider-state corrections.
+Every clause in `openspec/contracts/contribution-operations.md#contract-22ea8499f3fb56816014` MUST apply without exception.
 
 #### Scenario: Staff changes harmless metadata
 
@@ -87,20 +67,9 @@ Stripe replay, and other provider-state corrections.
 
 ### Requirement: High-Risk Contribution Actions Require A Granular Capability And Reason
 
-High-risk contribution actions MUST resolve the granular server-side capability
-for the action, a reason, and a clear confirmation prompt enforced server-side.
-For example, refunds require `contributions.run_refunds`, while Stripe replay
-requires `contributions.use_provider_actions`. Those capabilities are held by
-finance approver, admin, and super_admin, not baseline finance staff.
-Capability resolution follows `identity-and-access`; the legacy coarse
-`finance:manage_contributions` permission does not authorize refunds or Stripe
-replay.
+High-risk contribution actions MUST resolve the granular server-side capability for the action, a reason, and a clear confirmation prompt enforced server-side.
 
-The non-suppressible high-risk actions include refunds, donor relinking,
-designation or fund correction, payment state correction, and Stripe replay.
-
-Organization or user prompt settings MUST NOT suppress the reason prompt for
-these actions.
+Every clause in `openspec/contracts/contribution-operations.md#contract-1fc0537639c6eb62a033` MUST apply without exception.
 
 #### Scenario: Staff without the refund capability attempts a refund
 
@@ -121,17 +90,9 @@ these actions.
 
 ### Requirement: Contribution Operation Audit Is Canonical And Cross-Surface
 
-Every meaningful contribution action MUST write an operation audit event that
-records actor, tenant, contribution, source surface, action type, timestamp,
-reason when required, safe before/after summary, related provider identifiers,
-related tasks, related batches, and downstream effects.
+Every meaningful contribution action MUST write an operation audit event that records actor, tenant, contribution, source surface, action type, timestamp, reason when required, safe before/after summary, related provider identifiers, related tasks, related batches, and downstream effects.
 
-Provider identifiers MAY be persisted in server-side audit metadata, but
-staff-facing audit reads, action results, exports, and summaries MUST omit or
-redact them unless the viewer has `contributions.use_provider_actions`.
-
-The audit trail MUST make clear whether an action came from the Contribution
-Hub, donor CRM record, automation, or future batch execution.
+Every clause in `openspec/contracts/contribution-operations.md#contract-dfc1259c58538c205338` MUST apply without exception.
 
 #### Scenario: Staff resends a receipt from CRM
 
@@ -150,18 +111,9 @@ Hub, donor CRM record, automation, or future batch execution.
 
 ### Requirement: Stripe Remains Payment Authority For Refund And Provider State
 
-Stripe MUST remain the payment execution and payment-method authority for
-Stripe-backed contributions. When refund or provider-replay outcomes are
-recorded, the platform MUST record Stripe outcomes honestly and MUST NOT imply
-final refund or payment-state completion before provider outcomes or
-webhook-confirmed operational truth supports it.
+Stripe MUST remain the payment execution and payment-method authority for Stripe-backed contributions.
 
-Staff-initiated refund and provider-replay execution is not yet part of the
-shipped path; the platform today records provider-confirmed refund outcomes.
-The staff-initiated execution path is proposed as forward work.
-
-Trust-sensitive Stripe identifiers and credentials MUST remain behind
-server-side boundaries.
+Every clause in `openspec/contracts/contribution-operations.md#contract-8e1c185df0fbdfc400b4` MUST apply without exception.
 
 #### Scenario: A provider-confirmed refund is recorded
 
@@ -199,24 +151,9 @@ later sync to donor-facing money history.
 
 ### Requirement: Donor Correction Communications Use Governed Content and Shared Dispatch
 
-The contribution operation MUST own the correction-notification purpose and
-source facts. Phase 17 Email Studio MUST own the provider-neutral
-template/version contract, required merge-tag validation, governed content, and
-sender/reply resolution. Phase 6 MUST own consent evaluation, durable
-communication intent, dispatch through the approved Resend transport,
-communication-event history, and provider outcome.
+The contribution operation MUST own the correction-notification purpose and source facts.
 
-Contribution operations, automations, and future bulk actions MUST NOT send
-donor-facing contribution correction emails directly through Resend or a
-feature-local email builder.
-
-If a required correction template is missing, inactive, or invalid during
-Phase 17 resolution or preparation, the contribution action MUST remain
-complete, Phase 6 MUST NOT dispatch a fallback donor email, the notification
-decision MUST be audited, and follow-up task intent MUST be created through the
-shared task contract. Once a correction notification has crossed the durable
-prepared-message boundary, dispatch MUST NOT re-check template activity; it
-re-proves only the current safety fences that apply to the frozen payload.
+Every clause in `openspec/contracts/contribution-operations.md#contract-1b202627a552c9d7996d` MUST apply without exception.
 
 #### Scenario: A refund notification is sent
 
@@ -252,18 +189,9 @@ re-proves only the current safety fences that apply to the frozen payload.
 
 ### Requirement: Bulk Contribution Actions Use The Single-Action Contract
 
-Bulk contribution actions MUST execute per-record work through the same
-Contribution Operations Core action contract used by single contribution
-actions. Bulk execution MUST NOT bypass permission, reason, confirmation,
-correction, notification, task, or audit rules.
+Bulk contribution actions MUST execute per-record work through the same Contribution Operations Core action contract used by single contribution actions.
 
-Every bulk contribution action MUST require confirmation. High-risk bulk
-actions MUST require preview plus confirmation and MUST run as background
-batches. Small low-risk batches MAY run immediately when tenant settings allow
-preview skipping.
-
-Batch results MUST record summary counts, per-record status and reason, audit
-links, task links, and CSV export data.
+Every clause in `openspec/contracts/contribution-operations.md#contract-6b0d436abf3672a99ee5` MUST apply without exception.
 
 #### Scenario: Staff runs bulk receipt resend
 
@@ -376,15 +304,9 @@ truth and use the same server-side contribution action layer.
 
 ### Requirement: Contribution Detail Shows Operational And Donor-Visible Consequences
 
-Mission Control contribution detail MUST show staff the operational context of
-a gift and the donor-visible consequence of meaningful corrections before the
-user confirms a high-risk action.
+Mission Control contribution detail MUST show staff the operational context of a gift and the donor-visible consequence of meaningful corrections before the user confirms a high-risk action.
 
-The detail SHOULD include donor, gift, designation, payment, the independently
-joined Phase 7 receipt-facts result, Phase 18 artifact, Phase 6 delivery
-outcome, refund, recurring, CRM, audit, task, batch, provider, and donor-visible
-state when available. It MUST NOT collapse those joins into one stored
-contribution receipt status or revive a staged-gift runtime.
+Every clause in `openspec/contracts/contribution-operations.md#contract-dc69633a19a3874b09b1` MUST apply without exception.
 
 #### Scenario: Staff confirms a donor-visible correction
 
@@ -396,20 +318,9 @@ contribution receipt status or revive a staged-gift runtime.
 
 ### Requirement: Staff Contribution Search Supports Gift Operations
 
-The Contribution Hub MUST support gift-first contribution search and filtering
-for operational investigation. Search and filters SHOULD include donor name,
-donor address/location, phone, gift date range, payment method, payment type,
-safe last-four, status, derived receipt/document/delivery outcome, refund
-state, designation, fund, missionary, project, batch, and other contribution
-fields when available. Receipt filters MUST compile against the Phase 7 facts,
-Phase 18 artifact, and Phase 6 delivery projections and MUST NOT read a mutable
-receipt-status column on the contribution.
+The Contribution Hub MUST support gift-first contribution search and filtering for operational investigation.
 
-Provider identifier search and filtering, including Stripe PaymentIntent,
-charge, refund, webhook, and replay identifiers, MUST require
-`contributions.use_provider_actions`. Staff without that permission MUST stay on
-safe payment summaries, including safe last-four, brand, bank, status, and
-contact-based search inputs.
+Every clause in `openspec/contracts/contribution-operations.md#contract-63aeaec7af83662208d1` MUST apply without exception.
 
 #### Scenario: Staff has incomplete donor information
 

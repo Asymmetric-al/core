@@ -4,17 +4,9 @@
 
 ### Requirement: Identity, Tenant, And Role Resolve Server-Side
 
-The platform MUST establish a request's identity, tenant, and role server-side
-from a validated session, and the client MUST NOT assert any of them. Protected
-operations MUST require a validated Supabase session (the server validates the
-user, not an unverified token or cookie claim), and the server MUST resolve the
-acting profile, tenant, and role — including staff subrole and tenant
-memberships — before running the operation.
+The platform MUST establish a request's identity, tenant, and role server-side from a validated session, and the client MUST NOT assert any of them.
 
-The role model is a fixed set: donor, missionary, staff, admin, and
-super_admin, with staff subroles (finance, mobilizer, development, HR, member
-care) refining staff. Portal-routing aliases are presentation only and MUST NOT
-be treated as authorization.
+Every clause in `openspec/contracts/identity-and-access.md#contract-ff4ce6b4558ae3584acc` MUST apply without exception.
 
 #### Scenario: A protected operation runs
 

@@ -11,6 +11,10 @@ context: |
   - platform-* specs govern durable product direction, boundaries, and priorities;
   - capability specs govern accepted verifiable behavior.
   Active changes describe proposed deltas and do not prove that behavior shipped.
+  Requirements unconditionally incorporate referenced openspec/contracts sections.
+  Read each complete section using its repository-root path; every clause applies
+  alongside the concise description and all scenarios. A proposed or historical
+  section is not accepted merely because its file exists.
   Resolve intent by domain ownership and explicit ratified supersession, not
   timestamps or directory alone. docs/ai/document-authority.md identifies
   authoring sources; generated OpenSpec views remain synchronized projections.
@@ -32,6 +36,8 @@ rules:
 
   specs:
     - Describe observable durable behavior, not implementation.
+    - Read and preserve every clause in referenced openspec/contracts sections;
+      keep their unconditional references and source-owned generation intact.
     - Preserve all still-valid scenarios in a MODIFIED requirement.
     - Cover tenant, Legal Entity, role, authorization, privacy, money, recovery,
       accessibility, and failure behavior when relevant.
