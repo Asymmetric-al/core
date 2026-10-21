@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { verifyStripeDataPipeline } from "../../../scripts/verify/stripe-data-pipeline.mjs";
 
 const expectations = {
-  projectRef: "developmentfixture",
+  projectRef: "pnmlrbgjiqzzsthsoikm",
   accountId: "acct_fixture",
   sandboxId: "sandbox_fixture",
   schema: "provider_fixture",
@@ -15,8 +15,8 @@ const expectations = {
 };
 const environment = {
   SUPABASE_DB_URL:
-    "postgresql://postgres.developmentfixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
-  NEXT_PUBLIC_SUPABASE_URL: "https://developmentfixture.supabase.co",
+    "postgresql://postgres.pnmlrbgjiqzzsthsoikm:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
+  NEXT_PUBLIC_SUPABASE_URL: "https://pnmlrbgjiqzzsthsoikm.supabase.co",
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "fake-public-key",
 };
 
@@ -75,6 +75,28 @@ function dependencies(data = emptyData(), catalogResult = catalog()) {
 }
 
 describe("Stripe Data Pipeline verifier", () => {
+  it("rejects an unintended project even when every supplied destination agrees", async () => {
+    const deps = dependencies();
+    await expect(
+      verifyStripeDataPipeline(
+        { ...expectations, projectRef: "unintendedproject" },
+        {
+          ...deps,
+          environment: {
+            ...environment,
+            SUPABASE_DB_URL: environment.SUPABASE_DB_URL.replace(
+              "pnmlrbgjiqzzsthsoikm",
+              "unintendedproject",
+            ),
+            NEXT_PUBLIC_SUPABASE_URL: "https://unintendedproject.supabase.co",
+          },
+        },
+      ),
+    ).rejects.toThrow("canonical development project");
+    expect(deps.spawn).not.toHaveBeenCalled();
+    expect(deps.fetch).not.toHaveBeenCalled();
+  });
+
   it("rejects a different destination before opening a connection", async () => {
     const spawn = vi.fn();
     await expect(
@@ -82,7 +104,7 @@ describe("Stripe Data Pipeline verifier", () => {
         environment: {
           ...environment,
           SUPABASE_DB_URL: environment.SUPABASE_DB_URL.replace(
-            "postgres.developmentfixture",
+            "postgres.pnmlrbgjiqzzsthsoikm",
             "postgres.other",
           ),
         },
@@ -348,6 +370,29 @@ describe("Stripe Data Pipeline verifier", () => {
     expect(result.exitCode).toBe(2);
   });
 
+  it.each(["2026-10-21T01:03:00.001Z", "2027-10-21T01:02:00Z"])(
+    "rejects a future privacy review before connecting: %s",
+    async (indirectExposureReviewedAt) => {
+      const deps = dependencies();
+      await expect(
+        verifyStripeDataPipeline(
+          { ...expectations, indirectExposureReviewedAt },
+          { ...deps, now: () => Date.parse("2026-10-21T01:02:00Z") },
+        ),
+      ).rejects.toThrow("future");
+      expect(deps.spawn).not.toHaveBeenCalled();
+      expect(deps.fetch).not.toHaveBeenCalled();
+    },
+  );
+
+  it("allows a small clock skew in a recorded privacy review", async () => {
+    const result = await verifyStripeDataPipeline(
+      { ...expectations, indirectExposureReviewedAt: "2026-10-21T01:02:30Z" },
+      { ...dependencies(), now: () => Date.parse("2026-10-21T01:02:00Z") },
+    );
+    expect(result.checks.privacy).toBe("passed");
+  });
+
   it.each([
     [406, { code: "PGRST106" }, "passed"],
     [200, {}, "failed"],
@@ -365,7 +410,7 @@ describe("Stripe Data Pipeline verifier", () => {
       expect(result.checks.privacy).toBe(check);
       const [url, options] = deps.fetch.mock.calls[0];
       expect(url).toBe(
-        "https://developmentfixture.supabase.co/rest/v1/customers?select=id&limit=0",
+        "https://pnmlrbgjiqzzsthsoikm.supabase.co/rest/v1/customers?select=id&limit=0",
       );
       expect(options.headers["Accept-Profile"]).toBe("provider_fixture");
       expect(options.redirect).toBe("error");
@@ -414,7 +459,7 @@ describe("Stripe Data Pipeline verifier", () => {
     );
     expect(result.checks.structure).toBe("passed");
     expect(deps.fetch.mock.calls[0][0]).toBe(
-      "https://developmentfixture.supabase.co/rest/v1/refunds?select=id&limit=0",
+      "https://pnmlrbgjiqzzsthsoikm.supabase.co/rest/v1/refunds?select=id&limit=0",
     );
     expect(deps.spawn.mock.calls[1][2].input).not.toContain("WHERE livemode");
   });

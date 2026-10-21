@@ -5,6 +5,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { loadWorkspaceEnvironment } from "../load-workspace-env.mjs";
 
 const TABLES = ["customers", "payment_intents", "charges", "refunds"];
+// Canonical development destination from docs/ops/environments.md; no override.
+const DEVELOPMENT_PROJECT_REF = "pnmlrbgjiqzzsthsoikm";
 const LINKS = {
   customers: {},
   payment_intents: { latest_charge: "ch" },
@@ -32,10 +34,10 @@ function requireCheck(condition, message, exitCode = 2) {
   if (!condition) throw new VerificationError(message, exitCode);
 }
 
-function validateExpectations(expected) {
+function validateExpectations(expected, now) {
   requireCheck(
-    matchesText(expected?.projectRef, /^[a-z][a-z0-9-]{0,62}$/),
-    "Expected projectRef is required.",
+    expected?.projectRef === DEVELOPMENT_PROJECT_REF,
+    "Expected projectRef must be Core's canonical development project (pnmlrbgjiqzzsthsoikm).",
   );
   requireCheck(
     matchesText(expected.accountId, /^acct_[a-zA-Z0-9]+$/),
@@ -68,11 +70,16 @@ function validateExpectations(expected) {
     Array.isArray(expected.fixtures) && expected.fixtures.length <= 10,
     "fixtures must be an array of at most ten synthetic observations.",
   );
-  if (expected.indirectExposureReviewedAt !== undefined)
+  if (expected.indirectExposureReviewedAt !== undefined) {
     requireCheck(
       timestamp(expected.indirectExposureReviewedAt),
       "indirectExposureReviewedAt must record the actual manual review time.",
     );
+    requireCheck(
+      Date.parse(expected.indirectExposureReviewedAt) <= now + 60_000,
+      "Privacy review cannot be in the future (at most one minute of clock skew).",
+    );
+  }
   if (expected.fixtures.length)
     requireCheck(
       timestamp(expected.activatedAt),
@@ -339,9 +346,10 @@ export async function verifyStripeDataPipeline(
     environment = process.env,
     spawn = spawnSync,
     fetch = globalThis.fetch,
+    now = Date.now,
   } = {},
 ) {
-  validateExpectations(expected);
+  validateExpectations(expected, now());
   const child = connectionEnvironment(environment, expected.projectRef);
   // Validate both destinations before any network operation.
   if (environment.NEXT_PUBLIC_SUPABASE_URL)

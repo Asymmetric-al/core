@@ -123,6 +123,8 @@ Store existing `SUPABASE_DB_URL`, `NEXT_PUBLIC_SUPABASE_URL`, and
 approved local secret storage loaded by the workspace environment loader. Never put the
 database URL in command arguments. The verifier requires the intended project
 and source/schema expectations explicitly; it cannot fall back to the CMS DB.
+It independently pins `projectRef` to `pnmlrbgjiqzzsthsoikm`; matching expectations
+and credentials for another project are rejected before connecting.
 Create a local, uncommitted JSON expectations file using actual observed values:
 
 ```json
@@ -231,7 +233,8 @@ ROLLBACK;
 
 Do not attest while any candidate or application consumer remains unreviewed.
 The timestamp is an operator attestation, not automated dependency analysis, and
-must be after activation. Repeat the review after API exposure, grants,
+must be after activation. The helper rejects future review times, allowing at most
+one minute of clock skew. Repeat the review after API exposure, grants,
 views/functions, or application consumers change; update its timestamp only
 after completing that review. Missing or preactivation review evidence leaves
 privacy incomplete even when the direct schema probe and grants pass.
