@@ -125,6 +125,16 @@ database URL in command arguments. The verifier requires the intended project
 and source/schema expectations explicitly; it cannot fall back to the CMS DB.
 It independently pins `projectRef` to `pnmlrbgjiqzzsthsoikm`; matching expectations
 and credentials for another project are rejected before connecting.
+
+Accepted URLs use `postgresql://` or `postgres://`, explicit user/password, and
+the `/postgres` database path. Use `db.pnmlrbgjiqzzsthsoikm.supabase.co`, or a
+`<pooler>.pooler.supabase.com` host with a username ending in
+`.pnmlrbgjiqzzsthsoikm`. Include one explicit `sslmode`: `require`, `verify-ca`,
+or `verify-full`; the legacy `no-verify` alias is normalized to `require`.
+The only other accepted query options are `sslrootcert`, `sslcert`, `sslkey`,
+`sslcrl`, and `sslcrldir`. Duplicate options and routing overrides such as
+`host`, `hostaddr`, `service`, `user`, `dbname`, or `options` are rejected.
+
 Create a local, uncommitted JSON expectations file using actual observed values:
 
 ```json
