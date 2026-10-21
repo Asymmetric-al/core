@@ -13,12 +13,7 @@
  */
 
 export type ExprValue =
-  | string
-  | number
-  | boolean
-  | null
-  | ExprValue[]
-  | { [key: string]: ExprValue };
+  string | number | boolean | null | ExprValue[] | { [key: string]: ExprValue };
 
 export type ExprNode =
   | { kind: "literal"; value: string | number | boolean | null }

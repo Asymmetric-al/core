@@ -85,8 +85,7 @@ export type WorkflowDocument = {
 /** Parse workflow YAML text with Bun's YAML parser (in-process under Bun, else via `bun`). */
 export function parseWorkflowSource(source: string): WorkflowDocument {
   const bun = globalThis.Bun as
-    | { YAML: { parse(input: string): unknown } }
-    | undefined;
+    { YAML: { parse(input: string): unknown } } | undefined;
   if (bun?.YAML) {
     return bun.YAML.parse(source) as WorkflowDocument;
   }
