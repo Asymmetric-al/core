@@ -215,7 +215,7 @@ import map is stale for the current `payload.config.ts` or plugin set. Run
 
 ### Admin dev: Contributions live query + stderr noise
 
-- **`QueryBuilderError: … alias "donation"`** was caused by **two physical copies** of `@tanstack/db` in `node_modules` (different `CollectionImpl` classes). The repo runs **`node scripts/dedupe-tanstack-db.mjs` on `postinstall`** to symlink nested copies to the workspace root package. Re-run `bun install` if the error returns after a bad install.
+- **`QueryBuilderError: … alias "donation"`** can indicate multiple physical DB runtimes. The qualified TanStack DB, React and Query bindings now resolve one runtime through their aligned dependencies. Run `bun run test:unit tests/unit/packages/database/tanstack-runtime-identity.test.ts` to verify the actual installation, then restore the frozen install if needed. The former DB override and install-time symlink repair were removed after fresh-install mutation, rollback, join and realtime tests passed.
 - `useDataTableWithLiveQuery` must pass a **callback** `(q) => …` into `useLiveQuery` (see `packages/ui/components/shadcn/data-table/hooks/use-data-table-live-query.ts`).
 - **`TypeError: controller[kState].transformAlgorithm is not a function`** still appears in **Next dev / Turbopack** stderr in some runs; **admin E2E passed** with it present. Treat as **dev noise** unless it reproduces on `next start` / production builds.
 

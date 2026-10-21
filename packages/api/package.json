@@ -202,7 +202,7 @@
     "next": "16.4.2",
     "server-only": "0.0.1",
     "stripe": "22.2.0",
-    "zod": "^4.6.5"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@asym/typescript-config": "workspace:*",
