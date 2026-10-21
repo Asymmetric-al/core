@@ -254,7 +254,7 @@ async function main(): Promise<void> {
     const cmd = [
       "bunx",
       "--bun",
-      "shadcn@latest",
+      "shadcn@4.22.1",
       "add",
       ...tempRegistryFiles,
       "--cwd",

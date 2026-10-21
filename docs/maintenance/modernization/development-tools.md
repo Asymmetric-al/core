@@ -1,8 +1,9 @@
 # Development tools checkpoint
 
 Tracking: [AL-1965](https://github.com/Asymmetric-al/core/issues/1965).
-This checkpoint is being qualified. It is not merged and does not close the
-infrastructure, provider, data or final advisory work.
+This checkpoint is qualified and [merged in PR #2176](https://github.com/Asymmetric-al/core/pull/2176)
+at `8906631256bc1dd95d4d7ba8c11a7409d3763161`. Infrastructure, provider, data and
+final advisory work remain open.
 [Exact versions and qualification state](development-tools-qualification.json)
 are the machine-readable record.
 
@@ -19,9 +20,9 @@ Prettier, Turbo, Vite, Vitest, jsdom, Playwright, axe, Shadcn, agent-browser,
 React Doctor, Canvas and PostCSS use exact reviewed pins. Browser downloads
 match Playwright 1.64.1; Chromium, Firefox and WebKit each launched and executed
 a named-control smoke test. Native Canvas drawing, pixel readback and PNG
-encoding pass on Node 24.22.1. Three application builds and browser behavior
-remain qualification requirements; browser-engine smoke alone does not prove
-the applications work.
+encoding pass on Node 24.22.1. The completed full-preflight application builds,
+deployed-preview checks and browser checks below provide the application proof;
+browser-engine smoke alone does not establish it.
 
 Vitest 5 uses native ESM configuration and explicit `.mts` implementation
 imports. Two old `.ts` helper paths remain thin re-exports because frozen
@@ -77,10 +78,15 @@ patched 1.1.21, 2.1.7 and 5.0.12 lines within existing parent ranges, without
 manifest changes or overrides. The subsequent audit no longer reports
 brace-expansion. Remaining affected families are tracked for their migrations
 and final advisory reconciliation; current pins alone do not prove safety.
-The final lock refresh must pass the normal push gate and current-head CI.
+The final lock refresh passed the normal push gate and current-head CI.
 
-Clean frozen installation, exact-head CI, deployed previews and merge readback
-remain checkpoint requirements. Documentation formatting is committed separately
+A fresh frozen installation and workspace/imported-package identity checks passed
+without lock drift. Exact-head CI, full E2E, all three READY deployed previews,
+authenticated preview smoke and independent public/guard/login checks passed.
+The complete REST changed-file set equals all 280 local paths. No unresolved
+GraphQL review threads or REST review comments remained. CodeRabbit skipped the
+large diff because of its file limit; complete independent reviews and immutable
+source-tree/delta reconciliation supply the actual review coverage. Documentation formatting is committed separately
 from substantive policy edits; canonical skill changes are followed by generated
 mirror synchronization.
 

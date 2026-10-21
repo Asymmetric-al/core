@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-const PINNED_SUPABASE_CLI_VERSION = "2.120.0";
+const PINNED_SUPABASE_CLI_VERSION = "2.121.0";
 const forcePinned = process.env.SUPABASE_CLI_FORCE_PINNED === "1";
 const pinnedVersion =
   process.env.SUPABASE_CLI_VERSION?.trim() || PINNED_SUPABASE_CLI_VERSION;

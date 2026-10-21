@@ -2,14 +2,14 @@
 command = "bunx"
 args = [
     "-y",
-    "next-devtools-mcp@latest",
+    "next-devtools-mcp@0.4.0",
 ]
 
 [mcp_servers.shadcn]
 command = "npx"
 args = [
     "--yes",
-    "shadcn@latest",
+    "shadcn@4.22.1",
     "mcp",
 ]
 

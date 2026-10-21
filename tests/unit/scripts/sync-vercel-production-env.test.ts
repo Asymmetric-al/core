@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  addVercelEnv,
   allInputRequirements,
   envEntriesForProject,
   parseInputKeySelection,
   providerRequirementsForProject,
   validateInputEnv,
+  runVercelCommand,
+  withLinkedProject,
 } from "../../../scripts/sync-vercel-production-env.mjs";
 
 const validEnv = {
@@ -228,5 +231,66 @@ describe("sync Vercel production env helpers", () => {
         sensitive: true,
       },
     ]);
+  });
+});
+
+describe("Vercel CLI credential transport", () => {
+  it("authenticates link and env commands through the environment, with values on stdin", () => {
+    const calls: {
+      args: string[];
+      options: { env?: NodeJS.ProcessEnv; input?: string };
+    }[] = [];
+    const runCommand = (args: string[], options = {}) => {
+      calls.push({ args, options });
+    };
+    const project = { key: "admin", project: "admin" };
+    const token = "synthetic-vercel-token";
+    withLinkedProject(
+      project,
+      "test-team",
+      token,
+      (cwd: string) => {
+        addVercelEnv({
+          cwd,
+          scope: "test-team",
+          token,
+          entry: {
+            vercelKey: "RESEND_API_KEY",
+            value: "synthetic-provider-value",
+            sensitive: true,
+          },
+          runCommand,
+        });
+      },
+      runCommand,
+    );
+    expect(calls).toHaveLength(2);
+    expect(calls[0]?.args.slice(0, 6)).toEqual([
+      "link",
+      "--yes",
+      "--project",
+      "admin",
+      "--scope",
+      "test-team",
+    ]);
+    expect(calls[1]?.args).toContain("--sensitive");
+    expect(calls[1]?.options.input).toBe("synthetic-provider-value");
+    for (const call of calls) {
+      expect(call.args).not.toContain("--token");
+      expect(call.args).not.toContain(token);
+      expect(call.args).not.toContain("synthetic-provider-value");
+      expect(call.options.env?.VERCEL_TOKEN).toBe(token);
+    }
+  });
+
+  it("does not echo provider output or credentials when a command fails", () => {
+    const execute = () => ({
+      status: 1,
+      stderr: "synthetic-vercel-token",
+      stdout: "synthetic-provider-value",
+    });
+    expect(() => runVercelCommand(["env", "add"], {}, execute)).toThrow(
+      /^vercel failed with exit code 1\.$/,
+    );
   });
 });

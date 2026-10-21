@@ -14,8 +14,8 @@
 
 ## 3. Development tools and infrastructure
 
-- [ ] 3.1 Upgrade ESLint 10 and plugins/Next config; prove the Shadcn lint patch behavior against upstream.
-- [ ] 3.2 Upgrade formatter/build/test/browser/a11y tooling and qualify TypeScript 7 product builds plus the maintained JS compiler API boundary.
+- [x] 3.1 Upgrade ESLint 10 and plugins/Next config; prove the Shadcn lint patch behavior against upstream.
+- [x] 3.2 Upgrade formatter/build/test/browser/a11y tooling and qualify TypeScript 7 product builds plus the maintained JS compiler API boundary.
 - [ ] 3.3 Freeze current Vercel/Supabase/Stripe CLIs, Actions, MCP executables and embedded pins; test runtime/protocol negotiation and setup checks.
 - [ ] 3.4 Align integration/restore PostgreSQL 17 patches and qualify Supabase configuration locally and against hosted parsing/version/extension evidence.
 - [ ] 3.5 Qualify, review, deploy previews and merge tooling/infrastructure checkpoints.

@@ -5,7 +5,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const POSTGRES_IMAGE = "postgres:16-alpine";
+const POSTGRES_IMAGE =
+  "postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24";
 const DATABASE_NAME = "asym_phase11_restore";
 const CONTAINER_DUMP_PATH = "/tmp/phase11-restore.dump";
 
@@ -68,7 +69,14 @@ export function buildBackupRestoreSummary({
   dumpFile,
 }) {
   return {
-    status: rowCount === 3 ? "passed" : "failed",
+    status:
+      rowCount === 3 &&
+      minMarker === "phase11-alpha" &&
+      maxMarker === "phase11-gamma"
+        ? "passed"
+        : "failed",
+    scope: "synthetic-transport-smoke",
+    postgresImage: POSTGRES_IMAGE,
     source: sourceContainer,
     isolatedRestoreTarget: targetContainer,
     database: DATABASE_NAME,
@@ -82,9 +90,11 @@ export function buildBackupRestoreSummary({
 
 export function formatBackupRestoreSummary(summary) {
   return [
-    "# Backup Restore Proof",
+    "# Synthetic backup/restore transport smoke",
     "",
     `Status: ${summary.status.toUpperCase()}`,
+    `Postgres image: ${summary.postgresImage}`,
+    "Scope: three synthetic probe rows; this does not qualify product migrations or disaster recovery.",
     `Source container: ${summary.source}`,
     `Isolated restore target: ${summary.isolatedRestoreTarget}`,
     `Database: ${summary.database}`,

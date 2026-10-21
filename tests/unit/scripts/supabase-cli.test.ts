@@ -25,7 +25,7 @@ const fs = require("node:fs");
 const args = process.argv.slice(2);
 fs.appendFileSync(process.env.TEST_COMMAND_LOG, JSON.stringify({ command: ${JSON.stringify(command)}, args }) + "\\n");
 if (${JSON.stringify(command)} === "supabase" && args[0] === "--version") {
-  console.log(process.env.TEST_GLOBAL_VERSION || "2.120.0");
+  console.log(process.env.TEST_GLOBAL_VERSION || "2.121.0");
   process.exit(Number(process.env.TEST_PROBE_STATUS || 0));
 }
 process.exit(Number(process.env.TEST_DISPATCH_STATUS || 0));
@@ -55,14 +55,14 @@ describe.skipIf(process.platform === "win32")("Supabase CLI dispatch", () => {
     ]);
   });
 
-  it.each(["2.76.12", "2.121.0", "2.120.0-beta.1"])(
+  it.each(["2.76.12", "2.122.0", "2.121.0-beta.1"])(
     "selects the reviewed version when global CLI reports %s",
     (version) => {
       const { result, commands } = dispatch({ TEST_GLOBAL_VERSION: version });
       expect(result.status).toBe(0);
       expect(commands[1]).toEqual({
         command: "npx",
-        args: ["-y", "supabase@2.120.0", "db", "--help"],
+        args: ["-y", "supabase@2.121.0", "db", "--help"],
       });
     },
   );
@@ -81,7 +81,7 @@ describe.skipIf(process.platform === "win32")("Supabase CLI dispatch", () => {
     expect(commands).toEqual([
       {
         command: "npx",
-        args: ["-y", "supabase@2.120.0", "db", "--help"],
+        args: ["-y", "supabase@2.121.0", "db", "--help"],
       },
     ]);
   });

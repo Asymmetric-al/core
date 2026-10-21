@@ -1,0 +1,109 @@
+{
+  "observedAt": "2026-10-21T18:25:43.587Z",
+  "method": "read-only provider project metadata and PostgreSQL catalogues; no user rows or encrypted values queried",
+  "productionWrites": false,
+  "target": "Provider-supported PostgreSQL 17.11 bundle; apply only through prepared release process",
+  "projects": [
+    {
+      "projectId": "pnmlrbgjiqzzsthsoikm",
+      "environment": "development",
+      "status": "ACTIVE_HEALTHY",
+      "region": "us-east-1",
+      "providerVersion": "17.6.1.063",
+      "extensions": [
+        {
+          "name": "pg_graphql",
+          "version": "1.5.11"
+        },
+        {
+          "name": "pg_stat_statements",
+          "version": "1.11"
+        },
+        {
+          "name": "pgcrypto",
+          "version": "1.3"
+        },
+        {
+          "name": "plpgsql",
+          "version": "1.0"
+        },
+        {
+          "name": "supabase_vault",
+          "version": "0.3.1"
+        },
+        {
+          "name": "uuid-ossp",
+          "version": "1.1"
+        }
+      ],
+      "ltreeIndexes": [],
+      "serverVersion": "17.6",
+      "floatGistIndexes": [],
+      "serverVersionNumber": "170006",
+      "customEstimatorOperators": [],
+      "storedPgpFunctionCandidates": []
+    },
+    {
+      "projectId": "btewedpsxwsjczvmegby",
+      "environment": "production",
+      "status": "ACTIVE_HEALTHY",
+      "region": "us-west-2",
+      "providerVersion": "17.6.1.063",
+      "extensions": [
+        {
+          "name": "btree_gist",
+          "version": "1.7"
+        },
+        {
+          "name": "pg_cron",
+          "version": "1.6.4"
+        },
+        {
+          "name": "pg_net",
+          "version": "0.19.5"
+        },
+        {
+          "name": "pg_stat_statements",
+          "version": "1.11"
+        },
+        {
+          "name": "pgcrypto",
+          "version": "1.3"
+        },
+        {
+          "name": "pgmq",
+          "version": "1.5.1"
+        },
+        {
+          "name": "plpgsql",
+          "version": "1.0"
+        },
+        {
+          "name": "supabase_vault",
+          "version": "0.3.1"
+        },
+        {
+          "name": "uuid-ossp",
+          "version": "1.1"
+        },
+        {
+          "name": "wrappers",
+          "version": "0.5.7"
+        }
+      ],
+      "ltreeIndexes": [],
+      "serverVersion": "17.6",
+      "floatGistIndexes": [],
+      "serverVersionNumber": "170006",
+      "customEstimatorOperators": [],
+      "storedPgpFunctionCandidates": []
+    }
+  ],
+  "limits": [
+    "Empty PGP function inventory does not exclude encrypted values written by external applications.",
+    "Hosted upgrades and production execution are outside this delivery."
+  ],
+  "pgpFunctionMatcher": "Case-insensitive string-literal bodies and deparsed SQL-standard bodies (prosqlbody)",
+  "querySha256": "32b2a781878728a48102aab9285aadec3a27f2f761777f48ec2d197a197e4834",
+  "sourceSha256": "32b2a781878728a48102aab9285aadec3a27f2f761777f48ec2d197a197e4834"
+}

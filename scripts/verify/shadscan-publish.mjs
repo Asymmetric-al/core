@@ -172,7 +172,7 @@ async function githubRequest(method, pathname, body) {
     headers: {
       Authorization: `Bearer ${process.env.GH_TOKEN}`,
       Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
+      "X-GitHub-Api-Version": "2026-03-10",
       "Content-Type": "application/json",
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
