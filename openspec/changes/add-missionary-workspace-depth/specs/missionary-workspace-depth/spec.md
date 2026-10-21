@@ -4262,6 +4262,13 @@ The following behavior is required.
 - Resolve positive exact-purpose membership, selected scope and disclosure
   before search/count/preview/export. Unknown eligibility is not zero; zero
   disables Send with permitted repair.
+- A confirmed guest uses the qualified P6 `native_newsletter_membership`
+  recipient branch: exact same-Tenant/newsletter membership id/revision bound
+  to this authorized issue occurrence and sealed audience member, with no
+  Party/contact or confirmation authority. Preparation, attempt admission and
+  body-free history preserve that branch and frozen destination revision;
+  current withdrawal or restriction narrows unstarted work. Membership alone
+  never authorizes an issue, and signup creates no Party to satisfy transport.
 - Seal the reviewed recipient/destination ceiling, revision, permissible source
   basis and digest. Shared mailbox deduplication/personalization must preserve
   person identity and never expose another person's facts.
@@ -4274,9 +4281,9 @@ Story: US28-M15. Source: communications.md. Decision basis: D7 C07/C09/C12; Phas
 
 #### Scenario: AC28-M15-01
 
-- **GIVEN** a resolved positive eligible audience
+- **GIVEN** a resolved positive eligible audience including a confirmed guest with no Party
 - **WHEN** final review is accepted
-- **THEN** its destination ceiling, source basis, revisions and digest are sealed; a later signup or live-segment match cannot enlarge it.
+- **THEN** its destination ceiling, source basis, exact membership-recipient revisions and digest are sealed for the authorized issue without creating a Party; a later signup or live-segment match cannot enlarge it.
 
 #### Scenario: AC28-M15-02
 

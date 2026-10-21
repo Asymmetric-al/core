@@ -497,6 +497,13 @@ The following behavior is required.
 - Resolve positive exact-purpose membership, selected scope and disclosure
   before search/count/preview/export. Unknown eligibility is not zero; zero
   disables Send with permitted repair.
+- A confirmed guest uses the qualified P6 `native_newsletter_membership`
+  recipient branch: exact same-Tenant/newsletter membership id/revision bound
+  to this authorized issue occurrence and sealed audience member, with no
+  Party/contact or confirmation authority. Preparation, attempt admission and
+  body-free history preserve that branch and frozen destination revision;
+  current withdrawal or restriction narrows unstarted work. Membership alone
+  never authorizes an issue, and signup creates no Party to satisfy transport.
 - Seal the reviewed recipient/destination ceiling, revision, permissible source
   basis and digest. Shared mailbox deduplication/personalization must preserve
   person identity and never expose another person's facts.
@@ -505,7 +512,7 @@ The following behavior is required.
 - Per-recipient copies and hidden exclusion reasons remain private; no browser
   To/CC/BCC/query is authority to expand.
 
-- **AC28-M15-01:** Given a resolved positive eligible audience, when final review is accepted, then its destination ceiling, source basis, revisions and digest are sealed; a later signup or live-segment match cannot enlarge it.
+- **AC28-M15-01:** Given a resolved positive eligible audience including a confirmed guest with no Party, when final review is accepted, then its destination ceiling, source basis, exact membership-recipient revisions and digest are sealed for the authorized issue without creating a Party; a later signup or live-segment match cannot enlarge it.
 - **AC28-M15-02:** Given a recipient withdraws or its contact address changes before attempt admission, when current eligibility is checked, then the frozen member is narrowed or held as appropriate and is never silently replaced by a new person or address.
 - **AC28-M15-03:** Given unknown eligibility, zero eligible destinations or a shared mailbox, when counts and preview are presented, then unknown differs from zero, zero disables Send, and deduplication/personalization exposes no other person’s private facts.
 

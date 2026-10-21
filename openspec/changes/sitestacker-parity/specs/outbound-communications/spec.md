@@ -1042,8 +1042,34 @@ connection/profile, and MUST leave platform-authority fields null. The no-Party
 branch MUST leave Party/contact fields null and retain only its body-free,
 scope-safe authority/reference in durable execution and history. Its transport
 address MAY exist only in encrypted, short-lived prepared-delivery material and
-MUST NOT become identity or provider-event correlation authority. Platform
-recipient authority MUST be a closed mutually exclusive union. Platform v1 MUST admit exactly
+MUST NOT become identity or provider-event correlation authority.
+
+For the system-message and native-issue purposes specified here, the shared
+tenant arc MUST admit exactly the matching qualified `party_contact`,
+`native_newsletter_confirmation` or `native_newsletter_membership` field set.
+Other explicitly contract-permitted Phase 6 no-Party source profiles MUST retain
+their independently qualified typed arcs; no producer may fall through to
+another profile or select an arbitrary authority kind.
+The issue-email membership branch MUST require `native_newsletter_id`,
+`native_newsletter_membership_id` and `native_newsletter_membership_revision`
+with an exact same-Tenant/newsletter composite FK to positive membership
+authority. It MUST also bind `native_newsletter_issue_occurrence_id` to the
+authorized issue and sealed audience member of that same Tenant/newsletter.
+Party/contact, confirmation and platform-authority fields MUST be null.
+Intent, preparation, result and body-free history MUST preserve the exact
+branch, membership revision and issue occurrence. The qualified P28 issue
+producer MUST re-prove current membership, frozen destination revision,
+consent/suppression and source fences before preparation and attempt admission;
+withdrawal MUST narrow unstarted work without expanding or retargeting the
+sealed audience. A confirmed guest MUST need no Party. This issue-only branch
+MUST NOT authorize confirmation redemption, an in-product item, Auth identity
+or general private access, and MUST NOT change existing Target Live system
+recipient resolvers or add human-authored issues to the system-message catalog.
+The P28 exact-scope footer/RFC 8058 withdrawal protocol remains separately
+source-owned. Source uniqueness, composite keys and the actual producer MUST
+qualify before activation; unknown kinds or mixed field sets MUST reject.
+
+Platform recipient authority MUST be a closed mutually exclusive union. Platform v1 MUST admit exactly
 `eve_platform_owner`, carrying an enabled, verified app-owned
 platform-owner-notification-record revision and identity/permission epoch plus
 the fixed platform connection/profile, and MUST leave every tenant, Party,
@@ -1146,6 +1172,21 @@ platform proof pack. A generic catch-all Eve key is prohibited.
 - AND the address exists only in encrypted, short-lived prepared-delivery
   material while durable execution and history retain only the body-free
   scope-safe authority/reference
+
+#### Scenario: A confirmed guest receives an authorized native newsletter issue
+
+- GIVEN an active same-Tenant/newsletter membership revision with no Party
+- AND an authorized issue seals that membership and its destination revision
+- WHEN the qualified P28 producer prepares and admits the issue email
+- THEN Phase 6 preserves the exact membership branch and issue through history
+- AND it creates no Party and grants no native-confirmation authority
+
+#### Scenario: A newsletter recipient no longer matches its sealed authority
+
+- GIVEN a sealed member is withdrawn, changes destination or names another
+  newsletter's membership
+- WHEN preparation or attempt admission re-proves its authority
+- THEN the unstarted member is blocked without retargeting or audience expansion
 
 #### Scenario: Eve requests a platform-owner email and Discord alert
 

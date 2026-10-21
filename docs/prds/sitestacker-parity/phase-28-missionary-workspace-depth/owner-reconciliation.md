@@ -191,6 +191,17 @@ proves that the complete required producer/recipient/sender seam exists. Native
 draft, media, test, deliberate issue authorization, scheduling, stopping,
 printing, reply and withdrawal remain required jobs, not optional integrations.
 
+P6's shared recipient arc separately admits the qualified
+`native_newsletter_membership` branch for issue delivery. Its exact same-Tenant/
+newsletter membership id/revision and authorized issue/sealed audience member
+are preserved through intent, preparation, dispatch and body-free history.
+Current membership, destination revision, consent/suppression and source fences
+are re-proved before effect admission; withdrawal narrows unstarted work and
+changed addresses cannot retarget accepted mail. P17's concrete shared model
+binds this branch without inventing a Party or system-message catalog key.
+The D43 confirmation branch below cannot substitute for issue membership, and
+membership does not authorize confirmation redemption or unrelated messages.
+
 D42 narrows D6's former universal fresh-email-confirmation rule. A deliberate
 Join may reuse the signed-in reader's exact current qualified verified Auth
 address under one organization proof-reuse control. Verification is address
