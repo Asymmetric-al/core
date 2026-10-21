@@ -17,18 +17,27 @@
  * importing the module does not run the command. That loader is duplicated here
  * so this suite stands alone on `develop`.
  *
- * ## Assumptions this suite makes where the spec is silent (flagged to Scope)
+ * ## Rulings pinned by spec addendum 2 (Samson, 2026-10-20 7:40 PM PT)
  *
- * - allowlist.json schema: see `readAllowlist()` for the accepted shapes.
- * - Proof JSON keeps `proofId`, `recordedAt`, `outcome`, `evidence[]` and
- *   `environment.{environmentLabel,databaseProjectId,storageIdentity,schemaVersion}`
- *   and adds `recordedBy`, `proofPath`, `digest`; `digest` is the canonical
- *   SHA-256 (`digestCanonicalValue`) of the proof without the digest field(s)
- *   (see `findDigestRule()`, which self-checks this on a real proof).
- * - Target schema version is read through a `*migrations*` table read, not rpc
- *   (see ./fake-supabase.ts).
- * - Proof ids come from `crypto.randomUUID()` and timestamps from `Date`
- *   (used only to force a filename collision in DC1).
+ * {@link https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6306634165}
+ *
+ * 1. allowlist.json schema is exactly
+ *    `{ "owners": [{ "id", "role" }], "nonProductionProjects": [ ... ] }`
+ *    (enforced strictly by `readAllowlist()`).
+ * 2. `digest` is the SHA-256 of the canonical JSON of the proof with the
+ *    `digest` field left out (`expectedDigest()`); `--verify` recomputes it the
+ *    same way and any one-byte change fails.
+ * 3. The target schema version is read from the migrations table, not through
+ *    an RPC (see ./fake-supabase.ts, where every `rpc` call is a write spy).
+ * 4. A loopback target classifies as `non_production`.
+ * 5. Detector names, proof ids from `crypto.randomUUID()` and the read-only
+ *    credential blocker message (containing "read-only credential/key") are as
+ *    these tests assume.
+ *
+ * Still unpinned (this suite's own choice): proof JSON keeps `proofId`,
+ * `recordedAt`, `outcome`, `evidence[]` and
+ * `environment.{environmentLabel,databaseProjectId,storageIdentity,schemaVersion}`;
+ * timestamps come from `Date` (used only to force a filename collision in DC1).
  */
 
 import { execFileSync } from "node:child_process";
@@ -303,32 +312,28 @@ export interface ParsedAllowlist {
   nonProductionProjects: string[];
 }
 
-const ID_KEYS = ["id", "ownerId", "login", "github", "identity", "name"];
-const ROLE_KEYS = ["role", "ownerRole"];
-const PROJECT_KEYS = ["ref", "projectRef", "projectId", "id", "project"];
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
 
-function pickString(
-  value: Record<string, unknown>,
-  keys: string[],
-): string | undefined {
-  for (const key of keys) {
-    const candidate = value[key];
-    if (typeof candidate === "string" && candidate.trim()) return candidate;
-  }
-  return undefined;
+function sortedKeys(value: Record<string, unknown>): string[] {
+  return Object.keys(value).sort();
+}
+
+function schemaError(detail: string): Error {
+  return new Error(
+    `#2067: ${ALLOWLIST_REL} does not match the addendum-2 schema ` +
+      '{ "owners": [{ "id", "role" }], "nonProductionProjects": [ ... ] }: ' +
+      detail,
+  );
 }
 
 /**
- * Read the committed allowlist. The spec pins the path and contents (owner
- * identities with roles, and the non-production project list) but not the
- * schema, so the accepted shapes are:
- * - owners: a top-level array under `owners` (or `ownerIdentities`), whose
- *   entries are objects with an id (`id`/`ownerId`/`login`/`github`/`identity`/
- *   `name`) and a role (`role`/`ownerRole`), or objects with an id and a
- *   `roles` array (each role yields an entry);
- * - non-production projects: a top-level array under any key matching
- *   /non.?production/i, entries being strings or objects with
- *   `ref`/`projectRef`/`projectId`/`id`/`project`.
+ * Read the committed allowlist and enforce the exact schema from spec
+ * addendum 2 item 1: the top level has exactly the keys `owners` and
+ * `nonProductionProjects`; every owner is an object with exactly the keys `id`
+ * and `role`, both non-empty strings; `nonProductionProjects` is an array of
+ * non-empty strings (project refs). Any other shape throws.
  */
 export function readAllowlist(): ParsedAllowlist {
   if (!existsSync(ALLOWLIST_PATH)) {
@@ -337,36 +342,48 @@ export function readAllowlist(): ParsedAllowlist {
     );
   }
   const text = readFileSync(ALLOWLIST_PATH, "utf8");
-  const json = JSON.parse(text) as Record<string, unknown>;
-  const owners: AllowlistOwner[] = [];
-  const ownerList = (json.owners ?? json.ownerIdentities) as unknown;
-  if (Array.isArray(ownerList)) {
-    for (const entry of ownerList) {
-      if (!entry || typeof entry !== "object") continue;
-      const record = entry as Record<string, unknown>;
-      const id = pickString(record, ID_KEYS);
-      if (!id) continue;
-      const role = pickString(record, ROLE_KEYS);
-      if (role) owners.push({ id, role });
-      if (Array.isArray(record.roles)) {
-        for (const r of record.roles) {
-          if (typeof r === "string" && r.trim()) owners.push({ id, role: r });
-        }
-      }
-    }
+  const json: unknown = JSON.parse(text);
+  if (!isPlainObject(json)) throw schemaError("top level is not an object");
+  const topKeys = sortedKeys(json);
+  if (topKeys.join(",") !== "nonProductionProjects,owners") {
+    throw schemaError(`top-level keys are [${topKeys.join(", ")}]`);
   }
-  const nonProductionProjects: string[] = [];
-  for (const [key, value] of Object.entries(json)) {
-    if (!/non.?production/i.test(key) || !Array.isArray(value)) continue;
-    for (const entry of value) {
-      if (typeof entry === "string" && entry.trim()) {
-        nonProductionProjects.push(entry);
-      } else if (entry && typeof entry === "object") {
-        const ref = pickString(entry as Record<string, unknown>, PROJECT_KEYS);
-        if (ref) nonProductionProjects.push(ref);
-      }
-    }
+  if (!Array.isArray(json.owners)) throw schemaError("owners is not an array");
+  if (!Array.isArray(json.nonProductionProjects)) {
+    throw schemaError("nonProductionProjects is not an array");
   }
+
+  const owners: AllowlistOwner[] = json.owners.map(
+    (entry: unknown, index: number) => {
+      if (!isPlainObject(entry)) {
+        throw schemaError(`owners[${index}] is not an object`);
+      }
+      const keys = sortedKeys(entry);
+      if (keys.join(",") !== "id,role") {
+        throw schemaError(`owners[${index}] keys are [${keys.join(", ")}]`);
+      }
+      const { id, role } = entry;
+      if (typeof id !== "string" || !id.trim()) {
+        throw schemaError(`owners[${index}].id is not a non-empty string`);
+      }
+      if (typeof role !== "string" || !role.trim()) {
+        throw schemaError(`owners[${index}].role is not a non-empty string`);
+      }
+      return { id, role };
+    },
+  );
+
+  const nonProductionProjects: string[] = json.nonProductionProjects.map(
+    (entry: unknown, index: number) => {
+      if (typeof entry !== "string" || !entry.trim()) {
+        throw schemaError(
+          `nonProductionProjects[${index}] is not a non-empty string`,
+        );
+      }
+      return entry;
+    },
+  );
+
   return { text, json, owners, nonProductionProjects };
 }
 
@@ -374,7 +391,7 @@ export function allowlistedOwner(): AllowlistOwner {
   const owner = readAllowlist().owners[0];
   if (!owner) {
     throw new Error(
-      `#2067: ${ALLOWLIST_REL} lists no owner identity with a role in an accepted shape (see readAllowlist()).`,
+      `#2067: ${ALLOWLIST_REL} lists no owner (owners is empty).`,
     );
   }
   return owner;
@@ -449,61 +466,27 @@ export function collectKeys(
 }
 
 // ---------------------------------------------------------------------------
-// Digest rule (self-checking)
+// Digest rule (spec addendum 2 item 2)
 // ---------------------------------------------------------------------------
 
-export interface DigestRule {
-  field: string;
-  excluded: string[];
-}
-
-const DIGEST_FIELDS = ["digest", "proofDigest"];
-const OPTIONAL_EXCLUSIONS = [[], ["proofPath"], ["recordedBy", "proofPath"]];
-
-function omit(
-  value: Record<string, unknown>,
-  keys: string[],
-): Record<string, unknown> {
-  const copy = { ...value };
-  for (const key of keys) delete copy[key];
-  return copy;
-}
-
 /**
- * Find how the proof's whole-proof digest is computed by reproducing it from a
- * genuine proof: canonical SHA-256 over the proof without the digest field(s)
- * and, optionally, `proofPath` / `recordedBy`. Throws when no rule reproduces it.
+ * The digest a proof must carry: SHA-256 of the canonical JSON of the proof
+ * with the `digest` field left out (every other field, including `recordedBy`
+ * and `proofPath`, is covered).
  */
-export async function findDigestRule(
+export async function expectedDigest(
   proof: Record<string, unknown>,
-): Promise<DigestRule> {
-  const present = DIGEST_FIELDS.filter((f) => typeof proof[f] === "string");
-  for (const field of present) {
-    for (const extra of OPTIONAL_EXCLUSIONS) {
-      const excluded = [...present, ...extra];
-      if (
-        (await digestCanonicalValue(omit(proof, excluded))) === proof[field]
-      ) {
-        return { field, excluded };
-      }
-    }
-  }
-  throw new Error(
-    "#2067: cannot reproduce the proof digest as canonical SHA-256 of the proof body; Scope must pin the digest rule.",
-  );
+): Promise<string> {
+  const body = { ...proof };
+  delete body.digest;
+  return digestCanonicalValue(body);
 }
 
-/** Re-seal a modified proof with the same rule so the digest itself is valid. */
+/** Re-seal a modified proof with the addendum rule so its digest is valid. */
 export async function reseal(
   modified: Record<string, unknown>,
-  rule: DigestRule,
 ): Promise<Record<string, unknown>> {
-  const sealed = { ...modified };
-  const digest = await digestCanonicalValue(omit(sealed, rule.excluded));
-  for (const field of DIGEST_FIELDS) {
-    if (rule.excluded.includes(field)) sealed[field] = digest;
-  }
-  return sealed;
+  return { ...modified, digest: await expectedDigest(modified) };
 }
 
 // ---------------------------------------------------------------------------

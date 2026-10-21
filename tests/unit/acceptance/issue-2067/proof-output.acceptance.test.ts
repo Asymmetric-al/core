@@ -28,6 +28,7 @@ import {
   decisionArgs,
   git,
   listProofFiles,
+  expectedDigest,
   mintCleanProof,
   newProofFiles,
   readProofFile,
@@ -134,6 +135,23 @@ describe("issue #2067 — DC2 provenance replaces attestation", () => {
     expect(keys.has("digest")).toBe(true);
     expect(keys.has("attestedBy")).toBe(false);
     expect(keys.has("attestationContext")).toBe(false);
+  });
+});
+
+describe("issue #2067 — DC2 digest rule (addendum 2 item 2)", () => {
+  it("DC2: a clean proof's digest is the canonical-JSON SHA-256 of the proof with the digest field left out", async () => {
+    const minted = await mintCleanProof();
+    expect(minted.proof.digest).toBe(await expectedDigest(minted.proof));
+  });
+
+  it("DC2: a stop_the_line (no_go) proof's digest follows the same rule", async () => {
+    cleanTarget();
+    const before = listProofFiles();
+    await recordNoGo();
+    const [name] = newProofFiles(before);
+    expect(name).toBeDefined();
+    const proof = readProofFile(name as string);
+    expect(proof.digest).toBe(await expectedDigest(proof));
   });
 });
 

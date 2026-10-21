@@ -24,7 +24,6 @@ import {
   LOCAL_TARGET_ENV,
   REPO_ROOT,
   cleanupProofFiles,
-  findDigestRule,
   mintCleanProof,
   reseal,
   runCommand,
@@ -66,10 +65,9 @@ async function resealedWith(
   minted: MintedProof,
   change: (proof: Record<string, unknown>) => void,
 ): Promise<Record<string, unknown>> {
-  const rule = await findDigestRule(minted.proof);
   const modified = structuredClone(minted.proof);
   change(modified);
-  return reseal(modified, rule);
+  return reseal(modified);
 }
 
 function environmentOf(
@@ -124,6 +122,24 @@ describe("issue #2067 — DC2 --verify rejects attestation and digest tampering"
       text.slice(index + 1);
     expect((await verifyVariant(minted, tampered)).exitCode).toBe(1);
   });
+});
+
+describe("issue #2067 — DC2 digest coverage (addendum 2 item 2: only `digest` is left out)", () => {
+  it.each(["recordedBy", "proofPath"])(
+    "DC2: changing one byte of %s without re-sealing fails --verify",
+    async (field) => {
+      const minted = await mintCleanProof();
+      const value = minted.proof[field];
+      expect(typeof value).toBe("string");
+      const original = value as string;
+      const last = original.at(-1) === "x" ? "y" : "x";
+      const variant = {
+        ...minted.proof,
+        [field]: original.slice(0, -1) + last,
+      };
+      expect((await verifyVariant(minted, variant)).exitCode).toBe(1);
+    },
+  );
 });
 
 describe("issue #2067 — DC8 --verify compares the proof's environment with the current target", () => {

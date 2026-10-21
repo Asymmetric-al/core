@@ -34,7 +34,11 @@ afterEach(() => {
   cleanupProofFiles();
 });
 
-/** A line that names a read-only credential/key requirement (the blocker). */
+/**
+ * A line that names a read-only credential/key requirement (the blocker).
+ * Message wording confirmed by spec addendum 2 item 5 (contains
+ * "read-only credential/key").
+ */
 const READ_ONLY_CREDENTIAL_BLOCKER =
   /read[- ]?only[^\n]*(credential|key)|(credential|key)[^\n]*read[- ]?only/i;
 

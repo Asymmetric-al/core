@@ -76,7 +76,7 @@ async function classificationFor(env: Record<string, string>) {
 }
 
 describe("issue #2067 — committed allowlist (addendum path)", () => {
-  it(`${ALLOWLIST_REL} exists, is valid JSON and lists at least one owner identity with a role`, () => {
+  it(`${ALLOWLIST_REL} exists and has exactly the addendum-2 schema { owners: [{ id, role }], nonProductionProjects: [...] } with at least one owner`, () => {
     const allowlist = readAllowlist();
     expect(allowlist.owners.length).toBeGreaterThan(0);
   });
@@ -168,6 +168,10 @@ describe("issue #2067 — DC11 non-production classification comes only from the
 
     expect(without).toBe("unknown");
     expect(withEnv).toBe("unknown");
+  });
+
+  it("DC11 (addendum 2 item 4): a loopback target classifies as non_production", async () => {
+    expect(await classificationFor(LOCAL_TARGET_ENV)).toBe("non_production");
   });
 
   it("DC11: passing --allow-non-production-project is rejected (exit 1) and records no proof", async () => {

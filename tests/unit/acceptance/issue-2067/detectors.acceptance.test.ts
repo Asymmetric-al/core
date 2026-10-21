@@ -11,9 +11,12 @@
  * demo tenant row in any prototype table => stop_the_line). The real
  * detectors run against the scriptable fake target in ./fake-supabase.ts.
  *
- * Naming assumption (flagged to Scope): the new plan surfaces / detectors are
- * identifiable by /user/i, /report/i and /integration/i in their surfaceKind,
- * surfaceId or detectorId, outside the repo-inventory kinds.
+ * Naming (confirmed by spec addendum 2 item 5, Samson 2026-10-20 7:40 PM PT,
+ * https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6306634165):
+ * the new plan surfaces / detectors are identifiable by /user/i, /report/i and
+ * /integration/i in their surfaceKind, surfaceId or detectorId, outside the
+ * repo-inventory kinds. Addendum 2 item 3: the schema version is read from the
+ * migrations table, not through an RPC.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
@@ -195,6 +198,14 @@ describe("issue #2067 — DC7 schemaVersion is read from the target DB", () => {
     cleanTarget();
     const result = await assessOnly();
     expect(proposedOutcome(result.stdout)).toBe("clean_preproduction_proof");
+  });
+
+  it("DC7 (addendum 2 item 3): the version comes from a migrations-table read, with no rpc call", async () => {
+    cleanTarget();
+    const result = await assessOnly();
+    expect(proposedOutcome(result.stdout)).toBe("clean_preproduction_proof");
+    expect(fakeDb.reads.some((read) => /migrations/i.test(read))).toBe(true);
+    expect(fakeDb.writes.filter((write) => /rpc/.test(write))).toEqual([]);
   });
 
   it("DC7: a DB-reported version that differs from the checkout's migration version yields stop_the_line", async () => {

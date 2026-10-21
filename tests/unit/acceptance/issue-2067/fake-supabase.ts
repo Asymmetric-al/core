@@ -14,8 +14,9 @@
  *   `single`, `maybeSingle`, ...) resolving to `{ data, count, error }`.
  * - The target's applied schema version is served from any table whose name
  *   (or schema name) contains `migrations` (e.g. `supabase_migrations.schema_migrations`)
- *   as rows `{ version }`. It is NOT served through `rpc`: #2066 DC7 treats `rpc`
- *   as a write method, so every `rpc` call is a throwing write spy here too.
+ *   as rows `{ version }`. It is NOT served through `rpc` (spec addendum 2
+ *   item 3: read from the migrations table, not through an RPC); #2066 DC7
+ *   treats `rpc` as a write method, so every `rpc` call is a throwing write spy.
  * - `client.auth.admin.listUsers()` resolving to `{ data: { users }, error }`.
  * - `client.storage.listBuckets()` / `client.storage.from(bucket).list()`.
  * Every write method (insert/update/upsert/delete/rpc, storage upload/remove/
