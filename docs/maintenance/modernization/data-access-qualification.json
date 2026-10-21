@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "checkpoint": "data-access",
-  "status": "implemented-awaiting-full-qualification-and-merge",
-  "temporaryStackBase": "2e1ebf397af60eb1b0613561f2535b96770ec6ca",
+  "status": "implemented-awaiting-final-review-fix-qualification",
+  "temporaryStackBase": "c4fd85dd0201d3d0e2d0406c3a0524c239f47f5c",
   "mustRequalifyOnMergedDevelop": true,
-  "capturedAt": "2026-10-21T19:58:22.931586+00:00",
+  "capturedAt": "2026-10-21T22:04:18.971306+00:00",
   "owner": "Core database, auth and UI maintainers",
   "targets": [
     {
@@ -342,17 +342,17 @@
     "testsPassed": 327
   },
   "removedCompatibility": [
-    "@tanstack/db0.12.1 override",
+    "@tanstack/db 0.12.1 override",
     "postinstall DB symlink rewrite and its obsolete helper tests; real installed-runtime identity and behavioral suites replace it"
   ],
   "retainedCompatibility": [
-    "Current Supabase adapter0.1.0 and its required registered patch",
+    "Current Supabase adapter 0.1.0 and its required registered patch",
     "PDF compatibility packages/installation repairs until source recovery and artifact rebuild"
   ],
   "limitations": [
     "No production execution.",
-    "SSR0.12.7, Form1.33.5, Store0.11.2 and React Devtools0.10.13 were already current; this does not claim version upgrades for them.",
-    "Final frozen installation/full gates/browser and provider checks/security graph/reviews/CI/previews/merge remain required.",
+    "SSR 0.12.7, Form 1.33.5, Store 0.11.2 and React Devtools 0.10.13 were already current; this does not claim version upgrades for them.",
+    "A separate frozen installation and full repository gates passed at prior source checkpoints. The final review-fix head still requires repeated full gates/current-head CI/review, browser previews and merge readback. Full security reconciliation remains open.",
     "Native Windows installation not independently qualified."
   ],
   "initialDatabaseSelection": {
@@ -384,7 +384,7 @@
     "changes": "Persisted optimistic-row retention, lossless local-storage serialization and on-demand query reacquisition during a deferred release/refetch failure."
   },
   "initialTemporaryStackBase": "6fc8afa0e6cfa2f81d56d76a4761849e33b857db",
-  "mergedBaseQualification": "Current infrastructure branch and latest develop integration carried forward with all34 owned paths preserved; final merged develop requalification remains required.",
+  "mergedBaseQualification": "Earlier infrastructure integration preserved all 34 then-owned paths. The later metadata-only merge of develop c4fd85dd0201d3d0e2d0406c3a0524c239f47f5c preserved the complete 35-path source tree and passed full pre-push. Review fixes and their remaining qualification are recorded separately.",
   "initialAdapterPatchRetention": {
     "capturedAt": "2026-10-21T18:07:03.329119+00:00",
     "scope": "Public settlement assertion against pristine current adapter versus registered Core patch; transaction.when was already available in the baseline, so initial characterization correctly passed.",
@@ -427,20 +427,22 @@
     "filesPassed": 143,
     "testsPassed": 917,
     "logSha256": "e5833df9af4ae2dfa4200f08fcfd6e5a2937698f9962e06e54ab813d12268df3",
-    "overlapPolicy": "Historical185/187/327/952 and current917 results overlap; do not add them."
+    "overlapPolicy": "Historical 185/187/327/952 and current 917 results overlap; do not add them."
   },
   "supabaseSdkLocalProvider": {
-    "capturedAt": "2026-10-21T19:42:30.796302+00:00",
+    "capturedAt": "2026-10-21T22:00:11.640803+00:00",
     "sdkVersion": "2.118.0",
     "ssrVersion": "0.12.7",
     "ownedProjectId": "asym-modernization-20261021",
     "publicKeyKind": "publishable",
     "exitCode": 0,
-    "fixtureSha256": "ef709f5367ba2cadb55dc6ade334f340e0352a5953ea56fb38005231921928f7",
+    "fixtureSha256": "82688f8ef9fb68435f5e2334a6d1ebc31cdc01f0133be27afe9310af7181b8da",
+    "helperSha256": "3a880f13ace4cc4a4cb83ae60ae6c1b28fe534f144c91ec55e86ef8a97ce25b7",
     "results": [
       {
         "passed": true,
         "checks": [
+          "local-target-bound-to-owned-gateway",
           "fixture-user-tenant-metadata",
           "fixture-profile-tenant-assigned",
           "fixture-user-tenant-metadata",
@@ -465,35 +467,39 @@
       }
     ],
     "credentialsOrIdentityPersisted": false,
-    "rawOutputSha256": "457b6f0454ff0aebf74c947d25a0de9ced215f427eacc306788199418d9fde1e",
+    "rawOutputSha256": "61569ed69cec762bca1290c7c34dc19f0fd15727ac95fb1d48c57188ddd1aa52",
     "productionTouched": false
   },
   "sdkFixtureRegression": {
     "red": {
-      "phase": "red",
+      "startedAt": "2026-10-21T21:54:45.464364+00:00",
+      "completedAt": "2026-10-21T21:54:46.724851+00:00",
       "exitCode": 1,
-      "logSha256": "797bb02e78002da5aa4ab007ed75bf7cf1e0684f57b1dbe0664c28e9039a5b0a",
-      "source": {
-        "tests/integration/supabase/client-runtime-checks.mjs": "354b433ded3d2d6004954d213473313b5d028945e3e47eab3934b3c3bc0da17f",
-        "tests/integration/supabase/client-runtime-verification.mjs": "179766cb7c0392fc123c2efa17e629a8cec36c58c02d3ec642d7f05bb4fc6020",
-        "tests/unit/scripts/supabase-client-runtime-checks.test.ts": "b8539bc09451e251ec08333ce2ee1254f3a95c8bae95808c767e342cfe0b7e3f"
+      "logSha256": "e428fa1c4aa18df0517a72abc70bba886a8b4edc4b0efdd1f1826e5d801d1b2b",
+      "sources": {
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts": "0990e2ec5d5cce5abf761db7093ec87275df2ea0c3316b55defa03ccb375b1bd",
+        "tests/unit/scripts/ci-build-policy.test.ts": "02053b183df6e412fa1486956b4dd5c3d4309edc5d424f379d4f016a9e0d3783"
       }
     },
     "green": {
-      "capturedAt": "2026-10-21T19:42:09.943118+00:00",
-      "phase": "green",
+      "startedAt": "2026-10-21T22:02:24.234305+00:00",
+      "completedAt": "2026-10-21T22:02:25.570013+00:00",
       "exitCode": 0,
-      "logSha256": "8a4c1b1e79ced2d8c109b37010c60597418f9fc6fbf548b009d7ab0ee074ba8e",
-      "source": {
-        "tests/integration/supabase/client-runtime-checks.mjs": "d6ee55f4ebc819a26366e7645fd868ff271da213bdc93f4100f8f26a06c45eec",
-        "tests/integration/supabase/client-runtime-verification.mjs": "ef709f5367ba2cadb55dc6ade334f340e0352a5953ea56fb38005231921928f7",
-        "tests/unit/scripts/supabase-client-runtime-checks.test.ts": "1fe87b755333b482c48229ab41ddf629aa2d09a14b17902b760e65add5cfe0ea",
-        "tests/unit/scripts/supabase-client-runtime-verification.test.ts": "11d8b27cbeee8648e503dbc54e248989690dcffdc833cc8a24c4f686b87c7355"
+      "logSha256": "17659cd05b589c17310dcc09f5a38cabc088953583130290d654ec28103341c6",
+      "sources": {
+        "tests/integration/supabase/client-runtime-checks.mjs": "3a880f13ace4cc4a4cb83ae60ae6c1b28fe534f144c91ec55e86ef8a97ce25b7",
+        "tests/integration/supabase/client-runtime-verification.mjs": "82688f8ef9fb68435f5e2334a6d1ebc31cdc01f0133be27afe9310af7181b8da",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts": "167d1f393f1f0a7b1c5fd371f0af2b44f96da0e626e629b7de971a6dcb96bbbc",
+        "scripts/verify/ci-build-policy.mjs": "786292889ea3efcdab8182cc012bef5663c3f4349bdaa8be46ad78a39e760808",
+        "tests/unit/scripts/ci-build-policy.test.ts": "02053b183df6e412fa1486956b4dd5c3d4309edc5d424f379d4f016a9e0d3783"
       }
     },
-    "filesPassed": 2,
-    "testsPassed": 13,
-    "independentReview": "Both cleanup short-circuit and false-positive authorization-denial findings resolved; exact four-file fix independently approved."
+    "filesPassed": 4,
+    "testsPassed": 51,
+    "fixtureTests": 32,
+    "ciBuildPolicyTests": 19,
+    "scope": "All original 13 fixture tests remain, with 19 new ownership/ambiguous-creation cases and 19 total build-policy cases. These overlap the full suite and are not additive totals.",
+    "testSourceEvolution": "After the recorded RED, one test name gained a missing space and one additional case covers the SDK returning a retryable error result after commit. All original assertions remain."
   },
   "currentProductTypecheck": {
     "capturedAt": "2026-10-21T19:54:37.487307+00:00",
@@ -553,10 +559,10 @@
       "preservedContract": "Installed TanStack routing plus exact current Table/devtools version parity across all six manifests and the guide, including its exact pin qualifier."
     },
     "fix": "Derive Table version from the UI manifest and require the guide and all six consuming manifests to agree; retain all existing instruction-routing tests.",
-    "independentDeltaReview": "Complete source/changed-line review passed; all16 original tests and all previously approved34 paths preserved.",
+    "independentDeltaReview": "Complete source/changed-line review passed; all 16 original tests and all previously approved 34 paths preserved.",
     "remaining": "Normal full repository pre-push must pass after this focused fix."
   },
-  "previousTemporaryStackBase": "5943f5923f67021ca7778c34f35df523daf7999e",
+  "previousTemporaryStackBase": "2e1ebf397af60eb1b0613561f2535b96770ec6ca",
   "cleanInstallation": {
     "startedAt": "2026-10-21T20:33:19.995508+00:00",
     "completedAt": "2026-10-21T20:33:32.091843+00:00",
@@ -598,6 +604,141 @@
     "opaqueVendorDatabaseUntouchedByMerge": true,
     "opaqueVendorDatabaseAbsentBeforeAndAfterMerge": true,
     "noEnvLocal": true,
-    "remaining": "Infrastructure develop merge, full normal pre-push, current-head CI/review, browser previews and final merge readback."
+    "remaining": "Historical stack evidence; infrastructure is now merged. See currentReviewFixes for the final source qualification still required."
+  },
+  "historicalProviderQualification": {
+    "scope": "Earlier 19-check local run; superseded standalone target and cleanup safety evidence is completed below.",
+    "record": {
+      "capturedAt": "2026-10-21T19:42:30.796302+00:00",
+      "sdkVersion": "2.118.0",
+      "ssrVersion": "0.12.7",
+      "ownedProjectId": "asym-modernization-20261021",
+      "publicKeyKind": "publishable",
+      "exitCode": 0,
+      "fixtureSha256": "ef709f5367ba2cadb55dc6ade334f340e0352a5953ea56fb38005231921928f7",
+      "results": [
+        {
+          "passed": true,
+          "checks": [
+            "fixture-user-tenant-metadata",
+            "fixture-profile-tenant-assigned",
+            "fixture-user-tenant-metadata",
+            "fixture-profile-tenant-assigned",
+            "password-session",
+            "verified-user",
+            "own-profile-visible",
+            "own-profile-tenant-preserved",
+            "cross-tenant-profile-denied",
+            "anonymous-profiles-denied",
+            "tenant-secret-table-denied",
+            "self-role-escalation-denied",
+            "realtime-preserves-minor-units-and-currency",
+            "browser-session-refresh",
+            "ssr-writes-session-cookies",
+            "ssr-recreated-request-verifies-user",
+            "ssr-session-refresh",
+            "ssr-signout-clears-session-cookies",
+            "fixture-census-restored"
+          ],
+          "productionTouched": false
+        }
+      ],
+      "credentialsOrIdentityPersisted": false,
+      "rawOutputSha256": "457b6f0454ff0aebf74c947d25a0de9ced215f427eacc306788199418d9fde1e",
+      "productionTouched": false
+    }
+  },
+  "historicalSdkFixtureRegression": {
+    "scope": "Earlier 13-case denial and cleanup characterization; stricter target ownership and ambiguous-creation regressions are recorded below.",
+    "record": {
+      "red": {
+        "phase": "red",
+        "exitCode": 1,
+        "logSha256": "797bb02e78002da5aa4ab007ed75bf7cf1e0684f57b1dbe0664c28e9039a5b0a",
+        "source": {
+          "tests/integration/supabase/client-runtime-checks.mjs": "354b433ded3d2d6004954d213473313b5d028945e3e47eab3934b3c3bc0da17f",
+          "tests/integration/supabase/client-runtime-verification.mjs": "179766cb7c0392fc123c2efa17e629a8cec36c58c02d3ec642d7f05bb4fc6020",
+          "tests/unit/scripts/supabase-client-runtime-checks.test.ts": "b8539bc09451e251ec08333ce2ee1254f3a95c8bae95808c767e342cfe0b7e3f"
+        }
+      },
+      "green": {
+        "capturedAt": "2026-10-21T19:42:09.943118+00:00",
+        "phase": "green",
+        "exitCode": 0,
+        "logSha256": "8a4c1b1e79ced2d8c109b37010c60597418f9fc6fbf548b009d7ab0ee074ba8e",
+        "source": {
+          "tests/integration/supabase/client-runtime-checks.mjs": "d6ee55f4ebc819a26366e7645fd868ff271da213bdc93f4100f8f26a06c45eec",
+          "tests/integration/supabase/client-runtime-verification.mjs": "ef709f5367ba2cadb55dc6ade334f340e0352a5953ea56fb38005231921928f7",
+          "tests/unit/scripts/supabase-client-runtime-checks.test.ts": "1fe87b755333b482c48229ab41ddf629aa2d09a14b17902b760e65add5cfe0ea",
+          "tests/unit/scripts/supabase-client-runtime-verification.test.ts": "11d8b27cbeee8648e503dbc54e248989690dcffdc833cc8a24c4f686b87c7355"
+        }
+      },
+      "filesPassed": 2,
+      "testsPassed": 13,
+      "independentReview": "Both cleanup short-circuit and false-positive authorization-denial findings resolved; exact four-file fix independently approved."
+    }
+  },
+  "supabaseSdkLostResponseProvider": {
+    "expectedExitCode": 1,
+    "expectedOutcomeVerified": true,
+    "assertion": "Auth returned a success response before the fixture deliberately lost it. The SDK reports verification failure; reserved UUID ownership is recovered and deleted, absence is confirmed, tenants and the original census are restored with no cleanup failures.",
+    "record": {
+      "capturedAt": "2026-10-21T22:00:26.420605+00:00",
+      "sdkVersion": "2.118.0",
+      "ssrVersion": "0.12.7",
+      "ownedProjectId": "asym-modernization-20261021",
+      "publicKeyKind": "publishable",
+      "exitCode": 1,
+      "fixtureSha256": "82688f8ef9fb68435f5e2334a6d1ebc31cdc01f0133be27afe9310af7181b8da",
+      "helperSha256": "3a880f13ace4cc4a4cb83ae60ae6c1b28fe534f144c91ec55e86ef8a97ce25b7",
+      "results": [
+        {
+          "passed": false,
+          "step": "create-owned-fixtures",
+          "failedCheck": "provider-request",
+          "checks": [
+            "local-target-bound-to-owned-gateway",
+            "simulated-committed-user-creation-response-loss",
+            "fixture-census-restored"
+          ]
+        }
+      ],
+      "credentialsOrIdentityPersisted": false,
+      "rawOutputSha256": "009023efed9c56690bb9624e2c5b2c949256f908ddd1c4c0f8497a60a1d567df",
+      "productionTouched": false
+    }
+  },
+  "currentReviewFixes": {
+    "capturedAt": "2026-10-21T22:04:18.971306+00:00",
+    "sourceBase": "1dcdade63e012898f237663a634eca28c8275193",
+    "owner": "Core data and CI maintainers",
+    "implementation": {
+      "capturedAt": "2026-10-21T22:02:25.632307+00:00",
+      "base": "1dcdade63e012898f237663a634eca28c8275193",
+      "patchSha256": "8a232f522e16a569d3b7ad34cb053e510d2f59f74c6b4fbb85775fcf4d5f9cab",
+      "files": {
+        "tests/integration/supabase/client-runtime-checks.mjs": "3a880f13ace4cc4a4cb83ae60ae6c1b28fe534f144c91ec55e86ef8a97ce25b7",
+        "tests/integration/supabase/client-runtime-verification.mjs": "82688f8ef9fb68435f5e2334a6d1ebc31cdc01f0133be27afe9310af7181b8da",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts": "167d1f393f1f0a7b1c5fd371f0af2b44f96da0e626e629b7de971a6dcb96bbbc",
+        "scripts/verify/ci-build-policy.mjs": "786292889ea3efcdab8182cc012bef5663c3f4349bdaa8be46ad78a39e760808",
+        "tests/unit/scripts/ci-build-policy.test.ts": "02053b183df6e412fa1486956b4dd5c3d4309edc5d424f379d4f016a9e0d3783"
+      }
+    },
+    "targetBinding": "Before constructing SDK clients, require a validated local Docker socket, pin it explicitly for read-only inspection, and match the running Kong name, project label, API port and address family. Read only public ownership/binding fields; never inspect environment or mounts. HTTP redirects are refused.",
+    "creationJournal": "Reserve and journal each UUID/email/tenant/random run marker before awaiting createUser. Current SDK supports caller-selected UUIDs. Cleanup verifies the trusted marker, tenant and email before deletion and confirms absence.",
+    "cleanupBounds": "Ownership lookup, deletion and final absence confirmation are separate operations under the existing 16-second cleanup budget; each provider fetch is limited to 15 seconds. Later cleanup/census still runs after failure. Ambiguous creation plus immediate 404 is unresolved and fails qualification, even if row counts currently match.",
+    "sourceReferences": [
+      "https://github.com/supabase/supabase-js/blob/5adfffef8aa540eb735196bec0e3ca250cb579a6/packages/core/auth-js/src/lib/types.ts#L644-L649",
+      "https://github.com/supabase/auth/blob/c3348e8f1cb31454e9783e4eb9eab1e71ad9652f/internal/api/admin.go#L481-L490"
+    ],
+    "ciCoverage": "Changing scripts/repair-file-package-links.mjs now selects all three app builds; the new regression fails against the old policy.",
+    "remaining": "Final documentation review, normal full pre-push, current-head CI/review, deployed previews and merge readback.",
+    "independentImplementationReview": {
+      "changedPaths": 5,
+      "patchSha256": "8a232f522e16a569d3b7ad34cb053e510d2f59f74c6b4fbb85775fcf4d5f9cab",
+      "importantFindings": 0,
+      "allSourceHashesPreserved": true,
+      "original13FixtureTestsUnchanged": true
+    }
   }
 }
