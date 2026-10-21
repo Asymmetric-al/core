@@ -13,6 +13,8 @@ The initial database baseline passed 185 tests. The first upgraded selection pas
 
 The actual Supabase JS 2.118.0 and SSR 0.12.7 clients passed 19 checks against the owned isolated local stack: password/session flows, tenant and anonymous denial, denied role escalation, authenticated realtime with exact money/currency values, SSR request cookies, and restored fixture census. The fixture accepts only an explicitly named local modernization target; credentials enter through stdin and are omitted from output. Thirteen focused tests cover invalid targets, expected denial responses, bounded cleanup and continued cleanup after failure. This does not prove hosted or browser UI behavior.
 
-Full repository gates, final clean installation, browser checks, security graph reconciliation, current-head review/CI/deployed previews and merge readback remain required. No production operation was executed.
+A separate clean checkout installed 1,946 packages with the frozen lockfile and no drift. Its 44 contract tests passed across runtime identity, adapter confirmation, fixture safety and instruction consistency. The opaque vendored database never materialized in that checkout. The infrastructure snapshot delta preserves every data implementation and installation input.
+
+Full repository gates, merged-develop requalification, browser checks, security graph reconciliation, current-head review/CI/deployed previews and merge readback remain required. No production operation was executed.
 
 Sources: [current Table v9 migration guide](https://tanstack.com/table/latest/docs/framework/react/guide/migrating), [row-model guide](https://tanstack.com/table/latest/docs/guide/row-models), [DB transaction guide](https://tanstack.com/db/latest/docs/guides/mutations), and the exact npm release metadata in the qualification record.

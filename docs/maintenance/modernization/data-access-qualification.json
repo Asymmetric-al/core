@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "checkpoint": "data-access",
   "status": "implemented-awaiting-full-qualification-and-merge",
-  "temporaryStackBase": "5943f5923f67021ca7778c34f35df523daf7999e",
+  "temporaryStackBase": "2e1ebf397af60eb1b0613561f2535b96770ec6ca",
   "mustRequalifyOnMergedDevelop": true,
   "capturedAt": "2026-10-21T19:58:22.931586+00:00",
   "owner": "Core database, auth and UI maintainers",
@@ -555,5 +555,49 @@
     "fix": "Derive Table version from the UI manifest and require the guide and all six consuming manifests to agree; retain all existing instruction-routing tests.",
     "independentDeltaReview": "Complete source/changed-line review passed; all16 original tests and all previously approved34 paths preserved.",
     "remaining": "Normal full repository pre-push must pass after this focused fix."
+  },
+  "previousTemporaryStackBase": "5943f5923f67021ca7778c34f35df523daf7999e",
+  "cleanInstallation": {
+    "startedAt": "2026-10-21T20:33:19.995508+00:00",
+    "completedAt": "2026-10-21T20:33:32.091843+00:00",
+    "head": "c48420906f78760b39f2de877b31a736fd0c474f",
+    "exitCode": 0,
+    "logSha256": "6f3274b79fd2218ed43d528fc2c1a3f15ad43cfa9c99db52fa2fbaf77dc8f006",
+    "lockSha256": "d24aca2ff9e9a5d9cd94bddfc8dae599f13f1beb95d5beae2a5c022a3e67cb94",
+    "noLockDrift": true,
+    "trackedClean": true,
+    "opaqueVendorDatabaseNeverMaterialized": true,
+    "noEnvLocal": true,
+    "includedFilesRestored": 21583,
+    "root": "/home/conrad/code/core-worktrees/data-clean-install-2026-10-22"
+  },
+  "cleanInstallationContractTests": {
+    "startedAt": "2026-10-21T20:33:32.266875+00:00",
+    "completedAt": "2026-10-21T20:33:36.904368+00:00",
+    "head": "c48420906f78760b39f2de877b31a736fd0c474f",
+    "exitCode": 0,
+    "logSha256": "2daf55ed5a83f2a9b798b14f84e9a3a2c523b4a8c50cc9c4353def7c5fa83d2c",
+    "paths": [
+      "tests/unit/packages/database/tanstack-runtime-identity.test.ts",
+      "tests/unit/packages/database/supabase-adapter-compatibility.test.ts",
+      "tests/unit/scripts/supabase-client-runtime-verification.test.ts",
+      "tests/unit/scripts/supabase-client-runtime-checks.test.ts",
+      "tests/unit/docs/agent-instruction-routing.test.ts"
+    ],
+    "lockSha256": "d24aca2ff9e9a5d9cd94bddfc8dae599f13f1beb95d5beae2a5c022a3e67cb94",
+    "noEnvLocal": true,
+    "files": 5,
+    "tests": 44
+  },
+  "stackRequalification": {
+    "capturedAt": "2026-10-21T20:54:07.939420+00:00",
+    "infrastructureSource": "2e1ebf397af60eb1b0613561f2535b96770ec6ca",
+    "all35OwnedPathHashesPreservedOnMerge": true,
+    "coldInstallInputsUnchanged": true,
+    "coldInstallCheckpoint": "c48420906f78760b39f2de877b31a736fd0c474f",
+    "opaqueVendorDatabaseUntouchedByMerge": true,
+    "opaqueVendorDatabaseAbsentBeforeAndAfterMerge": true,
+    "noEnvLocal": true,
+    "remaining": "Infrastructure develop merge, full normal pre-push, current-head CI/review, browser previews and final merge readback."
   }
 }

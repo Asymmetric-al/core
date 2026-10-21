@@ -38,7 +38,9 @@ external CLI transitive dependencies; their advisory paths remain owned findings
 - Supabase configuration uses `local_smtp` and removes the obsolete empty
   experimental OrioleDB setting. The supported database major remains 17.
 - The newly merged OSS investigation image uses the pinned Node 24 Debian 13
-  base and PostgreSQL 17.11 server/client packages. An incompatible existing
+  base, signed dated Debian archives and PostgreSQL 17.11 server/client packages.
+  Both archive timestamps and package pins are refreshed and requalified together.
+  An incompatible existing
   database major is refused before app shutdown or database reset. The build
   context excludes the opaque vendored database.
 

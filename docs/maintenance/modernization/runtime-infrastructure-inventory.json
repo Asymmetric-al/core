@@ -980,19 +980,37 @@
       "version": "17.11-0+deb13u1",
       "selector": "postgresql-17=17.11-0+deb13u1 postgresql-client-17=17.11-0+deb13u1",
       "sourcePath": ".oss-scanner/Dockerfile",
-      "line": 21,
+      "line": 24,
       "upstream": "https://packages.debian.org/trixie/postgresql-17",
       "owner": "Core security and infrastructure maintainers",
       "state": "implemented-awaiting-infrastructure-checkpoint-qualification",
       "disposition": "upgraded",
       "verification": "Exact rebuilt image and offline runner passed PostgreSQL17.11 migrations, selected SQL/RLS,227 mocked unit tests, all three normal browser/denial smokes and one explicit donor demo check. See runtime-infrastructure-qualification.json; OS inventory is scanner-os-packages.json.",
-      "recheck": "Runtime, OS base, PostgreSQL, frozen lockfile, browser or scanner helper changes require rebuilt-image qualification.",
+      "recheck": "Refresh both dated Debian archives and PostgreSQL pins together; requalify the rebuilt image and refresh the installed OS inventory and advisory assessment.",
       "sourcePaths": [
         ".oss-scanner/Dockerfile",
         ".oss-scanner/start-services.sh"
       ],
       "initialVersion": "15",
-      "compatibility": "A different existing PG_VERSION is refused without cluster deletion or upgrade."
+      "compatibility": "A different existing PG_VERSION is refused without cluster deletion or upgrade.",
+      "snapshot": "20261021T000000Z",
+      "packageSources": ".oss-scanner/debian.sources"
+    },
+    {
+      "kind": "package-repository",
+      "name": "Scanner Debian archive snapshots",
+      "version": "20261021T000000Z",
+      "selector": "https://snapshot.debian.org/archive/debian/20261021T000000Z/",
+      "sourcePath": ".oss-scanner/debian.sources",
+      "line": 3,
+      "sourcePaths": [".oss-scanner/debian.sources", ".oss-scanner/Dockerfile"],
+      "upstream": "https://snapshot.debian.org/#usage",
+      "owner": "Core security and infrastructure maintainers",
+      "state": "implemented-awaiting-infrastructure-checkpoint-qualification",
+      "disposition": "replaced",
+      "verification": "Dated main, updates and security indexes pass APT signature verification and resolve the exact PostgreSQL17.11 server/client packages. Rebuilt-image and offline qualification are recorded in runtime-infrastructure-qualification.json.",
+      "recheck": "Refresh both archive timestamps and exact PostgreSQL packages together for every qualified OS/security update; regenerate the OS inventory and rerun offline checks.",
+      "compatibility": "Check-Valid-Until is disabled only for the immutable archive stanzas; Signed-By retains Debian archive signature verification."
     }
   ],
   "remainingCoverage": [
