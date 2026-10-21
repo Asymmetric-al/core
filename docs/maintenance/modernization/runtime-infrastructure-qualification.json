@@ -486,6 +486,17 @@
     },
     "otherCorrections": "Migration-runner tests retain/assert stdin SQL; active MCP rules match exact executable/discovery APIs; Node24 declarations have owned compatibility rationale; qualification prose is reconciled.",
     "newDeltaReviewAndCurrentHeadGates": "required before merge",
-    "liveRequalification": "The corrected client passed both pinned STDIO servers and licensed ReUI HTTP. A fresh PostgreSQL 17.11 fixture passed all six committed-runner checks, preserving 166 tables and one profile."
+    "liveRequalification": "The corrected client passed both pinned STDIO servers and licensed ReUI HTTP. A fresh PostgreSQL 17.11 fixture passed all six committed-runner checks, preserving 166 tables and one profile.",
+    "runnerOptionOverrides": {
+      "reviewedHeadBeforeCorrection": "bf65024560b533592cf227f5d46deaba3d4661b2",
+      "finding": "Explicit coverage/resource options collided with runner defaults in the real Vitest scalar parser.",
+      "regressionRedSha256": "e1d37e3b83028fc328b8fa58f7638ddf3eec0648fb75fddbd3451cd8dd9ca04d",
+      "regressionGreenSha256": "2cd91a62c5a270002702097b2d322c93d9b352d40bde3b93072276bca9b35b9c",
+      "filesPassed": 2,
+      "testsPassed": 17,
+      "behavior": "Explicit scalar options replace only their corresponding defaults, including dotted/negative coverage and kebab/camel resource aliases. Unspecified coverage/resource defaults, repeatable exclusions, argument boundaries and shell:false remain.",
+      "runtimeEvidence": "Four real Vitest parser/fixture subprocesses using Linux and simulated Windows argv; native Windows runtime is not claimed.",
+      "qualification": "New-head normal hooks, independent delta review and remote gates still required."
+    }
   }
 }

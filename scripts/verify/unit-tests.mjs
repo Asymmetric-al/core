@@ -40,6 +40,21 @@ export function runBunVersionGuard(spawn = spawnSync) {
   return result.status ?? 1;
 }
 
+function defaultOptionName(argument) {
+  const match = /^--(?:no-)?([^=]+)(?:=.*)?$/.exec(argument);
+  if (!match) return null;
+  const name = match[1].replaceAll("-", "").toLowerCase();
+  if (name === "coverage" || name === "coverage.enabled") return "coverage";
+  return [
+    "maxworkers",
+    "testtimeout",
+    "hooktimeout",
+    "fileparallelism",
+  ].includes(name)
+    ? name
+    : null;
+}
+
 export function runUnitTests(
   platform = process.platform,
   spawn = spawnSync,
@@ -63,7 +78,19 @@ export function runUnitTests(
           "tests/unit/scripts/bun-version.test.ts",
         ]
       : ["--coverage"];
-  return runVitest([...defaults, ...args], spawn, platform);
+  // Vitest rejects duplicate scalar options. Keep unspecified defaults and
+  // repeatable exclusions; explicit positive/negative and dotted aliases win.
+  const boundary = args.indexOf("--");
+  const explicit = new Set(
+    args
+      .slice(0, boundary < 0 ? args.length : boundary)
+      .map(defaultOptionName)
+      .filter(Boolean),
+  );
+  const retained = defaults.filter(
+    (argument) => !explicit.has(defaultOptionName(argument)),
+  );
+  return runVitest([...retained, ...args], spawn, platform);
 }
 
 const isMain =
