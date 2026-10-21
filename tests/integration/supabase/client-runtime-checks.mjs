@@ -191,6 +191,111 @@ export function fixtureAuthUserCleanupOperations(authAdmin, users) {
   });
 }
 
+export async function createTrackedFixtureRows(admin, journal, table, rows) {
+  const entries = rows.map((row) => {
+    let entry = journal.find(
+      (candidate) => candidate.table === table && candidate.row.id === row.id,
+    );
+    if (!entry) {
+      entry = {
+        table,
+        row: { ...row },
+        creationAttempted: false,
+        creationAcknowledged: false,
+      };
+      journal.push(entry);
+    }
+    entry.creationAttempted = true;
+    return entry;
+  });
+  const result = await admin
+    .from(table)
+    .insert(entries.map((entry) => entry.row));
+  if (!result.error)
+    for (const entry of entries) entry.creationAcknowledged = true;
+  return result;
+}
+
+export function fixtureTableCleanupOperations(admin, journal, table) {
+  const columns = {
+    tenants: ["id", "name", "slug"],
+    funds: ["id", "name", "tenant_id"],
+  }[table];
+  assert.ok(columns, "Unsupported fixture table");
+  return journal
+    .filter(
+      (entry) => entry.table === table && entry.creationAttempted === true,
+    )
+    .flatMap((entry, index) => {
+      let ownership = "unverified";
+      return [
+        {
+          label: `verify-${table}-${index + 1}`,
+          run: async () => {
+            const result = await admin
+              .from(table)
+              .select(columns.join(","))
+              .eq("id", entry.row.id)
+              .maybeSingle();
+            assert.equal(result.error, null, "Fixture table lookup failed");
+            if (result.data === null) {
+              // A client timeout does not prove that the server write ended.
+              // No absent row can resolve an unacknowledged creation.
+              assert.ok(
+                entry.creationAcknowledged,
+                "Fixture table creation unresolved",
+              );
+              ownership = "absent";
+              return;
+            }
+            assert.ok(
+              columns.every(
+                (column) =>
+                  typeof entry.row[column] === "string" &&
+                  result.data[column] === entry.row[column],
+              ),
+              "Fixture table ownership mismatch",
+            );
+            ownership = "owned";
+          },
+        },
+        {
+          label: `delete-${table}-${index + 1}`,
+          run: async () => {
+            assert.notEqual(
+              ownership,
+              "unverified",
+              "Fixture table identity unverified",
+            );
+            if (ownership === "absent") return;
+            const result = await admin
+              .from(table)
+              .delete()
+              .eq("id", entry.row.id);
+            assert.equal(result.error, null, "Fixture cleanup request failed");
+          },
+        },
+        {
+          label: `confirm-${table}-absent-${index + 1}`,
+          run: async () => {
+            assert.notEqual(
+              ownership,
+              "unverified",
+              "Fixture table identity unverified",
+            );
+            const result = await admin
+              .from(table)
+              .select("id")
+              .eq("id", entry.row.id)
+              .maybeSingle();
+            assert.equal(result.error, null, "Fixture absence lookup failed");
+            assert.equal(result.data, null, "Fixture table row remains");
+          },
+        },
+      ];
+    });
+}
+
 export async function runFixtureCleanup(
   operations,
   { timeoutMs = 16_000 } = {},
