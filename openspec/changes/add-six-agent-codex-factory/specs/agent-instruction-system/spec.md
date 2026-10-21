@@ -52,13 +52,9 @@ SHALL NOT be given to specialists.
 
 ### Requirement: Native Setup Is Reproducible and Honest
 
-Explicit local CLI setup SHALL install repository-owned native role files and coordinator guidance
-without discarding unrelated personal configuration. Repeated installation SHALL
-be idempotent. Verification SHALL detect missing or changed owned content without
-mutating sources or installed files. Dependencies SHALL use the pinned Bun and
-frozen lockfile. Repository readiness verification SHALL reject dependency-manifest
-drift from the lockfile without repairing it. Setup SHALL neither start a trial
-nor establish merge authority.
+Explicit local CLI setup SHALL install repository-owned native role files and coordinator guidance without discarding unrelated personal configuration.
+
+Every clause in `openspec/contracts/agent-instruction-system.md#contract-964a80176d00223dab39` MUST apply without exception.
 
 #### Scenario: Explicit local installation prepares the package
 

@@ -4,21 +4,9 @@
 
 ### Requirement: Guest Checkout Does Not Require An Account
 
-A donor MUST be able to complete an online gift without first creating or
-signing into an account. The public client MUST collect only the identity,
-contact, allocation, and payment inputs required for the gift and MUST NOT
-accept or select a canonical Party identifier.
+A donor MUST be able to complete an online gift without first creating or signing into an account.
 
-At the accepted-contribution boundary, the server MUST use the tenant-scoped
-Phase 4 identity resolution service to find or create the canonical Party. It
-MUST then use the Phase 13 acceptance service to persist the contribution
-header, exact allocation lines and postings, `legal_donor_party_id`, and frozen
-source identity/contact evidence. Rejected or abandoned checkout attempts MUST
-NOT create a Party, claim, membership, contribution, or official-document fact.
-
-The response MUST have the same shape whether Phase 4 found or created the
-Party. It MUST NOT expose a Party identifier, match result, account existence,
-or any other signal that reveals whether the email was already known.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-73f178ad4e2d8cd3c1c9` MUST apply without exception.
 
 #### Scenario: A first-time donor gives without signing in
 
@@ -45,15 +33,9 @@ or any other signal that reveals whether the email was already known.
 
 ### Requirement: Account Claiming Is Optional And Possession-Gated
 
-After an accepted guest gift, the platform MAY offer a quiet, tenant-branded
-invitation to claim portal access. Claiming MUST use the Phase 4
-verified-possession boundary. Supplying an email during checkout MUST NOT bind
-a login, reveal giving history, or authorize access.
+After an accepted guest gift, the platform MAY offer a quiet, tenant-branded invitation to claim portal access.
 
-Claim initiation and completion MUST be enumeration-safe, expiring,
-single-use, rate-limited, audited, and independently retryable from gift
-acceptance. Failure to prepare or deliver a claim invitation MUST NOT change
-the accepted contribution.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-74b193ea80aa042133d7` MUST apply without exception.
 
 #### Scenario: A guest chooses to claim access
 
@@ -73,14 +55,9 @@ the accepted contribution.
 
 ### Requirement: Payment Collection Uses Stripe-Hosted UI
 
-Checkout MUST collect card and bank credentials exclusively through a
-supported Stripe-hosted surface so that PAN, CVC, and bank credentials never
-reach Asym servers, logs, databases, analytics, or application state.
+Checkout MUST collect card and bank credentials exclusively through a supported Stripe-hosted surface so that PAN, CVC, and bank credentials never reach Asym servers, logs, databases, analytics, or application state.
 
-The client MUST NOT decide payment or contribution success. Donor-facing state
-MUST derive from server-confirmed provider finality and the independently
-authoritative Phase 13 contribution lifecycle. A delayed rail MUST be described
-as processing until provider evidence proves the applicable finality.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-2c2cc9104e63081050db` MUST apply without exception.
 
 #### Scenario: A donor enters card details
 
@@ -98,23 +75,9 @@ as processing until provider evidence proves the applicable finality.
 
 ### Requirement: Gift Anonymity Is A Per-Gift Visibility Preference
 
-A donor or authorized staff member MUST be able to mark an accepted
-contribution anonymous to missionary and public audiences. The accepted Phase
-13 contribution header MUST freeze the per-gift choice. A current Party-level
-preference MAY seed the initial choice but MUST NOT replace the accepted
-per-gift fact or rewrite prior gifts.
+A donor or authorized staff member MUST be able to mark an accepted contribution anonymous to missionary and public audiences.
 
-Anonymity MUST NOT conceal the legal donor from authorized finance and
-administrative roles, the donor viewing their own gift, official receipt facts,
-reconciliation, or audit. Missionary/public projections, notifications,
-exports, search indexes, analytics payloads, caches, logs, and hydration data
-MUST enforce redaction server-side and MUST NOT emit a stable hidden Party or
-contact identifier.
-
-Changing the choice after acceptance MUST use the shared contribution
-correction boundary, require the applicable capability and reason, and append
-an audit event with actor, before/after value, source surface, reason, and
-timestamp.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-83309d47007d0aba6d98` MUST apply without exception.
 
 #### Scenario: A donor gives anonymously to a missionary
 
@@ -135,27 +98,9 @@ timestamp.
 
 ### Requirement: Receipts Follow The Governed Facts-To-Artifact-To-Delivery Pipeline
 
-Phase 7 MUST derive one immutable, versioned official-facts record from
-canonical posted Phase 13 gift truth and its frozen legal-donor, Legal Entity,
-allocation, currency, correction, eligibility, and source identity evidence.
-Phase 7 owns the Statement Subject, official receipt identity, eligibility,
-numbering, correction semantics, and facts version. Payment success, checkout,
-the Party profile, and the contribution header MUST NOT independently claim
-that a receipt is eligible, issued, rendered, or delivered.
+Phase 7 MUST derive one immutable, versioned official-facts record from canonical posted Phase 13 gift truth and its frozen legal-donor, Legal Entity, allocation, currency, correction, eligibility, and source identity evidence.
 
-Phase 18 MUST create or reuse the canonical artifact from the exact approved
-facts version and immutable published document-template version. Phase 17 MUST
-prepare governed message content from its typed contract without recomputing
-official facts. Phase 6 MUST resolve the current purpose-eligible recipient and
-contact point, re-prove consent and suppression, dispatch the pinned content
-and artifact, and record the communication and delivery outcome.
-
-Portal access and delivery MUST use the stored exact Phase 18 artifact bytes.
-They MUST NOT rerender a live contribution, Party profile, or receipt snapshot.
-
-Each handoff MUST be idempotent, version-pinned, and independently recoverable.
-A failure downstream MUST NOT mutate accepted money, legal-donor source
-evidence, official facts, or an existing artifact.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-39e51637fba607199fb9` MUST apply without exception.
 
 #### Scenario: An eligible gift produces an official receipt
 

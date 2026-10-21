@@ -21,7 +21,9 @@ maintained compatibility dependency with a current upstream reason and owner.
   CLI/MCP/Action/image/protocol pins, skills and documentation findings still
   require their complete owned evidence and closure records.
 - Reconcile ongoing OpenSpec PR #2172 and self-hosted CI PR #2160 before
-  duplicating their changes. Neither PR is claimed merged by this ledger.
+  duplicating their changes. OpenSpec #2172 merged as
+  `5cf4855dc322eafcccfeca0dd528695ae72832d9` and is incorporated into the
+  security checkpoint; #2160 remains a draft owned by its existing branch.
 
 ## Baseline
 

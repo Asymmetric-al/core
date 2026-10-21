@@ -2,20 +2,15 @@
 
 ## Purpose
 
-TBD - created by archiving change add-eve-governance-kernel-release-switch. Update Purpose after archive.
+Enforce one app-owned, fail-closed release and emergency-control kernel before every autonomous Eve effect, without granting authority through deployment or local flags.
 
 ## Requirements
 
 ### Requirement: The Release Gate Defaults To Disabled
 
-Eve MUST have one app-owned master release gate whose absent, unreadable,
-malformed, uninitialized, or explicit disabled state blocks every autonomous
-effect. Merging, deploying, or configuring an individual Eve capability MUST
-NOT enable autonomy as a side effect. Capability-specific flags MAY further
-restrict behavior but MUST NOT enable autonomy while the master gate is off.
+Eve MUST have one app-owned master release gate whose absent, unreadable, malformed, uninitialized, or explicit disabled state blocks every autonomous effect.
 
-Only the final #437 launch verification MAY establish readiness, and only a
-verified human using the authorized control path MAY enable the release gate.
+Every clause in `openspec/contracts/eve-governance-kernel.md#contract-a352761585d4a277c62e` MUST apply without exception.
 
 #### Scenario: A fresh deployment has no release state
 
@@ -55,16 +50,8 @@ MUST restore only the decision implied by the release gate and stricter policy.
 ### Requirement: Every Autonomous Effect Consults App-Owned Governance State
 
 The governance kernel MUST be the single consult point for autonomous effects.
-Immediately before an externally meaningful effect, it MUST evaluate app-owned
-release state, emergency and kill-switch state, policy status, and the trusted
-execution context required for a decision. Missing, stale, unavailable,
-malformed, disabled, or restrictive state MUST fail closed and produce an
-observable blocked or skipped reason.
 
-Prompts, model output, tool input, memory, shared context, and runtime session
-state MUST NOT establish or widen release, emergency, identity, tenant,
-permission, or policy authority. Runtime-owned session and workflow durability
-MUST NOT override app-owned governance state.
+Every clause in `openspec/contracts/eve-governance-kernel.md#contract-dfadd175b674c0b11751` MUST apply without exception.
 
 #### Scenario: An autonomous action is ready to produce an effect
 

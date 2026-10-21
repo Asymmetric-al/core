@@ -4,15 +4,9 @@
 
 ### Requirement: Mission Control Presents One Calm Document Studio
 
-Mission Control MUST present **Templates**, **Documents**, and **Batches** as the
-three primary generated-document destinations. **Needs attention** MUST be a
-saved view and derived count rather than another subsystem.
+Mission Control MUST present **Templates**, **Documents**, and **Batches** as the three primary generated-document destinations.
 
-The routine experience MUST use plain product statuses, one context-correct
-primary action, progressive technical evidence, and one repair item per root
-cause. It MUST NOT expose render attempts, hashes, provider jobs, storage paths,
-fallback candidates, legal-rule internals, or architecture nouns as ordinary
-workflow.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-0042855c2215ed508771` MUST apply without exception.
 
 #### Scenario: Staff open Document Studio
 
@@ -33,15 +27,9 @@ workflow.
 
 ### Requirement: Recipients See One Logical Document And One Current PDF
 
-Every donor or missionary surface MUST show at most one row or card for an
-authorized logical document and one current canonical PDF action. Semantic HTML
-status and details MAY accompany the artifact for accessibility, but MUST NOT be
-presented as another official file.
+Every donor or missionary surface MUST show at most one row or card for an authorized logical document and one current canonical PDF action.
 
-Superseded, replaced, cancelled, preview, staging, validation, storage-replica,
-and delivery records MUST NOT appear as peer recipient files. Missionaries MUST
-NOT receive donor tax-document access merely from fund, designation, or donor
-visibility.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-26456795f67e0688123f` MUST apply without exception.
 
 #### Scenario: A donor opens a corrected acknowledgment
 
@@ -60,15 +48,9 @@ visibility.
 
 ### Requirement: Document Authoring Is Accessible And Purpose-first
 
-The visual editor MUST expose one structured document through both direct visual
-controls and an equivalent keyboard-operable outline/non-drag path. It MUST lead
-with purpose, recommended content, human-named information, synthetic examples,
-and grouped checks rather than raw schemas or tokens.
+The visual editor MUST expose one structured document through both direct visual controls and an equivalent keyboard-operable outline/non-drag path.
 
-Publishing, scheduling, generation, batch review, correction, access, and repair
-MUST meet WCAG 2.2 AA and the documented keyboard, focus, status-announcement,
-touch-target, zoom/reflow, forced-color, long-locale, RTL, and supported
-screen-reader proof.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-82b680188c0fe3c2407c` MUST apply without exception.
 
 #### Scenario: A keyboard user builds a document
 

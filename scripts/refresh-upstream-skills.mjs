@@ -275,7 +275,7 @@ const githubUpstreamGroups = [
     repo: "https://github.com/Fission-AI/OpenSpec.git",
     source: "Fission-AI/OpenSpec",
     sourceUrl: "https://github.com/Fission-AI/OpenSpec",
-    ref: "v1.9.0",
+    ref: "v1.14.3",
     sourceRoot: "skills",
     skillNames: openspecSkillNames,
     lockSkillPath(skillName) {
@@ -285,7 +285,7 @@ const githubUpstreamGroups = [
       return `skills/${skillName}/`;
     },
     sourceUrlForSkill(skillName) {
-      return `https://github.com/Fission-AI/OpenSpec/tree/v1.9.0/skills/${skillName}`;
+      return `https://github.com/Fission-AI/OpenSpec/tree/v1.14.3/skills/${skillName}`;
     },
     skillExtraCopies: Object.fromEntries(
       openspecSkillNames.map((skillName) => [
@@ -1516,6 +1516,22 @@ async function restoreCoreOverlay(targetRoot, overlay, skillName) {
     return;
   }
 
+  if (openspecSkillNames.includes(skillName)) {
+    // Several upstream workflows have no H1 outside their Markdown examples.
+    // Core's controlling instructions must precede the workflow, never land
+    // inside the first example spec's fenced heading.
+    const frontmatter = /^---\n[\s\S]*?\n---\n/.exec(content);
+    if (!frontmatter)
+      throw new Error(`OpenSpec skill requires frontmatter: ${skillName}`);
+    const after = content.slice(frontmatter[0].length).trimStart();
+    await writeFile(
+      skillPath,
+      `${frontmatter[0]}\n${overlay.trim()}\n\n${after}`,
+      "utf8",
+    );
+    return;
+  }
+
   const headingMatch = /^# .+$/m.exec(content);
   if (headingMatch && headingMatch.index !== undefined) {
     const headingEnd = headingMatch.index + headingMatch[0].length;
@@ -1841,7 +1857,98 @@ async function ensureGitGuardrailsFailClosed(skillName, targetRoot) {
   await cp(overlayPath, hookPath);
 }
 
+async function ensureOpenSpecWrapperPermission(skillName, targetRoot) {
+  if (!openspecSkillNames.includes(skillName)) {
+    return;
+  }
+
+  const skillPath = path.join(targetRoot, "SKILL.md");
+  const content = (await readFile(skillPath, "utf8")).replaceAll("\r\n", "\n");
+  const lines = content.split("\n");
+  const end = lines.indexOf("---", 1);
+  const permissions = lines
+    .slice(1, end)
+    .filter((line) => line.startsWith("allowed-tools:"));
+  const value = permissions[0]?.match(/^allowed-tools:\s+([A-Za-z].*)$/)?.[1];
+  if (lines[0] !== "---" || end < 1 || permissions.length !== 1 || !value) {
+    throw new Error(
+      `Unsupported OpenSpec allowed-tools frontmatter in ${path.relative(repoRoot, skillPath)}; review upstream permissions before refreshing.`,
+    );
+  }
+  if (/(?:^|,\s*)Bash\(bun:\*\)(?=,|$)/.test(value)) {
+    return;
+  }
+
+  lines[lines.indexOf(permissions[0])] = `${permissions[0]}, Bash(bun:*)`;
+  await writeFile(skillPath, lines.join("\n"), "utf8");
+}
+
+async function ensureOpenSpecRepositoryScope(skillName, targetRoot) {
+  if (!openspecSkillNames.includes(skillName)) return;
+  const skillPath = path.join(targetRoot, "SKILL.md");
+  let content = await readFile(skillPath, "utf8");
+  content = content.replace(
+    /\*\*Store selection:\*\*[\s\S]*?do not let a command create it\.\n/,
+    "**Project check:** Before writing, run `bun run openspec -- list --json` and confirm the root is the Core checkout containing its local `openspec/` tree. A missing root, Store declaration, or external root is a configuration error: stop before writing and report it. Do not initialize a root or select an external Store.\n",
+  );
+  content = content
+    .replaceAll(
+      ', and append `--store "<id>"` only for a registered standalone store',
+      "",
+    )
+    .replaceAll(" (same `--store` rule)", "")
+    .replaceAll(" (with `--store <id>` when applicable)", "")
+    .replaceAll(
+      ' (append the confirmed `--store "<id>"` only for a registered standalone store)',
+      "",
+    )
+    .replaceAll(
+      " Keep the selected `--store <id>` on every applicable follow-up `status` and `instructions` command.",
+      "",
+    )
+    .replace(
+      /^   Run `openspec context --json`[^\n]+$/m,
+      "   Run `bun run openspec -- context --json` from the Core checkout and confirm `root.path` identifies that checkout containing `openspec/`. Stop before writing on a missing, external, or Store-backed root or any context error; report the error without initializing or selecting another root.",
+    )
+    .replace(
+      /^   - Asks to "show workflows"[^\n]+$/m,
+      '   - Asks to "show workflows" or asks "what workflows" exist → use Core\'s existing `spec-driven` schema and selected workflows; do not enable custom schemas or additional workflows.',
+    )
+    .replace(
+      /^   Choose one schema form below\. If a registered store[^\n]+$/m,
+      "   Use Core's existing `spec-driven` schema with the local pinned wrapper below.",
+    );
+  if (skillName === "openspec-update-change") {
+    content = content.replace(
+      "If the user means the openspec update CLI command, which refreshes generated files, run that command instead.",
+      "Requests for the openspec update CLI must use Core's repository-safe refresh workflow; never run the updater against this customized checkout.",
+    );
+    content = content
+      .replace(
+        "This workflow revises artifacts that already exist; `/openspec-continue-change` is what creates the ones that do not.",
+        '`/openspec-continue-change` is an optional workflow that Core does not install. Before suggesting it anywhere below, verify that it is available. If unavailable, `bun run openspec -- status --change "<name>" --json` shows the next artifact and `bun run openspec -- instructions "<artifact-id>" --change "<name>" --json` supplies its template and instructions. Creating that artifact is a separate authorized step; this Update workflow does not silently advance it.',
+      )
+      .replace(
+        '- If the request changes the change\'s _intent_ rather than refining it, recommend starting fresh with `/openspec-new-change` (the "Update vs. Start Fresh" heuristic).',
+        '- If the request changes the change\'s _intent_ rather than refining it, first verify whether the optional `/openspec-new-change` workflow is available. If it is, recommend starting fresh with it (the "Update vs. Start Fresh" heuristic). Core does not install that workflow; if unavailable, ask for a distinct unused change name and recommend `bun run openspec -- new change "<new-change-name>"` instead.',
+      );
+  }
+  if (skillName === "openspec-apply-change")
+    content = content.replace(
+      "- If `missingArtifacts` is non-empty: suggest using `/openspec-continue-change` to create them.",
+      '- If `missingArtifacts` is non-empty: verify whether `/openspec-continue-change` is installed before suggesting it. Core does not install it; if unavailable, use `bun run openspec -- status --change "<name>" --json` to identify the next artifact and `bun run openspec -- instructions "<artifact-id>" --change "<name>" --json` for its template and instructions. Creating the missing artifact is a separate authorized step; keep implementation paused.',
+    );
+  if (/--store|openspec store list|run that command instead/.test(content))
+    throw new Error(
+      `Unsupported OpenSpec routing in ${skillName}; reconcile Core's local-only workflow before refreshing.`,
+    );
+  await writeFile(skillPath, content, "utf8");
+}
+
 async function applyPostRefreshReplacements(skillName, targetRoot) {
+  await ensureOpenSpecWrapperPermission(skillName, targetRoot);
+  await ensureOpenSpecRepositoryScope(skillName, targetRoot);
+
   if (skillName === "emil-design-engineering") {
     const formsControlsPath = path.join(targetRoot, "forms-controls.md");
     const formsControlsContent = await readFile(formsControlsPath, "utf8");

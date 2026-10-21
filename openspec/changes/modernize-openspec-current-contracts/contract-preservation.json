@@ -1,0 +1,2536 @@
+{
+  "base": "e2761135d2952426e15be7d56c1d9680aa7b8c15",
+  "files": 117,
+  "requirements": 1418,
+  "scenarios": 3965,
+  "relocated": 505,
+  "failures": [],
+  "evidence": [
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D1 One Accounting Doorway Coordinates Bounded Contexts Without Merging Truth",
+      "section": "openspec/contracts/accounting-operations.md#contract-cf15666ac17a7aff5a87"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D2 Accounting Releases Are Immutable And Use One Exclusive Delivery Lane With Evidence Always",
+      "section": "openspec/contracts/accounting-operations.md#contract-fd4cc1aa483445234021"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D3 Every Financial Handoff Pins One Canonical Legal Entity",
+      "section": "openspec/contracts/accounting-operations.md#contract-acf32ebb658891d09873"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D4 Each Release Couples Typed Posting Intent To One Balanced Canonical Effect",
+      "section": "openspec/contracts/accounting-operations.md#contract-d1d7d5cfc4ec137441db"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D5 Posting Profiles Are Bounded Goal-led Provider-native And Prospective",
+      "section": "openspec/contracts/accounting-operations.md#contract-60d2a74b38849ea795b1"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D6 Every Source Allocation Resolves Exactly Once Through Exact Or Proved Grouped Mapping",
+      "section": "openspec/contracts/accounting-operations.md#contract-9e276a22f1c5b6af3536"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D7 QBO Carrier Plans Are Tenant-owned Capability-certified And Effect-preserving",
+      "section": "openspec/contracts/accounting-operations.md#contract-385c672e21a52516f732"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D8 Xero Carrier Plans Are Tenant-owned Capability-certified And Effect-preserving",
+      "section": "openspec/contracts/accounting-operations.md#contract-9f3414c2b9f0335b3f92"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D9 Processor Settlement Evidence Is Source-authoritative And Mode-honest",
+      "section": "openspec/contracts/accounting-operations.md#contract-a9214583177fd225518a"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D10 Bank Match Is Bounded And Source-labelled While QBO Or Xero Retains Final Reconciliation",
+      "section": "openspec/contracts/accounting-operations.md#contract-e9a9f7d0712ff3e20eac"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D11 Released Accounting Is Corrected Only With Policy-permitted Compensating Releases",
+      "section": "openspec/contracts/accounting-operations.md#contract-216f9243a36d5f7f6546"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D12 Tenants Control Release Cadence Through One Atomic Readiness Fence",
+      "section": "openspec/contracts/accounting-operations.md#contract-09e2ea65ce7a729a3faf"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D13 Accounting Exception Cases Own Causes And Share Follow-up Without Sharing Truth",
+      "section": "openspec/contracts/accounting-operations.md#contract-227f6c1865040f9e67ec"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D14 Provider Authorization Is Destination-pinned Encrypted And Prospectively Replaceable",
+      "section": "openspec/contracts/accounting-operations.md#contract-a821a83eeacd9c92813f"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D15 Direct-delivery Capacity Is Workload-shaped Certified Fair And Recovery-safe",
+      "section": "openspec/contracts/accounting-operations.md#contract-3a0f2b8fd724bebf55f2"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D16 Staff-mediated Delivery Uses Capability-certified Immutable Packages",
+      "section": "openspec/contracts/accounting-operations.md#contract-5b3d4b81c7001a2c75fd"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D17 Posting Ownership Transfers At One Proved Source-family Boundary",
+      "section": "openspec/contracts/accounting-operations.md#contract-d491adab454c205c9e31"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "Phase 21 D17 Opening Authority Remains Accounting-dark",
+      "section": "openspec/contracts/accounting-operations.md#contract-a49663017769c15224d1"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D18 Expense Accounting Consumes One PII-minimized Source-owned Approved Handoff",
+      "section": "openspec/contracts/accounting-operations.md#contract-b4eafb6af0837281c2e4"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D19 Processor Costs Default Organization-borne With One Fee-cover-first Fund Mode",
+      "section": "openspec/contracts/accounting-operations.md#contract-cabd77096a1d14ae3989"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/accounting-operations/spec.md",
+      "name": "D20 Settlement Is Local-currency-first With Proof-gated Retained-currency Lanes",
+      "section": "openspec/contracts/accounting-operations.md#contract-4e7ae345f72be2380cc3"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/platform-boundaries/spec.md",
+      "name": "Accounting Handoffs Preserve Source-Specific Authority",
+      "section": "openspec/contracts/platform-boundaries.md#contract-641fa5785072e9769ef6"
+    },
+    {
+      "file": "openspec/changes/add-accounting-exports-reconciliation/specs/platform-boundaries/spec.md",
+      "name": "Legal Entity Is Explicit Subtract-Only Financial Scope",
+      "section": "openspec/contracts/platform-boundaries.md#contract-c4ff9bc796e8f1ba7007"
+    },
+    {
+      "file": "openspec/changes/add-donor-dashboard-depth/specs/crm-core/spec.md",
+      "name": "Phase25 Newsletter Requests Do Not Enroll External Subscribers",
+      "section": "openspec/contracts/crm-core.md#contract-c5a002a5c382689d7fc2"
+    },
+    {
+      "file": "openspec/changes/add-donor-dashboard-depth/specs/identity-and-access/spec.md",
+      "name": "Phase25 Guest-Origin Newsletter Recipient Access",
+      "section": "openspec/contracts/identity-and-access.md#contract-3c4485064f0a1589d8fe"
+    },
+    {
+      "file": "openspec/changes/add-donor-development/specs/contribution-operations/spec.md",
+      "name": "Phase 27 P15 reported gift intake and independent completion",
+      "section": "openspec/contracts/contribution-operations.md#contract-1fe25b586ff24315db30"
+    },
+    {
+      "file": "openspec/changes/add-donor-development/specs/crm-core/spec.md",
+      "name": "Phase 27 role-qualified staff assignment identity",
+      "section": "openspec/contracts/crm-core.md#contract-434547cc12041936245c"
+    },
+    {
+      "file": "openspec/changes/add-donor-development/specs/donor-development/spec.md",
+      "name": "US27-F34 \u2014 Adopt and operate recorded membership with atomic protection, native independence and safe upgrade/restore",
+      "section": "openspec/contracts/donor-development.md#contract-1d2fb2403217a391d351"
+    },
+    {
+      "file": "openspec/changes/add-donor-development/specs/identity-and-access/spec.md",
+      "name": "Phase 27 bounded source actions preserve current authority",
+      "section": "openspec/contracts/identity-and-access.md#contract-ea962786dbc04401b437"
+    },
+    {
+      "file": "openspec/changes/add-donor-development/specs/outbound-communications/spec.md",
+      "name": "Phase 27 review and recorded appeal plan fence dependent solicitation",
+      "section": "openspec/contracts/outbound-communications.md#contract-5ffc1ba888b56eca77a8"
+    },
+    {
+      "file": "openspec/changes/add-donor-self-service/specs/donation-lifecycle/spec.md",
+      "name": "Donors Self-Manage Recurring Gifts",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-4040d2093a4baae62e2b"
+    },
+    {
+      "file": "openspec/changes/add-donor-self-service/specs/donation-lifecycle/spec.md",
+      "name": "Donors Manage Payment Methods Through Stripe",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-fe173a148458d248a737"
+    },
+    {
+      "file": "openspec/changes/add-donor-self-service/specs/donation-lifecycle/spec.md",
+      "name": "Donors Receive Annual Giving Statements",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-bfda0ee0804cf82a8cc4"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W01 Qualify current identity/PDP substrate, reserved seams, exact support matrix and adopted successor",
+      "section": "openspec/contracts/enterprise-identity.md#contract-4322b01a89bf74969834"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W02 Verified connection/trust configuration and nonprivileged end-to-end test setup",
+      "section": "openspec/contracts/enterprise-identity.md#contract-57387ad5f48760248522"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W03 Shared application-initiated SAML callback/session path and exact provider/tenant binding",
+      "section": "openspec/contracts/enterprise-identity.md#contract-aadc4057bd6b92fcc304"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W04 Reviewed existing-account transition and concurrent login/provisioning identity convergence",
+      "section": "openspec/contracts/enterprise-identity.md#contract-4b0c23f8a744370a8688"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W05 Scoped SCIM protocol, discovery, Users lifecycle, current source mutation and honest errors",
+      "section": "openspec/contracts/enterprise-identity.md#contract-64ac2dfa78f4603c6690"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W06 Stable group mappings, reviewed permission impact and source-provenanced membership changes",
+      "section": "openspec/contracts/enterprise-identity.md#contract-ea7b1a02866ef652e249"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W07 Lifecycle-aware deactivation/reactivation, current epoch/stream denial and unmatched-event recovery",
+      "section": "openspec/contracts/enterprise-identity.md#contract-6b8ec9f80660328d2028"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W08 Optional/required staff enforcement, tested step-up and controlled administrator recovery",
+      "section": "openspec/contracts/enterprise-identity.md#contract-a0fd6233c8df7cbd8b4d"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W09 Complete directory reconciliation, operational freshness and safe mapping-change review",
+      "section": "openspec/contracts/enterprise-identity.md#contract-fced6092bd7870c1966e"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W10 Certificate/provider succession, scoped disconnection, privacy and restore controls",
+      "section": "openspec/contracts/enterprise-identity.md#contract-59e1838dd4055cd91929"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W11 Downstream authority propagation through source tasks, workflows, finance and content",
+      "section": "openspec/contracts/enterprise-identity.md#contract-549a8ce05b28ab94f6db"
+    },
+    {
+      "file": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+      "name": "EID-W12 Certified provider interoperability, accessibility, fault/load tests, user pilot and operating release",
+      "section": "openspec/contracts/enterprise-identity.md#contract-3d663eef1694a49cf0dd"
+    },
+    {
+      "file": "openspec/changes/add-eve-email-discord-notifications/specs/eve-email-discord-notifications/spec.md",
+      "name": "Every Notification Starts From A Safe Typed Envelope",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-7e4a26799e80712133a9"
+    },
+    {
+      "file": "openspec/changes/add-eve-email-discord-notifications/specs/eve-email-discord-notifications/spec.md",
+      "name": "V1 Email Goes Only To Configured Platform Owners",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-dfbf0fa042dcb0a50be3"
+    },
+    {
+      "file": "openspec/changes/add-eve-email-discord-notifications/specs/eve-email-discord-notifications/spec.md",
+      "name": "Discord Is Urgent And Rich Only After Safe-Content Policy",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-ee53334be56dfa02432d"
+    },
+    {
+      "file": "openspec/changes/add-eve-email-discord-notifications/specs/eve-email-discord-notifications/spec.md",
+      "name": "Sensitive Material Never Enters External Notification Content",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-5ddc2fea00291b11b913"
+    },
+    {
+      "file": "openspec/changes/add-eve-email-discord-notifications/specs/eve-email-discord-notifications/spec.md",
+      "name": "Notification Delivery Is Deduplicated, Idempotent, Bounded, And Pausable",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-8a9f4706189025cbbaf8"
+    },
+    {
+      "file": "openspec/changes/add-eve-email-discord-notifications/specs/eve-email-discord-notifications/spec.md",
+      "name": "Notification Decisions And Outcomes Are Audited And Retained By Existing Owners",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-69a3bfd95a2a01244301"
+    },
+    {
+      "file": "openspec/changes/add-eve-email-discord-notifications/specs/eve-email-discord-notifications/spec.md",
+      "name": "This Change Grants No New Delivery Or Runtime Authority",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-e6fea718251c2a99883b"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D1 Finance-closed Support Cycles Preserve Independent Financial Truth",
+      "section": "openspec/contracts/field-account-operations.md#contract-c318a4ce4b8f374486ce"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D2 Rail-qualified Admission Alone Advances Positive Support",
+      "section": "openspec/contracts/field-account-operations.md#contract-e588b4dbe57850c261d5"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D3 Administrative Assessments Use One Prospective Non-stacking Profile",
+      "section": "openspec/contracts/field-account-operations.md#contract-e109239d309d243dc25f"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D4 Compensation Funding Reserves Capacity While External Payroll Retains Authority",
+      "section": "openspec/contracts/field-account-operations.md#contract-118404abe5a859f46f6b"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D5 Support Reallocation Is Organization-authorized Purpose-compatible And Conserving",
+      "section": "openspec/contracts/field-account-operations.md#contract-80f38a4c247e67796db0"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D6 Every Field Account Has One Immutable Currency And Cross-currency Admission Is Proved",
+      "section": "openspec/contracts/field-account-operations.md#contract-3f6d7e1395a15ace7520"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D7 Compensation Adapters Are Provider-specific Capability-honest And Ambiguity-safe",
+      "section": "openspec/contracts/field-account-operations.md#contract-2ba93a5019d50e0c345f"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D8 Missionary Support Feed Projection Is Scoped No-gap And Read-only",
+      "section": "openspec/contracts/field-account-operations.md#contract-297804c79ec94d32a0a5"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D9 Support Planning And Workspace Publication Are Optional And Purpose-separated",
+      "section": "openspec/contracts/field-account-operations.md#contract-840312f4e8465497b804"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D10 Expense Truth Is Claim-level And AI Remains Suggestion-only",
+      "section": "openspec/contracts/field-account-operations.md#contract-450caf5be578bdcae2e6"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D11 Field Account Integrity Is Layered Scope-bounded And Cause-repaired",
+      "section": "openspec/contracts/field-account-operations.md#contract-c4cd2cf9eea0a718eea5"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D12 Support Statements Derive Only From Immutable Close Facts",
+      "section": "openspec/contracts/field-account-operations.md#contract-7966c78ed5fed6f9a529"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D13 Expense Governance Uses One Incurred-date Policy And Human Review Route",
+      "section": "openspec/contracts/field-account-operations.md#contract-a215e2fcc02c59664e29"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D14 Organization Card Evidence Is File-first Source-final And Non-authoritative For Approval",
+      "section": "openspec/contracts/field-account-operations.md#contract-fedbb7e1a9ac309c7ba5"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D15 Reimbursement Handoffs Are Artifact-Always And Use One Qualified Execution Lane",
+      "section": "openspec/contracts/field-account-operations.md#contract-98652d95644f621563b3"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D16 Advances And Claimant Repayments Preserve Purpose-Separated Truth",
+      "section": "openspec/contracts/field-account-operations.md#contract-50cc34fc30e8bda7b98f"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D17 Field Accounts Start From One Reconciled Opening Position And One Operational Cutover",
+      "section": "openspec/contracts/field-account-operations.md#contract-66808207b63cfa6a8a8d"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D18 Travel Allowance Calculations Are Certified Policy-Pinned And Explainable",
+      "section": "openspec/contracts/field-account-operations.md#contract-9d20de11bddfb5bff29b"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D19 Support Assignments Separate Participation Access Responsibility And Notifications",
+      "section": "openspec/contracts/field-account-operations.md#contract-6bce1a3eb735d87452cc"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D20 Organization Support Cost Applications Are Source-Authoritative And Absent Unless Enabled",
+      "section": "openspec/contracts/field-account-operations.md#contract-c788b22e593138681dbf"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D21 Noncash Support Realization Bridges Exact Source-Final Proceeds Without Creating A Second Gift",
+      "section": "openspec/contracts/field-account-operations.md#contract-c689389cbfdf39441e18"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D22 Prospective Expense Authorization Is Optional Exact And Separate From Actual Expense Truth",
+      "section": "openspec/contracts/field-account-operations.md#contract-cd700279e3ed90013ec8"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D23 Expense Field Account Effects Use One Source-Family-Specific Prospective Recognition Profile",
+      "section": "openspec/contracts/field-account-operations.md#contract-8273919f42cc28ecc1f4"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D24 Expense Collaboration Uses Each Helper's Own Identity And Exact Claim Scope",
+      "section": "openspec/contracts/field-account-operations.md#contract-0791bd1163be6d9102b6"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D25 Expense Claim Resolution Is Exceptional Cause-Owned And Exact-Scope",
+      "section": "openspec/contracts/field-account-operations.md#contract-dd4248352dcd8a04a5a9"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D26 Records Schedules And Tenant Custody Exports Are Purpose-Owned Exact And Portable",
+      "section": "openspec/contracts/field-account-operations.md#contract-77cd5cfeb49f60f5f709"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D27 Production Activation Composes Existing Authorities Through D17's Sole Cutover",
+      "section": "openspec/contracts/field-account-operations.md#contract-eb01d45518c6a587761a"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/field-account-operations/spec.md",
+      "name": "D28 Cumulative Travel Admission Requires Exact Opening And Continuing Source Coverage",
+      "section": "openspec/contracts/field-account-operations.md#contract-471aa029b8eb6b804c1d"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/platform-boundaries/spec.md",
+      "name": "Field Accounts Preserve Organization-Controlled Support Truth Without Becoming Accounting Or Payroll",
+      "section": "openspec/contracts/platform-boundaries.md#contract-c669c207c2a508e8e183"
+    },
+    {
+      "file": "openspec/changes/add-field-account-operations/specs/platform-boundaries/spec.md",
+      "name": "Support Assignment Participation Never Implies Financial Access Or Ownership",
+      "section": "openspec/contracts/platform-boundaries.md#contract-1f2188a9475cdc122a87"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W01 Census source contracts, preserve transport-dark generation, adopt exact successor and support profile",
+      "section": "openspec/contracts/governed-sms.md#contract-efae53f596a3147c6562"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W02 Governed account/sender setup, exact registration evidence, credential rotation and visible readiness",
+      "section": "openspec/contracts/governed-sms.md#contract-d7cae7000cb43e8fd367"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W03 Phone-purpose enrollment, withdrawal, re-consent and current eligibility through existing owners",
+      "section": "openspec/contracts/governed-sms.md#contract-3bc1f8b758eda8075894"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W04 Authenticated durable ingress and control-keyword handling, including overload protection",
+      "section": "openspec/contracts/governed-sms.md#contract-ebeff6ef4e48e75b2998"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W05 Exact prepared text, encoding/segment proof, time-window/deadline and budget preflight",
+      "section": "openspec/contracts/governed-sms.md#contract-d257c50567c8915c092d"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W06 Phase 6 dispatch, permanent identities, provider evidence and ambiguity recovery",
+      "section": "openspec/contracts/governed-sms.md#contract-f8e807ab710b5bdc7d9a"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W07 Qualified source notice through its explicit Phase 17 contract, without workflow dependency",
+      "section": "openspec/contracts/governed-sms.md#contract-f9447e67b09440cfddca"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W08 Complete Support Hub inbound, assignment, safe reply and correspondent lifecycle",
+      "section": "openspec/contracts/governed-sms.md#contract-d563ce12dbd1106e3f6f"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W09 Public keyword-to-giving-link with bounded unknown-correspondent requested-response contract",
+      "section": "openspec/contracts/governed-sms.md#contract-c03213392022f59b8973"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W10 Organization campaign send/schedule/stop and source-labelled outcomes",
+      "section": "openspec/contracts/governed-sms.md#contract-bd3f13dcbfff469b1bdd"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W11 Consent-preserving migration, route replacement, privacy disposition and safe restore",
+      "section": "openspec/contracts/governed-sms.md#contract-4c1d472ca794b3bdbb22"
+    },
+    {
+      "file": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+      "name": "SMS-W12 All-profile load, accessibility, user pilot, independent outage monitoring and release evidence",
+      "section": "openspec/contracts/governed-sms.md#contract-1b6faa65b22650945bf6"
+    },
+    {
+      "file": "openspec/changes/add-guest-giving-and-gift-anonymity/specs/contribution-operations/spec.md",
+      "name": "Every Staff-Entered Offline Gift Uses The Phase 15 Gateway",
+      "section": "openspec/contracts/contribution-operations.md#contract-c4e118881be86ac51ec4"
+    },
+    {
+      "file": "openspec/changes/add-guest-giving-and-gift-anonymity/specs/contribution-operations/spec.md",
+      "name": "Offline Rows Support Known And Intentionally Unknown Donors",
+      "section": "openspec/contracts/contribution-operations.md#contract-9f7cc8619f882c96bfa4"
+    },
+    {
+      "file": "openspec/changes/add-guest-giving-and-gift-anonymity/specs/contribution-operations/spec.md",
+      "name": "Receipt Evaluation Remains Source-Owned",
+      "section": "openspec/contracts/contribution-operations.md#contract-1ece7948235e5a82faf6"
+    },
+    {
+      "file": "openspec/changes/add-guest-giving-and-gift-anonymity/specs/contribution-operations/spec.md",
+      "name": "Offline Entry Gives Clear And Recoverable Feedback",
+      "section": "openspec/contracts/contribution-operations.md#contract-a16d4d9d34b27cb9040e"
+    },
+    {
+      "file": "openspec/changes/add-guest-giving-and-gift-anonymity/specs/donation-lifecycle/spec.md",
+      "name": "Guest Checkout Does Not Require An Account",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-73f178ad4e2d8cd3c1c9"
+    },
+    {
+      "file": "openspec/changes/add-guest-giving-and-gift-anonymity/specs/donation-lifecycle/spec.md",
+      "name": "Account Claiming Is Optional And Possession-Gated",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-74b193ea80aa042133d7"
+    },
+    {
+      "file": "openspec/changes/add-guest-giving-and-gift-anonymity/specs/donation-lifecycle/spec.md",
+      "name": "Payment Collection Uses Stripe-Hosted UI",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-2c2cc9104e63081050db"
+    },
+    {
+      "file": "openspec/changes/add-guest-giving-and-gift-anonymity/specs/donation-lifecycle/spec.md",
+      "name": "Gift Anonymity Is A Per-Gift Visibility Preference",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-83309d47007d0aba6d98"
+    },
+    {
+      "file": "openspec/changes/add-guest-giving-and-gift-anonymity/specs/donation-lifecycle/spec.md",
+      "name": "Receipts Follow The Governed Facts-To-Artifact-To-Delivery Pipeline",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-39e51637fba607199fb9"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/donation-lifecycle/spec.md",
+      "name": "Presentment Currency Is Qualified Before Donor Choice And Payment",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-662821c993c7fa6bbb07"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/donation-lifecycle/spec.md",
+      "name": "Pre-Acceptance Currency And Schedule Transitions Preserve Purpose And Clear Dependencies",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-ca38ddec28defdac778c"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Site Is Stable Presentation And Attribution Context",
+      "section": "openspec/contracts/multi-site-management.md#contract-99532f8e7e00f136ecc1"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Default Site Is Staff Convenience Only",
+      "section": "openspec/contracts/multi-site-management.md#contract-dae2755d20bca29081ad"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Site Activation Is Explicit And Capability-Specific",
+      "section": "openspec/contracts/multi-site-management.md#contract-d94d69ffdfd288a92985"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Website And Public-Giving Containment Are Independent",
+      "section": "openspec/contracts/multi-site-management.md#contract-7a0ddd5cfd46846f6550"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Site Retirement Is Terminal And History-Preserving",
+      "section": "openspec/contracts/multi-site-management.md#contract-8cff7fcd08005bed1c07"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Retired And Giving Addresses Preserve Exact Meaning",
+      "section": "openspec/contracts/multi-site-management.md#contract-176db9c009b526900d01"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Giving Address Issuance Is Readable Atomic And Non-Reusable",
+      "section": "openspec/contracts/multi-site-management.md#contract-e15f395dcfacfa2e810c"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Core-Managed Giving Placement Convergence Is Source-Owned",
+      "section": "openspec/contracts/multi-site-management.md#contract-d3f19a7a414a469f13eb"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Site Locale Public Identity Is Exact And Explicit",
+      "section": "openspec/contracts/multi-site-management.md#contract-b757096cde3e1d88651b"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Site Root Entry Uses One Deterministic Default-Locale Redirect",
+      "section": "openspec/contracts/multi-site-management.md#contract-91fd14b419054cb8f228"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Default Site Locale Plan Is Private Undated Intent",
+      "section": "openspec/contracts/multi-site-management.md#contract-94d79d00c7ab1c01b221"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Tenant Account And Site Brands Remain Separate",
+      "section": "openspec/contracts/multi-site-management.md#contract-566265669770b70dc275"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Site Message Readiness Is A Read-Only Owner Projection",
+      "section": "openspec/contracts/multi-site-management.md#contract-679139a6e2dd61291ec7"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Site Locale Publication Uses A Small Critical Contract",
+      "section": "openspec/contracts/multi-site-management.md#contract-d1a429a178ee24bf67a6"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Translation Freshness And Copy Are Source-Governed",
+      "section": "openspec/contracts/multi-site-management.md#contract-067719d10aea765ad58c"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Domain Roles Establish One Canonical Website Origin",
+      "section": "openspec/contracts/multi-site-management.md#contract-5c3903dd1022b0b28f7a"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Primary Domain Replacement Requires Explicit Former-Domain Choice",
+      "section": "openspec/contracts/multi-site-management.md#contract-93fc7ed2abdd0fd55715"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Domain Disconnection Requires Complete Owner Clearance",
+      "section": "openspec/contracts/multi-site-management.md#contract-3d422dbf58851d31de83"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Fresh Domain Claim Uses Current Exact-Host Proof",
+      "section": "openspec/contracts/multi-site-management.md#contract-07cc8b1849d5633c11b9"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Same-Tenant Domain Move Is Prepared And Route-Reviewed",
+      "section": "openspec/contracts/multi-site-management.md#contract-fbb8aca8c85821654da1"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Ordinary Page Successor Requires Explicit Purpose Continuity",
+      "section": "openspec/contracts/multi-site-management.md#contract-a829aacaa6a102c37439"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Material Page Purpose Change Creates One New Private Page",
+      "section": "openspec/contracts/multi-site-management.md#contract-876e36e787b8e6c6d053"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Presentment Currency Is Qualified And Donor-Controlled",
+      "section": "openspec/contracts/multi-site-management.md#contract-68d877fb0f30fca4d7e4"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Currency And Schedule Changes Preserve Purpose And Clear Dependencies",
+      "section": "openspec/contracts/multi-site-management.md#contract-eb24e1afb9a42f44aaf1"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Suggested Amounts Are Native Presentation Not Money Authority",
+      "section": "openspec/contracts/multi-site-management.md#contract-faf1066cd01843f5545c"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Commands Enforce Tenant Scope Concurrency And Idempotency",
+      "section": "openspec/contracts/multi-site-management.md#contract-f791e2b5b6499fcd2627"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Providers Are Evidence And Side Effects Not Product Authority",
+      "section": "openspec/contracts/multi-site-management.md#contract-e3347eff1ceb520a4f6b"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Public Reads Use Complete Immutable Generations",
+      "section": "openspec/contracts/multi-site-management.md#contract-b6fbe540cbcf14f33d65"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Staff Donor And Public UX Is Accessible Honest And Recoverable",
+      "section": "openspec/contracts/multi-site-management.md#contract-15e69a9deae36ef18d20"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/multi-site-management/spec.md",
+      "name": "Rollout And Operations Fail Closed",
+      "section": "openspec/contracts/multi-site-management.md#contract-7d09ff023b59ef4ef50a"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/platform-boundaries/spec.md",
+      "name": "Site Context Never Owns Money Authorization Or Provider Truth",
+      "section": "openspec/contracts/platform-boundaries.md#contract-eae20970244c12e53074"
+    },
+    {
+      "file": "openspec/changes/add-multi-site-management/specs/platform-surfaces/spec.md",
+      "name": "Multi-Site Management Lives In Staff Surfaces While Donor Accounts Stay Tenant-Wide",
+      "section": "openspec/contracts/platform-surfaces.md#contract-dcc8f4ecc746abb36547"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/identity-and-access/spec.md",
+      "name": "Ministry Participation And Separately Owned Grants Are Independent And Revocable",
+      "section": "openspec/contracts/identity-and-access.md#contract-c53c471a8dbcd1fa57d6"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/identity-and-access/spec.md",
+      "name": "Review Staff Editing Settings Operations And Adoption Use Separate Capabilities",
+      "section": "openspec/contracts/identity-and-access.md#contract-86b5bcd7f124b502ad47"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/identity-and-access/spec.md",
+      "name": "Phase 22 Uses RLS And The Server Boundary As Defense In Depth",
+      "section": "openspec/contracts/identity-and-access.md#contract-5bbb5cb71ecbee01498d"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-boundaries/spec.md",
+      "name": "Phase 22 Uses One Application Boundary For Private Editing And Public Serving",
+      "section": "openspec/contracts/platform-boundaries.md#contract-b0dee2b17457f195a3dc"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-boundaries/spec.md",
+      "name": "Phase 22 Public Composition Is Exact Gate-Before-Cache And Adverse-First",
+      "section": "openspec/contracts/platform-boundaries.md#contract-e3fe1903406c4bce0915"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-boundaries/spec.md",
+      "name": "Phase 22 Adoption Transfers One Complete Public Reader Cohort",
+      "section": "openspec/contracts/platform-boundaries.md#contract-56c06244372b57c09a69"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-boundaries/spec.md",
+      "name": "Phase 22 Optional Services Never Gain Publication Or Financial Authority",
+      "section": "openspec/contracts/platform-boundaries.md#contract-f8a5a3c28523dcbbc16e"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-boundaries/spec.md",
+      "name": "Phase 22 Operations And Settings Remain Derived Projections",
+      "section": "openspec/contracts/platform-boundaries.md#contract-ac554d91b10698f92025"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-boundaries/spec.md",
+      "name": "Phase 22 Editorial Recovery Is Fenced And Reference-Safe",
+      "section": "openspec/contracts/platform-boundaries.md#contract-5396fff1169250154520"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-boundaries/spec.md",
+      "name": "Phase 22 Financial And Giving State Remains Capability-Honest",
+      "section": "openspec/contracts/platform-boundaries.md#contract-bbd55362eabde3c8450d"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-surfaces/spec.md",
+      "name": "Missionary Workspace Provides One Quiet Assigned-Pages Experience",
+      "section": "openspec/contracts/platform-surfaces.md#contract-c1c913181d37442bcf45"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-surfaces/spec.md",
+      "name": "Mission Control Provides One Review Operations And Settings Home",
+      "section": "openspec/contracts/platform-surfaces.md#contract-0c6e47aa546d2616f7fb"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-surfaces/spec.md",
+      "name": "Public Website Presents Typed Pages Without Operational Leakage",
+      "section": "openspec/contracts/platform-surfaces.md#contract-ce7920e23bb4bc27500c"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-surfaces/spec.md",
+      "name": "Public Serving And Convergence Status Remains Quiet",
+      "section": "openspec/contracts/platform-surfaces.md#contract-bce1fd8467e2d653f68d"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-surfaces/spec.md",
+      "name": "Public Search Share And Giving Controls Stay Simple And Accessible",
+      "section": "openspec/contracts/platform-surfaces.md#contract-d2c7d1114e4ab29870ad"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-surfaces/spec.md",
+      "name": "Public Page Activity Is Fixed Simple And Accessible",
+      "section": "openspec/contracts/platform-surfaces.md#contract-cbcd2115478fb6caba15"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/platform-surfaces/spec.md",
+      "name": "Public Page Editing Is Accessible Recoverable And Consequence-Clear",
+      "section": "openspec/contracts/platform-surfaces.md#contract-ae65aa99d38109665171"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D1 Typed Public Page Families Share One Publication Contract",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-2491499e949054920391"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D2 Publication Reach Is Tenant-Defaulted And Phase-10-Ceiling-Resolved",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-5dea6123e0b97b062f4b"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D3 Presentation Profiles Are Versioned Site-And-Family Contracts",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-3ff708c901de3b0f5597"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D4 Review And Release Profiles Govern Final Intent",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-3f5217b4855e51bb0909"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D6 Public Support Progress Is Typed Source-Authoritative And Optional Per Page",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-581743578776cdad2218"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D7 Every Page Has Exactly One Phase-13 Designation",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-69dc1dc4688ce9ef5d62"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D8 Routes And Lifecycle Dispositions Are Source-Qualified",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-d936bf888dfe379adaa0"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D9 Public Media Is Sanitized Certified And Release-Bound",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-d0610e893e0f992a3a51"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D10 Preview Requires Current Authenticated Exact-Version Authority",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-398655323075824bc6e0"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D11 Ministry Updates Have One Canonical Version And Audience-Scoped Releases",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-71ace46da81974687c52"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D12 Supporter Responses Use One Bounded Tenant Profile",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-3ed4a333961776878e92"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D13 Directories Use One Scoped Corpus With Bounded Family Views",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-a41a71efa05f5e45363d"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D14 Search And Social Presentation Is Release-Bound",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-dfceab048f4b1753738c"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D15 Measurement Is First-Party Bounded And Non-Authoritative",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-0514f802aefecd562038"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D16 Writing Assistance Is Source-Bounded Suggestion-Only And Tenant-Off",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-94fc5bb9e3ff4cfd3157"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D17 Every Project Page Has One Exact Typed Source Subject",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-3e22c2e1cccda1c53928"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D18 Current Serving Is Release-Bound Freshness-Classified And Adverse-First",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-d7dfb400eed3c24f02e4"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D19 Ministry Assignments Separate Association Editing Display And Support Access",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-23d1ad26bea31e310400"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D20 Family Semantics Use Two Small Code-Owned Catalogs",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-329e6bde97168629dba2"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D21 Public Surface Adoption Uses One Complete Authority Cutover",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-0d6e00604e0a95f28551"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D22 Public Pages Operations Is Quiet Derived And Cause-Owned",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-893c9d2924f630655111"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D23 Setup And Settings Is One Derived Scope-First Workspace",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-689210b4e99d7a0564d4"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D24 Staff Revisions Preserve Attribution Without A Second Workflow",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-e7171b50748ff326a471"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D25 Editorial Actionability Is Cause-Gated And Recovery Is Bounded",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-a496ebfde0d022bf8d2f"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D26 Content-Sharing Attestation Is One Calm Candidate-Bound Confirmation",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-54f4f6bd92c742684b1f"
+    },
+    {
+      "file": "openspec/changes/add-public-ministry-pages/specs/public-ministry-pages/spec.md",
+      "name": "D27 Locale Releases Compose Under One Atomic Site-Family Profile Head",
+      "section": "openspec/contracts/public-ministry-pages.md#contract-19d1357b4ad70eb5e838"
+    },
+    {
+      "file": "openspec/changes/add-recurring-giving/specs/donation-lifecycle/spec.md",
+      "name": "Donors Can Start Recurring Giving",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-e0cfb2b09c4242e7975e"
+    },
+    {
+      "file": "openspec/changes/add-six-agent-codex-factory/specs/agent-instruction-system/spec.md",
+      "name": "Native Setup Is Reproducible and Honest",
+      "section": "openspec/contracts/agent-instruction-system.md#contract-964a80176d00223dab39"
+    },
+    {
+      "file": "openspec/changes/add-staff-refunds/specs/contribution-operations/spec.md",
+      "name": "Staff Can Initiate Contribution Refunds",
+      "section": "openspec/contracts/contribution-operations.md#contract-e61bb6f0324d18799730"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D1 Statement Runs Are Purpose-pinned Authorities With One Derived Workspace",
+      "section": "openspec/contracts/statement-operations.md#contract-647e4133e36b63ad9c6a"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D2 One Exact Preflight Starts Through One Atomic Release Barrier",
+      "section": "openspec/contracts/statement-operations.md#contract-3d9fc7ed281ec4dab990"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D3 Statement Recognition Delivery And Presentation Subjects Stay Separate",
+      "section": "openspec/contracts/statement-operations.md#contract-36dd95df58d002816a49"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D4 Canadian Receipt Plans Are Exact-issuer Prospective And Structurally Absent Otherwise",
+      "section": "openspec/contracts/statement-operations.md#contract-d1f2b01c6adeb2b5bed2"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D5 Primary Releases Stay Immutable While Late Facts Use A Contract-owned Lane",
+      "section": "openspec/contracts/statement-operations.md#contract-2da76d472abf8817e9c2"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D6 Delivery Profiles Compile Into Frozen Fulfillment Plans",
+      "section": "openspec/contracts/statement-operations.md#contract-0300717279360a507ec4"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D7 Recipient-delivery Snapshots Use Governed Destination Succession",
+      "section": "openspec/contracts/statement-operations.md#contract-b7c5957270beb7d9abbc"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D8 Run Containment Is Cooperative And Truthful",
+      "section": "openspec/contracts/statement-operations.md#contract-d9a8c1ac35101eaaea0f"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D9 Physical Fulfillment Is Self-print-first And Evidence-based",
+      "section": "openspec/contracts/statement-operations.md#contract-e5450ef75364acf88294"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D10 Staff Decide Operational Completion While The System Derives Truth",
+      "section": "openspec/contracts/statement-operations.md#contract-82ef4ed187b22d660f93"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D11 Seasonal Execution Is Certified Tenant-fair And Inspectable",
+      "section": "openspec/contracts/statement-operations.md#contract-75aa6f48a2b47d2dd817"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D12 One Contextual Help Doorway Routes To Existing Owners",
+      "section": "openspec/contracts/statement-operations.md#contract-e5fdaec376188417f026"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D13 Statement Communication Is Finite Proportional And Contract-owned",
+      "section": "openspec/contracts/statement-operations.md#contract-e5c404cace887a26e74e"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D14 Run Approval Is Proportional And Adds No Ordinary Bureaucracy",
+      "section": "openspec/contracts/statement-operations.md#contract-3ca5079906165b2c63e0"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D15 Support Overview Is Optional Purpose-separated And Non-tax",
+      "section": "openspec/contracts/statement-operations.md#contract-17f6aae3b2eeb4a8159d"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D16 Donor Access Is Unmetered While Outbound Copies Are Bounded",
+      "section": "openspec/contracts/statement-operations.md#contract-532dc56be48d2512c5bf"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D17 Each Run Has One Quiet PII-minimized Evidence Record",
+      "section": "openspec/contracts/statement-operations.md#contract-22a4513541abde1ba71e"
+    },
+    {
+      "file": "openspec/changes/add-statement-operations/specs/statement-operations/spec.md",
+      "name": "D18 Tenant Participation Is Flexible But Cannot Override Eligibility",
+      "section": "openspec/contracts/statement-operations.md#contract-b67ed5980e1ea0e9f222"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Document Production Preserves Five Durable Authorities",
+      "section": "openspec/contracts/document-production.md#contract-318ff77ad942fade6bca"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "One Document Studio Uses Proportional Purpose Contracts",
+      "section": "openspec/contracts/document-production.md#contract-07ecbb635f8704adf53d"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Structured Visual Authoring Is The Only Canonical Source",
+      "section": "openspec/contracts/document-production.md#contract-8e839139adaad3013fa1"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Native Semantic Template Packages Are Portable Without Authority",
+      "section": "openspec/contracts/document-production.md#contract-7f534809cd7f158ce0d0"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Approved Data Views Bound Tenant-extensible Facts",
+      "section": "openspec/contracts/document-production.md#contract-e5e6429396502afab9d0"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Protected Truth Cannot Be Authored Or Suppressed",
+      "section": "openspec/contracts/document-production.md#contract-0ed2bf249d78cf3561fa"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Draft Commit And Publication Are Conflict-safe And Immutable",
+      "section": "openspec/contracts/document-production.md#contract-82c713818319fdca25a4"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Publication Resolution Freezes One Whole Compatible Graph",
+      "section": "openspec/contracts/document-production.md#contract-8257bd3c97336be2f0cb"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Generation Requests Are Semantically Idempotent And Fenced",
+      "section": "openspec/contracts/document-production.md#contract-e3e198abb2209aee6efa"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Renderer Selection Is A Pre-registered No-winner-capable Contest",
+      "section": "openspec/contracts/document-production.md#contract-eb37a24273574ce65ec4"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "One Canonical PDF Is Accessible And Purpose-appropriately Archival",
+      "section": "openspec/contracts/document-production.md#contract-d8213af97a2ac3450d0d"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Logical Documents Have One Current Head And Immutable History",
+      "section": "openspec/contracts/document-production.md#contract-0e2f65b1db620c6554ac"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "The U.S. Pack Covers Everyday Acknowledgments Without Becoming A Tax-form Suite",
+      "section": "openspec/contracts/document-production.md#contract-f6ff79206ed1c415c7c2"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "U.S. Acknowledgment Identity Is Opaque And Versioned",
+      "section": "openspec/contracts/document-production.md#contract-af9faae3106d8155efdb"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Canadian Official Receipting Is Tenant-silent And Proof-gated",
+      "section": "openspec/contracts/document-production.md#contract-4c72091857a52a8d7026"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Canadian Serials And Signers Belong To The Exact Issuer",
+      "section": "openspec/contracts/document-production.md#contract-662c882b61d9c26ecc10"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Artifact Access Uses Current Object Authorization",
+      "section": "openspec/contracts/document-production.md#contract-b853c374401fff4c6369"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Protected Actions Share One Scanner-resistant Fragment Protocol",
+      "section": "openspec/contracts/document-production.md#contract-d93f7463af53769717d1"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Document Access Is Calm Role-safe And Recoverable",
+      "section": "openspec/contracts/document-production.md#contract-fdaafd2135cb9a2f0449"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Batches Are Item-authoritative And Use The Same Service",
+      "section": "openspec/contracts/document-production.md#contract-c552a74e6a87c91744c4"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Records Schedules Separate Preservation Privacy Holds And Disposal",
+      "section": "openspec/contracts/document-production.md#contract-bc60abb6152d4a33ee05"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Future Publication Uses One Fully Proved Appointment",
+      "section": "openspec/contracts/document-production.md#contract-13d560a7ead8c8181bd7"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Observability Is PII-safe Cause-owned And Reconciled",
+      "section": "openspec/contracts/document-production.md#contract-b7a0063d15d0e59ff4ea"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "The Cutover Removes Every Prototype Runtime",
+      "section": "openspec/contracts/document-production.md#contract-cea13ba0d3b3fe15189f"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/document-production/spec.md",
+      "name": "Release Requires Production-shaped Multi-seam Proof",
+      "section": "openspec/contracts/document-production.md#contract-a0422af4a28b8f5a3e9a"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/platform-boundaries/spec.md",
+      "name": "Source Domains Own Truth And Document Production Owns Artifacts",
+      "section": "openspec/contracts/platform-boundaries.md#contract-efc16478fd7d38ec049f"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/platform-boundaries/spec.md",
+      "name": "Delivery And Document Issuance Remain Independent",
+      "section": "openspec/contracts/platform-boundaries.md#contract-c3911bd115c2519bc6d6"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/platform-surfaces/spec.md",
+      "name": "Mission Control Presents One Calm Document Studio",
+      "section": "openspec/contracts/platform-surfaces.md#contract-0042855c2215ed508771"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/platform-surfaces/spec.md",
+      "name": "Recipients See One Logical Document And One Current PDF",
+      "section": "openspec/contracts/platform-surfaces.md#contract-26456795f67e0688123f"
+    },
+    {
+      "file": "openspec/changes/add-statement-studio/specs/platform-surfaces/spec.md",
+      "name": "Document Authoring Is Accessible And Purpose-first",
+      "section": "openspec/contracts/platform-surfaces.md#contract-82b680188c0fe3c2407c"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/identity-and-access/spec.md",
+      "name": "Web Studio Human Identity And Scope Resolve Through Supabase And Phase 12",
+      "section": "openspec/contracts/identity-and-access.md#contract-6558a9766821b15e85c1"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/identity-and-access/spec.md",
+      "name": "Web Studio Capabilities Are Action-Specific And Independently Revocable",
+      "section": "openspec/contracts/identity-and-access.md#contract-0230fbf26897d5fa3d4f"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/identity-and-access/spec.md",
+      "name": "Active Editor Leases Coordinate Sessions Without Granting Authority",
+      "section": "openspec/contracts/identity-and-access.md#contract-4de2fad90478b128abfe"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/identity-and-access/spec.md",
+      "name": "Public Preview Export Media And Diagnostics Have Separate Access Contracts",
+      "section": "openspec/contracts/identity-and-access.md#contract-fec38d5afad9f23ce175"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/identity-and-access/spec.md",
+      "name": "Registered Service Commands Are Narrower Than Human Authority",
+      "section": "openspec/contracts/identity-and-access.md#contract-aec45f7f27fdb2adfe52"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-boundaries/spec.md",
+      "name": "Phase 23 Separates Editable CMS Source From Public Site Authority",
+      "section": "openspec/contracts/platform-boundaries.md#contract-aa2aa275aa89dbc14ed1"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-boundaries/spec.md",
+      "name": "Web Studio Uses One Actor And Service Operations Boundary",
+      "section": "openspec/contracts/platform-boundaries.md#contract-85ce2a4593957015827b"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-boundaries/spec.md",
+      "name": "D1 Is The Sole Favorable Public Activation And Read Boundary",
+      "section": "openspec/contracts/platform-boundaries.md#contract-ddf83c01d624f6dd3733"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-boundaries/spec.md",
+      "name": "Phase 23 Integrations Use Small Certified Owner Contracts",
+      "section": "openspec/contracts/platform-boundaries.md#contract-720abc9691559ec7a9bb"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-boundaries/spec.md",
+      "name": "Exact Public Audience Excludes Authentication And Personalization",
+      "section": "openspec/contracts/platform-boundaries.md#contract-94ce65f656557c122ad1"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-boundaries/spec.md",
+      "name": "Provider Admission And Clean Cutover Preserve One Authority",
+      "section": "openspec/contracts/platform-boundaries.md#contract-79dc3ad38a05be4a3c93"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-surfaces/spec.md",
+      "name": "Web Studio Presents One Page-First Authoring Journey",
+      "section": "openspec/contracts/platform-surfaces.md#contract-682c93855960905340a0"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-surfaces/spec.md",
+      "name": "Structure Composition And Reuse Expose Consequences Without Noise",
+      "section": "openspec/contracts/platform-surfaces.md#contract-a63e4168f965f887ab5e"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-surfaces/spec.md",
+      "name": "Navigation And Dynamic Discovery Remain Plain-Language And Link-Native",
+      "section": "openspec/contracts/platform-surfaces.md#contract-3f1e7f6c75254139dc09"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-surfaces/spec.md",
+      "name": "Content Library Media And Health Stay Calm And Purpose-Bounded",
+      "section": "openspec/contracts/platform-surfaces.md#contract-d30ce9d2f89669a80ce3"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-surfaces/spec.md",
+      "name": "Locale Preview Forms And Portability Use Guided Explicit Journeys",
+      "section": "openspec/contracts/platform-surfaces.md#contract-bccf369572cfa985de13"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-surfaces/spec.md",
+      "name": "Public Site Presents Exact Accessible Ordinary CMS Output",
+      "section": "openspec/contracts/platform-surfaces.md#contract-aa636438a1e8f6b0cb8a"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/platform-surfaces/spec.md",
+      "name": "Every Critical CMS Journey Meets The Platform Accessibility Floor",
+      "section": "openspec/contracts/platform-surfaces.md#contract-c83cc86a59f65eefc7d7"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D1 Page-Local Composition Releases One Coherent Site Generation",
+      "section": "openspec/contracts/web-studio-cms.md#contract-e3bafa4cb52e4493c8ed"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D2 Hierarchical Paths Are Staged And Atomically Released",
+      "section": "openspec/contracts/web-studio-cms.md#contract-f9ab176632148bded063"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D3 Same-Page Continuity And Exact-Path Repair Stay Bounded",
+      "section": "openspec/contracts/web-studio-cms.md#contract-780406e83ade58ca43a0"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D4 Navigation Revisions Remain Independent And Page-Aware",
+      "section": "openspec/contracts/web-studio-cms.md#contract-7331b2034fc3ed5560fd"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D5 Navigation Has Two Purposes And Link-Or-Group Composition",
+      "section": "openspec/contracts/web-studio-cms.md#contract-91fa56e1513a5b055c38"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D6 Ordinary Content Uses Immutable Page Or Article Families",
+      "section": "openspec/contracts/web-studio-cms.md#contract-47cdc352e6a244114417"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D7 Composition Uses A Closed Versioned Semantic Catalog",
+      "section": "openspec/contracts/web-studio-cms.md#contract-6035b301d9bd08f33243"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D8 Reusable Sections Are Explicit Shallow Shared Leaves",
+      "section": "openspec/contracts/web-studio-cms.md#contract-9ea890037b489436513e"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D9 Bespoke Presentation Uses Certified Site-Bound Packages",
+      "section": "openspec/contracts/web-studio-cms.md#contract-bbf615437eb7dcf8fcee"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D10 Site Design Activates For The Complete Locale Cohort",
+      "section": "openspec/contracts/web-studio-cms.md#contract-1f40fac9025b0f1f73d5"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D11 Rich Text Uses One Bounded Provider-Neutral Profile",
+      "section": "openspec/contracts/web-studio-cms.md#contract-a75d8a6292defbd741f9"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D12 Autosave Uses One Recoverable Active Editor",
+      "section": "openspec/contracts/web-studio-cms.md#contract-b99947759d0a490d5841"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D13 Scheduled Publication Pins One Exact Revision",
+      "section": "openspec/contracts/web-studio-cms.md#contract-8d09c31c6d0de2c00fb7"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D14 Dynamic Content Uses One Versioned Source Catalog",
+      "section": "openspec/contracts/web-studio-cms.md#contract-379d6e5e2e86543de9c5"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D15 Content Lists Have Three Bounded Curation Strategies",
+      "section": "openspec/contracts/web-studio-cms.md#contract-259f3199de16e2c57391"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D16 Public Page Windows Stay Link-Native And Independent",
+      "section": "openspec/contracts/web-studio-cms.md#contract-05e62dbd4cce3154922b"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D17 Public Site Search Is One Derived Safe Projection",
+      "section": "openspec/contracts/web-studio-cms.md#contract-4bbbb92f44cac62f04f7"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D18 Content Library Folders Organize Without Authority",
+      "section": "openspec/contracts/web-studio-cms.md#contract-686816cfdd0fe8f7107f"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D19 Sites Use One Bounded Versioned Topic Profile",
+      "section": "openspec/contracts/web-studio-cms.md#contract-49b387da8eb4146d95b6"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D20 Saved Library Views Stay Bounded And Permission-Neutral",
+      "section": "openspec/contracts/web-studio-cms.md#contract-92ef7ab820580738918e"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D21 Trash Is Whole-Identity Recoverable And Reference-Aware",
+      "section": "openspec/contracts/web-studio-cms.md#contract-bc93c70d22de386b45d3"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D22 Localization Uses Exact Independent Locale Lineages",
+      "section": "openspec/contracts/web-studio-cms.md#contract-3c7f041e0e0d421d6a99"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D23 Copy To Another Site Creates One Independent Private Draft",
+      "section": "openspec/contracts/web-studio-cms.md#contract-5b3a391a92c0edcf4a3f"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D24 Ordinary CMS Output Has One Exact Public Audience",
+      "section": "openspec/contracts/web-studio-cms.md#contract-340d8bece3aa578f7258"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D25 Whole-Site Preview Candidates Are Complete Private Closures",
+      "section": "openspec/contracts/web-studio-cms.md#contract-8560350773fb77ff246d"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D26 Public Forms Route One Durable Primary Outcome",
+      "section": "openspec/contracts/web-studio-cms.md#contract-536c2085ac68317209ad"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D27 Public Media Uses Tenant-Wide Immutable Qualified Custody",
+      "section": "openspec/contracts/web-studio-cms.md#contract-a1985747b271e7f1b80e"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D28 Search And Sharing Output Uses Generated Defaults And Three Overrides",
+      "section": "openspec/contracts/web-studio-cms.md#contract-b4fab48e18878e7ea5f3"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D29 Exports Are Governed And Imports Are Staged Privileged Commits",
+      "section": "openspec/contracts/web-studio-cms.md#contract-ce51f3e59c73f005bbed"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D30 Web Studio Has One Human Authority And Governed Diagnostics",
+      "section": "openspec/contracts/web-studio-cms.md#contract-71f37885341269a001ad"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D31 Content Health Is Quiet Derived And Cause-Owned",
+      "section": "openspec/contracts/web-studio-cms.md#contract-3bf9d89e43f02f7edb0f"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D32 Accessibility Assistance Is Quiet Non-Policing Guidance",
+      "section": "openspec/contracts/web-studio-cms.md#contract-4a3ec0f3a6de0092a02d"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D33 Production Capacity Is Versioned Provider-Neutral Evidence",
+      "section": "openspec/contracts/web-studio-cms.md#contract-ae1c9117bbc9c05fac11"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D34 Production Admits One Exact Current Payload V4 Cohort",
+      "section": "openspec/contracts/web-studio-cms.md#contract-9ededb6904a8b9e10660"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D35 Prototype Replacement Uses Census-Gated One-Authority Cutover",
+      "section": "openspec/contracts/web-studio-cms.md#contract-1351446579b1a512bae3"
+    },
+    {
+      "file": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "name": "D36 Ratified Decisions And Owner Seams Are Frozen Through Handoff",
+      "section": "openspec/contracts/web-studio-cms.md#contract-45e5224636cef1643c7f"
+    },
+    {
+      "file": "openspec/changes/add-workflow-studio-program-contracts/specs/platform-surfaces/spec.md",
+      "name": "Authenticated Participant Journey Experience",
+      "section": "openspec/contracts/platform-surfaces.md#contract-7e18ff4f714f8cc8ecd3"
+    },
+    {
+      "file": "openspec/changes/canonical-supabase-tanstack-db/specs/platform-boundaries/spec.md",
+      "name": "Supabase TanStack DB Collections Own Browser-Visible Table State",
+      "section": "openspec/contracts/platform-boundaries.md#contract-81a4ef98b6fe9ddc8500"
+    },
+    {
+      "file": "openspec/changes/complete-twenty-crm-retirement/specs/crm-core/spec.md",
+      "name": "CRM Backing Subsystem Stays Behind Asym Server Boundaries",
+      "section": "openspec/contracts/crm-core.md#contract-75cc9ee164f41ae15950"
+    },
+    {
+      "file": "openspec/changes/complete-twenty-crm-retirement/specs/crm-core/spec.md",
+      "name": "CRM Identity Concepts Stay Distinct And Linked",
+      "section": "openspec/contracts/crm-core.md#contract-8745c55fd2728ab246d1"
+    },
+    {
+      "file": "openspec/changes/complete-twenty-crm-retirement/specs/crm-core/spec.md",
+      "name": "CRM Stays A Native Mission Control Experience",
+      "section": "openspec/contracts/crm-core.md#contract-291c8bb29216536f619f"
+    },
+    {
+      "file": "openspec/changes/correct-nextjs-architecture-core-boundaries/specs/agent-instruction-system/spec.md",
+      "name": "Architecture References Preserve Versioned Behavior And Reviewed Refresh",
+      "section": "openspec/contracts/agent-instruction-system.md#contract-0f4e67ea7892845b5587"
+    },
+    {
+      "file": "openspec/changes/document-multi-site-foundation/specs/platform-boundaries/spec.md",
+      "name": "Site Is A Tenant-Owned Presentation And Attribution Entity",
+      "section": "openspec/contracts/platform-boundaries.md#contract-6d422b44a032b307a303"
+    },
+    {
+      "file": "openspec/changes/document-multi-site-foundation/specs/platform-product-intent/spec.md",
+      "name": "Unified Platform Span",
+      "section": "openspec/contracts/platform-product-intent.md#contract-9475d9f5f1bcd7b6fd2e"
+    },
+    {
+      "file": "openspec/changes/document-multi-site-foundation/specs/platform-surfaces/spec.md",
+      "name": "Mission Control As The Staff Operations Surface",
+      "section": "openspec/contracts/platform-surfaces.md#contract-d7751393e2d5158f854e"
+    },
+    {
+      "file": "openspec/changes/document-multi-site-foundation/specs/platform-surfaces/spec.md",
+      "name": "Donor Portal As The Donor Self-Service Surface",
+      "section": "openspec/contracts/platform-surfaces.md#contract-ccf6ed5bf8f1875ad962"
+    },
+    {
+      "file": "openspec/changes/document-multi-site-foundation/specs/platform-surfaces/spec.md",
+      "name": "Missionary Workspace As The Missionary Support-Raising Surface",
+      "section": "openspec/contracts/platform-surfaces.md#contract-cc75810832968927b8ec"
+    },
+    {
+      "file": "openspec/changes/document-multi-site-foundation/specs/platform-surfaces/spec.md",
+      "name": "Public Tenant Website As The Public Ministry Surface",
+      "section": "openspec/contracts/platform-surfaces.md#contract-31f7d1c749c3160ca2b2"
+    },
+    {
+      "file": "openspec/changes/enable-team-developer-workflow/specs/repository-contribution-workflow/spec.md",
+      "name": "Canonical pushes validate the complete outgoing commit set",
+      "section": "openspec/contracts/repository-contribution-workflow.md#contract-4388fd5790cd44d87e99"
+    },
+    {
+      "file": "openspec/changes/enable-team-developer-workflow/specs/repository-contribution-workflow/spec.md",
+      "name": "Remote CI uses event-bound commit scopes and proof",
+      "section": "openspec/contracts/repository-contribution-workflow.md#contract-9521f7647d8b904d1832"
+    },
+    {
+      "file": "openspec/changes/fix-missionary-partner-roster-safety/specs/crm-core/spec.md",
+      "name": "Missionary Partner Detail Preserves Readable Metadata and Controls",
+      "section": "openspec/contracts/crm-core.md#contract-eafa0728ea637894cba3"
+    },
+    {
+      "file": "openspec/changes/fix-request-scoped-auth-context/specs/identity-and-access/spec.md",
+      "name": "Identity, Tenant, And Role Resolve Server-Side",
+      "section": "openspec/contracts/identity-and-access.md#contract-ff4ce6b4558ae3584acc"
+    },
+    {
+      "file": "openspec/changes/graphql-gift-engagement-command-adapters/specs/donation-lifecycle/spec.md",
+      "name": "Gift Begin Goes Through The Gift Intake Begin Command",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-9df606f6d099db7fa0c2"
+    },
+    {
+      "file": "openspec/changes/graphql-gift-engagement-command-adapters/specs/platform-surfaces/spec.md",
+      "name": "GraphQL Is A Shared-Record Surface Adapter",
+      "section": "openspec/contracts/platform-surfaces.md#contract-e1ca9b06ec79371872aa"
+    },
+    {
+      "file": "openspec/changes/guest-giving-gift-processing-fee-policy/specs/donation-lifecycle/spec.md",
+      "name": "Guest Giving Cover-Fees Use Gift Processing-Fee Policy",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-5170e83fc2e201e1c064"
+    },
+    {
+      "file": "openspec/changes/integrate-design-system-lint/specs/design-system-lint/spec.md",
+      "name": "Legacy debt SHALL remain explicit and bounded",
+      "section": "openspec/contracts/design-system-lint.md#contract-9ec55faa6156fdbeaf7e"
+    },
+    {
+      "file": "openspec/changes/modernize-shadscan-readiness/specs/ui-quality-audits/spec.md",
+      "name": "Each Application Category Has An Independent Score Floor",
+      "section": "openspec/contracts/ui-quality-audits.md#contract-7aab1c5a8227bf2da9b4"
+    },
+    {
+      "file": "openspec/changes/self-host-app-fonts/specs/app-font-delivery/spec.md",
+      "name": "Local delivery preserves existing typography",
+      "section": "openspec/contracts/app-font-delivery.md#contract-d7c0d738a3e0ce3cf763"
+    },
+    {
+      "file": "openspec/changes/separate-eve-preview-artifacts-from-qualification/specs/eve-runtime-foundation/spec.md",
+      "name": "Web Build Artifacts Are Separate From Eve Runtime Qualification",
+      "section": "openspec/contracts/eve-runtime-foundation.md#contract-f7575c53fcf5e197aeda"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md",
+      "name": "Tribute Coverage Uses Canonical Recipient Identity",
+      "section": "openspec/contracts/contribution-operations.md#contract-0522e0b7a8df62b436a0"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md",
+      "name": "Posted Financial Facts Have Separate Owner Operational State",
+      "section": "openspec/contracts/contribution-operations.md#contract-36bb4c1c2a05e22ce3a8"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md",
+      "name": "Contribution Corrections Preserve Money And Identity Truth",
+      "section": "openspec/contracts/contribution-operations.md#contract-0aee09c987fe3a675774"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/donation-lifecycle/spec.md",
+      "name": "Legacy Recurring Reflection Does Not Define The Target Topology",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-1f7ed6c340ec7e0c8ef5"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/identity-and-access/spec.md",
+      "name": "Capability Aggregation Uses One Validated Context",
+      "section": "openspec/contracts/identity-and-access.md#contract-af71db6fdfc6ab3f2f22"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/identity-and-access/spec.md",
+      "name": "Phase 3 Role-scoped Access Uses One Projection Boundary",
+      "section": "openspec/contracts/identity-and-access.md#contract-1b5c3c717cb6ed5ee0a6"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/identity-and-access/spec.md",
+      "name": "Phase 3 Sensitive Fields Fail Closed On Every Surface",
+      "section": "openspec/contracts/identity-and-access.md#contract-ee56b32263df54a7d4e3"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/identity-and-access/spec.md",
+      "name": "Phase 3 Projection Widening Requires A Distinct Human",
+      "section": "openspec/contracts/identity-and-access.md#contract-029692d18ea3835deea8"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Phase 6 Is The First Build Of The Existing Communications Capability",
+      "section": "openspec/contracts/outbound-communications.md#contract-3688a40e99438928d1c1"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Phase 6 Role-safe History And Suppression Preserve Current Governance",
+      "section": "openspec/contracts/outbound-communications.md#contract-c2b5dc5bdf473fd72edc"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "One Code-governed System-message Catalog Defines Every Supported Product Message",
+      "section": "openspec/contracts/outbound-communications.md#contract-a5d44d364aef4a3ce44c"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Message Contracts Bound Tenant Freedom Without Owning Business Truth",
+      "section": "openspec/contracts/outbound-communications.md#contract-8e07a4b40d95682d87fc"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Complete Immutable Publications Resolve Deterministically",
+      "section": "openspec/contracts/outbound-communications.md#contract-9c4c617a341b327f8bc9"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "One Structured Document Produces Accessible Email Artifacts",
+      "section": "openspec/contracts/outbound-communications.md#contract-32f88635c5749980da84"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Locale Activation Requires Contract-scoped Readiness",
+      "section": "openspec/contracts/outbound-communications.md#contract-2493e1e8271730955cdf"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Publication Review Is Proportional And Independent Where Required",
+      "section": "openspec/contracts/outbound-communications.md#contract-e6c7e9db4ba3f681e57c"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Trigger Bindings, Not Producers, Own Delivery Routing Identity",
+      "section": "openspec/contracts/outbound-communications.md#contract-ca182e2f10e54317f524"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Delivery Plans Are Bounded And Compile Through Channel-owned Seams",
+      "section": "openspec/contracts/outbound-communications.md#contract-d3dc1377adc6dfeef79b"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Protected Actions Remain Producer-owned And Scanner-resistant",
+      "section": "openspec/contracts/outbound-communications.md#contract-ff11d25cc28b0477f45a"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "In-product Notifications Are One Role-safe Attention Projection",
+      "section": "openspec/contracts/outbound-communications.md#contract-fe1ca6dc3c23f008dfa0"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "SMS Governance Is Evidence-ready While Transport Is Unavailable",
+      "section": "openspec/contracts/outbound-communications.md#contract-d0173aba976d190cf46b"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Every Tenant Uses Its Own Proved Resend Connection And Delivery Identity",
+      "section": "openspec/contracts/outbound-communications.md#contract-5121b0acf09ee7af56dc"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Platform-scoped Email Uses The Same Governed Spine Without Impersonating A Tenant",
+      "section": "openspec/contracts/outbound-communications.md#contract-b2d69f7e799977aae3b6"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Preparation And Recovery Preserve One Recipient-specific Identity",
+      "section": "openspec/contracts/outbound-communications.md#contract-bf549721606927f0b370"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Communication History Is Durable Evidence Without A Body Archive",
+      "section": "openspec/contracts/outbound-communications.md#contract-3b056f19245e71401bee"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "System-message Portability Is Versioned And Destination-owned",
+      "section": "openspec/contracts/outbound-communications.md#contract-f675c93c13333e234db5"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "System Messages Provides A Safe, Observable, Accessible Staff Product",
+      "section": "openspec/contracts/outbound-communications.md#contract-c7a9a80e904f4c249cd8"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Phase 3 Cross-channel Consent Gates Recipient Delivery",
+      "section": "openspec/contracts/outbound-communications.md#contract-f6de91cd9bf7f38061a9"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "name": "Phase 3 Governed Export Uses Authoritative Field Policy",
+      "section": "openspec/contracts/outbound-communications.md#contract-70bbde904a9b56a426d6"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-boundaries/spec.md",
+      "name": "Mission Control Automations Are Declarative And Guarded",
+      "section": "openspec/contracts/platform-boundaries.md#contract-588ec64dc7657e66e154"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "Phase 4 Preserves Permanent Unclaimed Donors And Optional Exact Claiming",
+      "section": "openspec/contracts/platform-product-intent.md#contract-3be33f8ab38e52534606"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "Phase 4 Path 2 Keeps Every Tenant Claim And Access Isolated",
+      "section": "openspec/contracts/platform-product-intent.md#contract-30b63ab3f908d435f3e8"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "Phase 4 Identity Experiences Use The Verified Tenant Host And Account Brand",
+      "section": "openspec/contracts/platform-product-intent.md#contract-1903dbb11d79aa80df76"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "Phase 4 Claim Safety Is Independent Of Entry Method",
+      "section": "openspec/contracts/platform-product-intent.md#contract-082ed91c632be9444cb9"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "SiteStacker Parity Is An Outcome-Parity Program",
+      "section": "openspec/contracts/platform-product-intent.md#contract-510717beddda641927df"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "The Parity Program's Phase Architecture Is Governed By One Roadmap",
+      "section": "openspec/contracts/platform-product-intent.md#contract-ebaa546428adaf9ed3f4"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "Donor-Credit Recognition Stays Structurally Separate From Money Truth",
+      "section": "openspec/contracts/platform-product-intent.md#contract-a8b17c054af815333a4e"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "Offline Money Enters Only Through the Governed Batch-Commit Path",
+      "section": "openspec/contracts/platform-product-intent.md#contract-b118e812a4cb0cf5073d"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "Recurring Support And Fixed-Total Pledges Preserve Separate Truth",
+      "section": "openspec/contracts/platform-product-intent.md#contract-a80e1fa8ecf7b5303d94"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "Generated Documents Preserve Source Truth And Exact Artifact Authority",
+      "section": "openspec/contracts/platform-product-intent.md#contract-4a4ea75f8ff021d3d689"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "Year-End Statements Run Through One Governed Operations Contract",
+      "section": "openspec/contracts/platform-product-intent.md#contract-f4cc1773f664f468e971"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md",
+      "name": "The Public Tenant Website Runs On One Governed Runtime Contract",
+      "section": "openspec/contracts/platform-product-intent.md#contract-d1bf1b6e68a94702c9b8"
+    },
+    {
+      "file": "openspec/changes/sitestacker-parity/specs/platform-surfaces/spec.md",
+      "name": "Outbound Communications Are A Governed Platform Channel",
+      "section": "openspec/contracts/platform-surfaces.md#contract-1173bcf4c60dab5f6922"
+    },
+    {
+      "file": "openspec/changes/slim-codex-agent-router/specs/agent-instruction-system/spec.md",
+      "name": "AGENTS Remains the Always-On Router",
+      "section": "openspec/contracts/agent-instruction-system.md#contract-707cbf60f3e33fc2c10e"
+    },
+    {
+      "file": "openspec/specs/agent-instruction-system/spec.md",
+      "name": "AGENTS Remains the Always-On Router",
+      "section": "openspec/contracts/agent-instruction-system.md#contract-707cbf60f3e33fc2c10e"
+    },
+    {
+      "file": "openspec/specs/contribution-operations/spec.md",
+      "name": "Contribution Operations Core Owns Staff Gift Actions",
+      "section": "openspec/contracts/contribution-operations.md#contract-72571c0077f0d8d5eb90"
+    },
+    {
+      "file": "openspec/specs/contribution-operations/spec.md",
+      "name": "Contribution Corrections Preserve Money And Identity Truth",
+      "section": "openspec/contracts/contribution-operations.md#contract-22ea8499f3fb56816014"
+    },
+    {
+      "file": "openspec/specs/contribution-operations/spec.md",
+      "name": "High-Risk Contribution Actions Require A Granular Capability And Reason",
+      "section": "openspec/contracts/contribution-operations.md#contract-1fc0537639c6eb62a033"
+    },
+    {
+      "file": "openspec/specs/contribution-operations/spec.md",
+      "name": "Contribution Operation Audit Is Canonical And Cross-Surface",
+      "section": "openspec/contracts/contribution-operations.md#contract-dfc1259c58538c205338"
+    },
+    {
+      "file": "openspec/specs/contribution-operations/spec.md",
+      "name": "Stripe Remains Payment Authority For Refund And Provider State",
+      "section": "openspec/contracts/contribution-operations.md#contract-8e1c185df0fbdfc400b4"
+    },
+    {
+      "file": "openspec/specs/contribution-operations/spec.md",
+      "name": "Donor Correction Communications Use Governed Content and Shared Dispatch",
+      "section": "openspec/contracts/contribution-operations.md#contract-1b202627a552c9d7996d"
+    },
+    {
+      "file": "openspec/specs/contribution-operations/spec.md",
+      "name": "Bulk Contribution Actions Use The Single-Action Contract",
+      "section": "openspec/contracts/contribution-operations.md#contract-6b0d436abf3672a99ee5"
+    },
+    {
+      "file": "openspec/specs/contribution-operations/spec.md",
+      "name": "Contribution Detail Shows Operational And Donor-Visible Consequences",
+      "section": "openspec/contracts/contribution-operations.md#contract-dc69633a19a3874b09b1"
+    },
+    {
+      "file": "openspec/specs/contribution-operations/spec.md",
+      "name": "Staff Contribution Search Supports Gift Operations",
+      "section": "openspec/contracts/contribution-operations.md#contract-63aeaec7af83662208d1"
+    },
+    {
+      "file": "openspec/specs/crm-core/spec.md",
+      "name": "CRM Backing Subsystem Stays Behind Asym Server Boundaries",
+      "section": "openspec/contracts/crm-core.md#contract-75cc9ee164f41ae15950"
+    },
+    {
+      "file": "openspec/specs/crm-core/spec.md",
+      "name": "CRM Identity Concepts Stay Distinct And Linked",
+      "section": "openspec/contracts/crm-core.md#contract-8745c55fd2728ab246d1"
+    },
+    {
+      "file": "openspec/specs/crm-core/spec.md",
+      "name": "CRM Stays A Native Mission Control Experience",
+      "section": "openspec/contracts/crm-core.md#contract-291c8bb29216536f619f"
+    },
+    {
+      "file": "openspec/specs/donation-lifecycle/spec.md",
+      "name": "Donation Creation Is Server-Authoritative And Idempotent",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-9c61193885cf993da87a"
+    },
+    {
+      "file": "openspec/specs/donation-lifecycle/spec.md",
+      "name": "Payment And Gift Lifecycle Folds Stay Separate And Honest",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-97ac5470f9e97dd1fe3d"
+    },
+    {
+      "file": "openspec/specs/donation-lifecycle/spec.md",
+      "name": "Financial Execution Is Pinned To One Exact Legal Entity",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-dc94c04915c4c62ff355"
+    },
+    {
+      "file": "openspec/specs/donation-lifecycle/spec.md",
+      "name": "Legacy Recurring Reflection Does Not Define The Target Topology",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-0d63d3c5244bf083d750"
+    },
+    {
+      "file": "openspec/specs/donation-lifecycle/spec.md",
+      "name": "Receipts Follow The Governed Facts-To-Artifact-To-Delivery Pipeline",
+      "section": "openspec/contracts/donation-lifecycle.md#contract-66a763e96ce20c130643"
+    },
+    {
+      "file": "openspec/specs/eve-admin-auth-session-ownership/spec.md",
+      "name": "Eve Acts As The Current Admin Identity In Mission Control",
+      "section": "openspec/contracts/eve-admin-auth-session-ownership.md#contract-d83238b45dabd4a8e9fc"
+    },
+    {
+      "file": "openspec/specs/eve-admin-auth-session-ownership/spec.md",
+      "name": "Background Jobs Use A Service Identity With Explicit Initiator Metadata",
+      "section": "openspec/contracts/eve-admin-auth-session-ownership.md#contract-f06ba04c2843f3387935"
+    },
+    {
+      "file": "openspec/specs/eve-admin-auth-session-ownership/spec.md",
+      "name": "Tenant And User Are Derived From Verified Session Context Only",
+      "section": "openspec/contracts/eve-admin-auth-session-ownership.md#contract-ad6fbe0a96f3141eda57"
+    },
+    {
+      "file": "openspec/specs/eve-admin-auth-session-ownership/spec.md",
+      "name": "Session And Governance-Artifact Access Enforces User And Tenant Ownership",
+      "section": "openspec/contracts/eve-admin-auth-session-ownership.md#contract-f1307ebb46ad698f674e"
+    },
+    {
+      "file": "openspec/specs/eve-admin-auth-session-ownership/spec.md",
+      "name": "The Auth Boundary Grants No New Authority And Keeps Release Disabled",
+      "section": "openspec/contracts/eve-admin-auth-session-ownership.md#contract-b77bac5cab982504be38"
+    },
+    {
+      "file": "openspec/specs/eve-admin-memory/spec.md",
+      "name": "Private Admin Memory Is Categorized And Never Authoritative",
+      "section": "openspec/contracts/eve-admin-memory.md#contract-07f7382ed03e0a1afa72"
+    },
+    {
+      "file": "openspec/specs/eve-admin-memory/spec.md",
+      "name": "Hard Exclusions Keep Sensitive Data Out Of Memory",
+      "section": "openspec/contracts/eve-admin-memory.md#contract-3545f2045a113bc735da"
+    },
+    {
+      "file": "openspec/specs/eve-admin-memory/spec.md",
+      "name": "Admin Has Full Memory Control With Change History",
+      "section": "openspec/contracts/eve-admin-memory.md#contract-0c9cab77b8e253c5b8b8"
+    },
+    {
+      "file": "openspec/specs/eve-admin-memory/spec.md",
+      "name": "Future Tenant Memory Is Schema-Ready But Disabled; Access And Retention Enforce Ownership And Grant No Autonomy",
+      "section": "openspec/contracts/eve-admin-memory.md#contract-1df62edb87a1c8c78b40"
+    },
+    {
+      "file": "openspec/specs/eve-admin-mount-global-panel/spec.md",
+      "name": "The Admin Mount Uses The Eve Next.js Integration Only After Compatibility Is Proven",
+      "section": "openspec/contracts/eve-admin-mount-global-panel.md#contract-cb4c52e75e5988388e1f"
+    },
+    {
+      "file": "openspec/specs/eve-admin-mount-global-panel/spec.md",
+      "name": "The Global Panel Receives Basic Page Context Only",
+      "section": "openspec/contracts/eve-admin-mount-global-panel.md#contract-fd78c9cff2fd9484af9e"
+    },
+    {
+      "file": "openspec/specs/eve-admin-mount-global-panel/spec.md",
+      "name": "The Mount And Panel Never Silently Send Raw Or Sensitive Data",
+      "section": "openspec/contracts/eve-admin-mount-global-panel.md#contract-b19ba66a9fa6420d69f5"
+    },
+    {
+      "file": "openspec/specs/eve-admin-mount-global-panel/spec.md",
+      "name": "The Mount Is Gated By Verified Session Auth And Enforces Session Ownership",
+      "section": "openspec/contracts/eve-admin-mount-global-panel.md#contract-71d44b642db415dcede4"
+    },
+    {
+      "file": "openspec/specs/eve-admin-mount-global-panel/spec.md",
+      "name": "The Mount Exposes The #427 Shell On The #425 Runtime Without Redefining Them",
+      "section": "openspec/contracts/eve-admin-mount-global-panel.md#contract-92ecf796620699d47902"
+    },
+    {
+      "file": "openspec/specs/eve-admin-mount-global-panel/spec.md",
+      "name": "The Mount And Panel Grant No New Authority",
+      "section": "openspec/contracts/eve-admin-mount-global-panel.md#contract-6163c5f117bac5745c70"
+    },
+    {
+      "file": "openspec/specs/eve-approval-budget-policy/spec.md",
+      "name": "Approval Policy Is Separated By Trust Zone",
+      "section": "openspec/contracts/eve-approval-budget-policy.md#contract-02fc9f28920de90f0239"
+    },
+    {
+      "file": "openspec/specs/eve-approval-budget-policy/spec.md",
+      "name": "Operational Production Writes Are Allowed Under Policy",
+      "section": "openspec/contracts/eve-approval-budget-policy.md#contract-057353bcbc1139e44481"
+    },
+    {
+      "file": "openspec/specs/eve-approval-budget-policy/spec.md",
+      "name": "Sensitive And Business-Data Writes Are Blocked Without Stricter Approval",
+      "section": "openspec/contracts/eve-approval-budget-policy.md#contract-1b83a11d67bf2b511307"
+    },
+    {
+      "file": "openspec/specs/eve-approval-budget-policy/spec.md",
+      "name": "Hard Budgets And Rate Limits Are Enforced With An Audited Emergency Override",
+      "section": "openspec/contracts/eve-approval-budget-policy.md#contract-56468369d5e5524835d2"
+    },
+    {
+      "file": "openspec/specs/eve-approval-budget-policy/spec.md",
+      "name": "Policy Decisions Are App-Owned, Audited, And Grant No New Authority",
+      "section": "openspec/contracts/eve-approval-budget-policy.md#contract-31f1d111f9189e6ce177"
+    },
+    {
+      "file": "openspec/specs/eve-audit-tracer/spec.md",
+      "name": "Every Meaningful Eve Action Produces A Rich Audit Record",
+      "section": "openspec/contracts/eve-audit-tracer.md#contract-0cda6204cfc5cb61a1a4"
+    },
+    {
+      "file": "openspec/specs/eve-audit-tracer/spec.md",
+      "name": "Audit Records Capture Accountable Identity From Verified Context",
+      "section": "openspec/contracts/eve-audit-tracer.md#contract-70fe792736e41808422d"
+    },
+    {
+      "file": "openspec/specs/eve-audit-tracer/spec.md",
+      "name": "Redacted Replay And Debug Packages Never Store Unsafe Raw Data",
+      "section": "openspec/contracts/eve-audit-tracer.md#contract-46e6085ada9d3b411bf5"
+    },
+    {
+      "file": "openspec/specs/eve-audit-tracer/spec.md",
+      "name": "The Audit Tracer Grants No New Authority And Is Subordinate To #417 And #418",
+      "section": "openspec/contracts/eve-audit-tracer.md#contract-b16ac06c4ab1d9294495"
+    },
+    {
+      "file": "openspec/specs/eve-autonomous-operations/spec.md",
+      "name": "Eve Autonomy Is Spec-First And Governed",
+      "section": "openspec/contracts/eve-autonomous-operations.md#contract-6bb80312b6caa118eded"
+    },
+    {
+      "file": "openspec/specs/eve-autonomous-operations/spec.md",
+      "name": "Eve Uses Accountable Execution Identities",
+      "section": "openspec/contracts/eve-autonomous-operations.md#contract-06bb2efd038b6b933ddf"
+    },
+    {
+      "file": "openspec/specs/eve-autonomous-operations/spec.md",
+      "name": "Autonomous Activation Uses One Disabled Release Gate",
+      "section": "openspec/contracts/eve-autonomous-operations.md#contract-c925bdd56e1feba50a1c"
+    },
+    {
+      "file": "openspec/specs/eve-autonomous-operations/spec.md",
+      "name": "Engineering Work Initiation And PR Operations Are Policy-Gated",
+      "section": "openspec/contracts/eve-autonomous-operations.md#contract-975e8e19f3d6f639a54a"
+    },
+    {
+      "file": "openspec/specs/eve-autonomous-operations/spec.md",
+      "name": "Protected Areas Block Autonomous Merge",
+      "section": "openspec/contracts/eve-autonomous-operations.md#contract-0ecdf7d3f90bd2a244af"
+    },
+    {
+      "file": "openspec/specs/eve-autonomous-operations/spec.md",
+      "name": "Governance State Is App-Owned",
+      "section": "openspec/contracts/eve-autonomous-operations.md#contract-f95bdaa16f5f0904e15a"
+    },
+    {
+      "file": "openspec/specs/eve-autonomous-pr-operator/spec.md",
+      "name": "Eve-Initiated Work Follows An Issue-First Flow",
+      "section": "openspec/contracts/eve-autonomous-pr-operator.md#contract-8a9bd8ddd237ba6a6397"
+    },
+    {
+      "file": "openspec/specs/eve-autonomous-pr-operator/spec.md",
+      "name": "Eve Performs Mutating PR Operations Under Policy Without Merging",
+      "section": "openspec/contracts/eve-autonomous-pr-operator.md#contract-897870727fe769106728"
+    },
+    {
+      "file": "openspec/specs/eve-autonomous-pr-operator/spec.md",
+      "name": "Engineering Autonomy Is Allowed While Business-Data Writes Stay Blocked",
+      "section": "openspec/contracts/eve-autonomous-pr-operator.md#contract-2a462daeb655047fd7cf"
+    },
+    {
+      "file": "openspec/specs/eve-autonomous-pr-operator/spec.md",
+      "name": "Every GitHub Operation Has Policy, Audit, And An Accountable Initiator",
+      "section": "openspec/contracts/eve-autonomous-pr-operator.md#contract-884f980b302b6f218bb7"
+    },
+    {
+      "file": "openspec/specs/eve-autonomous-pr-operator/spec.md",
+      "name": "The PR Operator Grants No New Authority",
+      "section": "openspec/contracts/eve-autonomous-pr-operator.md#contract-2dc09bda7e14f091f7bf"
+    },
+    {
+      "file": "openspec/specs/eve-dynamic-workflow-orchestration/spec.md",
+      "name": "Dynamic Workflows Use Validated Typed Plans",
+      "section": "openspec/contracts/eve-dynamic-workflow-orchestration.md#contract-aa7a5532629d42eddf95"
+    },
+    {
+      "file": "openspec/specs/eve-dynamic-workflow-orchestration/spec.md",
+      "name": "Every Workflow And Consequential Step Passes Current Governance",
+      "section": "openspec/contracts/eve-dynamic-workflow-orchestration.md#contract-ccea5a04b3fed3b61c78"
+    },
+    {
+      "file": "openspec/specs/eve-dynamic-workflow-orchestration/spec.md",
+      "name": "Dynamic Orchestration Preserves Delegation Caps And Shared-Context Safety",
+      "section": "openspec/contracts/eve-dynamic-workflow-orchestration.md#contract-bbad2272d1df15fc0fb7"
+    },
+    {
+      "file": "openspec/specs/eve-dynamic-workflow-orchestration/spec.md",
+      "name": "Workflow Failures Escalate By App-Owned Risk",
+      "section": "openspec/contracts/eve-dynamic-workflow-orchestration.md#contract-633ed3e05aa32f483e7e"
+    },
+    {
+      "file": "openspec/specs/eve-dynamic-workflow-orchestration/spec.md",
+      "name": "Dynamic Workflow Activity Is Auditable And Budget-Bounded",
+      "section": "openspec/contracts/eve-dynamic-workflow-orchestration.md#contract-4254d29dc37e531e2335"
+    },
+    {
+      "file": "openspec/specs/eve-dynamic-workflow-orchestration/spec.md",
+      "name": "This Change Grants No New Product Or Production Authority",
+      "section": "openspec/contracts/eve-dynamic-workflow-orchestration.md#contract-f09821f9feefb8b4d77e"
+    },
+    {
+      "file": "openspec/specs/eve-email-discord-notifications/spec.md",
+      "name": "Every Notification Starts From A Safe Typed Envelope",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-7e4a26799e80712133a9"
+    },
+    {
+      "file": "openspec/specs/eve-email-discord-notifications/spec.md",
+      "name": "V1 Email Goes Only To Configured Platform Owners",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-fbe307c965d7eef68c5e"
+    },
+    {
+      "file": "openspec/specs/eve-email-discord-notifications/spec.md",
+      "name": "Discord Is Urgent And Rich Only After Safe-Content Policy",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-ee53334be56dfa02432d"
+    },
+    {
+      "file": "openspec/specs/eve-email-discord-notifications/spec.md",
+      "name": "Sensitive Material Never Enters External Notification Content",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-5ddc2fea00291b11b913"
+    },
+    {
+      "file": "openspec/specs/eve-email-discord-notifications/spec.md",
+      "name": "Notification Delivery Is Deduplicated, Idempotent, Bounded, And Pausable",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-bf1d5e6bc9ff031e9175"
+    },
+    {
+      "file": "openspec/specs/eve-email-discord-notifications/spec.md",
+      "name": "Notification Decisions And Outcomes Are Audited And Retained By Existing Owners",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-59edd140c3fb2323c546"
+    },
+    {
+      "file": "openspec/specs/eve-email-discord-notifications/spec.md",
+      "name": "This Change Grants No Uncontrolled Delivery Or Runtime Authority",
+      "section": "openspec/contracts/eve-email-discord-notifications.md#contract-7f376dc6968e5e37849d"
+    },
+    {
+      "file": "openspec/specs/eve-engineering-health-monitors/spec.md",
+      "name": "Monitor Configuration And Scope Are App-Owned",
+      "section": "openspec/contracts/eve-engineering-health-monitors.md#contract-c7f4cd369ef51f2bf3bb"
+    },
+    {
+      "file": "openspec/specs/eve-engineering-health-monitors/spec.md",
+      "name": "Findings Use Safe Fresh Evidence And Stable Dedupe",
+      "section": "openspec/contracts/eve-engineering-health-monitors.md#contract-22bf56a6b529bf74471b"
+    },
+    {
+      "file": "openspec/specs/eve-engineering-health-monitors/spec.md",
+      "name": "Every Approved Signal Has Minimum Evidence",
+      "section": "openspec/contracts/eve-engineering-health-monitors.md#contract-94c51ed8711c490952b9"
+    },
+    {
+      "file": "openspec/specs/eve-engineering-health-monitors/spec.md",
+      "name": "Comments And Issues Reuse Governed GitHub Capabilities",
+      "section": "openspec/contracts/eve-engineering-health-monitors.md#contract-93bd730500e0a4af715e"
+    },
+    {
+      "file": "openspec/specs/eve-engineering-health-monitors/spec.md",
+      "name": "Background Monitoring Is Budgeted, Pausable, Auditable, And Visible",
+      "section": "openspec/contracts/eve-engineering-health-monitors.md#contract-ebc66b7f5abd40d5eecb"
+    },
+    {
+      "file": "openspec/specs/eve-final-release-switch-launch-verification/spec.md",
+      "name": "Launch Readiness Is Bound To An Exact Environment And Revision",
+      "section": "openspec/contracts/eve-final-release-switch-launch-verification.md#contract-a66a83789cfed296464a"
+    },
+    {
+      "file": "openspec/specs/eve-final-release-switch-launch-verification/spec.md",
+      "name": "Every Prior Eve Slice Has Passing Implementation Evidence",
+      "section": "openspec/contracts/eve-final-release-switch-launch-verification.md#contract-9266ffa025ed09168cb4"
+    },
+    {
+      "file": "openspec/specs/eve-final-release-switch-launch-verification/spec.md",
+      "name": "End-To-End Evidence Proves Safety And System Composition",
+      "section": "openspec/contracts/eve-final-release-switch-launch-verification.md#contract-031a3df088a9e087579d"
+    },
+    {
+      "file": "openspec/specs/eve-final-release-switch-launch-verification/spec.md",
+      "name": "Dry Run, Emergency Controls, And Rollback Must Be Proven Before Launch",
+      "section": "openspec/contracts/eve-final-release-switch-launch-verification.md#contract-deae5b3772f3a1b4a63f"
+    },
+    {
+      "file": "openspec/specs/eve-final-release-switch-launch-verification/spec.md",
+      "name": "Activation Uses Only The Existing #418 Human-Controlled Transition",
+      "section": "openspec/contracts/eve-final-release-switch-launch-verification.md#contract-665a30f21d18a683fee9"
+    },
+    {
+      "file": "openspec/specs/eve-final-release-switch-launch-verification/spec.md",
+      "name": "Operators Have Versioned Launch, Emergency, And Recovery Runbooks",
+      "section": "openspec/contracts/eve-final-release-switch-launch-verification.md#contract-d241976e819e0b2e0753"
+    },
+    {
+      "file": "openspec/specs/eve-final-release-switch-launch-verification/spec.md",
+      "name": "Post-Activation Verification Is Bounded And Fail-Safe",
+      "section": "openspec/contracts/eve-final-release-switch-launch-verification.md#contract-c3f34342d252487e9442"
+    },
+    {
+      "file": "openspec/specs/eve-github-read-review-path/spec.md",
+      "name": "GitHub Review Actions Execute Through An Accountable Bot Identity",
+      "section": "openspec/contracts/eve-github-read-review-path.md#contract-1c4535c34064b7403486"
+    },
+    {
+      "file": "openspec/specs/eve-github-read-review-path/spec.md",
+      "name": "Eve Reviews PR Triggers And Posts Summary Plus Inline Findings Without Mutating The PR",
+      "section": "openspec/contracts/eve-github-read-review-path.md#contract-efc40a8c363d45a4abb2"
+    },
+    {
+      "file": "openspec/specs/eve-github-read-review-path/spec.md",
+      "name": "Review Comments Are Policy-Gated By #423",
+      "section": "openspec/contracts/eve-github-read-review-path.md#contract-d3a2e27b3e0508de0883"
+    },
+    {
+      "file": "openspec/specs/eve-github-read-review-path/spec.md",
+      "name": "Review Actions Are Audited In The #419 Record Shape",
+      "section": "openspec/contracts/eve-github-read-review-path.md#contract-d86bde9121dc4fc923e9"
+    },
+    {
+      "file": "openspec/specs/eve-github-read-review-path/spec.md",
+      "name": "Protected-Area Detection Is Visible In The Review Output",
+      "section": "openspec/contracts/eve-github-read-review-path.md#contract-dd2d4c286ab39aef7f05"
+    },
+    {
+      "file": "openspec/specs/eve-github-read-review-path/spec.md",
+      "name": "The Review Path Grants No New Authority",
+      "section": "openspec/contracts/eve-github-read-review-path.md#contract-a84ab5094c68c51f182b"
+    },
+    {
+      "file": "openspec/specs/eve-governance-kernel/spec.md",
+      "name": "The Release Gate Defaults To Disabled",
+      "section": "openspec/contracts/eve-governance-kernel.md#contract-a352761585d4a277c62e"
+    },
+    {
+      "file": "openspec/specs/eve-governance-kernel/spec.md",
+      "name": "Every Autonomous Effect Consults App-Owned Governance State",
+      "section": "openspec/contracts/eve-governance-kernel.md#contract-dfadd175b674c0b11751"
+    },
+    {
+      "file": "openspec/specs/eve-kill-switch/spec.md",
+      "name": "The Kill-Switch Suite Covers Every Autonomous Domain",
+      "section": "openspec/contracts/eve-kill-switch.md#contract-a7291e04855fb8991e8f"
+    },
+    {
+      "file": "openspec/specs/eve-kill-switch/spec.md",
+      "name": "Kill Switches Are Externally And Admin Actuatable Before Runtime Integrations Exist",
+      "section": "openspec/contracts/eve-kill-switch.md#contract-c292212c8a9e0b323d0a"
+    },
+    {
+      "file": "openspec/specs/eve-kill-switch/spec.md",
+      "name": "Every Kill-Switch Change Creates An Audit Record",
+      "section": "openspec/contracts/eve-kill-switch.md#contract-d06cd73fb783cfaafd46"
+    },
+    {
+      "file": "openspec/specs/eve-kill-switch/spec.md",
+      "name": "Policy Checks Consume Kill-Switch State And Cannot Be Bypassed",
+      "section": "openspec/contracts/eve-kill-switch.md#contract-aba15acec1cbca6088e6"
+    },
+    {
+      "file": "openspec/specs/eve-kill-switch/spec.md",
+      "name": "The Control Path Drives #418 State, Is Subordinate To #417, And Grants No New Authority",
+      "section": "openspec/contracts/eve-kill-switch.md#contract-90e97e4a31c05db8496d"
+    },
+    {
+      "file": "openspec/specs/eve-model-policy/spec.md",
+      "name": "The Shared Model Policy Uses Named Roles And Per-Subagent Settings",
+      "section": "openspec/contracts/eve-model-policy.md#contract-25fa52e79f797d7e1508"
+    },
+    {
+      "file": "openspec/specs/eve-model-policy/spec.md",
+      "name": "Gateway Is The Primary Route And Direct Providers Are Controlled, Non-Default Fallbacks",
+      "section": "openspec/contracts/eve-model-policy.md#contract-eafb92927c042b2d0515"
+    },
+    {
+      "file": "openspec/specs/eve-model-policy/spec.md",
+      "name": "Model-Policy Edits Require A Dedicated AI-Settings Permission",
+      "section": "openspec/contracts/eve-model-policy.md#contract-eaa3b6f695977ce66e4b"
+    },
+    {
+      "file": "openspec/specs/eve-model-policy/spec.md",
+      "name": "Model-Policy Changes Are Draftable, Eval-Gated, Activatable, Rollback-Capable, And Audited",
+      "section": "openspec/contracts/eve-model-policy.md#contract-992bd57322898ad56815"
+    },
+    {
+      "file": "openspec/specs/eve-model-policy/spec.md",
+      "name": "Hard Budgets And Rate Limits Apply Per Role And Subagent With Audited Emergency Override",
+      "section": "openspec/contracts/eve-model-policy.md#contract-ead64c7efa1319755b38"
+    },
+    {
+      "file": "openspec/specs/eve-model-policy/spec.md",
+      "name": "Model Policy Consumes Kill-Switch State, Is Subordinate To #417/#418, And Grants No New Authority",
+      "section": "openspec/contracts/eve-model-policy.md#contract-fcb1b5e1220d48c72efc"
+    },
+    {
+      "file": "openspec/specs/eve-runtime-foundation/spec.md",
+      "name": "The Eve Runtime Is An Isolated Dedicated Workspace Package",
+      "section": "openspec/contracts/eve-runtime-foundation.md#contract-91e895d78f2de0084577"
+    },
+    {
+      "file": "openspec/specs/eve-runtime-foundation/spec.md",
+      "name": "The Runtime Reads Installed Eve Docs Before Coding And Never Codes From Memory",
+      "section": "openspec/contracts/eve-runtime-foundation.md#contract-20a85720d7d6971fc2c3"
+    },
+    {
+      "file": "openspec/specs/eve-runtime-foundation/spec.md",
+      "name": "The Runtime Provides Local Verification With The Release Switch Off",
+      "section": "openspec/contracts/eve-runtime-foundation.md#contract-49be335e7163e8f0fafd"
+    },
+    {
+      "file": "openspec/specs/eve-runtime-foundation/spec.md",
+      "name": "The Runtime Owns Its Own Session And Workflow Durability",
+      "section": "openspec/contracts/eve-runtime-foundation.md#contract-3f3c38f4df7180e8ca55"
+    },
+    {
+      "file": "openspec/specs/eve-runtime-foundation/spec.md",
+      "name": "The Runtime Resolves Models Through #421 Policy And Spends Under #423 Budgets",
+      "section": "openspec/contracts/eve-runtime-foundation.md#contract-44c9a3df3460598af941"
+    },
+    {
+      "file": "openspec/specs/eve-runtime-foundation/spec.md",
+      "name": "The Runtime Follows The Layered Source-Of-Truth Order And Grants No New Authority",
+      "section": "openspec/contracts/eve-runtime-foundation.md#contract-5c0af8b1f34465f31cc7"
+    },
+    {
+      "file": "openspec/specs/eve-sandbox-engineering-worker/spec.md",
+      "name": "The Sandbox Provides A Writable Repo Checkout For Engineering Work",
+      "section": "openspec/contracts/eve-sandbox-engineering-worker.md#contract-188426a769b56327f4eb"
+    },
+    {
+      "file": "openspec/specs/eve-sandbox-engineering-worker/spec.md",
+      "name": "Allow-All Networking Is Permitted Only With Strong Containment",
+      "section": "openspec/contracts/eve-sandbox-engineering-worker.md#contract-946dffa4a8240cf6a491"
+    },
+    {
+      "file": "openspec/specs/eve-sandbox-engineering-worker/spec.md",
+      "name": "The Sandbox Mounts No Secrets, Env Files, Service-Role Keys, Or Production Dumps",
+      "section": "openspec/contracts/eve-sandbox-engineering-worker.md#contract-65c1612e694842480c05"
+    },
+    {
+      "file": "openspec/specs/eve-sandbox-engineering-worker/spec.md",
+      "name": "A Sandbox Networking Kill Switch And Emergency Stop Can Cut The Sandbox",
+      "section": "openspec/contracts/eve-sandbox-engineering-worker.md#contract-5f17e0746f76d9128b21"
+    },
+    {
+      "file": "openspec/specs/eve-sandbox-engineering-worker/spec.md",
+      "name": "The Sandbox Grants No New Authority",
+      "section": "openspec/contracts/eve-sandbox-engineering-worker.md#contract-d9392847fe6cabef6b2c"
+    },
+    {
+      "file": "openspec/specs/eve-strict-auto-merge-policy/spec.md",
+      "name": "Eve Auto-Merges Only When Strict Safe Policy Passes",
+      "section": "openspec/contracts/eve-strict-auto-merge-policy.md#contract-e430cdf9882689e9f208"
+    },
+    {
+      "file": "openspec/specs/eve-strict-auto-merge-policy/spec.md",
+      "name": "Auto-Merge Is Blocked For Repo-Aware Protected Areas",
+      "section": "openspec/contracts/eve-strict-auto-merge-policy.md#contract-3a6f4fd49b62c26d1c96"
+    },
+    {
+      "file": "openspec/specs/eve-strict-auto-merge-policy/spec.md",
+      "name": "Every Merge Decision Has Policy, Audit, And An Accountable Initiator",
+      "section": "openspec/contracts/eve-strict-auto-merge-policy.md#contract-89868932b2f354b433b4"
+    },
+    {
+      "file": "openspec/specs/eve-strict-auto-merge-policy/spec.md",
+      "name": "The Strict Auto-Merge Policy Grants No New Authority",
+      "section": "openspec/contracts/eve-strict-auto-merge-policy.md#contract-a326c2da0f8f8df12490"
+    },
+    {
+      "file": "openspec/specs/eve-subagent-catalog-shared-run-context/spec.md",
+      "name": "Initial Specialists Are Real Eve Subagents",
+      "section": "openspec/contracts/eve-subagent-catalog-shared-run-context.md#contract-b5fbd5054f2fb1325d78"
+    },
+    {
+      "file": "openspec/specs/eve-subagent-catalog-shared-run-context/spec.md",
+      "name": "Shared Run Context Is Structured, Safe, And Run-Scoped",
+      "section": "openspec/contracts/eve-subagent-catalog-shared-run-context.md#contract-146bef365929889a3d03"
+    },
+    {
+      "file": "openspec/specs/eve-subagent-catalog-shared-run-context/spec.md",
+      "name": "Every Shared-Context Write Carries Provenance, Confidence, Risk, And Evidence",
+      "section": "openspec/contracts/eve-subagent-catalog-shared-run-context.md#contract-8ef4a98c4ece9f636ff0"
+    },
+    {
+      "file": "openspec/specs/eve-subagent-catalog-shared-run-context/spec.md",
+      "name": "Conflicts Are Preserved Until Governed Resolution",
+      "section": "openspec/contracts/eve-subagent-catalog-shared-run-context.md#contract-70fe0ecf9bb0fa32faf8"
+    },
+    {
+      "file": "openspec/specs/eve-subagent-catalog-shared-run-context/spec.md",
+      "name": "Subagents And Shared Context Grant No New Authority",
+      "section": "openspec/contracts/eve-subagent-catalog-shared-run-context.md#contract-8d72c12db267f42edf95"
+    },
+    {
+      "file": "openspec/specs/identity-and-access/spec.md",
+      "name": "Identity, Tenant, And Role Resolve Server-Side",
+      "section": "openspec/contracts/identity-and-access.md#contract-ff4ce6b4558ae3584acc"
+    },
+    {
+      "file": "openspec/specs/identity-and-access/spec.md",
+      "name": "Tenant Isolation Is Enforced In Depth",
+      "section": "openspec/contracts/identity-and-access.md#contract-ef4ef18d6b8f09f884c1"
+    },
+    {
+      "file": "openspec/specs/identity-and-access/spec.md",
+      "name": "Sensitive Actions Enforce Capabilities Server-Side",
+      "section": "openspec/contracts/identity-and-access.md#contract-b17832f6692565948454"
+    },
+    {
+      "file": "openspec/specs/identity-and-access/spec.md",
+      "name": "Sensitive Operations And Secrets Stay Behind The Server Boundary",
+      "section": "openspec/contracts/identity-and-access.md#contract-02eb35fb111fae62bdbf"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "Monorepo Surface Split And Shared Logic Convergence",
+      "section": "openspec/contracts/platform-boundaries.md#contract-bfdba8d189276b094df7"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "Site Is A Tenant-Owned Presentation And Attribution Entity",
+      "section": "openspec/contracts/platform-boundaries.md#contract-6d422b44a032b307a303"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "CRM As Operational Truth And CMS As Public Truth",
+      "section": "openspec/contracts/platform-boundaries.md#contract-8ac6e5a07205e467fd8d"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "CRM/CMS Alignment As A Core Platform Contract",
+      "section": "openspec/contracts/platform-boundaries.md#contract-ebd32f4b823f763f6509"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "Server-Side Boundary For Sensitive Operations",
+      "section": "openspec/contracts/platform-boundaries.md#contract-d22b0ff1730c7c3ef523"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "Role-Scoped Surface Boundaries",
+      "section": "openspec/contracts/platform-boundaries.md#contract-e1b7d57df5482beb20bc"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "AI Assistant Authority Is Bounded By The Initiating User",
+      "section": "openspec/contracts/platform-boundaries.md#contract-413454f7996ee470b527"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "Honest Money State And Protected Payment Internals",
+      "section": "openspec/contracts/platform-boundaries.md#contract-f95bdb79a8f1876ba0b1"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "Publication, Moderation, And Tenant-Controlled Release Boundaries",
+      "section": "openspec/contracts/platform-boundaries.md#contract-556df1b7b0fe901d47f2"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "Public Versus Authenticated Surface Separation",
+      "section": "openspec/contracts/platform-boundaries.md#contract-a9101967df62fd5bf19f"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "Durable Boundary Docs Stay Aligned",
+      "section": "openspec/contracts/platform-boundaries.md#contract-b271df4df14b8380153c"
+    },
+    {
+      "file": "openspec/specs/platform-boundaries/spec.md",
+      "name": "Mission Control Automations Are Declarative And Guarded",
+      "section": "openspec/contracts/platform-boundaries.md#contract-ca4acefa199203f3f0c5"
+    },
+    {
+      "file": "openspec/specs/platform-principles/spec.md",
+      "name": "Safety And Permission Correctness Over Convenience",
+      "section": "openspec/contracts/platform-principles.md#contract-8b6afaacb2f5eb889ed5"
+    },
+    {
+      "file": "openspec/specs/platform-principles/spec.md",
+      "name": "Operational Truth And Money Integrity",
+      "section": "openspec/contracts/platform-principles.md#contract-73df5470eb4a82a7423e"
+    },
+    {
+      "file": "openspec/specs/platform-principles/spec.md",
+      "name": "Administrative Foundation With Surface-Appropriate Simplicity",
+      "section": "openspec/contracts/platform-principles.md#contract-ac1c0c1f13e002605c3e"
+    },
+    {
+      "file": "openspec/specs/platform-principles/spec.md",
+      "name": "Shared Language, Shared Behavior, And Cross-Surface Coherence",
+      "section": "openspec/contracts/platform-principles.md#contract-47b3120d0359f1804537"
+    },
+    {
+      "file": "openspec/specs/platform-product-intent/spec.md",
+      "name": "Mission And Scope",
+      "section": "openspec/contracts/platform-product-intent.md#contract-41628690c5dd9ca70380"
+    },
+    {
+      "file": "openspec/specs/platform-product-intent/spec.md",
+      "name": "Long-Horizon Success",
+      "section": "openspec/contracts/platform-product-intent.md#contract-0355e426551c156dfd70"
+    },
+    {
+      "file": "openspec/specs/platform-product-intent/spec.md",
+      "name": "Unified Platform Span",
+      "section": "openspec/contracts/platform-product-intent.md#contract-9475d9f5f1bcd7b6fd2e"
+    },
+    {
+      "file": "openspec/specs/platform-product-intent/spec.md",
+      "name": "Audience Service And Tradeoff Priority",
+      "section": "openspec/contracts/platform-product-intent.md#contract-00ad7ddda9f8d69732f9"
+    },
+    {
+      "file": "openspec/specs/platform-product-intent/spec.md",
+      "name": "Non-Goals And Scope Discipline",
+      "section": "openspec/contracts/platform-product-intent.md#contract-649d3bf8e15cdfd22875"
+    },
+    {
+      "file": "openspec/specs/platform-product-intent/spec.md",
+      "name": "AI Assistance Is A Core Product Direction",
+      "section": "openspec/contracts/platform-product-intent.md#contract-79d05e9fd14bd05f6279"
+    },
+    {
+      "file": "openspec/specs/platform-surfaces/spec.md",
+      "name": "Mission Control As The Staff Operations Surface",
+      "section": "openspec/contracts/platform-surfaces.md#contract-d7751393e2d5158f854e"
+    },
+    {
+      "file": "openspec/specs/platform-surfaces/spec.md",
+      "name": "Donor Portal As The Donor Self-Service Surface",
+      "section": "openspec/contracts/platform-surfaces.md#contract-ccf6ed5bf8f1875ad962"
+    },
+    {
+      "file": "openspec/specs/platform-surfaces/spec.md",
+      "name": "Missionary Workspace As The Missionary Support-Raising Surface",
+      "section": "openspec/contracts/platform-surfaces.md#contract-cc75810832968927b8ec"
+    },
+    {
+      "file": "openspec/specs/platform-surfaces/spec.md",
+      "name": "Public Tenant Website As The Public Ministry Surface",
+      "section": "openspec/contracts/platform-surfaces.md#contract-31f7d1c749c3160ca2b2"
+    },
+    {
+      "file": "openspec/specs/platform-surfaces/spec.md",
+      "name": "Surface Ownership And Shared Records",
+      "section": "openspec/contracts/platform-surfaces.md#contract-616e264e0b6275f039e0"
+    },
+    {
+      "file": "openspec/specs/platform-surfaces/spec.md",
+      "name": "Cross-Surface Continuous Flows",
+      "section": "openspec/contracts/platform-surfaces.md#contract-d95406b37306a1b931db"
+    },
+    {
+      "file": "openspec/specs/platform-surfaces/spec.md",
+      "name": "Coherence, Visibility, And Simplicity Across Surfaces",
+      "section": "openspec/contracts/platform-surfaces.md#contract-343e3a6349b278d9036f"
+    },
+    {
+      "file": "openspec/specs/platform-surfaces/spec.md",
+      "name": "Outbound Communications Are A Governed Platform Channel",
+      "section": "openspec/contracts/platform-surfaces.md#contract-533b0737b78b2f4cec01"
+    },
+    {
+      "file": "openspec/specs/workflow-orchestration/spec.md",
+      "name": "Workflow Orchestration Is Not The Source Of Truth",
+      "section": "openspec/contracts/workflow-orchestration.md#contract-738fca90e53867532089"
+    },
+    {
+      "file": "openspec/specs/workflow-orchestration/spec.md",
+      "name": "Workflow Problems Escalate By Tenant Notification Policy",
+      "section": "openspec/contracts/workflow-orchestration.md#contract-48b6728da00e40f1b03a"
+    }
+  ],
+  "stage": "After exact-body digest migration, before the two explicitly documented later-authority reconciliations and individual archive operations."
+}

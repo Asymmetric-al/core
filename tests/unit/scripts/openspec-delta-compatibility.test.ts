@@ -57,6 +57,31 @@ afterEach(async () => {
 });
 
 describe("OpenSpec delta compatibility", () => {
+  it("rejects a merge warning that would discard generated source ownership without writing inputs", async () => {
+    const { root, deltaPath } = await fixture(`## Purpose
+
+Preserve durable records and their complete canonical authoring contract.
+
+<!-- Generated from the canonical records registry; do not edit independently. -->
+
+## ADDED Requirements
+
+${originalRequirement}`);
+    const baseDirectory = path.join(root, "openspec/specs/records");
+    await rm(baseDirectory, { recursive: true });
+    const before = await readFile(deltaPath, "utf8");
+    const result = await verifyOpenSpecDeltaCompatibility(root);
+    expect(result.checked).toBe(1);
+    expect(result.failures).toEqual([
+      expect.objectContaining({
+        change: "update-records",
+        capability: "records",
+        message: expect.stringContaining("delta Purpose ignored"),
+      }),
+    ]);
+    expect(await readFile(deltaPath, "utf8")).toBe(before);
+  });
+
   it("reports a MODIFIED target renamed out of the durable base", async () => {
     const { root } = await fixture(`## MODIFIED Requirements
 

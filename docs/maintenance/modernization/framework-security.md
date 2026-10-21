@@ -46,14 +46,47 @@ compatibility dependencies. Frozen reinstall and lock-drift checks pass. The
 local WSL default now selects Node 24.22.0. Vercel reports Node 24.x for all
 three configured Core projects; this verifies the hosted family, not its patch.
 
+## Qualification evidence
+
+The initial checkpoint head `de596f8ce246e59d0917be31ff371e7e69695b8e`
+passes the normal full pre-push preflight: all three real builds and 7,193
+passing unit tests. Frozen reinstall, workspace/lock checks, runtime/config/image
+regressions, CMS delegate and Sonner contracts pass. Production donor instant
+navigation passes seven tests; hermetic donor login/session/settings smoke
+passes five tests. Native image optimization returns valid WebP.
+
+[Current-head CI](https://github.com/Asymmetric-al/core/actions/runs/39584991299)
+and the required integration gates passed at that head. The
+[preview workflow](https://github.com/Asymmetric-al/core/actions/runs/39585529332)
+built all three applications and passed authenticated browser smoke for each:
+
+- [Admin](https://admin-6ro3zrzdl-asymmetric-al.vercel.app)
+- [Donor](https://donor-bvz3kj8nq-asymmetric-al.vercel.app)
+- [Missionary](https://missionary-1sp9r2irr-asymmetric-al.vercel.app)
+
+Vercel metadata confirms each preview's exact commit and expected project.
+Direct checks also pass the donor public page, admin CMS unauthenticated login
+guard, missionary login page and image serving. CodeRabbit reported no actionable
+findings; independent review includes its excluded lockfile. Hosted Codex/Cursor
+reviews could not run because their usage limits were reached.
+
 ## Outstanding qualification
 
-- Frozen clean installation and installed identities/lock drift.
-- Full preflight, all three real builds and full unit suite.
-- Production instant-navigation rig (ordinary develop PR CI skips this job).
-- Browser auth/session, Server Action, CMS mount and image optimization smoke.
-- Independent review, exact-head required CI, review reconciliation, deployed
-  previews, merge and develop readback.
+OpenSpec [PR #2172](https://github.com/Asymmetric-al/core/pull/2172) merged as
+`5cf4855dc322eafcccfeca0dd528695ae72832d9` during qualification. Its OpenSpec
+1.14.3 update and accepted-contract reconciliation are reused. The only merge
+conflict was eight root manifest proof hashes; classification/rationale content
+was verified identical on both sides before hashing the combined manifest.
+A frozen installation, strict change validation and delta-compatibility checks
+pass with the combined tree. Fresh full preflight, exact-head CI/review/previews,
+merge and develop readback remain required after reconciliation. Previous-head
+preview success does not close those requirements.
+
+Additional observations remain owned by later cohorts: the CI environment wrapper
+loads local provider credentials even when fixture mode is explicitly requested;
+a telemetry Date.now prerender warning needs qualification; and one subprocess
+retry test uses a short wall-clock deadline. No credential values were inspected,
+and no quality floor or test scope was weakened to pass this checkpoint.
 
 ## Rollback
 

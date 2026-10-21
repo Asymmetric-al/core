@@ -2,19 +2,15 @@
 
 ## Purpose
 
-TBD - created by archiving change add-eve-audit-tracer-bullet. Update Purpose after archive.
+Provide an accountable, redacted audit trail that links verified actors, policy decisions, approved effects, and recoverable evidence across Eve operations.
 
 ## Requirements
 
 ### Requirement: Every Meaningful Eve Action Produces A Rich Audit Record
 
-Every meaningful Eve action MUST produce a rich audit record sufficient to reconstruct who or what
-initiated the action, which tool or subagent ran, which model role was used, which policy applied, what
-evidence was used, and what changed. The record MUST capture at least: actor, initiator, identity mode,
-policy, action, target, result, model-role placeholder, and evidence summary. The record MUST be written as
-app-owned governance data, not derived from or overridable by prompt, model output, or tool input.
-[VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
-[VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
+Every meaningful Eve action MUST produce a rich audit record sufficient to reconstruct who or what initiated the action, which tool or subagent ran, which model role was used, which policy applied, what evidence was used, and what changed.
+
+Every clause in `openspec/contracts/eve-audit-tracer.md#contract-0cda6204cfc5cb61a1a4` MUST apply without exception.
 
 #### Scenario: A safe Eve-like action is audited end-to-end
 
@@ -34,12 +30,9 @@ app-owned governance data, not derived from or overridable by prompt, model outp
 
 ### Requirement: Audit Records Capture Accountable Identity From Verified Context
 
-The audit record MUST capture accountable identity from verified context, never from prompt or tool input:
-admin actions MUST be recorded under the acting admin's identity; background jobs MUST be recorded under a
-service identity with explicit initiator metadata; and GitHub actions MUST record the bot actor together with
-the accountable human or trigger. The recorded identity mode MUST match the identity resolved by the #417
-auth boundary and MUST NOT be selectable by prompt or tool input.
-[VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
+Audit records MUST identify accountable actors from verified context for admin, background-job, and GitHub actions.
+
+Every clause in `openspec/contracts/eve-audit-tracer.md#contract-70fe792736e41808422d` MUST apply without exception.
 
 #### Scenario: An admin action is audited under the admin identity
 
@@ -64,13 +57,9 @@ auth boundary and MUST NOT be selectable by prompt or tool input.
 
 ### Requirement: Redacted Replay And Debug Packages Never Store Unsafe Raw Data
 
-Eve MUST be able to produce a redacted replay/debug package for a failed or reviewable action so failures can
-be investigated without storing unsafe raw data. The package MUST carry metadata and a redacted evidence
-summary only and MUST NEVER contain payment data, secrets, one-time codes, tenant PII, or raw model
-reasoning. The redaction rules MUST be represented in tests. This change defines the package's redacted
-**shape**; its retention, expiry, and holds are governed separately (#424).
-[VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
-[VERIFIED-REPO: openspec/specs/platform-boundaries/spec.md]
+Eve MUST be able to produce a redacted replay/debug package for a failed or reviewable action so failures can be investigated without storing unsafe raw data.
+
+Every clause in `openspec/contracts/eve-audit-tracer.md#contract-46e6085ada9d3b411bf5` MUST apply without exception.
 
 #### Scenario: A debug package is built for a failed action
 
@@ -111,11 +100,9 @@ redaction rules and MUST NOT reveal data the redaction rules exclude.
 
 ### Requirement: The Audit Tracer Grants No New Authority And Is Subordinate To #417 And #418
 
-The audit tracer MUST be record-only: producing an audit record or debug package MUST NOT initiate,
-authorize, or widen any autonomous action, and MUST NOT override the #417 contract or the #418 governance
-gate. Audit writes MUST go to the app-owned governance store the kernel already governs; the tracer MUST NOT
-introduce live autonomous behavior. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
-[VERIFIED-REPO: openspec/project.md] [VERIFIED-REPO: AGENTS.md]
+The audit tracer MUST be record-only: producing an audit record or debug package MUST NOT initiate, authorize, or widen any autonomous action, and MUST NOT override the #417 contract or the #418 governance gate.
+
+Every clause in `openspec/contracts/eve-audit-tracer.md#contract-b16ac06c4ab1d9294495` MUST apply without exception.
 
 #### Scenario: The audit path is mistaken for an action path
 

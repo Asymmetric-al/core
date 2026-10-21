@@ -4,20 +4,9 @@
 
 ### Requirement: Phase 23 Separates Editable CMS Source From Public Site Authority
 
-Payload and other CMS adapters SHALL remain qualified private authoring and
-persistence machinery. They MAY persist exact source revisions, working drafts,
-versions, folders and provider metadata only behind Phase 23 commands. They
-SHALL NOT define human identity, capability, Site/locale scope, route,
-Navigation, public audience, public eligibility, public release, operational
-truth, recovery, or current serving.
+Payload and other CMS adapters SHALL remain qualified private authoring and persistence machinery.
 
-Phase 23 SHALL own ordinary Page/Article identity, exact-locale editorial and
-placement revisions, bounded semantic composition, Site Plan generation and
-serving activation. Phase 10 and every source owner SHALL retain safety,
-operational, financial, specialized Page, byte-custody, communication,
-authenticated-app and provider outcome authority. A CMS publish flag, Payload
-draft state, provider job, object presence or search record SHALL NOT constitute
-a public release.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-aa2aa275aa89dbc14ed1` MUST apply without exception.
 
 #### Scenario: Payload marks a document published
 
@@ -39,18 +28,9 @@ a public release.
 
 ### Requirement: Web Studio Uses One Actor And Service Operations Boundary
 
-Every Phase 23 human mutation, private query, Preview, release, import/export,
-media, health, diagnostic and recovery operation SHALL cross the actor-bound Web
-Studio Operations boundary. Every non-interactive operation SHALL cross a
-separately registered service-command port with one code-owned purpose and
-narrower exact scope. Feature modules SHALL expose typed commands and permission-
-safe queries behind that boundary; the facade SHALL NOT become a god service.
+Every Phase 23 human mutation, private query, Preview, release, import/export, media, health, diagnostic and recovery operation SHALL cross the actor-bound Web Studio Operations boundary.
 
-Browser, Payload Admin/auth/REST/GraphQL/Local API, plugin, hook, worker,
-migration, importer, service-role script or database trigger SHALL NOT write
-Phase 23 truth or bypass current authorization, expected state, idempotency,
-receipt and owner proof. Provider diagnostics and raw provider consoles SHALL
-not become product contracts or recovery paths.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-85ce2a4593957015827b` MUST apply without exception.
 
 #### Scenario: An actor saves CMS work
 
@@ -72,19 +52,9 @@ not become product contracts or recovery paths.
 
 ### Requirement: D1 Is The Sole Favorable Public Activation And Read Boundary
 
-D1 SHALL deterministically compile one complete exact Tenant × environment ×
-Site × locale dependency closure into an immutable Public Site Generation and
-compare-and-swap one expected serving head only after complete proof. A failed,
-stale, partial, incompatible or outcome-unknown candidate SHALL NOT replace the
-prior safe generation. Public code SHALL read only through
-`PublishedContentReader`; no other public reader, fallback, mutable-latest query
-or request-time compiler SHALL exist.
+D1 SHALL deterministically compile one complete exact Tenant × environment × Site × locale dependency closure into an immutable Public Site Generation and compare-and-swap one expected serving head only after complete proof.
 
-Search, cache, sitemap, CDN, crawler/social observation, notification, provider
-delivery and analytics SHALL be downstream convergence. Their acceptance or
-completion SHALL NOT define D1 activation. Current adverse eligibility SHALL be
-enforced before favorable cached or indexed output and SHALL not wait for
-asynchronous cleanup.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-ddf83c01d624f6dd3733` MUST apply without exception.
 
 #### Scenario: One complete generation activates
 
@@ -105,19 +75,9 @@ asynchronous cleanup.
 
 ### Requirement: Phase 23 Integrations Use Small Certified Owner Contracts
 
-Every dynamic source, Primary Outcome, notification, authenticated action,
-operational reference, media-custody operation, public-media qualification,
-Phase 22 specialized Page, giving handoff and future product interaction SHALL
-use the smallest versioned certified projection or command contract published
-by its owning domain. Phase 23 SHALL store stable typed references or immutable
-public projections rather than copying owner truth or accepting provider-shaped
-payloads.
+Every dynamic source, Primary Outcome, notification, authenticated action, operational reference, media-custody operation, public-media qualification, Phase 22 specialized Page, giving handoff and future product interaction SHALL use the smallest versioned certified projection or command contract published by its owning domain.
 
-An absent, uncertified, stale, incompatible, restricted or unauthorized owner
-contract SHALL remain unavailable or existence-safe. Phase 23 SHALL NOT invent a
-generic fallback record, broaden a query, call a provider directly, or expose a
-placeholder action. Certified-but-unready work MAY expose only the owning
-domain's native action to an independently authorized actor.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-720abc9691559ec7a9bb` MUST apply without exception.
 
 #### Scenario: A future dynamic source is not certified
 
@@ -137,17 +97,9 @@ domain's native action to an independently authorized actor.
 
 ### Requirement: Exact Public Audience Excludes Authentication And Personalization
 
-All ordinary Phase 23 public artifacts and requests SHALL use exactly the
-code-owned `public` audience. At the same verified host, Site, locale, active
-generation and route, authentication, role, cookies, campaign parameters,
-referrer, geography, device, experiment and history SHALL NOT alter CMS output.
-Public compiler and Presentation Package boundaries SHALL structurally exclude
-auth and personalization context. Cache identity SHALL contain every legitimate
-byte-varying trusted dimension and tags SHALL be invalidation hints only.
+All ordinary Phase 23 public artifacts and requests SHALL use exactly the code-owned `public` audience.
 
-Authenticated tasks SHALL be owned and authorized by their application after a
-clear public handoff. Preview SHALL be private and authorized separately; it
-SHALL not be an audience or bearer authority.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-94ce65f656557c122ad1` MUST apply without exception.
 
 #### Scenario: A logged-in donor and anonymous visitor open one Page
 
@@ -166,18 +118,9 @@ SHALL not be an audience or bearer authority.
 
 ### Requirement: Provider Admission And Clean Cutover Preserve One Authority
 
-Production adoption SHALL require a complete provider-neutral D33 capacity
-profile with one exact Vercel qualification attachment and one current coherent
-Payload v4 cohort admitted under D34. Current official evidence at
-implementation and release freeze SHALL control provider versions. Provider
-settings and features SHALL not become product policy.
+Production adoption SHALL require a complete provider-neutral D33 capacity profile with one exact Vercel qualification attachment and one current coherent Payload v4 cohort admitted under D34.
 
-D35 SHALL perform a read-only census, clean empty-database target build,
-deterministic supported retained-state transformation where proved, one bounded
-authority switch and complete removal of legacy or temporary readers, writers,
-routes, flags, adapters and transforms. Dual authority, mutable public fallback,
-permanent multiversion abstraction and destructive production/customer cutover
-without a new decision SHALL be prohibited.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-79dc3ad38a05be4a3c93` MUST apply without exception.
 
 #### Scenario: One provider cohort is admitted
 

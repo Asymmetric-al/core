@@ -107,12 +107,8 @@ evidence rather than a successful acceptance claim.
 ### Requirement: Legacy debt SHALL remain explicit and bounded
 
 Accepted legacy findings MUST be narrowly tracked for the new rules only.
-Normal lint and CI MUST NOT enlarge that acceptance. Permanent authoring
-contracts MUST remain distinct from temporary debt and preserve repository
-tracking requirements for disable comments and configuration exceptions.
-The authorized completion phase MUST retire all accepted bulk legacy debt
-through verified UI corrections. Permanent exceptions MUST remain justified
-by implementation semantics and fixtures, not by the number of findings.
+
+Every clause in `openspec/contracts/design-system-lint.md#contract-9ec55faa6156fdbeaf7e` MUST apply without exception.
 
 #### Scenario: Existing debt is adopted
 

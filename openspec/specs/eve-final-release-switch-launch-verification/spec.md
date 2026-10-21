@@ -2,18 +2,15 @@
 
 ## Purpose
 
-TBD - created by archiving change add-eve-final-release-switch-launch-verification. Update Purpose after archive.
+Define exact-environment launch readiness, end-to-end safety evidence, accountable release controls, and proven emergency and recovery behavior before Eve activation.
 
 ## Requirements
 
 ### Requirement: Launch Readiness Is Bound To An Exact Environment And Revision
 
-Eve MUST represent launch readiness as a versioned manifest containing stable launch id, environment,
-repository/application revision, deployment ids, schema/migration version, applicable policy/model/eval
-configuration versions, generated time, expiry/freshness window, evidence entries, reviewers, overall result,
-and immutable #419 audit reference. Evidence MUST be safe references/redacted summaries and MUST NOT contain
-credentials or unsafe raw data. Evidence from a different target or expired window MUST NOT satisfy the gate
-without a deterministic compatibility rule. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
+Eve MUST represent launch readiness with one versioned manifest bound to the exact environment, revisions, evidence, reviewers, freshness, result, and audit reference.
+
+Every clause in `openspec/contracts/eve-final-release-switch-launch-verification.md#contract-a66a83789cfed296464a` MUST apply without exception.
 
 #### Scenario: Evidence belongs to another deployment
 
@@ -31,13 +28,9 @@ without a deterministic compatibility rule. [VERIFIED-REPO: docs/prds/eve-autono
 
 ### Requirement: Every Prior Eve Slice Has Passing Implementation Evidence
 
-The manifest MUST contain a required readiness entry for each issue #417 through #436. Each entry MUST identify
-the implemented capability/revision, acceptance and operational evidence, relevant runbook, responsible
-reviewer, and pass/fail result. Mandatory slice evidence and safety gates MUST NOT be waived. A merged
-proposal, draft OpenSpec, unchecked task list, open implementation work, missing/stale/mismatched entry, or
-failing evidence MUST produce not-ready and MUST keep #418 disabled. Non-blocking observations MAY be
-documented but MUST NOT change a required failing result to ready.
-[VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
+The manifest MUST contain a required readiness entry for each issue #417 through #436.
+
+Every clause in `openspec/contracts/eve-final-release-switch-launch-verification.md#contract-9266ffa025ed09168cb4` MUST apply without exception.
 
 #### Scenario: All specification PRs are merged but runtime work is incomplete
 
@@ -62,14 +55,9 @@ documented but MUST NOT change a required failing result to ready.
 
 ### Requirement: End-To-End Evidence Proves Safety And System Composition
 
-Before readiness can pass, environment-appropriate end-to-end evidence MUST prove: auth/service identity and
-session ownership; cross-user/tenant denial; audit/redaction and retention/replay access; deterministic/judge
-eval gates and model rollback; budgets/rate limits; protected-area, sensitive-file, sandbox, GitHub, and
-production-write policy; release-off suppression; emergency-off and all relevant kill switches; active-run
-stop and rollback; runtime/UI/GitHub/subagents/shared-context/dynamic-workflow/monitor/memory behavior;
-platform-owner email and safe Discord policy; deployment compatibility; observability; and operator access to
-current controls. Isolated unit tests alone MUST NOT satisfy required cross-capability checks.
-[VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
+Readiness MUST pass only after environment-appropriate end-to-end evidence proves every required safety boundary and composed system behavior.
+
+Every clause in `openspec/contracts/eve-final-release-switch-launch-verification.md#contract-031a3df088a9e087579d` MUST apply without exception.
 
 #### Scenario: Disabled mode is exercised across triggers
 
@@ -87,11 +75,9 @@ current controls. Isolated unit tests alone MUST NOT satisfy required cross-capa
 
 ### Requirement: Dry Run, Emergency Controls, And Rollback Must Be Proven Before Launch
 
-Operators MUST complete the checklist while #418 remains disabled and MUST exercise or prove, using safe
-environment-appropriate methods, emergency-off, master/domain kill switches, active-run termination,
-force-approval, notification pause, provider/credential disable, deployment rollback, model-policy rollback,
-and data/schema rollback or forward-recovery. Any failed, destructive-only, undocumented, or inaccessible
-reversal path MUST block readiness. [VERIFIED-REPO: openspec/changes/add-eve-kill-switch-control-path]
+Operators MUST prove the required dry run, emergency controls, and rollback or forward-recovery while the governance release remains disabled.
+
+Every clause in `openspec/contracts/eve-final-release-switch-launch-verification.md#contract-deae5b3772f3a1b4a63f` MUST apply without exception.
 
 #### Scenario: A rollback path is documented but fails its exercise
 
@@ -109,11 +95,9 @@ reversal path MUST block readiness. [VERIFIED-REPO: openspec/changes/add-eve-kil
 
 ### Requirement: Activation Uses Only The Existing #418 Human-Controlled Transition
 
-The system MUST permit only a verified human with dedicated release permission to enable Eve, and MUST use
-only #418's existing activation path after binding a current passing manifest, recording justification, and immediately rechecking
-manifest freshness plus #418 emergency and #420 relevant kill-switch state. Prompts, models, tools, service
-identities, CI, merges, deployments, schedules, or ready results MUST NOT enable the switch. #437 MUST NOT
-define a second switch or change #418 persistence/semantics. [VERIFIED-REPO: openspec/changes/add-eve-governance-kernel-release-switch]
+The system MUST permit only a verified human with dedicated release permission to enable Eve, and MUST use only #418's existing activation path after binding a current passing manifest, recording justification, and immediately rechecking manifest freshness plus #418 emergency and #420 relevant kill-switch state.
+
+Every clause in `openspec/contracts/eve-final-release-switch-launch-verification.md#contract-665a30f21d18a683fee9` MUST apply without exception.
 
 #### Scenario: An authorized human activates a passing target
 
@@ -153,14 +137,9 @@ off MUST NOT silently resume more autonomy than #418's persisted state and curre
 
 ### Requirement: Operators Have Versioned Launch, Emergency, And Recovery Runbooks
 
-The manifest MUST reference accessible versioned runbooks for readiness review, activation, state inspection,
-approvals, budgets, kill switches, emergency-off, active-run termination, rollback, notification pause,
-retention/incident hold, audit/replay access, provider/credential disable, and escalation ownership. Links and
-required permissions MUST be verified and the procedures MUST be exercised by authorized operators before
-readiness passes. Runbooks MUST NOT expose secrets. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
+The manifest MUST reference accessible versioned runbooks for readiness review, activation, state inspection, approvals, budgets, kill switches, emergency-off, active-run termination, rollback, notification pause, retention/incident hold, audit/replay access, provider/credential disable, and escalation ownership.
 
-#419 MUST own audit/redaction for launch decisions, while #424 MUST own retention, hold, and expiry for launch
-manifests and evidence metadata. Retention state or an incident hold MUST NOT override a not-ready result.
+Every clause in `openspec/contracts/eve-final-release-switch-launch-verification.md#contract-d241976e819e0b2e0753` MUST apply without exception.
 
 #### Scenario: An emergency runbook link is stale
 
@@ -171,11 +150,9 @@ manifests and evidence metadata. Retention state or an incident hold MUST NOT ov
 
 ### Requirement: Post-Activation Verification Is Bounded And Fail-Safe
 
-After human activation, a bounded verification window MUST confirm visible switch/control state, trigger
-gating, audit, budgets, notification safety, and selected non-destructive canary behavior. A critical failure
-MUST use the existing authorized emergency/kill/rollback path and MUST be audited; it MUST NOT trigger an
-authority-expanding automatic recovery. Successful completion MUST close the launch record with the exact
-target and evidence. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
+After human activation, a bounded verification window MUST confirm visible switch/control state, trigger gating, audit, budgets, notification safety, and selected non-destructive canary behavior.
+
+Every clause in `openspec/contracts/eve-final-release-switch-launch-verification.md#contract-c3f34342d252487e9442` MUST apply without exception.
 
 #### Scenario: A critical canary fails
 

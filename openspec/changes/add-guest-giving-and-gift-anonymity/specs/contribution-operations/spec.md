@@ -4,18 +4,9 @@
 
 ### Requirement: Every Staff-Entered Offline Gift Uses The Phase 15 Gateway
 
-Every staff-entered offline gift MUST be staged, validated, reviewed as policy
-requires, and committed through Phase 15 `gift_entry_batches`. This includes a
-single gift entered from the Contribution Hub or a donor-first CRM surface.
-Quick entry MUST create a one-row batch behind a simplified form; hiding batch
-terminology from the common path MUST NOT bypass the batch's validation,
-conservation, permission, audit, deposit-reference, or atomic commit rules.
+Every staff-entered offline gift MUST be staged, validated, reviewed as policy requires, and committed through Phase 15 `gift_entry_batches`.
 
-The Phase 15 commit service MUST be the sole writer of staff-entered offline
-money. It MUST write canonical Phase 13 contribution headers, allocation lines,
-and postings and invoke the shared Contribution Operations Core for audit and
-correction policy. A standalone route or feature-local service MUST NOT write
-an offline contribution directly.
+Every clause in `openspec/contracts/contribution-operations.md#contract-c4e118881be86ac51ec4` MUST apply without exception.
 
 #### Scenario: Staff records one check
 
@@ -35,22 +26,9 @@ an offline contribution directly.
 
 ### Requirement: Offline Rows Support Known And Intentionally Unknown Donors
 
-Phase 15 MUST offer two explicit payer-identity modes for an offline row:
-`known` and `unknown_offline`.
+Phase 15 MUST offer two explicit payer-identity modes for an offline row: `known` and `unknown_offline`.
 
-For `known`, the staff Party picker/create flow MUST use the tenant-scoped Phase
-4 boundary. The accepted Phase 13 header MUST carry
-`donor_identity_status = known`, the exact same-tenant
-`legal_donor_party_id`, and frozen source identity/contact evidence. Staff MAY
-set the per-gift missionary/public visibility preference subject to the same
-projection and audit rules as online gifts.
-
-For `unknown_offline`, the accepted Phase 13 header MUST carry
-`donor_identity_status = unknown_offline` and
-`legal_donor_party_id = null`. The system MUST NOT require or fabricate a
-placeholder Party, name, email, postal address, or contact point. The row MUST
-still require the applicable amount, civil date, method, currency, Legal
-Entity, designation/allocation, and batch/deposit evidence.
+Every clause in `openspec/contracts/contribution-operations.md#contract-9f7cc8619f882c96bfa4` MUST apply without exception.
 
 #### Scenario: Staff records a known donor's anonymous check
 
@@ -79,17 +57,9 @@ Entity, designation/allocation, and batch/deposit evidence.
 
 ### Requirement: Receipt Evaluation Remains Source-Owned
 
-After a successful Phase 15 commit, the platform MUST emit the source occurrence
-needed for Phase 7 to evaluate official receipt eligibility and facts. Phase 15
-and the contribution header MUST NOT persist a mutable receipt outcome or infer
-issuance from the presence of a donor email.
+After a successful Phase 15 commit, the platform MUST emit the source occurrence needed for Phase 7 to evaluate official receipt eligibility and facts.
 
-An `unknown_offline` contribution MUST receive an explicit Phase 7
-not-receiptable reason while required legal-donor evidence is absent. If
-authorized staff later obtains sufficient evidence, the change MUST use a
-governed Phase 13 source correction. Phase 7 MAY then append a successor facts
-version; the original contribution and correction evidence remain immutable
-and explainable.
+Every clause in `openspec/contracts/contribution-operations.md#contract-1ece7948235e5a82faf6` MUST apply without exception.
 
 #### Scenario: Unknown cash is posted
 
@@ -109,17 +79,9 @@ and explainable.
 
 ### Requirement: Offline Entry Gives Clear And Recoverable Feedback
 
-The known/unknown choice MUST be plain-language, accessible, and reversible
-while the row is still a draft. Quick entry MUST default to the known-donor
-search without forcing staff through batch concepts, with an adjacent
-"Donor is unknown" choice that explains the receipt consequence before commit.
-No hidden default MAY create a synthetic identity.
+The known/unknown choice MUST be plain-language, accessible, and reversible while the row is still a draft.
 
-Validation MUST identify the exact row and field, preserve valid draft work, and
-provide the next corrective action. Commit feedback MUST distinguish draft,
-needs review, posted, partly blocked, and failed outcomes truthfully. A retry
-with the same batch and row idempotency identities MUST NOT duplicate the
-contribution.
+Every clause in `openspec/contracts/contribution-operations.md#contract-a16d4d9d34b27cb9040e` MUST apply without exception.
 
 #### Scenario: An unknown row is missing an allocation
 

@@ -23,7 +23,7 @@ canonical amounts from provider restrictions and requires explicit presentation
 locale and independently resolved settlement context. It also identifies the
 future snapshot as a reference/projection of immutable Phase 20 evidence.
 [ADR-0207](../../adr/0207-site-before-ledger-with-locale-and-currency-facets.md)
-and the [multi-site OpenSpec boundary delta](../../../openspec/changes/document-multi-site-foundation/specs/platform-boundaries/spec.md)
+and the [multi-site OpenSpec boundary delta](../../../openspec/changes/archive/2026-10-21-document-multi-site-foundation/specs/platform-boundaries/spec.md)
 prohibit Site selection of financial identity. Phase 24 D61/D62 qualification
 and activation remain deferred. The foundation does not implement #479.
 
