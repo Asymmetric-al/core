@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "date": "2026-10-18",
+  "timezone": "Asia/Bangkok",
+  "scope": "D39 ratification and unanswered Q40 documentation only",
+  "checks": {
+    "preserved_d39_evidence_and_snapshots": {
+      "entries": 12,
+      "passed": 12
+    },
+    "preserved_d38_evidence_and_original_q39": {
+      "entries": 15,
+      "passed": 15
+    },
+    "preserved_decision": {
+      "blockquote": true,
+      "inclusive_day_convention": "proposed-to-ratified status only",
+      "amendments": 17,
+      "acceptance_criteria": 26
+    },
+    "status": {
+      "d39": "ratified",
+      "q39": "answered A and ratified",
+      "glossary": "ratified",
+      "session": "ratified",
+      "q40": "unanswered",
+      "d40": "absent"
+    },
+    "references": {
+      "local_references": 488,
+      "line_references": 18,
+      "anchor_references": 72
+    }
+  },
+  "current_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d39-original-referral-clock-adversarial-review.md": "28477b48b3fb38070fe772805546a10d6d330c194d1c66c7e73b6a5139f53c2f",
+    "docs/features/missionary-workspace-depth/grill/phase28-q39-initial-referral-clock-research.md": "3024baf564a78b68e3ce61d98c8dd8f27df6a2698332ef3992d111ad76634cd0",
+    "docs/features/missionary-workspace-depth/grill/phase28-q40-missed-recurring-gift-review-research.md": "2691afdabd512b96ab6befb2565bf0ce47828b327fcbf789bcaf16559acc62c1",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "819801011ac6f4ed8cf5461e276c5068f4d0fa74284196d463557916a33984ec",
+    "CONTEXT.md": "f287051abd4e57e715d547017d49cf08e47372a6408ac8cb16ef380b1d2fa6e0",
+    "docs/features/missionary-workspace-depth/grill/d39-evidence/verify-ratification.py": "750c345228938d17bac528884e80684af911f67db910246c1b6ffd11b9999b15"
+  },
+  "limitations": [
+    "No prior verification, model, probe or example program was executed.",
+    "No application, database, RLS, provider, accessibility, usability or performance behavior was tested.",
+    "Local Markdown file/line/heading/explicit-HTML-anchor references were checked; external URL availability was not tested.",
+    "Ratification proves accepted intended behavior, not formal specification publication, implementation, qualification or activation."
+  ],
+  "errors": []
+}

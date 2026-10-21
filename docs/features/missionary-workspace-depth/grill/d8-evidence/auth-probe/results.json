@@ -1,0 +1,16 @@
+{
+  "runtime": "v24.19.0",
+  "source": "actual repository pure auth modules",
+  "passed": 5,
+  "checks": [
+    "No coach route or primary role exists",
+    "Staff substitute reaches admin dashboard and CRM/gifts/reports capabilities",
+    "Inactive missionary membership alone does not defeat missionary profile fallback",
+    "Inactive staff membership alone does not defeat admin profile fallback",
+    "Role helper has no tenant selector and unions the supplied active membership array"
+  ],
+  "limits": [
+    "No server, browser, database, JWT, RLS, invitation or provider behavior executed",
+    "Cross-tenant array demonstrates helper precondition only; current loaders scope to profile tenant"
+  ]
+}

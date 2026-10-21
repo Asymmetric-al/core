@@ -1,0 +1,51 @@
+{
+  "inspected_files": [
+    {
+      "path": "docs/adr/0027-one-notification-presentation-and-engagement-model.md",
+      "sha256": "aed05f25b9d91de0a80965bbe1a3bb4f38cabe8b7ad92e810a1532d7a0d4db5b"
+    },
+    {
+      "path": "docs/adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md",
+      "sha256": "45e8d708d8da0e3964f7aa8eeff870978215ee1872b8ff2e1f1712dd7b70bdcf"
+    },
+    {
+      "path": "packages/api/src/missionary-portal/donor.ts",
+      "sha256": "ccac4469d3ac48e28c9fb9ac0671c903156caa6654db2b25fdcc1aea778f4087"
+    },
+    {
+      "path": "packages/api/src/admin/contribution-operations/notifications/store.ts",
+      "sha256": "3efe0be3c37004124656682025f488b77ed8db7424011d1000df954456929ce0"
+    },
+    {
+      "path": "packages/api/src/eve/notifications/store.ts",
+      "sha256": "0a158f508450a153f60a8e06632c0731fb442a3fc42ecbd0ce63998f508802f6"
+    },
+    {
+      "path": "supabase/migrations/20260718093000_eve_email_discord_notifications.sql",
+      "sha256": "e91911ef7fac1d751391c241ed54102d5781a8a8f120cb46884da463341971b2"
+    }
+  ],
+  "primary_documentation": [
+    {
+      "id": "pg17-rls",
+      "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "bytes": 31181,
+      "sha256": "549fe56f4eedf6fba605c42d3b90522fb6fb431e55b64d16f4ff7e31f1ca80c0",
+      "fetched": true
+    },
+    {
+      "id": "pg17-function",
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "bytes": 51069,
+      "sha256": "785004cc71694c34b9d0a6b22e11681012a6a2d40862ff2ed61adc801f0bbb96",
+      "fetched": true
+    },
+    {
+      "id": "pg17-isolation",
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "bytes": 47618,
+      "sha256": "32a32972bb04a3d539cbbc89914ff80573023bd900a8710a03bda487feb03000",
+      "fetched": true
+    }
+  ]
+}

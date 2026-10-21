@@ -1,0 +1,311 @@
+{
+  "schema": "phase28.d15.protocol_model.v1",
+  "executed_at_utc": "2026-10-16T12:33:44.043801+00:00",
+  "python": "3.12.14",
+  "kind": "single-threaded deterministic local protocol model",
+  "probe_sha256": "6f6f2a7f06a25e0a4e318f651a5e7ac3004d3025117f16cf77a3fabe8e82bdb4",
+  "source_sha256": {
+    "docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md": "4cf9b76675c32f3bb5b5f73165409c14f8d501daa5f73457c6534764adeef66a",
+    "docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md": "dea5d6a5b55f6724d026d446242291d47f61419658d22c6e3756c086ee3a4156",
+    "docs/prds/sitestacker-parity/phase-12-full-role-permission-configuration.md": "b7f3b5645f5bfc7cbaa853bad781df84d8fd715e40d9f7648dccb128fcb469e4",
+    "docs/prds/sitestacker-parity/roadmap.md": "4948695d00596d54e81300bdbd63e20a034420788d79930e72090dafa04bbc7a",
+    "docs/adr/0029-tenant-owned-resend-and-composed-delivery-identities.md": "c59d3c222f59cedf5294acd5d07b451b792ed5ebf5738266c3dff56aeb10d1bf"
+  },
+  "passed": 28,
+  "total": 28,
+  "results": [
+    {
+      "id": "D15-M01",
+      "name": "doubleclick with different request keys retains one authorization and effect",
+      "passed": true,
+      "observed": {
+        "intent_count": 1,
+        "authorization_id": "7360aeaafd4e6b63f2f5ad34"
+      }
+    },
+    {
+      "id": "D15-M02",
+      "name": "failure before modeled local release leaves no intent audit or draft lock",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "simulated failure before atomic local release",
+        "released_intents": 0,
+        "draft_locked": false
+      }
+    },
+    {
+      "id": "D15-M03",
+      "name": "authorized source draft cannot mutate its subject-body revision",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "authorized draft revision is immutable",
+        "payload_unchanged": true
+      }
+    },
+    {
+      "id": "D15-M04",
+      "name": "sealed recipient sender connection and payload digest are immutable",
+      "passed": true,
+      "observed": {
+        "frozen_field_mutations_rejected": 4
+      }
+    },
+    {
+      "id": "D15-M05",
+      "name": "payload tampering cannot pass final admission",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "sealed bytes changed"
+      }
+    },
+    {
+      "id": "D15-M06",
+      "name": "recipient contact revision change blocks rather than retargets",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "recipient admission changed; no silent retarget",
+        "silent_retarget": false
+      }
+    },
+    {
+      "id": "D15-M07",
+      "name": "wrong tenant or actor fails source authorization and dispatch",
+      "passed": true,
+      "observed": {
+        "source_tenant": "wrong source tenant/actor",
+        "source_actor": "wrong source tenant/actor",
+        "dispatch_actor": "wrong current tenant/actor"
+      }
+    },
+    {
+      "id": "D15-M08",
+      "name": "stale worker lease cannot perform final admission",
+      "passed": true,
+      "observed": {
+        "old_lease": "stale lease",
+        "newest_lease_admitted": true
+      }
+    },
+    {
+      "id": "D15-M09",
+      "name": "cancel before durable attempt admission prevents submission",
+      "passed": true,
+      "observed": {
+        "order": "cancel -> admit",
+        "state": "not_submitted",
+        "blocked_reason": "already admitted or terminal; no blind replay"
+      }
+    },
+    {
+      "id": "D15-M10",
+      "name": "attempt admission before cancellation cannot promise no external effect",
+      "passed": true,
+      "observed": {
+        "order": "admit -> cancel -> acceptance",
+        "submissions": 1,
+        "state": "accepted_for_processing",
+        "delivery": "not_proved"
+      }
+    },
+    {
+      "id": "D15-M11",
+      "name": "revocation before admission blocks a previously leased send",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "source authority/fence changed",
+        "submissions": 0
+      }
+    },
+    {
+      "id": "D15-M12",
+      "name": "revocation after admission preserves possible acceptance without restoring rights",
+      "passed": true,
+      "observed": {
+        "source_authority_restored": false,
+        "provider_acceptance_retained": true
+      }
+    },
+    {
+      "id": "D15-M13",
+      "name": "disconnect before admission blocks the exact prepared connection",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "connection/sender changed; no alternate route"
+      }
+    },
+    {
+      "id": "D15-M14",
+      "name": "disconnect after admission cannot erase a later acceptance fact",
+      "passed": true,
+      "observed": {
+        "connection_enabled": false,
+        "state": "accepted_for_processing"
+      }
+    },
+    {
+      "id": "D15-M15",
+      "name": "accepted remotely with lost response cannot be retried under a fresh key",
+      "passed": true,
+      "observed": {
+        "state": "unknown",
+        "submissions": 1,
+        "retry": "already admitted or terminal; no blind replay",
+        "new_occurrence": "cannot replace possibly submitted authorization"
+      }
+    },
+    {
+      "id": "D15-M16",
+      "name": "crash after admission before actual I/O remains uncertain without external proof",
+      "passed": true,
+      "observed": {
+        "actual_stub_submissions": 0,
+        "state": "unknown",
+        "blocked_reason": "already admitted or terminal; no blind replay",
+        "meaning": "model observer knows zero; recovering process lacks that proof"
+      }
+    },
+    {
+      "id": "D15-M17",
+      "name": "changing account or reply address cannot become fallback delivery",
+      "passed": true,
+      "observed": {
+        "account_change": "connection/sender changed; no alternate route",
+        "reply_change": "connection/sender changed; no alternate route"
+      }
+    },
+    {
+      "id": "D15-M18",
+      "name": "HTTP 202 records acceptance for processing, not delivery or exchange",
+      "passed": true,
+      "observed": {
+        "http": 202,
+        "state": "accepted_for_processing",
+        "delivery": "not_proved",
+        "provider_id": null,
+        "personal_exchange_created": false
+      }
+    },
+    {
+      "id": "D15-M19",
+      "name": "late proof does not widen private history audience or duplicate evidence",
+      "passed": true,
+      "observed": {
+        "history_audience_unchanged": true,
+        "duplicate_evidence_added": false
+      }
+    },
+    {
+      "id": "D15-M20",
+      "name": "body-free evidence contains no destination personalized content or raw payload",
+      "passed": true,
+      "observed": {
+        "evidence_fields": [
+          "authorization_id",
+          "evidence_id",
+          "kind",
+          "payload_digest",
+          "tenant"
+        ],
+        "content_present": false
+      }
+    },
+    {
+      "id": "D15-M21",
+      "name": "expired preparation cannot dispatch or be recreated by duplicate authorization",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "prepared material unavailable or expired",
+        "material_restored": false,
+        "deadline_units_are_synthetic": true
+      }
+    },
+    {
+      "id": "D15-M22",
+      "name": "body purge preserves unknown outcome and accepts body-free late proof",
+      "passed": true,
+      "observed": {
+        "material_restored": false,
+        "late_state": "accepted_for_processing",
+        "delivery": "not_proved"
+      }
+    },
+    {
+      "id": "D15-M23",
+      "name": "proof for another authorization cannot attach by shared address",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "proof belongs to another authorization"
+      }
+    },
+    {
+      "id": "D15-M24",
+      "name": "backup restore cannot assume the external world rolled back",
+      "passed": true,
+      "observed": {
+        "restored_state": "unknown",
+        "blocked_reason": "restore reconciliation gate",
+        "external_submissions": 1
+      }
+    },
+    {
+      "id": "D15-M25",
+      "name": "restore applies erasure and current audience before reads or dispatch",
+      "passed": true,
+      "observed": {
+        "expired_or_erased_material_restored": false,
+        "old_audience_restored": false
+      }
+    },
+    {
+      "id": "D15-M26",
+      "name": "unsafe blind retry counterexample creates duplicate external submissions",
+      "passed": true,
+      "observed": {
+        "unsafe_control": true,
+        "external_submissions": 2
+      }
+    },
+    {
+      "id": "D15-M27",
+      "name": "unsafe backup replay counterexample duplicates an already accepted send",
+      "passed": true,
+      "observed": {
+        "unsafe_control": true,
+        "external_submissions": 2,
+        "cause": "prepared backup treated as proof of never-submitted"
+      }
+    },
+    {
+      "id": "D15-M28",
+      "name": "late proof cannot overwrite an established exact provider identity",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "contradictory exact provider identity; quarantine evidence",
+        "original_correlation_retained": true,
+        "delivery": "not_proved"
+      }
+    }
+  ],
+  "assumptions": [
+    "toy actor/source/contact admission inputs",
+    "current connection/account facts supplied, no OAuth verification",
+    "one exact source authorization slot and complete local release",
+    "durable attempt admission precedes possible network I/O",
+    "provider deliberately has no deduplication guarantee",
+    "late acceptance is assumed verified exact-identity evidence",
+    "history audience is an assumed source projection, not a new ACL proposal",
+    "synthetic clock units select no retention duration"
+  ],
+  "not_proved": [
+    "real transactions, concurrency, crash durability or atomic audit",
+    "PostgreSQL, RLS, grants, Supabase Auth or APIs",
+    "provider behavior or OAuth",
+    "current source/contact/consent classification",
+    "real crypto or deletion",
+    "actual backup/restore lifecycle",
+    "exactly-once external delivery",
+    "complete P6 compiler or production shared writer",
+    "UI or production load"
+  ],
+  "cleanup": "No database, container, network, external effect or persistent service created. Only results JSON written."
+}

@@ -1,0 +1,178 @@
+{
+  "purpose": "Synthetic falsification of unsafe file interpretation shortcuts; not a production importer/security/capacity proof",
+  "runtime": "3.12.14",
+  "cases_passed": 34,
+  "cases_total": 34,
+  "outcomes": [
+    {
+      "name": "comma_split_is_not_csv",
+      "passed": true,
+      "observation": "Quoted comma-containing names and cities are two cells, not four."
+    },
+    {
+      "name": "physical_lines_are_not_records",
+      "passed": true,
+      "observation": "Physical line counting miscounts a multiline address."
+    },
+    {
+      "name": "embedded_quotes_roundtrip",
+      "passed": true,
+      "observation": "Doubled quote escaping must survive parsing."
+    },
+    {
+      "name": "bom_is_not_header_content",
+      "passed": true,
+      "observation": "A transport BOM must not become part of a mapping key."
+    },
+    {
+      "name": "semicolon_is_a_real_dialect",
+      "passed": true,
+      "observation": "The reviewed separator is part of the immutable interpretation."
+    },
+    {
+      "name": "tabs_are_a_real_dialect",
+      "passed": true,
+      "observation": "Tab-delimited exports need explicit supported dialect handling."
+    },
+    {
+      "name": "wrong_dialect_can_parse_without_error",
+      "passed": true,
+      "observation": "Syntactic parsing alone does not establish the correct delimiter."
+    },
+    {
+      "name": "empty_cell_is_not_empty_row",
+      "passed": true,
+      "observation": "An absent email and a wholly blank row are different outcomes."
+    },
+    {
+      "name": "dict_mapping_can_destroy_duplicate_columns",
+      "passed": true,
+      "observation": "Headers require ordinal identities; converting directly to a dictionary loses the first column."
+    },
+    {
+      "name": "ragged_rows_need_validation",
+      "passed": true,
+      "observation": "Parser success can leave unmapped extra cells."
+    },
+    {
+      "name": "broken_quotes_are_not_repaired_by_guess",
+      "passed": true,
+      "observation": "Malformed quoting requires a structural correction, not silent row reconstruction."
+    },
+    {
+      "name": "invalid_utf8_does_not_justify_replacement",
+      "passed": true,
+      "observation": "Replacement decoding destroys a supplied name while appearing successful."
+    },
+    {
+      "name": "legacy_encoding_requires_named_interpretation",
+      "passed": true,
+      "observation": "An explicitly selected supported encoding can preserve the source; detection is not proof."
+    },
+    {
+      "name": "leading_zero_identifier_is_text",
+      "passed": true,
+      "observation": "Numeric conversion destroys source identity and postal/phone formatting."
+    },
+    {
+      "name": "floating_point_is_not_identifier_storage",
+      "passed": true,
+      "observation": "Binary floating point loses a supplied 17-digit identifier; this is not a simulation of Excel."
+    },
+    {
+      "name": "title_case_is_not_name_cleanup",
+      "passed": true,
+      "observation": "Automatic title casing changes a valid supplied name."
+    },
+    {
+      "name": "full_name_does_not_imply_family_name",
+      "passed": true,
+      "observation": "A fixed first/last split cannot reconstruct international name structure."
+    },
+    {
+      "name": "plus_address_stripping_conflates_values",
+      "passed": true,
+      "observation": "Import transport must not invent provider-specific identity normalization."
+    },
+    {
+      "name": "csv_quoting_does_not_remove_formula_prefix",
+      "passed": true,
+      "observation": "Correct CSV escaping preserves the formula-looking text; spreadsheet execution is a separate risk."
+    },
+    {
+      "name": "plus_phone_is_not_an_attack_to_strip",
+      "passed": true,
+      "observation": "Security at export/render boundaries must not corrupt valid international phone text."
+    },
+    {
+      "name": "formula_cache_can_disagree_with_formula",
+      "passed": true,
+      "observation": "A parser can read an outdated/incorrect cached result; it cannot certify recalculation."
+    },
+    {
+      "name": "missing_cache_is_not_empty_contact_value",
+      "passed": true,
+      "observation": "No cached result is distinguishable from an intentionally empty string."
+    },
+    {
+      "name": "hidden_rows_remain_in_file",
+      "passed": true,
+      "observation": "Iterating XML cells ignores the user's visible-sheet view unless visibility is explicitly handled."
+    },
+    {
+      "name": "merged_cells_do_not_supply_repeated_facts",
+      "passed": true,
+      "observation": "A merged region does not authorize copying its value into every covered contact row."
+    },
+    {
+      "name": "declared_dimensions_are_not_observed_cell_count",
+      "passed": true,
+      "observation": "Sparse dimensions must not allocate the worksheet's maximum rectangular grid."
+    },
+    {
+      "name": "rich_text_runs_are_one_text_value",
+      "passed": true,
+      "observation": "Discarding later runs silently truncates a contact field."
+    },
+    {
+      "name": "explicit_text_output_has_no_formula_element",
+      "passed": true,
+      "observation": "Typed XLSX text is structurally distinct from a formula; no spreadsheet application was executed."
+    },
+    {
+      "name": "compressed_size_is_not_resource_size",
+      "passed": true,
+      "observation": "A small input can expand by more than 100x; enforce actual streamed expanded-byte budgets."
+    },
+    {
+      "name": "archive_paths_need_validation",
+      "passed": true,
+      "observation": "A ZIP member name is untrusted; the probe never extracts it."
+    },
+    {
+      "name": "duplicate_zip_parts_are_ambiguous",
+      "passed": true,
+      "observation": "Different consumers may select different package parts; reject duplicate normalized names."
+    },
+    {
+      "name": "xml_declaration_requires_explicit_guard",
+      "passed": true,
+      "observation": "Even a standard parser can expand an internal entity; production must prohibit DTD/entity processing."
+    },
+    {
+      "name": "populated_only_budget_misses_explicit_csv_empties",
+      "passed": true,
+      "observation": "A 507,904-byte CSV has zero populated cells but exceeds 500,000 explicit field slots; empty fields still consume parser work."
+    },
+    {
+      "name": "csv_record_width_needs_a_profile_bound",
+      "passed": true,
+      "observation": "A syntactically valid empty CSV row exceeds the proposed 16,384-field profile; parser success is not profile acceptance."
+    },
+    {
+      "name": "explicit_empty_xml_cells_differ_from_absent_sparse_coordinates",
+      "passed": true,
+      "observation": "Two explicit empty cell elements consume two slots; the enormous declared rectangular range is neither allocated nor counted as present cells."
+    }
+  ]
+}

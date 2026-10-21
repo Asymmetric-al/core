@@ -1120,3 +1120,13 @@ donation lifecycle, CRM, contribution operations, identity/access and workflow
 orchestration. Its active donor-money-path changes remain planning until their
 implementation is accepted; the parity program extends those existing owners
 without creating competing domains.
+
+## Phase 28 formal specification — 2026-10-18
+
+The [Missionary Workspace Depth & Support-Raising CRM specification](phase-28-missionary-workspace-depth.md)
+formalizes the full D1–D50 session and whole-journey amendments under the founder's
+explicit `/to-spec` instruction and confirmed existing testing seams. Its
+normative volumes, owner reconciliation and active OpenSpec projection govern the
+intended scope. The [feature entry](../../features/missionary-workspace-depth/README.md)
+routes the specification, research and publication record. This is specification
+publication, not feature implementation, live source qualification or activation.

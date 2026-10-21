@@ -1,0 +1,55 @@
+{
+  "fetched_at": "2026-10-16",
+  "purpose": "Primary PostgreSQL 17 mechanisms; no Core schema/producer or runtime qualification.",
+  "sources": [
+    {
+      "id": "rls",
+      "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "raw_sha256": "549fe56f4eedf6fba605c42d3b90522fb6fb431e55b64d16f4ff7e31f1ca80c0",
+      "local_text": "/tmp/phase28-d4-rls.txt",
+      "text_sha256": "8e09cd6e88a959aa4f812b7e84147b893dbcfae833fa5cf52d083f3bc50da04a",
+      "section": "5.9 Row Security Policies",
+      "inspected_points": [
+        "Policies restrict rows independently of the application working-state field. Superusers/BYPASSRLS and ordinarily table owners bypass policies.",
+        "Referential integrity checks bypass RLS and can create covert channels; an identity constraint is not permission to reveal a protected match.",
+        "Policy subqueries consulting mutable authorization rows can race; the documented locking discussion supports testing an explicit cooperating authority fence."
+      ]
+    },
+    {
+      "id": "transactions",
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "raw_sha256": "32a32972bb04a3d539cbbc89914ff80573023bd900a8710a03bda487feb03000",
+      "local_text": "/tmp/phase28-d4-transactions.txt",
+      "text_sha256": "457bf019a88dba9800363f44afe2ea21fb9ecc1a835c715b06165f401af84d12",
+      "section": "13.2.1 Read Committed Isolation Level",
+      "inspected_points": [
+        "An updater or SELECT FOR UPDATE/SHARE waits for a conflicting updater. After commit, its search condition is re-evaluated against the updated row.",
+        "The fixture uses explicit current authority/source locks and revision checks; the tests observe real waits rather than assuming an earlier read remains current."
+      ]
+    },
+    {
+      "id": "partial-indexes",
+      "url": "https://www.postgresql.org/docs/17/indexes-partial.html",
+      "raw_sha256": "7b008647d5adb8d2c444d8ded1f582c21e8740a7a2d6be3846784826439128c3",
+      "local_text": "/tmp/phase28-d4-partial-indexes.txt",
+      "text_sha256": "12bed57f9324fc67b96d07b1103f89081ddb6f0799608a5effa33533160dd77c",
+      "section": "11.8 Partial Indexes, Example 11.3",
+      "inspected_points": [
+        "A partial index contains only rows satisfying its predicate. A partial unique index constrains that subset without constraining the other rows.",
+        "A uniqueness predicate limited to active records can permit another canonical-key row while the original is archived."
+      ]
+    },
+    {
+      "id": "unique-indexes",
+      "url": "https://www.postgresql.org/docs/17/indexes-unique.html",
+      "raw_sha256": "feb485a733b0b3c0480b94305b6a3902535ecf59389c94529b58661a5f97c2e4",
+      "local_text": "/tmp/phase28-d4-unique-indexes.txt",
+      "text_sha256": "7ac231eb2916562d529485832f685667a17865ea49c2e1425e3eba96c0a5cdd9",
+      "section": "11.6 Unique Indexes",
+      "inspected_points": [
+        "A unique multicolumn index rejects rows only when all indexed columns compare equal. NULLs are distinct by default.",
+        "Fixture tenant/canonical_key columns are NOT NULL and constrained across both states. The key is a synthetic resolved identity, not email or a product matching rule."
+      ]
+    }
+  ]
+}

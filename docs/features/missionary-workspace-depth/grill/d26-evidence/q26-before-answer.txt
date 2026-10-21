@@ -1,0 +1,111 @@
+# Q26 frontier — selected next-step status in coaching
+
+Research date: **October 17, 2026 UTC**. **Awaiting founder answer.**
+D25's corrected decision and required amendments are explicitly ratified.
+Neither Q26 option is selected. This is a researched product choice, not a
+formal specification, new permission or implemented task-sharing service.
+
+## The one choice
+
+After a coaching conversation, Maya plans to **“Revise my support-raising
+introduction by Friday.”** She keeps that next step in her ordinary task list.
+Jordan would find it useful to know whether it is still planned, completed or
+rescheduled before their next conversation. This is an illustrative scenario,
+not a claim from an observed ministry interview.
+
+**Should Maya be able to share a selected next step's current due date and status
+with Jordan?**
+
+- **A — Optional sharing of selected next steps (recommended).** When the
+  organization permits it, Maya deliberately shares an eligible summary of a
+  selected task. Jordan sees its approved description, due date and current
+  status, read-only. Maya updates the ordinary task once; its permitted coaching
+  summary stays current.
+- **B — Describe next steps in check-ins.** Maya manages her ordinary tasks and
+  describes progress in the check-ins she chooses to share. Coaching includes no
+  linked task-status view in this release.
+
+**Recommendation: A.** It helps both people prepare without asking Maya to
+maintain a second checklist or repeatedly copy a task's status into prose.
+Creating a task does not share it. Jordan cannot assign, edit or complete work.
+New tasks and recipients are never added automatically, and supporter details,
+private notes and source-record links are not included merely because the task
+is selected.
+
+Both options preserve voluntary coaching, current access, separately shared
+written check-ins and normal task management. B keeps the complete qualitative
+job; it does not remove agreed-next-step context or introduce a manually maintained
+coaching task list.
+
+## Why this is genuinely unresolved
+
+| Governing source                                                                                                                                                                                    | Already settled                                                                                                               | The new choice                                                                                                                                                                                                                                                 |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Founder brief §10](phase28-founder-brief.md:225)                                                                                                                                                   | Separately chosen qualitative check-ins and agreed next actions belong in useful coaching; no compulsory method or reporting. | Whether the initial coaching view includes selected current task status, beyond authored next-step context.                                                                                                                                                    |
+| [Ratified D8](phase28-d8-adversarial-review.md:41), [dashboard](phase28-d8-adversarial-review.md:152)                                                                                               | Coaches prepare using permitted check-ins and agreed next steps, including dates/ownership where admitted.                    | [D8's reserved choices](phase28-d8-adversarial-review.md:71) and [C08](phase28-d8-adversarial-review.md:480) explicitly leave exact optional modules/history for selection. Q26 chooses a live task-summary module, not whether next steps may be read at all. |
+| [D8 C09–C11](phase28-d8-adversarial-review.md:487)                                                                                                                                                  | Coaches remain read-only; agreed next steps must not duplicate task truth.                                                    | Selecting a summary cannot create task assignment, comments, completion authority or a parallel coaching ledger.                                                                                                                                               |
+| [Ratified D25 C08](phase28-d25-check-in-questions-adversarial-review.md#d25-c08--no-unowned-secondary-effects)                                                                                      | Maya may write her account of an agreed next action. Prose does not itself create a task or independently prove coach assent. | An explicit current task summary is a separate disclosure, not an automatic consequence of an answer or a new type of mandatory check-in.                                                                                                                      |
+| [ADR0183](../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:24), [independent follow-up](../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:622)     | One source-owned task identity, permission-safe projections, and truthful independent completion.                             | If A is chosen, reuse the exact eligible task's facts rather than copying status to another writable record. Completing a task is not proof of a call, sent email, donor response or resolved linked source.                                                   |
+| [P9 task links](../../../prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md:812) and [P12](../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md:1599) | Record links grant no authority; current source, field and history restrictions apply.                                        | A needs a qualified minimal coaching projection, not broad access to underlying task/Party records or the missionary's entire queue.                                                                                                                           |
+
+The strongest alternative B is simpler: the already ratified written check-in
+provides personal context and preserves deliberate publication. Its cost is that
+the narrative may no longer describe the current task status; Maya may need to
+write another update. That is an honest authored account, not a bug requiring
+automatic narrative rewriting. A adds a small real source-projection/lifecycle
+obligation and earns it by avoiding duplicate maintenance.
+
+The generic roadmap “open decisions” is not a reason to repeat questions already
+answered about resources, maps, connections, imports, writing assistance,
+activity targets or questions. Direct recording of financial promises was also
+considered as another frontier, but [P16](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1209)
+already explicitly restricts missionaries to read/request actions. This question
+does not quietly reopen that financial-owner decision.
+
+## Fresh primary research and limits
+
+Public primary documentation was freshly read October 17, 2026. No authenticated
+product test or actual missionary/coach interview occurred. A recently retrieved
+page is not necessarily recently published.
+
+| Primary source                                                                                                                                                                      | Documented fact                                                                                                                 | What Core should and should not take from it                                                                                                                                                           |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [CoachAccountable client Actions](https://www.coachaccountable.com/clientKnowledgeBase/actions), **undated**; root retrieval turn284176view0, independent retrieval turn134035view0 | Describes self-created actions with a description and due date, edits, outstanding/completed work and cancellation.             | Supports a maintained action record distinct from prose. Do not import its coach assignments, reminders, comments or color-based performance judgments. The screenshot date is not a publication date. |
+| [MPDX Create, Edit, and Log Tasks](https://help.mpdx.org/article/180-create-edit-and-log-tasks), updated **February 18, 2021**; root turn284176view1, independent turn134035view1   | Separates planned tasks from logged completed work and permits task editing; contact association is described where applicable. | Supports clear planned-versus-completed meaning. It does not establish that coaches can read task records or that a task status proves delivery or a conversation in Core.                             |
+
+These are relevant pattern precedents, not proof that every ministry needs this
+module or that Asym's live authorization is implemented. Core's source and privacy
+contracts govern. A requires no new vendor, task engine or notification channel.
+
+## Consequences to review after the answer
+
+If A is selected, use a small **Next steps** area in the D8-defined coaching
+context and a clear deliberate sharing action on eligible native work. Show what
+the named coach will receive. Preserve one source of current due date/status.
+Keep the full missionary task list separate from the selected coaching view.
+
+The answer review must settle exact eligible task kinds and fields, safe summary
+wording, what happens when task wording/scope changes, current status and
+cancellation/reopen meaning, due-date/time-zone treatment, retention and removal,
+current access and replay races. A selected summary must not acquire private
+task descriptions, linked supporter identities or automatically changed narrative
+scope. “Nothing shared,” “unavailable” and “completed” must remain distinct.
+No extra task, manual shadow status, compulsory goal, activity credit or sending
+effect follows. Existing P12/ADR0211 controls govern actual policy widening;
+routine permitted task editing does not acquire a new approval step.
+
+If B is selected, ordinary task management and authored next-step context remain
+useful. Do not label narrative prose as a live task status or silently turn it
+into a duplicate checklist. The linked summary module is absent, not an endlessly
+loading or disabled promise in the coach UI.
+
+Current-source evidence from the [D25 bounded census](d25-evidence/current-check-in-source.md)
+is reused only within its original scope; it is not a new task-producer scan.
+ADR0183 itself identifies existing generic task surfaces as migration inputs.
+Neither an old task screen, a reference field nor a document establishes the
+new coach-summary service. No runtime, database, provider, browser or load test
+was needed or run to prepare this choice, and no prior probe was rerun.
+
+The founder's one-question-at-a-time instruction remains in force. Q26 is
+unanswered; this note does not select A, authorize a new module or broaden
+coach permissions before the answer and its review.

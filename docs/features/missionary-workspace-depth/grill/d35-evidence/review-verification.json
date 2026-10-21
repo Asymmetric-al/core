@@ -1,0 +1,37 @@
+{
+  "current_pins": 20,
+  "date": "2026-10-18",
+  "initial_model_snapshots": 4,
+  "limits": "Read-only structural and hash checks. This verifier executes no model, probe or previous verifier. No real source, SQL/RLS, concurrency, retention/restore, migration, performance, accessibility or usability qualification.",
+  "links": {
+    "anchors": 63,
+    "line_references": 88,
+    "local": 527,
+    "source_documents": 11
+  },
+  "preserved_artifacts": {
+    "D29": 20,
+    "D30": 19,
+    "D31": 19,
+    "D32": 25,
+    "D33": 23,
+    "D34": 20
+  },
+  "review": {
+    "acceptance_criteria": 40,
+    "categories": 22,
+    "clauses": 24,
+    "findings": 18
+  },
+  "scope": "D35 answer-review documentation only; amendments pending ratification",
+  "status": "passed",
+  "status_checks": [
+    "D34 remains ratified",
+    "Q35 answered A and tenant control requested",
+    "D35 amendments pending ratification",
+    "no Q36",
+    "session and glossary consistent",
+    "new model independent reproduction hashes match"
+  ],
+  "timezone": "Asia/Bangkok"
+}

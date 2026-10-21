@@ -1,0 +1,11 @@
+{
+  "scope": "Independent root rerun of finite design counterexamples; not SQL, RLS, HTTP, UI, capacity or runtime proof",
+  "passed": true,
+  "prior_result_sha256": "d4588fbbffa55e54773d7f55d1b0af42567f7634a69c94e97c9b790a66e09c9e",
+  "reproduced_result_sha256": "d4588fbbffa55e54773d7f55d1b0af42567f7634a69c94e97c9b790a66e09c9e",
+  "output": {
+    "passed": true,
+    "negative_counterexamples": 9,
+    "positive_controls": 3
+  }
+}

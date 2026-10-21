@@ -1564,9 +1564,19 @@ Constraints:
 
 #### `recurring_commitment_term_versions`
 
-Key columns: `id`, `tenant_id`, `legal_entity_id`, `recurring_commitment_id`, `version`, `designation_id`, `amount_minor`, `currency`, `cadence_code`, `collection_arrangement` (`provider_automatic|manual_external`), `optional_final_eligible_date`, `recurring_policy_version_id`, `site_id`, nullable `source_code_id`, `entry_method`, `captured_locale`, `source_code_snapshot_hash`, `fee_cover_election`, `fee_cover_policy_version_id`, `fee_cover_terms_snapshot_hash`, `effective_from_occurrence_date`, nullable `effective_to_occurrence_date`, `supersedes_term_version_id`, `created_by_command_id`, `created_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `recurring_commitment_id`, `version`, `designation_id`, `amount_minor`, `currency`, `cadence_code`, `collection_arrangement` (`provider_automatic|manual_external`), `optional_final_eligible_date`, `recurring_policy_version_id`, `site_id`, nullable `source_code_id`, `entry_method`, `captured_locale`, `source_code_snapshot_hash`, `campaign_origin_kind` (`campaign|known_absent|legacy_unknown`), nullable `campaign_id`, `fee_cover_election`, `fee_cover_policy_version_id`, `fee_cover_terms_snapshot_hash`, `effective_from_occurrence_date`, nullable `effective_to_occurrence_date`, `supersedes_term_version_id`, `created_by_command_id`, `created_at`.
 
-Unique `(tenant_id, legal_entity_id, recurring_commitment_id, version)` and one effective version per line/date. Amount is positive; currency and cadence use closed validated vocabularies. Composite same-Tenant/same-Legal-Entity FKs bind the line, designation, site, source code, policy, and command; the designation must belong to the same Legal Entity. The source-code snapshot remains frozen even after retirement, campaign attribution continues to derive through that source code rather than a second mutable campaign field, and the fee-cover election/policy is re-evaluated for the actual rail on every occurrence without silently changing donor terms. Amount, destination, cadence, arrangement, end boundary, attribution, or fee-cover changes append a prospective version; no historical revision is overwritten.
+The campaign-origin CHECK requires `campaign_id NOT NULL` exactly when
+`campaign_origin_kind = campaign`; both `known_absent` and `legacy_unknown`
+require it to be null. A composite `(tenant_id, campaign_id)` FK binds a known
+campaign to its owning source identity, with the source eligibility for the
+line's Legal Entity checked at acceptance. `known_absent` is an accepted source
+fact, never a default for missing legacy evidence. `legacy_unknown` remains
+explicitly unknown and cannot be reconstructed through the mutable source-code
+registry. The tuple is immutable with the term version; only a deliberate
+authorized prospective attribution amendment can establish a successor.
+
+Unique `(tenant_id, legal_entity_id, recurring_commitment_id, version)` and one effective version per line/date. Amount is positive; currency and cadence use closed validated vocabularies. Composite same-Tenant/same-Legal-Entity FKs bind the line, designation, site, source code, policy, and command; the designation must belong to the same Legal Entity. The source-code snapshot and accepted campaign association, including known absence, survive retirement and ordinary source-code remapping. Campaign meaning is retained at the stable line/term-version grain through an immutable source-owned representation, never a live registry join or second mutable financial authority. Amount, destination, cadence, arrangement, end boundary and fee-cover changes preserve that attribution unless the command also explicitly accepts an authorized prospective attribution amendment. A campaign-only amendment preserves a source code that remains correct. Applicable source eligibility, current actor authority and effective boundary are revalidated; an amount edit cannot silently imply attribution consent. The fee-cover election/policy is re-evaluated for the actual rail without silently changing donor terms. Versions remain prospective and historical revisions are never overwritten. Phase 28 D50 / [OA-09](phase-28-missionary-workspace-depth/owner-reconciliation.md#oa-09) narrows only campaign-origin semantics, without changing stable line identity, schedule or money ownership.
 
 #### `recurring_billing_cohorts`
 
@@ -1618,9 +1628,18 @@ Indexes: due claim `(tenant_id, execution_state, resolved_window_start, id)`; re
 
 #### `recurring_occurrence_lines`
 
-Immutable snapshot rows: `id`, `tenant_id`, `legal_entity_id`, `occurrence_id`, `recurring_commitment_id`, `line_term_version_id`, `designation_id`, `amount_minor`, `currency`, `site_id`, nullable `source_code_id`, `entry_method`, `captured_locale`, `source_code_snapshot_hash`, `fee_cover_election`, `fee_cover_policy_version_id`, `fee_cover_terms_snapshot_hash`, `fulfillment_target_id`.
+Immutable snapshot rows: `id`, `tenant_id`, `legal_entity_id`, `occurrence_id`, `recurring_commitment_id`, `line_term_version_id`, `designation_id`, `amount_minor`, `currency`, `site_id`, nullable `source_code_id`, `entry_method`, `captured_locale`, `source_code_snapshot_hash`, `campaign_origin_kind` (`campaign|known_absent|legacy_unknown`), nullable `campaign_id`, `fee_cover_election`, `fee_cover_policy_version_id`, `fee_cover_terms_snapshot_hash`, `fulfillment_target_id`.
 
-Unique `(tenant_id, occurrence_id, recurring_commitment_id)`. Sum of line amounts must equal cohort occurrence amount, enforced by the occurrence creation command and reconciliation, not only a CHECK. A shared-cohort attempt outcome applies to every snapshotted line; role projections filter lines before aggregation. Contribution generation copies the frozen site/entry/source/designation/locale attribution from these rows and recomputes the accepted fee-cover election for the actual rail under the pinned policy; it never re-reads mutable checkout attribution.
+Occurrence creation copies `campaign_origin_kind` and `campaign_id` exactly
+from the referenced immutable term version, preserving the same discriminator
+CHECK and same-Tenant campaign FK. The qualified creation command and database
+guard prove that the occurrence tuple matches that exact line/term revision;
+contribution generation copies this tuple rather than resolving a live mapping.
+Known absence and unknown legacy origin remain distinguishable through replay,
+retry, retirement and later source-code remapping. Neither ordinary amount
+edits nor matching an independently captured gift replaces the tuple.
+
+Unique `(tenant_id, occurrence_id, recurring_commitment_id)`. Sum of line amounts must equal cohort occurrence amount, enforced by the occurrence creation command and reconciliation, not only a CHECK. A shared-cohort attempt outcome applies to every snapshotted line; role projections filter lines before aggregation. Contribution generation copies the frozen site/entry/source/campaign/designation/locale attribution from these rows and recomputes the accepted fee-cover election for the actual rail under the pinned policy; it never re-reads mutable checkout attribution or current source-code campaign mapping. Accepted/claimed/in-flight occurrences and retry outcomes retain their original snapshot. The existing qualified supersession mechanism may replace unclaimed future work for an explicit prospective amendment; it cannot produce a duplicate occurrence or rewrite accepted effects. Independently captured financial gifts retain their own source attribution when matched to manual or other fulfillment: matching changes coverage only. Pause/resume preserves the continuing line; a genuine Restart uses the existing fresh-intent path. Code retirement or campaign closure does not rewrite origin or silently cancel otherwise authorized giving; new attribution selection remains subject to the source's current eligibility policy.
 
 #### `recurring_collection_attempts`
 

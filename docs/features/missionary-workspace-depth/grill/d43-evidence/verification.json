@@ -1,0 +1,312 @@
+{
+  "generated_at_utc": "2026-10-18T14:03:42.821061+00:00",
+  "scope": "Fresh D43 documentary verification only; no prior program/model executed or imported.",
+  "all_checks_pass": true,
+  "check_count": 21,
+  "checks": [
+    {
+      "name": "Recursive explicit SHA-256 manifests preserve frozen bytes",
+      "pass": true,
+      "detail": {
+        "explicit_manifests": 46,
+        "direct_entries": 32,
+        "distinct_frozen_files": 475,
+        "hash_comparisons": 823,
+        "opaque_historical_artifact_pins": 14,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Exactly C01-C15",
+      "pass": true,
+      "detail": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15"
+      ]
+    },
+    {
+      "name": "Exactly P01-P30",
+      "pass": true,
+      "detail": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P14",
+        "P15",
+        "P16",
+        "P17",
+        "P18",
+        "P19",
+        "P20",
+        "P21",
+        "P22",
+        "P23",
+        "P24",
+        "P25",
+        "P26",
+        "P27",
+        "P28",
+        "P29",
+        "P30"
+      ]
+    },
+    {
+      "name": "Exactly F01-F10",
+      "pass": true,
+      "detail": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F05",
+        "F06",
+        "F07",
+        "F08",
+        "F09",
+        "F10"
+      ]
+    },
+    {
+      "name": "All 22 unique requested categories",
+      "pass": true,
+      "detail": [
+        "Problem validity, necessity, and alternatives",
+        "Brittleness",
+        "Technical debt",
+        "Edge cases",
+        "Footguns",
+        "Tenant safety",
+        "Database, RLS, and authorization safety",
+        "Overengineering",
+        "UX/UI and user friction",
+        "Source of truth, ownership, and domain invariants",
+        "Hidden coupling",
+        "Failure modes",
+        "Lifecycle, temporal correctness, concurrency, and idempotency",
+        "Data integrity risks",
+        "Security and privacy risks",
+        "Scalability and performance risks",
+        "Operational burden",
+        "Observability and auditability gaps",
+        "Dependency and integration risks",
+        "Migration, rollout, and upgrade risks",
+        "Testability, traceability, and proof",
+        "Other development hazards"
+      ]
+    },
+    {
+      "name": "Every category explicitly says Yes or No",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Selected A without detailed ratification",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "No numeric 72/24-hour policy adopted",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Documentation not implementation/formal publication",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase28-d42-verified-email-newsletter-signup-adversarial-review C01-C24 unchanged modulo whitespace",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "phase28-completeness-adversarial-review C01-C20 unchanged modulo whitespace",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "CONTEXT retains all original bytes with the exact signup-entry paragraph insertion",
+      "pass": true,
+      "detail": {
+        "changes": [
+          [
+            "insert",
+            2255,
+            2255,
+            2255,
+            2259
+          ]
+        ],
+        "inserted_text": "Hiding it stops new requests through that entry. An already accepted request\nmay still be confirmed before its original deadline while current newsletter\nand recipient rules permit it; hiding or showing the entry does not renew that\nrequest.\n"
+      }
+    },
+    {
+      "name": "Q43 current question records selected A",
+      "pass": true,
+      "detail": [
+        "# Phase 28 Q43 \u2014 finishing a signup after the Page entry is hidden",
+        "research working tree. **Q43 answered A.** The [D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)",
+        "**Q43 \u2014 When Maya turns off \u201cShow newsletter signup on this page,\u201d what should",
+        "The [completed D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)"
+      ]
+    },
+    {
+      "name": "Session contains current D43 answered-Q43 review row",
+      "pass": true,
+      "detail": [
+        "| D43 (answered Q43) | A selected; completed review, detailed amendments not yet separately ratified | [D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md): accepted pending requests may finish after Page-entry Off before their original deadline and under current rules; independent protected action, explicit narrow tenant-disable semantics and no extra pending-mode setting. |",
+        "| Remaining approval and owner gates | Prior empty-frontier conclusion superseded by the completeness review | D1/D3/D6/D11\u2013D13 retain selected/reviewed amendment status. E7 and C-01 remain upstream policy rulings. Completeness C04/C05 are explicitly ratified and require formal owner reconciliation, not another policy question. D42 and its required amendments are explicitly ratified; Q43 is answered A with completed D43 review; its detailed amendments are not yet separately ratified, and finite timing/retention remains separate. First-use/context/daily-loop composition and actual source/provider/migration/UI/user proof remain required. See the [completeness review](phase28-completeness-adversarial-review.md). |",
+        "explicitly ratified; Q43 addresses pending confirmation after Page-entry Off,",
+        "[Q43 \u2014 finishing pending signup after the Page entry is hidden](phase28-q43-pending-newsletter-confirmation-research.md)",
+        "is now answered **A**. The [D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)",
+        "GitHub state or external communication changed. No Q43 is posed in this review;",
+        "### Q43 frontier \u2014 finishing pending signup after the Page entry is hidden",
+        "[Q43](phase28-q43-pending-newsletter-confirmation-research.md): whether an already",
+        "72-hour/24-hour proposals are not adopted. Q43 is unanswered; no D43 is recorded.",
+        "### D43 answer and completed adversarial review",
+        "stop. The [completed D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)",
+        "All prior D42 evidence and six pre-D43 documents are"
+      ]
+    },
+    {
+      "name": "phase28-post-d41-coverage-synthesis has current D43 continuation reference",
+      "pass": true,
+      "detail": [
+        "explicitly ratified. Q43 is now answered A; the",
+        "[D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)",
+        "branch. [Q43](phase28-q43-pending-newsletter-confirmation-research.md) is now",
+        "answered A, with the [D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)",
+        "retained selected/reviewed status.** Later D42 ratification and D43's selected A",
+        "[Q43](phase28-q43-pending-newsletter-confirmation-research.md) asks whether already",
+        "or D43 answer is inferred.",
+        "checks unchanged requirements, current ratification and Q43 framing. The earlier"
+      ]
+    },
+    {
+      "name": "phase28-completeness-adversarial-review has current D43 continuation reference",
+      "pass": true,
+      "detail": [
+        "Q43 is now answered A; the [D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)",
+        "checks the subsequent ratification and Q43 frontier. No earlier verifier,"
+      ]
+    },
+    {
+      "name": "phase28-d42-verified-email-newsletter-signup-adversarial-review has current D43 continuation reference",
+      "pass": true,
+      "detail": [
+        "[Q43 \u2014 pending confirmation when signup is hidden](phase28-q43-pending-newsletter-confirmation-research.md).",
+        "[D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)",
+        "SHALL remain visible unresolved choices. No Q43 answer, blanket D6 adoption,",
+        "declared closed. No Q43 was asked in the original answer review; the subsequent",
+        "ratified continuation prepared Q43. Its subsequent A answer and completed",
+        "[D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)"
+      ]
+    },
+    {
+      "name": "Recorded new model source hash matches bytes; model not executed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Recorded model results are 44 passing checks and six naive counterexamples",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "All current local Markdown links, line bounds, and heading anchors",
+      "pass": true,
+      "detail": {
+        "documents": 12,
+        "local_targets": 648,
+        "line_bounds": 52,
+        "heading_anchors": 79,
+        "external_targets_not_fetched": 41,
+        "failures": []
+      }
+    },
+    {
+      "name": "Tracked changes contain no app/schema/formal spec changes",
+      "pass": true,
+      "detail": [
+        "CONTEXT.md"
+      ]
+    }
+  ],
+  "errors": [],
+  "preservation": {
+    "explicit_manifests": 46,
+    "direct_entries": 32,
+    "distinct_frozen_files": 475,
+    "hash_comparisons": 823,
+    "opaque_historical_artifact_pins": 14,
+    "mismatches": []
+  },
+  "links": {
+    "documents": 12,
+    "local_targets": 648,
+    "line_bounds": 52,
+    "heading_anchors": 79,
+    "external_targets_not_fetched": 41,
+    "failures": []
+  },
+  "counts": {
+    "clauses": 15,
+    "proof_rows": 30,
+    "findings": 10,
+    "categories": 22,
+    "category_verdicts": {
+      "Yes": 21,
+      "No": 1
+    },
+    "recorded_model_checks": 44
+  },
+  "current_file_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d43-pending-newsletter-confirmation-adversarial-review.md": "1f5990766afe698fddb568d86dc9c2b6c0a760972d2061549d1e822555d829b7",
+    "docs/features/missionary-workspace-depth/grill/phase28-q43-pending-newsletter-confirmation-research.md": "f38f0f0190c995b22511ba1a6eae883ce8dfb534927a21c2f94505d103ecb42b",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "ebdab77f2318642128b82b92b2b7b55f44202b834d770208705611c5892f003f",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md": "07cc846c98678630df7f4a8128ba7b874ca1694c5aa89bb7f7fdceddddfa25ca",
+    "docs/features/missionary-workspace-depth/grill/phase28-completeness-adversarial-review.md": "378476e9666d464f19abf7e9f485155e5db2397d316562b159171bed1e0d0d16",
+    "docs/features/missionary-workspace-depth/grill/phase28-d42-verified-email-newsletter-signup-adversarial-review.md": "3faa47179499da96ff73a31307daa49aad059559f537d372b0b9067984f9a1b6",
+    "CONTEXT.md": "32bab1136dc5f999943e57753b1ac4d1c96a132b80ce4d86e18c18cb2e46aa82",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/source-authorization.md": "12a5283a339d5d8d438642031913d6359c7da7490da61ea2fa769348c4d59f8d",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/owner-reconciliation.md": "511507340d16252b0fb3b3e9714aa67012ddb7047667fa2741a8677de8fb6d20",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/ux-research.md": "f44e26a55e8b1e04388a5e1c1663007d5117d9c5cbc71f65d0f9e05323b9bacb",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/independent-review.md": "3b4adefe7c54370169f06eb74c584fe1dc194badc12f078f243fada97b7e992c",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/behavior-model.md": "1627d8db7c9f7aec34ef905ebb04ce13f0b2c982fc803ab2fc57d88043c7d6c3",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/prior-evidence-sha256.json": "08414d73f34adcb74bdc7b98b06942174b454bad51c39d08f641da5b27ce6c9d",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/results.json": "fb48bafa3cdefd941bd2b4d5e5bcddb506ac537e3db3730598fbc89c87eb39ad",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/behavior-model.py": "9e74e472592af462ed344ea20743db192c89ec0b73c9bade21f5048f0a3d9517",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/verify-d43.py": "88acb32f40a148d45ac7ccdabc989e02fa7e1e25d9c42873c39e8ef88fa83bdb"
+  },
+  "limits": [
+    "Reads prior *sha256.json manifests as data only; artifact-pins.json is preserved as opaque bytes, not a current mutable-document assertion.",
+    "Compares normative clauses modulo whitespace; CONTEXT preservation is byte-sensitive outside its recorded insertion.",
+    "All local Markdown destinations in the selected current documents are checked; external URLs are not fetched and rendered UI is not tested.",
+    "Recorded model JSON and source hash are checked without executing the model; finite model results do not prove database/authorization/concurrency behavior.",
+    "No live configuration, database/RLS, Auth, token, browser, provider, migration, performance, or user test was performed.",
+    "Tracked-diff scope is reported against HEAD; existing untracked research cannot be attributed to this checker. This checker only writes verification.json."
+  ]
+}

@@ -1,0 +1,291 @@
+{
+  "scope": "Synthetic semantic counterexamples only; no Core/parser/database/source-policy/provider/UI qualification",
+  "python": "3.12.14",
+  "case_count": 25,
+  "reproduced": 25,
+  "cases": [
+    {
+      "id": "A01",
+      "shortcut": "Multiply a binary major-unit float by 100 and truncate",
+      "observation": {
+        "decimal_input": "0.29",
+        "exact_minor": 29,
+        "naive_minor": 28
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A02",
+      "shortcut": "Every currency uses two decimals",
+      "observation": {
+        "JPY_major": "500",
+        "canonical_minor": 500,
+        "hardcoded_times100": 50000
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A03",
+      "shortcut": "Two-decimal normalization preserves a three-decimal threshold",
+      "observation": {
+        "BHD_input": "1.001",
+        "canonical_minor": 1001,
+        "incorrect_two_decimal_minor": 100
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A04",
+      "shortcut": "Rounding excess precision accepts the amount the administrator entered",
+      "observation": {
+        "USD_input": "1.005",
+        "rounded_input": "1.01"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A05",
+      "shortcut": "Distinct large integers remain distinct after binary64 conversion",
+      "observation": {
+        "exact_a": "9007199254740992",
+        "exact_b": "9007199254740993",
+        "converted_equal": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A06",
+      "shortcut": "Strip or replace punctuation without a declared locale",
+      "observation": {
+        "input": "1,000",
+        "possible_values": ["1000", "1.000"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A07",
+      "shortcut": "Greater than is interchangeable with at least",
+      "observation": {
+        "gift_minor": 50000,
+        "threshold_minor": 50000,
+        "strict_result": false,
+        "inclusive_result": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A08",
+      "shortcut": "Zero can mean Off and also remain an ordinary numeric rule",
+      "observation": {
+        "threshold": 0,
+        "zero_meets_rule": true,
+        "positive_meets_rule": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A09",
+      "shortcut": "A currency exponent lookup proves its source profile is enabled",
+      "observation": {
+        "metadata_exists": true,
+        "qualified_profile": false
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A10",
+      "shortcut": "The contribution header amount is every ministry's relevant amount",
+      "observation": {
+        "header": 70000,
+        "subject_allocation": 20000,
+        "threshold": 50000,
+        "header_matches": true,
+        "subject_matches": false
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A11",
+      "shortcut": "Test each physical line separately instead of the owner's same-gift subject amount",
+      "observation": {
+        "line_amounts": [30000, 25000],
+        "threshold": 50000,
+        "any_line_matches": false,
+        "qualified_subject_amount_matches": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A12",
+      "shortcut": "Sum grouped follow-up gifts before qualifying each gift",
+      "observation": {
+        "separate_gifts": [30000, 25000],
+        "threshold": 50000,
+        "group_matches": true,
+        "any_individual_matches": false
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A13",
+      "shortcut": "Fee cover belongs in ministry support for the amount rule",
+      "observation": {
+        "support": 49500,
+        "fee_cover": 500,
+        "threshold": 50000,
+        "including_fee_matches": true,
+        "support_only_matches": false
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A14",
+      "shortcut": "After-assessment amount is interchangeable with received allocated support",
+      "observation": {
+        "support": 51000,
+        "assessment": 3000,
+        "threshold": 50000,
+        "before_matches": true,
+        "after_matches": false
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A15",
+      "shortcut": "Add legal money and recognition of that same support",
+      "observation": {
+        "same_support_legal": 50000,
+        "same_support_recognized": 50000,
+        "incorrect_added_amount": 100000,
+        "threshold": 75000
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A16",
+      "shortcut": "The original posted amount is enough after a refund",
+      "observation": {
+        "original": 60000,
+        "effective": 45000,
+        "threshold": 50000,
+        "original_matches": true,
+        "effective_matches": false
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A17",
+      "shortcut": "An unchanged header total means the ministry amount did not change",
+      "observation": {
+        "same_header_total": true,
+        "A_matched_before": true,
+        "A_matches_after": false
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A18",
+      "shortcut": "Use whichever policy is current when a delayed worker runs",
+      "observation": {
+        "gift": 15000,
+        "original_policy_result": true,
+        "worker_time_policy_result": false
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A19",
+      "shortcut": "Lowering a rule turns an old unqualified gift into a new live occurrence",
+      "observation": {
+        "same_historical_gift": 5000,
+        "old_match": false,
+        "new_match": true,
+        "new_gift_count": 0
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A20",
+      "shortcut": "No task row means no accepted work when the rule is switched Off",
+      "observation": [
+        {
+          "task_row_exists": false,
+          "committed_reason_and_intent": true
+        },
+        {
+          "task_row_exists": false,
+          "committed_reason_and_intent": false
+        }
+      ],
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A21",
+      "shortcut": "An On boolean alone permits every old held candidate after re-enable",
+      "observation": [
+        {
+          "on_now": true,
+          "captured_generation": "old_ended"
+        },
+        {
+          "on_now": true,
+          "captured_generation": "current"
+        }
+      ],
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A22",
+      "shortcut": "Losing the amount reason withdraws the whole gift-purpose member",
+      "observation": {
+        "before": ["amount", "qualified_special"],
+        "after": ["qualified_special"],
+        "other_qualified_reason_remains": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A23",
+      "shortcut": "Reason or rule revision belongs in the complete task-effect identity",
+      "observation": {
+        "reason_revision_keys": 2,
+        "gift_purpose_keys": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A24",
+      "shortcut": "Same gift ID lets a D20 review complete after an amount correction",
+      "observation": {
+        "reviewed": {
+          "gift": "gift1",
+          "amount": 60000,
+          "source_revision": 1
+        },
+        "current": {
+          "gift": "gift1",
+          "amount": 45000,
+          "source_revision": 2
+        }
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "A25",
+      "shortcut": "Off may treat source repair and never-admitted work identically",
+      "observation": [
+        {
+          "currently_active": false,
+          "prior_accepted_intent": true,
+          "cause": "source_invalidated_then_genuinely_restored"
+        },
+        {
+          "currently_active": false,
+          "prior_accepted_intent": false,
+          "cause": "never_admitted_hold"
+        }
+      ],
+      "counterexample_reproduced": true
+    }
+  ]
+}

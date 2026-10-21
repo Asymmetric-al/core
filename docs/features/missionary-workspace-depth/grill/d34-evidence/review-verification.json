@@ -1,0 +1,40 @@
+{
+  "current_pinned_artifacts": 15,
+  "date": "2026-10-18",
+  "frozen_model_artifacts": 4,
+  "limits": "No real source, SQL/RLS, timing uniformity, locks/concurrency, browser, retention/restore, migration, production performance, accessibility or usability qualification. No earlier model/probe/verifier executed.",
+  "links": {
+    "anchors": 53,
+    "line_references": 97,
+    "local": 512,
+    "source_documents": 11
+  },
+  "model": {
+    "counterexample_families": 13,
+    "passed_outcome_assertions": 68,
+    "positive_controls": 4
+  },
+  "preserved_prior_artifacts": {
+    "D29": 20,
+    "D30": 19,
+    "D31": 19,
+    "D32": 25,
+    "D33": 23
+  },
+  "review": {
+    "categories": 22,
+    "clauses": 24,
+    "findings": 18,
+    "proofs": 36
+  },
+  "root_reproduction": "recorded byte-identical execution of new D34 model only; verifier executes no model",
+  "scope": "D34 research structure, status, local references, finite model provenance and preserved evidence only",
+  "status": "passed",
+  "status_checks": [
+    "Q34 answered A",
+    "D34 amendments awaiting ratification",
+    "D33 remains ratified",
+    "no Q35 posed",
+    "conceptual glossary and session coherent"
+  ]
+}

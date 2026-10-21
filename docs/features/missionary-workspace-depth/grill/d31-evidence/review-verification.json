@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-18",
+  "limits": "Structural/research evidence only. No SQL/RLS, actual financial source, runtime concurrency, provider, migration, performance, accessibility or usability proof. No earlier model/probe/verifier executed.",
+  "links": {
+    "anchors": 48,
+    "line_references": 86,
+    "local": 446,
+    "source_documents": 10
+  },
+  "model": {
+    "counterexample_families": 14,
+    "passed_outcome_assertions": 88,
+    "positive_controls": 5
+  },
+  "preserved_artifacts": {
+    "D29": 20,
+    "D30": 19,
+    "current_D31_pins": 13
+  },
+  "review": {
+    "acceptance_criteria": 32,
+    "categories": 22,
+    "clauses": 24,
+    "findings": 18
+  },
+  "root_reproduction": "byte-identical earlier execution recorded; no model executed by this verifier",
+  "scope": "D31 research documentation, status, evidence hashes and links; read-only verifier",
+  "status": "passed",
+  "status_checks": [
+    "Q31 answered A",
+    "D31 amendments await explicit ratification",
+    "D30 remains ratified",
+    "original Q31 preserved",
+    "no Q32 posed",
+    "conceptual glossary updated"
+  ]
+}

@@ -1,0 +1,117 @@
+# Q39 — when a referral's initial follow-up period begins
+
+Researched October 18, 2026 against repository
+`9cada8f3d8ab59db391d3fd20df77fcadeb09813` and its research working tree.
+[D38 and its amendments are explicitly ratified](phase28-d38-separate-referral-periods-adversarial-review.md#explicit-ratification).
+**Q39 is answered A.** On October 18, 2026 the founder selected the original
+referral event and subsequently selected calendar-date deadlines for all New
+referrals, showing the last day to follow up. The
+[D39 review](phase28-d39-original-referral-clock-adversarial-review.md) returns
+**Accept with required amendments**; its exact corrected wording and required
+amendments were **explicitly ratified on October 18, 2026 (Asia/Bangkok)**. Continued timing is unchanged.
+This remains under the [founder research boundary](phase28-founder-brief.md:21),
+not an implemented source or formal specification. The original unanswered
+research is preserved in [the pre-answer snapshot](d39-evidence/q39-before-answer.txt).
+
+## The original question, now answered A
+
+Maya records a referral she received several days earlier. Its original date is
+known, and it has no previously accepted follow-up window.
+
+**When should its initial follow-up period begin?**
+
+- **A — From when the referral was originally given to Maya (recommended).**
+  Recording it later does not give it a fresh period. If the window has already
+  ended, continuing requires the ordinary authorized continuation action.
+- **B — From deliberately starting follow-up in Asym.** The full initial period
+  begins when Maya or authorized staff deliberately admits the referral to
+  active work. Its original referral date remains in its history; importing or
+  merely recording it does not start the period.
+
+The scenario deliberately excludes a previously accepted window. Its end date
+and policy evidence must be preserved under **both** options, including when
+imported. Missing evidence about a possible previous window is not proof that a
+fresh window is available. “Originally given to Maya” means the referral event
+for this lineage, not when the referrer first met the person. Reassignment is not
+automatically a new referral or a clock reset.
+
+## Recommendation and strongest alternative
+
+Recommend A as a product judgment: the initial window stays tied to the referral
+event rather than data-entry timing. The existing deliberate continuation action
+already offers the governed route when a window has ended. This is not a claim
+that an old referral is unsuitable, that late entry is misconduct, or that a
+deadline measures missionary performance. Current source/contact rules still
+decide whether further work is eligible.
+
+B is a real alternative. It gives the missionary a full working period when
+initial work is deliberately accepted, which may be useful for a delayed
+handoff or offline preparation. It need not add a second UI step: the explicit
+effect could be part of an existing qualified admission action. However, the
+chosen admission time would control the first deadline for old referrals with
+no earlier window. B therefore makes the window chiefly an allocated work
+period, rather than elapsed time since the original referral. Neither meaning
+is established as a universal ministry norm by the inspected sources.
+
+Independent governance and UX reviewers challenged both recommendations. The
+UX reviewer initially favored deliberate admission for a full usable window;
+after comparing it with D35's existing continuation path and the possibility of
+delaying initial admission, both reviewers preferred A for this question. This
+is reasoned document review, not user research or a measured usability result.
+
+## Repository evidence and scope
+
+| Source                                                                                                                                                                                                                | What is settled                                                                                                                                                          | What remains open                                                                                                                                       |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [D38 exact decision](phase28-d38-separate-referral-periods-adversarial-review.md#exact-corrected-decision-to-record), [C05/G1](phase28-d38-separate-referral-periods-adversarial-review.md#exact-required-amendments) | Independent New/Continued durations, prospective edits, no implicit recording/import start. Initial anchor and late-entry meaning explicitly require a product decision. | The event anchoring the first period; that is Q39. Ratification does not answer it.                                                                     |
+| [D36 timing/history](phase28-d36-configured-referral-period-adversarial-review.md#exact-required-amendments)                                                                                                          | Continued window begins at qualified authoritative acceptance; existing accepted start/end/duration/evidence cannot be recomputed from today's settings.                 | D36 explicitly excluded the initial clock. Q39 does not reopen continued timing.                                                                        |
+| [D35 continuation](phase28-d35-referral-continuation-adversarial-review.md#exact-corrected-decision-to-record)                                                                                                        | A deliberate authorized successor consumes an eligible expired cycle once; self-service Off remains separate from staff grants.                                          | A late first record may expose an already-ended initial window under A; it must not bypass the source's eligibility or required continuation authority. |
+| [D34 history](phase28-d34-expired-referral-history-adversarial-review.md#exact-corrected-decision-to-record)                                                                                                          | Expired is a referral-window state with limited permitted history; it is not refusal, erased data or contact authority.                                                  | Neither option grants new disclosure simply because a date is calculable.                                                                               |
+| [P9 relationship owner](../../../prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md:353), [P28 referral owner](../../../prds/program-roadmap/owner-constraints.md:81)                              | Native tenant-scoped referral edge/provenance and expiry; source ownership cannot move into a UI, import timestamp or second CRM.                                        | Neither inspected clause selects the initial anchor or a universal duration.                                                                            |
+| [Current/intended distinction](../../../../openspec/project.md:6), [D38 source review](d38-evidence/authorization-and-time.md)                                                                                        | Documented intent, bounded static code evidence and actual qualification are distinct.                                                                                   | No implemented/qualified initial-window producer is claimed by this question.                                                                           |
+
+This is an expressly unresolved branch, not a repeated configuration question.
+The already-ratified two duration values and actor controls remain unchanged.
+No new tenant-selectable clock mode or per-referral date override is proposed.
+
+## Fresh primary comparisons
+
+The root and UX researcher opened the following official pages on October 18, 2026. Publisher dates are separate from retrieval. The products were not tested
+through authenticated accounts. Microsoft is a comparison for explicit event
+semantics; its sales opportunity lifecycle is not Core's ministry model.
+
+| Source and publication/update date                                                                                                                              | Documented fact                                                                                                            | Consequence and limit                                                                                                                                                                          |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [TntConnect — TNT Phase](https://www.tntware.com/tntconnect/help/en/pages/contacts_mpdphase.aspx), undated manual                                               | Expired Referral describes a reasonable contact window having passed and suggests checking with the referrer when helpful. | Supports explaining the age of the referral. It gives no numeric duration, start event or automated expiry formula. Its fixed phases and suggested check are not adopted as Core requirements. |
+| [MPDX — Add Referrals to Contacts](https://help.mpdx.org/article/194-add-referrals-to-contacts), June 8, 2023                                                   | Shows referral provenance/date; Recent means referrals added within two weeks.                                             | Referral-date visibility is useful. The two-week display filter is not a clock or default for Core expiry.                                                                                     |
+| [MPDX — Weekly Activity](https://help.mpdx.org/article/649-weekly-activity), December 15, 2020                                                                  | Gained referrals counts referrals added during the reporting week.                                                         | A reporting timestamp does not establish the underlying referral event or expiry anchor.                                                                                                       |
+| [TntConnect — Analysis View](https://www.tntware.com/tntconnect/help/en/pages/analysis-analysisview.aspx), undated manual                                       | Created Date determines gained-this-week reporting.                                                                        | This is a concrete counterexample to treating every date labeled New as an original referral date. No expiry inference follows.                                                                |
+| [Microsoft — Referral resources](https://learn.microsoft.com/en-us/partner-center/developer/referral-resources), July 23, 2026                                  | Distinct created, accepted and expiration timestamps; separate consent flags and update concurrency metadata.              | Keep event meanings distinct. These vendor fields do not choose Core's initial event or imply contact consent. No new integration follows.                                                     |
+| [Microsoft — Manage co-sell opportunities](https://learn.microsoft.com/en-us/partner-center/referrals/manage-co-sell-opportunities), no publisher date asserted | Received opportunities require an accept/decline response within 14 days.                                                  | Its acceptance deadline is different from Core's active follow-up window. Neither its number nor its lifecycle is imported.                                                                    |
+
+The evidence supports naming the actual event and preserving provenance. It does
+not decide A/B. No fundraising improvement, ministry-wide preference or user
+feedback is fabricated.
+
+## Pre-answer consequences, now resolved in D39
+
+The original research required honest original-date precision and explicit late
+first-admission policy selection. Its previous wording retained D38's elapsed-day
+assumption. The founder's subsequent clarification explicitly changes New to
+calendar-date deadlines, leaving Continued unchanged. A remembered calendar day
+is not a fabricated original timestamp. D39 proposes counting it as day one,
+using the declared organization zone for the deadline and preserving accepted
+source windows. Maya supplies a factual original date, not a personal expiry
+override.
+
+D39 applies current New terms at a genuinely first qualified acceptance as a new
+policy application anchored to the original date; it never claims historical
+policy or retroactive access. It specifies late/expired/unknown/import/correction
+behavior, source authorization, the complete UX and required proof. No new
+tenant clock mode, automatic continuation or universal numeric default is added.
+
+The [completed D39 review](phase28-d39-original-referral-clock-adversarial-review.md)
+records all 22 adversarial categories, exact C01–C17 amendments and P01–P26
+acceptance criteria. **Q39 A, the calendar-date choice and the
+corrected D39 wording/amendments are explicitly ratified.** Source/runtime
+qualification remains separate.

@@ -228,8 +228,10 @@ classification MUST NOT itself authorize issuance, invent a prior artifact,
 or bypass a current issuer/purpose hold. Uncovered `annual_cumulative_cash`
 occurrences MUST create no per-gift receipt authorization, artifact or delivery;
 corrections to already issued cumulative coverage MUST retain that owner's
-exact coverage and correction contract. These rules do not settle C-01's
-separate staff-correction approval decision.
+exact coverage and correction contract. Staff-correction approval separately
+follows Phase 28 D48's settled organization policy; current authority and any
+required independent approval remain mandatory, and policy changes never
+automatically execute pending work.
 
 Detailed behavior is specified in
 `docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md`.

@@ -1,0 +1,19 @@
+{
+  "kind": "Independent root reproduction of new D30 bounded semantic model only",
+  "date": "2026-10-18 UTC",
+  "script_sha256": "c33698b6357e7bc7871bed47e7327ffc8ea0c85c049b7809c973817e0ac50658",
+  "expected_output_sha256": "edfad46d831b0f6841bc2c618dbf1ea44bb2b89bba964fe3f7429b21283ac390",
+  "reproduced_output_sha256": "edfad46d831b0f6841bc2c618dbf1ea44bb2b89bba964fe3f7429b21283ac390",
+  "identical": true,
+  "summary": {
+    "all_passed": true,
+    "assertions_passed": 38,
+    "counterexample_families": 13,
+    "positive_controls": 4
+  },
+  "limitations": [
+    "Sequential synthetic reasoning model, not real SQL/RLS or concurrent execution",
+    "No financial/source/actor qualification, UI/accessibility or capacity proof",
+    "Only D30 model rerun; prior model and database evidence preserved"
+  ]
+}

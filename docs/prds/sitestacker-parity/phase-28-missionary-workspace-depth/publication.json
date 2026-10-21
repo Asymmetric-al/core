@@ -1,0 +1,665 @@
+{
+  "version": "phase28-spec-2026-10-18-v1",
+  "repo": "Asymmetric-al/core",
+  "base": "9cada8f3d8ab59db391d3fd20df77fcadeb09813",
+  "issue": 2064,
+  "url": "https://github.com/Asymmetric-al/core/issues/2064",
+  "title": "AL-2064 \u2014 Phase 28 Missionary Workspace Depth & Support-Raising CRM specification",
+  "labels": [
+    "ready-for-agent",
+    "complexity:hard",
+    "status:ready",
+    "type:feature"
+  ],
+  "bodySha256": "3fcb8cf773754ede1ed8aaff1cdaffd0e2b5ed6e2dea1e91c205a1a4b70b9a53",
+  "verifiedAt": "2026-10-18T16:02:54Z",
+  "files": [
+    {
+      "title": "Complete specification",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth.md",
+      "sha256": "64744c0fe3cad3ea215d39ee8a69749bad3709b7ac419e00e00cc112969b505d",
+      "bytes": 81404
+    },
+    {
+      "title": "Common safeguards and proof",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/proof.md",
+      "sha256": "87caf57a3ecb4f574d8fe2102ac6a8dc55319c4153babe55a8d4534702c6bc29",
+      "bytes": 49483
+    },
+    {
+      "title": "Relationships and working context",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/relationships.md",
+      "sha256": "230065e3ff2b69ddbd6adee8191f68532e898116584554ab3745d3514c064272",
+      "bytes": 130663
+    },
+    {
+      "title": "Finance and stewardship",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/finance-stewardship.md",
+      "sha256": "b8383fe32ef3c794f950f770f6342627c5217551a70e0d51d0e43b29b93db35c",
+      "bytes": 80005
+    },
+    {
+      "title": "Communications and connections",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/communications.md",
+      "sha256": "a89832314a87e0d0f63bfe490f26460f776f6f963617131b905776a46b7a7e6d",
+      "bytes": 128625
+    },
+    {
+      "title": "Coaching and useful resources",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/coaching-resources.md",
+      "sha256": "799d2c3b381e7218166d5527d10db840c3e186dd52acf89c0614371962bad83a",
+      "bytes": 96542
+    },
+    {
+      "title": "Owner reconciliation",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/owner-reconciliation.md",
+      "sha256": "0db1c2accbacc14fcbfeb783d781171eda41d2fbd56a0e577e4c19f0bec1ed68",
+      "bytes": 23526
+    },
+    {
+      "title": "Evidence and research",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/evidence.md",
+      "sha256": "ced29f59f37af492fdc5cd07cc2840dd19f3b3018714868f47933c875b1ca708",
+      "bytes": 30095
+    },
+    {
+      "title": "Decision and acceptance trace",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/traceability.json",
+      "sha256": "6fd27273c970cde9af9d82d3a7648503bf9aaaf4d842ca18552e3b7ac6409278",
+      "bytes": 321218
+    },
+    {
+      "title": "OpenSpec proposal",
+      "path": "openspec/changes/add-missionary-workspace-depth/proposal.md",
+      "sha256": "38bbc62c1d613d20b738405c9c5c599dcba76ca162199bd40586baba77b7ef0a",
+      "bytes": 3548
+    },
+    {
+      "title": "OpenSpec design",
+      "path": "openspec/changes/add-missionary-workspace-depth/design.md",
+      "sha256": "6275ee98e366e4fed9589f25c8141e93cfda3f18209801d1ad4a8c9979315220",
+      "bytes": 6420
+    },
+    {
+      "title": "Delivery acceptance checklist",
+      "path": "openspec/changes/add-missionary-workspace-depth/tasks.md",
+      "sha256": "1470ea59d3ec9f1fb3fbac18db2df4f11d1d1744f3a815f0229a8c36ee8da769",
+      "bytes": 3198
+    },
+    {
+      "title": "Derived OpenSpec requirements",
+      "path": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "sha256": "2ad7e5abb57d14f655227e3ad7788d7c3b8df157dd066b0ce78ba832e8123cae",
+      "bytes": 414123
+    },
+    {
+      "title": "Canonical projection renderer",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/tools/render-spec.mjs",
+      "sha256": "6a88a2556973f543a70c43098e9fab6d1da391d7883c663f75f47b63d5c7cb79",
+      "bytes": 7833
+    },
+    {
+      "title": "Existing-owner amendments",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/owner-amendments.patch",
+      "sha256": "c72cd2397063e7f3a92a1b66a606da2486d7b65b99a174ffd41d82079b9196aa",
+      "bytes": 187221
+    },
+    {
+      "title": "Dated evidence source manifest",
+      "path": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/source-manifest.json",
+      "sha256": "fde1702e481f350a8e854c75abca098368626044946cfa3ba6ded3a09128e7b4",
+      "bytes": 202968
+    },
+    {
+      "title": "OpenSpec schema",
+      "path": "openspec/changes/add-missionary-workspace-depth/.openspec.yaml",
+      "sha256": "dc08c29816def5c12ac71497ed005c1c0d6d779aa76f03fa6cd1d3ed38d91ec9",
+      "bytes": 40
+    }
+  ],
+  "parts": [
+    {
+      "part": 1,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth.md",
+      "filePart": 1,
+      "title": "Complete specification",
+      "id": 6252004168,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252004168",
+      "sourceChunkSha256": "f509addf32dda0dd8cc5e3f79d683dd8e1979e0e34893a16cf03f1c686e4d89c",
+      "bodySha256": "7f3c057ff816c14885b13e1549f8f76258cd1b187e14240ec857a041f0bd86be"
+    },
+    {
+      "part": 2,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth.md",
+      "filePart": 2,
+      "title": "Complete specification",
+      "id": 6252004539,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252004539",
+      "sourceChunkSha256": "da07457dd417854be159329f6ac563881be58e18c4ea78961d6673b669a6935e",
+      "bodySha256": "43fab2ffc5a2747889d5c24da63cc074e7bc52a0674484fb7338e83c21370223"
+    },
+    {
+      "part": 3,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/proof.md",
+      "filePart": 1,
+      "title": "Common safeguards and proof",
+      "id": 6252004863,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252004863",
+      "sourceChunkSha256": "2dfd7e499b3b164c82a7e19db7eed7abf1bb859bfa3be95a296bf96f0888b491",
+      "bodySha256": "c425ac3ad275a41bead08bfcf7e5f6a19b1d0c1ef985168a1e655ecc4b2ddde7"
+    },
+    {
+      "part": 4,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/proof.md",
+      "filePart": 2,
+      "title": "Common safeguards and proof",
+      "id": 6252005148,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252005148",
+      "sourceChunkSha256": "37e4ec4421c450452471c4445f7927f2b45939ee1fabd372074527596a18dec4",
+      "bodySha256": "7f23a8ba1d4dc98b29831c6bb2c25317c0a93f17053c7e201cbff615c524da29"
+    },
+    {
+      "part": 5,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/relationships.md",
+      "filePart": 1,
+      "title": "Relationships and working context",
+      "id": 6252005376,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252005376",
+      "sourceChunkSha256": "19e78aa9f18478648f13c3a7ca3b9eef355df81477bf3fa6f09b844dcfa493c5",
+      "bodySha256": "338c7e87bc0f8ba3748a485727f4dd89f84f6a6861151790846054a393d5bb1d"
+    },
+    {
+      "part": 6,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/relationships.md",
+      "filePart": 2,
+      "title": "Relationships and working context",
+      "id": 6252005608,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252005608",
+      "sourceChunkSha256": "f14cdb2540972868cc2114db45b956543c891e10f26f7af5677fddff8d193da5",
+      "bodySha256": "4b7381d33639d0f66fbbbec98af1d1a1725cbee43ef634814081c30231821310"
+    },
+    {
+      "part": 7,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/relationships.md",
+      "filePart": 3,
+      "title": "Relationships and working context",
+      "id": 6252005870,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252005870",
+      "sourceChunkSha256": "bf7d0430f28d5677e5885c8ec9a79937958bf42337b9b18dfe88911a85f2edd7",
+      "bodySha256": "9589054340d0219159b7a5c42828fc89cfa2e6b3b4c536572bbe3eca1706eb21"
+    },
+    {
+      "part": 8,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/relationships.md",
+      "filePart": 4,
+      "title": "Relationships and working context",
+      "id": 6252006093,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252006093",
+      "sourceChunkSha256": "0d45fdd12ed55dbaab383756d1c0dd1f5cf54c3012449d1dc765df7653291613",
+      "bodySha256": "6dfb26ce8f7ae7a826363e6a7b2f44d34e6c91b6f192403ebf1b3fb40d81d797"
+    },
+    {
+      "part": 9,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/finance-stewardship.md",
+      "filePart": 1,
+      "title": "Finance and stewardship",
+      "id": 6252006335,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252006335",
+      "sourceChunkSha256": "b64a030668473491253bd73cbc4befca1301840b8186ad057dbf30209801dd02",
+      "bodySha256": "115fb6267726b1ddbf556cb9e85dd0e08ef5ce2b07c38115c5372d93a3de538d"
+    },
+    {
+      "part": 10,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/finance-stewardship.md",
+      "filePart": 2,
+      "title": "Finance and stewardship",
+      "id": 6252006586,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252006586",
+      "sourceChunkSha256": "a405812e70c21ec6363de3f3c4000ac9dec4f6b6c6c4b83660d08b551352bbde",
+      "bodySha256": "f2f2db05bea667e435d3aea2c27354bbe0c12f571c9118406a3f38ef83c58898"
+    },
+    {
+      "part": 11,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/communications.md",
+      "filePart": 1,
+      "title": "Communications and connections",
+      "id": 6252006822,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252006822",
+      "sourceChunkSha256": "9034b315c984bec22ece9a8c4afc197acd28a874bbf76591876b5caf89c71b5d",
+      "bodySha256": "2641b81560e7c68f449aca24dd446cddd5530b1a385f379127be778cca636fb4"
+    },
+    {
+      "part": 12,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/communications.md",
+      "filePart": 2,
+      "title": "Communications and connections",
+      "id": 6252007103,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252007103",
+      "sourceChunkSha256": "bc68067a46f3f0251c33e533c3000f030b5b2bdb4c08fd8634f06141141866f3",
+      "bodySha256": "8069abe08b9dd7b76743c50a6eceaec8479aabc1d55bf7b70d040026403e2b11"
+    },
+    {
+      "part": 13,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/communications.md",
+      "filePart": 3,
+      "title": "Communications and connections",
+      "id": 6252007378,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252007378",
+      "sourceChunkSha256": "64215514d28fbcc9b231c8dc697e3af6ac8fdb84c24c153bc7d6915efdb1a628",
+      "bodySha256": "c4f35e8dc0489eef5c435e6ad4f9c1552c06179c20ce7ad13a43d16edd4f1505"
+    },
+    {
+      "part": 14,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/communications.md",
+      "filePart": 4,
+      "title": "Communications and connections",
+      "id": 6252007619,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252007619",
+      "sourceChunkSha256": "1f5bf0ef5998ff80fa3d986fede9f0927d7e766604e1cd4fd930b473ac062c7d",
+      "bodySha256": "025901965c350bdb7a06018d0c3178b62ac8155741f28088d2dac503d583aaf1"
+    },
+    {
+      "part": 15,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/coaching-resources.md",
+      "filePart": 1,
+      "title": "Coaching and useful resources",
+      "id": 6252007854,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252007854",
+      "sourceChunkSha256": "48a2c616d4ef05c5c1a62da772e7142f7b7d6d1bb63bee5d35d62105cf3f6c65",
+      "bodySha256": "6c5a22181098b0d8194274ccb4c652135e6d4c4194facd7e36a868f15c69e1ca"
+    },
+    {
+      "part": 16,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/coaching-resources.md",
+      "filePart": 2,
+      "title": "Coaching and useful resources",
+      "id": 6252008105,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252008105",
+      "sourceChunkSha256": "8b57e322ff3fbf68fb3385b1d03a9846b198d64a7d7d8abd13ca1301dba0b77d",
+      "bodySha256": "f28ac06e3c842c2f082f691b46e6c11463faf07135057892b587fa45e19f8cb9"
+    },
+    {
+      "part": 17,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/coaching-resources.md",
+      "filePart": 3,
+      "title": "Coaching and useful resources",
+      "id": 6252008418,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252008418",
+      "sourceChunkSha256": "1af4ff7de4bd4fd76881e435b47d9b2ad621c3faa82fb1778beb8c89b570bfa6",
+      "bodySha256": "76d67a7c916c931026605e63fc2f3baa59d51bc6f2caa3d5f56c21d9f2883f0f"
+    },
+    {
+      "part": 18,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/owner-reconciliation.md",
+      "filePart": 1,
+      "title": "Owner reconciliation",
+      "id": 6252008659,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252008659",
+      "sourceChunkSha256": "0db1c2accbacc14fcbfeb783d781171eda41d2fbd56a0e577e4c19f0bec1ed68",
+      "bodySha256": "3bd4d1143e126bb091a44f005fc854c2789c818337b308ef80e3ee648d8f8ae4"
+    },
+    {
+      "part": 19,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/evidence.md",
+      "filePart": 1,
+      "title": "Evidence and research",
+      "id": 6252008940,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252008940",
+      "sourceChunkSha256": "ced29f59f37af492fdc5cd07cc2840dd19f3b3018714868f47933c875b1ca708",
+      "bodySha256": "726c24b9becfb7ea763fc290b8cd6a86b0a5f6f80078260c7727ecb347bfea8b"
+    },
+    {
+      "part": 20,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/traceability.json",
+      "filePart": 1,
+      "title": "Decision and acceptance trace",
+      "id": 6252009229,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252009229",
+      "sourceChunkSha256": "d986ba60c2dc73686096882ec51f6f4da0262de95dc9ffd68efda40b40582d66",
+      "bodySha256": "f882ad556f526391f85ff9d824c3a9869e1a7f5d3a08228e62633645b514732b"
+    },
+    {
+      "part": 21,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/traceability.json",
+      "filePart": 2,
+      "title": "Decision and acceptance trace",
+      "id": 6252009483,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252009483",
+      "sourceChunkSha256": "fb0963300719ac233820532be8e47129ae145373c106212010f5fe15a1fe3963",
+      "bodySha256": "40128f5be50b6f856592cd3d31d401264a53735177a2f4e213b66b5c1454b839"
+    },
+    {
+      "part": 22,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/traceability.json",
+      "filePart": 3,
+      "title": "Decision and acceptance trace",
+      "id": 6252009724,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252009724",
+      "sourceChunkSha256": "5bab83f3290dd4ad7fe1353ccf1858f3e1586cf9672f08debde8c103c937e740",
+      "bodySha256": "f65d090f905b2b9045349578fd9573fbefcc53691ac0bf7ef56c9eaf0ac3c4d2"
+    },
+    {
+      "part": 23,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/traceability.json",
+      "filePart": 4,
+      "title": "Decision and acceptance trace",
+      "id": 6252009962,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252009962",
+      "sourceChunkSha256": "4e2f94e5c53ac9bdd208bc6154502f8decfcf5e36515418d0e0105660dd4c490",
+      "bodySha256": "5dc971b5e13c452029ceee19f86ad88f0fce51ca122dc6d367f5bcde91a0d08a"
+    },
+    {
+      "part": 24,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/traceability.json",
+      "filePart": 5,
+      "title": "Decision and acceptance trace",
+      "id": 6252010202,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252010202",
+      "sourceChunkSha256": "19a66fcad33ed449677c09fb66f81c4f728c9c9020c6b6f6605e54f77bc9e04f",
+      "bodySha256": "2abb0c118b5375895a3ecf3ab914fbc01b3564621482b152cc7f881aa7296e96"
+    },
+    {
+      "part": 25,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/traceability.json",
+      "filePart": 6,
+      "title": "Decision and acceptance trace",
+      "id": 6252010422,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252010422",
+      "sourceChunkSha256": "b90066fc2a6c6628d6c22f9f777cc53e78219bfa0346bd4da92cf81ca22d5be4",
+      "bodySha256": "40c01f71ecf74f33c839ed1f13d7a4bd51f2e9b3748fd7924f8b185db18976a8"
+    },
+    {
+      "part": 26,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/traceability.json",
+      "filePart": 7,
+      "title": "Decision and acceptance trace",
+      "id": 6252010662,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252010662",
+      "sourceChunkSha256": "aeec5d27b51d36649a0aaa04517b1bdf80acc3211b575d59fa0c9126b1cfff3e",
+      "bodySha256": "33caa5ba4a579c26cd3276b789a37061eb39ddfd20db61de2b86fb7e9a45d9ba"
+    },
+    {
+      "part": 27,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/traceability.json",
+      "filePart": 8,
+      "title": "Decision and acceptance trace",
+      "id": 6252010909,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252010909",
+      "sourceChunkSha256": "c24f68dda70a34af235d62a119e37803a0f59960d2ac4017b539318b90d61677",
+      "bodySha256": "de32e71fd8f7f6056eab870cc91e3835a9f4299e0ea423f1449f290264d11081"
+    },
+    {
+      "part": 28,
+      "file": "openspec/changes/add-missionary-workspace-depth/proposal.md",
+      "filePart": 1,
+      "title": "OpenSpec proposal",
+      "id": 6252011122,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252011122",
+      "sourceChunkSha256": "38bbc62c1d613d20b738405c9c5c599dcba76ca162199bd40586baba77b7ef0a",
+      "bodySha256": "7957f23824c3108272ddd97fd416fa74534f26f0eebde6f924ad40f040b29a84"
+    },
+    {
+      "part": 29,
+      "file": "openspec/changes/add-missionary-workspace-depth/design.md",
+      "filePart": 1,
+      "title": "OpenSpec design",
+      "id": 6252011315,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252011315",
+      "sourceChunkSha256": "6275ee98e366e4fed9589f25c8141e93cfda3f18209801d1ad4a8c9979315220",
+      "bodySha256": "eeefc11af54237687ef91be327da8691055a30b366253f5c95e686e3813c5936"
+    },
+    {
+      "part": 30,
+      "file": "openspec/changes/add-missionary-workspace-depth/tasks.md",
+      "filePart": 1,
+      "title": "Delivery acceptance checklist",
+      "id": 6252011521,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252011521",
+      "sourceChunkSha256": "1470ea59d3ec9f1fb3fbac18db2df4f11d1d1744f3a815f0229a8c36ee8da769",
+      "bodySha256": "bfde8bad04887423486d5b6b1cb3871494a3e6220e2768611a84316a76606871"
+    },
+    {
+      "part": 31,
+      "file": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "filePart": 1,
+      "title": "Derived OpenSpec requirements",
+      "id": 6252011755,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252011755",
+      "sourceChunkSha256": "f1bca0a623bfbd473f6eb30af63ae4e441097522e85182a8479856176c63eb02",
+      "bodySha256": "197c650f4c39365e83f51baa52ad312829492d31e2801bcee3d67f8b43b0f0d8"
+    },
+    {
+      "part": 32,
+      "file": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "filePart": 2,
+      "title": "Derived OpenSpec requirements",
+      "id": 6252011983,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252011983",
+      "sourceChunkSha256": "3ef0164e8819676a65a8a5a0a6ae654b7e50454fafdeadbd56830ea7fce8eff2",
+      "bodySha256": "abfef4e7782195767092c903eda3d36cd2f88782815e9cfc75ad0e595a57cf9c"
+    },
+    {
+      "part": 33,
+      "file": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "filePart": 3,
+      "title": "Derived OpenSpec requirements",
+      "id": 6252012214,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252012214",
+      "sourceChunkSha256": "004038f8c53c59fa346588c0bffa50a3d325e41ff5c3e0ad9c0a35a70f03c169",
+      "bodySha256": "a627db7092dd51ea7fca6aa1b7819e71cec3b60c5fa99891453e96eaba5b8cbd"
+    },
+    {
+      "part": 34,
+      "file": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "filePart": 4,
+      "title": "Derived OpenSpec requirements",
+      "id": 6252012435,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252012435",
+      "sourceChunkSha256": "a93d2d1bf4895391a4ee2fe5429f0ac77674498eb579710c3c648b261e0d976c",
+      "bodySha256": "784daf94d2630332b1f7274bcce8ea0054436fed5dc1f57e3674101cfdf98dcf"
+    },
+    {
+      "part": 35,
+      "file": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "filePart": 5,
+      "title": "Derived OpenSpec requirements",
+      "id": 6252012653,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252012653",
+      "sourceChunkSha256": "e94493cfb09a025d86bfd12304a9b3c535117a33947409af30de70b38b805342",
+      "bodySha256": "3410f4d5221a3f4e1dfb8e321288c78488b6c0ca740baae1ec1985448d2526b9"
+    },
+    {
+      "part": 36,
+      "file": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "filePart": 6,
+      "title": "Derived OpenSpec requirements",
+      "id": 6252012911,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252012911",
+      "sourceChunkSha256": "21671f8ffe85b68ff026d848b2230920f27376ba03e9525afc8be50e24c10ace",
+      "bodySha256": "fbac02a22c372653fddf0822f7cc77dd50d462952205cfc2d932b0493ea00dba"
+    },
+    {
+      "part": 37,
+      "file": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "filePart": 7,
+      "title": "Derived OpenSpec requirements",
+      "id": 6252013177,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252013177",
+      "sourceChunkSha256": "af83e15d299d8f5bdb0e38763a5d53a6d2917115f6a91aa54f2e90e5e8fb5bd7",
+      "bodySha256": "c67969c8b0f79d12d66a8d153718bde6670fc7784215dc1aa5bdfdc523fc1a55"
+    },
+    {
+      "part": 38,
+      "file": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "filePart": 8,
+      "title": "Derived OpenSpec requirements",
+      "id": 6252013406,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252013406",
+      "sourceChunkSha256": "2a7d5e89ab3d0aae2d7c356967d2416f5750d734623808f258654875816eb2d4",
+      "bodySha256": "3956c92dee0a69840edf940cb8b971312c82305ba03c01eada709e0973745d93"
+    },
+    {
+      "part": 39,
+      "file": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "filePart": 9,
+      "title": "Derived OpenSpec requirements",
+      "id": 6252013593,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252013593",
+      "sourceChunkSha256": "c090fda5bbc38662e84ada771e912b22e29b660df6a1209dcace28c9c8b2f5ad",
+      "bodySha256": "f6cd45f456a03c632fb51cd9d67cbf9038cab7b48ed5e9653b42094544da5f84"
+    },
+    {
+      "part": 40,
+      "file": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "filePart": 10,
+      "title": "Derived OpenSpec requirements",
+      "id": 6252013823,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252013823",
+      "sourceChunkSha256": "333a80ca08a2bce93de25684913fe60c34a5f5b8fe4f85930f394e788adaed11",
+      "bodySha256": "fa51f4a3b0ec40d5c12aaa7449fbcf60bb146b11720564b38fbbb642feabf44a"
+    },
+    {
+      "part": 41,
+      "file": "openspec/changes/add-missionary-workspace-depth/specs/missionary-workspace-depth/spec.md",
+      "filePart": 11,
+      "title": "Derived OpenSpec requirements",
+      "id": 6252014043,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252014043",
+      "sourceChunkSha256": "fd69cc66376d62162a0e7462b241c801258d46b5c76709150278ed61e163d457",
+      "bodySha256": "e91eb04f605a641ae27af0947a56d21ddddddfe70c0412ae64e5bc2e52df2c68"
+    },
+    {
+      "part": 42,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/tools/render-spec.mjs",
+      "filePart": 1,
+      "title": "Canonical projection renderer",
+      "id": 6252014259,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252014259",
+      "sourceChunkSha256": "6a88a2556973f543a70c43098e9fab6d1da391d7883c663f75f47b63d5c7cb79",
+      "bodySha256": "696d7b494a3c52c47b9d494f181edc4a5a3c2d73214bccf6d46a28f94e067fd5"
+    },
+    {
+      "part": 43,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/owner-amendments.patch",
+      "filePart": 1,
+      "title": "Existing-owner amendments",
+      "id": 6252014477,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252014477",
+      "sourceChunkSha256": "8b619d928d86d4961384d1d1c3353be0bd19d09a71efcfb536ba6ac77faadb3c",
+      "bodySha256": "5174962ea63bf51c2d3df7167c37098e9ae72649d4e8e9899ea5ffee4fb6d62b"
+    },
+    {
+      "part": 44,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/owner-amendments.patch",
+      "filePart": 2,
+      "title": "Existing-owner amendments",
+      "id": 6252014725,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252014725",
+      "sourceChunkSha256": "bd78c07d2f77e2f9f2abf98c4e9b2ec68407502cefe21e071e81c49d2af4e017",
+      "bodySha256": "99ec0e774684830f7c8ecdb5f2269d851d29b35fc7c175ba42500e921c19245a"
+    },
+    {
+      "part": 45,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/owner-amendments.patch",
+      "filePart": 3,
+      "title": "Existing-owner amendments",
+      "id": 6252015009,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252015009",
+      "sourceChunkSha256": "709499b989f0fdb0f4c90db36f24c663fdc815ac11656494a092b2d81ea2e851",
+      "bodySha256": "72333cb6a592091ed47c13945910f077a9e8e09878360de67d0ffbf154d0464f"
+    },
+    {
+      "part": 46,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/owner-amendments.patch",
+      "filePart": 4,
+      "title": "Existing-owner amendments",
+      "id": 6252015260,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252015260",
+      "sourceChunkSha256": "ced7e030d4e1fa04a56360f8cf0e17bec73322524c5902ebf12875b9ab017384",
+      "bodySha256": "b539a228cdad9f27d9afb62b41ffd6f4933b148ccf83c7f51c2c672c07a874c3"
+    },
+    {
+      "part": 47,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/owner-amendments.patch",
+      "filePart": 5,
+      "title": "Existing-owner amendments",
+      "id": 6252015498,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252015498",
+      "sourceChunkSha256": "1c8df152a2376fd4dd70be1302534add61db7f06ffb4d892c7eb49a668cb60e8",
+      "bodySha256": "a4e9bb6bc5f32c42fcac06bf9c6a9f25e9c009849069288367425fc62e6d5025"
+    },
+    {
+      "part": 48,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/source-manifest.json",
+      "filePart": 1,
+      "title": "Dated evidence source manifest",
+      "id": 6252015746,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252015746",
+      "sourceChunkSha256": "268c6375e7686a2428b75e217b3d6d0b3501c46970077a99a1bc70730fc84807",
+      "bodySha256": "755b6d653f38db47885a02ec0e1604a43e5a6af61fa3b0aeb554da97550c5a12"
+    },
+    {
+      "part": 49,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/source-manifest.json",
+      "filePart": 2,
+      "title": "Dated evidence source manifest",
+      "id": 6252016041,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252016041",
+      "sourceChunkSha256": "2a2bce458e39db1f61bd22e33900757ba85870dbb5f2c91a4e9f91714f14d238",
+      "bodySha256": "2d1da4cc78e62a0b4d4f52eb96279bf42c1e1fb4937dd36095eb7ad55aae4355"
+    },
+    {
+      "part": 50,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/source-manifest.json",
+      "filePart": 3,
+      "title": "Dated evidence source manifest",
+      "id": 6252016278,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252016278",
+      "sourceChunkSha256": "9df7a01f594d6cefa3ec84018dfb8fa679d3c8803d4fc2197d7f85d4bbfa58a8",
+      "bodySha256": "7235650f5e80f3f6b4853df49faa955961baf7b96489fd08a9357019d01bffd4"
+    },
+    {
+      "part": 51,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/source-manifest.json",
+      "filePart": 4,
+      "title": "Dated evidence source manifest",
+      "id": 6252016502,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252016502",
+      "sourceChunkSha256": "decb3349a22dbdf3b2ea381687e40e210c41424e9042e89f94f1ed85706f8b36",
+      "bodySha256": "3e6dcb8eef608c7e4ed9a3004ad5b3901251582ccf6dd80cc1f93cb0d8f93ebe"
+    },
+    {
+      "part": 52,
+      "file": "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/source-manifest.json",
+      "filePart": 5,
+      "title": "Dated evidence source manifest",
+      "id": 6252016720,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252016720",
+      "sourceChunkSha256": "c405f437851f82f5ecaec24123fef7b3e6ce2f5ddea5a6bec49c0b6e0b52e770",
+      "bodySha256": "e9d74ef2b38ddeb546f6e2bda79d3c396d933f2f30387a65860caf40dda57829"
+    },
+    {
+      "part": 53,
+      "file": "openspec/changes/add-missionary-workspace-depth/.openspec.yaml",
+      "filePart": 1,
+      "title": "OpenSpec schema",
+      "id": 6252016933,
+      "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252016933",
+      "sourceChunkSha256": "dc08c29816def5c12ac71497ed005c1c0d6d779aa76f03fa6cd1d3ed38d91ec9",
+      "bodySha256": "d04e780850601d6567539c644596bf9e67d50605c0b8a1b72cfefcd400f440a2"
+    }
+  ],
+  "checks": {
+    "exactIssueReadback": true,
+    "exactEveryPartReadback": true,
+    "uniquePartMarkers": true,
+    "sourceChunkReconstruction": true,
+    "sourceFilesUnchanged": true
+  },
+  "receipt": {
+    "id": 6252043416,
+    "url": "https://github.com/Asymmetric-al/core/issues/2064#issuecomment-6252043416",
+    "bodySha256": "0b51e9390c85d7d007b1573155efc057642e93e6ae48623dda43e7af27c48ef4",
+    "exactReadback": true
+  }
+}

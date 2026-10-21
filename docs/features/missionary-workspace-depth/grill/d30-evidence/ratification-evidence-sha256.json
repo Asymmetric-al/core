@@ -1,0 +1,70 @@
+{
+  "kind": "Preserved initial D30 evidence and original review before explicit ratification",
+  "date_utc": "2026-10-18",
+  "artifacts": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/artifact-pins.json",
+      "sha256": "a54ed17011ac91da28247cc92c496712c8eca4d5d99d1e86725db105ea5ca206"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/cross-review-resolution.md",
+      "sha256": "496ebe83a6b98da66fcad34952d392415400174e24cb8bc3e2d019fbe43f886c"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/database-and-policy-authorization.md",
+      "sha256": "7b5c78bdefcaa20609d9f67b46e4b8eb70587bed1c05e7449eb26d318d7eb090"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/governance-and-policy.md",
+      "sha256": "66181e54d6bc41deb02a0f47b636891a59e4d2307b5238eb2af68daff101b185"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/model-readme.md",
+      "sha256": "eecd6052b195dddbe64b2d3acd906a28dc8d71a58b54ed07b075db747b93b296"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/need-policy-counterexamples.json",
+      "sha256": "edfad46d831b0f6841bc2c618dbf1ea44bb2b89bba964fe3f7429b21283ac390"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/need-policy-counterexamples.py",
+      "sha256": "c33698b6357e7bc7871bed47e7327ffc8ea0c85c049b7809c973817e0ac50658"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/need-purpose-and-financial-lifecycle.md",
+      "sha256": "3c89b321d88241a52994626d4cfb69cea8506d76864804fb1c83db6a37c0a7df"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/prior-evidence-sha256.json",
+      "sha256": "faf035791bd97cecea6c9d6265e0d0284bb2d671491f4f97f971ac9a01b81c6c"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/q30-before-answer.txt",
+      "sha256": "afaf5fef0778b83b5003a1212fb4b48e600c8b674a793b4d122e5ec1e51846b9"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/review-verification.json",
+      "sha256": "991e32c218762f0384725df81b304525171040b0424764521427f2f458b0904c"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/root-reproduction.json",
+      "sha256": "52522eee08ad1738b251c2a63ed041e53061266eef7ee083735a58ae69da256b"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/technical-fetches.json",
+      "sha256": "b1073bd447f917240a5d7536568303c382d181d83d92bd2b37369f703d842b92"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/ux-and-primary-research.md",
+      "sha256": "308fe382008c0a7c023195fac71f70e447c868bb54c5bebafbbac17d678bae40"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/verify-review.py",
+      "sha256": "3676fea8626a93591171967b9e749e40a98bfda8985b254c8e6b61922ee9b0a8"
+    }
+  ],
+  "decision_snapshot": {
+    "path": "docs/features/missionary-workspace-depth/grill/d30-evidence/d30-before-ratification.txt",
+    "sha256": "baf08824092dd9d2b7a504c21c9af9b03df43b73bb975b113b8b2d371d8909da"
+  }
+}

@@ -1,0 +1,1198 @@
+{
+  "recorded_at": "2026-10-16T16:21:53.872684+00:00",
+  "scope": "Synthetic D19 owner-qualified first-support signal, permanent coverage, independent follow-up task and current-authority mechanics only; not Core/financial/recognition/P12/Supabase/Auth/PostgREST qualification.",
+  "outcomes": 35,
+  "passed": 35,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "42972e531274d6919008150714a49d3fbbfa86e0ffa3c8e701dfc393c26a4b4c",
+    "run.py": "c6250a3233fe6b522601d3636afd8b1f51f1368172dbf3f1a948b2ba02f8c544",
+    "sources.json": "216d78fc54e3efebebef9a3f4ee7876da81536eafc52db77eb361e1eeb8c5dc0"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "fixture_steps": [
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.parties VALUES(1,10),(1,20),(1,21),(2,10); INSERT INTO probe.aliases VALUES(1,10,10),(1,20,20),(1,21,20),(2,10,10);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,1); INSERT INTO probe.gates VALUES(1,'missionary_a',1,true,1),(1,'missionary_b',1,true,1),(1,'source_worker',1,true,1); INSERT INTO probe.responsibility VALUES(1,1,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,1,'first_support',1,'eligible',false,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,1,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'incomplete',10,1,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,2); INSERT INTO probe.gates VALUES(1,'missionary_a',2,true,1),(1,'missionary_b',2,true,1),(1,'source_worker',2,true,1); INSERT INTO probe.responsibility VALUES(1,2,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,2,'first_support',1,'ineligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,2,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'not-money',10,2,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,3); INSERT INTO probe.gates VALUES(1,'missionary_a',3,true,1),(1,'missionary_b',3,true,1),(1,'source_worker',3,true,1); INSERT INTO probe.responsibility VALUES(1,3,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,3,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,3,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'import',10,3,1,'history');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,4); INSERT INTO probe.gates VALUES(1,'missionary_a',4,true,1),(1,'missionary_b',4,true,1),(1,'source_worker',4,true,1); INSERT INTO probe.responsibility VALUES(1,4,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,4,'first_support',1,'eligible',true,'history','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,4,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'old-live',10,4,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,5); INSERT INTO probe.gates VALUES(1,'missionary_a',5,true,1),(1,'missionary_b',5,true,1),(1,'source_worker',5,true,1); INSERT INTO probe.responsibility VALUES(1,5,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,5,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,5,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'ahead',10,5,2,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,6); INSERT INTO probe.gates VALUES(1,'missionary_a',6,true,1),(1,'missionary_b',6,true,1),(1,'source_worker',6,true,1); INSERT INTO probe.responsibility VALUES(1,6,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,6,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,6,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'FAIL_CREATE_AUDIT',10,6,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,7); INSERT INTO probe.gates VALUES(1,'missionary_a',7,true,1),(1,'missionary_b',7,true,1),(1,'source_worker',7,true,1); INSERT INTO probe.responsibility VALUES(1,7,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,7,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,7,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'event-7',10,7,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.consume('event-7');",
+      "exit_code": 0,
+      "stdout": "created:2",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "SELECT probe.change_source(10,7,1,'eligible',true);",
+      "exit_code": 0,
+      "stdout": "source:2",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'late-reordered',10,7,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "SELECT probe.change_source(10,7,2,'unknown',false);",
+      "exit_code": 0,
+      "stdout": "source:3",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "SELECT probe.change_source(10,7,3,'eligible',true);",
+      "exit_code": 0,
+      "stdout": "source:4",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,8); INSERT INTO probe.gates VALUES(1,'missionary_a',8,true,1),(1,'missionary_b',8,true,1),(1,'source_worker',8,true,1); INSERT INTO probe.responsibility VALUES(1,8,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,8,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,8,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'event-8',10,8,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.consume('event-8');",
+      "exit_code": 0,
+      "stdout": "created:3",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.finish(3,1,'not_needed','human decision','request');",
+      "exit_code": 0,
+      "stdout": "not_needed",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "SELECT probe.change_source(10,8,1,'ineligible',true);",
+      "exit_code": 0,
+      "stdout": "source:2",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "SELECT probe.change_source(10,8,2,'eligible',true);",
+      "exit_code": 0,
+      "stdout": "source:3",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'later-gift-8',10,8,3,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_a",
+      "sql": "SELECT probe.read_task(3);",
+      "exit_code": 0,
+      "stdout": "not_needed:4",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,9); INSERT INTO probe.gates VALUES(1,'missionary_a',9,true,1),(1,'missionary_b',9,true,1),(1,'source_worker',9,true,1); INSERT INTO probe.responsibility VALUES(1,9,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,9,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,9,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'event-9',10,9,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.consume('event-9');",
+      "exit_code": 0,
+      "stdout": "created:4",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1 AND actor='missionary_b' AND ministry=9;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,10); INSERT INTO probe.gates VALUES(1,'missionary_a',10,true,1),(1,'missionary_b',10,true,1),(1,'source_worker',10,true,1); INSERT INTO probe.responsibility VALUES(1,10,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,10,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,10,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'worker-revoked',10,10,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "policy_manager",
+      "sql": "UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1 AND actor='source_worker' AND ministry=10;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,11); INSERT INTO probe.gates VALUES(1,'missionary_a',11,true,1),(1,'missionary_b',11,true,1),(1,'source_worker',11,true,1); INSERT INTO probe.responsibility VALUES(1,11,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,11,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,11,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'event-11',10,11,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.consume('event-11');",
+      "exit_code": 0,
+      "stdout": "created:5",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.aliases SET canonical=10 WHERE tenant=1 AND observed IN(20,21);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'merged-alias',21,11,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,12); INSERT INTO probe.gates VALUES(1,'missionary_a',12,true,1),(1,'missionary_b',12,true,1),(1,'source_worker',12,true,1); INSERT INTO probe.responsibility VALUES(1,12,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,12,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,12,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'parallel-A',10,12,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'parallel-B',10,12,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,13); INSERT INTO probe.gates VALUES(1,'missionary_a',13,true,1),(1,'missionary_b',13,true,1),(1,'source_worker',13,true,1); INSERT INTO probe.responsibility VALUES(1,13,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,13,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,13,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'correct-before-create',10,13,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,14); INSERT INTO probe.gates VALUES(1,'missionary_a',14,true,1),(1,'missionary_b',14,true,1),(1,'source_worker',14,true,1); INSERT INTO probe.responsibility VALUES(1,14,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,14,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,14,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'event-14',10,14,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.consume('event-14');",
+      "exit_code": 0,
+      "stdout": "created:7",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "SELECT probe.change_source(10,14,2,'eligible',true);",
+      "exit_code": 0,
+      "stdout": "source:3",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'repair-needs-owner',10,14,3,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,15); INSERT INTO probe.gates VALUES(1,'missionary_a',15,true,1),(1,'missionary_b',15,true,1),(1,'source_worker',15,true,1); INSERT INTO probe.responsibility VALUES(1,15,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,15,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,15,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'event-15',10,15,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.consume('event-15');",
+      "exit_code": 0,
+      "stdout": "created:8",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,16); INSERT INTO probe.gates VALUES(1,'missionary_a',16,true,1),(1,'missionary_b',16,true,1),(1,'source_worker',16,true,1); INSERT INTO probe.responsibility VALUES(1,16,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,16,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,16,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'event-16',10,16,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.consume('event-16');",
+      "exit_code": 0,
+      "stdout": "created:9",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,17); INSERT INTO probe.gates VALUES(1,'missionary_a',17,true,1),(1,'missionary_b',17,true,1),(1,'source_worker',17,true,1); INSERT INTO probe.responsibility VALUES(1,17,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,17,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,17,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'event-17',10,17,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.consume('event-17');",
+      "exit_code": 0,
+      "stdout": "created:10",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,18); INSERT INTO probe.gates VALUES(1,'missionary_a',18,true,1),(1,'missionary_b',18,true,1),(1,'source_worker',18,true,1); INSERT INTO probe.responsibility VALUES(1,18,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,18,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,18,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'event-18',10,18,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.consume('event-18');",
+      "exit_code": 0,
+      "stdout": "created:11",
+      "stderr": ""
+    },
+    {
+      "role": "missionary_b",
+      "sql": "SELECT probe.finish(11,2,'done','human task handled','request');",
+      "exit_code": 0,
+      "stdout": "done",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.ministries VALUES(1,19); INSERT INTO probe.gates VALUES(1,'missionary_a',19,true,1),(1,'missionary_b',19,true,1),(1,'source_worker',19,true,1); INSERT INTO probe.responsibility VALUES(1,19,'missionary_a',1); INSERT INTO probe.source_versions VALUES(1,10,19,'first_support',1,'eligible',true,'live','synthetic-owner-qualified-source'); INSERT INTO probe.source_heads VALUES(1,10,19,'first_support',1);",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "INSERT INTO probe.signals VALUES(1,'event-19',10,19,1,'live');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_worker",
+      "sql": "SELECT probe.consume('event-19');",
+      "exit_code": 0,
+      "stdout": "created:12",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "name": "incomplete_history_is_not_first_support",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('incomplete');",
+      "expected": "not_qualified",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "not_qualified",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unqualified_source_never_creates_task",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('not-money');",
+      "expected": "not_qualified",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "not_qualified",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "historical_event_has_no_task_effect",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('import');",
+      "expected": "history_only",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "history_only",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "history_only_current_source_does_not_backfill_task",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('old-live');",
+      "expected": "history_only",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "history_only",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "event_ahead_of_owner_cursor_waits",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('ahead');",
+      "expected": "source_pending",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "source_pending",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "0:0:0:4:0",
+        "after": "0:0:0:4:0"
+      }
+    },
+    {
+      "name": "creation_audit_failure_rolls_back_task_and_receipt",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('FAIL_CREATE_AUDIT');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"audit\" violates check constraint \"audit_note_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.audit(tenant,task,kind,note) VALUES(t,newid,'created',CASE WHEN event_key='FAIL_CREATE_AUDIT' THEN 'FAIL_AUDIT' ELSE 'synthetic-source-receipt' END)\"\nPL/pgSQL function consume(text) line 29 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  audit\nCONSTRAINT NAME:  audit_note_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true,
+      "counts": {
+        "before": "0:0:0:4:0",
+        "after": "0:0:0:4:0"
+      }
+    },
+    {
+      "name": "tenant_source_FK_rejects_foreign_version",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.source_heads VALUES(2,10,1,'first_support',1);",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"source_heads\" violates foreign key constraint \"source_heads_tenant_party_ministry_purpose_revision_fkey\"\nDETAIL:  Key (tenant, party, ministry, purpose, revision)=(2, 10, 1, first_support, 1) is not present in table \"source_versions\".\nSCHEMA NAME:  probe\nTABLE NAME:  source_heads\nCONSTRAINT NAME:  source_heads_tenant_party_ministry_purpose_revision_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "ordinary_actor_has_no_raw_task_read",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT * FROM probe.tasks;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table tasks\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "ordinary_actor_cannot_reassign_raw_task",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.tasks SET assignee='missionary_b' WHERE id=2;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table tasks\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "task_scope_is_immutable_even_with_privileged_update",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "UPDATE probe.tasks SET ministry=2 WHERE id=2;",
+      "expected": null,
+      "expected_sqlstate": "55000",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  55000: immutable fixture task scope\nCONTEXT:  PL/pgSQL function probe.task_identity() line 1 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "different_assignee_cannot_read_or_finish",
+      "role": "missionary_b",
+      "counterexample": false,
+      "sql": "SELECT probe.read_task(2); SELECT probe.finish(2,1,'done','human task handled','request');",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "other_tenant_cannot_read_or_finish",
+      "role": "other_tenant",
+      "counterexample": false,
+      "sql": "SELECT probe.read_task(2); SELECT probe.finish(2,1,'done','human task handled','request');",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "null_meaning_or_revision_never_finishes",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(2,1,NULL,'meaning','key'); SELECT probe.finish(2,NULL,'done','meaning','key');",
+      "expected": "conflict\nconflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict\nconflict",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "1:0:1:5:0",
+        "after": "1:0:1:5:0"
+      }
+    },
+    {
+      "name": "same_event_recovers_accepted_receipt",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('event-7');",
+      "expected": "receipt:created:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "receipt:created:2",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "1:0:1:5:0",
+        "after": "1:0:1:5:0"
+      }
+    },
+    {
+      "name": "out_of_order_new_event_uses_current_head_same_task",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('late-reordered');",
+      "expected": "existing:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "existing:2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unknown_source_holds_same_task_without_completion",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.read_task(2); SELECT probe.finish(2,3,'done','human task handled','request');",
+      "expected": "held:3\nnot_qualified",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "held:3\nnot_qualified",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "resolved_temporary_hold_retains_same_unhandled_task",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.read_task(2);",
+      "expected": "pending:4",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "pending:4",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "required_completion_audit_failure_rolls_back",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(2,4,'done','human task handled','FAIL_FINISH_AUDIT');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"audit\" violates check constraint \"audit_note_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.audit(tenant,task,kind,note) VALUES(t,n,kind_arg,CASE WHEN request_key='FAIL_FINISH_AUDIT' THEN 'FAIL_AUDIT' ELSE 'synthetic-human-disposition' END)\"\nPL/pgSQL function finish(bigint,integer,text,text,text) line 24 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  audit\nCONSTRAINT NAME:  audit_note_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true,
+      "counts": {
+        "before": "1:0:4:6:0",
+        "after": "1:0:4:6:0"
+      }
+    },
+    {
+      "name": "human_done_commits_one_outcome_and_no_interaction",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(2,4,'done','human task handled','request');",
+      "expected": "done",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "done",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "different_retry_key_preserves_original_done",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(2,4,'done','human task handled','lost-response-retry');",
+      "expected": "receipt:done",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "receipt:done",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "1:1:5:6:0",
+        "after": "1:1:5:6:0"
+      }
+    },
+    {
+      "name": "changed_done_meaning_conflicts",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.finish(2,4,'not_needed','human task handled','request');",
+      "expected": "conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "human_not_needed_not_reopened_by_financial_change",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('later-gift-8');",
+      "expected": "existing:3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "existing:3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "assignment_does_not_grant_missing_authority",
+      "role": "source_manager",
+      "counterexample": false,
+      "sql": "SELECT probe.reassign(4,1,'missionary_b');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "3:2:10:9:0",
+        "after": "3:2:10:9:0"
+      }
+    },
+    {
+      "name": "revoked_worker_cannot_admit_followup",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('worker-revoked');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true,
+      "counts": {
+        "before": "3:2:10:9:0",
+        "after": "3:2:10:9:0"
+      }
+    },
+    {
+      "name": "qualified_alias_replay_reuses_existing_coverage",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('merged-alias');",
+      "expected": "existing:5",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "existing:5",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "parallel_events_one_first_support_task",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_worker",
+      "second_role": "source_worker",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.consume('parallel-A'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "created:6\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.consume('parallel-B'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "existing:6\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "created:6\nFIRST_READY\n",
+        "second": "existing:6\nSECOND_DONE\n",
+        "tasks": "1"
+      }
+    },
+    {
+      "name": "correction_first_blocks_old_event_creation",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_manager",
+      "second_role": "source_worker",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.change_source(10,13,1,'ineligible',true); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "source:2\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.consume('correct-before-create'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "not_qualified\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "source:2\nFIRST_READY\n",
+        "second": "not_qualified\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "correction_first_withdraws_pending_completion",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_manager",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.change_source(10,14,1,'ineligible',true); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "source:2\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(7,1,'done','human task handled','request'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "not_applicable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "source:2\nFIRST_READY\n",
+        "second": "not_applicable\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "terminal_withdrawal_needs_explicit_owner_repair",
+      "role": "source_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.consume('repair-needs-owner');",
+      "expected": "needs_source_resolution:7",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "needs_source_resolution:7",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "done_first_survives_later_source_correction",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "source_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(8,1,'done','human task handled','request'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "done\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.change_source(10,15,1,'ineligible',true); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "source:2\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "done\nFIRST_READY\n",
+        "second": "source:2\nSECOND_DONE\n",
+        "source_head": "2"
+      }
+    },
+    {
+      "name": "revocation_first_blocks_completion",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "policy_manager",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1 AND actor='missionary_a' AND ministry=16; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(9,1,'done','human task handled','request'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "done_first_preserved_after_revocation",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "policy_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(10,1,'done','human task handled','request'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "done\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false,revision=revision+1 WHERE tenant=1 AND actor='missionary_a' AND ministry=17; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "done\nFIRST_READY\n",
+        "second": "SECOND_DONE\n"
+      }
+    },
+    {
+      "name": "revocation_blocks_task_read_and_prior_done_receipt",
+      "role": "missionary_a",
+      "counterexample": false,
+      "sql": "SELECT probe.read_task(10); SELECT probe.finish(10,1,'done','human task handled','request');",
+      "expected": "unavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "handoff_first_fences_old_assignee_completion",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_manager",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.reassign(11,1,'missionary_b'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "reassigned\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(11,1,'done','human task handled','request'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "reassigned\nFIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n"
+      }
+    },
+    {
+      "name": "two_completion_keys_one_human_outcome",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "missionary_a",
+      "second_role": "missionary_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(12,1,'done','human task handled','A'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "done\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.finish(12,1,'done','human task handled','B'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "receipt:done\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "done\nFIRST_READY\n",
+        "second": "receipt:done\nSECOND_DONE\n"
+      },
+      "final_communication_interaction_gift_enrollment_effects": 0
+    }
+  ]
+}

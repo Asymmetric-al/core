@@ -1,0 +1,301 @@
+{
+  "cases": [
+    {
+      "corrected": {
+        "new_intakes": 0,
+        "result": "rejected_reporting_off"
+      },
+      "id": "B01",
+      "kind": "counterexample",
+      "schedule": [
+        "read On",
+        "Off accepted",
+        "submit"
+      ],
+      "title": "Default Off and current acceptance beat cached On",
+      "unsafe": true
+    },
+    {
+      "corrected": {
+        "intake": "intake-1",
+        "status": "accepted"
+      },
+      "id": "B02",
+      "kind": "counterexample",
+      "schedule": [
+        "accept report",
+        "lose response",
+        "Off and create grant revoked",
+        "recover under current read"
+      ],
+      "title": "Accepted response lost before Off remains recoverable",
+      "unsafe": "Off implies no report"
+    },
+    {
+      "corrected": {
+        "new_deliberate_key": "accepted",
+        "old_key": {
+          "status": "rejected_reporting_off"
+        },
+        "older_actual_receipt_allowed": true
+      },
+      "id": "B03",
+      "kind": "counterexample",
+      "title": "A rejected key never becomes queued work after re-enable",
+      "unsafe": "replay old rejected key when On"
+    },
+    {
+      "corrected": {
+        "correct_route_finance": "unavailable",
+        "report_read": "permitted"
+      },
+      "id": "B04",
+      "kind": "counterexample",
+      "title": "Report/read rights do not confer correction, routing or finance",
+      "unsafe": "creator is financial owner"
+    },
+    {
+      "corrected": {
+        "owned_exception": true,
+        "posted_money": 0,
+        "trusted_tenant": "tenant-a",
+        "unknowns_preserved": true
+      },
+      "id": "B05",
+      "kind": "counterexample",
+      "title": "Unknown and wrong-payee reports remain scoped operational facts",
+      "unsafe": {
+        "unsafe_defaults": {
+          "amount": 0,
+          "currency": "USD",
+          "donor": "anonymous",
+          "entity": "default"
+        }
+      }
+    },
+    {
+      "corrected": {
+        "independent_origins": 2,
+        "merge_requires_owner_proof": true,
+        "retry_same_intake": true
+      },
+      "id": "B06",
+      "kind": "counterexample",
+      "title": "Retry and independent duplicate assertions have different identities",
+      "unsafe": {
+        "equal_fields_would_auto_merge": true
+      }
+    },
+    {
+      "corrected": {
+        "posted_before_handling": true,
+        "reversed_after_resolution_reopens_possession": false,
+        "sent_still_needs_handling": true
+      },
+      "id": "B07",
+      "kind": "counterexample",
+      "title": "Posting, transfer assertion and financial reversal do not imply custody",
+      "unsafe": "single Done/Received flag"
+    },
+    {
+      "corrected": {
+        "new_postings": 0,
+        "partial": "incomplete",
+        "wrong_lineage": "unqualified"
+      },
+      "id": "B08",
+      "kind": "counterexample",
+      "title": "Exact existing recording lineage resolves intake without reposting",
+      "unsafe": "post again to repair missing status"
+    },
+    {
+      "corrected": {
+        "correction_first": "reconciliation_required",
+        "resolution_first": true
+      },
+      "id": "B09",
+      "kind": "counterexample",
+      "schedule": [
+        "material correction then stale resolution",
+        "exact resolution then material correction"
+      ],
+      "title": "Correction and exact resolution preserve independent posted history",
+      "unsafe": "last writer overwrites lineage"
+    },
+    {
+      "corrected": {
+        "correction_partial_effects": 0,
+        "rejected_partial_effects": 0,
+        "successful_report_effect_components": 4
+      },
+      "id": "B10",
+      "kind": "counterexample",
+      "title": "Local acceptance includes evidence, audit, receipt and required intent",
+      "unsafe": "save source then fail before intent"
+    },
+    {
+      "corrected": {
+        "context_switch": "unavailable",
+        "minimal_receipt_fields": [
+          "intake",
+          "status"
+        ],
+        "read_revoked": "unavailable"
+      },
+      "id": "B11",
+      "kind": "counterexample",
+      "title": "Recovery neither resurrects old PII nor crosses current context",
+      "unsafe": {
+        "amount": 10000,
+        "assertion": "actual_receipt",
+        "currency": "USD",
+        "donor": "Grace",
+        "intended_entity": "entity-a",
+        "ministry_context": "ministry:alpha",
+        "occurred_at": 1,
+        "occurrence_precision": "day",
+        "reported_holder": "Maya",
+        "wrong_payee": false
+      }
+    },
+    {
+      "corrected": {
+        "activation": "unavailable",
+        "local_reports": 0
+      },
+      "id": "B12",
+      "kind": "counterexample",
+      "title": "Missing source or recovery ownership has no local fallback",
+      "unsafe": "create local gift and broadcast to finance"
+    },
+    {
+      "corrected": {
+        "intake_count": 0,
+        "promise_report": "unqualified"
+      },
+      "id": "B13",
+      "kind": "counterexample",
+      "title": "A promise with a received-date field is not actual receipt",
+      "unsafe": true
+    },
+    {
+      "corrected": {
+        "current_revision": 3,
+        "new_intakes": 0,
+        "old_key_replayed_after_fresh_review": {
+          "status": "rejected_stale_policy_review"
+        },
+        "outcome": {
+          "status": "rejected_stale_policy_review"
+        }
+      },
+      "id": "B14",
+      "kind": "counterexample",
+      "schedule": [
+        "review On revision1",
+        "Off revision2",
+        "On revision3",
+        "submit stale revision1"
+      ],
+      "title": "On again does not make an old policy review current",
+      "unsafe": {
+        "boolean_only_check_passes": true,
+        "reviewed_revision": 1
+      }
+    },
+    {
+      "corrected": {
+        "ministry_scoped_keys_differ": true,
+        "new_intakes": 0,
+        "old_context_form_replay": "unavailable",
+        "old_context_read": "unavailable"
+      },
+      "id": "B15",
+      "kind": "counterexample",
+      "title": "The same actor and tenant do not make another ministry context equivalent",
+      "unsafe": {
+        "tenant_actor_only_key_collides": true
+      }
+    },
+    {
+      "corrected": {
+        "financial_records": 0,
+        "reports": 1,
+        "work_intents": 1
+      },
+      "id": "C01",
+      "kind": "positive_control",
+      "title": "An ordinary report creates one operational intake and work intent",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "finance_continuation": "recorded",
+        "same_intake": "intake-1",
+        "staff_correction": "corrected"
+      },
+      "id": "C02",
+      "kind": "positive_control",
+      "title": "Independently authorized continuation survives Off and reporter departure",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "handling_resolved_before_posting": true,
+        "recording_resolved_later": true
+      },
+      "id": "C03",
+      "kind": "positive_control",
+      "title": "Handling first leaves recording work independent",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "changed_payload": "payload_conflict",
+        "independent_report_count": 2,
+        "same_intent": "original_receipt"
+      },
+      "id": "C04",
+      "kind": "positive_control",
+      "title": "An exact transport retry deduplicates while a distinct report remains distinct",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "fresh_revision": 3,
+        "new_intake_count": 1,
+        "no_op_policy_revision_change": 0,
+        "old_rejection_preserved": true
+      },
+      "id": "C05",
+      "kind": "positive_control",
+      "title": "A fresh review and deliberate new intent may proceed after the policy cycle",
+      "unsafe": null
+    }
+  ],
+  "counts": {
+    "counterexample_families": 15,
+    "passed_outcome_assertions": 91,
+    "positive_controls": 5
+  },
+  "decision": "D33 optional authorized missionary reporting through P15, organization Off by default",
+  "evidence_kind": "bounded_stdlib_semantic_model",
+  "key_rule": "Tenant/actor/ministry-scoped receipts: Off and stale-policy-review rejection are terminal minimal no-effect outcomes; deliberate fresh review uses a new intent/key; accepted exact retry recovers under current disclosure even Off, before new-admission revision checks",
+  "limitations": [
+    "Only synthetic finite standard-library examples ran; no application, database, provider, network, private data, older model or probe was executed.",
+    "Acceptance points and ordered schedules assume atomic serialized owner commands; no SQL/RLS, locks, transaction isolation, durable delivery, real concurrency or crash recovery is proved.",
+    "Receipt assertions are attributed reports, not verification of physical truth, custody, tax dates or money; financial and handling proof inputs are opaque owner-qualified fixtures.",
+    "No finance entry/posting/receipt/fulfillment producer, ledger, bank clearance, check matching, sender, file upload or valuation is implemented.",
+    "Duplicate resolution records qualified retained origins only; full canonical redirection, itemization, conflicting posted duplicates, appeal fanout and existing-task reconciliation remain unmodeled.",
+    "Permission and policy events are qualified inputs; exact synthetic tenant/ministry context is checked, but real role grants, settings authority, clocks/expiry, field-level privacy, retained history, routing directory and browser context enforcement are untested.",
+    "Terminal Off rejection and transient source failure are distinct modeled outcomes; other rejection classes, cancellation, policy-command idempotency, restore and mixed-version deployment are not implemented.",
+    "Material correction versus source resolution is illustrated; full incidental edits, exact financial revision folds, exception closure and correction-retention contracts remain owner obligations.",
+    "Minimal receipts avoid returning old form bodies in these examples; payload hashes are equality witnesses, not a storage/privacy design. Actual retention, disposal, cryptographic privacy and all result surfaces are not proved.",
+    "Passing this model establishes no producer availability, deployed grant, production reliability or release readiness."
+  ],
+  "policy_rule": "New report admission requires explicitly reviewed current policy revision; effective changes increment it, no-op saves do not. Routine submit_fresh fixture calls supply a newly reviewed revision explicitly.",
+  "reproduction": "python3 docs/features/missionary-workspace-depth/grill/d33-evidence/report-counterexamples.py",
+  "revision_reason": "Root audit found the initial boolean-only policy omitted On-Off-On stale review. Initial 13 counterexample families, 4 controls and 79 assertions are preserved in initial-model artifacts.",
+  "script_sha256": "e02d3fe1f0cb3e01530f00d0545c606936a37b67da26cf0d32782dd65aa62185",
+  "status": "proposed D33 temporal rules and existing P15/P27 obligations illustrated; no runtime or ratification claim"
+}

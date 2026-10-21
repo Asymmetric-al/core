@@ -1,0 +1,568 @@
+{
+  "recorded_at": "2026-10-16T04:03:24.098998+00:00",
+  "scope": "synthetic PostgreSQL mechanics, not Core/Supabase/Auth/PostgREST/provider qualification",
+  "passed": 34,
+  "checks": 34,
+  "failure": null,
+  "source_sha256": {
+    "setup.sql": "d4324d56d240d783bc4781e17c051ec4fa826494353c1a520025e88425aa5771",
+    "run.py": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a"
+  },
+  "results": [
+    {
+      "name": "own_update_positive",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "WITH changed AS (UPDATE probe.implicit_check SET value='edited' WHERE id=1 RETURNING id) SELECT count(*) FROM changed;",
+      "expected": "1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "implicit_with_check_denies_owner_transfer",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.implicit_check SET owner_actor='actor_b' WHERE id=1;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: new row violates row-level security policy for table \"implicit_check\"\nLOCATION:  ExecWithCheckOptions, execMain.c:2199",
+      "passed": true
+    },
+    {
+      "name": "implicit_with_check_denies_tenant_transfer",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.implicit_check SET tenant=2 WHERE id=1;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: new row violates row-level security policy for table \"implicit_check\"\nLOCATION:  ExecWithCheckOptions, execMain.c:2199",
+      "passed": true
+    },
+    {
+      "name": "implicit_policy_does_not_immutably_protect_unmentioned_classification",
+      "role": "actor_a",
+      "counterexample": true,
+      "sql": "UPDATE probe.implicit_check SET classification='shared' WHERE id=1; SELECT classification FROM probe.implicit_check WHERE id=1;",
+      "expected": "shared",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "shared",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "overbroad_explicit_check_allows_owner_transfer",
+      "role": "actor_a",
+      "counterexample": true,
+      "sql": "UPDATE probe.broad_check SET owner_actor='actor_b' WHERE id=1; SELECT owner_actor FROM probe.broad_check WHERE id=1;",
+      "expected": "actor_b",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "actor_b",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "permissive_policies_OR_widen_reads",
+      "role": "actor_a",
+      "counterexample": true,
+      "sql": "SELECT count(*) FROM probe.or_policies;",
+      "expected": "3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "restrictive_floor_intersects_permissive_union",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT count(*) FROM probe.or_policies;",
+      "expected": "1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "table_owner_bypasses_enabled_RLS",
+      "role": "fixture_owner",
+      "counterexample": true,
+      "sql": "SELECT count(*) FROM probe.owner_docs;",
+      "expected": "3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "default_view_uses_bypassing_table_owner",
+      "role": "actor_a",
+      "counterexample": true,
+      "sql": "SELECT count(*) FROM probe.owner_view;",
+      "expected": "3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "security_invoker_view_uses_actor_RLS",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT count(*) FROM probe.invoker_view;",
+      "expected": "1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "FORCE_subjects_ordinary_owner_to_default_deny",
+      "role": "fixture_owner",
+      "counterexample": false,
+      "sql": "SELECT count(*) FROM probe.owner_docs;",
+      "expected": "0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "FORCE_does_not_constrain_BYPASSRLS",
+      "role": "bypass_actor",
+      "counterexample": true,
+      "sql": "SELECT count(*) FROM probe.owner_docs;",
+      "expected": "3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "default_owner_view_now_subject_to_FORCED_RLS",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT count(*) FROM probe.owner_view;",
+      "expected": "0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "superuser_owned_view_still_bypasses_FORCE",
+      "role": "actor_a",
+      "counterexample": true,
+      "sql": "SELECT count(*) FROM probe.super_view;",
+      "expected": "3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "definer_function_owned_by_FORCED_table_owner_is_not_automatic_bypass",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.owner_fn();",
+      "expected": "0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "definer_function_owned_by_superuser_and_default_PUBLIC_execute_leaks",
+      "role": "actor_a",
+      "counterexample": true,
+      "sql": "SELECT probe.super_fn();",
+      "expected": "3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "invoker_function_obeys_caller_RLS",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.invoker_fn();",
+      "expected": "1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "revoke_PUBLIC_execute_closes_ungranted_function",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.super_fn();",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for function super_fn\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "hidden_registry_read_is_empty",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT count(*) FROM probe.hidden_registry;",
+      "expected": "0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "UNIQUE_reports_hidden_collision",
+      "role": "actor_a",
+      "counterexample": true,
+      "sql": "INSERT INTO probe.hidden_registry VALUES(42,1,'actor_a','synthetic-hidden@example.invalid');",
+      "expected": null,
+      "expected_sqlstate": "23505",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23505: duplicate key value violates unique constraint \"hidden_registry_address_key\"\nSCHEMA NAME:  probe\nTABLE NAME:  hidden_registry\nCONSTRAINT NAME:  hidden_registry_address_key\nLOCATION:  _bt_check_unique, nbtinsert.c:666",
+      "passed": true
+    },
+    {
+      "name": "noncolliding_registry_insert_succeeds",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.hidden_registry VALUES(43,1,'actor_a','synthetic-new@example.invalid'); SELECT count(*) FROM probe.hidden_registry;",
+      "expected": "1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "single_column_FK_accepts_hidden_cross_tenant_parent",
+      "role": "actor_a",
+      "counterexample": true,
+      "sql": "INSERT INTO probe.weak_child VALUES(1,1,41); SELECT count(*) FROM probe.weak_child;",
+      "expected": "1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "single_column_FK_distinguishes_missing_parent",
+      "role": "actor_a",
+      "counterexample": true,
+      "sql": "INSERT INTO probe.weak_child VALUES(2,1,999);",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"weak_child\" violates foreign key constraint \"weak_child_parent_id_fkey\"\nDETAIL:  Key is not present in table \"hidden_registry\".\nSCHEMA NAME:  probe\nTABLE NAME:  weak_child\nCONSTRAINT NAME:  weak_child_parent_id_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "composite_tenant_FK_rejects_cross_tenant_parent",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.strong_child VALUES(1,1,41);",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"strong_child\" violates foreign key constraint \"strong_child_tenant_parent_id_fkey\"\nDETAIL:  Key is not present in table \"hidden_registry\".\nSCHEMA NAME:  probe\nTABLE NAME:  strong_child\nCONSTRAINT NAME:  strong_child_tenant_parent_id_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "composite_tenant_FK_accepts_same_tenant_parent",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.strong_child VALUES(2,1,43); SELECT count(*) FROM probe.strong_child;",
+      "expected": "1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "targeted_update_without_select_policy_returns_zero",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "WITH changed AS(UPDATE probe.no_select SET value='targeted' WHERE id=1 RETURNING id) SELECT count(*) FROM changed;",
+      "expected": "0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "blind_update_without_select_reference_can_still_update",
+      "role": "actor_a",
+      "counterexample": true,
+      "sql": "UPDATE probe.no_select SET value='blind';",
+      "expected": "",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "blind_update_effect_confirmed",
+      "role": "postgres",
+      "counterexample": true,
+      "sql": "SELECT value FROM probe.no_select;",
+      "expected": "blind",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "blind",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "same_operation_once",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "actor_a",
+      "second_role": "actor_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.accept_once('same-op','alpha'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "1\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.accept_once('same-op','alpha'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "1\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "1\nFIRST_READY\n",
+        "second": "1\nSECOND_DONE\n",
+        "effects": "1"
+      }
+    },
+    {
+      "name": "same_operation_changed_payload_conflicts",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.accept_once('same-op','beta');",
+      "expected": null,
+      "expected_sqlstate": "22023",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  22023: semantic conflict\nCONTEXT:  PL/pgSQL function probe.accept_once(text,text) line 10 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "expected_revision_rechecks_after_lock",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "actor_a",
+      "second_role": "actor_a",
+      "first": [
+        {
+          "sent": "BEGIN; WITH c AS(UPDATE probe.revisions SET revision=revision+1,value='first' WHERE id=1 AND revision=1 RETURNING id) SELECT count(*) FROM c; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "1\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; WITH c AS(UPDATE probe.revisions SET revision=revision+1,value='second' WHERE id=1 AND revision=1 RETURNING id) SELECT count(*) FROM c; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "0\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "1\nFIRST_READY\n",
+        "second": "0\nSECOND_DONE\n",
+        "final": "2:first"
+      }
+    },
+    {
+      "name": "revoke_first_fenced_write_denied",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "gate_manager",
+      "second_role": "actor_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.write_gate SET allowed=false,revision=revision+1 WHERE actor='actor_a'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.fenced_write('must not write'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "denied\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "second": "denied\nSECOND_DONE\n",
+        "effects": "0"
+      }
+    },
+    {
+      "name": "write_first_fences_later_revoke",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "actor_a",
+      "second_role": "gate_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.fenced_write('accepted before revoke'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.write_gate SET allowed=false,revision=revision+1 WHERE actor='actor_a'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted\nFIRST_READY\n",
+        "effects": "1",
+        "gate": "f"
+      }
+    },
+    {
+      "name": "stale_precheck_without_fence_allows_write_after_revoke",
+      "counterexample": true,
+      "passed": true,
+      "transcript": [
+        {
+          "sent": "BEGIN; SELECT allowed FROM probe.write_gate; SELECT 'CHECKED';"
+        },
+        {
+          "received": "t\nCHECKED\n"
+        },
+        {
+          "sent": "INSERT INTO probe.unsafe_effects VALUES(current_user,'write relying on earlier allowed result'); COMMIT; SELECT 'DONE';"
+        },
+        {
+          "received": "DONE\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "final_effects": "1",
+      "final_allowed": "f"
+    }
+  ]
+}

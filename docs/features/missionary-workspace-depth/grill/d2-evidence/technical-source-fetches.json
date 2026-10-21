@@ -1,0 +1,50 @@
+[
+  {
+    "name": "outbox",
+    "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html",
+    "final_url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html",
+    "bytes": 30822,
+    "sha256": "8444f45302b4af60a33ae465c2fac9a48190a915a5c2b1f893692799b6546d7f",
+    "fetched_at": "2026-10-16T04:29:29.425283+00:00"
+  },
+  {
+    "name": "pgnet",
+    "url": "https://supabase.com/docs/guides/database/extensions/pg_net.md",
+    "final_url": "https://supabase.com/docs/guides/database/extensions/pg_net.md",
+    "bytes": 13862,
+    "sha256": "10df5f5a0133c07e68abe8240f32037c157f4991b8428467508d460d3b422fe1",
+    "fetched_at": "2026-10-16T04:29:28.107382+00:00"
+  },
+  {
+    "name": "webhooks",
+    "url": "https://supabase.com/docs/guides/database/webhooks.md",
+    "final_url": "https://supabase.com/docs/guides/database/webhooks.md",
+    "bytes": 3131,
+    "sha256": "54ee2c58dfef9cf5ee75d4b3d5326482b462298e3a765448387ce83ce342872c",
+    "fetched_at": "2026-10-16T04:29:28.325315+00:00"
+  },
+  {
+    "name": "queues",
+    "url": "https://supabase.com/docs/guides/queues/pgmq.md",
+    "final_url": "https://supabase.com/docs/guides/queues/pgmq.md",
+    "bytes": 19011,
+    "sha256": "bbe909cca97428f83d85deb4528dc818de4097446dffb1a1f575b7a033424238",
+    "fetched_at": "2026-10-16T04:29:27.839724+00:00"
+  },
+  {
+    "name": "queue_headers",
+    "url": "https://supabase.com/docs/guides/troubleshooting/database-roles-can-read-request-headers-queued-by-pg_net-ad6357.md",
+    "final_url": "https://supabase.com/docs/guides/troubleshooting/database-roles-can-read-request-headers-queued-by-pg_net-ad6357.md",
+    "bytes": 2300,
+    "sha256": "781a441e58201735331e05b6aaa9653585cb8a24092621e1ab934bc925ea93e6",
+    "fetched_at": "2026-10-16T04:29:27.840902+00:00"
+  },
+  {
+    "name": "pg_transactions",
+    "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+    "final_url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+    "bytes": 47618,
+    "sha256": "32a32972bb04a3d539cbbc89914ff80573023bd900a8710a03bda487feb03000",
+    "fetched_at": "2026-10-16T04:29:29.286116+00:00"
+  }
+]

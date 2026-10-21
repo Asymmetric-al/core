@@ -1,0 +1,13 @@
+{
+  "verified_at_utc": "2026-10-16T11:38:17.131988+00:00",
+  "local_link_checks": 204,
+  "bad_links": [],
+  "concerns": 10,
+  "categories": 22,
+  "clauses": 16,
+  "future_proofs": 16,
+  "model_outcomes_passed": 24,
+  "model_source_hashes_match": true,
+  "founder_brief_sha256": "464e3ceb675f1bd3926b0974b003e885ef1b115b5b516a37da3d84fbed8f1dcb",
+  "scope": "Documentation structure/provenance and model artifact consistency; not implementation or live qualification."
+}

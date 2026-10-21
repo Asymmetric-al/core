@@ -1,0 +1,172 @@
+{
+  "scope": "D10 fresh changelog/range/date sources and verified same-day primary mechanisms; no live or Core qualification.",
+  "fresh": [
+    {
+      "url": "https://supabase.com/changelog.md",
+      "status": 200,
+      "bytes": 102319,
+      "sha256": "15b3d0d1a7dc3b3f2c0af4788e49acfdf2d2edbd2613f22de0705fa43b1cf58b",
+      "raw_path": "/tmp/phase28-d10-primary/changelog.md",
+      "fetched_at": "2026-10-16T10:05:47.817896+00:00"
+    },
+    {
+      "name": "pg17-ranges",
+      "url": "https://www.postgresql.org/docs/17/rangetypes.html",
+      "status": 200,
+      "bytes": 39059,
+      "sha256": "c5cfd210f43ea328ccc8ebdd29bdf061ebc54382a8fdf3f306350bc908f28ed2",
+      "text_sha256": "b6d17742a5895aca8b1594132d2926a5739e475fc031ae2951175e3426203157",
+      "raw_path": "/tmp/phase28-d10-primary/pg17-ranges.html",
+      "text_path": "/tmp/phase28-d10-primary/pg17-ranges.txt",
+      "fetched_at": "2026-10-16T10:06:38.189115+00:00"
+    },
+    {
+      "name": "pg17-datetime",
+      "url": "https://www.postgresql.org/docs/17/datatype-datetime.html",
+      "status": 200,
+      "bytes": 75731,
+      "sha256": "485c4f40621553bad1aeaa80ae8dd346ec39d0f1009ae8bb35db4687e1f81e3a",
+      "text_sha256": "f9976a46a8368c9a4ef14c7c014ba1674b916279b8aadf835139c133fe070b0a",
+      "raw_path": "/tmp/phase28-d10-primary/pg17-datetime.html",
+      "text_path": "/tmp/phase28-d10-primary/pg17-datetime.txt",
+      "fetched_at": "2026-10-16T10:06:38.323325+00:00"
+    },
+    {
+      "name": "pg17-range-functions",
+      "url": "https://www.postgresql.org/docs/17/functions-range.html",
+      "status": 200,
+      "bytes": 49943,
+      "sha256": "b3b814077bd41396c8934e25d8aaaf8d847e67e1b20d73c4311e9e76fd48ca9a",
+      "text_sha256": "6a59e9aed0e0c7facc04ac538476f600e33ccf760feb8e5e695c5fe4a7c76e51",
+      "raw_path": "/tmp/phase28-d10-primary/pg17-range-functions.html",
+      "text_path": "/tmp/phase28-d10-primary/pg17-range-functions.txt",
+      "fetched_at": "2026-10-16T10:06:37.704754+00:00"
+    }
+  ],
+  "same_day_reused": [
+    {
+      "name": "pg17-policies",
+      "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "status": 200,
+      "bytes": 46910,
+      "sha256": "4a75de7338882ab78829708c3c4de9caa309508f8ba7261702889e3d211139e1",
+      "text_sha256": "ae1f8aa811fb152d5dd66117ae2426d6b986d95900c2a6f1a75a2d52fc33bee3",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-policies.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-policies.txt",
+      "read_at": "2026-10-16T08:40:25.983189+00:00"
+    },
+    {
+      "name": "pg17-functions",
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "status": 200,
+      "bytes": 51069,
+      "sha256": "785004cc71694c34b9d0a6b22e11681012a6a2d40862ff2ed61adc801f0bbb96",
+      "text_sha256": "ab859df881a1b8aa0f6b701439b5c6fb5071e44cc264e08d27e74c5956e56315",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-functions.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-functions.txt",
+      "read_at": "2026-10-16T08:40:30.300689+00:00"
+    },
+    {
+      "name": "pg17-view",
+      "url": "https://www.postgresql.org/docs/17/sql-createview.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createview.html",
+      "status": 200,
+      "bytes": 38035,
+      "sha256": "d91c3a1a6e911b4323b26003cbb1db3015e4a35da400a23e6311f3eea27003c6",
+      "text_sha256": "884065b3a145a43f940f16ccf0ff9cfe5b0be7dd94bc68c4b4705466dd29dd51",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-view.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-view.txt",
+      "read_at": "2026-10-16T08:40:31.810154+00:00"
+    },
+    {
+      "name": "pg17-isolation",
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "final_url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "status": 200,
+      "bytes": 47618,
+      "sha256": "32a32972bb04a3d539cbbc89914ff80573023bd900a8710a03bda487feb03000",
+      "text_sha256": "457bf019a88dba9800363f44afe2ea21fb9ecc1a835c715b06165f401af84d12",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-isolation.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-isolation.txt",
+      "read_at": "2026-10-16T08:40:32.962475+00:00"
+    },
+    {
+      "name": "pg17-locks",
+      "url": "https://www.postgresql.org/docs/17/explicit-locking.html",
+      "final_url": "https://www.postgresql.org/docs/17/explicit-locking.html",
+      "status": 200,
+      "bytes": 46799,
+      "sha256": "ac8f5253bba1cbc0e358932019b94e013953dc3a7a0136a21e97fd47cdf9e0e5",
+      "text_sha256": "a9fec7f6fa1ed375362643246990318497846d3067c5d6ecbc585a3561ac36ec",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-locks.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-locks.txt",
+      "read_at": "2026-10-16T08:40:34.600075+00:00"
+    },
+    {
+      "name": "pg17-constraints",
+      "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "final_url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "status": 200,
+      "bytes": 44707,
+      "sha256": "cce33512bf9c9dcc29db138e888b72710c8e38a1eff18e0c74afff1ff16f2f57",
+      "text_sha256": "2aa857ee64c37a1bbd73b81246bc585a8e0b480a994af9c800f7d8461f36fe24",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-constraints.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-constraints.txt",
+      "read_at": "2026-10-16T08:40:36.420627+00:00"
+    },
+    {
+      "name": "pg17-minor",
+      "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "final_url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "status": 200,
+      "sha256": "2a8a151bf9d26b39772a66092482c4768cdc3296f56679125c220a6d3fc889b3",
+      "text_sha256": "b764c89523cf64f7d0b7a5403ea77faa09379ccb142288f1a5614f0c56f9889e",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-minor.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-minor.txt",
+      "read_at": "2026-10-16T08:44:08.434803+00:00"
+    },
+    {
+      "name": "api-grants",
+      "url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+      "final_url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+      "status": 200,
+      "sha256": "26e89e1faf5d95242f40be877bb92441eea35be76c9a8bea0b461b02bf4ee336",
+      "text_sha256": "3d4635cf9e89d218fcae8ab48e269dfbd2d82e9c927f0115db29d7ec0cb77528",
+      "raw_path": "/tmp/phase28-d8-primary/api-grants.html",
+      "text_path": "/tmp/phase28-d8-primary/api-grants.txt",
+      "read_at": "2026-10-16T08:44:09.109353+00:00"
+    },
+    {
+      "name": "supabase-rls",
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "final_url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "status": 200,
+      "bytes": 30344,
+      "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "text_sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "raw_path": "/tmp/phase28-d9-primary/supabase-rls.md",
+      "text_path": "/tmp/phase28-d9-primary/supabase-rls.txt",
+      "fetched_at": "2026-10-16T09:26:55.938856+00:00"
+    }
+  ],
+  "local": [
+    {
+      "path": "docs/prds/sitestacker-parity/phase-12-full-role-permission-configuration.md",
+      "sha256": "b7f3b5645f5bfc7cbaa853bad781df84d8fd715e40d9f7648dccb128fcb469e4"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md",
+      "sha256": "f40ffa68062101d677d38765ae4da0bf10b37862dc9d9f8d34144904d444eabf"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-d9-adversarial-review.md",
+      "sha256": "cdb5bcf2c8c8252afb2a2379bde3f5151ff47461e2eea7610101c930b0abd353"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-q10-coaching-history-research.md",
+      "sha256": "15a36036779077a02a903ab7ac84faa32a50da85db9975374c0929f2433ad06a"
+    }
+  ]
+}
