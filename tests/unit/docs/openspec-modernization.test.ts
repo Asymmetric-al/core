@@ -119,10 +119,13 @@ describe("OpenSpec pin and local CLI", () => {
     const refreshScript = readRepoFile("scripts/refresh-upstream-skills.mjs");
     expect(refreshScript).toContain('source: "Fission-AI/OpenSpec"');
     expect(refreshScript).toContain(`ref: "${PINNED_OPENSPEC_TAG}"`);
-    expect(refreshScript).toContain("openspec-explore");
-    expect(refreshScript).toContain("openspec-archive-change");
-    expect(refreshScript).not.toContain("openspec-new-change");
-    expect(refreshScript).not.toContain("openspec-onboard");
+    const selected = refreshScript.match(
+      /const openspecSkillNames = \[([\s\S]*?)\];/,
+    );
+    expect(selected).not.toBeNull();
+    expect(
+      [...selected![1].matchAll(/"([^"]+)"/g)].map((match) => match[1]),
+    ).toEqual(SELECTED_OPENSPEC_SKILLS);
   });
 });
 
