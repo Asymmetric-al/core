@@ -1,0 +1,33 @@
+# Host secrets and runtime state never enter the build context.
+**/.git
+**/.env*
+!**/.env.example
+# Retain the vendored synthetic emulator fixtures.
+!vendor/payload-upstream/test/**/.env.emulated
+**/.npmrc
+**/.netrc
+**/.ssh
+**/.aws
+**/.config/gcloud
+**/.vercel
+**/settings.local.json
+**/*.pem
+**/*.key
+**/node_modules
+**/.next
+**/.output
+**/.eve
+**/.turbo
+**/*.tsbuildinfo
+**/coverage
+**/playwright-report
+**/test-results
+**/.auth
+**/backups
+**/.tmp
+**/.tmp-*
+**/*.log
+**/*.bak
+.oss-scanner/results
+apps/admin/media
+media

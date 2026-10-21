@@ -73,6 +73,9 @@ without repairing it. Setup does not start an issue trial.
   target environment for full qualification. Follow the
   [build runbook](docs/guides/development/build-runbook.md#eve-artifacts-and-qualification)
   and keep Release Off until the separate launch requirements are met.
+- **OSS Scanner:** maintain the credential-free build and offline helpers using
+  the [scanner runbook](.oss-scanner/README.md); keep demo, mocked-provider and
+  local database evidence separate and triage findings privately.
 - **Production E2E:** `bun run test:e2e:production-gate` is the bounded
   release gate required for `production`; broader `bun run test:e2e` remains useful
   for local feature validation.
