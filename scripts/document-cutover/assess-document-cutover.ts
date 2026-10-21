@@ -62,10 +62,20 @@
  *                             document_cutover_reader.<ref>), or a direct
  *                             db.<ref>.supabase.co host. It must name the
  *                             host, port, database, user and password, and its
- *                             only query parameter may be sslmode. Its project
- *                             ref must match SUPABASE_URL's. PG* variables,
- *                             DATABASE_URL and SUPABASE_SERVICE_ROLE_KEY are
- *                             never used.
+ *                             only query parameter may be sslmode. A
+ *                             non-loopback host needs sslmode=require,
+ *                             verify-ca or verify-full (TLS with certificate
+ *                             verification, always); IPv6 and multi-host URLs
+ *                             are refused. Its project ref must match
+ *                             SUPABASE_URL's. PG* variables, DATABASE_URL and
+ *                             SUPABASE_SERVICE_ROLE_KEY are never used.
+ *   NODE_EXTRA_CA_CERTS                       Deploy prerequisite for a
+ *                             Supabase target: the path to Supabase's root CA
+ *                             file (prod-ca-2021.crt, CN "Supabase Root 2021
+ *                             CA", from Database Settings > SSL Configuration).
+ *                             Node does not trust that CA by default, so
+ *                             without it the TLS handshake fails and the gate
+ *                             stops; it never retries without verification.
  */
 
 import { execFileSync } from "node:child_process";
@@ -464,9 +474,14 @@ const PRIVILEGED_ROLES = [
   "supabase_functions_admin",
   "supabase_realtime_admin",
   "supabase_replication_admin",
+  "anon",
+  "pg_execute_server_program",
 ];
 
-/** The only query parameter the reader URL may carry. */
+/** sslmode values accepted for a non-loopback host: TLS with verification. */
+const VERIFIED_SSLMODES = new Set(["require", "verify-ca", "verify-full"]);
+
+/** The only query parameter the reader URL may carry (loopback values). */
 const ALLOWED_SSLMODES = new Set([
   "disable",
   "prefer",
@@ -482,13 +497,30 @@ const NETWORK_HOST =
 
 const GATE_APPLICATION_NAME = "document-cutover-gate";
 
-type PgClientConfig = {
+/** TLS settings handed to pg: off (loopback only) or certificate-verified. */
+type PgTlsConfig = false | { rejectUnauthorized: boolean };
+
+/**
+ * The exact object handed to `new pg.Client`. The connection string carries
+ * no query, so pg's own sslmode parsing can't replace `ssl`.
+ */
+export type PgClientConfig = {
   connectionString: string;
   application_name: string;
   connectionTimeoutMillis: number;
   statement_timeout: number;
-  ssl?: false;
+  ssl: PgTlsConfig;
 };
+
+/** Node's codes for a server certificate whose chain it does not trust. */
+const UNTRUSTED_CERTIFICATE_CODES = new Set([
+  "SELF_SIGNED_CERT_IN_CHAIN",
+  "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+  "UNABLE_TO_GET_ISSUER_CERT_LOCALLY",
+]);
+
+/** The Supabase root CA the session pooler's certificate chains to. */
+const SUPABASE_ROOT_CA = "Supabase Root 2021 CA";
 
 /** The connection fields pg resolves for a client config (its own resolver). */
 type PgEffectiveConnection = Record<string, unknown>;
@@ -568,11 +600,29 @@ function targetScope(
  * never used. The config pg will actually use is then resolved by pg itself
  * and must match the URL field by field. Returns that config, or a blocker.
  */
-function checkDatabaseUrl(
+export function checkDatabaseUrl(
   env: CommandEnv,
 ): { config: PgClientConfig } | { blocker: string } {
   const raw = env.DOCUMENT_CUTOVER_DATABASE_URL?.trim();
   if (!raw) return { blocker: DATABASE_URL_MISSING_BLOCKER };
+
+  const urlBlocker = (detail: string) => ({
+    blocker: `STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL ${detail}; the URL alone decides the connection.`,
+  });
+
+  // Host checks that URL parsing would otherwise turn into a generic error.
+  const authority = /^[a-z][a-z0-9+.-]*:\/\/([^/?#]*)/i.exec(raw)?.[1];
+  if (authority !== undefined) {
+    const hostAndPort = authority.slice(authority.lastIndexOf("@") + 1);
+    if (hostAndPort.includes(",")) {
+      return urlBlocker(
+        "names more than one host (multi-host URLs are never used)",
+      );
+    }
+    if (hostAndPort === "" || hostAndPort.startsWith(":")) {
+      return urlBlocker("names no host");
+    }
+  }
 
   let parsed: URL | null = null;
   try {
@@ -589,10 +639,6 @@ function checkDatabaseUrl(
         "STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL is not a postgres:// URL, so its project ref can't be checked against SUPABASE_URL.",
     };
   }
-
-  const urlBlocker = (detail: string) => ({
-    blocker: `STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL ${detail}; the URL alone decides the connection.`,
-  });
 
   const keys = [...parsed.searchParams.keys()];
   const extra = keys.find((key) => key !== "sslmode");
@@ -624,9 +670,20 @@ function checkDatabaseUrl(
     return urlBlocker("is not validly percent-encoded");
   }
   if (!host) return urlBlocker("names no host");
+  if (host.startsWith("[")) {
+    return urlBlocker(
+      `names the IPv6 host ${host}, which pg would look up as a hostname; use 127.0.0.1 for a loopback reader`,
+    );
+  }
   if (!NETWORK_HOST.test(parsed.hostname) || host.includes("/")) {
     return urlBlocker(
       "host is not a network hostname or IP address (a Unix socket path is never used)",
+    );
+  }
+  const loopback = LOOPBACK_HOSTS.has(host);
+  if (!loopback && (sslmode === undefined || !VERIFIED_SSLMODES.has(sslmode))) {
+    return urlBlocker(
+      `uses ${sslmode === undefined ? "no sslmode" : `sslmode=${sslmode}`} for the non-loopback host ${host}; only sslmode=require, verify-ca or verify-full (TLS with certificate verification) is accepted`,
     );
   }
   if (!parsed.port) return urlBlocker("names no port");
@@ -662,13 +719,13 @@ function checkDatabaseUrl(
         "SUPABASE_URL is a loopback target but the database URL names a hosted project ref.",
       );
     }
-    return resolvedConfig(raw, {
+    return resolvedConfig(parsed, {
       host,
       port: Number(parsed.port),
       database,
       login,
       password,
-      sslmode,
+      tls: tlsConfigFor(loopback, sslmode),
     });
   }
   if (!target.ref) {
@@ -685,14 +742,29 @@ function checkDatabaseUrl(
       `the database URL's project ref (${refs.join(", ")}) is not ${target.ref}.`,
     );
   }
-  return resolvedConfig(raw, {
+  return resolvedConfig(parsed, {
     host,
     port: Number(parsed.port),
     database,
     login,
     password,
-    sslmode,
+    tls: tlsConfigFor(loopback, sslmode),
   });
+}
+
+/**
+ * TLS for the reader connection. A non-loopback host always verifies the
+ * server certificate (and, through pg, its hostname); only loopback may run
+ * without TLS or opt out of verification.
+ */
+function tlsConfigFor(
+  loopback: boolean,
+  sslmode: string | undefined,
+): PgTlsConfig {
+  if (!loopback) return { rejectUnauthorized: true };
+  if (sslmode === undefined || sslmode === "disable") return false;
+  if (sslmode === "no-verify") return { rejectUnauthorized: false };
+  return { rejectUnauthorized: true };
 }
 
 /**
@@ -701,22 +773,26 @@ function checkDatabaseUrl(
  * startup options, replication, binary mode or client encoding from anywhere.
  */
 function resolvedConfig(
-  raw: string,
+  url: URL,
   expected: {
     host: string;
     port: number;
     database: string;
     login: string;
     password: string;
-    sslmode: string | undefined;
+    tls: PgTlsConfig;
   },
 ): { config: PgClientConfig } | { blocker: string } {
+  // The URL's only query parameter is sslmode, already turned into `ssl`;
+  // dropping the query keeps pg from re-reading it over that setting.
+  const withoutQuery = new URL(url.href);
+  withoutQuery.search = "";
   const config: PgClientConfig = {
-    connectionString: raw,
+    connectionString: withoutQuery.href,
     application_name: GATE_APPLICATION_NAME,
     connectionTimeoutMillis: 10_000,
     statement_timeout: DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS,
-    ...(expected.sslmode === undefined ? { ssl: false as const } : {}),
+    ssl: expected.tls,
   };
   const effective = effectivePgConnection(config);
   const unbracket = (value: unknown) =>
@@ -733,6 +809,7 @@ function resolvedConfig(
     Boolean(effective.binary) && "binary",
     Boolean(effective.client_encoding) && "client_encoding",
     effective.application_name !== GATE_APPLICATION_NAME && "application_name",
+    JSON.stringify(effective.ssl) !== JSON.stringify(expected.tls) && "ssl",
   ].filter((field): field is string => typeof field === "string");
   if (mismatches.length > 0) {
     return {
@@ -841,6 +918,13 @@ async function openReaderConnection(
     return { client };
   } catch (error) {
     await closeReader(client);
+    const code = (error as { code?: unknown } | null)?.code;
+    if (typeof code === "string" && UNTRUSTED_CERTIFICATE_CODES.has(code)) {
+      // One attempt only: the gate never retries without verification.
+      return {
+        blocker: `STOP THE LINE — the reader connection's TLS certificate could not be verified (${code}). Node does not trust the Supabase root CA ("${SUPABASE_ROOT_CA}") by default: set NODE_EXTRA_CA_CERTS to that root CA file (prod-ca-2021.crt from Database Settings > SSL Configuration) and rerun. The gate never connects without certificate verification.`,
+      };
+    }
     return {
       blocker: `STOP THE LINE — could not open the ${READER_ROLE} connection: ${redactDiagnosticText(error instanceof Error ? error.message : String(error))}`,
     };
