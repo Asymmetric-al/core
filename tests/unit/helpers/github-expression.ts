@@ -4,9 +4,11 @@
  * Covers the expression language actually used by this repo's workflows:
  * literals, context property access (`a.b`, `a['b']`), `!`, `==`, `!=`, `<`,
  * `<=`, `>`, `>=`, `&&`, `||`, parentheses, and the functions listed in
- * {@link FUNCTIONS}. Semantics follow the GitHub docs: `&&` / `||` return an
- * operand, strings compare case-insensitively, mismatched types coerce to
- * numbers. Unknown functions and unknown context roots throw, so a test can
+ * {@link FUNCTIONS}. Semantics follow the GitHub docs and actions/runner
+ * `EvaluationResult.cs`: `&&` / `||` return an operand; two strings compare
+ * (including `<`, `>`, `<=`, `>=`) with case-insensitive ordinal comparison;
+ * only mismatched types coerce to numbers, and arrays/objects never coerce.
+ * Unknown functions and unknown context roots throw, so a test can
  * never silently evaluate an expression it does not understand.
  */
 
@@ -360,15 +362,98 @@ function toNumber(value: ExprValue): number {
   return Number.NaN;
 }
 
-function looseEquals(a: ExprValue, b: ExprValue): boolean {
-  if (typeof a === "string" && typeof b === "string") {
-    return a.toLowerCase() === b.toLowerCase();
+type ValueKind = "null" | "boolean" | "number" | "string" | "object";
+
+function kindOf(value: ExprValue): ValueKind {
+  if (value === null) return "null";
+  if (typeof value === "object") return "object";
+  return typeof value as "boolean" | "number" | "string";
+}
+
+/**
+ * actions/runner `EvaluationResult.CoerceTypes`: values of the same kind are
+ * left alone; number/string pairs convert the string; a boolean or null side
+ * converts to a number and coercion repeats. Arrays and objects never coerce,
+ * so they only ever compare against their own kind.
+ */
+function coerceTypes(
+  left: ExprValue,
+  right: ExprValue,
+): [ExprValue, ExprValue] {
+  const leftKind = kindOf(left);
+  const rightKind = kindOf(right);
+  if (leftKind === rightKind) return [left, right];
+  if (leftKind === "number" && rightKind === "string") {
+    return [left, toNumber(right)];
   }
-  if (a === null && b === null) return true;
-  const objectLike = (v: ExprValue) => v !== null && typeof v === "object";
-  if (objectLike(a) || objectLike(b)) return a === b;
-  if (typeof a === typeof b) return a === b;
-  return toNumber(a) === toNumber(b);
+  if (leftKind === "string" && rightKind === "number") {
+    return [toNumber(left), right];
+  }
+  if (leftKind === "boolean" || leftKind === "null") {
+    return coerceTypes(toNumber(left), right);
+  }
+  if (rightKind === "boolean" || rightKind === "null") {
+    return coerceTypes(left, toNumber(right));
+  }
+  return [left, right];
+}
+
+/**
+ * .NET `OrdinalIgnoreCase`: compare UTF-16 code units after simple per-unit
+ * upper-casing (no multi-character mappings such as `ß` -> `SS`).
+ */
+function foldOrdinalIgnoreCase(value: string): string {
+  let folded = "";
+  for (const unit of value.split("")) {
+    const upper = unit.toUpperCase();
+    folded += upper.length === 1 ? upper : unit;
+  }
+  return folded;
+}
+
+function compareOrdinalIgnoreCase(a: string, b: string): number {
+  const left = foldOrdinalIgnoreCase(a);
+  const right = foldOrdinalIgnoreCase(b);
+  if (left === right) return 0;
+  return left < right ? -1 : 1;
+}
+
+/** actions/runner `EvaluationResult.AbstractEqual`. */
+function looseEquals(a: ExprValue, b: ExprValue): boolean {
+  const [left, right] = coerceTypes(a, b);
+  const kind = kindOf(left);
+  if (kind !== kindOf(right)) return false;
+  switch (kind) {
+    case "null":
+      return true;
+    case "string":
+      return compareOrdinalIgnoreCase(left as string, right as string) === 0;
+    default:
+      // Numbers (NaN never equals anything), booleans, and arrays/objects by reference.
+      return left === right;
+  }
+}
+
+/** actions/runner `EvaluationResult.AbstractGreaterThan`. */
+function looseGreaterThan(a: ExprValue, b: ExprValue): boolean {
+  const [left, right] = coerceTypes(a, b);
+  const kind = kindOf(left);
+  if (kind !== kindOf(right)) return false;
+  switch (kind) {
+    case "number":
+      return (left as number) > (right as number);
+    case "string":
+      return compareOrdinalIgnoreCase(left as string, right as string) > 0;
+    case "boolean":
+      return left === true && right === false;
+    default:
+      return false;
+  }
+}
+
+/** actions/runner `EvaluationResult.AbstractLessThan`. */
+function looseLessThan(a: ExprValue, b: ExprValue): boolean {
+  return looseGreaterThan(b, a);
 }
 
 function stringify(value: ExprValue): string {
@@ -466,13 +551,13 @@ export function evaluateExpression(
         case "!=":
           return !looseEquals(left, right);
         case "<":
-          return toNumber(left) < toNumber(right);
+          return looseLessThan(left, right);
         case "<=":
-          return toNumber(left) <= toNumber(right);
+          return looseLessThan(left, right) || looseEquals(left, right);
         case ">":
-          return toNumber(left) > toNumber(right);
+          return looseGreaterThan(left, right);
         case ">=":
-          return toNumber(left) >= toNumber(right);
+          return looseGreaterThan(left, right) || looseEquals(left, right);
       }
     }
   }

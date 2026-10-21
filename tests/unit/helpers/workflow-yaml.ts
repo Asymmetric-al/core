@@ -22,7 +22,7 @@ export type WorkflowJobs = Record<string, WorkflowJob>;
 export type WorkflowJob = {
   "runs-on"?: string | string[];
   "timeout-minutes"?: number;
-  if?: string;
+  if?: string | boolean;
   needs?: string | string[];
   name?: string;
   uses?: string;
@@ -47,7 +47,8 @@ export type WorkflowStep = {
   uses?: string;
   run?: string;
   name?: string;
-  if?: string;
+  if?: string | boolean;
+  shell?: string;
   env?: Record<string, unknown>;
   with?: Record<string, unknown>;
   [key: string]: unknown;
@@ -74,37 +75,67 @@ export const SELF_HOSTED_LABELS = [
 /** Spec rev 3 §3 / done criterion 11 — required checks fail closed on forks with this message. */
 export const FORK_FAIL_MESSAGE = "fork PRs need a maintainer to run CI";
 
-function parseWorkflowYamlFile(absolutePath: string): { jobs?: WorkflowJobs } {
+/** Parsed GitHub Actions workflow document (`on`, `jobs`, and the rest). */
+export type WorkflowDocument = {
+  on?: unknown;
+  jobs?: WorkflowJobs;
+  [key: string]: unknown;
+};
+
+/** Parse workflow YAML text with Bun's YAML parser (in-process under Bun, else via `bun`). */
+export function parseWorkflowSource(source: string): WorkflowDocument {
   const bun = globalThis.Bun as
     | { YAML: { parse(input: string): unknown } }
     | undefined;
-  const source = readFileSync(absolutePath, "utf8");
   if (bun?.YAML) {
-    return bun.YAML.parse(source) as { jobs?: WorkflowJobs };
+    return bun.YAML.parse(source) as WorkflowDocument;
   }
 
   const result = spawnSync(
     "bun",
     [
       "-e",
-      "console.log(JSON.stringify(Bun.YAML.parse(await Bun.file(process.argv.at(-1)).text())))",
-      absolutePath,
+      "console.log(JSON.stringify(Bun.YAML.parse(await Bun.stdin.text())))",
     ],
-    { encoding: "utf8" },
+    { encoding: "utf8", input: source },
   );
   if (result.status !== 0) {
     throw new Error(`Bun YAML parse failed: ${result.stderr || result.stdout}`);
   }
-  return JSON.parse(result.stdout) as { jobs?: WorkflowJobs };
+  return JSON.parse(result.stdout) as WorkflowDocument;
+}
+
+export function loadWorkflowDocument(relativePath: string): WorkflowDocument {
+  return parseWorkflowSource(readFileSync(path.resolve(relativePath), "utf8"));
+}
+
+export function workflowJobs(
+  doc: WorkflowDocument,
+  label = "workflow",
+): WorkflowJobs {
+  if (!doc?.jobs || typeof doc.jobs !== "object") {
+    throw new Error(`Missing jobs map in ${label}`);
+  }
+  return doc.jobs;
 }
 
 export function loadWorkflowJobs(relativePath: string): WorkflowJobs {
-  const absolutePath = path.resolve(relativePath);
-  const doc = parseWorkflowYamlFile(absolutePath);
-  if (!doc?.jobs || typeof doc.jobs !== "object") {
-    throw new Error(`Missing jobs map in ${relativePath}`);
-  }
-  return doc.jobs;
+  return workflowJobs(loadWorkflowDocument(relativePath), relativePath);
+}
+
+/** Event names from a workflow's `on:` (string, list, or map form), sorted. */
+export function workflowTriggerEvents(doc: WorkflowDocument): string[] {
+  const on = doc.on;
+  if (typeof on === "string") return [on];
+  if (Array.isArray(on)) return on.map(String).sort();
+  if (on && typeof on === "object") return Object.keys(on).sort();
+  throw new Error("Workflow has no on: triggers");
+}
+
+/** Trigger events that {@link EVENT_SCENARIOS} does not model, sorted. */
+export function unmodeledTriggerEvents(doc: WorkflowDocument): string[] {
+  const modeled = new Set(MODELED_TRIGGER_EVENTS);
+  return workflowTriggerEvents(doc).filter((event) => !modeled.has(event));
 }
 
 export function normalizeWorkflowExpression(expression: string): string {
@@ -173,9 +204,17 @@ export function isForkAwareRunsOnExpression(
   }
 }
 
+/** Job `if` as expression text; YAML booleans/numbers (`if: false`) become literals, absent is "". */
 export function ifExpression(job: WorkflowJob): string {
-  const value = job.if;
-  return typeof value === "string" ? value : "";
+  return conditionText(job.if) ?? "";
+}
+
+function conditionText(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  if (typeof value === "boolean" || typeof value === "number") {
+    return String(value);
+  }
+  return undefined;
 }
 
 export function needsList(job: WorkflowJob): string[] {
@@ -205,8 +244,8 @@ export function containsSameRepoGuard(expression: string): boolean {
 }
 
 /** Structural: every conjunct of the fork-only condition is a top-level conjunct of the step `if`. */
-export function isForkOnlyStepGuard(expression: string | undefined): boolean {
-  if (!expression) return false;
+export function isForkOnlyStepGuard(expression: unknown): boolean {
+  if (typeof expression !== "string" || !expression) return false;
   const ast = tryParse(expression);
   if (!ast) return false;
   const parts = conjuncts(ast);
@@ -216,8 +255,8 @@ export function isForkOnlyStepGuard(expression: string | undefined): boolean {
 }
 
 /** Structural: the expression is exactly `always()` (optionally `${{ }}`-wrapped). */
-export function isAlwaysExpression(expression: string | undefined): boolean {
-  if (!expression) return false;
+export function isAlwaysExpression(expression: unknown): boolean {
+  if (typeof expression !== "string" || !expression) return false;
   const ast = tryParse(expression);
   return (
     ast !== undefined &&
@@ -292,6 +331,19 @@ export const EVENT_SCENARIOS: readonly EventScenario[] = [
   refScenario("workflow_dispatch", "feature"),
 ];
 
+/**
+ * The only trigger events the fork analysis models. Any other trigger (for
+ * example `pull_request_target`, where the `event_name == 'pull_request'` fork
+ * checks are false) is outside the model and must fail the trigger pin.
+ */
+export const MODELED_TRIGGER_EVENTS: readonly string[] = [
+  ...new Set(
+    EVENT_SCENARIOS.map((scenario) =>
+      String((scenario.github as { event_name: string }).event_name),
+    ),
+  ),
+].sort();
+
 const NEED_RESULTS = ["success", "failure", "skipped", "cancelled"] as const;
 const OUTPUT_VALUES = ["true", "false"] as const;
 
@@ -342,9 +394,10 @@ export function scenarioContext(
 
 /** GitHub job/step `if`: absent means `success()`; no status function means `success() && (...)`. */
 export function evaluateIfCondition(
-  expression: string | undefined,
+  condition: unknown,
   ctx: EvalContext,
 ): boolean {
+  const expression = conditionText(condition);
   if (expression === undefined || expression.trim() === "") {
     return ctx.status?.success ?? true;
   }
@@ -463,13 +516,32 @@ export function firstSecretStepIndex(job: WorkflowJob): number {
 // Fork-reject step and self-hosted fork safety
 // ---------------------------------------------------------------------------
 
+/**
+ * Structural fork-reject check: a `run:` step (no `uses:`) whose `if` is the
+ * fork-only guard, that cannot be neutralized by `continue-on-error` on any
+ * fork event, and whose body — executed under the step's real shell
+ * (`bash -e` by default) — exits non-zero and prints {@link FORK_FAIL_MESSAGE}.
+ * A substring match is not enough: `exit 0` before `exit 1` must fail this.
+ */
 export function isForkRejectStep(step: WorkflowStep): boolean {
-  const run = step.run ?? "";
-  return (
-    run.includes(FORK_FAIL_MESSAGE) &&
-    /\bexit\s+1\b/.test(run) &&
-    isForkOnlyStepGuard(step.if)
-  );
+  const run = step.run;
+  if (typeof run !== "string" || step.uses !== undefined) return false;
+  if (!isForkOnlyStepGuard(step.if)) return false;
+  const env = Object.values(step.env ?? {}).map(String);
+  if ([run, ...env].some((text) => text.includes("${{"))) return false;
+  try {
+    const neutralized = EVENT_SCENARIOS.filter((s) => s.fork).some((scenario) =>
+      evaluateFlag(step["continue-on-error"], scenarioContext(scenario, {})),
+    );
+    if (neutralized) return false;
+    const result = executeRunScript(step, run, {});
+    return (
+      result.status !== 0 &&
+      `${result.stdout}\n${result.stderr}`.includes(FORK_FAIL_MESSAGE)
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function forkRejectStepIndex(job: WorkflowJob): number {
@@ -489,7 +561,9 @@ export function forkRejectProblems(job: WorkflowJob): string[] {
   const steps = allSteps(job);
   const rejectIndex = forkRejectStepIndex(job);
   if (rejectIndex === -1) {
-    return ["no fork-reject step (fork-only if + message + exit 1)"];
+    return [
+      "no fork-reject step (fork-only if; body exits non-zero printing the message; no continue-on-error)",
+    ];
   }
   if (rejectIndex !== 0) {
     problems.push(
@@ -805,9 +879,174 @@ export function findCiGateResultsStep(
 export type GateExecution = { status: number; stdout: string; stderr: string };
 
 /**
- * Execute the real ci-gate step (its `run:` under bash, from the repo root) with
- * its `env:` rendered from the supplied needs context. Proves the workflow's
- * step — not a fixed fixture — passes or fails for those results.
+ * Argv for a `run:` step under GitHub's shell rules on Linux runners: no
+ * `shell:` means `bash -e {0}`; `shell: bash` means
+ * `bash --noprofile --norc -eo pipefail {0}`; `shell: sh` means `sh -e {0}`.
+ * Any other shell is outside this harness and throws.
+ */
+export function runStepShellArgv(step: WorkflowStep): [string, string[]] {
+  const shell = step.shell;
+  if (shell === undefined) return ["bash", ["-e", "-c"]];
+  if (shell === "bash") {
+    return ["bash", ["--noprofile", "--norc", "-eo", "pipefail", "-c"]];
+  }
+  if (shell === "sh") return ["sh", ["-e", "-c"]];
+  throw new Error(`Unsupported step shell: ${JSON.stringify(shell)}`);
+}
+
+const scriptExecutionCache = new Map<string, GateExecution>();
+
+/** Run one rendered `run:` body (from the repo root) under the step's shell; memoized. */
+export function executeRunScript(
+  step: WorkflowStep,
+  script: string,
+  env: Record<string, string>,
+): GateExecution {
+  const [command, args] = runStepShellArgv(step);
+  const key = JSON.stringify([command, args, script, env, process.cwd()]);
+  const cached = scriptExecutionCache.get(key);
+  if (cached) return cached;
+  const proc = spawnSync(command, [...args, script], {
+    encoding: "utf8",
+    cwd: process.cwd(),
+    env: { ...process.env, ...env },
+  });
+  const result = {
+    status: proc.status ?? 1,
+    stdout: proc.stdout ?? "",
+    stderr: proc.stderr ?? "",
+  };
+  scriptExecutionCache.set(key, result);
+  return result;
+}
+
+/**
+ * Evaluate a boolean-ish workflow key such as `continue-on-error`: absent is
+ * false, YAML booleans are themselves, `${{ }}` strings are evaluated, and any
+ * other non-empty string other than `false` counts as true (fail closed).
+ */
+export function evaluateFlag(value: unknown, ctx: EvalContext): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    if (value.includes("${{")) {
+      return truthy(evaluateExpression(parseExpression(value), ctx));
+    }
+    return value.trim() !== "" && value.trim().toLowerCase() !== "false";
+  }
+  return true;
+}
+
+/** Render `${{ needs.* }}` (dot or bracket form) in step text; throws on any other expression. */
+export function renderStepText(text: string, context: NeedsContext): string {
+  return renderNeedsContextExpressions(
+    substituteNeedsExpressions(text, context.results),
+    context,
+  );
+}
+
+function needsStateFromContext(context: NeedsContext): NeedsState {
+  return Object.fromEntries(
+    Object.entries(context.results).map(([needId, result]) => [
+      needId,
+      { result, outputs: context.outputs?.[needId] ?? {} },
+    ]),
+  );
+}
+
+export type StepExecution = GateExecution & {
+  index: number;
+  name?: string;
+  ran: boolean;
+  continueOnError: boolean;
+};
+
+export type GateJobExecution = GateExecution & {
+  /** False when the job-level `if` skipped the job (a skipped check does not fail). */
+  jobRan: boolean;
+  /** True when job-level `continue-on-error` let a failed job pass. */
+  continueOnError: boolean;
+  steps: StepExecution[];
+};
+
+/**
+ * Model one run of a gate job for an event and needs results: the job `if`
+ * (skipped job -> status 0), each step's `if` (with `success()`/`failure()`
+ * reflecting earlier steps), each `run:` body executed under its real shell
+ * with `env:` and body rendered from the needs context, step-level and
+ * job-level `continue-on-error`, and `uses:` steps modeled as succeeding.
+ * `status` is the job's effect on the workflow: non-zero only when the job
+ * actually fails it.
+ */
+export function executeGateJob(
+  job: WorkflowJob,
+  context: NeedsContext,
+  scenario: EventScenario,
+): GateJobExecution {
+  const jobCtx = scenarioContext(scenario, needsStateFromContext(context));
+  if (!evaluateIfCondition(ifExpression(job) || undefined, jobCtx)) {
+    return {
+      status: 0,
+      stdout: "",
+      stderr: "",
+      jobRan: false,
+      continueOnError: false,
+      steps: [],
+    };
+  }
+
+  let failed = false;
+  const steps: StepExecution[] = [];
+  for (const [index, step] of allSteps(job).entries()) {
+    const stepCtx: EvalContext = {
+      ...jobCtx,
+      status: { success: !failed, failure: failed, cancelled: false },
+    };
+    const base = { index, name: step.name };
+    if (!evaluateIfCondition(step.if, stepCtx)) {
+      steps.push({
+        ...base,
+        ran: false,
+        continueOnError: false,
+        status: 0,
+        stdout: "",
+        stderr: "",
+      });
+      continue;
+    }
+    const continueOnError = evaluateFlag(step["continue-on-error"], stepCtx);
+    let result: GateExecution = { status: 0, stdout: "", stderr: "" };
+    if (typeof step.run === "string") {
+      const env = Object.fromEntries(
+        Object.entries(step.env ?? {}).map(([key, value]) => [
+          key,
+          renderStepText(String(value), context),
+        ]),
+      );
+      result = executeRunScript(step, renderStepText(step.run, context), env);
+    }
+    steps.push({ ...base, ran: true, continueOnError, ...result });
+    if (result.status !== 0 && !continueOnError) failed = true;
+  }
+
+  const continueOnError = evaluateFlag(job["continue-on-error"], jobCtx);
+  return {
+    status: failed && !continueOnError ? 1 : 0,
+    stdout: steps.map((step) => step.stdout).join(""),
+    stderr: steps.map((step) => step.stderr).join(""),
+    jobRan: true,
+    continueOnError: failed && continueOnError,
+    steps,
+  };
+}
+
+/**
+ * Execute the real ci-gate job (its `run:` steps under the step shell, from the
+ * repo root) with `env:` rendered from the supplied needs context, modeling
+ * step `if` and `continue-on-error`. Proves the workflow's step — not a fixed
+ * fixture — passes or fails for those results. The job is modeled for every
+ * event in {@link EVENT_SCENARIOS}; if any event lets it pass, that passing
+ * execution is returned, so a fail-closed claim must hold for every event.
  */
 export function executeCiGateResultsStep(
   job: WorkflowJob,
@@ -817,33 +1056,12 @@ export function executeCiGateResultsStep(
   if (!step?.run) {
     throw new Error("ci-gate has no run step with env.CI_RESULTS");
   }
-  const renderedEnv = Object.fromEntries(
-    Object.entries(step.env ?? {}).map(([key, value]) => [
-      key,
-      renderNeedsContextExpressions(String(value), context),
-    ]),
+  const executions = EVENT_SCENARIOS.map((scenario) =>
+    executeGateJob(job, context, scenario),
   );
-  const proc = spawnSync("bash", ["-c", step.run], {
-    encoding: "utf8",
-    cwd: process.cwd(),
-    env: { ...process.env, ...renderedEnv },
-  });
-  return {
-    status: proc.status ?? 1,
-    stdout: proc.stdout ?? "",
-    stderr: proc.stderr ?? "",
-  };
-}
-
-export function executeGateShellScript(
-  script: string,
-  results: Record<string, string>,
-): number {
-  const rendered = substituteNeedsExpressions(script, results);
-  const proc = spawnSync("bash", ["-c", rendered], {
-    encoding: "utf8",
-  });
-  return proc.status ?? 1;
+  return (
+    executions.find((execution) => execution.status === 0) ?? executions[0]!
+  );
 }
 
 export function buildNeedResultsForGateJob(
@@ -854,6 +1072,66 @@ export function buildNeedResultsForGateJob(
     needsList(job).map((needId) => [needId, "success"]),
   );
   return { ...base, ...overrides };
+}
+
+const GATE_NON_SUCCESS_RESULTS = ["failure", "cancelled", "skipped"] as const;
+
+/**
+ * Problems with a gate job's enforcement, by executing the modeled job (see
+ * {@link executeGateJob}) for each event in `scenarios`: with every need
+ * successful the job must run and pass; with any heavy need failed, cancelled
+ * or skipped — or all of them skipped (the fork-PR shape) — it must run and
+ * fail. A skipped gate step, `continue-on-error`, or a job `if` that skips the
+ * gate all surface here. `outputs` supplies `needs.<id>.outputs.*` values.
+ */
+export function gateEnforcementProblems(
+  job: WorkflowJob,
+  heavyNeedIds: readonly string[],
+  scenarios: readonly EventScenario[] = EVENT_SCENARIOS,
+  outputs?: NeedsContext["outputs"],
+): string[] {
+  const problems: string[] = [];
+  const cases: [string, Record<string, string>][] = [
+    [
+      "all heavy needs skipped",
+      Object.fromEntries(heavyNeedIds.map((needId) => [needId, "skipped"])),
+    ],
+    ...heavyNeedIds.flatMap((needId) =>
+      GATE_NON_SUCCESS_RESULTS.map(
+        (result): [string, Record<string, string>] => [
+          `${needId} ${result}`,
+          { [needId]: result },
+        ],
+      ),
+    ),
+  ];
+  for (const scenario of scenarios) {
+    const run = (overrides: Record<string, string>) =>
+      executeGateJob(
+        job,
+        { results: buildNeedResultsForGateJob(job, overrides), outputs },
+        scenario,
+      );
+    try {
+      const success = run({});
+      if (!success.jobRan || success.status !== 0) {
+        problems.push(
+          `${scenario.label}: gate does not pass when every need succeeded`,
+        );
+      }
+      for (const [label, overrides] of cases) {
+        const execution = run(overrides);
+        if (!execution.jobRan) {
+          problems.push(`${scenario.label}: gate job skipped when ${label}`);
+        } else if (execution.status === 0) {
+          problems.push(`${scenario.label}: gate passes when ${label}`);
+        }
+      }
+    } catch (error) {
+      problems.push(`${scenario.label}: ${(error as Error).message}`);
+    }
+  }
+  return [...new Set(problems)];
 }
 
 export function hostedGateFailsClosedWhenHeavyNeedsSkipped(
@@ -874,16 +1152,7 @@ export function hostedGateFailsClosedWhenHeavyNeedsSkipped(
     return false;
   }
 
-  const successResults = buildNeedResultsForGateJob(job, {});
-  const skippedResults = buildNeedResultsForGateJob(
-    job,
-    Object.fromEntries(heavyNeedIds.map((needId) => [needId, "skipped"])),
-  );
-
-  const exitAllSuccess = executeGateShellScript(gateStep.run, successResults);
-  const exitHeavySkipped = executeGateShellScript(gateStep.run, skippedResults);
-
-  return exitAllSuccess === 0 && exitHeavySkipped !== 0;
+  return gateEnforcementProblems(job, heavyNeedIds).length === 0;
 }
 
 /**

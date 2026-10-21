@@ -5,14 +5,19 @@ import {
   validateCiGate,
 } from "../../../scripts/verify/ci-build-policy.mjs";
 import {
+  EVENT_SCENARIOS,
   buildNeedResultsForGateJob,
-  executeGateShellScript,
+  evaluateIfCondition,
+  executeGateJob,
   findPrimaryShellGateStep,
   ifExpression,
   isAlwaysExpression,
   loadWorkflowJobs,
   needsList,
-  substituteNeedsExpressions,
+  renderStepText,
+  scenarioContext,
+  type EventScenario,
+  type WorkflowJob,
 } from "../helpers/workflow-yaml";
 
 describe("development compilation policy", () => {
@@ -201,15 +206,8 @@ describe("ci-integration hosted gates require success from each heavy need (#215
         expect(step?.run, `${gateId} gate step`).toBeTruthy();
         return step!.run!;
       };
-      const run = (overrides: Record<string, string>): number => {
-        const results = buildNeedResultsForGateJob(job, overrides);
-        // Every expression must be rendered, so a bash "bad substitution"
-        // can never masquerade as the gate rejecting a result.
-        expect(substituteNeedsExpressions(script(), results)).not.toContain(
-          "${{",
-        );
-        return executeGateShellScript(script(), results);
-      };
+      const run = (overrides: Record<string, string>) =>
+        runGate(job, script(), overrides, EVENT_SCENARIOS);
 
       it("runs under if: always() and needs exactly its heavy jobs", () => {
         expect(job, `missing job ${gateId}`).toBeDefined();
@@ -217,21 +215,84 @@ describe("ci-integration hosted gates require success from each heavy need (#215
         expect([...needsList(job)].sort()).toEqual([...heavyNeeds].sort());
       });
 
-      it("passes when every need succeeded", () => {
-        expect(run({})).toBe(0);
+      it("passes when every need succeeded, for every modeled event", () => {
+        expect(run({})).toEqual(EVENT_SCENARIOS.map(() => 0));
       });
 
       for (const need of heavyNeeds) {
-        it.each(NON_SUCCESS_RESULTS)(`rejects ${need} %s`, (result) => {
-          expect(run({ [need]: result })).not.toBe(0);
-        });
+        it.each(NON_SUCCESS_RESULTS)(
+          `rejects ${need} %s for every modeled event`,
+          (result) => {
+            expect(run({ [need]: result })).not.toContain(0);
+          },
+        );
       }
 
       it("rejects when every heavy need was skipped (fork-PR shape)", () => {
         expect(
           run(Object.fromEntries(heavyNeeds.map((need) => [need, "skipped"]))),
-        ).not.toBe(0);
+        ).not.toContain(0);
       });
     });
   }
 });
+
+describe("ci-integration e2e-gate requires success from test-e2e and instant-nav on production", () => {
+  const jobs = loadWorkflowJobs(".github/workflows/ci-integration.yml");
+  const job = jobs["e2e-gate"]!;
+  const heavyNeeds = ["test-e2e", "instant-nav"] as const;
+  const productionEvents = EVENT_SCENARIOS.filter((scenario) =>
+    evaluateIfCondition(
+      ifExpression(job),
+      scenarioContext(scenario, {
+        "test-e2e": { result: "failure", outputs: {} },
+        "instant-nav": { result: "failure", outputs: {} },
+      }),
+    ),
+  );
+  const run = (overrides: Record<string, string>) => {
+    const step = findPrimaryShellGateStep(job);
+    expect(step?.run, "e2e-gate gate step").toBeTruthy();
+    return runGate(job, step!.run!, overrides, productionEvents);
+  };
+
+  it("runs under always() for exactly the production pull_request and push events", () => {
+    expect(productionEvents.map((scenario) => scenario.label)).toEqual([
+      "pull_request fork -> production",
+      "pull_request same-repo -> production",
+      "push production",
+    ]);
+    expect([...needsList(job)].sort()).toEqual([...heavyNeeds].sort());
+  });
+
+  it("passes when every need succeeded", () => {
+    expect(run({})).toEqual(productionEvents.map(() => 0));
+  });
+
+  for (const need of heavyNeeds) {
+    it.each(NON_SUCCESS_RESULTS)(`rejects ${need} %s`, (result) => {
+      expect(run({ [need]: result })).not.toContain(0);
+    });
+  }
+});
+
+/**
+ * Model the whole gate job (job if, step if, continue-on-error, real shell)
+ * for each event and return the job's workflow-level status per event.
+ */
+function runGate(
+  job: WorkflowJob,
+  script: string,
+  overrides: Record<string, string>,
+  scenarios: readonly EventScenario[],
+): number[] {
+  const results = buildNeedResultsForGateJob(job, overrides);
+  // Every expression must be rendered, so a bash "bad substitution"
+  // can never masquerade as the gate rejecting a result.
+  expect(renderStepText(script, { results })).not.toContain("${{");
+  return scenarios.map((scenario) => {
+    const execution = executeGateJob(job, { results }, scenario);
+    expect(execution.jobRan, `${scenario.label}: gate job ran`).toBe(true);
+    return execution.status;
+  });
+}
