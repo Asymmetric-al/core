@@ -66,18 +66,6 @@ describe("run-with-ci-env", () => {
     });
   });
 
-  it("sets NODE_ENV=production for ci-build and build:* scripts", () => {
-    const env = normalizeEnvForCommand({}, [
-      "node",
-      "scripts/verify/ci-build.mjs",
-      "--",
-      "bun",
-      "run",
-      "build:admin",
-    ]);
-    expect(env.NODE_ENV).toBe("production");
-  });
-
   it("does not override existing env values and keeps .env.local precedence", async () => {
     const tempRoot = await createTempDir("run-with-ci-env-order");
     await writeFile(

@@ -7,7 +7,6 @@ import {
   defineBoneyardConfig,
   devServerCommand,
   getWorkerCount,
-  shouldOmitWebServerForPrestartedLocalServers,
   normalizeLocalBaseUrl,
   resolveSurfaceBaseUrl,
   shouldReuseExistingServer,
@@ -98,22 +97,6 @@ describe("shouldReuseExistingServer", () => {
   });
 });
 
-describe("shouldOmitWebServerForPrestartedLocalServers", () => {
-  it("omits webServer when CI reuses manually started loopback servers", () => {
-    expect(
-      shouldOmitWebServerForPrestartedLocalServers(
-        {
-          CI: "1",
-          PLAYWRIGHT_REUSE_EXISTING_SERVER: "1",
-          PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005",
-          PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030",
-        },
-        { isRemoteBaseUrl: false, includeAdminServer: true },
-      ),
-    ).toBe(true);
-  });
-});
-
 describe("resolveSurfaceBaseUrl", () => {
   it("uses the surface default when nothing is configured", () => {
     expect(resolveSurfaceBaseUrl(ADMIN_SURFACE, {})).toBe(
@@ -189,11 +172,11 @@ describe("defineBoneyardConfig", () => {
     expect(config.webServer).toBeUndefined();
   });
 
-  it("admin surface hands server ownership to the caller when a base URL is configured", () => {
+  it("admin surface still manages the server for a configured local base URL", () => {
     const config = defineBoneyardConfig(ADMIN_SURFACE, {
       PLAYWRIGHT_ADMIN_BASE_URL: "http://localhost:3030",
     });
-    expect(config.webServer).toBeUndefined();
+    expect(singleWebServer(config)).toBeDefined();
   });
 
   it("applies the admin first-compile timeout only where declared", () => {

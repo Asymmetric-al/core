@@ -44,7 +44,6 @@ export const ADMIN_SURFACE: BoneyardSurface = {
   baseUrlEnvVars: ["PLAYWRIGHT_ADMIN_BASE_URL", "QA_ADMIN_BASE_URL"],
   serverHostname: "localhost",
   testTimeout: 180_000,
-  skipWebServerWhenBaseUrlConfigured: true,
 };
 
 export const DONOR_SURFACE: BoneyardSurface = {
@@ -62,7 +61,6 @@ export const MISSIONARY_SURFACE: BoneyardSurface = {
   defaultPort: 4000,
   baseUrlEnvVars: ["PLAYWRIGHT_MISSIONARY_BASE_URL", "QA_MISSIONARY_BASE_URL"],
   serverHostname: "localhost",
-  skipWebServerWhenBaseUrlConfigured: true,
 };
 
 function normalizeHostname(hostname: string): string {
@@ -123,49 +121,6 @@ export function getWorkerCount(env: NodeJS.ProcessEnv = process.env): number {
  * Reuse an already-running dev server unless CI; PLAYWRIGHT_REUSE_EXISTING_SERVER
  * ("1"/"true"/"0"/"false") overrides in either direction.
  */
-/**
- * CI pre-starts production servers and sets loopback base URLs. Omit Playwright
- * `webServer` so it never spawns a parallel `next dev` (see ci-integration.yml).
- */
-export function shouldOmitWebServerForPrestartedLocalServers(
-  env: NodeJS.ProcessEnv = process.env,
-  options: {
-    isRemoteBaseUrl: boolean;
-    includeAdminServer: boolean;
-  },
-): boolean {
-  if (options.isRemoteBaseUrl) {
-    return false;
-  }
-
-  const configuredReuse =
-    env.PLAYWRIGHT_REUSE_EXISTING_SERVER?.trim().toLowerCase();
-  const explicitReuse = configuredReuse === "1" || configuredReuse === "true";
-  if (!explicitReuse) {
-    return false;
-  }
-
-  const donorUrl = firstConfiguredEnvValue(
-    ["PLAYWRIGHT_BASE_URL", "QA_DONOR_BASE_URL"],
-    env,
-  );
-  if (!donorUrl || !isLocalBaseUrl(donorUrl)) {
-    return false;
-  }
-
-  if (options.includeAdminServer) {
-    const adminUrl = firstConfiguredEnvValue(
-      ["PLAYWRIGHT_ADMIN_BASE_URL", "QA_ADMIN_BASE_URL"],
-      env,
-    );
-    if (!adminUrl || !isLocalBaseUrl(adminUrl)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 export function shouldReuseExistingServer(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {

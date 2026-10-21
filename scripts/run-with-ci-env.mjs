@@ -93,18 +93,11 @@ export function loadLocalEnvFiles({
   }
 }
 
-function commandLaunchesProductionBuild(commandParts = []) {
-  return commandParts.some(
-    (part) =>
-      part === "build" || /^build:/.test(part) || part.includes("ci-build.mjs"),
-  );
-}
-
 export function normalizeEnvForCommand(env, commandParts = []) {
   const launchesPlaywright = commandParts.some((part) =>
     part.includes("@playwright/test/cli.js"),
   );
-  const launchesBuild = commandLaunchesProductionBuild(commandParts);
+  const launchesBuild = commandParts.includes("build");
 
   if (launchesPlaywright || env.FORCE_COLOR !== undefined) {
     delete env.NO_COLOR;

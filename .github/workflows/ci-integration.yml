@@ -115,6 +115,7 @@ jobs:
       SKIP_ENV_VALIDATION: "1"
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
+      ASYM_E2E_REQUIRE_HERMETIC_SUPABASE: "1"
     steps:
       - name: Reject fork pull requests
         if: >-
@@ -180,6 +181,7 @@ jobs:
       PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
+      ASYM_E2E_REQUIRE_HERMETIC_SUPABASE: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -320,6 +322,7 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key" >> "$GITHUB_ENV"
+          echo "ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1" >> "$GITHUB_ENV"
       - name: Start donor app
         run: bash scripts/github/e2e-dev-server.sh donor start 3005
       - name: Wait for donor health endpoint

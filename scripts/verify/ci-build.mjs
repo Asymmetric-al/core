@@ -189,11 +189,10 @@ export function getRequestedApps(args = [], apps = NEXT_APPS) {
 
 function run(command, args, label, environment) {
   console.log(`==> CI build: ${label}`);
-  const env = { ...process.env, ...environment };
   const result = spawnSync(command, args, {
     cwd: REPO_ROOT,
     stdio: "inherit",
-    env,
+    env: { ...process.env, ...environment },
   });
 
   if (result.error) {

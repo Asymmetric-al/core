@@ -77,7 +77,7 @@ describe("ci-integration workflow contract", () => {
     );
   });
 
-  it("keeps develop merges gated by smoke while full E2E fails the workflow on error", () => {
+  it("keeps develop merges gated by smoke while full E2E is continue-on-error on develop", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
     const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");
     const integrationGate = jobBlock(workflow, "integration-gate");
@@ -125,6 +125,8 @@ describe("ci-integration workflow contract", () => {
       "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co",
     );
     expect(testE2e).toContain("NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key");
+    expect(testE2e).toContain("ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1");
+    expect(testE2eSmoke).toContain('ASYM_E2E_REQUIRE_HERMETIC_SUPABASE: "1"');
 
     expect(integrationGate).toContain(
       "needs: [migrate, smoke, e2e-smoke-gate]",
