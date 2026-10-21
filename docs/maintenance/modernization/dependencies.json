@@ -1,0 +1,3936 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "800213405e2c51e07180e86ee8322355e0fdb4eb",
+  "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+  "items": [
+    {
+      "name": "@asym/docraptor-client",
+      "cohort": "pdf-source-provenance",
+      "owner": "Core maintainers",
+      "upstream": null,
+      "registrySource": "https://registry.npmjs.org/@asym%2fdocraptor-client",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": null,
+      "uses": [],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Owner-source reconstruction and declarations/artifacts required before updating local imports."
+    },
+    {
+      "name": "@asym/pdf-editor",
+      "cohort": "pdf-source-provenance",
+      "owner": "Core maintainers",
+      "upstream": null,
+      "registrySource": "https://registry.npmjs.org/@asym%2fpdf-editor",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": null,
+      "uses": [],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Owner-source reconstruction and declarations/artifacts required before updating local imports."
+    },
+    {
+      "name": "@asym/pdf-renderer",
+      "cohort": "pdf-source-provenance",
+      "owner": "Core maintainers",
+      "upstream": null,
+      "registrySource": "https://registry.npmjs.org/@asym%2fpdf-renderer",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": null,
+      "uses": [],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Owner-source reconstruction and declarations/artifacts required before updating local imports."
+    },
+    {
+      "name": "@asym/pdf-template-schema",
+      "cohort": "pdf-source-provenance",
+      "owner": "Core maintainers",
+      "upstream": null,
+      "registrySource": "https://registry.npmjs.org/@asym%2fpdf-template-schema",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": null,
+      "uses": [],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Owner-source reconstruction and declarations/artifacts required before updating local imports."
+    },
+    {
+      "name": "@axe-core/playwright",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/dequelabs/axe-core-npm.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@axe-core%2fplaywright",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.14.0",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "4.13.0",
+          "target": "4.14.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@base-ui/react",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/mui/base-ui.git",
+        "type": "git",
+        "directory": "packages/react"
+      },
+      "registrySource": "https://registry.npmjs.org/@base-ui%2freact",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.9.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "1.9.0",
+          "target": "1.9.0"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "1.9.0",
+          "target": "1.9.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@dnd-kit/core",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "directory": "packages/core"
+      },
+      "registrySource": "https://registry.npmjs.org/@dnd-kit%2fcore",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "6.3.1",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "^6.3.1",
+          "target": "6.3.1"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "^6.3.1",
+          "target": "6.3.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@dnd-kit/modifiers",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "directory": "packages/modifiers"
+      },
+      "registrySource": "https://registry.npmjs.org/@dnd-kit%2fmodifiers",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "9.0.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "^9.0.0",
+          "target": "9.0.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@dnd-kit/sortable",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "directory": "packages/sortable"
+      },
+      "registrySource": "https://registry.npmjs.org/@dnd-kit%2fsortable",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "10.0.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "^10.0.0",
+          "target": "10.0.0"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "^10.0.0",
+          "target": "10.0.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@dnd-kit/utilities",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "directory": "packages/utilities"
+      },
+      "registrySource": "https://registry.npmjs.org/@dnd-kit%2futilities",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.2.2",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "^3.2.2",
+          "target": "3.2.2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "^3.2.2",
+          "target": "3.2.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@fission-ai/openspec",
+      "cohort": "openspec-pr-2172",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/Fission-AI/OpenSpec.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@fission-ai%2fopenspec",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.14.3",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "1.9.0",
+          "target": "1.14.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@inngest/test",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/inngest/inngest-js.git",
+        "directory": "packages/test"
+      },
+      "registrySource": "https://registry.npmjs.org/@inngest%2ftest",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.0.0",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "1.0.0",
+          "target": "1.0.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@lhci/cli",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/GoogleChrome/lighthouse-ci.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@lhci%2fcli",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.15.1",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^0.15.1",
+          "target": "0.15.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@next/env",
+      "cohort": "framework-security",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/vercel/next.js.git",
+        "type": "git",
+        "directory": "packages/next-env"
+      },
+      "registrySource": "https://registry.npmjs.org/@next%2fenv",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "16.4.2",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@next/playwright",
+      "cohort": "framework-security",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/vercel/next.js.git",
+        "directory": "packages/next-playwright"
+      },
+      "registrySource": "https://registry.npmjs.org/@next%2fplaywright",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "16.4.2",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@openpolicy/core",
+      "cohort": "legal",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/jamiedavenport/openpolicy.git",
+        "directory": "packages/core"
+      },
+      "registrySource": "https://registry.npmjs.org/@openpolicy%2fcore",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.0.34",
+      "uses": [
+        {
+          "path": "apps/donor/package.json",
+          "section": "devDependencies",
+          "declared": "0.0.17",
+          "target": "0.0.34"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@openpolicy/react",
+      "cohort": "legal",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/jamiedavenport/openpolicy.git",
+        "directory": "packages/react"
+      },
+      "registrySource": "https://registry.npmjs.org/@openpolicy%2freact",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.0.34",
+      "uses": [
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "0.0.17",
+          "target": "0.0.34"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@openpolicy/renderers",
+      "cohort": "legal",
+      "owner": "Core maintainers",
+      "upstream": null,
+      "registrySource": "https://registry.npmjs.org/@openpolicy%2frenderers",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.0.34",
+      "uses": [
+        {
+          "path": "apps/donor/package.json",
+          "section": "devDependencies",
+          "declared": "0.0.14",
+          "target": "0.0.34"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@openpolicy/sdk",
+      "cohort": "legal",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/jamiedavenport/openpolicy.git",
+        "directory": "packages/sdk"
+      },
+      "registrySource": "https://registry.npmjs.org/@openpolicy%2fsdk",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.0.34",
+      "uses": [
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "0.0.17",
+          "target": "0.0.34"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@payloadcms/db-postgres",
+      "cohort": "payload-v4",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/payloadcms/payload.git",
+        "type": "git",
+        "directory": "packages/db-postgres"
+      },
+      "registrySource": "https://registry.npmjs.org/@payloadcms%2fdb-postgres",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.0.0-beta.3",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "4.0.0-internal.1f9ae9a",
+          "target": "4.0.0-beta.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@payloadcms/email-resend",
+      "cohort": "payload-v4",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/payloadcms/payload.git",
+        "type": "git",
+        "directory": "packages/email-resend"
+      },
+      "registrySource": "https://registry.npmjs.org/@payloadcms%2femail-resend",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.0.0-beta.3",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "4.0.0-internal.1f9ae9a",
+          "target": "4.0.0-beta.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@payloadcms/next",
+      "cohort": "payload-v4",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/payloadcms/payload.git",
+        "type": "git",
+        "directory": "packages/next"
+      },
+      "registrySource": "https://registry.npmjs.org/@payloadcms%2fnext",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.0.0-beta.3",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "4.0.0-internal.1f9ae9a",
+          "target": "4.0.0-beta.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@payloadcms/richtext-lexical",
+      "cohort": "payload-v4",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/payloadcms/payload.git",
+        "type": "git",
+        "directory": "packages/richtext-lexical"
+      },
+      "registrySource": "https://registry.npmjs.org/@payloadcms%2frichtext-lexical",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.0.0-beta.3",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "4.0.0-internal.1f9ae9a",
+          "target": "4.0.0-beta.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@payloadcms/storage-vercel-blob",
+      "cohort": "payload-v4",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/payloadcms/payload.git",
+        "type": "git",
+        "directory": "packages/storage-vercel-blob"
+      },
+      "registrySource": "https://registry.npmjs.org/@payloadcms%2fstorage-vercel-blob",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.0.0-beta.3",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "4.0.0-internal.1f9ae9a",
+          "target": "4.0.0-beta.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@payloadcms/ui",
+      "cohort": "payload-v4",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/payloadcms/payload.git",
+        "type": "git",
+        "directory": "packages/ui"
+      },
+      "registrySource": "https://registry.npmjs.org/@payloadcms%2fui",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.0.0-beta.3",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "4.0.0-internal.1f9ae9a",
+          "target": "4.0.0-beta.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@playwright/test",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/microsoft/playwright.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@playwright%2ftest",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.64.1",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "1.64.0",
+          "target": "1.64.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@react-email/editor",
+      "cohort": "editors-pdf",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/resend/react-email.git",
+        "type": "git",
+        "directory": "packages/editor"
+      },
+      "registrySource": "https://registry.npmjs.org/@react-email%2feditor",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.7.14",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "dependencies",
+          "declared": "npm:@react-email/editor@1.1.1",
+          "target": "1.7.14"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "1.7.12",
+          "target": "1.7.14"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "dependencies",
+          "declared": "1.1.1",
+          "target": "1.7.14"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@sentry/nextjs",
+      "cohort": "telemetry-integrations",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git://github.com/getsentry/sentry-javascript.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@sentry%2fnextjs",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "11.8.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "11.5.0",
+          "target": "11.8.0"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "11.5.0",
+          "target": "11.8.0"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "11.5.0",
+          "target": "11.8.0"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "section": "dependencies",
+          "declared": "11.5.0",
+          "target": "11.8.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@shadcn/lint",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/shadcn-ui/lint.git",
+        "type": "git",
+        "directory": "packages/lint"
+      },
+      "registrySource": "https://registry.npmjs.org/@shadcn%2flint",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.2.3",
+      "uses": [
+        {
+          "path": "tooling/eslint-config/package.json",
+          "section": "dependencies",
+          "declared": "0.2.0",
+          "target": "0.2.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@shadscan/cli",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/TheOrcDev/shadscan.git",
+        "directory": "packages/cli"
+      },
+      "registrySource": "https://registry.npmjs.org/@shadscan%2fcli",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.17.0",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "0.17.0",
+          "target": "0.17.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@stripe/react-stripe-js",
+      "cohort": "telemetry-integrations",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/stripe/react-stripe-js.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@stripe%2freact-stripe-js",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "7.0.0",
+      "uses": [
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "7.0.0",
+          "target": "7.0.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@stripe/stripe-js",
+      "cohort": "telemetry-integrations",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/stripe/stripe-js.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@stripe%2fstripe-js",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "10.1.0",
+      "uses": [
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "10.0.0",
+          "target": "10.1.0"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "section": "dependencies",
+          "declared": "10.0.0",
+          "target": "10.1.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@supabase-labs/tanstack-db",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/supabase/tanstack-db.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@supabase-labs%2ftanstack-db",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.1.0",
+      "uses": [
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "0.1.0",
+          "target": "0.1.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@supabase/ssr",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/supabase/ssr.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@supabase%2fssr",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.12.7",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "0.12.7",
+          "target": "0.12.7"
+        },
+        {
+          "path": "packages/api/package.json",
+          "section": "dependencies",
+          "declared": "0.12.7",
+          "target": "0.12.7"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "section": "dependencies",
+          "declared": "0.12.7",
+          "target": "0.12.7"
+        },
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "0.12.7",
+          "target": "0.12.7"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@supabase/supabase-js",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/supabase/supabase-js.git",
+        "type": "git",
+        "directory": "packages/core/supabase-js"
+      },
+      "registrySource": "https://registry.npmjs.org/@supabase%2fsupabase-js",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "2.118.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "2.117.3",
+          "target": "2.118.0"
+        },
+        {
+          "path": "package.json",
+          "section": "dependencies",
+          "declared": "2.117.3",
+          "target": "2.118.0"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "section": "dependencies",
+          "declared": "2.117.3",
+          "target": "2.118.0"
+        },
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "2.117.3",
+          "target": "2.118.0"
+        },
+        {
+          "path": "packages/graphql/package.json",
+          "section": "dependencies",
+          "declared": "2.117.3",
+          "target": "2.118.0"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "section": "dependencies",
+          "declared": "2.117.3",
+          "target": "2.118.0"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "2.117.3",
+          "target": "2.118.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@t3-oss/env-nextjs",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/t3-oss/t3-env.git",
+        "directory": "packages/nextjs"
+      },
+      "registrySource": "https://registry.npmjs.org/@t3-oss%2fenv-nextjs",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.13.11",
+      "uses": [
+        {
+          "path": "packages/env/package.json",
+          "section": "dependencies",
+          "declared": "^0.13.10",
+          "target": "0.13.11"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tailwindcss/postcss",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/tailwindlabs/tailwindcss.git",
+        "type": "git",
+        "directory": "packages/@tailwindcss-postcss"
+      },
+      "registrySource": "https://registry.npmjs.org/@tailwindcss%2fpostcss",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.3.3",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "4.3.3",
+          "target": "4.3.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tailwindcss/typography",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/tailwindlabs/tailwindcss-typography.git"
+      },
+      "registrySource": "https://registry.npmjs.org/@tailwindcss%2ftypography",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.5.20",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "dependencies",
+          "declared": "0.5.20",
+          "target": "0.5.20"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/cli",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/TanStack/cli.git",
+        "type": "git",
+        "directory": "packages/cli"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2fcli",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.72.0",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^0.71.1",
+          "target": "0.72.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/db",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/TanStack/db.git",
+        "type": "git",
+        "directory": "packages/db"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2fdb",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.15.1",
+      "uses": [
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "^0.12.1",
+          "target": "0.15.1"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "^0.12.1",
+          "target": "0.15.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/query-db-collection",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/TanStack/db.git",
+        "type": "git",
+        "directory": "packages/query-db-collection"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2fquery-db-collection",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.4.7",
+      "uses": [
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "^1.4.0",
+          "target": "1.4.7"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/react-db",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/TanStack/db.git",
+        "type": "git",
+        "directory": "packages/react-db"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2freact-db",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.5.11",
+      "uses": [
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "^0.5.5",
+          "target": "0.5.11"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "^0.5.5",
+          "target": "0.5.11"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/react-devtools",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/TanStack/devtools.git",
+        "type": "git",
+        "directory": "packages/react-devtools"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2freact-devtools",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.10.13",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "^0.10.13",
+          "target": "0.10.13"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/react-form",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/TanStack/form.git",
+        "type": "git",
+        "directory": "packages/react-form"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2freact-form",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.33.5",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "1.33.5",
+          "target": "1.33.5"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "1.33.5",
+          "target": "1.33.5"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/react-query",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/TanStack/query.git",
+        "type": "git",
+        "directory": "packages/react-query"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2freact-query",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "5.104.5",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "^5.104.1",
+          "target": "5.104.5"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "^5.104.1",
+          "target": "5.104.5"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "^5.104.1",
+          "target": "5.104.5"
+        },
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "^5.104.1",
+          "target": "5.104.5"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "^5.104.1",
+          "target": "5.104.5"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/react-query-devtools",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/TanStack/query.git",
+        "type": "git",
+        "directory": "packages/react-query-devtools"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2freact-query-devtools",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "5.104.5",
+      "uses": [
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "^5.104.1",
+          "target": "5.104.5"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/react-store",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/TanStack/store.git",
+        "type": "git",
+        "directory": "packages/react-store"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2freact-store",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.11.2",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "0.11.2",
+          "target": "0.11.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/react-table",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/TanStack/table.git",
+        "type": "git",
+        "directory": "packages/react-table"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2freact-table",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "9.3.1",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "9.2.6",
+          "target": "9.3.1"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "9.2.6",
+          "target": "9.3.1"
+        },
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "9.2.6",
+          "target": "9.3.1"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "9.2.6",
+          "target": "9.3.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/react-table-devtools",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/TanStack/table.git",
+        "type": "git",
+        "directory": "packages/react-table-devtools"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2freact-table-devtools",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "9.3.1",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "9.2.5",
+          "target": "9.3.1"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "9.2.5",
+          "target": "9.3.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tanstack/react-virtual",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/TanStack/virtual.git",
+        "type": "git",
+        "directory": "packages/react-virtual"
+      },
+      "registrySource": "https://registry.npmjs.org/@tanstack%2freact-virtual",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.14.21",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "^3.14.13",
+          "target": "3.14.21"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@testing-library/dom",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/testing-library/dom-testing-library.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@testing-library%2fdom",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "10.4.2",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "10.4.2",
+          "target": "10.4.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@testing-library/react",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/testing-library/react-testing-library.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@testing-library%2freact",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "16.3.3",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "16.3.3",
+          "target": "16.3.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tiptap/core",
+      "cohort": "editors-pdf",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/ueberdosis/tiptap",
+        "type": "git",
+        "directory": "packages/core"
+      },
+      "registrySource": "https://registry.npmjs.org/@tiptap%2fcore",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.32.0",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "3.31.4",
+          "target": "3.32.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "dependencies",
+          "declared": "^3.17.1",
+          "target": "3.32.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tiptap/extension-image",
+      "cohort": "editors-pdf",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/ueberdosis/tiptap",
+        "type": "git",
+        "directory": "packages/extension-image"
+      },
+      "registrySource": "https://registry.npmjs.org/@tiptap%2fextension-image",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.32.0",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "3.31.4",
+          "target": "3.32.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tiptap/extension-mention",
+      "cohort": "editors-pdf",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/ueberdosis/tiptap",
+        "type": "git",
+        "directory": "packages/extension-mention"
+      },
+      "registrySource": "https://registry.npmjs.org/@tiptap%2fextension-mention",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.32.0",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "3.31.4",
+          "target": "3.32.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tiptap/extension-placeholder",
+      "cohort": "editors-pdf",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/ueberdosis/tiptap",
+        "type": "git",
+        "directory": "packages-deprecated/extension-placeholder"
+      },
+      "registrySource": "https://registry.npmjs.org/@tiptap%2fextension-placeholder",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.32.0",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "3.31.4",
+          "target": "3.32.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tiptap/pm",
+      "cohort": "editors-pdf",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/ueberdosis/tiptap",
+        "type": "git",
+        "directory": "packages/pm"
+      },
+      "registrySource": "https://registry.npmjs.org/@tiptap%2fpm",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.32.0",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "3.31.4",
+          "target": "3.32.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tiptap/react",
+      "cohort": "editors-pdf",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/ueberdosis/tiptap",
+        "type": "git",
+        "directory": "packages/react"
+      },
+      "registrySource": "https://registry.npmjs.org/@tiptap%2freact",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.32.0",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "3.31.4",
+          "target": "3.32.0"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "3.31.4",
+          "target": "3.32.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tiptap/starter-kit",
+      "cohort": "editors-pdf",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/ueberdosis/tiptap",
+        "type": "git",
+        "directory": "packages/starter-kit"
+      },
+      "registrySource": "https://registry.npmjs.org/@tiptap%2fstarter-kit",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.32.0",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "3.31.4",
+          "target": "3.32.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tiptap/static-renderer",
+      "cohort": "editors-pdf",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/ueberdosis/tiptap",
+        "type": "git",
+        "directory": "packages/static-renderer"
+      },
+      "registrySource": "https://registry.npmjs.org/@tiptap%2fstatic-renderer",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.32.0",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "3.31.4",
+          "target": "3.32.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@tiptap/suggestion",
+      "cohort": "editors-pdf",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/ueberdosis/tiptap",
+        "type": "git",
+        "directory": "packages/suggestion"
+      },
+      "registrySource": "https://registry.npmjs.org/@tiptap%2fsuggestion",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.32.0",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "3.31.4",
+          "target": "3.32.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@types/node",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "type": "git",
+        "directory": "types/node"
+      },
+      "registrySource": "https://registry.npmjs.org/@types%2fnode",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "26.6.5",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "devDependencies",
+          "declared": "24.19.1",
+          "target": "24.19.2"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "devDependencies",
+          "declared": "24.19.1",
+          "target": "24.19.2"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "devDependencies",
+          "declared": "24.19.1",
+          "target": "24.19.2"
+        },
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "24.19.1",
+          "target": "24.19.2"
+        },
+        {
+          "path": "packages/eve-runtime/package.json",
+          "section": "devDependencies",
+          "declared": "24.19.1",
+          "target": "24.19.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@types/pdfkit",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "type": "git",
+        "directory": "types/pdfkit"
+      },
+      "registrySource": "https://registry.npmjs.org/@types%2fpdfkit",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.17.6",
+      "uses": [
+        {
+          "path": "apps/donor/package.json",
+          "section": "devDependencies",
+          "declared": "0.17.6",
+          "target": "0.17.6"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@types/react",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "type": "git",
+        "directory": "types/react"
+      },
+      "registrySource": "https://registry.npmjs.org/@types%2freact",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "19.3.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        },
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@types/react-dom",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "type": "git",
+        "directory": "types/react-dom"
+      },
+      "registrySource": "https://registry.npmjs.org/@types%2freact-dom",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "19.3.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        },
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@typescript-eslint/eslint-plugin",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+        "type": "git",
+        "directory": "packages/eslint-plugin"
+      },
+      "registrySource": "https://registry.npmjs.org/@typescript-eslint%2feslint-plugin",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "8.72.0",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^8.71.1",
+          "target": "8.72.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@typescript-eslint/parser",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+        "type": "git",
+        "directory": "packages/parser"
+      },
+      "registrySource": "https://registry.npmjs.org/@typescript-eslint%2fparser",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "8.72.0",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^8.71.1",
+          "target": "8.72.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@vercel/connect",
+      "cohort": "ai-governance",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/vercel/vercel.git",
+        "type": "git",
+        "directory": "packages/connect"
+      },
+      "registrySource": "https://registry.npmjs.org/@vercel%2fconnect",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "2.5.3",
+      "uses": [
+        {
+          "path": "packages/eve-runtime/package.json",
+          "section": "dependencies",
+          "declared": "0.4.0",
+          "target": "2.5.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "@vitejs/plugin-react",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/vitejs/vite-plugin-react.git",
+        "type": "git",
+        "directory": "packages/plugin-react"
+      },
+      "registrySource": "https://registry.npmjs.org/@vitejs%2fplugin-react",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "6.1.2",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "6.1.2",
+          "target": "6.1.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "agent-browser",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/vercel-labs/agent-browser.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/agent-browser",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.39.1",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "0.38.2",
+          "target": "0.39.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "ai",
+      "cohort": "ai-governance",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/vercel/ai",
+        "type": "git",
+        "directory": "packages/ai"
+      },
+      "registrySource": "https://registry.npmjs.org/ai",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "7.0.148",
+      "uses": [
+        {
+          "path": "packages/eve-runtime/package.json",
+          "section": "dependencies",
+          "declared": "7.0.131",
+          "target": "7.0.148"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "babel-plugin-react-compiler",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/facebook/react.git",
+        "type": "git",
+        "directory": "compiler/packages/babel-plugin-react-compiler"
+      },
+      "registrySource": "https://registry.npmjs.org/babel-plugin-react-compiler",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.0.0",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^1.0.0",
+          "target": "1.0.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "boneyard-js",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/0xGF/boneyard.git"
+      },
+      "registrySource": "https://registry.npmjs.org/boneyard-js",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.10.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "1.10.0",
+          "target": "1.10.0"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "1.10.0",
+          "target": "1.10.0"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "1.10.0",
+          "target": "1.10.0"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "devDependencies",
+          "declared": "1.10.0",
+          "target": "1.10.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "canvas",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git://github.com/Automattic/node-canvas.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/canvas",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.2.3",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^3.2.1",
+          "target": "3.2.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "class-variance-authority",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/joe-bell/cva.git"
+      },
+      "registrySource": "https://registry.npmjs.org/class-variance-authority",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.7.1",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "^0.7.1",
+          "target": "0.7.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "cmdk",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/pacocoursey/cmdk.git",
+        "type": "git",
+        "directory": "cmdk"
+      },
+      "registrySource": "https://registry.npmjs.org/cmdk",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.1.1",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "^1.1.1",
+          "target": "1.1.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "cn",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/shadcn-ui/cn.git",
+        "type": "git",
+        "directory": "packages/cn"
+      },
+      "registrySource": "https://registry.npmjs.org/cn",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.5.0",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "0.4.0",
+          "target": "0.5.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "date-fns",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": "https://github.com/date-fns/date-fns",
+      "registrySource": "https://registry.npmjs.org/date-fns",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.4.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "4.4.0",
+          "target": "4.4.0"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "4.4.0",
+          "target": "4.4.0"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "4.4.0",
+          "target": "4.4.0"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "4.4.0",
+          "target": "4.4.0"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "4.4.0",
+          "target": "4.4.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "embla-carousel-react",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/davidjerleke/embla-carousel",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/embla-carousel-react",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "8.6.0",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "^8.6.0",
+          "target": "8.6.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "eslint",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/eslint/eslint.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/eslint",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "10.13.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "devDependencies",
+          "declared": "^9.39.2",
+          "target": "10.13.0"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "devDependencies",
+          "declared": "^9.39.2",
+          "target": "10.13.0"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "devDependencies",
+          "declared": "^9.39.2",
+          "target": "10.13.0"
+        },
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^9.39.5",
+          "target": "10.13.0"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "devDependencies",
+          "declared": "^9.39.2",
+          "target": "10.13.0"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "devDependencies",
+          "declared": "^9.39.2",
+          "target": "10.13.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "eslint-config-next",
+      "cohort": "framework-security",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/vercel/next.js.git",
+        "directory": "packages/eslint-config-next"
+      },
+      "registrySource": "https://registry.npmjs.org/eslint-config-next",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "16.4.2",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "tooling/eslint-config/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "eslint-plugin-import-x",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/un-ts/eslint-plugin-import-x.git"
+      },
+      "registrySource": "https://registry.npmjs.org/eslint-plugin-import-x",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.17.1",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^4.17.1",
+          "target": "4.17.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "eslint-plugin-react-hooks",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/facebook/react.git",
+        "type": "git",
+        "directory": "packages/eslint-plugin-react-hooks"
+      },
+      "registrySource": "https://registry.npmjs.org/eslint-plugin-react-hooks",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "7.1.1",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "7.1.1",
+          "target": "7.1.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "eslint-plugin-unused-imports",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/sweepline/eslint-plugin-unused-imports.git"
+      },
+      "registrySource": "https://registry.npmjs.org/eslint-plugin-unused-imports",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.4.1",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^4.3.0",
+          "target": "4.4.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "eve",
+      "cohort": "ai-governance",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/vercel/eve.git",
+        "type": "git",
+        "directory": "packages/eve"
+      },
+      "registrySource": "https://registry.npmjs.org/eve",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.81.1",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "0.25.1",
+          "target": "0.81.1"
+        },
+        {
+          "path": "packages/eve-runtime/package.json",
+          "section": "dependencies",
+          "declared": "0.25.1",
+          "target": "0.81.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "glob",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/isaacs/node-glob.git"
+      },
+      "registrySource": "https://registry.npmjs.org/glob",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "13.0.6",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^13.0.6",
+          "target": "13.0.6"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "graphql",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/graphql/graphql-js.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/graphql",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "17.0.2",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "dependencies",
+          "declared": "16.14.2",
+          "target": "17.0.2"
+        },
+        {
+          "path": "packages/graphql/package.json",
+          "section": "dependencies",
+          "declared": "16.14.2",
+          "target": "17.0.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "graphql-yoga",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/graphql-hive/graphql-yoga.git",
+        "type": "git",
+        "directory": "packages/graphql-yoga"
+      },
+      "registrySource": "https://registry.npmjs.org/graphql-yoga",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "5.24.6",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "dependencies",
+          "declared": "5.24.2",
+          "target": "5.24.6"
+        },
+        {
+          "path": "packages/graphql/package.json",
+          "section": "dependencies",
+          "declared": "5.24.2",
+          "target": "5.24.6"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "html-react-parser",
+      "cohort": "telemetry-integrations",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/remarkablemark/html-react-parser.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/html-react-parser",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "6.1.9",
+      "uses": [
+        {
+          "path": "packages/lib/package.json",
+          "section": "dependencies",
+          "declared": "6.1.8",
+          "target": "6.1.9"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "husky",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/typicode/husky.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/husky",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "9.1.7",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^9.1.7",
+          "target": "9.1.7"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "inngest",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/inngest/inngest-js.git",
+        "type": "git",
+        "directory": "packages/inngest"
+      },
+      "registrySource": "https://registry.npmjs.org/inngest",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.25.0",
+      "uses": [
+        {
+          "path": "packages/api/package.json",
+          "section": "dependencies",
+          "declared": "^4.22.0",
+          "target": "4.25.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "isomorphic-dompurify",
+      "cohort": "telemetry-integrations",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "kkomelin/isomorphic-dompurify",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/isomorphic-dompurify",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.6.0",
+      "uses": [
+        {
+          "path": "packages/lib/package.json",
+          "section": "dependencies",
+          "declared": "4.5.0",
+          "target": "4.6.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "jsdom",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/jsdom/jsdom.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/jsdom",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "30.1.3",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "30.1.2",
+          "target": "30.1.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "lint-staged",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/lint-staged/lint-staged.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/lint-staged",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "17.6.0",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "17.6.0",
+          "target": "17.6.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "lucide-animated",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": null,
+      "registrySource": "https://registry.npmjs.org/lucide-animated",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.0.5",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "1.0.5",
+          "target": "1.0.5"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "lucide-react",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/lucide-icons/lucide.git",
+        "type": "git",
+        "directory": "packages/lucide-react"
+      },
+      "registrySource": "https://registry.npmjs.org/lucide-react",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.61.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "1.52.0",
+          "target": "1.61.0"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "1.52.0",
+          "target": "1.61.0"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "1.52.0",
+          "target": "1.61.0"
+        },
+        {
+          "path": "packages/config/package.json",
+          "section": "dependencies",
+          "declared": "1.52.0",
+          "target": "1.61.0"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "section": "dependencies",
+          "declared": "1.52.0",
+          "target": "1.61.0"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "1.52.0",
+          "target": "1.61.0"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "1.52.0",
+          "target": "1.61.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "maplibre-gl",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/maplibre/maplibre-gl-js.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/maplibre-gl",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "6.15.0",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "6.13.0",
+          "target": "6.15.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "motion",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/motiondivision/motion.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/motion",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "14.5.0",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "14.0.0",
+          "target": "14.5.0"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "14.0.0",
+          "target": "14.5.0"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "14.0.0",
+          "target": "14.5.0"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "section": "dependencies",
+          "declared": "14.0.0",
+          "target": "14.5.0"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "14.0.0",
+          "target": "14.5.0"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "14.0.0",
+          "target": "14.5.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "next",
+      "cohort": "framework-security",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/vercel/next.js.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/next",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "16.4.2",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "packages/api/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "16.4.0",
+          "target": "16.4.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "next-themes",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/pacocoursey/next-themes.git"
+      },
+      "registrySource": "https://registry.npmjs.org/next-themes",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.4.6",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "^0.4.6",
+          "target": "0.4.6"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "^0.4.6",
+          "target": "0.4.6"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "^0.4.6",
+          "target": "0.4.6"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "^0.4.6",
+          "target": "0.4.6"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "nuqs",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/47ng/nuqs.git",
+        "type": "git",
+        "directory": "packages/nuqs"
+      },
+      "registrySource": "https://registry.npmjs.org/nuqs",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "2.10.2",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "2.10.1",
+          "target": "2.10.2"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "2.10.1",
+          "target": "2.10.2"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "2.10.1",
+          "target": "2.10.2"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "2.10.1",
+          "target": "2.10.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "payload",
+      "cohort": "payload-v4",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/payloadcms/payload.git",
+        "type": "git",
+        "directory": "packages/payload"
+      },
+      "registrySource": "https://registry.npmjs.org/payload",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.0.0-beta.3",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "4.0.0-internal.1f9ae9a",
+          "target": "4.0.0-beta.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "playwright-core",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/microsoft/playwright.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/playwright-core",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.64.1",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "1.64.0",
+          "target": "1.64.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "postcss",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/postcss/postcss.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/postcss",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "8.5.31",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "devDependencies",
+          "declared": "8.5.29",
+          "target": "8.5.31"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "devDependencies",
+          "declared": "8.5.29",
+          "target": "8.5.31"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "devDependencies",
+          "declared": "8.5.29",
+          "target": "8.5.31"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "prettier",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/prettier/prettier.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/prettier",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.9.10",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "3.8.2",
+          "target": "3.9.10"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "react",
+      "cohort": "framework-security",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/react/react.git",
+        "type": "git",
+        "directory": "packages/react"
+      },
+      "registrySource": "https://registry.npmjs.org/react",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "19.3.1",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "section": "dependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "section": "dependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "react-day-picker",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/gpbl/react-day-picker.git",
+        "type": "git",
+        "directory": "packages/react-day-picker"
+      },
+      "registrySource": "https://registry.npmjs.org/react-day-picker",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "10.0.2",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "10.0.2",
+          "target": "10.0.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "react-dom",
+      "cohort": "framework-security",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/react/react.git",
+        "type": "git",
+        "directory": "packages/react-dom"
+      },
+      "registrySource": "https://registry.npmjs.org/react-dom",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "19.3.1",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "devDependencies",
+          "declared": "19.3.0",
+          "target": "19.3.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "react-easy-crop",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/ValentinH/react-easy-crop.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/react-easy-crop",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "6.2.4",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "6.2.4",
+          "target": "6.2.4"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "react-email-editor",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/unlayer/react-email-editor.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/react-email-editor",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "2.1.3",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "2.1.3",
+          "target": "2.1.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "react-resizable-panels",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/bvaughn/react-resizable-panels.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/react-resizable-panels",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.14.8",
+      "uses": [
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "4.14.2",
+          "target": "4.14.8"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "recharts",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/recharts/recharts.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/recharts",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "3.10.1",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "3.10.1",
+          "target": "3.10.1"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "dependencies",
+          "declared": "3.10.1",
+          "target": "3.10.1"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "3.10.1",
+          "target": "3.10.1"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "3.10.1",
+          "target": "3.10.1"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "3.10.1",
+          "target": "3.10.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "require-in-the-middle",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "type": "git",
+        "url": "git+https://github.com/nodejs/require-in-the-middle.git"
+      },
+      "registrySource": "https://registry.npmjs.org/require-in-the-middle",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "8.0.1",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "dependencies",
+          "declared": "^8.0.1",
+          "target": "8.0.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "resend",
+      "cohort": "telemetry-integrations",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/resend/resend-node.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/resend",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "6.34.1",
+      "uses": [
+        {
+          "path": "packages/email/package.json",
+          "section": "dependencies",
+          "declared": "6.32.1",
+          "target": "6.34.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "server-only",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": null,
+      "registrySource": "https://registry.npmjs.org/server-only",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.0.1",
+      "uses": [
+        {
+          "path": "packages/api/package.json",
+          "section": "dependencies",
+          "declared": "0.0.1",
+          "target": "0.0.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "shadcn",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/shadcn-ui/ui.git",
+        "type": "git",
+        "directory": "packages/shadcn"
+      },
+      "registrySource": "https://registry.npmjs.org/shadcn",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.22.1",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "4.21.4",
+          "target": "4.22.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "sharp",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/lovell/sharp.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/sharp",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "0.35.5",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "^0.35.5",
+          "target": "0.35.5"
+        },
+        {
+          "path": "package.json",
+          "section": "dependencies",
+          "declared": "^0.35.5",
+          "target": "0.35.5"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "sonner",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/emilkowalski/sonner.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/sonner",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "2.0.8",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "2.0.8",
+          "target": "2.0.8"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "2.0.8",
+          "target": "2.0.8"
+        },
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "2.0.8",
+          "target": "2.0.8"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "section": "dependencies",
+          "declared": "2.0.8",
+          "target": "2.0.8"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "2.0.8",
+          "target": "2.0.8"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "dependencies",
+          "declared": "2.0.8",
+          "target": "2.0.8"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "stripe",
+      "cohort": "payments",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/stripe/stripe-node.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/stripe",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "23.0.0",
+      "uses": [
+        {
+          "path": "packages/api/package.json",
+          "section": "dependencies",
+          "declared": "22.2.0",
+          "target": "23.0.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "tailwindcss",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "https://github.com/tailwindlabs/tailwindcss.git",
+        "type": "git",
+        "directory": "packages/tailwindcss"
+      },
+      "registrySource": "https://registry.npmjs.org/tailwindcss",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.3.3",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "devDependencies",
+          "declared": "4.3.3",
+          "target": "4.3.3"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "devDependencies",
+          "declared": "4.3.3",
+          "target": "4.3.3"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "devDependencies",
+          "declared": "4.3.3",
+          "target": "4.3.3"
+        },
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "4.3.3",
+          "target": "4.3.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "turbo",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/vercel/turborepo.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/turbo",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "2.11.10",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "2.11.7",
+          "target": "2.11.10"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "tw-animate-css",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/Wombosvideo/tw-animate-css.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/tw-animate-css",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "1.4.0",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "^1.4.0",
+          "target": "1.4.0"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "typescript",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/microsoft/TypeScript.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/typescript",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "7.0.2",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "apps/donor/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "npm:typescript@7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "6.0.3",
+          "target": "6.0.3"
+        },
+        {
+          "path": "packages/api/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "packages/config/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "packages/database/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "packages/email/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "packages/env/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "packages/eve-runtime/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "packages/graphql/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "packages/mock-data/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "section": "devDependencies",
+          "declared": "7.0.2",
+          "target": "7.0.2"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "vite",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/vitejs/vite.git",
+        "type": "git",
+        "directory": "packages/vite"
+      },
+      "registrySource": "https://registry.npmjs.org/vite",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "8.3.5",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "8.3.3",
+          "target": "8.3.5"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "vitest",
+      "cohort": "development-tools",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/vitest-dev/vitest.git",
+        "type": "git",
+        "directory": "packages/vitest"
+      },
+      "registrySource": "https://registry.npmjs.org/vitest",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "5.0.5",
+      "uses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declared": "5.0.3",
+          "target": "5.0.5"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "web-vitals",
+      "cohort": "ui-utilities",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/GoogleChrome/web-vitals.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/web-vitals",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "6.2.3",
+      "uses": [
+        {
+          "path": "packages/lib/package.json",
+          "section": "dependencies",
+          "declared": "6.2.3",
+          "target": "6.2.3"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    },
+    {
+      "name": "zod",
+      "cohort": "data-workflows-api",
+      "owner": "Core maintainers",
+      "upstream": {
+        "url": "git+https://github.com/colinhacks/zod.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/zod",
+      "auditedAt": "2026-10-21T08:53:37.402842+00:00",
+      "initialTarget": "4.6.7",
+      "uses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declared": "^4.6.5",
+          "target": "4.6.7"
+        },
+        {
+          "path": "apps/missionary/package.json",
+          "section": "dependencies",
+          "declared": "^4.6.5",
+          "target": "4.6.7"
+        },
+        {
+          "path": "package.json",
+          "section": "dependencies",
+          "declared": "npm:zod@4.3.6",
+          "target": "4.6.7"
+        },
+        {
+          "path": "packages/api/package.json",
+          "section": "dependencies",
+          "declared": "^4.6.5",
+          "target": "4.6.7"
+        },
+        {
+          "path": "packages/database/package.json",
+          "section": "dependencies",
+          "declared": "^4.6.5",
+          "target": "4.6.7"
+        },
+        {
+          "path": "packages/env/package.json",
+          "section": "dependencies",
+          "declared": "^4.6.5",
+          "target": "4.6.7"
+        },
+        {
+          "path": "packages/eve-runtime/package.json",
+          "section": "dependencies",
+          "declared": "4.6.5",
+          "target": "4.6.7"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declared": "^4.6.5",
+          "target": "4.6.7"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-template-schema/package.json",
+          "section": "dependencies",
+          "declared": "4.3.6",
+          "target": "4.6.7"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint."
+    }
+  ]
+}

@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-import { readdir } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+
+import { verifyContractReferences } from "../lib/openspec-contracts.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
 const defaultRepoRoot = path.resolve(path.dirname(scriptPath), "../..");
@@ -28,6 +30,67 @@ export async function verifyOpenSpecDeltaCompatibility(
     .sort((a, b) => a.name.localeCompare(b.name));
   const failures = [];
   let checked = 0;
+  let legacyArchives = [];
+  try {
+    legacyArchives = JSON.parse(
+      await readFile(
+        path.join(repoRoot, "openspec/contracts/legacy-archives.json"),
+        "utf8",
+      ),
+    ).changes;
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+
+  async function verifyTree(directory) {
+    let entries;
+    try {
+      entries = await readdir(directory, { withFileTypes: true });
+    } catch (error) {
+      if (error.code === "ENOENT") return;
+      throw error;
+    }
+    for (const entry of entries) {
+      const file = path.join(directory, entry.name);
+      if (entry.isDirectory()) await verifyTree(file);
+      else if (entry.name === "spec.md") {
+        const capability = path
+          .relative(repoRoot, file)
+          .split(`${path.sep}specs${path.sep}`)
+          .at(-1)
+          .slice(0, -`${path.sep}spec.md`.length)
+          .split(path.sep)
+          .join("/");
+        try {
+          const relative = path
+            .relative(repoRoot, file)
+            .split(path.sep)
+            .join("/");
+          const archivedChange = relative.match(
+            /^openspec\/changes\/archive\/([^/]+)\//,
+          )?.[1];
+          await verifyContractReferences(
+            repoRoot,
+            capability,
+            await readFile(file, "utf8"),
+            {
+              allowLegacyInline:
+                archivedChange !== undefined &&
+                legacyArchives.includes(archivedChange),
+            },
+          );
+        } catch (error) {
+          failures.push({
+            change: path.relative(repoRoot, file),
+            capability,
+            message: error.message,
+          });
+        }
+      }
+    }
+  }
+  await verifyTree(specsRoot);
+  await verifyTree(changesRoot);
 
   for (const change of changes) {
     const updates = await findSpecUpdates(
@@ -39,7 +102,17 @@ export async function verifyOpenSpecDeltaCompatibility(
       try {
         // Build each delta against today's base independently. Never apply,
         // write, archive, or treat a successful build as implementation proof.
-        await buildUpdatedSpec(update, change.name, { silent: true });
+        const result = await buildUpdatedSpec(update, change.name, {
+          silent: true,
+        });
+        await verifyContractReferences(repoRoot, update.id, result.rebuilt);
+        for (const warning of result.warnings ?? []) {
+          failures.push({
+            change: change.name,
+            capability: update.id,
+            message: warning,
+          });
+        }
       } catch (error) {
         failures.push({
           change: change.name,

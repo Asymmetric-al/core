@@ -3,6 +3,10 @@
 Welcome to the Asymmetric.al codebase! This guide will help you get started quickly.
 The "Give Hope" tenant you may see in the UI is a demo/test frontend and not the organization.
 
+Use the Node.js 24 LTS version in `.node-version` and the Bun version in
+`.bun-version`. Setup and `ci:preflight` check the approved Node major and
+minimum patch before running other checks. CI pins the exact checkpoint.
+
 ## Quick Start
 
 Follow the canonical Quickstart in `README.md`:

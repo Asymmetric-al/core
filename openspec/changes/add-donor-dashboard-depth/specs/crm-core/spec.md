@@ -21,7 +21,9 @@ CRM SHALL expose only the explicitly admitted personal contact mutation and own-
 
 ### Requirement: Phase25 Newsletter Requests Do Not Enroll External Subscribers
 
-Before the Q25 consumer is dispatched, the P32 owner SHALL implement and qualify the exact request-only exclusion already required by EX11–EX16. The request occurrence and supplied contact details SHALL NOT cause automatic external contact/list insertion, subscribe/resubscribe, suppression reset, consent creation or consent/export admission. P23 retains the request occurrence, P17 its finite message purpose and local presentation, and P6 its transport evidence. None of those facts establishes external enrollment or verification. Any later external action requires its own independently qualified owner authority; this extension does not authorize or require the entire future newsletter-synchronization feature.
+Before the Q25 consumer is dispatched, the P32 owner SHALL implement and qualify the exact request-only exclusion already required by EX11–EX16.
+
+Every clause in `openspec/contracts/crm-core.md#contract-c5a002a5c382689d7fc2` MUST apply without exception.
 
 #### Scenario: A newsletter request is accepted and handed off
 

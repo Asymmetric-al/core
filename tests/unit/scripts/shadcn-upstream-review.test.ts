@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import * as childProcess from "node:child_process";
 import { X509Certificate } from "node:crypto";
 import {
   chmodSync,
@@ -12,6 +12,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { PassThrough } from "node:stream";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -31,9 +32,16 @@ import {
   sourceHash,
 } from "../../../scripts/verify/shadcn-diff.mjs";
 
+vi.mock(import("node:child_process"), async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, spawn: vi.fn(actual.spawn) };
+});
+
 const temporaryDirectories: string[] = [];
 
 afterEach(() => {
+  vi.useRealTimers();
+  vi.mocked(childProcess.spawn).mockReset();
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
   for (const directory of temporaryDirectories.splice(0)) {
@@ -388,20 +396,73 @@ describe("shadcn upstream review gate", () => {
       },
     );
 
-    it("keeps the original total timeout across child attempts and backoff", async () => {
-      const input = failingCli({
-        failures: 10,
-        firstDelayMs: 180,
-        laterDelayMs: 1000,
-      });
-      vi.spyOn(console, "warn").mockImplementation(() => {});
-      const started = performance.now();
-      await expect(
-        createCliRunner({ ...input, timeoutMs: 500 })(readOnlyArgs),
-      ).rejects.toThrow("shadcn CLI coverage timed out");
-      expect(performance.now() - started).toBeLessThan(750);
-      expect(input.attempts()).toEqual([readOnlyArgs, readOnlyArgs]);
-    });
+    it.each([
+      { timeoutMs: 250, attempts: 1 },
+      { timeoutMs: 500, attempts: 2 },
+    ])(
+      "keeps the original $timeoutMs ms deadline across attempts and backoff",
+      async ({ timeoutMs, attempts }) => {
+        const input = installedCliFixture();
+        const children: childProcess.ChildProcess[] = [];
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        // Real process startup is covered above. Control this test's process
+        // events and clock so a loaded worker cannot consume the retry budget.
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+        const spawn = vi.mocked(childProcess.spawn).mockImplementation(() => {
+          const child = new childProcess.ChildProcess();
+          const stdout = new PassThrough();
+          child.stdout = stdout;
+          child.stderr = new PassThrough();
+          vi.spyOn(child, "kill").mockImplementation(() => {
+            queueMicrotask(() => child.emit("close", null, "SIGTERM"));
+            return true;
+          });
+          children.push(child);
+          if (children.length === 1) {
+            setTimeout(() => {
+              stdout.end(publicFailure(503));
+              child.emit("close", 1);
+            }, 180);
+          }
+          return child;
+        });
+        let completed = false;
+        const outcome = createCliRunner({ ...input, timeoutMs })(
+          readOnlyArgs,
+        ).then(
+          (value: unknown) => {
+            completed = true;
+            return value;
+          },
+          (error: unknown) => {
+            completed = true;
+            return error;
+          },
+        );
+        try {
+          await vi.advanceTimersByTimeAsync(timeoutMs - 1);
+          expect(spawn).toHaveBeenCalledTimes(attempts);
+          expect(children.at(-1)?.kill).not.toHaveBeenCalled();
+          await vi.advanceTimersByTimeAsync(1);
+          expect(completed).toBe(true);
+          const error = await outcome;
+          expect(error).toBeInstanceOf(Error);
+          expect(error).toHaveProperty(
+            "message",
+            "shadcn CLI coverage timed out",
+          );
+          if (attempts === 2) {
+            expect(children[1].kill).toHaveBeenCalledTimes(1);
+          }
+          await vi.advanceTimersByTimeAsync(2_000);
+          expect(spawn).toHaveBeenCalledTimes(attempts);
+          expect(vi.getTimerCount()).toBe(0);
+        } finally {
+          await vi.runAllTimersAsync();
+          vi.useRealTimers();
+        }
+      },
+    );
 
     it("keeps the 4MB output cap cumulative across failed and successful attempts", async () => {
       const input = failingCli({ paddingBytes: 2_100_000 });
@@ -535,7 +596,7 @@ describe("shadcn upstream review gate", () => {
       path.join(root, SHADCN_REVIEW_BASELINE),
       JSON.stringify(baseline),
     );
-    const result = spawnSync(
+    const result = childProcess.spawnSync(
       process.execPath,
       [path.join(scripts, "shadcn-diff.mjs")],
       {

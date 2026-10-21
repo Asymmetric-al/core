@@ -17,7 +17,7 @@ export function renderSpec(requirements) {
   let result =
     "## Purpose\n\nProvide visual, conventional source and mixed website authoring through one canonical CMS and its existing publication, identity and safety owners.\n\n";
   result +=
-    "<!-- Generated from docs/prds/web-studio-hybrid/contracts/requirements.json. Keep IDs and all paired scenarios. -->\n\n## ADDED Requirements\n\n";
+    "Generated from docs/prds/web-studio-hybrid/contracts/requirements.json; do not edit independently. Keep IDs and all paired scenarios.\n\n## ADDED Requirements\n\n";
   for (const requirement of requirements) {
     result += `### Requirement: ${requirement.id} ${requirement.title}\n\n${requirement.requirement}\n\n`;
     for (const scenario of requirement.scenarios) {

@@ -11,32 +11,9 @@ spec complements `AGENTS.md` (routing) and `docs/guides/architecture/*`
 
 ### Requirement: Mission And Scope
 
-Asymmetric.al MUST exist as an all-in-one platform for Christian missions
-organizations at any scale. It SHALL bring together the core ministry
-operations and engagement tools those organizations need in one connected
-system, including fundraising, donor experience, missionary experience,
-operational records, public content, communications, documents, reporting, and
-automation.
+Asymmetric.al MUST exist as an all-in-one platform for Christian missions organizations at any scale.
 
-The primary tenant is a missions sending organization whose missionaries raise
-personal support: sending agencies, church-planting networks, and
-denominational boards at any scale within that operating model. Churches and
-other ministries are in scope when they operate a sending program. An
-individual missionary is a user inside a tenant, never a standalone tenant.
-
-The platform MUST exist to replace fragmented, clunky, manual operational
-tooling with one connected system that reduces friction, reduces tool sprawl,
-reduces manual glue work, and keeps important tasks clear and easy to complete.
-
-The product MUST be purpose-built for the support-raising operating model of
-Christian missions sending organizations. It MUST NOT be treated as generic
-nonprofit software with faith language added on top.
-
-The deepest ministry outcome is not merely saving time. The platform SHALL
-remove friction so people can stay focused on ministry: fewer clicks, clear
-next steps, and intuitive task completion matter because lower friction
-improves donor follow-through, missionary support, ministry capacity, and focus
-on the Gospel rather than on the tool itself.
+Every clause in `openspec/contracts/platform-product-intent.md#contract-41628690c5dd9ca70380` MUST apply without exception.
 
 #### Scenario: An agent needs the north star without a product brief
 
@@ -69,18 +46,9 @@ on the Gospel rather than on the tool itself.
 
 ### Requirement: Long-Horizon Success
 
-Over time, success MUST be recognizable first in ministry outcomes:
-missionaries reach and sustain full support, and each tenant runs its whole
-operation confidently in one connected system.
+Over time, success MUST be recognizable first in ministry outcomes: missionaries reach and sustain full support, and each tenant runs its whole operation confidently in one connected system.
 
-Strong donor retention, low friction, user joy, platform coherence,
-operational completeness, trust, fewer disconnected tools, and clearer
-support-raising and administrative workflows SHALL be treated as contributing
-signals beneath those outcomes, not as the outcomes themselves.
-
-Success MUST NOT be defined only by shipping volume or raw feature count when
-those measures would mask fragmentation, weak operations, or eroded donor
-confidence.
+Every clause in `openspec/contracts/platform-product-intent.md#contract-0355e426551c156dfd70` MUST apply without exception.
 
 #### Scenario: A tactical choice would ship faster but sacrifice trust or clarity
 
@@ -112,25 +80,9 @@ confidence.
 
 ### Requirement: Unified Platform Span
 
-The platform SHALL unify four major areas at a high level as one ministry
-system rather than four unrelated products:
+The platform SHALL unify Mission Control, Tenant-owned public Sites, the donor experience, and the missionary workspace as one ministry system.
 
-- Mission Control / admin
-- the public tenant website experience through one or more Tenant-owned Sites
-- the donor experience
-- the missionary workspace
-
-Site SHALL be a first-class entity beneath Tenant for public presentation and
-giving attribution. Every Tenant MUST have at least one Site and exactly one
-Default Site, and MAY operate additional Sites. Site MUST NOT be a Tenant,
-billing account, payment identity, Legal Entity, or authorization boundary.
-Mission Control, Donor Portal, and Missionary Workspace MUST NOT be Sites;
-donor accounts and authorized history SHALL stay Tenant-wide, with one Tenant
-account experience that entry Sites neither fragment nor reskin.
-
-Work inside the core repo MUST keep those areas aligned as one coherent
-platform span. Agents MUST NOT treat any major area as an optional add-on that
-can drift independently without an explicit product decision.
+Every clause in `openspec/contracts/platform-product-intent.md#contract-9475d9f5f1bcd7b6fd2e` MUST apply without exception.
 
 #### Scenario: A change would improve one surface while weakening platform coherence
 
@@ -153,17 +105,9 @@ can drift independently without an explicit product decision.
 
 ### Requirement: Audience Service And Tradeoff Priority
 
-The platform MUST serve the ministry as a whole, including organizational
-staff, missionaries, donors, and public visitors.
+The platform MUST serve the ministry as a whole, including organizational staff, missionaries, donors, and public visitors.
 
-When tradeoffs are ambiguous, agents MUST apply the canonical priority ladder
-defined in `platform-principles`. Within a safe and permitted path, the
-sharpest product instance of that ladder is donation-flow integrity: a donor
-must be able to give with confidence through the tenant website, and gifts must
-remain accurate, clearly designated, clearly reflected across the platform, and
-followed by the right donor-facing confirmation and record trail. Accuracy,
-trust, and financial clarity MUST take priority over any one group's
-convenience.
+Every clause in `openspec/contracts/platform-product-intent.md#contract-00ad7ddda9f8d69732f9` MUST apply without exception.
 
 #### Scenario: A feature request helps one audience but risks donation trust
 
@@ -227,15 +171,9 @@ platform rather than compete with one another.
 
 ### Requirement: Non-Goals And Scope Discipline
 
-The core repo MUST NOT become a catchall for unrelated products, generic SaaS
-experiments, disconnected side tools, unrelated church software, unrelated
-nonprofit products, or standalone microsites detached from the
-mission-organization operating model.
+The core repo MUST NOT become a catchall for unrelated products, generic SaaS experiments, disconnected side tools, unrelated church software, unrelated nonprofit products, or standalone microsites detached from the mission-organization operating model.
 
-Agents MUST guard against the dominant failure mode: treating this like generic
-SaaS and solving problems with disconnected features, workaround logic scattered
-across the codebase, one-off fixes, or local optimization that damages platform
-coherence.
+Every clause in `openspec/contracts/platform-product-intent.md#contract-649d3bf8e15cdfd22875` MUST apply without exception.
 
 #### Scenario: A request would pull the repo toward unrelated products or experiments
 
@@ -258,24 +196,9 @@ coherence.
 
 ### Requirement: AI Assistance Is A Core Product Direction
 
-AI assistance SHALL be a core differentiator of the platform, woven through
-staff, donor, missionary, and public experiences wherever it reduces ministry
-friction: drafting, suggesting, summarizing, routing, and preparing work so
-people stay focused on ministry rather than on the tool.
+AI assistance SHALL be a core differentiator of the platform, woven through staff, donor, missionary, and public experiences wherever it reduces ministry friction: drafting, suggesting, summarizing, routing, and preparing work so people stay focused on ministry rather than on the tool.
 
-AI ambition MUST stay inside the platform's trust boundaries. Any AI-initiated
-effect that sends donor-facing communication, moves or records money, or mutates
-operational truth MUST pass an explicit human approval gate before it takes
-effect. AI-initiated publication of public content MUST respect the tenant's
-configured publication and moderation boundary (see `platform-boundaries`),
-requiring human approval wherever the tenant requires review rather than
-overriding a tenant that has chosen automatic publishing. AI output MUST NOT
-silently mutate operational truth, and AI behavior SHALL remain subject to the
-canonical priority ladder, honest-state rules, and tenant moderation boundaries.
-
-AI assistants that help staff, missionaries, or donors act within the
-authority of the human they serve and are bounded by role and tenant scope, as
-defined in `platform-boundaries`. They are not a separate permission tier.
+Every clause in `openspec/contracts/platform-product-intent.md#contract-79d05e9fd14bd05f6279` MUST apply without exception.
 
 #### Scenario: An AI feature could act without human review
 

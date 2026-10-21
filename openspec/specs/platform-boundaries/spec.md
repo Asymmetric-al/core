@@ -12,17 +12,9 @@ code; this spec names the contracts and points to authoritative detail.
 
 ### Requirement: Monorepo Surface Split And Shared Logic Convergence
 
-The monorepo SHALL preserve the same four major product-facing areas defined in
-`platform-product-intent` and detailed in `platform-surfaces`: Mission Control /
-admin, the public tenant website, the donor experience, and the missionary
-workspace. These are product-facing boundaries, not arbitrary folder choices.
+The monorepo SHALL preserve the same four major product-facing areas defined in `platform-product-intent` and detailed in `platform-surfaces`: Mission Control / admin, the public tenant website, the donor experience, and the missionary workspace.
 
-Surface-specific behavior can stay local to a surface, but repeated business
-logic and shared behavior MUST converge into shared internal packages or
-centralized shared modules rather than being duplicated across app trees.
-
-The platform MUST use the monorepo to behave like one coherent product, not to
-grow separate app-local versions of the same rule or workflow.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-bfdba8d189276b094df7` MUST apply without exception.
 
 #### Scenario: An app-local fix would duplicate business logic
 
@@ -45,33 +37,9 @@ grow separate app-local versions of the same rule or workflow.
 
 ### Requirement: Site Is A Tenant-Owned Presentation And Attribution Entity
 
-The platform SHALL model Site as a first-class entity beneath Tenant for public
-presentation and giving attribution. Every Tenant MUST have at least one Site
-and exactly one Default Site, and MAY operate additional Sites. A Site MUST NOT
-be a Tenant, billing account, payment identity, or authorization boundary.
-Mission Control, Donor Portal, and Missionary Workspace MUST NOT be Sites.
+The platform SHALL model Site as a first-class entity beneath Tenant for public presentation and giving attribution.
 
-Asym Postgres in `public.*` MUST own operational Site identity, Tenant scope,
-CRM and money truth. CMS MUST own authored public content and presentation,
-aligned to the operational Site identity without becoming operational authority.
-Per Phase 24 D72, operational Domain authority MUST own exact-host bindings and
-Primary/Redirect Site Domain roles; CMS and Site fields MAY expose read-only
-projections but MUST NOT become mutable domain authority.
-
-A Site MUST NOT own or select Legal Entity, Settlement Account Binding,
-merchant/payment account, settlement, bank, accounting, receipt issuer, or
-ledger identity. Those owners MUST independently resolve and freeze their exact
-financial facts. Domain, locale, branding, or presentment-policy changes MUST
-NOT rewrite accepted gifts or historical attribution. The explicit Phase 24
-amendments govern domain, exact-locale publication, Site Brand release, and
-proof-qualified donor presentment; this foundation SHALL NOT authorize live
-multi-currency giving or infer qualification from Site configuration.
-
-Site, Entry Method, Source Code, and Designation MUST remain independent
-attribution axes: where giving entered, how it entered, what drove it, and what
-it funds. For future import interpretation, SiteStacker's site channel is
-approximately an Asym Site. The platform MUST NOT introduce a second
-Site/channel hierarchy or revive a generic gift channel field.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-6d422b44a032b307a303` MUST apply without exception.
 
 #### Scenario: A public Site changes presentation
 
@@ -92,20 +60,9 @@ Site/channel hierarchy or revive a generic gift channel field.
 
 ### Requirement: CRM As Operational Truth And CMS As Public Truth
 
-CRM MUST own operational identity, relationships, giving, permissions-sensitive
-records, workflows, approvals, money-related history, and other operational
-truth.
+CRM MUST own operational identity, relationships, giving, permissions-sensitive records, workflows, approvals, money-related history, and other operational truth.
 
-CMS MUST own public presentation, managed website content, public page
-structure, and content publishing state.
-
-Payload CMS MAY be upgraded inside `apps/admin` as the Web Studio CMS engine
-when the upgrade preserves this ownership split, keeps public CMS reads
-published-only and tenant-scoped, and keeps Payload runtime code out of donor
-and missionary apps.
-
-The two layers SHALL remain distinct but tightly linked, and they MUST NOT
-compete for source-of-truth ownership.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-8ac6e5a07205e467fd8d` MUST apply without exception.
 
 #### Scenario: Payload runtime is upgraded for Web Studio
 
@@ -129,18 +86,9 @@ compete for source-of-truth ownership.
 
 ### Requirement: CRM/CMS Alignment As A Core Platform Contract
 
-Alignment between CRM and CMS MUST be treated as a core platform contract, not
-as optional glue or best-effort synchronization.
+Alignment between CRM and CMS MUST be treated as a core platform contract, not as optional glue or best-effort synchronization.
 
-For missionary public pages and project pages, CRM MUST own the missionary or
-project as an operational entity together with its relationships, permissions,
-designations, and linked records. CMS MUST own the public page content and
-presentation for those same entities.
-
-Changes initiated from missionary or admin surfaces MUST keep both layers
-aligned without creating split ownership. If CRM and CMS appear to disagree and
-no more specific spec exists, the platform MUST favor CRM operational truth
-first and then align CMS public truth to it.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-ebd32f4b823f763f6509` MUST apply without exception.
 
 #### Scenario: A local implementation would let CRM and CMS drift
 
@@ -162,16 +110,9 @@ first and then align CMS public truth to it.
 
 ### Requirement: Server-Side Boundary For Sensitive Operations
 
-Sensitive operations MUST remain behind server-side boundaries. This includes
-payments, money movement, record mutation, refunds, official documents,
-automation triggers, tenant-scoped integrations, permission-sensitive actions,
-and anything involving secrets or audit-sensitive side effects.
+Sensitive operations MUST remain behind server-side boundaries.
 
-Public or limited-role surfaces MUST NOT perform these operations directly just
-because doing so would make a local implementation easier.
-
-Payment data, secrets, and trust-sensitive internals MUST never leak into the
-wrong layer.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-d22b0ff1730c7c3ef523` MUST apply without exception.
 
 #### Scenario: A payment, refund, or official record mutation would leak into the wrong layer
 
@@ -185,24 +126,9 @@ wrong layer.
 
 ### Requirement: Role-Scoped Surface Boundaries
 
-Public visitors, donors, missionaries, staff, and admins MUST have different
-visibility and action boundaries as part of the product definition, not as
-incidental implementation detail. (AI assistants are not a separate permission
-tier — an assistant acts within the authority of the human it serves; see "AI
-Assistant Authority Is Bounded By The Initiating User".)
+Public visitors, donors, missionaries, staff, and admins MUST have different visibility and action boundaries as part of the product definition, not as incidental implementation detail.
 
-Public or limited-role surfaces MUST never perform admin-depth actions, bypass
-approval rules, mutate permissions-sensitive records outside their allowed
-scope, or expose privileged operational depth just because it is convenient.
-
-If an action requires organizational operational depth, broad record
-visibility, cross-role coordination, finance-sensitive handling, approval
-control, or tenant-wide administration, it MUST belong in Mission Control
-first. Narrower logged-in surfaces SHALL expose only role-scoped slices of the
-same system where appropriate.
-
-Hidden or unavailable capability MUST feel intentional and clean rather than
-hacked away or half-present.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-e1b7d57df5482beb20bc` MUST apply without exception.
 
 #### Scenario: A public or limited-role surface tries to perform admin-depth behavior
 
@@ -237,17 +163,8 @@ hacked away or half-present.
 ### Requirement: AI Assistant Authority Is Bounded By The Initiating User
 
 An AI assistant MUST act strictly within the authority of the human it serves.
-An assistant — an AI agent that helps a staff member, missionary, or donor
-complete a task — MUST NOT read data, take actions, or reach records beyond that
-user's own role scope and tenant, and MUST NOT be used to escalate privilege or
-bypass approval, permission, or tenant-isolation boundaries.
 
-Assistant actions MUST follow current AI-agent best practice: least privilege
-by default; the same human approval gates that govern donor-facing sends, money
-effects, operational-truth mutation, and publication (per the platform's AI
-product direction); clear attribution of the acting user; and an audit trail
-equivalent to the same action performed by that user directly. An assistant is
-never a separate permission tier and never a way to widen scope.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-413454f7996ee470b527` MUST apply without exception.
 
 #### Scenario: An assistant is asked to act beyond the user's scope
 
@@ -289,18 +206,9 @@ underlying scope would still be too broad.
 
 ### Requirement: Honest Money State And Protected Payment Internals
 
-Money-state changes MUST propagate clearly and truthfully across the right
-surfaces, with no manual re-entry and no misleading lag that suggests a
-different state than the operational record. Public optimism MUST never outrun
-operational truth.
+Money-state changes MUST propagate clearly and truthfully across the right surfaces, with no manual re-entry and no misleading lag that suggests a different state than the operational record.
 
-When a payment-related flow is incomplete, pending, failed, retried, refunded,
-or partially processed, the platform MUST reflect the real state honestly and
-route the right consequence to the right surfaces and roles.
-
-User-facing copy can be kind and clear, but it MUST NOT soften or hide the
-truth. Trust-sensitive payment internals MUST stay protected even while the
-user-facing state remains honest.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-f95bdb79a8f1876ba0b1` MUST apply without exception.
 
 #### Scenario: A user-facing flow would present a more optimistic state than operational truth supports
 
@@ -321,19 +229,9 @@ user-facing state remains honest.
 
 ### Requirement: Publication, Moderation, And Tenant-Controlled Release Boundaries
 
-Missionary-managed public content SHALL respect tenant-controlled publication
-boundaries even when it originates from the missionary surface or from Mission
-Control.
+Missionary-managed public content SHALL respect tenant-controlled publication boundaries even when it originates from the missionary surface or from Mission Control.
 
-Publication MUST respect tenant-configured approval and moderation rules.
-
-Surfaces MUST NOT bypass the tenant's chosen publication boundary. If a tenant
-allows automatic publishing, the platform MUST respect that choice as a
-first-class boundary rather than forcing a manual gate the tenant did not ask
-for.
-
-Publication flow MUST preserve CRM/CMS alignment and MUST NOT create a side
-channel that publishes around the tenant's release rules.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-556df1b7b0fe901d47f2` MUST apply without exception.
 
 #### Scenario: A missionary content change would skip tenant-chosen approval or moderation
 
@@ -353,16 +251,9 @@ channel that publishes around the tenant's release rules.
 
 ### Requirement: Public Versus Authenticated Surface Separation
 
-Public website behavior and authenticated portal behavior SHALL stay clearly
-separated while still feeling coherent to the end user.
+Public website behavior and authenticated portal behavior SHALL stay clearly separated while still feeling coherent to the end user.
 
-Public experiences MUST NOT become disguised logged-in operational surfaces.
-Authenticated donor or missionary experiences MUST NOT masquerade as public
-website behavior in ways that blur identity, permission, or control.
-
-The platform MUST keep public discovery, storytelling, and giving clearly
-separated from authenticated control flows while preserving coherent handoff
-between them.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-a9101967df62fd5bf19f` MUST apply without exception.
 
 #### Scenario: Public and authenticated behavior start to blur together
 
@@ -378,15 +269,7 @@ between them.
 
 Durable boundary documentation MUST stay aligned when those boundaries change.
 
-OpenSpec current truth, architecture docs, and repo guidance that restate the
-same durable boundary SHALL remain aligned with one another.
-
-An agent MUST NOT quietly change durable boundary behavior in code while
-leaving boundary language stale in OpenSpec or in repo docs that restate the
-same contract.
-
-When a change modifies structural or trust boundaries, the relevant OpenSpec
-delta and any boundary-restating repo docs SHALL be updated in the same effort.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-b271df4df14b8380153c` MUST apply without exception.
 
 #### Scenario: A code change updates durable behavior but leaves boundary docs stale
 
@@ -427,15 +310,9 @@ back to the triggering contribution operation audit event when one exists.
 
 ### Requirement: Mission Control Automations Are Declarative And Guarded
 
-Mission Control automations MUST be declarative definitions, not arbitrary
-user-supplied code. Only users with `automation:manage` MAY create, edit,
-activate, deactivate, or delete automations.
+Mission Control automations MUST be declarative definitions, not arbitrary user-supplied code.
 
-Automation activation MUST require preview, test run, and activity log setup.
-Automations MUST call shared domain services rather than writing contribution,
-CRM, task, or donor notification records directly where a service exists.
-Donor-facing emails from automations MUST use Email Studio templates and
-notification policy.
+Every clause in `openspec/contracts/platform-boundaries.md#contract-ca4acefa199203f3f0c5` MUST apply without exception.
 
 #### Scenario: Admin activates an automation
 
@@ -452,3 +329,133 @@ notification policy.
 - THEN it uses the contribution notification module and Email Studio template
   policy
 - AND it does not call Resend directly
+
+### Requirement: Supabase TanStack DB Collections Own Browser-Visible Table State
+
+Browser-visible Supabase table state MUST be represented through shared TanStack DB collections owned by `packages/database/collections` and app-facing hooks owned by `packages/database/hooks`.
+
+Every clause in `openspec/contracts/platform-boundaries.md#contract-81a4ef98b6fe9ddc8500` MUST apply without exception.
+
+#### Scenario: A browser feature needs a list of RLS-safe table rows
+
+- GIVEN a browser-visible feature needs rows from a Supabase table that is safe
+  for the user under RLS
+- WHEN an agent chooses a data-access pattern
+- THEN the feature uses an `@asym/database` collection or hook
+- AND it does not add a direct app-level Supabase table read
+
+#### Scenario: A table is not safe under current RLS
+
+- GIVEN a table contains secret-bearing, finance-sensitive, private, or
+  tenant-wide rows without production-safe RLS and redaction
+- WHEN an agent considers exposing it as a browser collection
+- THEN the agent keeps that table out of browser collections
+- AND they add scoped RLS, a safe view, or a server read model before exposing
+  browser-visible data
+
+### Requirement: Collection Mutations Are Limited To Simple RLS-Allowed Writes
+
+TanStack DB collection mutations MUST be limited to single-table, user-initiated
+CRUD actions when RLS authorizes the action and optimistic UI is appropriate.
+
+Collection mutations MUST NOT own payments, donation creation or confirmation,
+refunds, receipts, tax documents, email sending, webhooks, audit logs,
+service-role operations, role changes, RPC counter workflows, multi-table
+business workflows, external system sync, file processing, payouts, or anything
+involving secrets.
+
+#### Scenario: A user edits a simple preference row
+
+- GIVEN the user is allowed by RLS to update a single preference row
+- WHEN the UI applies an optimistic update
+- THEN a collection mutation may write the row
+- AND the mutation rolls back if Supabase rejects the write
+
+#### Scenario: A donor submits a payment or donation
+
+- GIVEN a donor action creates or confirms money movement
+- WHEN the implementation chooses where the mutation belongs
+- THEN the action remains behind a server command boundary
+- AND the browser collection only reflects safe resulting state after the
+  server-owned workflow persists it
+
+### Requirement: Server Read Helpers Do Not Weaken Command Boundaries
+
+TanStack DB `queryOnce` MUST NOT be used in server, route, or shared package
+code except through an approved `@asym/database` helper for bounded read
+shaping, collection-compatible query reuse, or tests that compare server and
+browser query behavior.
+
+Server code MUST keep plain Supabase, SQL, views, functions, or existing API
+read models when they are simpler, faster, more secure, aggregate-heavy,
+service-role dependent, or command-adjacent.
+
+#### Scenario: A server component needs the same safe filtered list as a browser hook
+
+- GIVEN a server component needs a bounded read shaped like an existing browser
+  collection query
+- WHEN `queryOnce` can express that read without broadening data exposure or
+  pulling excessive data into memory
+- THEN the server may use the approved `@asym/database` queryOnce helper
+- AND it does not create an ad hoc Supabase client or collection adapter
+
+#### Scenario: A finance report needs authoritative aggregate data
+
+- GIVEN a report needs aggregate-heavy or finance-authoritative data
+- WHEN an agent considers replacing the report path with TanStack DB
+- THEN the report stays server-side through SQL, views, functions, or server
+  Supabase queries
+- AND TanStack DB may only display bounded report results when appropriate
+
+### Requirement: Realtime Exposure Is Explicit And RLS-Gated
+
+Realtime Postgres Changes MUST be enabled only for tables whose payloads and
+RLS posture are appropriate for live browser-visible updates.
+
+Visible app tables MAY use Realtime by default after RLS is safe. Internal,
+high-churn, sensitive, large-payload, audit, webhook, payment, sync, and
+non-UI tables MUST be excluded unless a specific product need and RLS design
+justify inclusion.
+
+#### Scenario: A feed table is browser-visible and RLS-safe
+
+- GIVEN a feed table is visible to the current user under RLS
+- WHEN collection state should update after other users or server commands write
+  rows
+- THEN the table may be added to `supabase_realtime`
+- AND the collection registry documents Realtime as enabled
+
+#### Scenario: A webhook log or payment attempt table changes frequently
+
+- GIVEN a table contains webhook logs, provider internals, payment attempts,
+  audit events, large payloads, or internal sync state
+- WHEN an agent considers enabling Realtime for convenience
+- THEN the table remains excluded from Realtime
+- AND any UI that needs status uses a safe server read model or bounded polling
+  strategy
+
+### Requirement: Collection Registry Documents Data Ownership And Exclusions
+
+The platform MUST maintain a collection registry that identifies every shared
+collection or collection-like data source by kind: real Supabase table,
+derived collection, queryOnce/server read helper, local-only UI collection, or
+legacy temporary collection.
+
+The registry MUST make RLS posture, Realtime posture, primary keys, mutation
+policy, and intentional browser/server exclusions visible to future agents and
+developers.
+
+#### Scenario: A developer adds a new browser data feature
+
+- GIVEN a developer needs to know which collection owns a feature's data
+- WHEN they inspect the registry
+- THEN they can identify the intended collection or server read path
+- AND they can see whether browser mutations or Realtime are allowed
+
+#### Scenario: A local-only collection remains after migration
+
+- GIVEN a collection is intentionally local-only or demo-only
+- WHEN it remains in the codebase
+- THEN the registry marks it local-only
+- AND documents why it is not backed by Supabase yet or what must happen before
+  it can be persisted

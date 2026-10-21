@@ -36,7 +36,7 @@ The exact live required-check sets are recorded only in § Branch protection.
 ### Bun toolchain
 
 - **Pinned version:** root `package.json` `packageManager` and `.bun-version` (currently `bun@1.4.3`, stable only — never canary).
-- **Runtime vs package manager:** Bun is the install/script runner. Next.js apps still execute on Node.js (Vercel project `nodeVersion` is `24.x`; GitHub Actions pins Node `24.21.0`). Do not pass `bun --bun`, and do not set `bunVersion` in `apps/*/vercel.json`.
+- **Runtime vs package manager:** Bun is the install/script runner. Next.js apps still execute on Node.js (Vercel project `nodeVersion` is `24.x`; GitHub Actions pins Node `24.22.1`). Do not pass `bun --bun`, and do not set `bunVersion` in `apps/*/vercel.json`.
 - **Vercel Functions Bun 1.4 is a separate runtime:** [Vercel's Bun 1.4 changelog](https://vercel.com/changelog/bun-1-4-is-now-available-in-vercel-functions) documents opting **Functions and Middleware** onto Bun via `"bunVersion": "1.4.x"`. That is not how you pin the package manager. `"1.x"` still selects Bun 1.3.14 on Functions. Next.js on the Bun runtime also requires `bun run --bun next dev|build` ([runtime docs](https://vercel.com/docs/functions/runtimes/bun)). Core stays on the Node path (`next dev` / `next build` / `next start`) because Payload, Stripe, Supabase SSR, and eve-runtime are validated there; Vercel treats the Bun Functions runtime as an explicit breaking-change opt-in.
 - **Vercel install vs GitHub install:** App `installCommand` is `bunx bun@1.4.3 install --cwd ../.. --frozen-lockfile` (workspace root, pinned package manager, frozen lockfile), following [Vercel's documented build pin](https://vercel.com/kb/guide/how-to-pin-a-specific-bun-version-for-vercel-builds). Preview deployment `dpl_8p7c7tAFVzvdLZY5t4FB8NuTxdCx` proved that the build image's Bun 1.3.14 cannot install the current lockfile without drift. Pinning installation does not opt Functions into the Bun runtime. GitHub Actions keeps `bun ci --no-cache --backend=copyfile` for the portable file-copy backend. Corepack does **not** pin Bun (it is for pnpm/Yarn).
 - **GitHub Actions:** `ci.yml`, `ci-integration.yml`, and `qa-smoke-preview-deploy.yml` set `env.BUN_VERSION` to that exact version; every first-party `oven-sh/setup-bun` step is pinned to the reviewed `v2.2.0` commit and uses `bun-version: ${{ env.BUN_VERSION }}`.
@@ -66,25 +66,26 @@ bun run ci:preflight
 
 `ci:preflight` runs the correctness stage order below. Its build stage is conditional under the same development policy as `.github/workflows/ci.yml`; app-specific build inputs select `build:<app>`. Use `bun run ci:preflight -- --full` for a complete QA/release checkpoint. The release command and any authorized production-targeting push always select full mode:
 
-1. `format:check`
-2. `skills:verify`
-3. `verify:phase25-spec`
-4. `verify:phase27-spec`
-5. `verify:phase28-spec`
-6. `openspec:validate`
-7. `verify:openspec-deltas` (includes `verify:phase24-authority`)
-8. `lint`
-9. `verify:data-boundary`
-10. `verify:cms-public-sole-entry`
-11. `verify:workspace-contract`
-12. `verify:bun-lock-drift`
-13. `verify:eslint`
-14. `verify:shadcn-config`
-15. `verify:shadcn-diff`
-16. `verify:shadscan`
-17. `typecheck`
-18. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
-19. `test:unit`
+1. `verify:node-version` (Node 24 at or above `.node-version`; other majors fail)
+2. `format:check`
+3. `skills:verify`
+4. `verify:phase25-spec`
+5. `verify:phase27-spec`
+6. `verify:phase28-spec`
+7. `openspec:validate`
+8. `verify:openspec-deltas` (includes `verify:phase24-authority`)
+9. `lint`
+10. `verify:data-boundary`
+11. `verify:cms-public-sole-entry`
+12. `verify:workspace-contract`
+13. `verify:bun-lock-drift`
+14. `verify:eslint`
+15. `verify:shadcn-config`
+16. `verify:shadcn-diff`
+17. `verify:shadscan`
+18. `typecheck`
+19. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
+20. `test:unit`
 
 For edits to the adopted roadmap and Studio packets, also run
 `bun run verify:program-roadmap` in the canonical WSL/Linux workspace before

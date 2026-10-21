@@ -4,17 +4,9 @@
 
 ### Requirement: Missionary Workspace Provides One Quiet Assigned-Pages Experience
 
-The Missionary Workspace SHALL show every and only the Missionary and
-Project/Campaign Pages for which the current Principal has an active exact D1
-Public Page Contributor Assignment. It SHALL provide focused authoring, preview,
-final intent, review feedback, Ministry Update, optional exact-Page activity, and
-recovery actions without exposing staff configuration, tenant-wide queues,
-private supporter details, or financial depth that the person was not separately
-granted.
-The Page editor SHALL organize only compatible tenant-enabled roles into the
-five quiet groups `Basics`, `Story`, `Media`, `Support & giving`, and `Updates`.
-It SHALL NOT expose generic layout, schema, permission, workflow, or publication
-controls to contributors.
+The Missionary Workspace SHALL show every and only the Missionary and Project/Campaign Pages for which the current Principal has an active exact D1 Public Page Contributor Assignment.
+
+Every clause in `openspec/contracts/platform-surfaces.md#contract-c1c913181d37442bcf45` MUST apply without exception.
 
 #### Scenario: A missionary manages several assigned Pages
 
@@ -33,28 +25,9 @@ controls to contributors.
 
 ### Requirement: Mission Control Provides One Review Operations And Settings Home
 
-Mission Control SHALL provide one review queue and one Public Pages workspace
-whose `To review`, `Needs attention`, `All pages`, and setup/settings views are
-derived from current source-owned facts. Review SHALL present exact candidate
-diff and preview with `Approve & publish` and `Request changes` as the primary
-actions and terminal `Reject` as a deliberately secondary action. Operations
-SHALL group by cause, impact, owner, and safe next action. Settings
-SHALL ask only D23's two family reach and one review question during initial
-setup, then use exactly `Visibility and publishing`, `Page appearance and
-discovery`, `Optional features`, and `Chosen on each page` with short scope-first
-owner forms and plain-language consequence previews. Initial unset values SHALL
-appear only as `Safe fallback — not yet chosen: Not public`, `Safe fallback —
-not yet chosen: Review before publishing`, or `Safe fallback — not yet chosen:
-Responses off`, never as saved organization choices. Presentation authoring
-SHALL separate `Page design — all languages` from `Content — this language`;
-contributors SHALL see tenant-owned structure as `Set by your organization`,
-and single-locale Sites SHALL not show unnecessary locale machinery.
-The exact D10 candidate preview SHALL remain review truth; the separate current
-public Page SHALL appear only as `View live page`. In the review surface,
-`Approve & publish` and `Request changes` SHALL remain primary, while `Edit
-page` SHALL be secondary and appear only with independent D24 edit authority;
-it SHALL create a successor rather than changing the reviewed candidate in
-place.
+Mission Control SHALL provide one review queue and one Public Pages workspace whose `To review`, `Needs attention`, `All pages`, and setup/settings views are derived from current source-owned facts.
+
+Every clause in `openspec/contracts/platform-surfaces.md#contract-0c6e47aa546d2616f7fb` MUST apply without exception.
 
 #### Scenario: Staff review a contributor change
 
@@ -81,13 +54,9 @@ place.
 
 ### Requirement: Public Website Presents Typed Pages Without Operational Leakage
 
-The Public Tenant Website SHALL render Missionary and Project/Campaign Pages as
-distinct tenant-branded experiences using their one current Site-family profile
-and exact locale release. It SHALL expose only D2/Phase-10-admitted public
-content, safe media, optional source-certified progress, Ministry Updates,
-bounded directory/search/share presentation, and the one D7 Give destination.
-It SHALL NOT expose internal subjects, assignments, source types, workflow,
-supporter responses, identifiers, or failure diagnostics.
+The Public Tenant Website SHALL render Missionary and Project/Campaign Pages as distinct tenant-branded experiences using their one current Site-family profile and exact locale release.
+
+Every clause in `openspec/contracts/platform-surfaces.md#contract-ce7920e23bb4bc27500c` MUST apply without exception.
 
 #### Scenario: A visitor opens a Missionary Page
 
@@ -106,21 +75,9 @@ supporter responses, identifiers, or failure diagnostics.
 
 ### Requirement: Public Serving And Convergence Status Remains Quiet
 
-Contributors SHALL see only `Public`, `Updating`, or `Not public` for an exact
-Page or Ministry Update and SHALL receive no cache, CDN, TTL, tag, queue,
-generation, probe, purge, or provider controls. Mission Control MAY show
-`Visitor access stopped - cleanup continuing` after local denial is effective
-and SHALL show `Needs attention` only when a controlled-surface deadline is
-missed or an exact owner cause requires authorized action. Progressive detail
-SHALL distinguish release activation, current admission, expiration requested,
-provider acceptance, controlled response observation, unverifiable coverage,
-and external observation. No UI SHALL offer `Purge`, `Force live`, or `Mark
-fixed` as public truth.
-D21 migration SHALL add no Page lifecycle or editorial status. Its staff-only
-readiness projection SHALL use `Ready to use`, `Needs a decision`, or `Not
-moving as a current ministry page`, with the last state naming the exact D8
-disposition. Cutover receipt wording SHALL remain a transient operation result,
-not Page state, and SHALL never use `Live` as D21 truth.
+Contributors SHALL see only `Public`, `Updating`, or `Not public` for an exact Page or Ministry Update and SHALL receive no cache, CDN, TTL, tag, queue, generation, probe, purge, or provider controls.
+
+Every clause in `openspec/contracts/platform-surfaces.md#contract-bce1fd8467e2d653f68d` MUST apply without exception.
 
 #### Scenario: Healthy propagation requires no work
 
@@ -162,13 +119,9 @@ index authority.
 
 ### Requirement: Public Search Share And Giving Controls Stay Simple And Accessible
 
-Every eligible Listed Page and public Ministry Update SHALL render server-side
-search-ready metadata and one quiet Share action using native sharing when
-available with a first-party Copy-link fallback. Shared-by-link releases SHALL
-remain shareable but noindex and absent from discovery. Give SHALL remain the
-clear primary consequential action and SHALL preserve exact checkout context.
-Passive third-party widgets, arbitrary scripts, dark patterns, and claims of a
-completed share or gift SHALL be absent.
+Every eligible Listed Page and public Ministry Update SHALL render server-side search-ready metadata and one quiet Share action using native sharing when available with a first-party Copy-link fallback.
+
+Every clause in `openspec/contracts/platform-surfaces.md#contract-d2c7d1114e4ab29870ad` MUST apply without exception.
 
 #### Scenario: A visitor shares a public Page
 
@@ -184,16 +137,9 @@ completed share or gift SHALL be absent.
 
 ### Requirement: Public Page Activity Is Fixed Simple And Accessible
 
-Measurement setup SHALL offer exactly `Off`, `Staff only — Recommended`, and
-`Staff + assigned page contributors` with one plain-language consequence
-preview and no per-Page metrics or custom-event configuration. The authorized
-report SHALL be titled `Public page activity`, use `Aggregate activity for your
-public pages and ministry updates`, label its metrics `Qualified page loads`,
-`Full update opens`, `Share options opened`, and `Give button selected`, and use
-complete-day 7/30/90-day presets. It SHALL provide fixed definitions, `Data
-complete through [date]`, honest Complete/Delayed/Partial/Unavailable and
-suppression-safe results, and an equivalent accessible HTML table. Visitors
-SHALL receive no activity dashboard or operational depth.
+Measurement setup SHALL offer exactly `Off`, `Staff only — Recommended`, and `Staff + assigned page contributors` with one plain-language consequence preview and no per-Page metrics or custom-event configuration.
+
+Every clause in `openspec/contracts/platform-surfaces.md#contract-cbcd2115478fb6caba15` MUST apply without exception.
 
 #### Scenario: Two assigned contributors open the same Page report
 
@@ -213,39 +159,9 @@ SHALL receive no activity dashboard or operational depth.
 
 ### Requirement: Public Page Editing Is Accessible Recoverable And Consequence-Clear
 
-Authoring and staff surfaces SHALL use progressive disclosure, field-level help,
-plain language, responsive preview, clear save state, accessible comparison,
-and cause-specific recovery. Final actions SHALL state whether work will publish
-after checks or go to staff review. Optional writing assistance SHALL remain an
-explicit secondary action and translation SHALL carry the `Check this
-translation. AI translation can make mistakes or miss context. Review this
-English draft carefully before using it.` warning, the expandable review
-checklist including `This is not a certified translation.`, and the literal
-`Use English draft` action. No UI label SHALL conflate saved, submitted, approved,
-released, cached, indexed, shared, selected, donated, or paid.
-Routine private recovery MAY show `Saving` and after authoritative success SHALL
-show `Saved privately` with a subtle last-saved time; it SHALL not announce each
-autosave. When preserved work cannot proceed unchanged, the exact message SHALL
-be `Your earlier changes are saved, but this page has changed since then. Review
-them against the current page before submitting again.` with `Review saved
-changes` primary, an authorized `View saved version` secondary, accessible
-`Added`/`Removed`/`Changed` comparison, and `Use as starting point`. Reuse SHALL
-still require a separate `Submit for review` or `Publish changes` action. The UI
-SHALL NOT label work Expired or Archived, expose branch/merge/version jargon,
-offer destructive Restore, or steal focus; recovery SHALL remain usable in a
-single-column mobile layout.
-When writing assistance is eligible, one subdued `Help me write` control SHALL
-show `What AI will use` before egress and present the suggestion outside the
-editable draft with exact `Replace selected text` or `Insert draft`, `Try
-again`, and `Discard` actions. Mobile SHALL expose the same semantic actions in
-an accessible bottom sheet or equivalent without gesture-only behavior.
+Authoring and staff surfaces SHALL use progressive disclosure, field-level help, plain language, responsive preview, clear save state, accessible comparison, and cause-specific recovery.
 
-At final intent the surface SHALL place the D26 confirmation immediately beside
-`Submit for review` or `Publish changes`, without a checkbox or modal. Image
-selection SHALL say `Use a photo you're allowed to share. We remove hidden
-location and file details before it appears publicly.` and MAY disclose `Photo
-sharing tips` for recognizable people, children, precise locations, and personal
-details without claiming that upload or sanitization proves permission.
+Every clause in `openspec/contracts/platform-surfaces.md#contract-ae65aa99d38109665171` MUST apply without exception.
 
 #### Scenario: An autosave fails
 

@@ -12,15 +12,9 @@ boundaries inside shared workflow infrastructure.
 
 ### Requirement: Workflow Orchestration Is Not The Source Of Truth
 
-Inngest MUST act only as the durable workflow executor. Product records,
-provider records (Stripe events, Resend events), audit logs, and tenant
-authorization MUST remain authoritative for donations, email, CRM state,
-documents, payment status, permissions, tenant data, and audit history.
+Inngest MUST act only as the durable workflow executor.
 
-Stripe MUST remain the payment authority: workflow functions MUST NOT invent
-payment success and MUST NOT become the recurring billing engine. Provider
-webhook boundaries (signature verification, raw request handling, tenant
-resolution, durable event storage) MUST stay in the product webhook routes.
+Every clause in `openspec/contracts/workflow-orchestration.md#contract-738fca90e53867532089` MUST apply without exception.
 
 #### Scenario: A workflow retry disagrees with product state
 
@@ -110,13 +104,9 @@ records valid and existing manual recovery paths working.
 
 ### Requirement: Workflow Problems Escalate By Tenant Notification Policy
 
-The platform MUST decide workflow-problem urgency through a tenant-adjustable
-notification policy rather than alerting on everything or failing silently.
-Defaults MUST escalate money-area failures and dead-lettered work to urgent
-staff notification while keeping routine retryable failures visible as
-operational status. Tenants MUST be able to adjust the policy within safe
-bounds (for example, escalating on retry or muting specific non-critical
-failures), and the effective policy MUST be tenant-scoped.
+The platform MUST decide workflow-problem urgency through a tenant-adjustable notification policy rather than alerting on everything or failing silently.
+
+Every clause in `openspec/contracts/workflow-orchestration.md#contract-48b6728da00e40f1b03a` MUST apply without exception.
 
 #### Scenario: A money-path workflow dead-letters
 

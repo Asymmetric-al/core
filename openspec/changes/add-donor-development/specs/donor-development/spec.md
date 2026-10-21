@@ -1,6 +1,8 @@
 # Phase 27 donor-development behavioral projection
 
-> Generated from the canonical Phase 27 story registry and normative volumes. Regenerate with its render-spec tool; do not edit independently. Complete REQ27 contracts and operating controls remain binding alongside these observable scenarios.
+## Purpose
+
+Generated from the canonical Phase 27 story registry and normative volumes. Regenerate with its render-spec tool; do not edit independently. Complete REQ27 contracts and operating controls remain binding alongside these observable scenarios.
 
 ## ADDED Requirements
 
@@ -6004,7 +6006,9 @@ The system SHALL provide this observable outcome: As an appeal organizer using k
 
 ### Requirement: US27-F34 — Adopt and operate recorded membership with atomic protection, native independence and safe upgrade/restore
 
-The system SHALL provide this observable outcome: As a release and source operations owner, I want to adopt and operate recorded membership with atomic protection, native independence and safe upgrade/restore, so that accepted plans and restrictions survive failures without fabricated outreach or incompatible legacy writers. The complete normative contracts are REQ27-F44, REQ27-F45, REQ27-F46, REQ27-F47, REQ27-F38, REQ27-F39, REQ27-F40, REQ27-F41, REQ27-F42, REQ27-F43, REQ27-F48, REQ27-F49, REQ27-F50, REQ27-F54, REQ27-F52.
+The system SHALL provide this observable outcome: As a release and source operations owner, I want to adopt and operate recorded membership with atomic protection, native independence and safe upgrade/restore, so that accepted plans and restrictions survive failures without fabricated outreach or incompatible legacy writers.
+
+Every clause in `openspec/contracts/donor-development.md#contract-1d2fb2403217a391d351` MUST apply without exception.
 
 #### Scenario: US27-F34 AC27-F44-01
 

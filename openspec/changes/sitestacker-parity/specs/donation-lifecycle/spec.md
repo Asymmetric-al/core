@@ -4,66 +4,9 @@
 
 ### Requirement: Legacy Recurring Reflection Does Not Define The Target Topology
 
-The platform MUST reflect recurring donation execution from the explicit
-recurring-giving group, destination lines, compatible billing cohorts,
-effective-dated schedule epochs, named occurrences, and provider evidence.
-Provider subscriptions are execution-leg bindings under one compatible cohort,
-not the donor's commitment. Ordinary cadences use one leg; twice-monthly uses
-two monthly legs for the 1st and 15th. Each line MUST bind to its exact provider
-item in every applicable leg. Destination-line identity MUST remain stable
-across changes; changed business terms append effective line-term versions,
-while changed calendar intent appends separate schedule epochs. The schedule
-epoch owns the calendar grid and the matching line-term version freezes the
-donor-disclosed terms; disagreement MUST fail closed or split the cohort. A
-group MUST never be inferred from donor, email, payment method, schedule, date,
-or provider metadata.
+The platform MUST reflect recurring donation execution from the explicit recurring-giving group, destination lines, compatible billing cohorts, effective-dated schedule epochs, named occurrences, and provider evidence.
 
-Every recurring group MUST freeze one exact Legal Entity, and every accepted
-billing cohort MUST freeze one exact effective Settlement Account Binding
-before provider creation. Those identifiers, currency, payer, authorization,
-and provider capability are compatibility inputs rather than mutable defaults.
-Signed events, refunds, recovery, and reconciliation MUST resolve through the
-frozen tenant, Legal Entity, binding, provider account, and mode tuple.
-
-Product-owned calendar intent and occurrences MUST remain authoritative for
-what the donor scheduled. Provider-confirmed events MUST remain authoritative
-for whether a payment is processing, succeeded, failed, returned, refunded, or
-otherwise final. Occurrence execution, provider payment finality, canonical
-contribution/ledger posting, and receipt eligibility MUST remain separate
-folds: provider success MUST NOT itself claim ledger posting, and posting MUST
-NOT move the scheduled date or future grid. Current binding, application-
-ownership, capability, provider-
-object, in-flight-work, and reconciliation evidence MUST govern whether Asym
-can prove control of the executor. Invoice, subscription, and payment events
-MUST update the named occurrence and separate donor-intent, schedule,
-occurrence-execution, payment-finality, ledger-posting, collection-health, and
-provider-control/reconciliation projections idempotently; they MUST NOT
-increment mutable pledge counters, overwrite schedule history, or collapse
-those axes into one status.
-
-Donor cancellation MUST be terminal for donor intent at its effective boundary
-even when provider stop confirmation is pending, while later provider events
-MUST still preserve truthful in-flight and money outcomes without resurrecting
-future collection intent. The platform MUST NOT rebuild normal recurring
-billing as a manual loop of one-time donation attempts. Stripe or another
-verified adapter MAY execute ordinary renewals; Asym owns the product schedule,
-command and recovery policy, exact binding, reconciliation, and role-safe
-meaning. Provider-native automatic retries MUST be disabled or proved unable to
-overlap Asym-owned recovery commands. A provider subscription MAY own ordinary
-renewal execution, but MUST NOT choose product recovery eligibility, candidate
-dates, attempt budgets, or runway.
-
-Each accepted checkout cohort MUST freeze exactly one owner for its immediate
-initial attempt: either one charge-owning executor-invoice provisioning
-operation or one product-triggered payment operation. Both owners and no owner
-MUST fail closed. Every provider side effect MUST have one exact, scoped,
-idempotent child operation; initial provisioning before a binding exists MUST
-target the exact execution leg and frozen complete line/item plan.
-
-The checked-in `donor_pledges` subscription reflection is migration evidence,
-not the Phase 16 target. Donor-initiated creation and the replacement recurring
-model remain forward work until their blocked implementation slices are
-separately dispatched and verified.
+Every clause in `openspec/contracts/donation-lifecycle.md#contract-1f7ed6c340ec7e0c8ef5` MUST apply without exception.
 
 #### Scenario: A recurring invoice is paid
 

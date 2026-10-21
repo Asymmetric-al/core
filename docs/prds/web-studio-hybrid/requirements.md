@@ -8,7 +8,7 @@ Canonical authoring source: [requirements.json](contracts/requirements.json). Th
 
 Provide visual, conventional source and mixed website authoring through one canonical CMS and its existing publication, identity and safety owners.
 
-<!-- Generated from docs/prds/web-studio-hybrid/contracts/requirements.json. Keep IDs and all paired scenarios. -->
+Generated from docs/prds/web-studio-hybrid/contracts/requirements.json; do not edit independently. Keep IDs and all paired scenarios.
 
 ## ADDED Requirements
 

@@ -6,9 +6,9 @@ import { describe, expect, it } from "vitest";
 
 const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 
-const PINNED_OPENSPEC_VERSION = "1.9.0";
-const PINNED_OPENSPEC_COMMIT = "2826b8889e5223a9a8095d4428b60b56597e1020";
-const PINNED_OPENSPEC_TAG = "v1.9.0";
+const PINNED_OPENSPEC_VERSION = "1.14.3";
+const PINNED_OPENSPEC_COMMIT = "c794978f4f8845ce59693373c9dd882ee776588c";
+const PINNED_OPENSPEC_TAG = "v1.14.3";
 
 const SELECTED_OPENSPEC_SKILLS = [
   "openspec-explore",
@@ -119,10 +119,13 @@ describe("OpenSpec pin and local CLI", () => {
     const refreshScript = readRepoFile("scripts/refresh-upstream-skills.mjs");
     expect(refreshScript).toContain('source: "Fission-AI/OpenSpec"');
     expect(refreshScript).toContain(`ref: "${PINNED_OPENSPEC_TAG}"`);
-    expect(refreshScript).toContain("openspec-explore");
-    expect(refreshScript).toContain("openspec-archive-change");
-    expect(refreshScript).not.toContain("openspec-new-change");
-    expect(refreshScript).not.toContain("openspec-onboard");
+    const selected = refreshScript.match(
+      /const openspecSkillNames = \[([\s\S]*?)\];/,
+    );
+    expect(selected).not.toBeNull();
+    expect(
+      [...selected![1].matchAll(/"([^"]+)"/g)].map((match) => match[1]),
+    ).toEqual(SELECTED_OPENSPEC_SKILLS);
   });
 });
 
@@ -163,6 +166,8 @@ describe("OpenSpec skill provenance", () => {
       );
 
       expect(skill).toContain("## This repository (Asymmetric-al/core)");
+      const body = skill.replace(/^---\n[\s\S]*?\n---\n/, "").trimStart();
+      expect(body.startsWith("<!-- CORE-OVERLAY-START -->")).toBe(true);
       expect(skill).toContain("### Triggers");
       expect(skill).toContain("### Workflow");
       expect(skill).toContain("### Checklist");

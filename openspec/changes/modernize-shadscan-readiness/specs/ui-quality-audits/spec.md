@@ -28,15 +28,9 @@ without explicit owner acceptance of that regression.
 
 ### Requirement: Each Application Category Has An Independent Score Floor
 
-Core SHALL protect all six categories of each deployed application independently
-using verified raw assessment percentages. An aggregate or application-level
-improvement SHALL NOT hide a category regression. Missing or unassessed categories
-SHALL fail even when their configured floor is zero. A 100-point application or
-category floor SHALL require every applicable scored point, not rounded totals.
-Activating an application's overall floor at 100 SHALL also reject unresolved
-advisory assessments for rules with positive point values in any of its
-categories. Existing raw category floors SHALL retain their current protection.
-Zero-point advisory results SHALL remain visible for separate verification.
+Core SHALL protect all six categories of each deployed application independently using verified raw assessment percentages.
+
+Every clause in `openspec/contracts/ui-quality-audits.md#contract-7aab1c5a8227bf2da9b4` MUST apply without exception.
 
 #### Scenario: A category regresses while the pooled score stays high
 

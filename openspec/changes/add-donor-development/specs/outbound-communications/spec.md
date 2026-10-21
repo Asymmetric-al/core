@@ -4,7 +4,9 @@
 
 ### Requirement: Phase 27 review and recorded appeal plan fence dependent solicitation
 
-P6/P17 and qualified delivery consumers SHALL preserve exact current P27 review and membership-dependent source eligibility at actual effect admission. An appeal working list is a recorded plan, not consent or a live filter. Removal/exclusion/closure and required review invalidation fence unadmitted dependent effects; an eventual consumer notification alone is insufficient. Frozen recipients may narrow, never silently gain replacements. Return/re-add or another appeal cannot revive a canceled solicitation. Actual admitted/in-flight/unknown external success stays truthful and independent receipts/service/fulfillment work retains its own authority.
+P6/P17 and qualified delivery consumers SHALL preserve exact current P27 review and membership-dependent source eligibility at actual effect admission.
+
+Every clause in `openspec/contracts/outbound-communications.md#contract-5ffc1ba888b56eca77a8` MUST apply without exception.
 
 #### Scenario: Removal races actual dispatch
 
