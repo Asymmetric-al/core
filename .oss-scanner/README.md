@@ -41,6 +41,14 @@ fonts, tests, fixtures and migrations remain available. Changing a runtime,
 lockfile, patch, build script, local package, migration or browser dependency
 requires rechecking this image. Avoid imposing the image build on unrelated PRs.
 
+The committed `debian.sources` freezes both Debian archives at
+`20261021T000000Z`, retaining the exact PostgreSQL packages after live suites
+advance. APT still verifies archive signatures with Debian's keyring; only the
+historical metadata expiry check is disabled for these snapshot sources. Refresh
+both timestamps and package pins together, rebuild the image, refresh its OS
+inventory and rerun the offline checks when qualifying OS or security updates.
+See [Debian snapshot usage](https://snapshot.debian.org/#usage).
+
 The image fetches the migration census's historical Git object anonymously into
 `/opt/core-provenance.git`; standalone migration checks use it only for the
 existing provenance check. Host Git metadata never enters the build context.

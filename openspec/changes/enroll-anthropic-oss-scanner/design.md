@@ -25,6 +25,12 @@ local-only migration verifier and committed Payload migrations. Real SQL/RLS
 proofs are separate from mocked provider unit seams. Normal app health remains
 degraded without full Supabase; demo flags exist only in explicit demo commands.
 
+Freeze both Debian package archives at a dated snapshot so exact PostgreSQL
+packages remain rebuildable. Keep archive signature verification enabled; disable
+only historical metadata expiry for the snapshot stanzas. OS/security updates
+refresh both archive dates and package pins together, then rebuild the image,
+refresh its installed package inventory and rerun the offline checks.
+
 The existing field-policy census checks an actual historical Git object. Fetch
 that object anonymously into a separate bare store for standalone image checks;
 keep `/src/.git` absent so the official wrapper restores the actual scan clone's

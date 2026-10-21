@@ -12,8 +12,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TURBO_TELEMETRY_DISABLED=1 \
     DO_NOT_TRACK=1
 
-# PostgreSQL 17 matches CI's disposable migration database. Debian 13 supplies
-# the tested server/client patch without another package repository. The six canvas
+# Signed Debian snapshots retain the exact PostgreSQL packages after live suites
+# advance. Expiry is disabled only for these immutable, signature-checked sources.
+COPY .oss-scanner/debian.sources /etc/apt/sources.list.d/debian.sources
+
+# PostgreSQL 17 matches CI's disposable migration database. The six canvas
 # development libraries match scripts/github/install-canvas-deps.sh.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl git sudo procps iproute2 tini \

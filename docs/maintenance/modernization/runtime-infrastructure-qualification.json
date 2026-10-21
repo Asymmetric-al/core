@@ -503,33 +503,35 @@
     "introducedBy": "https://github.com/Asymmetric-al/core/pull/2179",
     "modernizationBase": "1e59f19cc5f18d31acd9f9e867342746d7fd6724",
     "build": {
-      "startedAt": "2026-10-21T19:33:39.825474+00:00",
-      "completedAt": "2026-10-21T19:43:38.825850+00:00",
+      "startedAt": "2026-10-21T20:28:54.074081+00:00",
+      "completedAt": "2026-10-21T20:41:42.587894+00:00",
       "exitCode": 0,
-      "tag": "core-oss-scanner:modernization-20261021",
-      "logSha256": "b578c4c3625eff3a7723ed16801cc54c7ddc762434b7d9e974606ed127dbfcf3",
+      "tag": "core-oss-scanner:modernization-snapshot-20261021",
+      "logSha256": "6fa094c2c4d27c15846907ed6ba2f6d6a0dd061f40b4479c3288f626d80f2f0c",
       "sources": {
-        ".oss-scanner/Dockerfile": "8bd96f27cbeaeffd20873c51388bb810cdacf96d7cbc38985b081b2084698ab2",
+        ".oss-scanner/Dockerfile": "0cbda5affb105696d1c1249ddc5abce2da33eb1c3f5e952109ee4304189d6e7e",
+        ".oss-scanner/debian.sources": "3445fb39399f42c6a726c3b41d4f1475788c807c2ad97164e85de05b901a8665",
         ".oss-scanner/Dockerfile.dockerignore": "f81a2f934d70e5579c50595c7451e831bdbe9301b6c2b6d48557dfbe3aa356b0",
         ".oss-scanner/start-services.sh": "d99fca6b89812011a05cdc8441e2f40e844867dd33c3ce699f4ee769ffcf29f1",
         "bun.lock": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2"
-      }
+      },
+      "imageId": "sha256:cf0de19713de3e9f5e2daf7b3ca8549e155de33755be36e2adf9f979beaf8095"
     },
     "offline": {
-      "startedAt": "2026-10-21T19:44:35.690288+00:00",
-      "completedAt": "2026-10-21T19:46:10.992424+00:00",
+      "startedAt": "2026-10-21T20:42:26.073495+00:00",
+      "completedAt": "2026-10-21T20:44:07.005334+00:00",
       "exitCode": 0,
-      "imageId": "sha256:eb7c8fb2709b2a3a50b136de4c78f364a2d0c51002e823472098e06d87c61409",
+      "imageId": "sha256:cf0de19713de3e9f5e2daf7b3ca8549e155de33755be36e2adf9f979beaf8095",
       "network": "none",
       "cpus": 2,
       "memory": "8g",
+      "logSha256": "855a88052c6cc2dbd31bdfd092cf01724c97a5d06d10d3607e8a73c5e14025f7",
+      "noHostMountsOrCredentials": true,
+      "productionTouched": false,
       "packageCount": 552,
       "postgresVersion": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)",
       "helperSha256": "d99fca6b89812011a05cdc8441e2f40e844867dd33c3ce699f4ee769ffcf29f1",
-      "osPackageMetadataSha256": "af0887896833eff6232263ac29a246b82ec26fa138dcdff695ccb99ef3d2aa81",
-      "logSha256": "8af4e13dd77a8a4166b58ce6a9ea67d597a753e0c264b0c0dda5ddc8d8bf7d56",
-      "noHostMountsOrCredentials": true,
-      "productionTouched": false
+      "osPackageMetadataSha256": "af0887896833eff6232263ac29a246b82ec26fa138dcdff695ccb99ef3d2aa81"
     },
     "majorGuard": {
       "red": {
@@ -596,6 +598,63 @@
       "No hosted Supabase, paid provider, live model, outbound email or production qualification.",
       "Image/advisory reconciliation remains open in the full security checkpoint.",
       "Official scanner enrollment and service acceptance are separate from this environment qualification."
-    ]
+    ],
+    "datedArchiveQualification": {
+      "startedAt": "2026-10-21T20:28:15.079892+00:00",
+      "completedAt": "2026-10-21T20:28:21.847980+00:00",
+      "exitCode": 0,
+      "base": "node:24.22.1-trixie@sha256:e8bc2eedd0e82fb45a4d9a68aff03d1fbe478fc5794a67d7dc06b72a2caaa2ec",
+      "snapshot": "20261021T000000Z",
+      "sourcesSha256": "ddaf1a391d629ccb29d071b6bdc180a9666e00d16f4817f79e81a81a4fa685d2",
+      "logSha256": "bd18eba94dfdffd22f9cea766a635a41692679297e8fb1a4ba0c6cf64fa9e214",
+      "noHostMountsOrCredentials": true,
+      "committedSourcesSha256": "3445fb39399f42c6a726c3b41d4f1475788c807c2ad97164e85de05b901a8665",
+      "reviewThread": "PRRT_kwDOQ4BXFs6u7yRK",
+      "upstream": "https://snapshot.debian.org/#usage",
+      "status": "signed-apt-package-resolution-rebuilt-image-and-offline-checks-passed",
+      "sourceCommentDifference": "The committed source adds only an explanatory comment to the APT-tested stanzas; the full image build uses the exact committed source hash.",
+      "snapshotBuildImage": "sha256:cf0de19713de3e9f5e2daf7b3ca8549e155de33755be36e2adf9f979beaf8095",
+      "osPackageInventoryUnchanged": true,
+      "osInventorySourceProof": {
+        "capturedAt": "2026-10-21T20:42:59.759201+00:00",
+        "imageId": "sha256:cf0de19713de3e9f5e2daf7b3ca8549e155de33755be36e2adf9f979beaf8095",
+        "packageCount": 552,
+        "packageChanges": {},
+        "unchangedBuildMetadata": true,
+        "opaqueDatabaseAbsent": true,
+        "postgresVersion": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)",
+        "helperSha256": "d99fca6b89812011a05cdc8441e2f40e844867dd33c3ce699f4ee769ffcf29f1",
+        "rawSha256": "af0887896833eff6232263ac29a246b82ec26fa138dcdff695ccb99ef3d2aa81"
+      }
+    },
+    "initialLiveRepositoryBuild": {
+      "startedAt": "2026-10-21T19:33:39.825474+00:00",
+      "completedAt": "2026-10-21T19:43:38.825850+00:00",
+      "exitCode": 0,
+      "tag": "core-oss-scanner:modernization-20261021",
+      "logSha256": "b578c4c3625eff3a7723ed16801cc54c7ddc762434b7d9e974606ed127dbfcf3",
+      "sources": {
+        ".oss-scanner/Dockerfile": "8bd96f27cbeaeffd20873c51388bb810cdacf96d7cbc38985b081b2084698ab2",
+        ".oss-scanner/Dockerfile.dockerignore": "f81a2f934d70e5579c50595c7451e831bdbe9301b6c2b6d48557dfbe3aa356b0",
+        ".oss-scanner/start-services.sh": "d99fca6b89812011a05cdc8441e2f40e844867dd33c3ce699f4ee769ffcf29f1",
+        "bun.lock": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2"
+      }
+    },
+    "initialLiveRepositoryOffline": {
+      "startedAt": "2026-10-21T19:44:35.690288+00:00",
+      "completedAt": "2026-10-21T19:46:10.992424+00:00",
+      "exitCode": 0,
+      "imageId": "sha256:eb7c8fb2709b2a3a50b136de4c78f364a2d0c51002e823472098e06d87c61409",
+      "network": "none",
+      "cpus": 2,
+      "memory": "8g",
+      "packageCount": 552,
+      "postgresVersion": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)",
+      "helperSha256": "d99fca6b89812011a05cdc8441e2f40e844867dd33c3ce699f4ee769ffcf29f1",
+      "osPackageMetadataSha256": "af0887896833eff6232263ac29a246b82ec26fa138dcdff695ccb99ef3d2aa81",
+      "logSha256": "8af4e13dd77a8a4166b58ce6a9ea67d597a753e0c264b0c0dda5ddc8d8bf7d56",
+      "noHostMountsOrCredentials": true,
+      "productionTouched": false
+    }
   }
 }
