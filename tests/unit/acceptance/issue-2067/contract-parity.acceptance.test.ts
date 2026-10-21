@@ -1,7 +1,10 @@
 /**
  * Contract parity for GitHub issue #2067 addendum 4 (engineering ruling 2,
- * Samson, 2026-10-20 11:03 PM PT, and the 2026-10-21 ruling that production
- * code may not import Acceptance's test contract).
+ * Samson, 2026-10-20 11:03 PM PT) and Samson's contract-parity ruling (PR
+ * #2169 rulings, item 1): production owns the function contract at
+ * packages/api/src/document-cutover/database-contract.ts and no production
+ * file may import from tests/.
+ * Ruling: {@link https://github.com/Asymmetric-al/core/pull/2169#issuecomment-6311002194}
  * Addendum 4: {@link https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6308840307}
  *
  * (a) The production contract module exports the same `document_cutover`
@@ -42,7 +45,10 @@ import {
   READER_ROLE,
 } from "./document-cutover-contract";
 
-/** Production contract module, repo-relative (Samson, 2026-10-21 12:38 AM PT). */
+/**
+ * Production contract module, repo-relative. Ruling:
+ * https://github.com/Asymmetric-al/core/pull/2169#issuecomment-6311002194 (item 1).
+ */
 const PROD_CONTRACT_MODULE =
   "packages/api/src/document-cutover/database-contract.ts";
 /** The package entry that must re-export the same objects. */

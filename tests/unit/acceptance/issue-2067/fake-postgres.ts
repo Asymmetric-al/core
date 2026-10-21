@@ -54,11 +54,26 @@
  * only the prototype tables. Data comes from `fakeDb` in ./fake-supabase.ts,
  * so one seeding drives both the pre- and post-addendum-4 read paths.
  *
- * ## Connection (ruling 1)
+ * ## Connection (ruling 1; MAJOR-1 rulings, PR #2169 comment 6311002194)
  *
  * Only a connection string is accepted: a `Client` / `Pool` built without
  * `connectionString` (which the real driver would complete from `PG*` env
  * vars) is recorded in `state.fallbackAttempts` and refused.
+ *
+ * The session user, host, port and database are what the REAL `pg` driver
+ * would use: the fake runs pg's own `ConnectionParameters` (pg 8.x
+ * `lib/connection-parameters.js`) over the config the gate passes, so query
+ * parameters such as `?user=` / `?host=` / `?options=` and `PG*` env
+ * fallbacks take effect exactly as in production. Every `connect()` call is
+ * recorded in `state.connectAttempts` (before anything can fail) with those
+ * effective parameters and `pgEnvInfluence`: the fields whose value changes
+ * when every `PG*` variable is removed from the environment (empty = no PG*
+ * variable was used).
+ *
+ * `currentRoleOverride` models a session whose `current_user` differs from
+ * `session_user` (e.g. `SET ROLE` or `options=-c role=...`): identity
+ * queries see `session_user` = the login role and `current_user` /
+ * `current_role` = the override.
  *
  * ## Scenario switches
  *
@@ -73,6 +88,8 @@
  *   `unknown_shape` -> function calls return `{ unexpected: 'shape' }`.
  *   Identity queries are unaffected.
  */
+
+import { createRequire } from "node:module";
 
 import { READER_ROLE, contractFunction } from "./document-cutover-contract";
 import { fakeDb } from "./fake-supabase";
@@ -109,6 +126,35 @@ export interface FakePgQuery {
   args?: unknown[];
 }
 
+/** The connection fields pg's ConnectionParameters resolves. */
+export const EFFECTIVE_FIELDS = [
+  "host",
+  "port",
+  "database",
+  "user",
+  "password",
+  "options",
+  "ssl",
+  "application_name",
+  "client_encoding",
+  "replication",
+  "binary",
+  "connect_timeout",
+] as const;
+
+export type EffectiveField = (typeof EFFECTIVE_FIELDS)[number];
+
+export type EffectiveConnection = Partial<Record<EffectiveField, unknown>>;
+
+export interface FakePgConnectAttempt {
+  connectionString: string | undefined;
+  /** Config keys other than connectionString the gate passed. */
+  configKeys: string[];
+  effective: EffectiveConnection | null;
+  /** Fields whose effective value depends on a PG* environment variable. */
+  pgEnvInfluence: EffectiveField[];
+}
+
 export interface FakePgData {
   schemaVersion(): string | null;
   userCount(): number;
@@ -121,6 +167,10 @@ export interface FakePgState {
   /** Overrides the role derived from the connection string, when set. */
   sessionUserOverride: string | null;
   connections: Array<{ connectionString: string | undefined; user: string }>;
+  /** Every `connect()` call, recorded first (see header). */
+  connectAttempts: FakePgConnectAttempt[];
+  /** `current_user` after a SET ROLE-like switch; `session_user` stays the login role. */
+  currentRoleOverride: string | null;
   /** Clients built without a connection string (PG* env fallback). */
   fallbackAttempts: number;
   queries: FakePgQuery[];
@@ -196,6 +246,8 @@ export function createFakePgState(data: FakePgData): FakePgState {
     roles: defaultRoles(),
     sessionUserOverride: null,
     connections: [],
+    connectAttempts: [],
+    currentRoleOverride: null,
     fallbackAttempts: 0,
     queries: [],
     directReads: [],
@@ -209,6 +261,8 @@ export function createFakePgState(data: FakePgData): FakePgState {
       this.roles = defaultRoles();
       this.sessionUserOverride = null;
       this.connections = [];
+      this.connectAttempts = [];
+      this.currentRoleOverride = null;
       this.fallbackAttempts = 0;
       this.queries = [];
       this.directReads = [];
@@ -350,7 +404,10 @@ class Unsupported extends Error {}
 
 interface EvalContext {
   state: FakePgState;
+  /** current_user / current_role. */
   user: string;
+  /** session_user (the login role); defaults to `user`. */
+  sessionUser?: string;
   values: unknown[];
   /** Role of the current pg_roles row, when the query reads pg_roles. */
   rowRole?: string;
@@ -362,9 +419,8 @@ function roleOperand(raw: string, ctx: EvalContext): string {
     (prefix) => (/^(pg_catalog)\.$/i.test(prefix) ? "" : prefix),
   );
   const lower = expr.toLowerCase();
-  if (
-    ["current_user", "session_user", "current_role", "user"].includes(lower)
-  ) {
+  if (lower === "session_user") return ctx.sessionUser ?? ctx.user;
+  if (["current_user", "current_role", "user"].includes(lower)) {
     return ctx.user;
   }
   const param = /^\$(\d+)$/.exec(expr);
@@ -392,9 +448,8 @@ function evalBool(raw: string, ctx: EvalContext): unknown {
 function evalAtom(raw: string, ctx: EvalContext): unknown {
   const expr = unwrapParens(stripCasts(raw));
   const lower = expr.toLowerCase();
-  if (
-    ["current_user", "session_user", "current_role", "user"].includes(lower)
-  ) {
+  if (lower === "session_user") return ctx.sessionUser ?? ctx.user;
+  if (["current_user", "current_role", "user"].includes(lower)) {
     return ctx.user;
   }
   const column =
@@ -674,6 +729,7 @@ async function dispatch(
   user: string,
   rawText: string,
   values: unknown[],
+  sessionUser: string = user,
 ): Promise<FakePgResult> {
   const sql = normalize(rawText);
   const lower = sql.toLowerCase();
@@ -802,7 +858,7 @@ async function dispatch(
     )
   ) {
     try {
-      const rows = evalIdentity(sql, { state, user, values });
+      const rows = evalIdentity(sql, { state, user, sessionUser, values });
       log({ kind: "identity" });
       return result(rows);
     } catch (error) {
@@ -850,9 +906,88 @@ type ConnectionConfig =
   | { connectionString?: string; user?: string; [key: string]: unknown }
   | undefined;
 
+const pgRequire = createRequire(import.meta.url);
+
+type ConnectionParametersCtor = new (
+  config: unknown,
+) => Record<string, unknown>;
+
+/** The real driver's resolver (pg 8.x), or null if pg is not installed. */
+function connectionParametersCtor(): ConnectionParametersCtor | null {
+  try {
+    return pgRequire(
+      "pg/lib/connection-parameters.js",
+    ) as ConnectionParametersCtor;
+  } catch {
+    return null;
+  }
+}
+
+function resolveEffective(
+  config: ConnectionConfig,
+): EffectiveConnection | null {
+  const Ctor = connectionParametersCtor();
+  if (!Ctor) return null;
+  try {
+    const params = new Ctor(config);
+    const out: EffectiveConnection = {};
+    for (const field of EFFECTIVE_FIELDS) {
+      const value = params[field];
+      out[field] =
+        value && typeof value === "object" ? JSON.stringify(value) : value;
+    }
+    return out;
+  } catch {
+    return null;
+  }
+}
+
+/** Effective params now, and the fields that change once PG* vars are gone. */
+export function effectiveConnection(config: ConnectionConfig): {
+  effective: EffectiveConnection | null;
+  pgEnvInfluence: EffectiveField[];
+} {
+  const effective = resolveEffective(config);
+  const pgKeys = Object.keys(process.env).filter((key) => /^PG/.test(key));
+  if (!effective || pgKeys.length === 0) {
+    return { effective, pgEnvInfluence: [] };
+  }
+  const saved = pgKeys.map((key) => [key, process.env[key]] as const);
+  for (const key of pgKeys) delete process.env[key];
+  let clean: EffectiveConnection | null;
+  try {
+    clean = resolveEffective(config);
+  } finally {
+    for (const [key, value] of saved) process.env[key] = value;
+  }
+  const pgEnvInfluence = EFFECTIVE_FIELDS.filter(
+    (field) => String(effective[field]) !== String(clean?.[field]),
+  );
+  return { effective, pgEnvInfluence };
+}
+
+function parsedUrlUser(connectionString: string): string | undefined {
+  try {
+    const parse = (
+      createRequire(pgRequire.resolve("pg/package.json"))(
+        "pg-connection-string",
+      ) as { parse: (value: string) => { user?: string | null } }
+    ).parse;
+    return parse(connectionString).user ?? undefined;
+  } catch {
+    try {
+      const parsed = new URL(connectionString);
+      return parsed.username ? decodeURIComponent(parsed.username) : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+}
+
 function sessionUserFor(
   state: FakePgState,
   config: ConnectionConfig,
+  effective: EffectiveConnection | null,
 ): {
   connectionString: string | undefined;
   user: string;
@@ -869,24 +1004,19 @@ function sessionUserFor(
       "no connection string given (acceptance fake): the gate must use DOCUMENT_CUTOVER_DATABASE_URL only, never PG* env vars",
     );
   }
-  let user: string | undefined;
-  try {
-    const parsed = new URL(connectionString);
-    if (parsed.username) user = decodeURIComponent(parsed.username);
-  } catch {
-    throw new FakePgError(
-      "08001",
-      "invalid connection string (acceptance fake)",
-    );
-  }
-  if (!user) {
+  if (!parsedUrlUser(connectionString)) {
     state.fallbackAttempts += 1;
     throw new FakePgError(
       "08001",
       "connection string has no user (acceptance fake): PGUSER fallback is not allowed",
     );
   }
-  // Supabase pooler user: `<role>.<project-ref>`.
+  // The role the real driver logs in as (a `?user=` parameter wins over the
+  // URL's user); Supabase pooler user: `<role>.<project-ref>`.
+  const user =
+    typeof effective?.user === "string" && effective.user
+      ? effective.user
+      : (parsedUrlUser(connectionString) as string);
   return { connectionString, user: user.split(".")[0] as string };
 }
 
@@ -905,6 +1035,21 @@ export function createFakePgModule(
     }
 
     async connect(callback?: (error: Error | null) => void): Promise<void> {
+      const { effective, pgEnvInfluence } = effectiveConnection(this.config);
+      state.connectAttempts.push({
+        connectionString:
+          typeof this.config === "string"
+            ? this.config
+            : this.config?.connectionString,
+        configKeys:
+          this.config && typeof this.config === "object"
+            ? Object.keys(this.config).filter(
+                (key) => key !== "connectionString",
+              )
+            : [],
+        effective,
+        pgEnvInfluence,
+      });
       try {
         if (state.refuseConnections) {
           throw Object.assign(
@@ -912,7 +1057,7 @@ export function createFakePgModule(
             { code: "ECONNREFUSED" },
           );
         }
-        const session = sessionUserFor(state, this.config);
+        const session = sessionUserFor(state, this.config, effective);
         if (!state.roles.has(session.user)) {
           throw new FakePgError(
             "28P01",
@@ -945,7 +1090,13 @@ export function createFakePgModule(
         (Array.isArray(values) ? values : []);
       const cb = typeof values === "function" ? values : callback;
       try {
-        const out = await dispatch(state, this.user, text, params);
+        const out = await dispatch(
+          state,
+          state.currentRoleOverride ?? this.user,
+          text,
+          params,
+          this.user,
+        );
         cb?.(null, out);
         return out;
       } catch (error) {

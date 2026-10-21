@@ -500,7 +500,32 @@ describe.skipIf(!enabled)(
       expect(functionAcl).toEqual([]);
     });
 
-    it("ruling 10 (b): every function actually in schema document_cutover (pg_proc) is executable only by document_cutover_reader and its owner — PUBLIC (grantee 0) or any other role is a violation", () => {
+    it("ruling 10 (b) / PR #2169 MINOR-1: every function actually in schema document_cutover (pg_proc.proacl) grants no EXECUTE to PUBLIC (grantee 0), anon, authenticated or service_role, and is executable only by document_cutover_reader and its owner", () => {
+      // MINOR-1 ruling: https://github.com/Asymmetric-al/core/pull/2169#issuecomment-6311002194 item 3.
+      const namedGrants = adminOk(`
+        select p.oid::regprocedure::text || ' -> ' ||
+               case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end
+        from pg_proc p
+        join pg_namespace n on n.oid = p.pronamespace,
+        lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+        where n.nspname = 'document_cutover'
+          and a.privilege_type = 'EXECUTE'
+          and (a.grantee = 0 or a.grantee::regrole::text in ('anon', 'authenticated', 'service_role'))
+        order by 1;
+      `);
+      expect(namedGrants).toEqual([]);
+      // Effective privilege (includes PUBLIC and inherited grants).
+      const executable = adminOk(`
+        select p.oid::regprocedure::text || ' -> ' || r.rolname
+        from pg_proc p
+        join pg_namespace n on n.oid = p.pronamespace
+        cross join pg_roles r
+        where n.nspname = 'document_cutover'
+          and r.rolname in ('anon', 'authenticated', 'service_role')
+          and has_function_privilege(r.oid, p.oid, 'EXECUTE')
+        order by 1;
+      `);
+      expect(executable).toEqual([]);
       const violations = adminOk(`
         select p.oid::regprocedure::text || ' -> ' ||
                case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end
@@ -631,6 +656,36 @@ describe.skipIf(!enabled)(
       expect(`${child.stdout}\n${child.stderr}`).toMatch(
         /document_cutover_reader|rolsuper|rolbypassrls|superuser|bypass ?rls|member|privileged/i,
       );
+    }, 150_000);
+
+    it("PR #2169 MAJOR-1 (real connection): a URL whose text names document_cutover_reader but whose query switches the login to the admin role (?user=&password=&options=-c role=document_cutover_reader) is refused — no assessment runs", () => {
+      // https://github.com/Asymmetric-al/core/pull/2169#issuecomment-6311002194 item 2:
+      // pg honours ?user= / ?options=; the session would be the admin with
+      // current_user = the reader (SET ROLE via startup options).
+      const admin = new URL(ADMIN_URL);
+      const url = new URL(readerUrl());
+      url.password = password;
+      url.searchParams.set("user", decodeURIComponent(admin.username));
+      if (admin.password) {
+        url.searchParams.set("password", decodeURIComponent(admin.password));
+      }
+      url.searchParams.set("options", `-c role=${READER}`);
+      const child = spawnSync("bun", ["run", "cutover:assess:documents"], {
+        cwd: REPO_ROOT,
+        encoding: "utf8",
+        timeout: 120_000,
+        env: {
+          PATH: process.env.PATH,
+          HOME: process.env.HOME,
+          SUPABASE_URL: "http://127.0.0.1:54321",
+          DOCUMENT_CUTOVER_DATABASE_URL: url.toString(),
+        },
+      });
+      expect(child.error).toBeUndefined();
+      const output = `${child.stdout}\n${child.stderr}`;
+      expect(child.status, output).not.toBe(0);
+      expect(output).not.toMatch(/Status: complete|Proposed outcome:/);
+      expect(output).toMatch(/STOP THE LINE/);
     }, 150_000);
 
     it("criterion 1 (real connection): the gate run as document_cutover_reader hits no permission error", () => {
