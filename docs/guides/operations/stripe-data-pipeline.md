@@ -134,6 +134,7 @@ Create a local, uncommitted JSON expectations file using actual observed values:
   "owner": "ACTUAL_PROVIDER_OWNER",
   "tables": ["customers", "payment_intents"],
   "activatedAt": "RECORD_ACTUAL_ACTIVATION_ISO_TIME",
+  "indirectExposureReviewedAt": "RECORD_ACTUAL_MANUAL_REVIEW_ISO_AFTER_ACTIVATION",
   "fixtures": [
     {
       "phase": "backfill",
@@ -163,7 +164,7 @@ node scripts/verify/stripe-data-pipeline.mjs --expect /path/to/local-expectation
 Confirm `sandboxId` using the actual account and Dashboard identity; no separate
 sandbox ID is invented here. Replace unknown schema/owner, timestamps, and marker
 with actual observations. `owner` must match the schema and selected
-table owners. Use decimal strings for integer minor-unit
+table owners; only ordinary or partitioned tables qualify. Use decimal strings for integer minor-unit
 amounts. For structure-only inspection, use `"fixtures": []`; this deliberately
 leaves ingestion unproven. With financial tables selected, include at least one
 financial backfill fixture; a customer alone is insufficient. Optional expected
@@ -171,8 +172,14 @@ linkage IDs are `payment_intents.latest_charge`, `charges.payment_intent`, and
 `refunds.charge`/`refunds.payment_intent`, checked against discovered columns.
 The helper makes one read-only observation per run,
 uses bounded timeouts, and reports separate structure, privacy, backfill, and
-ongoing results. Exit `0` requires all evidence; `1` means a failed check;
-`2` means missing configuration or incomplete proof. A mock test is not provider proof.
+ongoing results. Exit `0` requires all four checks for this one source, including
+the recorded manual privacy review; `1` means a failed check; `2` means missing
+configuration or incomplete proof. Output is explicitly scoped to a
+`single-source-observation`: `operationalEvidence` leaves provider authorization,
+pipeline configuration, and second-source proof `not-verified-by-helper` even on
+exit `0`. Complete those phases independently in the source record. A second
+account is optional for this observation; pending second-account proof must stay
+visible in the record. A mock test is not provider proof.
 
 For movement evidence, first observe the known preactivation object's ID,
 account/mode, status, integer amount, currency, and relevant linkage IDs matching
@@ -194,6 +201,40 @@ Supabase URL/key configuration for its hosted exposure check; local
 `supabase/config.toml` alone is insufficient. Missing evidence stays incomplete.
 Inspect public RPC/view dependencies and run a static application scan for actual
 schema references. `supabase-env-smoke.mjs` tests PostgREST, not private ingestion.
+Before recording `indirectExposureReviewedAt`, inspect all readable views and
+callable functions in the **actual hosted exposed schemas**, including transitive
+view/function dependencies, `SECURITY DEFINER`, and dynamic SQL. This names-only
+inventory helps locate candidates; substitute the live exposed-schema list and
+inspect definitions privately in the SQL editor:
+
+```sql
+BEGIN READ ONLY;
+SET LOCAL statement_timeout = '10s';
+SET LOCAL lock_timeout = '2s';
+SELECT n.nspname AS schema_name, c.relname AS view_name
+FROM pg_class AS c JOIN pg_namespace AS n ON n.oid = c.relnamespace
+WHERE n.nspname IN ('public', 'graphql_public') AND c.relkind IN ('v', 'm')
+  AND EXISTS (SELECT FROM pg_roles AS r WHERE r.rolname IN ('anon', 'authenticated')
+    AND has_schema_privilege(r.oid, n.oid, 'USAGE')
+    AND (has_table_privilege(r.oid, c.oid, 'SELECT')
+      OR has_any_column_privilege(r.oid, c.oid, 'SELECT')))
+ORDER BY 1, 2;
+SELECT n.nspname AS schema_name, p.oid::regprocedure::text AS callable_function
+FROM pg_proc AS p JOIN pg_namespace AS n ON n.oid = p.pronamespace
+WHERE n.nspname IN ('public', 'graphql_public') AND p.prokind = 'f'
+  AND EXISTS (SELECT FROM pg_roles AS r WHERE r.rolname IN ('anon', 'authenticated')
+    AND has_schema_privilege(r.oid, n.oid, 'USAGE')
+    AND has_function_privilege(r.oid, p.oid, 'EXECUTE'))
+ORDER BY 1, 2;
+ROLLBACK;
+```
+
+Do not attest while any candidate or application consumer remains unreviewed.
+The timestamp is an operator attestation, not automated dependency analysis, and
+must be after activation. Repeat the review after API exposure, grants,
+views/functions, or application consumers change; update its timestamp only
+after completing that review. Missing or preactivation review evidence leaves
+privacy incomplete even when the direct schema probe and grants pass.
 Do not add grants or expose schemas to make either verifier succeed. If a narrow
 access correction is needed, preserve provider ownership and reverify.
 

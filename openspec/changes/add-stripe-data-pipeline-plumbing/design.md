@@ -18,6 +18,9 @@ local exposed-schema list does not prove hosted privacy.
 - Keep the verifier opt-in with explicit targeting and `SUPABASE_DB_URL` through
   the existing environment loader; never fall back to the CMS database.
   Inspect columns, ownership, effective grants, API exposure, and publications.
+  Require actual table relation kinds and a dated operator review for indirect
+  exposure through views/RPCs and application consumers. Mark provider setup and
+  second-source evidence outside the single-source helper's observations.
 - Use one bounded read-only helper plus focused Vitest tests instead of a
   polling service. Record fixture IDs and safe expected fields; never raw payloads.
 - Keep applications, migrations, seeds, generated types, and runtime env contracts

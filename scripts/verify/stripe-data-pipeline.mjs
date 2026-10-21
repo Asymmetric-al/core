@@ -68,6 +68,11 @@ function validateExpectations(expected) {
     Array.isArray(expected.fixtures) && expected.fixtures.length <= 10,
     "fixtures must be an array of at most ten synthetic observations.",
   );
+  if (expected.indirectExposureReviewedAt !== undefined)
+    requireCheck(
+      timestamp(expected.indirectExposureReviewedAt),
+      "indirectExposureReviewedAt must record the actual manual review time.",
+    );
   if (expected.fixtures.length)
     requireCheck(
       timestamp(expected.activatedAt),
@@ -271,7 +276,7 @@ function catalogSql(schema) {
     'realtime', EXISTS (SELECT FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = ${literal(schema)})
       OR EXISTS (SELECT FROM pg_publication WHERE pubname = 'supabase_realtime' AND puballtables),
     'tables', COALESCE((SELECT json_agg(json_build_object(
-      'name', c.relname, 'owner', pg_get_userbyid(c.relowner),
+      'name', c.relname, 'owner', pg_get_userbyid(c.relowner), 'kind', c.relkind,
       'columns', (SELECT json_agg(attname) FROM pg_attribute WHERE attrelid = c.oid AND attnum > 0 AND NOT attisdropped),
       'readableBy', (SELECT json_agg(rolname) FROM pg_roles WHERE rolname IN ('anon','authenticated')
         AND has_schema_privilege(oid, n.oid, 'USAGE') AND (has_table_privilege(oid, c.oid, 'SELECT') OR has_any_column_privilege(oid, c.oid, 'SELECT')))
@@ -354,6 +359,7 @@ export async function verifyStripeDataPipeline(
     selected.every(
       (table) =>
         table?.owner === expected.owner &&
+        ["r", "p"].includes(table.kind) &&
         ["id", "_account_id"].every((column) =>
           table.columns?.includes(column),
         ) &&
@@ -377,8 +383,17 @@ export async function verifyStripeDataPipeline(
     catalog.realtime === false &&
     catalog.tables.every((table) => !table.readableBy?.length);
   const exposure = await apiExposure(expected, environment, fetch);
+  const indirectReview =
+    timestamp(expected.indirectExposureReviewedAt) &&
+    timestamp(expected.activatedAt) &&
+    Date.parse(expected.indirectExposureReviewedAt) >=
+      Date.parse(expected.activatedAt);
   const privacy =
-    !catalogPrivate || exposure === "failed" ? "failed" : exposure;
+    !catalogPrivate || exposure === "failed"
+      ? "failed"
+      : exposure === "passed" && indirectReview
+        ? "passed"
+        : "incomplete";
   const checks = {
     structure,
     privacy,
@@ -466,11 +481,19 @@ export async function verifyStripeDataPipeline(
   }
   const statuses = Object.values(checks);
   return {
+    scope: "single-source-observation",
+    operationalEvidence: {
+      repositoryPreparation: "prepared",
+      providerAuthorization: "not-verified-by-helper",
+      pipelineConfiguration: "not-verified-by-helper",
+      secondSource: "not-verified-by-helper",
+    },
     projectRef: expected.projectRef,
     accountId: expected.accountId,
     sandboxId: expected.sandboxId,
     schema: expected.schema,
     owner: expected.owner,
+    indirectExposureReviewedAt: expected.indirectExposureReviewedAt ?? null,
     checks,
     tables,
     fixtures,

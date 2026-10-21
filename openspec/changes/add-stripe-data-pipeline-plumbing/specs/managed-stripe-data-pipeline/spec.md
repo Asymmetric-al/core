@@ -25,9 +25,15 @@ application consumers. Pipeline absence or delay MUST NOT affect application beh
 
 Verification MUST require explicit destination, source account, schema, and
 selected-table expectations, use bounded read-only access, and disclose no
-credentials or sensitive provider payloads. Results MUST distinguish repository
-preparation, authorization, configuration, backfill, ongoing sync, and second-source
-proof. Empty tables or old timestamps alone MUST NOT establish success or failure.
+credentials or sensitive provider payloads. Selected managed relations MUST be
+ordinary or partitioned tables. Privacy MUST remain incomplete until the operator
+records a review of indirect API exposure through views/RPCs and application consumers.
+The helper and operational source record MUST distinguish repository preparation,
+authorization, configuration, backfill, ongoing sync, and second-source proof.
+Helper success MUST be scoped to a single-source observation and explicitly leave
+provider authorization, configuration, and second-source proof unverified by the helper.
+A second source MUST NOT be required for a successful single-source observation.
+Empty tables or old timestamps alone MUST NOT establish success or failure.
 
 #### Scenario: A target is wrong or movement is unproved
 

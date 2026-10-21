@@ -9,6 +9,8 @@ const expectations = {
   schema: "provider_fixture",
   owner: "provider_owner",
   tables: ["customers", "payment_intents", "charges"],
+  indirectExposureReviewedAt: "2026-10-21T01:02:00Z",
+  activatedAt: "2026-10-21T01:00:00Z",
   fixtures: [],
 };
 const environment = {
@@ -26,6 +28,7 @@ function catalog() {
     tables: expectations.tables.map((name) => ({
       name,
       owner: "provider_owner",
+      kind: "r",
       columns: [
         "id",
         "_account_id",
@@ -126,57 +129,70 @@ describe("Stripe Data Pipeline verifier", () => {
     expect(JSON.stringify(result)).not.toContain("fake-password");
   });
 
-  it("observes preactivation backfill and a subsequent synthetic customer change independently", async () => {
-    const fixtureExpectations = {
-      ...expectations,
-      activatedAt: "2026-10-21T01:00:00Z",
-      fixtures: [
-        {
-          phase: "backfill",
-          table: "payment_intents",
-          id: "pi_fixture",
-          sourceObservedAt: "2026-10-21T00:59:00Z",
-          expected: {
-            amount: "9007199254740993",
-            currency: "usd",
-            status: "succeeded",
+  it.each([true, false])(
+    "requires indirect exposure review even with observed backfill and ongoing sync, reviewed=%s",
+    async (reviewed) => {
+      const fixtureExpectations = {
+        ...expectations,
+        activatedAt: "2026-10-21T01:00:00Z",
+        indirectExposureReviewedAt: reviewed
+          ? expectations.indirectExposureReviewedAt
+          : undefined,
+        fixtures: [
+          {
+            phase: "backfill",
+            table: "payment_intents",
+            id: "pi_fixture",
+            sourceObservedAt: "2026-10-21T00:59:00Z",
+            expected: {
+              amount: "9007199254740993",
+              currency: "usd",
+              status: "succeeded",
+            },
           },
-        },
-        {
-          phase: "ongoing",
-          table: "customers",
-          id: "cus_fixture",
-          sourceChangedAt: "2026-10-21T01:01:00Z",
-          metadata: { key: "core_pipeline_probe", value: "probe-20261021" },
-        },
-      ],
-    };
-    const deps = dependencies({
-      tables: expectations.tables.map((table) => ({
-        table,
-        rows: "1",
-        wrongAccount: "0",
-        liveRows: "0",
-      })),
-      fixtures: [
-        { found: true, matched: true },
-        { found: true, matched: true },
-      ],
-    });
-    const result = await verifyStripeDataPipeline(fixtureExpectations, deps);
-    expect(result.exitCode).toBe(0);
-    expect(result.checks).toEqual({
-      structure: "passed",
-      privacy: "passed",
-      backfill: "observed",
-      ongoing: "observed",
-    });
-    const sql = deps.spawn.mock.calls[1][2].input;
-    expect(sql).toContain("9007199254740993");
-    expect(sql).toContain("_updated_at");
-    expect(sql).toContain("metadata ->>");
-    expect(JSON.stringify(result)).not.toContain("probe-20261021");
-  });
+          {
+            phase: "ongoing",
+            table: "customers",
+            id: "cus_fixture",
+            sourceChangedAt: "2026-10-21T01:01:00Z",
+            metadata: { key: "core_pipeline_probe", value: "probe-20261021" },
+          },
+        ],
+      };
+      const deps = dependencies({
+        tables: expectations.tables.map((table) => ({
+          table,
+          rows: "1",
+          wrongAccount: "0",
+          liveRows: "0",
+        })),
+        fixtures: [
+          { found: true, matched: true },
+          { found: true, matched: true },
+        ],
+      });
+      const result = await verifyStripeDataPipeline(fixtureExpectations, deps);
+      expect(result.exitCode).toBe(reviewed ? 0 : 2);
+      expect(result.scope).toBe("single-source-observation");
+      expect(result.operationalEvidence).toEqual({
+        repositoryPreparation: "prepared",
+        providerAuthorization: "not-verified-by-helper",
+        pipelineConfiguration: "not-verified-by-helper",
+        secondSource: "not-verified-by-helper",
+      });
+      expect(result.checks).toEqual({
+        structure: "passed",
+        privacy: reviewed ? "passed" : "incomplete",
+        backfill: "observed",
+        ongoing: "observed",
+      });
+      const sql = deps.spawn.mock.calls[1][2].input;
+      expect(sql).toContain("9007199254740993");
+      expect(sql).toContain("_updated_at");
+      expect(sql).toContain("metadata ->>");
+      expect(JSON.stringify(result)).not.toContain("probe-20261021");
+    },
+  );
 
   it.each([
     "host=other",
@@ -205,6 +221,7 @@ describe("Stripe Data Pipeline verifier", () => {
     { schema: 'provider";DROP SCHEMA public;--' },
     { owner: "owner'" },
     { accountId: "acct_fixture'" },
+    { indirectExposureReviewedAt: "not-a-timestamp" },
     { tables: ["customers", "customers"] },
     { tables: ["invoices"] },
   ])(
@@ -269,6 +286,29 @@ describe("Stripe Data Pipeline verifier", () => {
     },
   );
 
+  it.each(["v", "m", "f", undefined])(
+    "rejects a managed relation that is not a table: %s",
+    async (kind) => {
+      const inventory = catalog();
+      Object.assign(inventory.tables[0], { kind });
+      const deps = dependencies(emptyData(), inventory);
+      const result = await verifyStripeDataPipeline(expectations, deps);
+      expect(result.checks.structure).toBe("failed");
+      expect(result.checks.backfill).toBe("incomplete");
+      expect(deps.spawn).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("accepts a partitioned managed table", async () => {
+    const inventory = catalog();
+    inventory.tables[0].kind = "p";
+    const result = await verifyStripeDataPipeline(
+      expectations,
+      dependencies(emptyData(), inventory),
+    );
+    expect(result.checks.structure).toBe("passed");
+  });
+
   it.each(["roleRead", "realtime", "missingRole"])(
     "fails catalog privacy: %s",
     async (change) => {
@@ -285,6 +325,28 @@ describe("Stripe Data Pipeline verifier", () => {
       expect(result.checks.privacy).toBe("failed");
     },
   );
+
+  it("does not reuse an indirect exposure review from before pipeline activation", async () => {
+    const result = await verifyStripeDataPipeline(
+      {
+        ...expectations,
+        activatedAt: "2026-10-21T01:00:00Z",
+        indirectExposureReviewedAt: "2026-10-21T00:59:00Z",
+      },
+      dependencies(),
+    );
+    expect(result.checks.privacy).toBe("incomplete");
+    expect(result.exitCode).toBe(2);
+  });
+
+  it("requires activation context before accepting an indirect exposure review", async () => {
+    const result = await verifyStripeDataPipeline(
+      { ...expectations, activatedAt: undefined },
+      dependencies(),
+    );
+    expect(result.checks.privacy).toBe("incomplete");
+    expect(result.exitCode).toBe(2);
+  });
 
   it.each([
     [406, { code: "PGRST106" }, "passed"],
@@ -332,6 +394,7 @@ describe("Stripe Data Pipeline verifier", () => {
       {
         name: "refunds",
         owner: "provider_owner",
+        kind: "r",
         columns: ["id", "_account_id"],
         readableBy: [],
       },
