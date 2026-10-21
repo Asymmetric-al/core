@@ -15,7 +15,7 @@
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   LOCAL_TARGET_ENV,
@@ -49,6 +49,40 @@ function withoutFlag(args: string[], flag: string): string[] {
   const index = args.indexOf(flag);
   return index < 0 ? args : [...args.slice(0, index), ...args.slice(index + 2)];
 }
+
+/**
+ * Opt-in read-only Supabase target (./migrations-read-mock.ts). While
+ * `targetMigrations.version` is null (every test except the --verify exit-0
+ * case) `createClient` is the real one, so no other test's fixture changes.
+ * When set, the client reports that version from the migrations table, other
+ * reads are empty, and every write method (including `rpc`) throws.
+ */
+const targetMigrations = vi.hoisted(() => ({
+  version: null as string | null,
+}));
+
+vi.mock("@supabase/supabase-js", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const realCreateClient = actual.createClient as (
+    ...args: unknown[]
+  ) => unknown;
+  const { readOnlySupabaseClient } = await import("./migrations-read-mock");
+  return {
+    ...actual,
+    createClient: (...args: unknown[]) =>
+      targetMigrations.version === null
+        ? realCreateClient(...args)
+        : readOnlySupabaseClient({
+            migrationsVersion: () => targetMigrations.version,
+            onWrite: () => undefined,
+            writeErrorPrefix: "#2066 DC3 fixture: forbidden write",
+          }),
+  };
+});
+
+afterEach(() => {
+  targetMigrations.version = null;
+});
 
 describe("issue #2066 — minimal test seam (spec §2)", () => {
   it("the command module exports main() or a thin adapter taking detectors, store, env and argv", async () => {
@@ -93,6 +127,9 @@ describe("issue #2066 — DC3 exit codes", () => {
   it("DC3: exits 0 for --verify on a cryptographically verified clean proof for this target", async () => {
     const proof = await buildCleanProof(serverResolvedLocalIdentity());
     const file = writeTempProofFile(serializeProof(proof));
+    // Read-only target fixture (ruling option A): the migrations table reports
+    // the proof's schema version.
+    targetMigrations.version = proof.environment?.schemaVersion ?? null;
 
     const result = await runCommand({
       argv: ["--verify", file],

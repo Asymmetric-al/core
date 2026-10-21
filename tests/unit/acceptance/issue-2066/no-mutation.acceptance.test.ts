@@ -31,6 +31,7 @@ const guard = vi.hoisted(() => ({
   armed: false,
   calls: [] as string[],
   clientsCreated: 0,
+  migrationsVersion: null as string | null,
 }));
 
 const FS_WRITE_METHODS = vi.hoisted(() => [
@@ -92,56 +93,23 @@ vi.mock("node:fs/promises", async (importOriginal) =>
 );
 
 /**
- * Permissive fake Supabase client: every read chain resolves to an empty,
- * successful result; every write method is a throwing spy.
+ * Permissive fake Supabase client (./migrations-read-mock.ts): every read chain
+ * resolves to an empty, successful result, except a migrations-table read,
+ * which reports `guard.migrationsVersion` when a test sets it; every write
+ * method (including `rpc`) is a throwing spy recorded in `guard.calls`.
  */
 vi.mock("@supabase/supabase-js", async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
-  const WRITE_METHODS = new Set([
-    "insert",
-    "update",
-    "upsert",
-    "delete",
-    "rpc",
-    "upload",
-    "remove",
-    "move",
-    "copy",
-    "createBucket",
-    "updateBucket",
-    "deleteBucket",
-    "emptyBucket",
-    "createSignedUploadUrl",
-    "uploadToSignedUrl",
-    "createUser",
-    "updateUserById",
-    "deleteUser",
-  ]);
-  const EMPTY = { data: [], count: 0, error: null, status: 200 };
-  const makeProxy = (trail: string): unknown =>
-    new Proxy(function fakeSupabase() {}, {
-      get(_target, prop) {
-        if (prop === "then") {
-          return (resolve: (value: unknown) => void) => resolve(EMPTY);
-        }
-        if (typeof prop === "symbol") return undefined;
-        if (WRITE_METHODS.has(prop)) {
-          return (..._args: unknown[]) => {
-            guard.calls.push(`supabase:${trail}.${prop}`);
-            throw new Error(`#2066 DC7 forbidden write: ${trail}.${prop}`);
-          };
-        }
-        return makeProxy(`${trail}.${prop}`);
-      },
-      apply() {
-        return makeProxy(`${trail}()`);
-      },
-    });
+  const { readOnlySupabaseClient } = await import("./migrations-read-mock");
   return {
     ...actual,
     createClient: (..._args: unknown[]) => {
       guard.clientsCreated += 1;
-      return makeProxy("client");
+      return readOnlySupabaseClient({
+        migrationsVersion: () => guard.migrationsVersion,
+        onWrite: (call) => guard.calls.push(`supabase:${call}`),
+        writeErrorPrefix: "#2066 DC7 forbidden write",
+      });
     },
   };
 });
@@ -150,6 +118,7 @@ beforeEach(() => {
   guard.armed = false;
   guard.calls = [];
   guard.clientsCreated = 0;
+  guard.migrationsVersion = null;
 });
 
 afterEach(() => {
@@ -245,6 +214,10 @@ describe("issue #2066 — DC7 no mutation at the command layer", () => {
     // The proof file is written by the test before the guard is armed.
     const proof = await buildCleanProof(serverResolvedLocalIdentity());
     const file = writeTempProofFile(serializeProof(proof));
+    // Read-only target fixture (ruling option A): the migrations table reports
+    // the proof's schema version. Reads never count as writes; rpc stays a
+    // throwing write spy.
+    guard.migrationsVersion = proof.environment?.schemaVersion ?? null;
 
     const result = await armed(() =>
       runCommand({

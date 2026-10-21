@@ -46,6 +46,7 @@
  */
 
 import { execFileSync } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -451,10 +452,37 @@ export function listProofFiles(): string[] {
     .sort();
 }
 
-/** Track files a test run created so `cleanupProofFiles()` removes only those. */
-export function newProofFiles(before: string[]): string[] {
+/**
+ * A per-test marker carried in `--statement`, so a test can tell its own proof
+ * files from those of another suite writing to the same directory in parallel
+ * (proof-output and verify both use the default proofs directory). Uses
+ * node:crypto randomBytes, not `crypto.randomUUID`, which DC1 stubs.
+ */
+export function proofRunMarker(): string {
+  return `acceptance-2067-run-${randomBytes(8).toString("hex")}`;
+}
+
+/** Statement text for a run tagged with `marker`. */
+export function markedStatement(marker: string): string {
+  return `Acceptance #2067 decision statement (${marker}).`;
+}
+
+/**
+ * Proof files created since `before` that belong to the run(s) tagged with
+ * `marker`: new names whose contents contain the marker. Files another suite
+ * creates (or deletes) concurrently are ignored. Only matched files are
+ * tracked, so `cleanupProofFiles()` never removes another suite's proof.
+ */
+export function newProofFiles(before: string[], marker: string): string[] {
   const known = new Set(before);
-  const created = listProofFiles().filter((name) => !known.has(name));
+  const created = listProofFiles().filter((name) => {
+    if (known.has(name)) return false;
+    try {
+      return readFileSync(path.join(PROOFS_DIR, name), "utf8").includes(marker);
+    } catch {
+      return false;
+    }
+  });
   for (const name of created) createdProofFiles.add(name);
   return created;
 }
@@ -614,12 +642,13 @@ export interface MintedProof {
  */
 export async function mintCleanProof(): Promise<MintedProof> {
   cleanTarget();
+  const marker = proofRunMarker();
   const before = listProofFiles();
   const result = await runCommand({
-    argv: decisionArgs("go", allowlistedOwner()),
+    argv: decisionArgs("go", allowlistedOwner(), markedStatement(marker)),
     env: LOCAL_TARGET_ENV,
   });
-  const created = newProofFiles(before);
+  const created = newProofFiles(before, marker);
   const name = created[0];
   if (result.exitCode !== 0 || created.length !== 1 || !name) {
     throw new Error(
