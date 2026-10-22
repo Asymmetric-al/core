@@ -394,14 +394,37 @@ describe("skill refresh transaction", () => {
         "#!/bin/sh\n# Original executable\n",
       );
       await chmod(path.join(canonical, "launcher.sh"), 0o751);
+      // Git records owner execution, while checkout applies the current umask.
+      // Observe the actual cloned source instead of assuming 0755/0644 modes.
+      const scriptPath = path.join(root, "scripts/refresh-upstream-skills.mjs");
+      const script = await readFile(scriptPath, "utf8");
+      const copy =
+        "    await cp(upstreamSkillDir, staging, { recursive: true });";
+      expect(script).toContain(copy);
+      await writeFile(
+        scriptPath,
+        script.replace(
+          copy,
+          `    await writeFile(path.join(repoRoot, "observed-source-modes.json"), JSON.stringify({
+      "launcher.sh": (await lstat(path.join(upstreamSkillDir, "launcher.sh"))).mode & 0o777,
+      "ordinary.sh": (await lstat(path.join(upstreamSkillDir, "ordinary.sh"))).mode & 0o777,
+    }));
+${copy}`,
+        ),
+      );
       if (fault === "partial-lock") await injectFault(root, fault);
       const result = run(root, fault, "cursor/plugins");
       expect(result.status, result.output).toBe(
         fault === "partial-lock" ? 1 : 0,
       );
+      const clonedModes: Record<string, number> = JSON.parse(
+        await readFile(path.join(root, "observed-source-modes.json"), "utf8"),
+      );
+      expect(clonedModes["launcher.sh"] & 0o100).toBe(0o100);
+      expect(clonedModes["ordinary.sh"] & 0o111).toBe(0);
       expect(
         (await stat(path.join(canonical, "launcher.sh"))).mode & 0o777,
-      ).toBe(fault === "partial-lock" ? 0o751 : 0o755);
+      ).toBe(fault === "partial-lock" ? 0o751 : clonedModes["launcher.sh"]);
       if (fault === "partial-lock") {
         expect(result.output).toContain("REACHED_PARTIAL_LOCK_WRITE");
         expect(
@@ -410,7 +433,7 @@ describe("skill refresh transaction", () => {
       } else
         expect(
           (await stat(path.join(canonical, "ordinary.sh"))).mode & 0o777,
-        ).toBe(0o644);
+        ).toBe(clonedModes["ordinary.sh"]);
     },
   );
   it("isolates fixture Git directory, worktree and index from inherited hook state", async () => {
