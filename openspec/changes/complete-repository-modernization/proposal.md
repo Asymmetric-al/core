@@ -55,7 +55,7 @@ payment drains must be rehearsed before any data-format cutover is qualified.
 
 ## Preview delivery amendment
 
-The modernization `development-build-policy` delta explicitly supersedes the
+Modernization amends the existing active `development-build-policy` delta and explicitly supersedes the
 older GitHub prebuilt-preview clause so current Vercel Secrets remain provider
 owned. Existing automatic-deployment, scope, credential and exact-commit guards
 remain. See the design's explicit supersession and the modified requirement.

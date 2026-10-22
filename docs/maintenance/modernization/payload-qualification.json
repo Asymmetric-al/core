@@ -9526,6 +9526,20 @@
       "path": "/tmp/core-modernization-hosted-preview-cleanup-independent-review.json",
       "sha256": "ee48867f2507ff7e91df3286b0b5e2ac8daa066282046df7e2b78d0c4eb2cf88",
       "result": "Exact six current hashes approved; supplied66cases and eight independent synthetic ownership/cancellation probes pass."
+    },
+    "owningDeltaCorrection": {
+      "recordedAt": "2026-10-22T09:01:18.798789+00:00",
+      "prePushResult": "d88a7038 stopped by verify:openspec-deltas before publication because a MODIFIED delta targeted a capability not yet canonical. Hooks remained enabled.",
+      "correction": "Amend the owning active development-build-policy ADDED delta; preserve explicit preview supersession, automatic deployment and full-release requirements. Remove the newly introduced incompatible MODIFIED delta.",
+      "unchangedRequirements": [
+        "Routine development uses conditional compilation",
+        "Release verification remains complete"
+      ],
+      "verification": {
+        "path": "/tmp/core-modernization-hosted-preview-owner-delta-final-check-proof.json",
+        "sha256": "3b9fccdddcf73dd943f19b05dded385fcf3cde3aa7084917fa3bfbf687b2f910",
+        "result": "75deltas compatible; all46decisions/120stories/73proofs/18releases remain"
+      }
     }
   }
 }
