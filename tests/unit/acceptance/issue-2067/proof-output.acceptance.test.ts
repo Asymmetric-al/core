@@ -1,0 +1,191 @@
+/**
+ * Acceptance tests for GitHub issue #2067 — proof output and provenance.
+ * Spec (rev 2, Blake-approved): {@link https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6306182453}
+ *
+ * Covers DC1 (append-only `<ISO>-<proofId>.json` files under
+ * docs/ops/document-cutover/proofs/, never overwritten), the DC2 field
+ * contract (`recordedBy`, `proofPath`, `digest`; no `attestedBy` /
+ * `attestationContext`), and the `--out` default / `.gitignore` change (spec §2
+ * "Proof output").
+ *
+ * Addendum 4 m4 (https://github.com/Asymmetric-al/core/issues/2067#issuecomment-6308840307):
+ * the collision test's second run writes different bytes.
+ *
+ * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
+ */
+
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import {
+  LOCAL_TARGET_ENV,
+  PROOFS_DIR,
+  PROOFS_DIR_REL,
+  PROOF_FILE_NAME,
+  allowlistedOwner,
+  cleanTarget,
+  cleanupProofFiles,
+  collectKeys,
+  decisionArgs,
+  git,
+  listProofFiles,
+  markedStatement,
+  expectedDigest,
+  mintCleanProof,
+  newProofFiles,
+  proofRunMarker,
+  readProofFile,
+  runCommand,
+} from "./command-harness";
+
+vi.mock("@supabase/supabase-js", async (importOriginal) =>
+  (await import("./fake-supabase")).mockSupabaseModule(await importOriginal()),
+);
+vi.mock("pg", async () => (await import("./fake-postgres")).mockPgModule());
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+  cleanupProofFiles();
+});
+
+async function recordNoGo(marker: string) {
+  return runCommand({
+    argv: decisionArgs("no_go", allowlistedOwner(), markedStatement(marker)),
+    env: LOCAL_TARGET_ENV,
+  });
+}
+
+describe("issue #2067 — DC1 append-only proof files under docs/ops/document-cutover/proofs/", () => {
+  it("DC1: two consecutive runs (default --out) produce two distinct <ISO>-<proofId>.json files; the first file's bytes are unchanged", async () => {
+    cleanTarget();
+    const marker = proofRunMarker();
+    const before = listProofFiles();
+
+    await recordNoGo(marker);
+    const afterFirst = newProofFiles(before, marker);
+    expect(afterFirst).toHaveLength(1);
+    const firstName = afterFirst[0] as string;
+    const firstBytes = readFileSync(path.join(PROOFS_DIR, firstName));
+
+    await recordNoGo(marker);
+    const created = newProofFiles(before, marker);
+    expect(created).toHaveLength(2);
+    expect(new Set(created).size).toBe(2);
+
+    for (const name of created) {
+      const match = PROOF_FILE_NAME.exec(name);
+      expect(match, `${name} is not <ISO>-<proofId>.json`).not.toBeNull();
+      const proof = readProofFile(name);
+      expect(match?.[2]).toBe(proof.proofId);
+    }
+    expect(
+      readFileSync(path.join(PROOFS_DIR, firstName)).equals(firstBytes),
+    ).toBe(true);
+  });
+
+  it("DC1 (addendum 4 m4): writing over an existing proof path throws — a colliding second run with DIFFERENT bytes fails and leaves the first file's bytes unchanged", async () => {
+    // Same clock and proof id => same `<ISO>-<proofId>.json` path; a different
+    // statement => different bytes, so a `wx` -> `w` mutation in the writer
+    // would overwrite the first file and fail the byte comparison.
+    cleanTarget();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-20T19:00:00.000Z"));
+    vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue(
+      "00000000-0000-4000-8000-000000002067",
+    );
+    const firstMarker = proofRunMarker();
+    const secondMarker = proofRunMarker();
+    expect(secondMarker).not.toBe(firstMarker);
+    const before = listProofFiles();
+
+    await recordNoGo(firstMarker);
+    const first = newProofFiles(before, firstMarker);
+    expect(first).toHaveLength(1);
+    const firstName = first[0] as string;
+    const firstPath = path.join(PROOFS_DIR, firstName);
+    const firstBytes = readFileSync(firstPath);
+    expect(firstBytes.toString("utf8")).toContain(firstMarker);
+
+    const second = await recordNoGo(secondMarker);
+
+    expect(second.exitCode).not.toBe(0);
+    expect(newProofFiles(before, secondMarker)).toEqual([]);
+    const afterBytes = readFileSync(firstPath);
+    expect(afterBytes.toString("utf8")).not.toContain(secondMarker);
+    expect(afterBytes.equals(firstBytes)).toBe(true);
+  });
+});
+
+describe("issue #2067 — DC2 provenance replaces attestation", () => {
+  it("DC2: a new proof contains recordedBy, proofPath and digest, and no attestedBy/attestationContext anywhere", async () => {
+    const minted = await mintCleanProof();
+    const keys = collectKeys(minted.proof);
+
+    expect(typeof minted.proof.recordedBy).toBe("string");
+    expect(String(minted.proof.recordedBy).trim()).not.toBe("");
+    expect(typeof minted.proof.digest).toBe("string");
+    expect(String(minted.proof.digest)).toMatch(/^[0-9a-f]{64}$/);
+    expect(typeof minted.proof.proofPath).toBe("string");
+    expect(String(minted.proof.proofPath)).toContain(PROOFS_DIR_REL);
+    expect(String(minted.proof.proofPath).endsWith(minted.name)).toBe(true);
+    expect(keys.has("attestedBy")).toBe(false);
+    expect(keys.has("attestationContext")).toBe(false);
+  });
+
+  it("DC2: a stop_the_line (no_go) proof carries the same provenance and no attestation", async () => {
+    cleanTarget();
+    const marker = proofRunMarker();
+    const before = listProofFiles();
+    await recordNoGo(marker);
+    const [name] = newProofFiles(before, marker);
+    expect(name).toBeDefined();
+    const proof = readProofFile(name as string);
+    const keys = collectKeys(proof);
+
+    expect(proof.outcome).toBe("stop_the_line");
+    expect(keys.has("recordedBy")).toBe(true);
+    expect(keys.has("proofPath")).toBe(true);
+    expect(keys.has("digest")).toBe(true);
+    expect(keys.has("attestedBy")).toBe(false);
+    expect(keys.has("attestationContext")).toBe(false);
+  });
+});
+
+describe("issue #2067 — DC2 digest rule (addendum 2 item 2)", () => {
+  it("DC2: a clean proof's digest is the canonical-JSON SHA-256 of the proof with the digest field left out", async () => {
+    const minted = await mintCleanProof();
+    expect(minted.proof.digest).toBe(await expectedDigest(minted.proof));
+  });
+
+  it("DC2: a stop_the_line (no_go) proof's digest follows the same rule", async () => {
+    cleanTarget();
+    const marker = proofRunMarker();
+    const before = listProofFiles();
+    await recordNoGo(marker);
+    const [name] = newProofFiles(before, marker);
+    expect(name).toBeDefined();
+    const proof = readProofFile(name as string);
+    expect(proof.digest).toBe(await expectedDigest(proof));
+  });
+});
+
+describe("issue #2067 — spec §2 proof output: --out default and .gitignore", () => {
+  it("proof files under docs/ops/document-cutover/proofs/ are not git-ignored (they are committed through a PR)", () => {
+    let ignored = true;
+    try {
+      git([
+        "check-ignore",
+        "-q",
+        `${PROOFS_DIR_REL}/2026-10-20T19-00-00.000Z-acceptance.json`,
+      ]);
+    } catch (error) {
+      // `git check-ignore` exits 1 when the path is not ignored.
+      if ((error as { status?: number }).status !== 1) throw error;
+      ignored = false;
+    }
+    expect(ignored).toBe(false);
+  });
+});

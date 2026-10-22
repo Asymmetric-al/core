@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CLEAN_ENVIRONMENT,
   DocumentEnvironmentFixture,
   buildAssessmentInput,
 } from "./document-cutover-test-fixture";
 import {
+  DOCUMENT_CUTOVER_VERIFIED_ENVIRONMENT_FIELDS,
   InMemoryDocumentCutoverProofStore,
   assessDocumentCutoverEnvironment,
   canonicalStringify,
@@ -23,15 +25,10 @@ async function cleanProof(): Promise<DocumentCutoverEnvironmentProof> {
     assessment,
     owner: { ownerId: "owner-blake", ownerRole: "platform_owner" },
     approval: {
-      approverId: "approver-blake",
       approvalStatement: "Approved for the exact plan digest.",
       decision: "go",
     },
-    attestation: { attestedBy: "test-suite", attestationContext: "unit" },
-    authorization: {
-      allowedOwnerIds: ["owner-blake"],
-      allowedApproverIds: ["approver-blake"],
-    },
+    authorization: { owners: [{ id: "owner-blake", role: "platform_owner" }] },
     store: new InMemoryDocumentCutoverProofStore(),
   });
 }
@@ -115,6 +112,12 @@ describe("verifyDocumentCutoverEnvironmentProof", () => {
       (proof) => {
         proof.recordedAt = new Date(0).toISOString();
       },
+      (proof) => {
+        proof.recordedBy = `${proof.recordedBy}x`;
+      },
+      (proof) => {
+        proof.proofPath = `${proof.proofPath}x`;
+      },
     ];
 
     for (const mutate of mutations) {
@@ -148,8 +151,8 @@ describe("verifyDocumentCutoverEnvironmentProof", () => {
       ...forgedEvidenceBody,
       evidenceDigest: await digestCanonicalValue(forgedEvidenceBody),
     };
-    const { proofDigest: _ignored, ...body } = proof;
-    proof.proofDigest = await digestCanonicalValue(body);
+    const { digest: _ignored, ...body } = proof;
+    proof.digest = await digestCanonicalValue(body);
 
     const result = await verifyDocumentCutoverEnvironmentProof(proof);
     expect(result.valid).toBe(false);
@@ -174,8 +177,8 @@ describe("clean-proof coverage and freshness verification", () => {
   it("rejects a digest-consistent clean proof whose evidence was emptied", async () => {
     const proof = structuredClone(await cleanProof());
     (proof as { evidence: unknown[] }).evidence = [];
-    const { proofDigest: _old, ...body } = proof;
-    proof.proofDigest = await digestCanonicalValue(body);
+    const { digest: _old, ...body } = proof;
+    proof.digest = await digestCanonicalValue(body);
 
     const result = await verifyDocumentCutoverEnvironmentProof(proof);
     expect(result.valid).toBe(false);
@@ -205,8 +208,8 @@ describe("clean-proof coverage and freshness verification", () => {
 
     const invalid = structuredClone(proof);
     invalid.recordedAt = "garbage";
-    const { proofDigest: _old, ...body } = invalid;
-    invalid.proofDigest = await digestCanonicalValue(body);
+    const { digest: _old, ...body } = invalid;
+    invalid.digest = await digestCanonicalValue(body);
     const invalidResult = await verifyDocumentCutoverEnvironmentProof(invalid);
     expect(invalidResult.valid).toBe(false);
     expect(invalidResult.failures.map((failure) => failure.code)).toContain(
@@ -232,8 +235,8 @@ describe("clean-proof coverage and freshness verification", () => {
     };
     proof.planDigest = await digestCanonicalValue(proof.plan);
     proof.evidence = [];
-    const { proofDigest: _old, ...body } = proof;
-    proof.proofDigest = await digestCanonicalValue(body);
+    const { digest: _old, ...body } = proof;
+    proof.digest = await digestCanonicalValue(body);
 
     const result = await verifyDocumentCutoverEnvironmentProof(proof);
     expect(result.valid).toBe(false);
@@ -246,8 +249,8 @@ describe("clean-proof coverage and freshness verification", () => {
     const proof = structuredClone(await cleanProof());
     proof.procedures.resetRebuild.digest = "";
     proof.procedures.rollbackBeforeFirstCanonicalWrite.digest = "";
-    const { proofDigest: _old, ...body } = proof;
-    proof.proofDigest = await digestCanonicalValue(body);
+    const { digest: _old, ...body } = proof;
+    proof.digest = await digestCanonicalValue(body);
 
     const result = await verifyDocumentCutoverEnvironmentProof(proof);
     expect(result.valid).toBe(false);
@@ -274,8 +277,8 @@ describe("clean-proof coverage and freshness verification", () => {
       ...forgedEvidenceBody,
       evidenceDigest: await digestCanonicalValue(forgedEvidenceBody),
     };
-    const { proofDigest: _old, ...body } = proof;
-    proof.proofDigest = await digestCanonicalValue(body);
+    const { digest: _old, ...body } = proof;
+    proof.digest = await digestCanonicalValue(body);
 
     const result = await verifyDocumentCutoverEnvironmentProof(proof);
     expect(result.valid).toBe(false);
@@ -283,6 +286,56 @@ describe("clean-proof coverage and freshness verification", () => {
       "outcome_inconsistent",
     );
   });
+});
+
+async function resealed(
+  proof: Record<string, unknown>,
+): Promise<DocumentCutoverEnvironmentProof> {
+  const { digest: _old, ...body } = proof;
+  return {
+    ...body,
+    digest: await digestCanonicalValue(body),
+  } as unknown as DocumentCutoverEnvironmentProof;
+}
+
+describe("#2067 legacy attestation and target environment", () => {
+  it.each(["attestation", "attestedBy", "attestationContext"])(
+    "rejects a digest-consistent proof that carries a legacy %s field",
+    async (field) => {
+      const proof = await resealed({
+        ...(await cleanProof()),
+        [field]: "cli:operator",
+      });
+
+      const result = await verifyDocumentCutoverEnvironmentProof(proof);
+      expect(result.valid).toBe(false);
+      expect(result.failures.map((failure) => failure.code)).toEqual([
+        "legacy_attestation",
+      ]);
+    },
+  );
+
+  it("accepts a proof whose recorded environment equals the current target", async () => {
+    const result = await verifyDocumentCutoverEnvironmentProof(
+      await cleanProof(),
+      { currentTarget: CLEAN_ENVIRONMENT },
+    );
+    expect(result).toEqual({ valid: true, failures: [] });
+  });
+
+  it.each(DOCUMENT_CUTOVER_VERIFIED_ENVIRONMENT_FIELDS)(
+    "fails with environment_mismatch when the target's %s differs",
+    async (field) => {
+      const result = await verifyDocumentCutoverEnvironmentProof(
+        await cleanProof(),
+        { currentTarget: { ...CLEAN_ENVIRONMENT, [field]: "other-target" } },
+      );
+      expect(result.valid).toBe(false);
+      expect(result.failures.map((failure) => failure.code)).toEqual([
+        "environment_mismatch",
+      ]);
+    },
+  );
 });
 
 describe("canonicalization hardening", () => {

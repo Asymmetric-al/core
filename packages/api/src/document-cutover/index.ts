@@ -1,4 +1,5 @@
 export {
+  DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS,
   assessDocumentCutoverEnvironment,
   type AssessDocumentCutoverEnvironmentInput,
   type DocumentCutoverProcedureInput,
@@ -7,9 +8,15 @@ export {
   DocumentCutoverApprovalError,
   recordDocumentCutoverApproval,
   type DocumentCutoverApprovalErrorCode,
+  type DocumentCutoverAuthorizedOwner,
   type RecordDocumentCutoverApprovalInput,
 } from "./approval";
-export { verifyDocumentCutoverEnvironmentProof } from "./verify";
+export {
+  DOCUMENT_CUTOVER_VERIFIED_ENVIRONMENT_FIELDS,
+  verifyDocumentCutoverEnvironmentProof,
+  type DocumentCutoverTargetIdentity,
+  type VerifyDocumentCutoverProofOptions,
+} from "./verify";
 export {
   DOCUMENT_CUTOVER_SERIALIZER_VERSION,
   canonicalStringify,
@@ -19,16 +26,31 @@ export {
 export {
   PHASE_18_DESTRUCTIVE_CUTOVER_PLAN,
   PHASE_18_EXTERNAL_REFERENCE_SURFACES,
+  PHASE_18_INTEGRATION_SURFACES,
   PHASE_18_PROTOTYPE_CONFIGURATION,
   PHASE_18_PROTOTYPE_DOCUMENT_TABLES,
   PHASE_18_PROTOTYPE_JOBS,
   PHASE_18_PROTOTYPE_ROUTES,
   PHASE_18_PROTOTYPE_STORAGE_LOCATIONS,
   PHASE_18_PROTOTYPE_TESTS,
+  PHASE_18_REPORT_SURFACES,
+  PHASE_18_USER_SURFACES,
   checkDetectorCompleteness,
   digestDestructiveCutoverPlan,
   validateDestructiveCutoverPlan,
 } from "./plan";
+export {
+  DOCUMENT_CUTOVER_FUNCTIONS,
+  DOCUMENT_CUTOVER_READER_ROLE,
+  DOCUMENT_CUTOVER_SCHEMA,
+  type DocumentCutoverDatabaseFunction,
+  type DocumentCutoverFunctionName,
+  type DocumentCutoverRoute,
+} from "./database-contract";
 export { redactDiagnosticText, redactExternalReference } from "./redaction";
-export { InMemoryDocumentCutoverProofStore } from "./store";
+export {
+  InMemoryDocumentCutoverProofStore,
+  documentCutoverProofFileName,
+  documentCutoverProofPath,
+} from "./store";
 export * from "./types";

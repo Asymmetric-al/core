@@ -19,6 +19,7 @@ import {
   runCommand,
   serializeProof,
   serverResolvedLocalIdentity,
+  cleanupWrittenProofFiles,
   writeTempProofFile,
 } from "./command-harness";
 import { InMemoryDocumentCutoverProofStore } from "../../../../packages/api/src/document-cutover";
@@ -31,6 +32,8 @@ const guard = vi.hoisted(() => ({
   armed: false,
   calls: [] as string[],
   clientsCreated: 0,
+  pgConnections: 0,
+  migrationsVersion: null as string | null,
 }));
 
 const FS_WRITE_METHODS = vi.hoisted(() => [
@@ -92,68 +95,64 @@ vi.mock("node:fs/promises", async (importOriginal) =>
 );
 
 /**
- * Permissive fake Supabase client: every read chain resolves to an empty,
- * successful result; every write method is a throwing spy.
+ * Permissive fake Supabase client (./migrations-read-mock.ts): every read chain
+ * resolves to an empty, successful result, except a migrations-table read,
+ * which reports `guard.migrationsVersion` when a test sets it; every write
+ * method (including `rpc`) is a throwing spy recorded in `guard.calls`.
  */
 vi.mock("@supabase/supabase-js", async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
-  const WRITE_METHODS = new Set([
-    "insert",
-    "update",
-    "upsert",
-    "delete",
-    "rpc",
-    "upload",
-    "remove",
-    "move",
-    "copy",
-    "createBucket",
-    "updateBucket",
-    "deleteBucket",
-    "emptyBucket",
-    "createSignedUploadUrl",
-    "uploadToSignedUrl",
-    "createUser",
-    "updateUserById",
-    "deleteUser",
-  ]);
-  const EMPTY = { data: [], count: 0, error: null, status: 200 };
-  const makeProxy = (trail: string): unknown =>
-    new Proxy(function fakeSupabase() {}, {
-      get(_target, prop) {
-        if (prop === "then") {
-          return (resolve: (value: unknown) => void) => resolve(EMPTY);
-        }
-        if (typeof prop === "symbol") return undefined;
-        if (WRITE_METHODS.has(prop)) {
-          return (..._args: unknown[]) => {
-            guard.calls.push(`supabase:${trail}.${prop}`);
-            throw new Error(`#2066 DC7 forbidden write: ${trail}.${prop}`);
-          };
-        }
-        return makeProxy(`${trail}.${prop}`);
-      },
-      apply() {
-        return makeProxy(`${trail}()`);
-      },
-    });
+  const { readOnlySupabaseClient } = await import("./migrations-read-mock");
   return {
     ...actual,
     createClient: (..._args: unknown[]) => {
       guard.clientsCreated += 1;
-      return makeProxy("client");
+      return readOnlySupabaseClient({
+        migrationsVersion: () => guard.migrationsVersion,
+        onWrite: (call) => guard.calls.push(`supabase:${call}`),
+        writeErrorPrefix: "#2066 DC7 forbidden write",
+      });
     },
   };
+});
+
+/**
+ * #2067 addendum 4: the gate reads over a `pg` connection as
+ * document_cutover_reader. Fake target (../issue-2067/fake-postgres.ts):
+ * identity checks pass, the schema-version function reports
+ * `guard.migrationsVersion`, other functions report zero, and every write
+ * statement (DML, DDL, GRANT, COPY, SET ROLE, nextval, ...) is recorded in
+ * `guard.calls` and throws.
+ */
+vi.mock("pg", async () => {
+  const { createFakePgModule, createFakePgState } =
+    await import("../issue-2067/fake-postgres");
+  const state = createFakePgState({
+    schemaVersion: () => guard.migrationsVersion,
+    userCount: () => 0,
+    tableRows: () => [],
+    mode: () => "happy",
+  });
+  state.onWrite = (sql) => guard.calls.push(`pg:${sql}`);
+  const connections = state.connections;
+  connections.push = (...items) => {
+    guard.pgConnections += items.length;
+    return Array.prototype.push.apply(connections, items);
+  };
+  return createFakePgModule(state);
 });
 
 beforeEach(() => {
   guard.armed = false;
   guard.calls = [];
   guard.clientsCreated = 0;
+  guard.pgConnections = 0;
+  guard.migrationsVersion = null;
 });
 
 afterEach(() => {
   guard.armed = false;
+  cleanupWrittenProofFiles();
 });
 
 async function armed<T>(run: () => Promise<T>): Promise<T> {
@@ -174,6 +173,7 @@ describe("issue #2066 — test seam: importing the script does not run it (adden
     expect(command.ranOnImport).toBe(false);
     expect(guard.calls).toEqual([]);
     expect(guard.clientsCreated).toBe(0);
+    expect(guard.pgConnections).toBe(0);
     expect(process.exitCode).toBe(exitCodeBefore);
   });
 });
@@ -194,6 +194,7 @@ describe("issue #2066 — DC7 no mutation at the command layer", () => {
     expect(result.exitCode).toBe(0);
     expect(guard.calls).toEqual([]);
     expect(guard.clientsCreated).toBe(0);
+    expect(guard.pgConnections).toBe(0);
     expect(result.envMutations).toEqual([]);
   });
 
@@ -236,7 +237,9 @@ describe("issue #2066 — DC7 no mutation at the command layer", () => {
     );
 
     expect(result.exitCode).not.toBe(0);
-    expect(guard.clientsCreated).toBeGreaterThan(0);
+    // Before #2067 addendum 4 the real detectors use a Supabase client; after
+    // it they use the pg connection. Either way they reached a fake target.
+    expect(guard.clientsCreated + guard.pgConnections).toBeGreaterThan(0);
     expect(guard.calls).toEqual([]);
     expect(result.envMutations).toEqual([]);
   });
@@ -245,6 +248,10 @@ describe("issue #2066 — DC7 no mutation at the command layer", () => {
     // The proof file is written by the test before the guard is armed.
     const proof = await buildCleanProof(serverResolvedLocalIdentity());
     const file = writeTempProofFile(serializeProof(proof));
+    // Read-only target fixture (ruling option A): the migrations table reports
+    // the proof's schema version. Reads never count as writes; rpc stays a
+    // throwing write spy.
+    guard.migrationsVersion = proof.environment?.schemaVersion ?? null;
 
     const result = await armed(() =>
       runCommand({
