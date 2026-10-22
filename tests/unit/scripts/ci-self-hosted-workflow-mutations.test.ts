@@ -3,7 +3,8 @@
  * (PR #2160 review MAJOR-1..6, MINOR-7, the N1/N2 runner-variable follow-up,
  * the run-body allowlist bypasses, MAJOR-9 unmodelled context members, and
  * MAJOR-10 defaults.run shells plus the workflow key allowlist, and the
- * repair-6 if: pins, whole-object functions and second value set).
+ * repair-6 if: pins, whole-object functions and second value set, and the
+ * repair-7 per-job/per-step key allowlists).
  * Each reviewer mutation is applied to an
  * in-memory copy of the real workflow YAML; the harness must accept the real
  * workflow and reject every mutated copy.
@@ -20,6 +21,7 @@ import {
   FORK_REJECT_IF,
   MODELED_TRIGGER_EVENTS,
   MODELLED_JOB_KEYS,
+  MODELLED_KEYS_BY_JOB,
   MODELLED_STEP_KEYS,
   MODELLED_WORKFLOW_KEYS,
   PINNED_JOB_IFS,
@@ -30,6 +32,7 @@ import {
   assertWorkflowKeysModelled,
   assertScriptAllowed,
   assertScriptVariablesModelled,
+  assertStepKeysModelled,
   effectiveStepEnv,
   evaluateIfCondition,
   evaluateRunsOn,
@@ -56,6 +59,7 @@ import {
   scanScriptVariables,
   scenarioContext,
   scriptSpawnEnv,
+  stepIdentity,
   unmodeledTriggerEvents,
   workflowJobs,
   workflowTriggerEvents,
@@ -284,10 +288,13 @@ describe("MAJOR-2: enforcing gate steps honor step if and continue-on-error", ()
         ],
       ])("rejects %s on the enforcing step", (_label, keyLine) => {
         const mutated = addStepKey(source(gate.file), gate.step, keyLine);
-        // Fails closed either way: modelled as passing, or (step `if` /
-        // `continue-on-error` are outside the key allowlist) not modelled.
-        expect(enforcementProblems(mutated, gate).join("\n")).toMatch(
-          /gate passes when|not modelled/,
+        const key = keyLine.slice(0, keyLine.indexOf(":"));
+        const index = jobsOf(source(gate.file), gate.file)[
+          gate.job
+        ]!.steps!.findIndex((step) => step.name === gate.step);
+        // Step `if` and `continue-on-error` are outside the gate step allowlist.
+        expect(enforcementProblems(mutated, gate).join("\n")).toContain(
+          `Step ${index} (gate) key '${key}' is not modelled`,
         );
       });
 
@@ -299,10 +306,8 @@ describe("MAJOR-2: enforcing gate steps honor step if and continue-on-error", ()
           `${header}    continue-on-error: true\n`,
           1,
         );
-        // Fails closed either way: modelled as passing, or (step `if` /
-        // `continue-on-error` are outside the key allowlist) not modelled.
-        expect(enforcementProblems(mutated, gate).join("\n")).toMatch(
-          /gate passes when|not modelled/,
+        expect(enforcementProblems(mutated, gate).join("\n")).toContain(
+          "Job (gate) key 'continue-on-error' is not modelled",
         );
       });
     });
@@ -343,17 +348,10 @@ describe("MAJOR-2: enforcing gate steps honor step if and continue-on-error", ()
         ),
         CI,
       );
-      // The mutated ci-gate either passes when it must fail, or is not modelled.
-      const outcome = (() => {
-        try {
-          return String(
-            ciGateRun(ci, { build: "skipped", "test-unit": "skipped" }).status,
-          );
-        } catch (error) {
-          return (error as Error).message;
-        }
-      })();
-      expect(outcome).toMatch(/^0$|not modelled/);
+      const key = keyLine.slice(0, keyLine.indexOf(":"));
+      expect(() =>
+        ciGateRun(ci, { build: "skipped", "test-unit": "skipped" }),
+      ).toThrow(`Step 2 (gate) key '${key}' is not modelled`);
     }
 
     const realCi = jobsOf(source(CI), CI);
@@ -581,6 +579,12 @@ describe("MAJOR-5: fork-reject steps run with the runner's workflow -> job -> st
         },
       ),
     ).toBe(false);
+    expect(() =>
+      assertStepKeysModelled(
+        { ...step, env: { REVIEW_ALLOW: "no" } },
+        "reject",
+      ),
+    ).toThrow("Step (reject) key 'env' is not modelled");
   });
 
   it.each([
@@ -638,7 +642,12 @@ describe("MAJOR-6: gate jobs run with the runner's workflow -> job -> step env",
   });
 
   it.each([
-    ["workflow env", () => addWorkflowEnv(guarded(), REVIEW_ALLOW)],
+    [
+      "workflow env",
+      () => addWorkflowEnv(guarded(), REVIEW_ALLOW),
+      // Workflow env is modelled, so the guard runs and the gate passes.
+      "gate passes when test-e2e-smoke skipped",
+    ],
     [
       "job env",
       () =>
@@ -650,18 +659,18 @@ describe("MAJOR-6: gate jobs run with the runner's workflow -> job -> step env",
             1,
           ),
         ),
+      "Job (gate) key 'env' is not modelled",
     ],
     [
       "step env",
       () => addStepEnv(guarded(), "Fail if E2E smoke failed", REVIEW_ALLOW, 1),
+      "Step 0 (gate) key 'env' is not modelled",
     ],
   ])(
     "%s REVIEW_ALLOW=yes makes the gate pass on a skipped or failed smoke run",
-    (_level, mutated) => {
+    (_level, mutated, message) => {
       const text = mutated();
-      expect(enforcementProblems(text, gate).join("\n")).toMatch(
-        /gate passes when test-e2e-smoke (skipped|failure)|not modelled/,
-      );
+      expect(enforcementProblems(text, gate).join("\n")).toContain(message);
       expect(
         hostedGateFailsClosedWhenHeavyNeedsSkipped(gateJob(text), [
           "test-e2e-smoke",
@@ -671,13 +680,46 @@ describe("MAJOR-6: gate jobs run with the runner's workflow -> job -> step env",
   );
 
   it("step env overrides a workflow env that would open the gate", () => {
-    const text = addStepEnv(
+    // Step env is only modelled on ci-gate's policy step (a pinned body), so
+    // precedence is exercised on a synthetic, unpinned gate job.
+    const yaml = (stepEnv: boolean) =>
+      [
+        "on: push",
+        "env:",
+        '  REVIEW_ALLOW: "yes"',
+        "jobs:",
+        "  precedence-gate:",
+        "    if: always()",
+        "    needs: [heavy]",
+        "    runs-on: ubuntu-slim",
+        "    steps:",
+        "      - name: Fail if heavy failed",
+        ...(stepEnv ? ["        env:", '          REVIEW_ALLOW: "no"'] : []),
+        "        run: |",
+        `          ${REVIEW_GUARD}`,
+        '          if [ "${{ needs.heavy.result }}" != "success" ]; then',
+        "            exit 1",
+        "          fi",
+      ].join("\n");
+    const problems = (stepEnv: boolean) =>
+      gateEnforcementProblems(
+        jobsOf(yaml(stepEnv), "precedence")["precedence-gate"]!,
+        ["heavy"],
+      );
+    expect(problems(true)).toEqual([]);
+    expect(problems(false).join("\n")).toContain(
+      "gate passes when heavy skipped",
+    );
+    // On the real e2e-smoke-gate step the same env is not modelled.
+    const real = addStepEnv(
       addWorkflowEnv(guarded(), REVIEW_ALLOW),
       "Fail if E2E smoke failed",
       'REVIEW_ALLOW: "no"',
       1,
     );
-    expect(enforcementProblems(text, gate)).toEqual([]);
+    expect(enforcementProblems(real, gate).join("\n")).toContain(
+      "Step 0 (gate) key 'env' is not modelled",
+    );
   });
 });
 
@@ -1312,9 +1354,11 @@ describe("MAJOR-9: pinned fork-reject if; unmodelled context members fail closed
       1,
     );
     const job = jobsOf(text, "gate if")["e2e-smoke-gate"]!;
-    // Rejected by the gate job if pin before evaluation, or not modelled.
-    expect(gateEnforcementProblems(job, ["test-e2e-smoke"]).join("\n")).toMatch(
-      /'github\.job' is not modelled|is not allowed: pinned to "always\(\)"/,
+    // Rejected by the gate job if pin before evaluation.
+    expect(
+      gateEnforcementProblems(job, ["test-e2e-smoke"]).join("\n"),
+    ).toContain(
+      `Job 'e2e-smoke-gate' if "always() && github.job != 'e2e-smoke-gate'" is not allowed: pinned to "always()"`,
     );
     expect(
       hostedGateFailsClosedWhenHeavyNeedsSkipped(job, ["test-e2e-smoke"]),
@@ -1339,7 +1383,7 @@ describe("MAJOR-9: pinned fork-reject if; unmodelled context members fail closed
         ["test-e2e", "instant-nav"],
         production,
       ).join("\n"),
-    ).toMatch(/'github\.job' is not modelled|key 'if' is not modelled/);
+    ).toContain("Step 0 (gate) key 'if' is not modelled");
   });
 
   it("an unmodelled member in the fork-aware runs-on is not fork-aware", () => {
@@ -1933,9 +1977,9 @@ describe("repair 6: pinned reject/gate if, whole-object functions, second value 
     expect(modelledKeyProblems(job, "gate").join("\n")).toMatch(
       /Step 0 \(gate\) key 'if' is not modelled/,
     );
-    expect(gateEnforcementProblems(job, ["test-e2e-smoke"]).join("\n")).toMatch(
-      /not (allowed|modelled)/,
-    );
+    expect(
+      gateEnforcementProblems(job, ["test-e2e-smoke"]).join("\n"),
+    ).toContain("Step 0 (gate) key 'if' is not modelled");
   });
 
   it("reject job: an added migrate if is reported by the fork analysis and forkRejectProblems", () => {
@@ -2019,4 +2063,185 @@ describe("repair 6: pinned reject/gate if, whole-object functions, second value 
       ).toEqual([]);
     }
   });
+});
+
+describe("repair 7: per-job and per-step key allowlists (no union per role)", () => {
+  const integration = () => jobsOf(source(CI_INTEGRATION), CI_INTEGRATION);
+  const ciJobs = () => jobsOf(source(CI), CI);
+  const withJob = (
+    file: WorkflowPath,
+    jobId: string,
+    fn: (block: string) => string,
+  ) => jobsOf(mutateJob(source(file), jobId, fn), `${jobId} keys`)[jobId]!;
+  const addEnvAfter = (line: string) => (block: string) =>
+    mutate(block, line, `${line}        env:\n          X: y\n`, 1);
+
+  it("the per-job and per-step tables are exactly the real yml", () => {
+    for (const [jobId, table] of Object.entries(MODELLED_KEYS_BY_JOB)) {
+      const job = (jobId === "ci-gate" ? ciJobs() : integration())[jobId]!;
+      expect([...table.job].sort(), jobId).toEqual(Object.keys(job).sort());
+      const steps = Object.fromEntries(
+        (job.steps ?? []).map((step) => [
+          stepIdentity(step),
+          Object.keys(step).sort(),
+        ]),
+      );
+      expect(
+        Object.fromEntries(
+          Object.entries(table.steps).map(([id, keys]) => [
+            id,
+            [...keys].sort(),
+          ]),
+        ),
+        jobId,
+      ).toEqual(steps);
+      expect(Object.keys(table.steps)).toHaveLength((job.steps ?? []).length);
+    }
+    const envSteps = Object.entries(MODELLED_KEYS_BY_JOB).flatMap(
+      ([jobId, table]) =>
+        Object.entries(table.steps)
+          .filter(([, keys]) => keys.includes("env"))
+          .map(([id]) => `${jobId} ${id}`),
+    );
+    expect(envSteps).toEqual([
+      "ci-gate name:Validate correctness checks and requested compilation",
+    ]);
+  });
+
+  it("the real ci-gate policy step env is modelled", () => {
+    expect(modelledKeyProblems(ciJobs()["ci-gate"]!, "gate")).toEqual([]);
+  });
+
+  it.each([
+    ["e2e-smoke-gate", "      - name: Fail if E2E smoke failed\n", 0],
+    [
+      "integration-gate",
+      "      - name: Fail if integration prerequisites failed\n",
+      0,
+    ],
+    ["e2e-gate", "      - name: Fail if E2E failed on production\n", 0],
+  ] as const)("env on the %s step is not modelled", (jobId, line, index) => {
+    const job = withJob(CI_INTEGRATION, jobId, addEnvAfter(line));
+    expect(modelledKeyProblems(job, "gate").join("\n")).toContain(
+      `Step ${index} (gate) key 'env' is not modelled`,
+    );
+    expect(() =>
+      executeGateJob(job, { results: buildResults(job) }, EVENT_SCENARIOS[0]!),
+    ).toThrow(`Step ${index} (gate) key 'env' is not modelled`);
+  });
+
+  it.each([
+    ["the checkout step", "      - uses: actions/checkout@", 0],
+    ["the setup-node step", "      - uses: actions/setup-node@", 1],
+  ] as const)(
+    "env on ci-gate's %s (a second env-bearing step) is not modelled",
+    (_label, prefix, index) => {
+      const job = withJob(CI, "ci-gate", (block) => {
+        const start = block.indexOf(prefix);
+        const lineEnd = block.indexOf("\n", start) + 1;
+        return `${block.slice(0, lineEnd)}        env:\n          X: y\n${block.slice(lineEnd)}`;
+      });
+      expect(modelledKeyProblems(job, "gate").join("\n")).toContain(
+        `Step ${index} (gate) key 'env' is not modelled`,
+      );
+      expect(() =>
+        executeCiGateResultsStep(job, {
+          results: Object.fromEntries(
+            needsList(job).map((id) => [id, "success"]),
+          ),
+          outputs: { "compilation-plan": { requested: "true" } },
+        }),
+      ).toThrow(`Step ${index} (gate) key 'env' is not modelled`);
+    },
+  );
+
+  it("a new env-bearing step on ci-gate is not modelled", () => {
+    const job = withJob(CI, "ci-gate", (block) =>
+      mutate(
+        block,
+        "      - name: Validate correctness checks and requested compilation\n",
+        "      - name: Extra policy step\n        env:\n          X: y\n        run: echo hi\n      - name: Validate correctness checks and requested compilation\n",
+        1,
+      ),
+    );
+    expect(modelledKeyProblems(job, "gate").join("\n")).toContain(
+      `Step 2 (gate) "name:Extra policy step" of job 'ci-gate' is not modelled (not a step of the real job)`,
+    );
+  });
+
+  it("a repeated step is not modelled", () => {
+    const job = withJob(CI_INTEGRATION, "e2e-gate", (block) => {
+      const start = block.indexOf(
+        "      - name: Fail if E2E failed on production\n",
+      );
+      return block + block.slice(start);
+    });
+    expect(modelledKeyProblems(job, "gate").join("\n")).toContain(
+      `Step 1 (gate) "name:Fail if E2E failed on production" of job 'e2e-gate' is not modelled (repeated step)`,
+    );
+  });
+
+  it.each([
+    [
+      "needs on migrate (only smoke has it)",
+      () => withJob(CI_INTEGRATION, "migrate", (b) => `    needs: smoke\n${b}`),
+      "Job (reject) key 'needs' is not modelled",
+    ],
+    [
+      "if on migrate (only smoke has it)",
+      () => withJob(CI_INTEGRATION, "migrate", (b) => `    if: always()\n${b}`),
+      "Job (reject) key 'if' is not modelled",
+    ],
+    [
+      "with on the reject step (only action steps have it)",
+      () =>
+        withJob(CI_INTEGRATION, "smoke", (b) =>
+          mutate(
+            b,
+            "      - name: Reject fork pull requests\n",
+            "      - name: Reject fork pull requests\n        with:\n          x: y\n",
+            1,
+          ),
+        ),
+      "Step 0 (reject) key 'with' is not modelled",
+    ],
+    [
+      "uses on a run step (only action steps have it)",
+      () =>
+        withJob(CI_INTEGRATION, "migrate", (b) =>
+          mutate(
+            b,
+            "      - name: Install dependencies\n",
+            "      - name: Install dependencies\n        uses: actions/cache@v4\n",
+            1,
+          ),
+        ),
+      "Step 5 (reject) key 'uses' is not modelled",
+    ],
+    [
+      "if on a non-reject step (only step 0 has it)",
+      () =>
+        withJob(CI_INTEGRATION, "migrate", (b) =>
+          mutate(
+            b,
+            "      - name: Install dependencies\n",
+            "      - name: Install dependencies\n        if: always()\n",
+            1,
+          ),
+        ),
+      "Step 5 (reject) key 'if' is not modelled",
+    ],
+  ])(
+    "reject %s fails closed with the exact message",
+    (_label, build, message) => {
+      const job = build();
+      expect(modelledKeyProblems(job, "reject").join("\n")).toContain(message);
+      expect(forkRejectProblems(job).join("\n")).toContain(message);
+      expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+    },
+  );
+
+  function buildResults(job: WorkflowJob) {
+    return Object.fromEntries(needsList(job).map((id) => [id, "success"]));
+  }
 });

@@ -277,6 +277,100 @@ export const MODELLED_STEP_KEYS: Record<ModelledRole, readonly string[]> = {
   gate: ["env", "name", "run", "uses", "with"],
 };
 
+/**
+ * Exact keys per real reject/gate job and per step, as ci.yml and
+ * ci-integration.yml have them today (no union per role). Steps are identified
+ * by `name:<name>`, or `uses:<action>` (ref dropped) for unnamed action steps;
+ * each identity occurs at most once per job. A job loaded under one of these
+ * `jobs:` keys is checked against this table; an unknown or repeated step is
+ * itself not modelled. Jobs without a pinned id (synthetic fixtures) fall back
+ * to the role lists {@link MODELLED_JOB_KEYS} / {@link MODELLED_STEP_KEYS}.
+ * The only step `env` is ci.yml ci-gate's policy step.
+ */
+export const MODELLED_KEYS_BY_JOB: Record<
+  string,
+  { job: readonly string[]; steps: Record<string, readonly string[]> }
+> = {
+  migrate: {
+    job: ["runs-on", "timeout-minutes", "env", "services", "steps"],
+    steps: {
+      "name:Reject fork pull requests": ["name", "if", "run"],
+      "uses:actions/checkout": ["uses", "with"],
+      "name:Install system dependencies (canvas)": ["name", "run"],
+      "uses:actions/setup-node": ["uses", "with"],
+      "uses:oven-sh/setup-bun": ["uses", "with"],
+      "name:Install dependencies": ["name", "run"],
+      "name:Install PostgreSQL client": ["name", "run"],
+      "name:Apply migrations": ["name", "run"],
+      "name:Verify disposable Supabase Auth compatibility": ["name", "run"],
+      "name:Apply Payload migrations": ["name", "run"],
+      "name:Verify Payload migration status": ["name", "run"],
+      "name:Apply demo seed": ["name", "run"],
+      "name:Verify donation fee replay": ["name", "run"],
+      "name:Verify seed counts": ["name", "run"],
+    },
+  },
+  smoke: {
+    job: [
+      "needs",
+      "if",
+      "runs-on",
+      "timeout-minutes",
+      "services",
+      "env",
+      "steps",
+    ],
+    steps: {
+      "name:Reject fork pull requests": ["name", "if", "run"],
+      "uses:actions/checkout": ["uses", "with"],
+      "name:Install system dependencies (canvas)": ["name", "run"],
+      "uses:actions/setup-node": ["uses", "with"],
+      "uses:oven-sh/setup-bun": ["uses", "with"],
+      "name:Install dependencies": ["name", "run"],
+      "name:Start donor app": ["name", "run"],
+      "name:Wait for health endpoint": ["name", "run"],
+      "name:Assert health response shape": ["name", "run"],
+    },
+  },
+  "e2e-smoke-gate": {
+    job: ["if", "needs", "runs-on", "steps"],
+    steps: {
+      "name:Fail if E2E smoke failed": ["name", "run"],
+    },
+  },
+  "integration-gate": {
+    job: ["if", "needs", "runs-on", "steps"],
+    steps: {
+      "name:Fail if integration prerequisites failed": ["name", "run"],
+    },
+  },
+  "e2e-gate": {
+    job: ["if", "needs", "runs-on", "steps"],
+    steps: {
+      "name:Fail if E2E failed on production": ["name", "run"],
+    },
+  },
+  "ci-gate": {
+    job: ["if", "needs", "runs-on", "steps"],
+    steps: {
+      "uses:actions/checkout": ["uses", "with"],
+      "uses:actions/setup-node": ["uses", "with"],
+      "name:Validate correctness checks and requested compilation": [
+        "name",
+        "env",
+        "run",
+      ],
+    },
+  },
+};
+
+/** `name:<name>`, else `uses:<action>` without its ref; how {@link MODELLED_KEYS_BY_JOB} keys steps. */
+export function stepIdentity(step: WorkflowStep): string {
+  if (typeof step.name === "string") return `name:${step.name}`;
+  if (typeof step.uses === "string") return `uses:${step.uses.split("@")[0]}`;
+  return "(unnamed step)";
+}
+
 function assertKeysModelled(
   value: unknown,
   allowed: readonly string[],
@@ -321,11 +415,32 @@ export function modelledKeyProblems(
   };
   const doc = workflowDocByJob.get(job);
   if (doc) check(() => assertWorkflowKeysModelled(doc));
+  const jobId = jobIdByJob.get(job);
+  const exact = jobId === undefined ? undefined : MODELLED_KEYS_BY_JOB[jobId];
   check(() =>
-    assertKeysModelled(job, MODELLED_JOB_KEYS[role], `Job (${role})`),
+    assertKeysModelled(
+      job,
+      exact?.job ?? MODELLED_JOB_KEYS[role],
+      `Job (${role})`,
+    ),
   );
+  const seen = new Set<string>();
   allSteps(job).forEach((step, index) =>
-    check(() => assertStepKeysModelled(step, role, `Step ${index}`)),
+    check(() => {
+      if (!exact) {
+        assertStepKeysModelled(step, role, `Step ${index}`);
+        return;
+      }
+      const identity = stepIdentity(step);
+      const allowed = exact.steps[identity];
+      if (allowed === undefined || seen.has(identity)) {
+        throw new Error(
+          `Step ${index} (${role}) ${JSON.stringify(identity)} of job '${jobId}' is not modelled (${allowed === undefined ? "not a step of the real job" : "repeated step"})`,
+        );
+      }
+      seen.add(identity);
+      assertKeysModelled(step, allowed, `Step ${index} (${role})`);
+    }),
   );
   return problems;
 }
