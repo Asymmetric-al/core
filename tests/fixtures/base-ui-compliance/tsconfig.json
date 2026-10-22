@@ -10,13 +10,17 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["../../../packages/ui/*"]
+      "@/*": ["../../../packages/ui/*"],
+      "nuqs/adapters/react": [
+        "../../../packages/ui/node_modules/nuqs/dist/adapters/react.d.ts"
+      ]
     }
   },
   "include": [
     "playwright.config.ts",
     "specs/**/*.ts",
     "pdf-modernization-main.tsx",
-    "styles.d.ts"
+    "styles.d.ts",
+    "ui-utilities-main.tsx"
   ]
 }

@@ -46,17 +46,17 @@ donor 61, missionary 47. Existing floors remain binding.
 
 ## Checkpoints
 
-| Checkpoint             | Exact initial target                                            | Status                                | Qualification                                                                              |
-| ---------------------- | --------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Framework security     | Next family 16.4.2, React/DOM 19.3.1, Node 24.22.1, Bun 1.4.3   | Merged                                | [Checkpoint record](framework-security.md)                                                 |
-| Tools / infrastructure | Supported ESLint 10, current tools and reproducible executables | Merged                                | [Tooling record](development-tools.md); [infrastructure record](runtime-infrastructure.md) |
-| Data / workflows / API | Current supported cohorts, GraphQL 17 product / 16 CMS boundary | Merged; post-merge CI passed          | [Data](data-access.md), [GraphQL](graphql.md), [workflows](workflows.md)                   |
-| Payload                | Public 4.0.0-beta.3 coherent cohort                             | Merged; production cutover open       | [Migration, restore, browser and unit evidence](payload.md)                                |
-| PDF source / artifacts | Current coordinated 0.1.0 artifacts                             | Owner merged; Core qualification open | [Source, import and verification](pdf-packages.md)                                         |
-| UI / telemetry / AI    | Current compatible families and pre-call governance             | Pending                               | Behavior/provider checks required                                                          |
-| Payments / legal       | Stripe 23 / Endive; OpenPolicy current + owned Terms            | Pending                               | Sandbox drain/abort and document equality required                                         |
-| Nested security / docs | Complete graph, owned exceptions, current active instructions   | Pending                               | Final SBOM/manual reconciliation required                                                  |
-| Combined release       | All merged exact versions                                       | Pending                               | Clean install, deployed previews and immutable production package required                 |
+| Checkpoint             | Exact initial target                                            | Status                            | Qualification                                                                              |
+| ---------------------- | --------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------ |
+| Framework security     | Next family 16.4.2, React/DOM 19.3.1, Node 24.22.1, Bun 1.4.3   | Merged                            | [Checkpoint record](framework-security.md)                                                 |
+| Tools / infrastructure | Supported ESLint 10, current tools and reproducible executables | Merged                            | [Tooling record](development-tools.md); [infrastructure record](runtime-infrastructure.md) |
+| Data / workflows / API | Current supported cohorts, GraphQL 17 product / 16 CMS boundary | Merged; post-merge CI passed      | [Data](data-access.md), [GraphQL](graphql.md), [workflows](workflows.md)                   |
+| Payload                | Public 4.0.0-beta.3 coherent cohort                             | Merged; production cutover open   | [Migration, restore, browser and unit evidence](payload.md)                                |
+| PDF source / artifacts | Current coordinated 0.1.0 artifacts                             | Merged; post-merge CI passed      | [Source, import and verification](pdf-packages.md)                                         |
+| UI / telemetry / AI    | Current compatible families and pre-call governance             | Six-library UI local gates passed | [UI evidence and open replacements](ui-utilities.md); remaining provider checks required   |
+| Payments / legal       | Stripe 23 / Endive; OpenPolicy current + owned Terms            | Pending                           | Sandbox drain/abort and document equality required                                         |
+| Nested security / docs | Complete graph, owned exceptions, current active instructions   | Pending                           | Final SBOM/manual reconciliation required                                                  |
+| Combined release       | All merged exact versions                                       | Pending                           | Clean install, deployed previews and immutable production package required                 |
 
 The [data access](data-access.md), [product GraphQL](graphql.md) and
 [workflow](workflows.md) implementations have merged through their qualified

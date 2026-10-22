@@ -168,8 +168,38 @@ function listChangedFiles() {
   return diffOutput.split("\0").filter(Boolean);
 }
 
+function isRequestedQaPreviewBuild(app) {
+  const marker = process.env.CORE_QA_FORCE_BUILD_SHA;
+  if (marker === undefined) return false;
+
+  let matched = false;
+  if (
+    Object.hasOwn(APPS, app) &&
+    process.env.VERCEL_ENV === "preview" &&
+    /^[a-f0-9]{40}$/.test(marker) &&
+    marker === process.env.VERCEL_GIT_COMMIT_SHA
+  ) {
+    try {
+      const head = execFileSync("git", ["rev-parse", "HEAD"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      }).trim();
+      matched = marker === head;
+    } catch {
+      // Missing Git context retains the ordinary ignored-build decision.
+    }
+  }
+  console.log(
+    matched
+      ? "[vercel-ignore] QA Preview marker matched"
+      : "[vercel-ignore] QA Preview marker not matched",
+  );
+  return matched;
+}
+
 function runCli(argv) {
   const [app] = argv;
+  if (isRequestedQaPreviewBuild(app)) return 1;
   let changedFiles;
 
   try {

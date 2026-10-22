@@ -41,14 +41,14 @@
           "target": null
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "source": {
         "kind": "imported-artifact",
         "manifest": "vendor/react-pdf-packages/asym-docraptor-client/package.json",
@@ -91,7 +91,8 @@
       ],
       "selectedTarget": "0.1.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@asym/pdf-editor",
@@ -124,14 +125,14 @@
           "target": null
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "source": {
         "kind": "imported-artifact",
         "manifest": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
@@ -167,7 +168,8 @@
       ],
       "selectedTarget": "0.1.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@asym/pdf-renderer",
@@ -207,14 +209,14 @@
           "target": null
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "source": {
         "kind": "imported-artifact",
         "manifest": "vendor/react-pdf-packages/asym-pdf-renderer/package.json",
@@ -257,7 +259,8 @@
       ],
       "selectedTarget": "0.1.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@asym/pdf-studio-adapter",
@@ -265,7 +268,7 @@
       "owner": "Asymmetric-al/react-PDF and Core maintainers",
       "auditedAt": "2026-10-21T15:23:39.393107+00:00",
       "initialTarget": null,
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
@@ -284,7 +287,7 @@
         "buildCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
         "provenance": "pdf-package-provenance.json"
       },
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "uses": [
         {
           "path": "package.json",
@@ -319,7 +322,8 @@
       ],
       "selectedTarget": "0.1.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@asym/pdf-template-schema",
@@ -380,14 +384,14 @@
           "target": null
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "source": {
         "kind": "imported-artifact",
         "manifest": "vendor/react-pdf-packages/asym-pdf-template-schema/package.json",
@@ -451,7 +455,8 @@
       ],
       "selectedTarget": "0.1.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@axe-core/playwright",
@@ -569,10 +574,10 @@
           "target": "6.3.1"
         }
       ],
-      "state": "unqualified",
+      "state": "replacement-required",
       "disposition": null,
       "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "The official current documentation labels this API family legacy and recommends @dnd-kit/react. Latest-version metadata for the old package does not close this finding. Product migration to the new supported public API remains required; current upstream-internal users need an individually owned compatibility assessment.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -588,7 +593,13 @@
           "declared": "^6.3.1",
           "target": "6.3.1"
         }
-      ]
+      ],
+      "replacementResearch": {
+        "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
+        "migrationGuide": "https://dndkit.com/react/guides/migration/",
+        "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
+        "candidateStatus": "researched, not installed or qualified"
+      }
     },
     {
       "name": "@dnd-kit/modifiers",
@@ -611,10 +622,10 @@
           "target": "9.0.0"
         }
       ],
-      "state": "unqualified",
+      "state": "replacement-required",
       "disposition": null,
       "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "The official current documentation labels this API family legacy and recommends @dnd-kit/react. Latest-version metadata for the old package does not close this finding. Product migration to the new supported public API remains required; current upstream-internal users need an individually owned compatibility assessment.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -623,7 +634,13 @@
           "declared": "^9.0.0",
           "target": "9.0.0"
         }
-      ]
+      ],
+      "replacementResearch": {
+        "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
+        "migrationGuide": "https://dndkit.com/react/guides/migration/",
+        "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
+        "candidateStatus": "researched, not installed or qualified"
+      }
     },
     {
       "name": "@dnd-kit/sortable",
@@ -653,10 +670,10 @@
           "target": "10.0.0"
         }
       ],
-      "state": "unqualified",
+      "state": "replacement-required",
       "disposition": null,
       "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "The official current documentation labels this API family legacy and recommends @dnd-kit/react. Latest-version metadata for the old package does not close this finding. Product migration to the new supported public API remains required; current upstream-internal users need an individually owned compatibility assessment.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -672,7 +689,13 @@
           "declared": "^10.0.0",
           "target": "10.0.0"
         }
-      ]
+      ],
+      "replacementResearch": {
+        "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
+        "migrationGuide": "https://dndkit.com/react/guides/migration/",
+        "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
+        "candidateStatus": "researched, not installed or qualified"
+      }
     },
     {
       "name": "@dnd-kit/utilities",
@@ -702,10 +725,10 @@
           "target": "3.2.2"
         }
       ],
-      "state": "unqualified",
+      "state": "replacement-required",
       "disposition": null,
       "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "The official current documentation labels this API family legacy and recommends @dnd-kit/react. Latest-version metadata for the old package does not close this finding. Product migration to the new supported public API remains required; current upstream-internal users need an individually owned compatibility assessment.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -721,7 +744,13 @@
           "declared": "^3.2.2",
           "target": "3.2.2"
         }
-      ]
+      ],
+      "replacementResearch": {
+        "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
+        "migrationGuide": "https://dndkit.com/react/guides/migration/",
+        "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
+        "candidateStatus": "researched, not installed or qualified"
+      }
     },
     {
       "name": "@fission-ai/openspec",
@@ -821,10 +850,10 @@
           "target": "0.15.1"
         }
       ],
-      "state": "unqualified",
+      "state": "owning-chain-replacement-required",
       "disposition": null,
       "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "The latest official CLI0.15.1 still pins Lighthouse12.6.1 and retains affected descendants. Resolve its owning chain or replace/remove obsolete tooling while preserving performance budgets. The six-package UI upgrade does not close this item.",
       "currentUses": [
         {
           "path": "package.json",
@@ -1465,14 +1494,14 @@
           "target": "1.7.14"
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -1491,7 +1520,8 @@
       ],
       "selectedTarget": "1.7.14",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@sentry/nextjs",
@@ -2894,14 +2924,14 @@
           "target": "3.32.0"
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -2920,7 +2950,8 @@
       ],
       "selectedTarget": "3.32.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@tiptap/extension-image",
@@ -2943,14 +2974,14 @@
           "target": "3.32.0"
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -2962,7 +2993,8 @@
       ],
       "selectedTarget": "3.32.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@tiptap/extension-mention",
@@ -2985,14 +3017,14 @@
           "target": "3.32.0"
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -3004,7 +3036,8 @@
       ],
       "selectedTarget": "3.32.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@tiptap/extension-placeholder",
@@ -3027,14 +3060,14 @@
           "target": "3.32.0"
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -3046,7 +3079,8 @@
       ],
       "selectedTarget": "3.32.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@tiptap/pm",
@@ -3069,14 +3103,14 @@
           "target": "3.32.0"
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -3095,7 +3129,8 @@
       ],
       "selectedTarget": "3.32.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@tiptap/react",
@@ -3125,14 +3160,14 @@
           "target": "3.32.0"
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "currentUses": [
         {
           "path": "package.json",
@@ -3151,7 +3186,8 @@
       ],
       "selectedTarget": "3.32.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@tiptap/starter-kit",
@@ -3174,14 +3210,14 @@
           "target": "3.32.0"
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -3193,7 +3229,8 @@
       ],
       "selectedTarget": "3.32.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@tiptap/static-renderer",
@@ -3216,14 +3253,14 @@
           "target": "3.32.0"
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -3235,7 +3272,8 @@
       ],
       "selectedTarget": "3.32.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@tiptap/suggestion",
@@ -3258,14 +3296,14 @@
           "target": "3.32.0"
         }
       ],
-      "state": "implemented-awaiting-core-pdf-qualification",
+      "state": "merged-qualified-checkpoint",
       "disposition": "upgraded",
       "verification": [
         "pdf-packages.md",
         "pdf-package-provenance.json",
         "pdf-owner-release.json"
       ],
-      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
+      "note": "Owner react-PDF PR #25 and Core PR #2188 are merged. Full gates, complete changed-file review, current-head CI, all three hosted preview smoke projects and both Core post-merge workflows passed. Whole-campaign security and combined release preparation remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -3277,7 +3315,8 @@
       ],
       "selectedTarget": "3.32.0",
       "qualification": "pdf-packages.md",
-      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00",
+      "mergeEvidence": "docs/maintenance/modernization/pdf-release-readback.json"
     },
     {
       "name": "@types/node",
@@ -4210,19 +4249,25 @@
           "target": "0.5.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "disposition": "upgraded",
+      "verification": [
+        "docs/maintenance/modernization/ui-utilities.md",
+        "docs/maintenance/modernization/ui-utilities-qualification.json"
+      ],
+      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "cn",
-          "declared": "0.4.0",
+          "declared": "0.5.0",
           "target": "0.5.0"
         }
-      ]
+      ],
+      "selectedTarget": "0.5.0",
+      "verifiedAt": "2026-10-22T14:08:30.058087+00:00",
+      "selectedTargetSource": "https://registry.npmjs.org/cn/latest"
     },
     {
       "name": "date-fns",
@@ -5194,61 +5239,67 @@
           "target": "1.61.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "disposition": "upgraded",
+      "verification": [
+        "docs/maintenance/modernization/ui-utilities.md",
+        "docs/maintenance/modernization/ui-utilities-qualification.json"
+      ],
+      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "lucide-react",
-          "declared": "1.52.0",
+          "declared": "1.61.0",
           "target": "1.61.0"
         },
         {
           "path": "apps/donor/package.json",
           "section": "dependencies",
           "declaredAs": "lucide-react",
-          "declared": "1.52.0",
+          "declared": "1.61.0",
           "target": "1.61.0"
         },
         {
           "path": "apps/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "lucide-react",
-          "declared": "1.52.0",
+          "declared": "1.61.0",
           "target": "1.61.0"
         },
         {
           "path": "packages/config/package.json",
           "section": "dependencies",
           "declaredAs": "lucide-react",
-          "declared": "1.52.0",
+          "declared": "1.61.0",
           "target": "1.61.0"
         },
         {
           "path": "packages/lib/package.json",
           "section": "dependencies",
           "declaredAs": "lucide-react",
-          "declared": "1.52.0",
+          "declared": "1.61.0",
           "target": "1.61.0"
         },
         {
           "path": "packages/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "lucide-react",
-          "declared": "1.52.0",
+          "declared": "1.61.0",
           "target": "1.61.0"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "lucide-react",
-          "declared": "1.52.0",
+          "declared": "1.61.0",
           "target": "1.61.0"
         }
-      ]
+      ],
+      "selectedTarget": "1.61.0",
+      "verifiedAt": "2026-10-22T14:08:30.058087+00:00",
+      "selectedTargetSource": "https://registry.npmjs.org/lucide-react/latest"
     },
     {
       "name": "maplibre-gl",
@@ -5270,19 +5321,25 @@
           "target": "6.15.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "disposition": "upgraded",
+      "verification": [
+        "docs/maintenance/modernization/ui-utilities.md",
+        "docs/maintenance/modernization/ui-utilities-qualification.json"
+      ],
+      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "maplibre-gl",
-          "declared": "6.13.0",
+          "declared": "6.15.0",
           "target": "6.15.0"
         }
-      ]
+      ],
+      "selectedTarget": "6.15.0",
+      "verifiedAt": "2026-10-22T14:08:30.058087+00:00",
+      "selectedTargetSource": "https://registry.npmjs.org/maplibre-gl/latest"
     },
     {
       "name": "motion",
@@ -5339,54 +5396,60 @@
           "target": "14.5.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "disposition": "upgraded",
+      "verification": [
+        "docs/maintenance/modernization/ui-utilities.md",
+        "docs/maintenance/modernization/ui-utilities-qualification.json"
+      ],
+      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "motion",
-          "declared": "14.0.0",
-          "target": "14.5.0"
+          "declared": "14.6.0",
+          "target": "14.6.0"
         },
         {
           "path": "apps/donor/package.json",
           "section": "dependencies",
           "declaredAs": "motion",
-          "declared": "14.0.0",
-          "target": "14.5.0"
+          "declared": "14.6.0",
+          "target": "14.6.0"
         },
         {
           "path": "apps/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "motion",
-          "declared": "14.0.0",
-          "target": "14.5.0"
+          "declared": "14.6.0",
+          "target": "14.6.0"
         },
         {
           "path": "packages/lib/package.json",
           "section": "dependencies",
           "declaredAs": "motion",
-          "declared": "14.0.0",
-          "target": "14.5.0"
+          "declared": "14.6.0",
+          "target": "14.6.0"
         },
         {
           "path": "packages/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "motion",
-          "declared": "14.0.0",
-          "target": "14.5.0"
+          "declared": "14.6.0",
+          "target": "14.6.0"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "motion",
-          "declared": "14.0.0",
-          "target": "14.5.0"
+          "declared": "14.6.0",
+          "target": "14.6.0"
         }
-      ]
+      ],
+      "selectedTarget": "14.6.0",
+      "verifiedAt": "2026-10-22T14:08:30.058087+00:00",
+      "selectedTargetSource": "https://registry.npmjs.org/motion/latest"
     },
     {
       "name": "next",
@@ -5670,40 +5733,46 @@
           "target": "2.10.2"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "disposition": "upgraded",
+      "verification": [
+        "docs/maintenance/modernization/ui-utilities.md",
+        "docs/maintenance/modernization/ui-utilities-qualification.json"
+      ],
+      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "nuqs",
-          "declared": "2.10.1",
+          "declared": "2.10.2",
           "target": "2.10.2"
         },
         {
           "path": "apps/donor/package.json",
           "section": "dependencies",
           "declaredAs": "nuqs",
-          "declared": "2.10.1",
+          "declared": "2.10.2",
           "target": "2.10.2"
         },
         {
           "path": "apps/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "nuqs",
-          "declared": "2.10.1",
+          "declared": "2.10.2",
           "target": "2.10.2"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "nuqs",
-          "declared": "2.10.1",
+          "declared": "2.10.2",
           "target": "2.10.2"
         }
-      ]
+      ],
+      "selectedTarget": "2.10.2",
+      "verifiedAt": "2026-10-22T14:08:30.058087+00:00",
+      "selectedTargetSource": "https://registry.npmjs.org/nuqs/latest"
     },
     {
       "name": "payload",
@@ -6333,19 +6402,25 @@
           "target": "4.14.8"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "disposition": "upgraded",
+      "verification": [
+        "docs/maintenance/modernization/ui-utilities.md",
+        "docs/maintenance/modernization/ui-utilities-qualification.json"
+      ],
+      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "react-resizable-panels",
-          "declared": "4.14.2",
+          "declared": "4.14.8",
           "target": "4.14.8"
         }
-      ]
+      ],
+      "selectedTarget": "4.14.8",
+      "verifiedAt": "2026-10-22T14:08:30.058087+00:00",
+      "selectedTargetSource": "https://registry.npmjs.org/react-resizable-panels/latest"
     },
     {
       "name": "recharts",
@@ -7494,7 +7569,7 @@
       "selectedTargetSource": "https://registry.npmjs.org/zod",
       "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
       "qualification": "data-access-qualification.json",
-      "remainingScope": "Product/workspace qualification is retained; refreshed PDF0.1.0 uses Zod4.6.7 without the historical npm alias. Core PDF checkpoint qualification remains required."
+      "remainingScope": "Product/workspace qualification is retained; refreshed PDF 0.1.0 uses Zod 4.6.7 without the historical npm alias. The PDF checkpoint is merged after full gates/review/CI/previews and both post-merge workflows passed. Combined release/security remain open."
     }
   ],
   "manifestCoverage": {
