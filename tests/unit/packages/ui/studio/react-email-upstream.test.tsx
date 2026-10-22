@@ -1,14 +1,14 @@
 /** @vitest-environment jsdom */
 
-import { act, cleanup, render, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { createRef, Suspense } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ReactEmailEditor } from "../../../../../packages/ui/components/studio/ReactEmailEditor";
-
-import type { ComponentType } from "react";
+import uiPackage from "../../../../../packages/ui/package.json";
 
 import type { EmailStudioEditorHandle } from "../../../../../packages/email/email-builder-types";
+import type { ComponentType } from "react";
 
 // Next's client loader is the only substitution: the native upstream editor,
 // extensions, schema and email serializer all execute in this fixture.
@@ -49,6 +49,12 @@ describe("native React Email upstream contract", () => {
     );
     await waitFor(() => expect(onReady).toHaveBeenCalled(), { timeout: 10000 });
 
+    expect(
+      screen
+        .getByRole("textbox", { name: "Email content", exact: true })
+        .getAttribute("aria-multiline"),
+    ).toBe("true");
+
     const saved = await ref.current?.exportDesign();
     expect(JSON.stringify(saved)).toContain('"type":"mergeTag"');
     expect(JSON.stringify(saved)).toContain('"key":"first_name"');
@@ -61,6 +67,9 @@ describe("native React Email upstream contract", () => {
       "Dear {{first_name}}, thank you for giving.",
     );
     expect(exported?.subject).toBe("Field update");
+    expect(exported?.builderVersion).toBe(
+      uiPackage.dependencies["@react-email/editor"],
+    );
 
     await act(async () => ref.current?.loadDesign(JSON.stringify(saved)));
     expect(await ref.current?.exportDesign()).toEqual(saved);

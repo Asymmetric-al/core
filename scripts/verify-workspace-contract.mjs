@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import path from "node:path";
 
 import { globSync } from "glob";
 import ts from "typescript";
@@ -83,17 +84,17 @@ function verifyAsymDeps(pkg, pkgPath) {
       if (
         name.startsWith("@asym/") &&
         version !== "workspace:*" &&
-        !isAllowedVendoredAsymDependency(name, version)
+        !isAllowedVendoredAsymDependency(name, version, pkgPath)
       ) {
         violations.push(
-          `${pkgPath}:1: ${depType}.${name}: '${version}' != 'workspace:*' or approved vendored package directory`,
+          `${pkgPath}:1: ${depType}.${name}: '${version}' != 'workspace:*' or approved vendored package archive`,
         );
       }
     }
   }
 }
 
-function isAllowedVendoredAsymDependency(name, version) {
+function isAllowedVendoredAsymDependency(name, version, pkgPath) {
   const expectedPackageDirectory = allowedVendoredAsymPackages.get(name);
   if (!expectedPackageDirectory || typeof version !== "string") {
     return false;
@@ -104,13 +105,16 @@ function isAllowedVendoredAsymDependency(name, version) {
     return false;
   }
 
-  const normalizedPath = version
-    .slice(filePrefix.length)
-    .replaceAll("\\", "/")
-    .replace(/^(\.\.\/)+/, "");
+  const filePath = version.slice(filePrefix.length).replaceAll("\\", "/");
+  const archiveName = path.basename(filePath);
+  const versionedArchive = new RegExp(
+    `^${expectedPackageDirectory}-\\d+\\.\\d+\\.\\d+\\.tgz$`,
+  );
 
   return (
-    normalizedPath === `vendor/react-pdf-packages/${expectedPackageDirectory}`
+    versionedArchive.test(archiveName) &&
+    path.resolve(path.dirname(pkgPath), filePath) ===
+      path.resolve("vendor/react-pdf-packages", archiveName)
   );
 }
 

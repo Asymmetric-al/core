@@ -45,12 +45,21 @@ describe("development compilation policy", () => {
     ).toEqual(["admin", "donor", "missionary"]);
   });
 
-  it("compiles all apps when installed file-package links change", () => {
+  it("compiles all apps when workspace installation links change", () => {
     expect(
       resolveCompilation({
         ...development,
-        changedFiles: ["scripts/repair-file-package-links.mjs"],
+        changedFiles: ["scripts/repair-workspace-links.mjs"],
       }),
+    ).toEqual(["admin", "donor", "missionary"]);
+  });
+
+  it.each([
+    "vendor/react-pdf-packages/asym-pdf-editor-0.1.0.tgz",
+    "vendor/react-pdf-packages/asym-pdf-editor/dist/index.mjs",
+  ])("compiles all apps when a consumed PDF artifact changes: %s", (file) => {
+    expect(
+      resolveCompilation({ ...development, changedFiles: [file] }),
     ).toEqual(["admin", "donor", "missionary"]);
   });
 

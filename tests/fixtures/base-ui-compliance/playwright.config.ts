@@ -9,7 +9,7 @@ export default defineConfig({
     "../../../test-results/base-ui-compliance/playwright",
   ),
   timeout: 45_000,
-  // The four-project matrix now covers 55 contracts; retain a bounded suite budget.
+  // Keep the full four-project browser matrix within a bounded suite budget.
   globalTimeout: 600_000,
   expect: { timeout: 5_000 },
   fullyParallel: true,

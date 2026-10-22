@@ -1,6 +1,6 @@
 {
   "name": "@asym/docraptor-client",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Server-only DocRaptor client boundary for the Asym PDF Document Builder.",
   "private": true,
   "type": "module",
@@ -32,9 +32,25 @@
     "pdf"
   ],
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.22.1"
+  },
+  "devDependencies": {
+    "tsconfig": "0.0.0",
+    "tsdown": "0.23.1",
+    "vitest": "5.0.5",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "typescript": "6.0.3"
   },
   "dependencies": {
-    "@asym/pdf-template-schema": "0.0.0"
+    "@asym/pdf-template-schema": "0.1.0"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "build:watch": "tsdown --watch",
+    "clean": "rm -rf dist",
+    "lint": "biome check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "node ./node_modules/@typescript/native/bin/tsc --noEmit"
   }
 }

@@ -5,7 +5,7 @@ let _react_email_editor_core = require("@react-email/editor/core");
 let _react_email_editor_ui = require("@react-email/editor/ui");
 let _react_email_editor_extensions = require("@react-email/editor/extensions");
 let _react_email_editor_plugins = require("@react-email/editor/plugins");
-//#region src/index.ts
+// src/index.ts
 const pdfEditorBoundary = {
 	packageName: "@asym/pdf-editor",
 	maturity: "phase-27-assets",
@@ -14,7 +14,6 @@ const pdfEditorBoundary = {
 	compatibility: "react-email-reference-adapter",
 	consumes: ["@asym/pdf-template-schema", "@react-email/editor"]
 };
-//#endregion
 Object.defineProperty(exports, "DocumentEditor", {
 	enumerable: true,
 	get: function() {
