@@ -65,7 +65,18 @@ The `email.received` payload contains metadata only (sender, recipient, subject,
 |-------|---------|
 | `domain.created` / `updated` / `deleted` | Domain configuration changes |
 | `contact.created` / `updated` / `deleted` | Contact list changes (not from CSV imports) |
+| `contact.topics.updated` | Contact's topic subscriptions change |
 | `suppression.added` / `removed` | Email address added to or removed from the suppression list |
+| `topic.created` / `updated` / `deleted` | Topic created, updated, or deleted |
+| `inbox.created` / `updated` / `deleted` | Inbox created, its settings changed, or deleted |
+| `inbox.thread.created` | First email of a thread landed in an inbox, inbound or outbound |
+| `inbox.email.received` / `sent` | Inbound email added to a thread, or outbound email accepted for delivery and added to a thread |
+| `inbox.thread.folder.updated` | Thread moved between folders |
+| `inbox.thread.assigned` / `unassigned` | Thread assigned, reassigned, or unassigned |
+| `inbox.thread.labels.updated` | Labels added to or removed from a thread |
+| `inbox.draft.created` / `updated` / `sent` / `deleted` | Draft created, edited, sent, or discarded |
+
+Inbox event payloads carry no email or draft body. See [inboxes.md](inboxes.md#webhook-events).
 
 ## Setup
 

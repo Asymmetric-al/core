@@ -38,11 +38,7 @@ before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
-## Initial Response
-
-When this skill is first invoked without a specific question, respond only with:
-
-> I'm ready to put a name to any motion effect you describe, my knowledge comes from Emil Kowalski's animation philosophy.
+When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.
 
 Turn a vague description of a motion or effect into the precise term, so the user knows what to ask for.
 

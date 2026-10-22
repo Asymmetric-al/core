@@ -112,6 +112,7 @@
     "review-animations",
     "run-smoke-tests",
     "samson-factory",
+    "security-audit",
     "setup-matt-pocock-skills",
     "setup-pre-commit",
     "supabase",
@@ -169,6 +170,7 @@
       "PHASE-BOUNDARIES.md",
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "ask-sonner": [
@@ -257,6 +259,7 @@
     "better-writing": [
       "SKILL.md",
       "agents/openai.yaml",
+      "patterns.md",
       "references/LICENSE.md",
       "references/upstream.md"
     ],
@@ -274,6 +277,7 @@
     "code-review": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "codebase-design": [
@@ -281,6 +285,7 @@
       "DESIGN-IT-TWICE.md",
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "commit": [
@@ -325,12 +330,51 @@
     ],
     "design-an-interface": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "design-taste-frontend": [
+      "README.md",
       "SKILL.md",
+      "assets/app.css",
+      "assets/base.css",
+      "assets/base.js",
+      "assets/charts.js",
+      "assets/scenes/stage.css",
+      "assets/scenes/stage.js",
+      "evals/evals.json",
+      "library/app.json",
+      "library/directions.json",
+      "library/heroes.json",
+      "library/motions.json",
+      "library/palettes.json",
+      "library/photos.json",
+      "library/sections.json",
+      "library/sites.json",
+      "library/type.json",
       "references/LICENSE.md",
-      "references/upstream.md"
+      "references/app-screens.md",
+      "references/colour.md",
+      "references/copy.md",
+      "references/critique.md",
+      "references/imagery.md",
+      "references/layout.md",
+      "references/motion.md",
+      "references/research.md",
+      "references/scenes.md",
+      "references/tells.md",
+      "references/type.md",
+      "references/upstream.md",
+      "scripts/assets.mjs",
+      "scripts/draw.mjs",
+      "scripts/inspect.mjs",
+      "scripts/lib/app-draw.mjs",
+      "scripts/lib/cdp.mjs",
+      "scripts/lib/preview-boundary.mjs",
+      "scripts/lib/probe.mjs",
+      "scripts/lib/rules.mjs",
+      "scripts/lint.mjs",
+      "scripts/scenes.mjs"
     ],
     "deslop": [
       "SKILL.md",
@@ -339,6 +383,7 @@
     "diagnosing-bugs": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md",
       "scripts/hitl-loop.template.sh"
     ],
@@ -351,10 +396,12 @@
       "CONTEXT-FORMAT.md",
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "edit-article": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "emil-design-eng": [
@@ -382,6 +429,8 @@
     ],
     "eve": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
+      "references/UPSTREAM-NOTICE",
       "references/upstream.md"
     ],
     "find-animation-opportunities": [
@@ -426,20 +475,24 @@
     "grill-me": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "grill-with-docs": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "grilling": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "idempotency-handling": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/database-based-idempotency.md",
       "references/express-idempotency-middleware.md",
       "references/message-queue-idempotency.md",
@@ -464,6 +517,7 @@
       "reference/bolder.md",
       "reference/clarify.md",
       "reference/colorize.md",
+      "reference/component-review.md",
       "reference/craft-floor.md",
       "reference/craft.md",
       "reference/critique.md",
@@ -484,6 +538,9 @@
       "reference/layout.md",
       "reference/live-setup.md",
       "reference/live.md",
+      "reference/mode-operate.md",
+      "reference/mode-persuade.md",
+      "reference/mode-read.md",
       "reference/new-work.md",
       "reference/onboard.md",
       "reference/operate.md",
@@ -491,10 +548,13 @@
       "reference/overdrive.md",
       "reference/polish.md",
       "reference/quieter.md",
+      "reference/region-map.md",
       "reference/routing.md",
       "reference/shape.md",
       "reference/typeset.md",
       "reference/visualize.md",
+      "references/UPSTREAM-LICENSE",
+      "references/UPSTREAM-NOTICE.md",
       "references/upstream.md",
       "scripts/VERSION",
       "scripts/command-metadata.json",
@@ -511,10 +571,12 @@
     "implement": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "improve": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/audit-playbook.md",
       "references/closing-the-loop.md",
       "references/plan-template.md",
@@ -531,6 +593,7 @@
       "HTML-REPORT.md",
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "inngest": [
@@ -603,6 +666,7 @@
     "migrate-to-shoehorn": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "moai-library-shadcn": [
@@ -669,14 +733,19 @@
       "references/upstream.md"
     ],
     "nextjs-app-architecture": [
+      "LICENSE",
+      "README.md",
       "SKILL.md",
+      "metadata.json",
       "references/cache-components.md",
       "references/components.md",
       "references/example.md",
       "references/feature-folders.md",
+      "references/instant-navigation.md",
       "references/pages-suspense.md",
       "references/queries-actions.md",
       "references/single-page-applications.md",
+      "references/testing.md",
       "references/upstream.md",
       "references/ux-patterns.md"
     ],
@@ -692,6 +761,7 @@
     ],
     "obsidian-vault": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "openspec-apply-change": [
@@ -784,6 +854,7 @@
       "infrastructure-ci-cd/performance.md",
       "infrastructure-ci-cd/reporting.md",
       "infrastructure-ci-cd/test-coverage.md",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md",
       "testing-patterns/accessibility.md",
       "testing-patterns/api-testing.md",
@@ -820,10 +891,13 @@
       "LOGIC.md",
       "SKILL.md",
       "UI.md",
+      "agents/openai.yaml",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "qa": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "react-component-dev": [
@@ -845,15 +919,18 @@
     ],
     "request-refactor-plan": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "research": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "resend-cli": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/api-keys.md",
       "references/auth.md",
       "references/automations.md",
@@ -864,6 +941,7 @@
       "references/domains.md",
       "references/emails.md",
       "references/error-codes.md",
+      "references/inboxes.md",
       "references/logs.md",
       "references/segments.md",
       "references/suppressions.md",
@@ -876,21 +954,27 @@
     "resolving-merge-conflicts": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "reui": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/docs.md",
       "references/upstream-manifest.json",
       "references/upstream.md",
       "rules/adapting.md",
+      "rules/anti-patterns.md",
       "rules/cli.md",
+      "rules/color.md",
       "rules/components.md",
-      "rules/craft.md",
+      "rules/compose.md",
       "rules/icons.md",
+      "rules/layout.md",
+      "rules/motion.md",
       "rules/quality.md",
       "rules/registry.md",
-      "rules/styling.md",
+      "rules/theming.md",
       "rules/workflow.md",
       "tools.md"
     ],
@@ -912,6 +996,30 @@
       "SKILL.md",
       "references/protocol.md"
     ],
+    "security-audit": [
+      "AI-AND-LLM.md",
+      "ATTACK-CLASSES.md",
+      "CLIENT-SIDE.md",
+      "CLOUD-AND-DEPLOYMENT.md",
+      "DATA-ISOLATION-AND-LIFECYCLE.md",
+      "DESKTOP-MOBILE-AND-LOCAL-IPC.md",
+      "HUNTING.md",
+      "MEMORY-SAFETY-AND-BINARY.md",
+      "PROTOCOLS-RPC-AND-MESSAGING.md",
+      "RECONNAISSANCE.md",
+      "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md",
+      "SKILL.md",
+      "SUPPLY-CHAIN-AND-RELEASE.md",
+      "VALIDATION-AND-REPORTING.md",
+      "WEB-PROTOCOL-AND-AUTH.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "report-schema.json",
+      "validate-coverage-ledger.cjs",
+      "validate-coverage-ledger.test.cjs",
+      "validate-findings.cjs",
+      "validate-findings.test.cjs"
+    ],
     "setup-matt-pocock-skills": [
       "SKILL.md",
       "agents/openai.yaml",
@@ -919,26 +1027,28 @@
       "issue-tracker-github.md",
       "issue-tracker-gitlab.md",
       "issue-tracker-local.md",
+      "references/LICENSE.md",
       "references/upstream.md",
       "triage-labels.md"
     ],
     "setup-pre-commit": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "supabase": [
       "CHANGELOG.md",
       "SKILL.md",
       "assets/feedback-issue-template.md",
+      "references/UPSTREAM-LICENSE",
       "references/skill-feedback.md",
       "references/upstream.md"
     ],
     "supabase-postgres-best-practices": [
-      "AGENTS.md",
       "CHANGELOG.md",
-      "CLAUDE.md",
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/_contributing.md",
       "references/_sections.md",
       "references/_template.md",
@@ -979,6 +1089,7 @@
       "SKILL.md",
       "agents/openai.yaml",
       "mocking.md",
+      "references/LICENSE.md",
       "references/upstream.md",
       "tests.md"
     ],
@@ -994,16 +1105,23 @@
     ],
     "tiptap": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE.md",
+      "references/ai.md",
+      "references/collaboration.md",
+      "references/document-features.md",
+      "references/setup.md",
       "references/upstream.md"
     ],
     "to-spec": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "to-tickets": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "triage": [
@@ -1011,10 +1129,12 @@
       "OUT-OF-SCOPE.md",
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "ubiquitous-language": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "vercel-react-best-practices": [
@@ -1112,11 +1232,13 @@
     ],
     "vitest": [
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "wayfinder": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "weekly-review": [
@@ -1139,6 +1261,7 @@
     "writing-great-skills": [
       "GLOSSARY.md",
       "SKILL.md",
+      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ]
   }

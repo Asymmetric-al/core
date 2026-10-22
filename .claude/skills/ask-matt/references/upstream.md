@@ -1,10 +1,13 @@
 ---
-source_name: mattpocock/skills (ask-matt)
+source_name: mattpocock/skills
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/engineering/ask-matt/SKILL.md
-skills_lock_hash: b25d86fb36b1d294eeead5d7db529f86135f9671f2afcd607579a63bb2213769
-last_reviewed: 2026-09-16
+skills_lock_hash: 1371f5ce005de0992a44b137748bfb960a56948aa9871b405fe9d90b24332e3c
+last_reviewed: 2026-10-22
+source_path: skills/engineering/ask-matt/
+reviewed_commit: 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+license: MIT
 ---
 
 # Upstream: ask-matt
@@ -34,3 +37,13 @@ Canonical copy in this repo: `docs/ai/skills/ask-matt/` (mirrored to `.agents/sk
 This skill is updated by `bun run skills:refresh-ask-matt` after a Skills CLI
 add. Full `bun run skills:refresh-upstream` skips the group when
 `.agents/skills/ask-matt` is missing.
+
+## Reviewed refresh, 2026-10-22
+
+- Source: `mattpocock/skills` at `5beb35b040e3de97e54fa9e386d7e42d15c295c2`.
+- Complete upstream skill tree: `skills/engineering/ask-matt/`; MIT notice: [LICENSE.md](LICENSE.md).
+- Raw upstream `SKILL.md` SHA-256: `1371f5ce005de0992a44b137748bfb960a56948aa9871b405fe9d90b24332e3c`.
+- Preserve Core discovery metadata, explicit-only invocation, existing overlays and compatibility corrections. Raw upstream scripts are vendored data; none were executed during this refresh.
+- Core keeps CONTEXT.md, CONTEXT-MAP.md and CONTEXT-FORMAT.md; upstream glossary filenames are remapped without renaming repository documents. Core TDD and authorization rules override generic seam, refactor and commit instructions.
+- Keep the installed Core flow. Do not introduce routes to uninstalled implement-spec, pr, retro, to-questionnaire or wait-what; the writing successor remains the kept writing-great-skills route.
+- Keep all three prototype detour steps nested under main-flow step 2; conflict resolution remains a standalone kept snapshot.

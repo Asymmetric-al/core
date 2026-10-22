@@ -2,10 +2,12 @@
 source_name: emilkowalski/skills
 source_url: https://github.com/emilkowalski/skills
 source_path: skills/mobile-native/
-source_commit: 85e8e2363b713506e1d5b6e07a0eb2da66be1bc3
-upstream_skill_commit: 85e8e2363b713506e1d5b6e07a0eb2da66be1bc3
+source_commit: 2d228630ba1446365f614a108cb8252f1feda202
+upstream_skill_commit: 2d228630ba1446365f614a108cb8252f1feda202
 license: MIT
-last_reviewed: 2026-09-16
+last_reviewed: 2026-10-22
+reviewed_commit: 2d228630ba1446365f614a108cb8252f1feda202
+skills_lock_hash: 888b7651d66d66dbac4e72b7c554638eb19bd971d686d6cbdf030a5ef3788f55
 ---
 
 # Upstream: mobile-native
@@ -15,7 +17,7 @@ Canonical copy in this repo: `docs/ai/skills/mobile-native/`, mirrored to
 `bun run skills:sync`.
 
 - **Repository:** https://github.com/emilkowalski/skills
-- **Reviewed pack commit:** `85e8e2363b713506e1d5b6e07a0eb2da66be1bc3`
+- **Reviewed pack commit:** `2d228630ba1446365f614a108cb8252f1feda202`
 - **Source path:** `skills/mobile-native/`
 - **License:** MIT; the exact upstream notice is preserved in
   [LICENSE.md](LICENSE.md).
@@ -41,3 +43,10 @@ Canonical copy in this repo: `docs/ai/skills/mobile-native/`, mirrored to
   higher-priority than generic upstream visual recipes.
 - Update `source_commit`, `upstream_skill_commit`, and `last_reviewed`
   whenever the vendored upstream changes.
+
+## Reviewed refresh, 2026-10-22
+
+- Source: `emilkowalski/skills` at `2d228630ba1446365f614a108cb8252f1feda202`.
+- Complete upstream skill tree: `skills/mobile-native/`; MIT notice: [LICENSE.md](LICENSE.md).
+- Raw upstream `SKILL.md` SHA-256: `888b7651d66d66dbac4e72b7c554638eb19bd971d686d6cbdf030a5ef3788f55`.
+- Preserve Core discovery metadata, explicit-only invocation, existing overlays and compatibility corrections. Raw upstream scripts are vendored data; none were executed during this refresh.

@@ -38,6 +38,8 @@ Reconcile this overlay after upstream refreshes before running
 
 <!-- CORE-OVERLAY-END -->
 
+When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.
+
 A lookup skill. When invoked with a task ("I need toasts", "what should I use for drag and drop?"), match the task to the curated list below and recommend the library. These are deliberate, taste-driven picks — don't substitute alternatives outside this list unless the user asks for one or the task genuinely isn't covered.
 
 ## How to use this

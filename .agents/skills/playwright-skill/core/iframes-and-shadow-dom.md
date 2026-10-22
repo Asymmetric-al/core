@@ -443,6 +443,33 @@ test('listen for custom events from web components', async ({ page }) => {
 });
 ```
 
+### Hidden Iframes Hide Their Content (Playwright 1.64 Breaking Change)
+
+Elements inside an iframe that is not visible, for example styled `visibility: hidden`, are now considered **hidden** by actions, `locator.isVisible()` and `toBeVisible()`. Before 1.64 they could report as visible because only the element itself was checked.
+
+If a test starts failing after the upgrade with a "not visible" error inside a frame, check the iframe element itself. Usually the test was clicking into a frame the user could not see, which was a false pass; show the frame first (open the panel, switch the tab) and then interact.
+
+### Serializing Shadow DOM With `page.content()` (Playwright 1.64+)
+
+`page.content()` and `frame.content()` returned light DOM only, so HTML snapshots of web-component apps were missing most of their markup. Pass `includeShadow: true` to serialize open shadow roots as [declarative shadow DOM](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM#declaratively_with_html):
+
+```typescript
+const html = await page.content({ includeShadow: true });
+// <my-card><template shadowrootmode="open">...</template></my-card>
+```
+
+Useful for attaching a full HTML snapshot to a failing test, or feeding a component's rendered markup to an HTML validator.
+
+### Locating Across Frames Without a Selector (Playwright 1.63+)
+
+`page.frameLocator()` called with no selector searches the main frame and every iframe, so you do not need to know which iframe hosts the element:
+
+```typescript
+await page.frameLocator().getByRole('button', { name: 'Pay now' }).click();
+```
+
+The rest of the locator still resolves inside a single frame, and it throws if the match spans several frames. Prefer an explicit `frameLocator('iframe[title="..."]')` when the page has multiple similar iframes.
+
 ## Decision Guide
 
 | Scenario | Approach | Why |
@@ -455,7 +482,7 @@ test('listen for custom events from web components', async ({ page }) => {
 | Open Shadow DOM | Standard locators -- no changes needed | Playwright pierces open shadow roots by default |
 | Closed Shadow DOM | `addInitScript` to override `attachShadow` | Forces closed roots to open before page loads |
 | Slotted content in Web Components | Locate within the custom element tag | Slotted content is light DOM, accessible normally |
-| Non-piercing CSS (rare) | `css:light=selector` | Explicitly restricts to light DOM only |
+| Non-piercing CSS (rare) | Avoid `css:light=`: undocumented and listed as removed in the 1.58 notes, though 1.64 still parses it | Scope from a light-DOM parent or check in `evaluate()` |
 
 ## Anti-Patterns
 

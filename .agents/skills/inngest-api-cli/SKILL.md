@@ -13,6 +13,10 @@ description: >-
 
 # Inngest API CLI
 
+For Cloud operations, prefer available connected Inngest Cloud MCP tools. This repository does not install the upstream inngest-cloud skill.
+Keep this skill for explicit terminal/HTTP work or a capability missing from
+MCP. Do not ask for an API key when OAuth MCP can complete the task.
+
 Use this skill when the task is operational: inspect, debug, sync, invoke, or
 query Inngest API resources through the terminal. This skill is intentionally
 prescriptive so agents can act without guessing.
@@ -244,7 +248,7 @@ right skill is unclear, start with `docs/ai/skills/inngest/SKILL.md`.
       or dependencies.
 - [ ] Existing workflows were audited before introducing or changing durable
       workflow behavior.
-- [ ] Any MCP usage is backed by a running Inngest dev server on the configured
+- [ ] Local dev-server MCP usage is backed by a running Inngest dev server on the configured
       port.
 - [ ] Upstream source and license attribution remain documented in
       `docs/ai/skills/inngest/references/upstream.md`.

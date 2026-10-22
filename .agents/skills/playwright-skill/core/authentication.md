@@ -150,6 +150,27 @@ test('swap to a different authenticated state without recreating the context', a
 });
 ```
 
+### Saving IndexedDB and OPFS Auth State
+
+`storageState()` saves cookies and local storage by default. If your app keeps auth tokens elsewhere, opt in when saving: `indexedDB: true` (Firebase Authentication and similar, 1.51+) or `opfs: true` for the origin private file system (1.63+).
+
+```typescript
+await page.context().storageState({ path: '.auth/user.json', indexedDB: true, opfs: true });
+```
+
+### HTTP Basic Auth Across Origins (Playwright 1.63+)
+
+`httpCredentials` accepts an array. The first entry whose `origin` matches the request is used; an entry without `origin` matches any request.
+
+```typescript
+use: {
+  httpCredentials: [
+    { username: 'app', password: process.env.APP_PASS!, origin: 'https://app.staging.example.com' }, // pragma: allowlist secret
+    { username: 'api', password: process.env.API_PASS!, origin: 'https://api.staging.example.com' }, // pragma: allowlist secret
+  ],
+},
+```
+
 ### Global Setup Authentication
 
 **Use when**: You want to authenticate once before the entire test suite runs, then reuse that session everywhere. The standard Playwright-recommended approach.
@@ -170,7 +191,7 @@ async function globalSetup(config: FullConfig) {
 
   await page.goto(`${baseURL}/login`);
   await page.getByLabel('Email').fill(process.env.TEST_USER_EMAIL!);
-  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD!); // pragma: allowlist secret
+  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD!);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('**/dashboard');
 
@@ -207,7 +228,7 @@ async function globalSetup(config) {
 
   await page.goto(`${baseURL}/login`);
   await page.getByLabel('Email').fill(process.env.TEST_USER_EMAIL);
-  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD); // pragma: allowlist secret
+  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('**/dashboard');
 
@@ -256,7 +277,7 @@ export const test = base.extend<{}, AuthFixtures>({
 
     await page.goto('/login');
     await page.getByLabel('Email').fill(`worker-${test.info().parallelIndex}@test.com`);
-    await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
+    await page.getByLabel('Password').fill('password');
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
     await page.close();
@@ -294,7 +315,7 @@ const test = base.extend({
 
     await page.goto('/login');
     await page.getByLabel('Email').fill(`worker-${test.info().parallelIndex}@test.com`);
-    await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
+    await page.getByLabel('Password').fill('password');
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
     await page.close();
@@ -335,7 +356,7 @@ async function globalSetup(config: FullConfig) {
 
     await page.goto(`${baseURL}/login`);
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password); // pragma: allowlist secret
+    await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
@@ -421,7 +442,7 @@ async function globalSetup(config) {
 
     await page.goto(`${baseURL}/login`);
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password); // pragma: allowlist secret
+    await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
@@ -1218,8 +1239,8 @@ test.describe('unauthenticated access', () => {
     await page.goto('/signup');
     await page.getByLabel('Name').fill('New User');
     await page.getByLabel('Email').fill(`test-${Date.now()}@test.com`);
-    await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass'); // pragma: allowlist secret
-    await page.getByLabel('Confirm password').fill('s3cure!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass');
+    await page.getByLabel('Confirm password').fill('s3cure!Pass');
     await page.getByRole('button', { name: 'Create account' }).click();
 
     await page.waitForURL('/onboarding');
@@ -1252,8 +1273,8 @@ test.describe('unauthenticated access', () => {
     await page.goto('/signup');
     await page.getByLabel('Name').fill('New User');
     await page.getByLabel('Email').fill(`test-${Date.now()}@test.com`);
-    await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass'); // pragma: allowlist secret
-    await page.getByLabel('Confirm password').fill('s3cure!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass');
+    await page.getByLabel('Confirm password').fill('s3cure!Pass');
     await page.getByRole('button', { name: 'Create account' }).click();
 
     await page.waitForURL('/onboarding');

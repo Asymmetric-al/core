@@ -2,6 +2,8 @@
 
 This reference contains full implementation code for each security level. See the main SKILL.md for a summary and when to use each level.
 
+Each example receives the email from `resend.inboxes.threads.emails.get()` (`InboxEmail`) and the `ThreadRef` built from the webhook payload, as in SKILL.md. `senderAddress()` is the helper from the SKILL.md Level 1 example. It extracts the address from a `from` value such as `Name <address>`. For [Receiving without an inbox](../SKILL.md#receiving-without-an-inbox), pass the email from `resend.emails.receiving.get()` instead.
+
 ## Table of Contents
 
 - [Level 1: Strict Allowlist](#level-1-strict-allowlist-recommended-for-most-use-cases)
@@ -22,26 +24,24 @@ const ALLOWED_SENDERS = [
   'notifications@github.com',    // Specific services you trust
 ];
 
-async function processEmailForAgent(
-  eventData: EmailReceivedEvent,
-  emailContent: EmailContent
-) {
-  const sender = eventData.from.toLowerCase();
+async function processEmailForAgent(email: InboxEmail, thread: ThreadRef) {
+  const sender = senderAddress(email.from);
 
   // Strict check: only exact matches
   if (!ALLOWED_SENDERS.some(allowed => sender === allowed.toLowerCase())) {
     console.log(`Rejected email from unauthorized sender: ${sender}`);
 
     // Optionally notify yourself of rejected emails
-    await notifyOwnerOfRejectedEmail(eventData);
+    await notifyOwnerOfRejectedEmail(email);
     return;
   }
 
   // Safe to process - sender is verified
   await agent.processEmail({
-    from: eventData.from,
-    subject: eventData.subject,
-    body: emailContent.text || emailContent.html,
+    from: email.from,
+    subject: email.subject,
+    body: email.text || email.html,
+    thread,
   });
 }
 ```
@@ -59,14 +59,14 @@ const ALLOWED_DOMAINS = [
   'trustedpartner.com',
 ];
 
-function isAllowedDomain(email: string): boolean {
-  const domain = email.split('@')[1]?.toLowerCase();
+function isAllowedDomain(from: string): boolean {
+  const domain = senderAddress(from).split('@')[1];
   return ALLOWED_DOMAINS.some(allowed => domain === allowed);
 }
 
-async function processEmailForAgent(eventData: EmailReceivedEvent, emailContent: EmailContent) {
-  if (!isAllowedDomain(eventData.from)) {
-    console.log(`Rejected email from unauthorized domain: ${eventData.from}`);
+async function processEmailForAgent(email: InboxEmail, thread: ThreadRef) {
+  if (!isAllowedDomain(email.from)) {
+    console.log(`Rejected email from unauthorized domain: ${senderAddress(email.from)}`);
     return;
   }
 
@@ -125,21 +125,22 @@ function checkContentSafety(content: string): { safe: boolean; flags: string[] }
   };
 }
 
-async function processEmailForAgent(eventData: EmailReceivedEvent, emailContent: EmailContent) {
-  const content = emailContent.text || stripHtml(emailContent.html);
+async function processEmailForAgent(email: InboxEmail, thread: ThreadRef) {
+  const content = email.text || stripHtml(email.html ?? '');
   const analysis = checkContentSafety(content);
 
   if (!analysis.safe) {
-    console.warn(`Flagged content from ${eventData.from}:`, analysis.flags);
-    await logFlaggedEmail(eventData, analysis);
+    console.warn(`Flagged content from ${senderAddress(email.from)}:`, analysis.flags);
+    await logFlaggedEmail(email, analysis);
     return;
   }
 
   // Limit what the agent can do with external emails
   await agent.processEmail({
-    from: eventData.from,
-    subject: eventData.subject,
+    from: email.from,
+    subject: email.subject,
     body: content,
+    thread,
     capabilities: ['read', 'reply'],
   });
 }
@@ -177,16 +178,17 @@ const UNTRUSTED_CAPABILITIES: AgentCapabilities = {
   canAccessSecrets: false,
 };
 
-async function processEmailForAgent(eventData: EmailReceivedEvent, emailContent: EmailContent) {
-  const sender = eventData.from.toLowerCase();
+async function processEmailForAgent(email: InboxEmail, thread: ThreadRef) {
+  const sender = senderAddress(email.from);
   const isTrusted = ALLOWED_SENDERS.some(allowed => sender === allowed.toLowerCase());
 
   const capabilities = isTrusted ? TRUSTED_CAPABILITIES : UNTRUSTED_CAPABILITIES;
 
   await agent.processEmail({
-    from: eventData.from,
-    subject: eventData.subject,
-    body: emailContent.text || emailContent.html,
+    from: email.from,
+    subject: email.subject,
+    body: email.text || email.html,
+    thread,
     capabilities,
     context: {
       trustLevel: isTrusted ? 'trusted' : 'untrusted',
@@ -211,15 +213,16 @@ Require human approval for any action beyond simple replies.
 ```typescript
 interface PendingAction {
   id: string;
-  email: EmailData;
+  email: InboxEmail;
+  thread: ThreadRef;
   proposedAction: string;
   proposedResponse: string;
   createdAt: Date;
   status: 'pending' | 'approved' | 'rejected';
 }
 
-async function processEmailForAgent(eventData: EmailReceivedEvent, emailContent: EmailContent) {
-  const sender = eventData.from.toLowerCase();
+async function processEmailForAgent(email: InboxEmail, thread: ThreadRef) {
+  const sender = senderAddress(email.from);
   const isTrusted = ALLOWED_SENDERS.some(allowed => sender === allowed.toLowerCase());
 
   if (isTrusted) {
@@ -229,15 +232,16 @@ async function processEmailForAgent(eventData: EmailReceivedEvent, emailContent:
 
   // Untrusted: agent proposes action, human approves
   const proposedAction = await agent.analyzeAndPropose({
-    from: eventData.from,
-    subject: eventData.subject,
-    body: emailContent.text,
+    from: email.from,
+    subject: email.subject,
+    body: email.text,
   });
 
   // Store for human review
   const pendingAction: PendingAction = {
     id: generateId(),
-    email: eventData,
+    email,
+    thread,
     proposedAction: proposedAction.action,
     proposedResponse: proposedAction.response,
     createdAt: new Date(),
@@ -263,6 +267,11 @@ For complex use cases, combine levels:
 ## Complete Example: Configurable Security
 
 ```typescript
+import { Resend } from 'resend';
+import type { GetInboxThreadEmailResponseSuccess as InboxEmail, WebhookEventPayload } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 const config = {
   allowedSenders: (process.env.ALLOWED_SENDERS || '').split(',').filter(Boolean),
   allowedDomains: (process.env.ALLOWED_DOMAINS || '').split(',').filter(Boolean),
@@ -270,33 +279,41 @@ const config = {
   ownerEmail: process.env.OWNER_EMAIL,
 };
 
-export async function handleIncomingEmail(event: EmailReceivedWebhookEvent): Promise<void> {
-  const sender = event.data.from.toLowerCase();
-  const { data: email } = await resend.emails.receiving.get(event.data.email_id);
+export async function handleIncomingEmail(event: WebhookEventPayload): Promise<void> {
+  if (event.type !== 'inbox.email.received') return;
+
+  const { inbox_id, thread_id, email_id } = event.data;
+  const thread = { inboxId: inbox_id, threadId: thread_id, emailId: email_id };
+  const { data: email, error } = await resend.inboxes.threads.emails.get(thread);
+  if (error) throw new Error(`Failed to fetch email: ${error.message}`);
+
+  const sender = senderAddress(email.from);
 
   switch (config.securityLevel) {
     case 'strict':
       if (!config.allowedSenders.some(a => sender === a.toLowerCase())) {
-        await logRejection(event, 'sender_not_allowed');
+        await logRejection(email, 'sender_not_allowed');
         return;
       }
       break;
 
-    case 'domain':
+    case 'domain': {
       const domain = sender.split('@')[1];
       if (!config.allowedDomains.some(allowed => domain === allowed.toLowerCase())) {
-        await logRejection(event, 'domain_not_allowed');
+        await logRejection(email, 'domain_not_allowed');
         return;
       }
       break;
+    }
 
-    case 'filtered':
+    case 'filtered': {
       const analysis = checkContentSafety(email.text || '');
       if (!analysis.safe) {
-        await logRejection(event, 'content_flagged', analysis.flags);
+        await logRejection(email, 'content_flagged', analysis.flags);
         return;
       }
       break;
+    }
 
     case 'sandboxed':
       // Process with reduced capabilities (see Level 4 above)
@@ -304,21 +321,22 @@ export async function handleIncomingEmail(event: EmailReceivedWebhookEvent): Pro
   }
 
   await processWithAgent({
-    id: event.data.email_id,
-    from: event.data.from,
-    to: event.data.to,
-    subject: event.data.subject,
+    id: email.id,
+    from: email.from,
+    to: email.to,
+    subject: email.subject,
     body: email.text || email.html,
     receivedAt: event.created_at,
+    thread,
   });
 }
 
 async function logRejection(
-  event: EmailReceivedWebhookEvent,
+  email: InboxEmail,
   reason: string,
   details?: string[]
 ): Promise<void> {
-  console.log(`[SECURITY] Rejected email from ${event.data.from}: ${reason}`, details);
+  console.log(`[SECURITY] Rejected email from ${senderAddress(email.from)}: ${reason}`, details);
 
   if (config.ownerEmail) {
     await resend.emails.send({
@@ -328,8 +346,8 @@ async function logRejection(
       text: `
 An email was rejected by your agent's security filter.
 
-From: ${event.data.from}
-Subject: ${event.data.subject}
+From: ${email.from}
+Subject: ${email.subject}
 Reason: ${reason}
 ${details ? `Details: ${details.join(', ')}` : ''}
 

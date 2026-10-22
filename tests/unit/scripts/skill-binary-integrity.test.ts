@@ -41,6 +41,32 @@ describe("skill binary integrity", () => {
     },
   );
 
+  it("preserves exact upstream fixture bytes through Git newline filters", () => {
+    const probe = Buffer.from("first\r\nsecond\r\n\r\n");
+    const raw = spawnSync("git", ["hash-object", "--stdin"], {
+      cwd: root,
+      env,
+      input: probe,
+      encoding: "utf8",
+    });
+    expect(raw.status, raw.stderr).toBe(0);
+    for (const directory of ["managed-skill-refresh", "stripe-skill-refresh"]) {
+      const filtered = spawnSync(
+        "git",
+        [
+          "-c",
+          "core.autocrlf=true",
+          "hash-object",
+          `--path=tests/fixtures/${directory}/probe/SKILL.md.raw`,
+          "--stdin",
+        ],
+        { cwd: root, env, input: probe, encoding: "utf8" },
+      );
+      expect(filtered.status, filtered.stderr).toBe(0);
+      expect(filtered.stdout, directory).toBe(raw.stdout);
+    }
+  });
+
   it("retains valid PNG bytes for both referenced shadcn icons in every mirror", () => {
     for (const runtime of [".agents", ".cursor", ".claude"]) {
       for (const name of ["shadcn.png", "shadcn-small.png"]) {

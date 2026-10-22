@@ -1,10 +1,13 @@
 ---
-source_name: mattpocock/skills (wayfinder)
+source_name: mattpocock/skills
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/engineering/wayfinder/SKILL.md
-skills_lock_hash: 71d7080cec29cd00ef8173b1aa591f57a08e2a0a5ea6b6339a6ff2cf2895ccc1
-last_reviewed: 2026-07-09
+skills_lock_hash: 9be7b478c389605a24517d27752f278933588da97a1b5921b165f455edf4c5b7
+last_reviewed: 2026-10-22
+source_path: skills/engineering/wayfinder/
+reviewed_commit: 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+license: MIT
 ---
 
 # Upstream: wayfinder
@@ -23,3 +26,11 @@ Canonical copy in this repo: `docs/ai/skills/wayfinder/` (mirrored to `.agents/s
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 
 This skill is **not** updated by `bun run skills:refresh-upstream`.
+
+## Reviewed refresh, 2026-10-22
+
+- Source: `mattpocock/skills` at `5beb35b040e3de97e54fa9e386d7e42d15c295c2`.
+- Complete upstream skill tree: `skills/engineering/wayfinder/`; MIT notice: [LICENSE.md](LICENSE.md).
+- Raw upstream `SKILL.md` SHA-256: `9be7b478c389605a24517d27752f278933588da97a1b5921b165f455edf4c5b7`.
+- Preserve Core discovery metadata, explicit-only invocation, existing overlays and compatibility corrections. Raw upstream scripts are vendored data; none were executed during this refresh.
+- Core keeps CONTEXT.md, CONTEXT-MAP.md and CONTEXT-FORMAT.md; upstream glossary filenames are remapped without renaming repository documents. Core TDD and authorization rules override generic seam, refactor and commit instructions.

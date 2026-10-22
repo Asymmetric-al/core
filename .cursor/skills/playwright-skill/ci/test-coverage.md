@@ -246,7 +246,7 @@ npx nyc report
   run: npx nyc check-coverage --lines 80 --branches 70 --functions 75
 
 - name: Upload coverage report
-  uses: actions/upload-artifact@v4
+  uses: actions/upload-artifact@v7
   if: ${{ !cancelled() }}
   with:
     name: coverage-report
@@ -274,7 +274,7 @@ jobs:
         run: COVERAGE=true npx playwright test --shard=${{ matrix.shard }} --project=chromium
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: coverage-${{ strategy.job-index }}
@@ -286,15 +286,15 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: lts/*
           cache: 'npm'
       - run: npm ci
 
       - name: Download all coverage data
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: all-coverage
           pattern: coverage-*
@@ -308,7 +308,7 @@ jobs:
           npx nyc check-coverage --lines 80 --branches 70 --functions 75
 
       - name: Upload merged coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage/

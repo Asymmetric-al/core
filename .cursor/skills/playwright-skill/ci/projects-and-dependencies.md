@@ -5,7 +5,7 @@
 ## Quick Reference
 
 ```bash
-# Run all projects
+# Run all projects (except ones marked default: false)
 npx playwright test
 
 # Run a specific project
@@ -17,6 +17,9 @@ npx playwright test --project=chromium --project=firefox
 
 # List all projects and their tests
 npx playwright test --list
+
+# Run every project, including ones marked default: false (1.64+)
+npx playwright test --project="*"
 
 # Skip dependencies (e.g., skip setup during debugging)
 npx playwright test --project=chromium --no-deps
@@ -71,6 +74,33 @@ jobs:
       # All browsers on main branch
       - run: npx playwright test
 ```
+
+### Pattern 1b: Configure Every Browser, Run One by Default (`default: false`, Playwright 1.64+)
+
+**Use when**: You want Firefox and WebKit configured in one place, but a plain `npx playwright test` on a laptop should run only Chromium.
+**Avoid when**: Every run, local and CI, should cover every browser; leave `default` unset.
+
+**Before 1.64** the choices were to run every browser on every local run (slow), comment projects in and out, or gate them on `process.env.CI` (config logic that drifts). **1.64** adds `default: false`: the project stays in the config and is selectable by name, but does not run unless asked for. One exception: a `default: false` project still runs when a running project lists it in `dependencies` or `teardown`, so marking a setup project `default: false` does not skip it.
+
+```typescript
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] }, default: false },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] }, default: false },
+  ],
+});
+```
+
+```bash
+npx playwright test                     # chromium only
+npx playwright test --project=firefox   # firefox
+npx playwright test --project="*"       # all three, for example on CI
+```
+
+In global setup and reporters, `config.filteredProjects` (1.64+) lists the projects actually selected for this run after `--project` and `default` are applied, so setup can skip work for browsers that are not running. See [global-setup-teardown.md](global-setup-teardown.md).
 
 ### Pattern 2: Desktop and Mobile Projects
 
