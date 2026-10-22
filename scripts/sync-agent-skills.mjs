@@ -1058,6 +1058,13 @@ async function main() {
       skillName,
       path.join(sourceRoot, skillName),
     );
+  // Restore reviewed component recipes in their canonical owner before any
+  // mirror pruning, copying or manifest publication.
+  if (canonicalSkills.includes("components-build"))
+    await applyManagedSkillCompatibility(
+      "components-build",
+      path.join(sourceRoot, "components-build"),
+    );
   if (canonicalSkills.includes("impeccable"))
     await normalizeImpeccableLauncher(path.join(sourceRoot, "impeccable"));
   const canonicalSkillFiles = await buildCanonicalSkillFiles(canonicalSkills);
@@ -1107,13 +1114,7 @@ async function main() {
   }
 
   await restoreGitGuardrailsFailClosedHook();
-  for (const name of [
-    "claude-handoff",
-    "components-build",
-    "handoff",
-    "teach",
-    "wizard",
-  ]) {
+  for (const name of ["claude-handoff", "handoff", "teach", "wizard"]) {
     const target = path.join(repoRoot, ".agents/skills", name);
     if (await pathExists(path.join(target, "SKILL.md")))
       await applyManagedSkillCompatibility(name, target);

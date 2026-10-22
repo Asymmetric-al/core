@@ -37,6 +37,25 @@ const emil = [
   "write-swift",
 ];
 
+const componentsLegacy = JSON.parse(
+  await readFile(
+    path.join(fixtureRoot, "components-build-legacy-guidance.json"),
+    "utf8",
+  ),
+) as {
+  files: Record<string, string>;
+  compiledState: string;
+  compiledRender: string;
+  compiledComposition: string;
+  compiledChapter4: string;
+  compiledToc: string;
+  skillIndex: string;
+  readmeIndex: string;
+  compositionIndex: string;
+  retainedCompiledSections: Record<string, string>;
+  retainedSectionMetadata: Record<string, string>;
+};
+
 // Synthetic raw-source excerpts retain the reviewed competing examples. They
 // exercise restoration without claiming a new upstream capture or source hash.
 const componentsRawFiles: Record<string, string> = {
@@ -58,6 +77,22 @@ const componentsRawFiles: Record<string, string> = {
   "references/original.md.raw": "Original raw source: clsx and twMerge.\n",
 };
 
+for (const relative of ["AGENTS.md", "rules/styling.md"])
+  componentsRawFiles[relative] +=
+    '\n\x60\x60\x60tsx\nclassName = "bg-red-500 bg-blue-500"; // Both classes apply, causing conflicts\n\x60\x60\x60\n';
+
+Object.assign(componentsRawFiles, componentsLegacy.files);
+componentsRawFiles["SKILL.md"] +=
+  componentsLegacy.skillIndex + "\n" + componentsLegacy.compositionIndex;
+componentsRawFiles["README.md"] += componentsLegacy.readmeIndex;
+componentsRawFiles["AGENTS.md"] += [
+  componentsLegacy.compiledToc,
+  componentsLegacy.compiledChapter4,
+  componentsLegacy.compiledState,
+  componentsLegacy.compiledRender,
+  "## 10. Unrelated retained chapter\n\nSentinel guidance remains unchanged.\n",
+].join("\n\n");
+
 async function componentsFixture() {
   await mkdir(path.join(repo, ".tmp"), { recursive: true });
   const root = await mkdtemp(path.join(repo, ".tmp/components-build-test-"));
@@ -68,6 +103,53 @@ async function componentsFixture() {
     await writeFile(file, content);
   }
   return root;
+}
+async function componentsSyncFixture() {
+  const raw = await componentsFixture();
+  const root = await mkdtemp(
+    path.join(repo, ".tmp/components-build-sync-test-"),
+  );
+  roots.push(root);
+  await mkdir(path.join(root, "scripts"), { recursive: true });
+  await cp(
+    path.join(repo, "scripts/sync-agent-skills.mjs"),
+    path.join(root, "scripts/sync-agent-skills.mjs"),
+  );
+  await cp(path.join(repo, "scripts/lib"), path.join(root, "scripts/lib"), {
+    recursive: true,
+  });
+  await cp(
+    path.join(repo, "scripts/refresh-overlays"),
+    path.join(root, "scripts/refresh-overlays"),
+    { recursive: true },
+  );
+  await mkdir(path.join(root, "docs/ai/skills"), { recursive: true });
+  await cp(raw, path.join(root, "docs/ai/skills/components-build"), {
+    recursive: true,
+  });
+  return root;
+}
+function syncComponents(root: string) {
+  return spawnSync(process.execPath, ["scripts/sync-agent-skills.mjs"], {
+    cwd: root,
+    encoding: "utf8",
+    timeout: 30_000,
+  });
+}
+async function snapshotDocuments(root: string) {
+  const files: Record<string, string> = {};
+  const visit = async (relative: string): Promise<void> => {
+    for (const entry of await readdir(path.join(root, relative), {
+      withFileTypes: true,
+    })) {
+      const file = path.join(relative, entry.name);
+      if (entry.isDirectory()) await visit(file);
+      else files[file] = await readFile(path.join(root, file), "utf8");
+    }
+  };
+  for (const relative of ["docs", ".agents", ".cursor", ".claude"])
+    await visit(relative);
+  return files;
 }
 async function rawTree(name: string, target: string, relative = "") {
   await mkdir(path.join(target, relative), { recursive: true });
@@ -126,6 +208,74 @@ afterEach(async () => {
     await rm(root, { recursive: true, force: true });
 });
 describe("reviewed raw managed-skill restoration", () => {
+  it("restores Base UI composition and state from independent legacy guidance fixtures", async () => {
+    const root = await componentsFixture();
+    await applyManagedSkillCompatibility("components-build", root);
+    const render = await readFile(path.join(root, "rules/as-child.md"), "utf8");
+    const state = await readFile(path.join(root, "rules/state.md"), "utf8");
+    const composition = await readFile(
+      path.join(root, "rules/composition.md"),
+      "utf8",
+    );
+    const compiled = await readFile(path.join(root, "AGENTS.md"), "utf8");
+    expect(render).toContain("DialogTrigger render={<Button");
+    expect(render).toContain("buttonVariants");
+    expect(render).toContain("<a href=");
+    expect(render).toContain("ref={ref}");
+    expect(render).toContain("{...props}");
+    expect(render).toContain("nativeButton={false}");
+    expect(render).not.toMatch(/<Button[^>]*render=\{<a/u);
+    for (const content of [render, state, composition, compiled]) {
+      expect(content).not.toContain("@radix-ui/");
+      expect(content).not.toMatch(
+        /<Slot\b|\basChild(?:\s*=|\s*>|,)|useControllableState/u,
+      );
+    }
+    expect(state).toContain("defaultChecked");
+    expect(state).toContain("onCheckedChange");
+    expect(state).toContain("defaultValue");
+    expect(state).toContain("onValueChange");
+    expect(composition).toContain(
+      'from "@asym/ui/components/shadcn/accordion"',
+    );
+    expect(composition).not.toContain("createContext");
+    const metadata = await readFile(
+      path.join(root, "rules/_sections.md"),
+      "utf8",
+    );
+    expect(metadata).toContain("## 9. Render Composition (as-child)");
+    expect(metadata).not.toMatch(/useControllableState|Radix UI Slot/u);
+    expect(compiled).toContain("## 9. Render Composition");
+    expect(compiled).toContain("[Render Composition](#9-render-composition)");
+    expect(compiled).toContain(
+      "## 10. Unrelated retained chapter\n\nSentinel guidance remains unchanged.",
+    );
+  });
+
+  it("restores compiled composition prose around Core's flat exports and primitive state ownership", async () => {
+    const root = await componentsFixture();
+    await applyManagedSkillCompatibility("components-build", root);
+    const compiled = await readFile(path.join(root, "AGENTS.md"), "utf8");
+    const chapter = compiled.slice(
+      compiled.indexOf("## 4. Composition\n"),
+      compiled.indexOf("## 6. State\n"),
+    );
+    expect(chapter).toContain('from "@asym/ui/components/shadcn/accordion"');
+    expect(chapter).toContain('<Accordion defaultValue={["details"]}>');
+    expect(chapter).toContain("Import the existing flat exports");
+    expect(chapter).toContain("owns the existing primitive's state");
+    expect(chapter).toContain("already own state coordination");
+    expect(chapter).not.toMatch(
+      /Use React Context to share state|Export components as a namespace|Namespace Exports|Context for State|manages shared state using Context/u,
+    );
+    expect(chapter).not.toMatch(
+      /A simple wrapper for each item:|Handles user interaction:|Displays the main content:/u,
+    );
+    expect(chapter).not.toMatch(
+      /<Accordion\.Root|<Accordion[^>]*\b(?:open|setOpen)=/u,
+    );
+  });
+
   it("restores the components shared cn contract without changing provenance, rights or raw source", async () => {
     const root = await componentsFixture();
     await applyManagedSkillCompatibility("components-build", root);
@@ -135,7 +285,7 @@ describe("reviewed raw managed-skill restoration", () => {
       first.set(relative, actual);
       if (relative.startsWith("references/")) {
         expect(actual, relative).toBe(componentsRawFiles[relative]);
-      } else {
+      } else if (!Object.hasOwn(componentsLegacy.files, relative)) {
         expect(actual, relative).toContain(
           'import { cn } from "@asym/ui/lib/utils";',
         );
@@ -146,6 +296,8 @@ describe("reviewed raw managed-skill restoration", () => {
     expect(styling).not.toContain("export function cn(");
     expect(styling).not.toContain("twMerge(");
     expect(styling).toContain('cn("px-4 py-2", "px-8")');
+    expect(styling).toContain('cn("bg-primary", "bg-background")');
+    expect(styling).not.toMatch(/bg-(?:red|blue)-500/u);
     expect(first.get("AGENTS.md")).not.toContain("twMerge(");
     expect(first.get("AGENTS.md")).not.toContain('from "@/lib/utils"');
     expect(first.get("rules/overview.md")).not.toContain('from "@/lib/utils"');
@@ -186,6 +338,67 @@ describe("reviewed raw managed-skill restoration", () => {
         content,
       );
   });
+  it("preserves unrelated compiled chapters from the reviewed baseline byte-for-byte", async () => {
+    const compiled = await readFile(
+      path.join(repo, "docs/ai/skills/components-build/AGENTS.md"),
+      "utf8",
+    );
+    const headings = [...compiled.matchAll(/^## (\d+)\. /gmu)];
+    for (const [chapter, expected] of Object.entries(
+      componentsLegacy.retainedCompiledSections,
+    )) {
+      const index = headings.findIndex((heading) => heading[1] === chapter);
+      expect(index, chapter).toBeGreaterThanOrEqual(0);
+      const section = compiled.slice(
+        headings[index]!.index,
+        headings[index + 1]?.index,
+      );
+      expect(createHash("sha256").update(section).digest("hex"), chapter).toBe(
+        expected,
+      );
+    }
+  });
+  it("preserves every unrelated compilation metadata section byte-for-byte", async () => {
+    const metadata = await readFile(
+      path.join(repo, "docs/ai/skills/components-build/rules/_sections.md"),
+      "utf8",
+    );
+    const headings = [...metadata.matchAll(/^## (\d+)\. /gmu)];
+    for (const [chapter, expected] of Object.entries(
+      componentsLegacy.retainedSectionMetadata,
+    )) {
+      const index = headings.findIndex((heading) => heading[1] === chapter);
+      expect(index, chapter).toBeGreaterThanOrEqual(0);
+      const section = metadata.slice(
+        headings[index]!.index,
+        headings[index + 1]?.index,
+      );
+      expect(createHash("sha256").update(section).digest("hex"), chapter).toBe(
+        expected,
+      );
+    }
+  });
+  it("rejects drifted compiled composition prose before writing any reviewed document", async () => {
+    const root = await componentsFixture();
+    const file = path.join(root, "AGENTS.md");
+    await writeFile(
+      file,
+      (await readFile(file, "utf8")).replace(
+        "Namespace Exports",
+        "Unreviewed Export Policy",
+      ),
+    );
+    const before = new Map<string, string>();
+    for (const relative of Object.keys(componentsRawFiles))
+      before.set(relative, await readFile(path.join(root, relative), "utf8"));
+    await expect(
+      applyManagedSkillCompatibility("components-build", root),
+    ).rejects.toThrow("guidance drifted");
+    for (const [relative, content] of before)
+      expect(await readFile(path.join(root, relative), "utf8"), relative).toBe(
+        content,
+      );
+  });
   it("rejects a drifted components helper before writing any of the reviewed documents", async () => {
     const root = await componentsFixture();
     const file = path.join(root, "rules/styling.md");
@@ -206,6 +419,79 @@ describe("reviewed raw managed-skill restoration", () => {
       expect(await readFile(path.join(root, relative), "utf8"), relative).toBe(
         content,
       );
+  });
+  it.each([
+    "rules/as-child.md",
+    "rules/state.md",
+    "rules/composition.md",
+    "rules/_sections.md",
+  ])(
+    "rejects unreviewed %s restoration before any document writes",
+    async (relative) => {
+      const root = await componentsFixture();
+      const file = path.join(root, relative);
+      await writeFile(
+        file,
+        (await readFile(file, "utf8")).replace(
+          relative === "rules/_sections.md"
+            ? /useControllableState/u
+            : /impact:/u,
+          "changedGuidance",
+        ),
+      );
+      const before = new Map<string, string>();
+      for (const name of Object.keys(componentsRawFiles))
+        before.set(name, await readFile(path.join(root, name), "utf8"));
+      await expect(
+        applyManagedSkillCompatibility("components-build", root),
+      ).rejects.toThrow("guidance drifted");
+      for (const [name, body] of before)
+        expect(await readFile(path.join(root, name), "utf8"), name).toBe(body);
+    },
+  );
+  it.each(["SKILL.md", "README.md"])(
+    "rejects a drifted %s composition index before any document writes",
+    async (relative) => {
+      const root = await componentsFixture();
+      const file = path.join(root, relative);
+      await writeFile(
+        file,
+        (await readFile(file, "utf8")).replace(
+          "Radix Slot composition pattern",
+          "Unreviewed composition pattern",
+        ),
+      );
+      const before = new Map<string, string>();
+      for (const name of Object.keys(componentsRawFiles))
+        before.set(name, await readFile(path.join(root, name), "utf8"));
+      await expect(
+        applyManagedSkillCompatibility("components-build", root),
+      ).rejects.toThrow("index drifted");
+      for (const [name, body] of before)
+        expect(await readFile(path.join(root, name), "utf8"), name).toBe(body);
+    },
+  );
+  it("rejects an extra active legacy host recipe before adapting other documents", async () => {
+    const root = await componentsFixture();
+    const file = path.join(root, "rules/composition.md");
+    const fence = String.fromCharCode(96).repeat(3);
+    await writeFile(
+      file,
+      componentsRawFiles["rules/composition.md"] +
+        "\n" +
+        fence +
+        "tsx\n<Slot asChild />;\n" +
+        fence +
+        "\n",
+    );
+    const before = new Map<string, string>();
+    for (const name of Object.keys(componentsRawFiles))
+      before.set(name, await readFile(path.join(root, name), "utf8"));
+    await expect(
+      applyManagedSkillCompatibility("components-build", root),
+    ).rejects.toThrow("composition or state implementation");
+    for (const [name, body] of before)
+      expect(await readFile(path.join(root, name), "utf8"), name).toBe(body);
   });
   it.each(["semantic drift", "duplicate marker"])(
     "rejects components notice %s without publishing any document",
@@ -236,35 +522,9 @@ describe("reviewed raw managed-skill restoration", () => {
         ).toBe(expected);
     },
   );
-  it("keeps the components shared cn guidance in every runtime after raw canonical restoration and sync", async () => {
-    const raw = await componentsFixture();
-    const root = await mkdtemp(
-      path.join(repo, ".tmp/components-build-sync-test-"),
-    );
-    roots.push(root);
-    await mkdir(path.join(root, "scripts"), { recursive: true });
-    await cp(
-      path.join(repo, "scripts/sync-agent-skills.mjs"),
-      path.join(root, "scripts/sync-agent-skills.mjs"),
-    );
-    await cp(path.join(repo, "scripts/lib"), path.join(root, "scripts/lib"), {
-      recursive: true,
-    });
-    await cp(
-      path.join(repo, "scripts/refresh-overlays"),
-      path.join(root, "scripts/refresh-overlays"),
-      { recursive: true },
-    );
-    await mkdir(path.join(root, "docs/ai/skills"), { recursive: true });
-    await cp(raw, path.join(root, "docs/ai/skills/components-build"), {
-      recursive: true,
-    });
-    const sync = () =>
-      spawnSync(process.execPath, ["scripts/sync-agent-skills.mjs"], {
-        cwd: root,
-        encoding: "utf8",
-      });
-    const first = sync();
+  it("keeps canonical and all three mirrors identical after raw components restoration and sync", async () => {
+    const root = await componentsSyncFixture();
+    const first = syncComponents(root);
     expect(first.status, first.stdout + first.stderr).toBe(0);
     const mirrored = new Map<string, string>();
     for (const runtime of [".agents", ".cursor", ".claude"]) {
@@ -276,10 +536,17 @@ describe("reviewed raw managed-skill restoration", () => {
           relative,
         );
         const content = await readFile(file, "utf8");
+        const canonical = path.join(
+          root,
+          "docs/ai/skills/components-build",
+          relative,
+        );
+        expect(content, file).toBe(await readFile(canonical, "utf8"));
         mirrored.set(file, content);
+        mirrored.set(canonical, content);
         if (relative.startsWith("references/"))
           expect(content, file).toBe(componentsRawFiles[relative]);
-        else {
+        else if (!Object.hasOwn(componentsLegacy.files, relative)) {
           expect(content, file).toContain(
             'import { cn } from "@asym/ui/lib/utils";',
           );
@@ -288,11 +555,36 @@ describe("reviewed raw managed-skill restoration", () => {
         }
       }
     }
-    const again = sync();
+    const again = syncComponents(root);
     expect(again.status, again.stdout + again.stderr).toBe(0);
     for (const [file, expected] of mirrored)
       expect(await readFile(file, "utf8"), file).toBe(expected);
   });
+  it("rejects raw components drift before canonical edits, mirror copies or manifests", async () => {
+    const root = await componentsSyncFixture();
+    for (const runtime of [".agents", ".cursor", ".claude"]) {
+      const installed = path.join(root, runtime, "skills/components-build");
+      await mkdir(installed, { recursive: true });
+      await writeFile(
+        path.join(installed, "README.md"),
+        "Previously reviewed guidance.\n",
+      );
+    }
+    const file = path.join(
+      root,
+      "docs/ai/skills/components-build/rules/composition.md",
+    );
+    await writeFile(
+      file,
+      (await readFile(file, "utf8")).replace("asChild,", "asChild: true,"),
+    );
+    const before = await snapshotDocuments(root);
+    const result = syncComponents(root);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("components-build");
+    expect(await snapshotDocuments(root)).toEqual(before);
+  });
+
   it("uses byte-exact upstream fixtures with independently recorded immutable source hashes", async () => {
     const manifest = JSON.parse(
       await readFile(path.join(fixtureRoot, "source-manifest.json"), "utf8"),

@@ -38,7 +38,7 @@ import { cn } from "@asym/ui/lib/utils";
 
 ```tsx
 // Without class merging, conflicting classes both apply
-className = "bg-red-500 bg-blue-500"; // Both classes apply, causing conflicts
+className = "bg-primary bg-background"; // Both classes apply, causing conflicts
 className = "px-4 py-2 px-8"; // Both px-4 and px-8 apply
 ```
 
@@ -47,7 +47,7 @@ className = "px-4 py-2 px-8"; // Both px-4 and px-8 apply
 ```tsx
 import { cn } from "@asym/ui/lib/utils";
 
-cn("bg-red-500", "bg-blue-500"); // "bg-blue-500"
+cn("bg-primary", "bg-background"); // "bg-background"
 cn("px-4 py-2", "px-8"); // "py-2 px-8"
 cn("text-sm", "text-lg"); // "text-lg"
 ```

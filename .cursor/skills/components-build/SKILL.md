@@ -72,24 +72,24 @@ Reference these guidelines when:
 
 ## Rule Categories by Priority
 
-| Priority | Category        | Focus                            | Prefix            |
-| -------- | --------------- | -------------------------------- | ----------------- |
-| 1        | Overview        | Specification scope and goals    | `overview`        |
-| 2        | Principles      | Core design philosophy           | `principles`      |
-| 3        | Definitions     | Common terminology               | `definitions`     |
-| 4        | Composition     | Breaking down complex components | `composition`     |
-| 5        | Accessibility   | Keyboard, screen readers, ARIA   | `accessibility`   |
-| 6        | State           | Controlled/uncontrolled patterns | `state`           |
-| 7        | Types           | TypeScript props and interfaces  | `types`           |
-| 8        | Polymorphism    | Element switching with `as` prop | `polymorphism`    |
-| 9        | As-Child        | Radix Slot composition pattern   | `as-child`        |
-| 10       | Data Attributes | `data-state` and `data-slot`     | `data-attributes` |
-| 11       | Styling         | Tailwind CSS, cn utility, CVA    | `styling`         |
-| 12       | Design Tokens   | CSS variables and theming        | `design-tokens`   |
-| 13       | Documentation   | Component documentation          | `documentation`   |
-| 14       | Registry        | Component registries             | `registry`        |
-| 15       | NPM             | Publishing to npm                | `npm`             |
-| 16       | Marketplaces    | Component marketplaces           | `marketplaces`    |
+| Priority | Category           | Focus                             | Prefix            |
+| -------- | ------------------ | --------------------------------- | ----------------- |
+| 1        | Overview           | Specification scope and goals     | `overview`        |
+| 2        | Principles         | Core design philosophy            | `principles`      |
+| 3        | Definitions        | Common terminology                | `definitions`     |
+| 4        | Composition        | Breaking down complex components  | `composition`     |
+| 5        | Accessibility      | Keyboard, screen readers, ARIA    | `accessibility`   |
+| 6        | State              | Controlled/uncontrolled patterns  | `state`           |
+| 7        | Types              | TypeScript props and interfaces   | `types`           |
+| 8        | Polymorphism       | Element switching with `as` prop  | `polymorphism`    |
+| 9        | Render Composition | Base UI render + native semantics | `as-child`        |
+| 10       | Data Attributes    | `data-state` and `data-slot`      | `data-attributes` |
+| 11       | Styling            | Tailwind CSS, cn utility, CVA     | `styling`         |
+| 12       | Design Tokens      | CSS variables and theming         | `design-tokens`   |
+| 13       | Documentation      | Component documentation           | `documentation`   |
+| 14       | Registry           | Component registries              | `registry`        |
+| 15       | NPM                | Publishing to npm                 | `npm`             |
+| 16       | Marketplaces       | Component marketplaces            | `marketplaces`    |
 
 ## Quick Reference
 
@@ -107,11 +107,11 @@ Reference these guidelines when:
 
 ### 4. Composition
 
-- `composition-root` - Root component with Context for shared state
-- `composition-item` - Item wrapper components
-- `composition-trigger` - Interactive trigger components
-- `composition-content` - Content display components
-- `composition-export` - Namespace export pattern
+- `composition-root` - Reuse the shared primitive’s state owner
+- `composition-item` - Compose the existing item parts
+- `composition-trigger` - Preserve interaction with Base UI render
+- `composition-content` - Reuse accessible content parts
+- `composition-export` - Import the existing flat shared exports
 
 ### 5. Accessibility
 
@@ -126,7 +126,7 @@ Reference these guidelines when:
 
 - `state-uncontrolled` - Internal state management
 - `state-controlled` - External state delegation
-- `state-controllable` - Support both patterns with useControllableState
+- `state-controllable` - Reuse the shared primitive’s value/defaultValue or checked/defaultChecked API.
 
 ### 7. Types
 
@@ -140,10 +140,10 @@ Reference these guidelines when:
 - `polymorphism-typescript` - Type-safe polymorphic components
 - `polymorphism-defaults` - Semantic element defaults
 
-### 9. As-Child
+### 9. Render Composition
 
-- `as-child-slot` - Radix Slot for prop merging
-- `as-child-composition` - Compose with child components
+- `as-child-render` - Compose Base UI parts with the existing render API
+- `as-child-semantics` - Preserve the native host, forwarded props and ref
 
 ### 10. Data Attributes
 

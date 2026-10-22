@@ -65,15 +65,30 @@ async function updateHashes(repoRoot, names) {
     const entries = audit.skills.filter((entry) => entry.name === name);
     if (entries.length !== 1 || entries[0].ownership !== "canonical")
       throw new Error(`Expected one canonical audit record: ${name}`);
-    await regularPath(repoRoot, `docs/ai/skills/${name}`, true);
+    const canonical = await regularPath(
+      repoRoot,
+      `docs/ai/skills/${name}`,
+      true,
+    );
     const root = await regularPath(repoRoot, `.agents/skills/${name}`, true);
     const files = await payloadFiles(root);
+    const canonicalFiles = await payloadFiles(canonical);
+    if (
+      canonicalFiles.length !== files.length ||
+      canonicalFiles.some((file, index) => file !== files[index])
+    )
+      throw new Error(`Canonical and installed skill payloads differ: ${name}`);
     if (!files.includes("SKILL.md"))
       throw new Error(`Missing entrypoint: ${name}`);
     const treeHash = createHash("sha256");
     let entrypointHash;
     for (const file of files) {
       const bytes = await readFile(path.join(root, file));
+      const canonicalBytes = await readFile(path.join(canonical, file));
+      if (!bytes.equals(canonicalBytes))
+        throw new Error(
+          `Canonical and installed skill payloads differ: ${name}/${file}`,
+        );
       treeHash.update(file).update("\0").update(bytes).update("\0");
       if (file === "SKILL.md")
         entrypointHash = createHash("sha256").update(bytes).digest("hex");

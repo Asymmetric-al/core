@@ -8,7 +8,12 @@ const files = [
   "rules/overview.md",
   "rules/styling.md",
   "rules/npm.md",
+  "rules/as-child.md",
+  "rules/state.md",
+  "rules/composition.md",
+  "rules/_sections.md",
 ];
+const noticeFiles = new Set(files.slice(0, 6));
 const guidanceUrl = new URL(
   "../refresh-overlays/components-build-cn.json",
   import.meta.url,
@@ -17,11 +22,60 @@ const start = "<!-- CORE-COMPONENTS-CN-START -->";
 const end = "<!-- CORE-COMPONENTS-CN-END -->";
 
 function replaceReviewed(content, rule, relative) {
-  const count = content.split(rule.upstream).length - 1;
-  if (count === 0 && content.includes(rule.core)) return content;
-  if (count !== 1 || (!rule.allowRepeatedCore && content.includes(rule.core)))
+  const sources = [rule.upstream, ...(rule.previousCore ?? [])];
+  const matches = sources.map((source) => ({
+    source,
+    count: content.split(source).length - 1,
+  }));
+  const count = matches.reduce((total, match) => total + match.count, 0);
+  const coreCount = content.split(rule.core).length - 1;
+  if (count === 0 && (rule.allowRepeatedCore ? coreCount > 0 : coreCount === 1))
+    return content;
+  if (count !== 1 || (!rule.allowRepeatedCore && coreCount > 0))
     throw new Error("Reviewed components-build guidance drifted: " + relative);
-  return content.replace(rule.upstream, rule.core);
+  return content.replace(
+    matches.find((match) => match.count === 1).source,
+    rule.core,
+  );
+}
+
+function replaceReviewedTableRow(content, rule, relative) {
+  const lines = content.split("\n");
+  const rows = lines
+    .map((line, index) => ({
+      index,
+      cells: line
+        .trim()
+        .split("|")
+        .slice(1, -1)
+        .map((cell) => cell.trim()),
+    }))
+    .filter((row) => row.cells[0] === rule.upstreamCells[0]);
+  const matches = (cells, expected) =>
+    cells.length === expected.length &&
+    cells.every((cell, index) => cell === expected[index]);
+  if (rows.length !== 1)
+    throw new Error("Reviewed components-build index drifted: " + relative);
+  const row = rows[0];
+  if (matches(row.cells, rule.coreCells)) return content;
+  if (!matches(row.cells, rule.upstreamCells))
+    throw new Error("Reviewed components-build index drifted: " + relative);
+  lines[row.index] = "| " + rule.coreCells.join(" | ") + " |";
+  return lines.join("\n");
+}
+
+function assertCoreComposition(content, relative) {
+  for (const code of content.matchAll(
+    /\x60{3}(?:tsx?|jsx?)\n([\s\S]*?)\x60{3}/gu,
+  )) {
+    if (
+      /@radix-ui\/|<Slot\b|\basChild\b|\buseControllableState\b/u.test(code[1])
+    )
+      throw new Error(
+        "Unreviewed components-build composition or state implementation: " +
+          relative,
+      );
+  }
 }
 
 function addNotice(content, notice, relative) {
@@ -52,7 +106,7 @@ function addNotice(content, notice, relative) {
   );
 }
 
-/** Adapt six reviewed documents as text; provenance and raw sources stay opaque. */
+/** Adapt reviewed Core recipes as text; provenance and raw sources stay opaque. */
 export async function applyComponentsBuildCompatibility(targetRoot) {
   const root = await lstat(targetRoot);
   if (!root.isDirectory() || root.isSymbolicLink())
@@ -61,7 +115,11 @@ export async function applyComponentsBuildCompatibility(targetRoot) {
   if (!rules.isDirectory() || rules.isSymbolicLink())
     throw new Error("Components-build rules must be a real directory");
   const guidance = JSON.parse(await readFile(guidanceUrl, "utf8"));
-  if (guidance.replacements.some((rule) => !files.includes(rule.path)))
+  if (
+    [...guidance.replacements, ...guidance.tableRows].some(
+      (rule) => !files.includes(rule.path),
+    )
+  )
     throw new Error("Unexpected components-build guidance target");
   const prepared = [];
   for (const relative of files) {
@@ -77,6 +135,11 @@ export async function applyComponentsBuildCompatibility(targetRoot) {
       (row) => row.path === relative,
     ))
       after = replaceReviewed(after, rule, relative);
+    for (const rule of guidance.tableRows.filter(
+      (row) => row.path === relative,
+    ))
+      after = replaceReviewedTableRow(after, rule, relative);
+    assertCoreComposition(after, relative);
     if (
       /\b(?:twMerge|clsx)\s*\(|\bfrom\s+["'](?:clsx|tailwind-merge|@\/lib\/utils)["']|\b(?:function|const|let|var)\s+cn\b/u.test(
         after,
@@ -85,7 +148,8 @@ export async function applyComponentsBuildCompatibility(targetRoot) {
       throw new Error(
         "Unreviewed components-build cn implementation: " + relative,
       );
-    after = addNotice(after, guidance.notice, relative);
+    if (noticeFiles.has(relative))
+      after = addNotice(after, guidance.notice, relative);
     prepared.push({ file, before, after });
   }
   // Validate the complete known surface before publishing any adapted document.

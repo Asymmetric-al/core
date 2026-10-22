@@ -45,24 +45,24 @@ components-build/
 
 ## Rule Categories
 
-| #   | Category        | Impact   | Description                                                 |
-| --- | --------------- | -------- | ----------------------------------------------------------- |
-| 1   | Overview        | MEDIUM   | Specification scope, goals, and philosophy                  |
-| 2   | Principles      | HIGH     | Core design philosophy (composability, accessibility, etc.) |
-| 3   | Definitions     | MEDIUM   | Common terminology (primitive, compound, headless)          |
-| 4   | Composition     | HIGH     | Breaking down complex components                            |
-| 5   | Accessibility   | CRITICAL | Keyboard, screen readers, ARIA, focus management            |
-| 6   | State           | HIGH     | Controlled/uncontrolled patterns                            |
-| 7   | Types           | HIGH     | TypeScript props and interfaces                             |
-| 8   | Polymorphism    | MEDIUM   | `as` prop for element switching                             |
-| 9   | As-Child        | MEDIUM   | Radix Slot composition pattern                              |
-| 10  | Data Attributes | LOW      | `data-state` and `data-slot` patterns                       |
-| 11  | Styling         | HIGH     | Tailwind CSS, cn utility, CVA                               |
-| 12  | Design Tokens   | MEDIUM   | CSS variables and theming                                   |
-| 13  | Documentation   | MEDIUM   | JSDoc and usage examples                                    |
-| 14  | Registry        | LOW      | Component registry structure                                |
-| 15  | NPM             | LOW      | Publishing to npm                                           |
-| 16  | Marketplaces    | LOW      | Distribution strategies                                     |
+| #   | Category           | Impact   | Description                                                 |
+| --- | ------------------ | -------- | ----------------------------------------------------------- |
+| 1   | Overview           | MEDIUM   | Specification scope, goals, and philosophy                  |
+| 2   | Principles         | HIGH     | Core design philosophy (composability, accessibility, etc.) |
+| 3   | Definitions        | MEDIUM   | Common terminology (primitive, compound, headless)          |
+| 4   | Composition        | HIGH     | Breaking down complex components                            |
+| 5   | Accessibility      | CRITICAL | Keyboard, screen readers, ARIA, focus management            |
+| 6   | State              | HIGH     | Controlled/uncontrolled patterns                            |
+| 7   | Types              | HIGH     | TypeScript props and interfaces                             |
+| 8   | Polymorphism       | MEDIUM   | `as` prop for element switching                             |
+| 9   | Render Composition | MEDIUM   | Base UI render + native semantics                           |
+| 10  | Data Attributes    | LOW      | `data-state` and `data-slot` patterns                       |
+| 11  | Styling            | HIGH     | Tailwind CSS, cn utility, CVA                               |
+| 12  | Design Tokens      | MEDIUM   | CSS variables and theming                                   |
+| 13  | Documentation      | MEDIUM   | JSDoc and usage examples                                    |
+| 14  | Registry           | LOW      | Component registry structure                                |
+| 15  | NPM                | LOW      | Publishing to npm                                           |
+| 16  | Marketplaces       | LOW      | Distribution strategies                                     |
 
 ## Installation
 
@@ -153,7 +153,7 @@ Reference: [MDN Semantic HTML](https://developer.mozilla.org/en-US/docs/Glossary
 ## References
 
 - [components.build](https://components.build) - Original specification
-- [Radix UI Primitives](https://www.radix-ui.com/primitives) - Headless component patterns
+- [Base UI composition](https://base-ui.com/react/handbook/composition) - Core render composition and host contracts
 - [shadcn/ui](https://ui.shadcn.com) - Reference implementation
 
 ## Authors

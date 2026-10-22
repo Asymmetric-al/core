@@ -51,8 +51,8 @@ Comprehensive guidelines for building modern, composable, and accessible UI comp
    - 7.1 [Component Types](#71-component-types)
 8. [Polymorphism](#8-polymorphism) — **MEDIUM**
    - 8.1 [Polymorphism Patterns](#81-polymorphism-patterns)
-9. [As-Child](#9-as-child) — **MEDIUM**
-   - 9.1 [asChild Pattern](#91-aschild-pattern)
+9. [Render Composition](#9-render-composition) — **MEDIUM**
+   - 9.1 [Base UI render Composition](#91-base-ui-render-composition)
 10. [Data Attributes](#10-data-attributes) — **LOW**
 
 - 10.1 [Data Attributes for Styling](#101-data-attributes-for-styling)
@@ -490,86 +490,64 @@ function Dialog({ open, onOpenChange, children }) {
 
 **Impact: HIGH**
 
-Breaking down complex components into composable sub-components
-using Root, Trigger, Content, and other naming patterns.
+Compose existing shared parts without duplicating state or behavior.
 
 ### 4.1 Component Composition
 
-**Impact: HIGH (Foundation of component architecture)**
+**Impact: HIGH (Compose existing shared parts without duplicating state or behavior)**
 
-Composition is the foundation of building modern UI components. Instead of cramming all functionality into a single component with dozens of props, break components down into smaller, focused sub-components that work together.
+Compose the existing Core parts before building a new primitive. Shared Base UI components already own state coordination, keyboard navigation, ARIA and focus behavior; do not recreate them with a parallel Context or an inert `asChild` prop.
 
-**Incorrect: monolithic, hard to customize**
-
-```tsx
-<Accordion data={data} />
-```
-
-**Correct: composable, each layer customizable**
+#### Compose the Shared Parts
 
 ```tsx
-export const Accordion = { Root, Item, Trigger, Content };
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@asym/ui/components/shadcn/accordion";
 
-// Usage
-<Accordion.Root open={open} setOpen={setOpen}>
-  <Accordion.Item>
-    <Accordion.Trigger>Title</Accordion.Trigger>
-    <Accordion.Content>Content</Accordion.Content>
-  </Accordion.Item>
-</Accordion.Root>;
+<Accordion defaultValue={["details"]}>
+  <AccordionItem value="details">
+    <AccordionTrigger>Project details</AccordionTrigger>
+    <AccordionContent>Compose the content for this feature.</AccordionContent>
+  </AccordionItem>
+</Accordion>;
 ```
 
-The main container that holds sub-components and manages shared state using Context:
+Import the existing flat exports shown above. Do not invent an `Accordion.Root` namespace or replace `value`/`defaultValue`/`onValueChange` with a custom `open`/`setOpen` state API.
 
-A simple wrapper for each item:
+#### Compose a Trigger Host
 
-Handles user interaction:
+```tsx
+import { Button } from "@asym/ui/components/shadcn/button";
+import { DialogTrigger } from "@asym/ui/components/shadcn/dialog";
 
-Displays the main content:
+<DialogTrigger render={<Button type="button" variant="outline" />}>
+  Open details
+</DialogTrigger>;
+```
 
-Export components as a namespace:
+Use this trigger inside the existing Dialog root. The `render` host receives the primitive's merged props and ref. Custom hosts must forward both to the same DOM node; do not discard them, manually clone the child or nest interactive elements.
 
-- **Root** - Main container component
+See [Base UI render composition](rules/as-child.md) for native button versus link semantics, and [state management](rules/state.md) for controlled and uncontrolled use.
 
-- **Trigger** - Element that initiates an action
+#### Keep Ownership Clear
 
-- **Content** - Element containing the main content
+- **Root** owns the existing primitive's state and coordinates its parts.
+- **Item** groups the primitive's related trigger and content.
+- **Trigger** retains the primitive's interaction and accessible state.
+- **Content** retains its visibility, focus and lifecycle behavior.
+- **Title / Description** provide the accessible name and supporting context.
 
-- **Header/Body/Footer** - Structured content areas
+Feature-specific wrappers may arrange these parts and forward their existing public props/ref. Extend the shared component through `packages/ui` when new reusable behavior is needed; do not introduce an app-local primitive or state abstraction.
 
-- **Title/Description** - Informational components
+#### Verify the Result
 
-1. **Single Responsibility** - Each sub-component should have one clear purpose
+Check the actual exported types and rendered host, then verify keyboard navigation, names, focus and disabled behavior at the composed feature boundary. Keep semantic tokens and exact `base-maia` presentation.
 
-2. **Context for State** - Use React Context to share state between sub-components
-
-3. **Extend HTML Attributes** - Always extend native HTML element props
-
-4. **Consistent Naming** - Follow established conventions
-
-5. **Namespace Exports** - Export components as a namespace for clean API
-
-6. **Composition Over Configuration** - Prefer multiple components over many props
-
-**Use composition when:**
-
-- A component has multiple responsibilities
-
-- Customization requires CSS overrides
-
-- You need flexible layouts or structures
-
-- Building a component library
-
-- Components need to work together but remain independent
-
-**Avoid composition for:**
-
-- Simple, single-purpose components
-
-- Components that don't need customization
-
-- Over-engineering simple UI elements
+References: [Base UI composition](https://base-ui.com/react/handbook/composition), `packages/ui/components/shadcn/accordion.tsx`, and `packages/ui/components/shadcn/dialog.tsx`.
 
 ---
 
@@ -655,107 +633,85 @@ Support users with visual impairments:
 
 **Impact: HIGH**
 
-Controlled and uncontrolled state patterns using
-useControllableState for flexible component APIs.
+Controlled and uncontrolled state through the existing shared primitive APIs.
 
 ### 6.1 State Management Patterns
 
-**Impact: HIGH (Flexible component APIs for all use cases)**
+**Impact: HIGH (Reuse the shared primitive’s controlled and uncontrolled APIs)**
 
-Build flexible components that work seamlessly in both controlled and uncontrolled modes.
+Use the existing shared primitive's state API before adding state machinery. Core has no shared controllable-state hook to import. Do not add a Radix helper dependency or implement a second abstraction for these recipes.
 
-Component manages its own state internally:
+#### Uncontrolled State
 
-**When to use:** Simple components, default behavior, internal state is sufficient.
-
-Parent component manages the state:
-
-**When to use:** State coordination, external data sources, form validation, persistence.
-
-Use `@radix-ui/react-use-controllable-state` to support both:
-
-**Usage:**
+Let the primitive manage state and supply only its initial default:
 
 ```tsx
-import { useControllableState } from "@radix-ui/react-use-controllable-state";
+import { Switch } from "@asym/ui/components/shadcn/switch";
 
-type ToggleProps = {
-  checked?: boolean;
-  defaultChecked?: boolean;
-  onCheckedChange?: (checked: boolean) => void;
-  disabled?: boolean;
-};
+<Switch aria-label="Email notifications" defaultChecked={false} />;
+```
 
-export const Toggle = ({
-  checked: controlledChecked,
-  defaultChecked,
-  onCheckedChange,
-  disabled,
-}: ToggleProps) => {
-  const [checked, setChecked] = useControllableState({
-    prop: controlledChecked,
-    defaultProp: defaultChecked ?? false,
-    onChange: onCheckedChange,
-  });
+`defaultChecked` supplies the initial value; later changes to the prop do not control the current state. Use this mode when the parent does not need to own the value.
 
+#### Controlled State
+
+Keep the confirmed value in the parent and pass the primitive's matching change callback:
+
+```tsx
+import * as React from "react";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+
+function NotificationPreference() {
+  const [enabled, setEnabled] = React.useState(false);
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      disabled={disabled}
-      onClick={() => !disabled && setChecked(!checked)}
-    >
-      {checked ? "On" : "Off"}
-    </button>
+    <Switch
+      aria-label="Email notifications"
+      checked={enabled}
+      onCheckedChange={setEnabled}
+    />
   );
-};
+}
 ```
 
-| State Type | Value Prop | Default Prop | Change Callback |
+Use controlled state for coordination, validation or persistence. Keep a component in the same mode for its lifetime; pass a defined controlled value from its first render.
 
-|------------|------------|--------------|-----------------|
+#### Value-Based Primitives
 
-| Generic | `value` | `defaultValue` | `onValueChange` |
-
-| Boolean | `checked` | `defaultChecked` | `onCheckedChange` |
-
-| Open/Close | `open` | `defaultOpen` | `onOpenChange` |
-
-| Selection | `selected` | `defaultSelected` | `onSelectedChange` |
-
-**1. Always Make Props Optional:**
+Use the actual primitive's value type and public exports. The shared Accordion uses an array of expanded item values:
 
 ```tsx
-// ✅ Supports both patterns
-type Props = {
-  value?: number;
-  defaultValue?: number;
-  onValueChange?: (value: number) => void;
-};
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@asym/ui/components/shadcn/accordion";
+
+<Accordion defaultValue={["details"]}>
+  <AccordionItem value="details">
+    <AccordionTrigger>Details</AccordionTrigger>
+    <AccordionContent>Project details</AccordionContent>
+  </AccordionItem>
+</Accordion>;
 ```
 
-**2. Provide Sensible Defaults:**
+For controlled expansion, pass `value={expandedItems}` and `onValueChange={setExpandedItems}` with parent state typed to the shared Accordion's value contract. Do not replace that API with a boolean `open`/`setOpen` pair.
 
-```tsx
-const [value, setValue] = useControllableState({
-  prop: controlledValue,
-  defaultProp: defaultValue ?? 0,
-  onChange: onValueChange,
-});
-```
+#### Preserve the Primitive Contract
 
-**3. Handle onChange in Both Modes:**
+| Existing primitive | Controlled prop | Initial default  | Change callback   |
+| ------------------ | --------------- | ---------------- | ----------------- |
+| Switch / Checkbox  | `checked`       | `defaultChecked` | `onCheckedChange` |
+| Accordion / Tabs   | `value`         | `defaultValue`   | `onValueChange`   |
+| Dialog / Popover   | `open`          | `defaultOpen`    | `onOpenChange`    |
 
-The `onChange` callback should fire regardless of controlled/uncontrolled mode.
+- Inspect the existing component's exported props; value types and callback details vary by primitive.
+- Forward the existing state props, callback arguments and ref when a wrapper is required.
+- Preserve `false`, `0` and empty values; do not use truthiness to decide whether a prop is controlled.
+- Do not combine controlled and default props to create competing state owners, or mirror a controlled prop into another local state variable.
+- Let the shared primitive own keyboard, ARIA, disabled and focus behavior.
 
-1. **Flexibility** - Works in both controlled and uncontrolled modes
-
-2. **Developer Experience** - Simple API for simple cases, powerful for complex
-
-3. **Consistency** - Matches patterns used by Radix UI and professional libraries
-
-4. **Backward Compatibility** - Easy to migrate from uncontrolled to controlled
+References: `packages/ui/components/shadcn/switch.tsx`, `packages/ui/components/shadcn/accordion.tsx`, and [Base UI composition](https://base-ui.com/react/handbook/composition).
 
 ---
 
@@ -1031,177 +987,91 @@ function Parent() {
 
 ---
 
-## 9. As-Child
+## 9. Render Composition
 
 **Impact: MEDIUM**
 
-Radix UI Slot pattern for merging props and behaviors with
-custom child elements without wrapper elements.
+Base UI render composition with preserved native semantics, props and ref.
 
-### 9.1 asChild Pattern
+### 9.1 Base UI render Composition
 
-**Impact: MEDIUM (Prop merging without wrapper elements)**
+**Impact: MEDIUM (Compose one semantic host with preserved behavior)**
 
-The `asChild` prop allows components to merge their props, behaviors, and event handlers with a custom child element instead of rendering a default DOM element.
+`rules/as-child.md` remains the compatibility index for older `asChild` references. In Core, compose the existing `@asym/ui` Base UI parts with `render`; do not add Radix Slot or an `asChild` API.
 
-Implement `asChild` when:
-
-- Building trigger components (Dialog.Trigger, Tooltip.Trigger)
-
-- Creating composable components that wrap other elements
-
-- Allowing users to customize rendered element while preserving functionality
-
-- Integrating with existing design system components
-
-**Without asChild: nested elements**
+#### Compose the Existing Trigger
 
 ```tsx
-<Dialog.Trigger>
-  <button>Open Dialog</button>
-</Dialog.Trigger>
-// Renders: <button><button>Open Dialog</button></button>
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@asym/ui/components/shadcn/dialog";
+
+<Dialog>
+  <DialogTrigger render={<Button type="button" variant="outline" />}>
+    Open details
+  </DialogTrigger>
+  <DialogContent>
+    <DialogTitle>Details</DialogTitle>
+    Review the details before continuing.
+  </DialogContent>
+</Dialog>;
 ```
 
-**With asChild: props merge onto child**
+`render` merges the trigger behavior onto the custom host. Do not put a second button inside a trigger. Keep the shared primitive responsible for keyboard behavior, disabled state, ARIA and focus restoration.
+
+#### Forward Props and Ref
+
+A custom render component must spread the received props and forward its ref to the same DOM node. React 19 components can receive `ref` as a prop:
 
 ```tsx
-<Dialog.Trigger asChild>
-  <button>Open Dialog</button>
-</Dialog.Trigger>
-// Renders: <button data-state="closed">Open Dialog</button>
-```
+import * as React from "react";
+import { DialogTrigger } from "@asym/ui/components/shadcn/dialog";
 
-**Custom Trigger Elements:**
-
-```tsx
-<AlertDialog.Trigger asChild>
-  <a href="/delete">Delete Account</a>
-</AlertDialog.Trigger>
-
-<Tooltip.Trigger asChild>
-  <IconButton icon={<InfoIcon />} />
-</Tooltip.Trigger>
-
-<DropdownMenu.Trigger asChild>
-  <Button variant="outline" size="icon">
-    <MoreVertical className="h-4 w-4" />
-  </Button>
-</DropdownMenu.Trigger>
-```
-
-**Semantic HTML:**
-
-```tsx
-<NavigationMenu.Link asChild>
-  <Link href="/products" className="nav-link">
-    Products
-  </Link>
-</NavigationMenu.Link>
-```
-
-**Component Composition:**
-
-```tsx
-<Dialog.Trigger asChild>
-  <Tooltip.Trigger asChild>
-    <button>Open dialog (with tooltip)</button>
-  </Tooltip.Trigger>
-</Dialog.Trigger>
-```
-
-**1. Child Must Spread Props:**
-
-**Incorrect:**
-
-```tsx
-// Won't receive trigger behavior
-const BadButton = ({ children }) => <button>{children}</button>;
-```
-
-**Correct:**
-
-```tsx
-// Properly receives all props
-const GoodButton = ({ children, ...props }) => (
-  <button {...props}>{children}</button>
-);
-```
-
-**2. Single Child Element Only:**
-
-**Incorrect:**
-
-```tsx
-// Multiple children
-<Trigger asChild>
-  <button>One</button>
-  <button>Two</button>
-</Trigger>
-```
-
-**Correct:**
-
-```tsx
-// Single child
-<Trigger asChild>
-  <button>Single Button</button>
-</Trigger>
-```
-
-**3. Maintain Accessibility:**
-
-**Correct:**
-
-```tsx
-// Maintains button semantics
-<Dialog.Trigger asChild>
-  <button type="button">Open</button>
-</Dialog.Trigger>
-```
-
-**Note: ensure proper ARIA**
-
-```tsx
-// Ensure proper ARIA when using non-semantic elements
-<Dialog.Trigger asChild>
-  <div role="button" tabIndex={0} aria-label="Open dialog">
-    Open
-  </div>
-</Dialog.Trigger>
-```
-
-**Don't manually clone elements:**
-
-**Incorrect:**
-
-```tsx
-// Manual cloning misses edge cases
-if (asChild) {
-  return React.cloneElement(children, { ...props });
+function ActionButton({
+  ref,
+  type = "button",
+  ...props
+}: React.ComponentPropsWithRef<"button">) {
+  return <button ref={ref} type={type} {...props} />;
 }
+
+<DialogTrigger render={<ActionButton />}>Open details</DialogTrigger>;
 ```
 
-**Correct:**
+Preserve the primitive's event handlers, attributes and ref when adding a wrapper. Prefer its existing `render` API to manual element cloning or custom prop-merging logic.
+
+#### Preserve Native Semantics
+
+Use a button host for an action. Only set `nativeButton={false}` when deliberately rendering a non-button host and the specific primitive supports that prop; inspect its current public props first. It is not a general composition flag or a fix for an incorrect host.
+
+Navigation remains a link. Apply the shared `buttonVariants` classes to an anchor or Next.js Link:
 
 ```tsx
-// Use Slot for proper merging
-if (asChild) {
-  return <Slot {...props}>{children}</Slot>;
-}
+import Link from "next/link";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
+
+<a href="/settings" className={buttonVariants({ variant: "outline" })}>
+  Settings
+</a>;
+
+<Link href="/projects" className={buttonVariants({ variant: "outline" })}>
+  Projects
+</Link>;
 ```
 
-The `asChild` pattern is essential for:
+Do not render an anchor through `Button`: its button role would override native link semantics. Do not substitute a generic div for a native button merely to obtain the same appearance.
 
-- **Composability** - Enables flexible component composition
+#### Check the Composed Host
 
-- **Customizable** - Allows users to control rendered elements
+- Confirm one interactive DOM host, its accessible name and its intended native role.
+- Verify forwarded props/ref, keyboard activation, focus restoration and disabled behavior.
+- Reuse `packages/ui/components/shadcn/button.ts` and the existing primitive export; do not create an app-local primitive fork.
 
-- **Transparent** - No hidden wrapper elements in DOM
-
-- **Accessible** - Maintains semantic HTML structure
-
-Reference: [https://www.radix-ui.com/primitives/docs/utilities/slot](https://www.radix-ui.com/primitives/docs/utilities/slot)
+References: [Base UI composition](https://base-ui.com/react/handbook/composition), [shadcn Base UI Button](https://ui.shadcn.com/docs/components/base/button).
 
 ---
 
@@ -1323,7 +1193,7 @@ Use Tailwind CSS with Core’s shared `cn` helper for class merging and conditio
 
 ```tsx
 // Without class merging, conflicting classes both apply
-className = "bg-red-500 bg-blue-500"; // Both classes apply, causing conflicts
+className = "bg-primary bg-background"; // Both classes apply, causing conflicts
 className = "px-4 py-2 px-8"; // Both px-4 and px-8 apply
 ```
 
@@ -1332,7 +1202,7 @@ className = "px-4 py-2 px-8"; // Both px-4 and px-8 apply
 ```tsx
 import { cn } from "@asym/ui/lib/utils";
 
-cn("bg-red-500", "bg-blue-500"); // "bg-blue-500"
+cn("bg-primary", "bg-background"); // "bg-background"
 cn("px-4 py-2", "px-8"); // "py-2 px-8"
 cn("text-sm", "text-lg"); // "text-lg"
 ```

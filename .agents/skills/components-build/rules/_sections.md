@@ -38,8 +38,8 @@ reader support, ARIA attributes, and focus management.
 ## 6. State (state)
 
 **Impact:** HIGH  
-**Description:** Controlled and uncontrolled state patterns using
-useControllableState for flexible component APIs.
+**Description:** Controlled and uncontrolled state through the existing shared
+primitive APIs.
 
 ## 7. Types (types)
 
@@ -53,11 +53,11 @@ attributes, exporting types, and single element wrapping.
 **Description:** Implementing the `as` prop pattern to change rendered HTML
 elements while preserving component functionality.
 
-## 9. As-Child (as-child)
+## 9. Render Composition (as-child)
 
 **Impact:** MEDIUM  
-**Description:** Radix UI Slot pattern for merging props and behaviors with
-custom child elements without wrapper elements.
+**Description:** Base UI render composition with preserved native semantics,
+props and ref.
 
 ## 10. Data Attributes (data-attributes)
 
