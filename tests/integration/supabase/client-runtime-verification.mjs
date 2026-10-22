@@ -3,8 +3,13 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 
 import {
+  createTrackedFixtureRows,
+  createTrackedFixtureUser,
+  fixtureAuthUserCleanupOperations,
+  fixtureTableCleanupOperations,
   isDeniedSelfRoleUpdate,
   runFixtureCleanup,
+  verifyLocalFixtureTarget,
 } from "./client-runtime-checks.mjs";
 
 // Feed credentials from an owned local CLI status response through stdin only.
@@ -48,22 +53,59 @@ function bounded(operation, label) {
 }
 
 async function verify(input) {
-  const url = new URL(input.API_URL);
-  assert.ok(/^asym-modernization-[a-z0-9-]+$/.test(input.projectId));
-  assert.equal(url.protocol, "http:");
-  assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(url.hostname));
-  assert.equal(url.username + url.password + url.search + url.hash, "");
-  assert.ok(url.pathname === "/" && url.port);
-  assert.ok(input.PUBLIC_KEY && input.SERVICE_ROLE_KEY);
+  assert.ok(
+    input.simulateLostUserCreationResponse === undefined ||
+      typeof input.simulateLostUserCreationResponse === "boolean",
+  );
+  assert.ok(
+    input.simulateLostTableCreationResponse === undefined ||
+      ["tenants", "funds"].includes(input.simulateLostTableCreationResponse),
+  );
+  const { url } = await verifyLocalFixtureTarget(input);
+  checks.push("local-target-bound-to-owned-gateway");
 
   const require = createRequire(
     new URL("../../../packages/database/package.json", import.meta.url),
   );
   const { createClient } = require("@supabase/supabase-js");
   const { createServerClient } = require("@supabase/ssr");
+  let simulateLostResponse = input.simulateLostUserCreationResponse === true;
+  let simulateLostTableResponse = input.simulateLostTableCreationResponse;
   const global = {
-    fetch: (request, init) =>
-      fetch(request, { ...init, signal: AbortSignal.timeout(15_000) }),
+    fetch: async (request, init) => {
+      const response = await fetch(request, {
+        ...init,
+        redirect: "error",
+        signal: AbortSignal.timeout(15_000),
+      });
+      const requestUrl = new URL(
+        request instanceof Request ? request.url : String(request),
+      );
+      if (
+        simulateLostResponse &&
+        init?.method === "POST" &&
+        requestUrl.pathname === "/auth/v1/admin/users" &&
+        response.ok
+      ) {
+        simulateLostResponse = false;
+        await response.arrayBuffer();
+        checks.push("simulated-committed-user-creation-response-loss");
+        throw new TypeError("Synthetic fixture creation response loss");
+      }
+      if (
+        simulateLostTableResponse &&
+        init?.method === "POST" &&
+        requestUrl.pathname === `/rest/v1/${simulateLostTableResponse}` &&
+        response.ok
+      ) {
+        const table = simulateLostTableResponse;
+        simulateLostTableResponse = undefined;
+        await response.arrayBuffer();
+        checks.push(`simulated-committed-${table}-creation-response-loss`);
+        throw new TypeError("Synthetic fixture table response loss");
+      }
+      return response;
+    },
   };
   const options = {
     global,
@@ -78,7 +120,30 @@ async function verify(input) {
   const anonymous = createClient(url.href, input.PUBLIC_KEY, options);
   const tenantIds = [randomUUID(), randomUUID()];
   const users = [];
+  const runId = randomUUID();
   const fundId = randomUUID();
+  const tenantRows = tenantIds.map((id) => ({
+    id,
+    name: `SDK qualification fixture ${runId}`,
+    slug: `sdk-qualification-${id}`,
+  }));
+  const fundRows = [
+    {
+      id: fundId,
+      tenant_id: tenantIds[0],
+      name: `SDK qualification fund ${runId}`,
+      goal_amount: 12345,
+      currency: "USD",
+    },
+  ];
+  const tableJournal = [
+    ...tenantRows.map((row) => ({ table: "tenants", row })),
+    ...fundRows.map((row) => ({ table: "funds", row })),
+  ].map((entry) => ({
+    ...entry,
+    creationAttempted: false,
+    creationAcknowledged: false,
+  }));
   const cookies = new Map();
   const server = () =>
     createServerClient(url.href, input.PUBLIC_KEY, {
@@ -113,29 +178,29 @@ async function verify(input) {
   try {
     step = "create-owned-fixtures";
     successful(
-      await admin.from("tenants").insert(
-        tenantIds.map((id) => ({
-          id,
-          name: "SDK qualification fixture",
-          slug: `sdk-qualification-${id}`,
-        })),
+      await createTrackedFixtureRows(
+        admin,
+        tableJournal,
+        "tenants",
+        tenantRows,
       ),
     );
     for (const tenantId of tenantIds) {
       const email = `sdk-${randomUUID()}@example.invalid`;
       const password = randomBytes(32).toString("base64url");
       const { user } = successful(
-        await admin.auth.admin.createUser({
+        await createTrackedFixtureUser(admin.auth.admin, users, {
+          id: randomUUID(),
           email,
           password,
-          email_confirm: true,
-          app_metadata: { tenant_id: tenantId },
+          tenantId,
+          runId,
         }),
       );
       assert.ok(user);
-      users.push({ id: user.id, email, password });
       check(
-        user.app_metadata.tenant_id === tenantId,
+        user.app_metadata.tenant_id === tenantId &&
+          user.app_metadata.sdk_qualification_run === runId,
         "fixture-user-tenant-metadata",
       );
       // Provision the domain fixture explicitly; Auth metadata is not a
@@ -238,13 +303,7 @@ async function verify(input) {
       });
     await bounded(subscribed, "Realtime subscription deadline");
     successful(
-      await admin.from("funds").insert({
-        id: fundId,
-        tenant_id: tenantIds[0],
-        name: "SDK qualification fund",
-        goal_amount: 12345,
-        currency: "USD",
-      }),
+      await createTrackedFixtureRows(admin, tableJournal, "funds", fundRows),
     );
     const event = await bounded(changed, "Realtime delivery deadline");
     check(
@@ -296,25 +355,9 @@ async function verify(input) {
           assert.ok(results.every((result) => result === "ok"));
         },
       },
-      {
-        label: "delete-fund",
-        run: async () =>
-          cleanupSuccessful(
-            await admin.from("funds").delete().eq("id", fundId),
-          ),
-      },
-      ...users.map((user, index) => ({
-        label: `delete-auth-user-${index + 1}`,
-        run: async () =>
-          cleanupSuccessful(await admin.auth.admin.deleteUser(user.id)),
-      })),
-      {
-        label: "delete-tenants",
-        run: async () =>
-          cleanupSuccessful(
-            await admin.from("tenants").delete().in("id", tenantIds),
-          ),
-      },
+      ...fixtureTableCleanupOperations(admin, tableJournal, "funds"),
+      ...fixtureAuthUserCleanupOperations(admin.auth.admin, users),
+      ...fixtureTableCleanupOperations(admin, tableJournal, "tenants"),
       {
         label: "restore-census",
         run: async () =>
@@ -325,8 +368,7 @@ async function verify(input) {
           ),
       },
     ]);
-    if (!failures.some(({ label }) => label === "restore-census"))
-      checks.push("fixture-census-restored");
+    if (failures.length === 0) checks.push("fixture-census-restored");
     if (failures.length > 0) cleanupFailures = failures;
     if (verificationFailed) {
       ({ step, failedCheck, providerErrorCode, realtimeStatus } =

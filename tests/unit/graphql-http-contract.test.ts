@@ -278,15 +278,21 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
   );
 
   it("rejects unknown input fields before mutation transport", async () => {
-    const { body } = await execute(donationMutation, {
-      input: {
-        missionaryId: "missionary-a",
-        amount: 12_345,
-        tenantId: "tenant-b",
+    const { response, body } = await execute(
+      donationMutation,
+      {
+        input: {
+          missionaryId: "missionary-a",
+          amount: 12_345,
+          tenantId: "tenant-b",
+        },
       },
-    });
+      { "idempotency-key": "gift-attempt-a" },
+    );
+    expect(response.status).toBe(400);
     expect(body.errors?.length).toBeGreaterThan(0);
     expect(seams.rpc).not.toHaveBeenCalled();
+    expect(seams.from).not.toHaveBeenCalled();
   });
 
   it("requires an idempotency header before admitting a donation", async () => {

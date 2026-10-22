@@ -1614,12 +1614,12 @@
       "disposition": "verified-maintained-compatibility-dependency",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Current upstream0.1.0 still settles before async write acceptance without Core patch. Pristine-versus-patched regression and real-adapter join, rollback and bounded realtime tests require retaining the registered patch; Core database maintainers own recheck on every adapter/DB/Query/Supabase cohort change.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/database/package.json",
@@ -1680,12 +1680,12 @@
       "disposition": "verified-maintained-compatibility-dependency",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -1792,12 +1792,12 @@
       "disposition": "upgraded",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "package.json",
@@ -1990,12 +1990,12 @@
       "disposition": "upgraded",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "package.json",
@@ -2043,12 +2043,12 @@
       "disposition": "upgraded",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/database/package.json",
@@ -2097,12 +2097,12 @@
       "disposition": "upgraded",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/database/package.json",
@@ -2150,12 +2150,12 @@
       "disposition": "upgraded",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/database/package.json",
@@ -2204,12 +2204,12 @@
       "disposition": "verified-maintained-compatibility-dependency",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -2257,12 +2257,12 @@
       "disposition": "verified-maintained-compatibility-dependency",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -2339,12 +2339,12 @@
       "disposition": "upgraded",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -2417,12 +2417,12 @@
       "disposition": "upgraded",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/database/package.json",
@@ -2463,12 +2463,12 @@
       "disposition": "verified-maintained-compatibility-dependency",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -2530,12 +2530,12 @@
       "disposition": "upgraded",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -2607,12 +2607,12 @@
       "disposition": "upgraded",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -2661,12 +2661,12 @@
       "disposition": "upgraded",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -7233,12 +7233,12 @@
       "disposition": "upgraded",
       "verification": [
         "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
-        "Current coordinated patch selection:143 files /917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
-        "All15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes19 checks and restores its census;13 fixture regression tests pass.",
-        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with0 actionable Doctor findings and294 exact exceptions.",
-        "Final clean frozen installation, full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback remain required."
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
       ],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "package.json",
