@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 
 import {
@@ -442,6 +443,7 @@ export function modelledKeyProblems(
       assertKeysModelled(step, allowed, `Step ${index} (${role})`);
     }),
   );
+  problems.push(...envKeyProblems(job));
   return problems;
 }
 
@@ -542,9 +544,129 @@ function envValueText(key: string, value: unknown): string {
 }
 
 /**
+ * Process-level variable names that change how bash or node start (sourced
+ * files, injected options, preloaded libraries, exported functions, xtrace
+ * prompts). Denied at every env level, for every job, before anything runs.
+ */
+export const DENIED_ENV_KEY_PATTERNS: readonly RegExp[] = [
+  /^BASH_ENV$/,
+  /^ENV$/,
+  /^NODE_OPTIONS$/,
+  /^NODE_PATH$/,
+  /^LD_/,
+  /^DYLD_/,
+  /^BASH_FUNC_/,
+  /^SHELLOPTS$/,
+  /^BASHOPTS$/,
+  /^PS4$/,
+];
+
+function envKeyNotAllowed(key: string, level: string, why: string): string {
+  return `env key not allowed: ${key} at ${level} (${why})`;
+}
+
+/** Throws "env key not allowed: <KEY> at <level>" for a denied process-level name. */
+export function assertEnvKeysNotDenied(env: unknown, level: string): void {
+  for (const key of Object.keys(envLevel(env, level))) {
+    if (DENIED_ENV_KEY_PATTERNS.some((pattern) => pattern.test(key))) {
+      throw new Error(
+        envKeyNotAllowed(key, level, "denied process-level name"),
+      );
+    }
+  }
+}
+
+/**
+ * Exact env key names the real workflows set today, per level (both files use
+ * the same workflow env). Gate jobs have no job env; the only step env is
+ * ci.yml ci-gate's policy step. Any other name at a pinned level is
+ * "env key not allowed".
+ */
+export const MODELLED_WORKFLOW_ENV_KEYS: readonly string[] = [
+  "BUN_VERSION",
+  "NODE_VERSION",
+];
+export const MODELLED_ENV_KEYS_BY_JOB: Record<
+  string,
+  { job: readonly string[]; steps: Record<string, readonly string[]> }
+> = {
+  migrate: {
+    job: [
+      "DATABASE_URL",
+      "PAYLOAD_DATABASE_URI",
+      "PAYLOAD_SECRET",
+      "SKIP_ENV_VALIDATION",
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    ],
+    steps: {},
+  },
+  smoke: {
+    job: [
+      "DATABASE_URL",
+      "SKIP_ENV_VALIDATION",
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "ASYM_E2E_REQUIRE_HERMETIC_SUPABASE",
+    ],
+    steps: {},
+  },
+  "e2e-smoke-gate": { job: [], steps: {} },
+  "integration-gate": { job: [], steps: {} },
+  "e2e-gate": { job: [], steps: {} },
+  "ci-gate": {
+    job: [],
+    steps: {
+      "name:Validate correctness checks and requested compilation": [
+        "CI_BUILD_REQUESTED",
+        "CI_RESULTS",
+      ],
+    },
+  },
+};
+
+/**
+ * Every env key-name problem for a job: denied names at the workflow, job and
+ * step levels (any job), plus names outside the exact pinned sets (jobs loaded
+ * under a pinned `jobs:` key, and their workflow).
+ */
+export function envKeyProblems(job: WorkflowJob): string[] {
+  const problems: string[] = [];
+  const jobId = jobIdByJob.get(job);
+  const pin = jobId === undefined ? undefined : MODELLED_ENV_KEYS_BY_JOB[jobId];
+  const check = (env: unknown, level: string, allowed?: readonly string[]) => {
+    if (!env || typeof env !== "object" || Array.isArray(env)) return;
+    for (const key of Object.keys(env)) {
+      if (DENIED_ENV_KEY_PATTERNS.some((pattern) => pattern.test(key))) {
+        problems.push(
+          envKeyNotAllowed(key, level, "denied process-level name"),
+        );
+      } else if (allowed && !allowed.includes(key)) {
+        problems.push(envKeyNotAllowed(key, level, "not in the pinned set"));
+      }
+    }
+  };
+  check(
+    workflowDocByJob.get(job)?.env,
+    "workflow env",
+    pin ? MODELLED_WORKFLOW_ENV_KEYS : undefined,
+  );
+  check(job.env, pin ? `job '${jobId}' env` : "job env", pin?.job);
+  allSteps(job).forEach((step, index) =>
+    check(
+      step.env,
+      pin ? `step ${index} env of job '${jobId}'` : `step ${index} env`,
+      pin ? (pin.steps[stepIdentity(step)] ?? []) : undefined,
+    ),
+  );
+  return problems;
+}
+
+/**
  * The env a `run:` step sees, as the Actions runner builds it: workflow `env`,
  * then job `env`, then step `env`, later levels winning; scalar values are
- * stringified (`null` -> ""). A non-map level or a non-scalar value throws.
+ * stringified (`null` -> ""). A non-map level, a non-scalar value, or a denied
+ * process-level name ({@link DENIED_ENV_KEY_PATTERNS}) throws.
  */
 export function effectiveStepEnv(
   workflowEnv: unknown,
@@ -557,6 +679,7 @@ export function effectiveStepEnv(
     ["job", jobEnv],
     ["step", stepEnv],
   ] as const) {
+    assertEnvKeysNotDenied(level, `${label} env`);
     for (const [key, value] of Object.entries(envLevel(level, label))) {
       merged[key] = envValueText(key, value);
     }
@@ -1424,13 +1547,17 @@ export function findCiGateResultsStep(
 export type GateExecution = { status: number; stdout: string; stderr: string };
 
 /**
- * Argv for a reject/gate `run:` step. Only GitHub's default is modelled: no
- * `shell` at the step, job `defaults.run` or workflow `defaults.run` level,
- * which on Linux runners is `bash -e {0}`. Any resolved shell — including an
- * explicit `bash` (it changes the invocation to
- * `bash --noprofile --norc -eo pipefail {0}`, which no real step uses) and any
- * custom template such as `true {0}` — and any resolved `working-directory`
- * throws "... is not modelled" (fail closed); see {@link resolveRunSettings}.
+ * Argv (before the script file) for a reject/gate `run:` step. Only an unset
+ * shell (no `shell` at the step, job `defaults.run` or workflow `defaults.run`
+ * level) is modelled. The script is written to a temp file and run as
+ * `bash --noprofile --norc -eo pipefail <file>`, as ruled for #2160: a file
+ * (not `-c`), so bash honours `BASH_ENV` the way it does on the runner. The
+ * documented runner default for an unset shell is `bash -e {0}`; for allowed
+ * bodies the two are equivalent (pipes are not allowed, and non-interactive
+ * bash reads no profile or rc file). Any resolved shell — including an
+ * explicit `bash` or `sh` and any custom template such as `true {0}` — and any
+ * resolved `working-directory` throws "... is not modelled" (fail closed);
+ * see {@link resolveRunSettings}.
  */
 export function runStepShellArgv(
   step: WorkflowStep,
@@ -1447,24 +1574,36 @@ export function runStepShellArgv(
       `Shell ${JSON.stringify(shell.value)} (from ${shell.source}) is not modelled: only the default \`bash -e {0}\` (no shell at step, job or workflow level) is`,
     );
   }
-  return ["bash", ["-e", "-c"]];
+  return ["bash", ["--noprofile", "--norc", "-eo", "pipefail"]];
 }
 
 const scriptExecutionCache = new Map<string, GateExecution>();
 
 /**
+ * Runner variables modelled with the values Actions sets on every job, so a
+ * script or a child program that branches on them behaves as on the runner.
+ */
+export const MODELLED_RUNNER_ENV: Readonly<Record<string, string>> = {
+  GITHUB_ACTIONS: "true",
+  CI: "true",
+};
+
+/**
  * Env for a spawned `run:` script: `PATH` from the test process (so the shell
- * can find `bash`, `node`, ...) plus the given env — the effective workflow ->
- * job -> step env. Nothing else from the test process leaks in (no `HOME`,
- * `CI`, `GITHUB_*`). No runner variables are modelled: the real reject and gate
- * scripts read none. A child program's own env reads (for example
- * `node scripts/verify/ci-build-policy.mjs --gate` reading `CI_RESULTS`) cannot
- * be text-checked; they see only this scrubbed env.
+ * can find `bash`, `node`, ...), the given env — the effective workflow ->
+ * job -> step env — and {@link MODELLED_RUNNER_ENV}. Nothing else from the
+ * test process leaks in (no `HOME`, other `GITHUB_*`, ...). A child program's
+ * own env reads (for example `node scripts/verify/ci-build-policy.mjs --gate`
+ * reading `CI_RESULTS`) cannot be text-checked; they see only this env.
  */
 export function scriptSpawnEnv(
   env: Record<string, string>,
 ): Record<string, string> {
-  return { PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin", ...env };
+  return {
+    PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+    ...env,
+    ...MODELLED_RUNNER_ENV,
+  };
 }
 
 function notModelled(what: string): never {
@@ -2099,21 +2238,31 @@ export function executeRunScript(
   job: WorkflowJob | undefined = jobByStep.get(step),
 ): GateExecution {
   assertScriptAllowed(script);
-  assertScriptVariablesModelled(script, env);
+  assertEnvKeysNotDenied(env, "effective env");
+  assertScriptVariablesModelled(script, { ...env, ...MODELLED_RUNNER_ENV });
   const [command, args] = runStepShellArgv(step, job);
   const spawnEnv = scriptSpawnEnv(env);
   const key = JSON.stringify([command, args, script, spawnEnv, process.cwd()]);
   const cached = scriptExecutionCache.get(key);
   if (cached) return cached;
-  const proc = spawnSync(command, [...args, script], {
-    encoding: "utf8",
-    cwd: process.cwd(),
-    env: spawnEnv,
-  });
+  // As the runner does: the body goes to a temp file that bash runs.
+  const dir = mkdtempSync(path.join(tmpdir(), "workflow-run-"));
+  let proc: ReturnType<typeof spawnSync>;
+  try {
+    const file = path.join(dir, "run.sh");
+    writeFileSync(file, script);
+    proc = spawnSync(command, [...args, file], {
+      encoding: "utf8",
+      cwd: process.cwd(),
+      env: spawnEnv,
+    });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
   const result = {
     status: proc.status ?? 1,
-    stdout: proc.stdout ?? "",
-    stderr: proc.stderr ?? "",
+    stdout: String(proc.stdout ?? ""),
+    stderr: String(proc.stderr ?? ""),
   };
   scriptExecutionCache.set(key, result);
   return result;

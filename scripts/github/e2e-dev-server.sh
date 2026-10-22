@@ -8,6 +8,11 @@ cd "$ROOT"
 APP="${1:-}"
 ACTION="${2:-}"
 
+# Job-scoped scratch dir on Actions (RUNNER_TEMP is per job and cleaned between
+# jobs), so a stale pidfile from another job cannot point at an unrelated
+# process group on a persistent self-hosted runner.
+TMP_DIR="${RUNNER_TEMP:-/tmp}"
+
 usage() {
   echo "Usage: $0 <donor|admin|missionary> <start|wait|stop|check-dev-supabase> ..." >&2
   exit 1
@@ -90,7 +95,7 @@ kill_process_group() {
 
 stop_app() {
   local app="${1:?app required}"
-  local pidfile="/tmp/${app}-dev.pid"
+  local pidfile="${TMP_DIR}/${app}-dev.pid"
   if [[ -f "$pidfile" ]]; then
     local pid
     pid="$(cat "$pidfile" 2>/dev/null || true)"
@@ -104,8 +109,8 @@ stop_app() {
 start_app() {
   local port="${1:?port required for start}"
   local host="${2:-127.0.0.1}"
-  local log="/tmp/${APP}-dev.log"
-  local pidfile="/tmp/${APP}-dev.pid"
+  local log="${TMP_DIR}/${APP}-dev.log"
+  local pidfile="${TMP_DIR}/${APP}-dev.pid"
   local app_dir
   app_dir="$(app_dir_for "$APP")" || {
     echo "Unknown app: $APP" >&2
@@ -127,23 +132,32 @@ wait_app() {
   local host="${2:-127.0.0.1}"
   local health_path="${3:-/api/health}"
   local extra_path="${4:-}"
-  local log="${5:-/tmp/${APP}-dev.log}"
-  local pidfile="${6:-/tmp/${APP}-dev.pid}"
+  local log="${5:-${TMP_DIR}/${APP}-dev.log}"
+  local pidfile="${6:-${TMP_DIR}/${APP}-dev.pid}"
   local max_seconds="${7:-120}"
 
   local base="http://${host}:${port}"
+  # Bound each probe so a server that accepts but never answers cannot stall
+  # the loop past max_seconds.
+  local probe=(curl -sf --connect-timeout 5 --max-time 10)
+  local pid
   for i in $(seq 1 "$max_seconds"); do
-    if curl -sf "${base}${health_path}" >/dev/null; then
-      if [[ -z "$extra_path" ]] || curl -sf "${base}${extra_path}" >/dev/null; then
+    if "${probe[@]}" "${base}${health_path}" >/dev/null; then
+      if [[ -z "$extra_path" ]] || "${probe[@]}" "${base}${extra_path}" >/dev/null; then
         echo "${APP} dev server ready after ${i}s"
         exit 0
       fi
     fi
+    pid="$(cat "$pidfile" 2>/dev/null || true)"
+    if [[ -n "$pid" ]] && ! kill -0 "$pid" 2>/dev/null; then
+      echo "${APP} dev server (pid ${pid}) exited before becoming ready" >&2
+      tail -n 150 "$log" 2>/dev/null || true
+      rm -f "$pidfile"
+      exit 1
+    fi
     if [[ "$i" -eq "$max_seconds" ]]; then
       echo "Timed out waiting for ${APP} at ${base}${health_path}" >&2
       tail -n 150 "$log" 2>/dev/null || true
-      local pid
-      pid="$(cat "$pidfile" 2>/dev/null || true)"
       kill_process_group "$pid"
       exit 1
     fi

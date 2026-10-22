@@ -1,5 +1,13 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { createServer } from "node:net";
+import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -98,4 +106,104 @@ describe("e2e-dev-server.sh", () => {
       expect(result.status).not.toBe(0);
     },
   );
+
+  describe("readiness wait and process files", () => {
+    const freePort = () =>
+      new Promise<number>((resolve) => {
+        const server = createServer();
+        server.listen(0, "127.0.0.1", () => {
+          const address = server.address();
+          const port =
+            typeof address === "object" && address ? address.port : 0;
+          server.close(() => resolve(port));
+        });
+      });
+    const alive = (pid: number) => {
+      try {
+        process.kill(pid, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const withRunnerTemp = <T>(fn: (dir: string) => T): T => {
+      const dir = mkdtempSync(path.join(tmpdir(), "e2e-dev-server-test-"));
+      try {
+        return fn(dir);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    };
+
+    it("bounds both readiness probes with connect and total timeouts", () => {
+      const source = readFileSync(SCRIPT, "utf8");
+      expect(source).toContain(
+        "local probe=(curl -sf --connect-timeout 5 --max-time 10)",
+      );
+      expect(source).toContain('"${probe[@]}" "${base}${health_path}"');
+      expect(source).toContain('"${probe[@]}" "${base}${extra_path}"');
+      expect(source).not.toMatch(/^\s*if curl -sf "/m);
+    });
+
+    it("fails fast with the log tail when the server process has exited", async () => {
+      const port = await freePort();
+      withRunnerTemp((dir) => {
+        // A pid that has certainly exited (the spawned shell is gone).
+        const dead = spawnSync("bash", ["-c", "echo $$"], { encoding: "utf8" });
+        const pidfile = path.join(dir, "donor-dev.pid");
+        writeFileSync(pidfile, dead.stdout.trim());
+        writeFileSync(
+          path.join(dir, "donor-dev.log"),
+          "boom: dev server crashed\n",
+        );
+        const started = Date.now();
+        const result = runScript(
+          [
+            "donor",
+            "wait",
+            String(port),
+            "127.0.0.1",
+            "/api/health",
+            "",
+            "",
+            "",
+            "30",
+          ],
+          { RUNNER_TEMP: dir },
+        );
+        expect(result.status).toBe(1);
+        expect(Date.now() - started).toBeLessThan(10_000);
+        expect(result.stderr).toContain("exited before becoming ready");
+        expect(result.stdout + result.stderr).toContain(
+          "boom: dev server crashed",
+        );
+        expect(existsSync(pidfile)).toBe(false);
+      });
+    }, 20_000);
+
+    it("keeps pid and log files under RUNNER_TEMP and stops only that process group", () => {
+      const source = readFileSync(SCRIPT, "utf8");
+      expect(source).toContain('TMP_DIR="${RUNNER_TEMP:-/tmp}"');
+      expect(source.match(/\/tmp\//g) ?? []).toEqual([]);
+      withRunnerTemp((dir) => {
+        const sleeper = spawnSync(
+          "bash",
+          ["-c", "setsid sleep 30 >/dev/null 2>&1 </dev/null & echo $!"],
+          { encoding: "utf8" },
+        );
+        const pid = Number(sleeper.stdout.trim());
+        expect(alive(pid)).toBe(true);
+        const pidfile = path.join(dir, "donor-dev.pid");
+        writeFileSync(pidfile, String(pid));
+        try {
+          const result = runScript(["donor", "stop"], { RUNNER_TEMP: dir });
+          expect(result.status).toBe(0);
+          expect(existsSync(pidfile)).toBe(false);
+          expect(alive(pid)).toBe(false);
+        } finally {
+          if (alive(pid)) process.kill(pid, "SIGKILL");
+        }
+      });
+    }, 20_000);
+  });
 });

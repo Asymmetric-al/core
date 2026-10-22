@@ -4,7 +4,8 @@
  * the run-body allowlist bypasses, MAJOR-9 unmodelled context members, and
  * MAJOR-10 defaults.run shells plus the workflow key allowlist, and the
  * repair-6 if: pins, whole-object functions and second value set, and the
- * repair-7 per-job/per-step key allowlists).
+ * repair-7 per-job/per-step key allowlists, and the repair-8 env key names and
+ * runner-faithful script execution).
  * Each reviewer mutation is applied to an
  * in-memory copy of the real workflow YAML; the harness must accept the real
  * workflow and reject every mutated copy.
@@ -20,7 +21,11 @@ import {
   FORK_ONLY_STEP_GUARD,
   FORK_REJECT_IF,
   MODELED_TRIGGER_EVENTS,
+  DENIED_ENV_KEY_PATTERNS,
+  MODELLED_ENV_KEYS_BY_JOB,
   MODELLED_JOB_KEYS,
+  MODELLED_RUNNER_ENV,
+  MODELLED_WORKFLOW_ENV_KEYS,
   MODELLED_KEYS_BY_JOB,
   MODELLED_STEP_KEYS,
   MODELLED_WORKFLOW_KEYS,
@@ -28,12 +33,14 @@ import {
   PULL_REQUEST_VALUE_SETS,
   PINNED_CI_GATE_BODY,
   analyzeSelfHostedForkSafety,
+  assertEnvKeysNotDenied,
   assertPinnedForkRejectIf,
   assertWorkflowKeysModelled,
   assertScriptAllowed,
   assertScriptVariablesModelled,
   assertStepKeysModelled,
   effectiveStepEnv,
+  envKeyProblems,
   evaluateIfCondition,
   evaluateRunsOn,
   executeCiGateResultsStep,
@@ -76,6 +83,9 @@ type WorkflowPath = (typeof WORKFLOWS)[number];
 /** The only triggers allowed on workflows that host self-hosted jobs. */
 const PINNED_TRIGGERS = ["pull_request", "push", "workflow_dispatch"];
 const PINNED_PUSH_BRANCHES = ["develop", "production"];
+
+/** How the harness runs a reject/gate body (before the temp script file). */
+const RUNNER_ARGV = ["bash", ["--noprofile", "--norc", "-eo", "pipefail"]];
 
 const PROXMOX_FROM_JSON = `fromJSON('["self-hosted", "linux", "x64", "proxmox"]')`;
 
@@ -496,14 +506,19 @@ describe("MAJOR-5: fork-reject steps run with the runner's workflow -> job -> st
       2,
     );
 
-  it("control: the guard with workflow env REVIEW_ALLOW=no still rejects forks at step 0", () => {
+  it("control: the guard with workflow env REVIEW_ALLOW=no fails closed on the env key name", () => {
+    // REVIEW_ALLOW is not one of the pinned workflow env names, so even the
+    // harmless value fails closed; value precedence is covered by the explicit
+    // env context test below.
     const jobs = jobsOf(
       addWorkflowEnv(guarded(), 'REVIEW_ALLOW: "no"'),
       "guard, allow=no",
     );
     for (const jobId of ["migrate", "smoke"] as const) {
-      expect(forkRejectStepIndex(jobs[jobId]!), jobId).toBe(0);
-      expect(requiredJobFailsClosedOnFork(jobs[jobId]!), jobId).toBe(true);
+      expect(forkRejectStepIndex(jobs[jobId]!), jobId).toBe(-1);
+      expect(forkRejectProblems(jobs[jobId]!).join("\n"), jobId).toContain(
+        "env key not allowed: REVIEW_ALLOW at workflow env (not in the pinned set)",
+      );
     }
   });
 
@@ -625,14 +640,12 @@ describe("MAJOR-6: gate jobs run with the runner's workflow -> job -> step env",
     );
   const gateJob = (text: string) => jobsOf(text, "gate")["e2e-smoke-gate"]!;
 
-  it("control: the guard with workflow env REVIEW_ALLOW=no still fails closed", () => {
+  it("control: the guard with workflow env REVIEW_ALLOW=no fails closed on the env key name", () => {
+    // Value precedence for gates is covered by the synthetic precedence test.
     const text = addWorkflowEnv(guarded(), 'REVIEW_ALLOW: "no"');
-    expect(enforcementProblems(text, gate)).toEqual([]);
-    expect(
-      hostedGateFailsClosedWhenHeavyNeedsSkipped(gateJob(text), [
-        "test-e2e-smoke",
-      ]),
-    ).toBe(true);
+    expect(enforcementProblems(text, gate).join("\n")).toContain(
+      "env key not allowed: REVIEW_ALLOW at workflow env (not in the pinned set)",
+    );
   });
 
   it("the guard with REVIEW_ALLOW defined nowhere is reported as not modelled", () => {
@@ -645,8 +658,7 @@ describe("MAJOR-6: gate jobs run with the runner's workflow -> job -> step env",
     [
       "workflow env",
       () => addWorkflowEnv(guarded(), REVIEW_ALLOW),
-      // Workflow env is modelled, so the guard runs and the gate passes.
-      "gate passes when test-e2e-smoke skipped",
+      "env key not allowed: REVIEW_ALLOW at workflow env (not in the pinned set)",
     ],
     [
       "job env",
@@ -960,13 +972,20 @@ describe("runner variables do not leak: scrubbed script env, fail-closed referen
     expect(scanScriptVariables(ciGate.run!).references).toEqual([]);
   });
 
-  it("scriptSpawnEnv is exactly PATH plus the given env", () => {
-    withProcessEnv({ REVIEW_LEAK: "yes", GITHUB_JOB: "migrate" }, () => {
-      expect(Object.keys(scriptSpawnEnv({ STEP_ONLY: "1" })).sort()).toEqual([
-        "PATH",
-        "STEP_ONLY",
-      ]);
-    });
+  it("scriptSpawnEnv is exactly PATH, the given env and the modelled runner values", () => {
+    withProcessEnv(
+      { REVIEW_LEAK: "yes", GITHUB_JOB: "migrate", CI: "false" },
+      () => {
+        const env = scriptSpawnEnv({ STEP_ONLY: "1" });
+        expect(Object.keys(env).sort()).toEqual([
+          "CI",
+          "GITHUB_ACTIONS",
+          "PATH",
+          "STEP_ONLY",
+        ]);
+        expect(env).toMatchObject({ CI: "true", GITHUB_ACTIONS: "true" });
+      },
+    );
   });
 
   it("variables set in the test process are not visible to the spawned script", () => {
@@ -1517,10 +1536,9 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
         expect(() =>
           runStepShellArgv(jobsOf(b3(), "B3").migrate!.steps![0]!),
         ).toThrow(/\(from job defaults\.run\) is not modelled/);
-        expect(runStepShellArgv(jobsOf(b3(), "B3").smoke!.steps![0]!)).toEqual([
-          "bash",
-          ["-e", "-c"],
-        ]);
+        expect(runStepShellArgv(jobsOf(b3(), "B3").smoke!.steps![0]!)).toEqual(
+          RUNNER_ARGV,
+        );
         expect(() =>
           runStepShellArgv(jobsOf(b4(), "B4")["e2e-smoke-gate"]!.steps![0]!),
         ).toThrow(/\(from job defaults\.run\) is not modelled/);
@@ -1545,15 +1563,14 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
       expect(modelledKeyProblems(job, "gate"), jobId).toEqual([]);
       for (const step of job.steps ?? []) {
         if (typeof step.run === "string") {
-          expect(runStepShellArgv(step), jobId).toEqual(["bash", ["-e", "-c"]]);
+          expect(runStepShellArgv(step), jobId).toEqual(RUNNER_ARGV);
         }
       }
     }
     for (const jobId of REJECT_JOBS) {
-      expect(runStepShellArgv(integration[jobId]!.steps![0]!)).toEqual([
-        "bash",
-        ["-e", "-c"],
-      ]);
+      expect(runStepShellArgv(integration[jobId]!.steps![0]!)).toEqual(
+        RUNNER_ARGV,
+      );
     }
   });
 
@@ -2244,4 +2261,290 @@ describe("repair 7: per-job and per-step key allowlists (no union per role)", ()
   function buildResults(job: WorkflowJob) {
     return Object.fromEntries(needsList(job).map((id) => [id, "success"]));
   }
+});
+
+describe("repair 8 (MAJOR-11): env key names and runner-faithful execution", () => {
+  const BASH_ENV_VALUE = "$(echo exit 0 > /tmp/x; echo /tmp/x)";
+  const NODE_OPTIONS_VALUE =
+    "--import=data:text/javascript,if(process.env.GITHUB_ACTIONS)process.exit(0)";
+  const envLine = (key: string, value: string) =>
+    `${key}: ${JSON.stringify(value)}`;
+  const denied = (key: string, level: string) =>
+    `env key not allowed: ${key} at ${level} (denied process-level name)`;
+  const notPinned = (key: string, level: string) =>
+    `env key not allowed: ${key} at ${level} (not in the pinned set)`;
+  const smokeGate = ENFORCING_STEPS.find((e) => e.job === "e2e-smoke-gate")!;
+  const integrationGate = ENFORCING_STEPS.find(
+    (e) => e.job === "integration-gate",
+  )!;
+  const ciGateEntry = ENFORCING_STEPS.find((e) => e.job === "ci-gate")!;
+  const addCiGateStepEnv = (keyLine: string) =>
+    mutate(
+      source(CI),
+      "        env:\n          CI_BUILD_REQUESTED:",
+      `        env:\n          ${keyLine}\n          CI_BUILD_REQUESTED:`,
+      1,
+    );
+  const ciGateOf = (text: string) => jobsOf(text, "ci-gate env")["ci-gate"]!;
+  const runCiGate = (job: WorkflowJob) =>
+    executeCiGateResultsStep(job, {
+      results: {
+        ...Object.fromEntries(needsList(job).map((id) => [id, "success"])),
+        build: "skipped",
+        "test-unit": "skipped",
+      },
+      outputs: { "compilation-plan": { requested: "true" } },
+    });
+
+  const Y = [
+    [
+      "Y1",
+      "workflow env",
+      () =>
+        addWorkflowEnv(
+          source(CI_INTEGRATION),
+          envLine("BASH_ENV", BASH_ENV_VALUE),
+        ),
+      ["migrate", "smoke"],
+    ],
+    [
+      "Y2",
+      "job 'migrate' env",
+      () =>
+        mutateJob(
+          source(CI_INTEGRATION),
+          "migrate",
+          addToJobEnv(envLine("BASH_ENV", BASH_ENV_VALUE)),
+        ),
+      ["migrate"],
+    ],
+    [
+      "Y3",
+      "job 'smoke' env",
+      () =>
+        mutateJob(
+          source(CI_INTEGRATION),
+          "smoke",
+          addToJobEnv(envLine("BASH_ENV", BASH_ENV_VALUE)),
+        ),
+      ["smoke"],
+    ],
+  ] as const;
+
+  for (const [id, level, build, jobIds] of Y) {
+    it(`${id} (BASH_ENV at ${level}): the reject step is not recognised and the job fails closed`, () => {
+      const jobs = jobsOf(build(), id);
+      for (const jobId of jobIds) {
+        expect(forkRejectStepIndex(jobs[jobId]!), jobId).toBe(-1);
+        expect(
+          failsClosed(() => requiredJobFailsClosedOnFork(jobs[jobId]!)),
+          jobId,
+        ).toBe(true);
+      }
+    });
+
+    it(`${id} (BASH_ENV at ${level}): the exact denied-name message`, () => {
+      const jobs = jobsOf(build(), id);
+      for (const jobId of jobIds) {
+        expect(forkRejectProblems(jobs[jobId]!).join("\n"), jobId).toContain(
+          denied("BASH_ENV", level),
+        );
+      }
+    });
+  }
+
+  it("Y1 at workflow env also reaches the bash gates, which report it", () => {
+    const text = addWorkflowEnv(
+      source(CI_INTEGRATION),
+      envLine("BASH_ENV", BASH_ENV_VALUE),
+    );
+    for (const gate of [smokeGate, integrationGate]) {
+      expect(enforcementProblems(text, gate).join("\n"), gate.job).toContain(
+        denied("BASH_ENV", "workflow env"),
+      );
+    }
+  });
+
+  const X = [
+    [
+      "X3",
+      "workflow env",
+      () =>
+        addWorkflowEnv(source(CI), envLine("NODE_OPTIONS", NODE_OPTIONS_VALUE)),
+    ],
+    [
+      "X4",
+      "step 2 env of job 'ci-gate'",
+      () => addCiGateStepEnv(envLine("NODE_OPTIONS", NODE_OPTIONS_VALUE)),
+    ],
+  ] as const;
+
+  for (const [id, level, build] of X) {
+    it(`${id} (NODE_OPTIONS at ${level}): the ci-gate is reported, not fail-closed`, () => {
+      expect(enforcementProblems(build(), ciGateEntry)).not.toEqual([]);
+    });
+
+    it(`${id} (NODE_OPTIONS at ${level}): the exact denied-name message`, () => {
+      expect(enforcementProblems(build(), ciGateEntry).join("\n")).toContain(
+        denied("NODE_OPTIONS", level),
+      );
+      expect(() => runCiGate(ciGateOf(build()))).toThrow(
+        denied("NODE_OPTIONS", level),
+      );
+    });
+  }
+
+  it.each([
+    "BASH_ENV",
+    "ENV",
+    "NODE_OPTIONS",
+    "NODE_PATH",
+    "LD_PRELOAD",
+    "LD_LIBRARY_PATH",
+    "DYLD_INSERT_LIBRARIES",
+    "BASH_FUNC_echo%%",
+    "SHELLOPTS",
+    "BASHOPTS",
+    "PS4",
+  ])("%s is denied at every level, for pinned and unpinned jobs", (key) => {
+    expect(DENIED_ENV_KEY_PATTERNS.some((pattern) => pattern.test(key))).toBe(
+      true,
+    );
+    expect(() => assertEnvKeysNotDenied({ [key]: "x" }, "job env")).toThrow(
+      denied(key, "job env"),
+    );
+    expect(() => effectiveStepEnv({ [key]: "x" }, {}, {})).toThrow(
+      denied(key, "workflow env"),
+    );
+    expect(() => effectiveStepEnv({}, { [key]: "x" }, {})).toThrow(
+      denied(key, "job env"),
+    );
+    expect(() => effectiveStepEnv({}, {}, { [key]: "x" })).toThrow(
+      denied(key, "step env"),
+    );
+    expect(() => executeRunScript({}, "echo hi", { [key]: "x" })).toThrow(
+      denied(key, "effective env"),
+    );
+    // An unpinned fixture job: only the denylist applies.
+    expect(envKeyProblems({ env: { [key]: "x" }, steps: [] })).toEqual([
+      denied(key, "job env"),
+    ]);
+  });
+
+  it.each([
+    [
+      "workflow env (ci-integration)",
+      () => addWorkflowEnv(source(CI_INTEGRATION), envLine("FOO", "bar")),
+      CI_INTEGRATION,
+      "migrate",
+      "workflow env",
+    ],
+    [
+      "job 'migrate' env",
+      () =>
+        mutateJob(
+          source(CI_INTEGRATION),
+          "migrate",
+          addToJobEnv(envLine("FOO", "bar")),
+        ),
+      CI_INTEGRATION,
+      "migrate",
+      "job 'migrate' env",
+    ],
+    [
+      "job 'smoke' env",
+      () =>
+        mutateJob(
+          source(CI_INTEGRATION),
+          "smoke",
+          addToJobEnv(envLine("FOO", "bar")),
+        ),
+      CI_INTEGRATION,
+      "smoke",
+      "job 'smoke' env",
+    ],
+    [
+      "workflow env (ci.yml)",
+      () => addWorkflowEnv(source(CI), envLine("FOO", "bar")),
+      CI,
+      "ci-gate",
+      "workflow env",
+    ],
+    [
+      "the ci-gate step env",
+      () => addCiGateStepEnv(envLine("FOO", "bar")),
+      CI,
+      "ci-gate",
+      "step 2 env of job 'ci-gate'",
+    ],
+  ] as const)(
+    "a name outside the pinned set at %s is not allowed",
+    (_label, build, _file, jobId, level) => {
+      const job = jobsOf(build(), "pinned env")[jobId]!;
+      expect(envKeyProblems(job)).toEqual([notPinned("FOO", level)]);
+      const role = jobId === "ci-gate" ? "gate" : "reject";
+      expect(modelledKeyProblems(job, role).join("\n")).toContain(
+        notPinned("FOO", level),
+      );
+    },
+  );
+
+  it("the real workflows' env key names are exactly the pinned sets", () => {
+    for (const file of WORKFLOWS) {
+      expect(
+        Object.keys(parseWorkflowSource(source(file)).env as object).sort(),
+      ).toEqual([...MODELLED_WORKFLOW_ENV_KEYS].sort());
+    }
+    for (const [jobId, pin] of Object.entries(MODELLED_ENV_KEYS_BY_JOB)) {
+      const job = jobsOf(
+        source(jobId === "ci-gate" ? CI : CI_INTEGRATION),
+        "env pins",
+      )[jobId]!;
+      expect(envKeyProblems(job), jobId).toEqual([]);
+      expect(Object.keys(job.env ?? {}).sort(), jobId).toEqual(
+        [...pin.job].sort(),
+      );
+      const stepEnvs = Object.fromEntries(
+        (job.steps ?? [])
+          .filter((step) => step.env !== undefined)
+          .map((step) => [stepIdentity(step), Object.keys(step.env!).sort()]),
+      );
+      expect(
+        Object.fromEntries(
+          Object.entries(pin.steps).map(([k, v]) => [k, [...v].sort()]),
+        ),
+        jobId,
+      ).toEqual(stepEnvs);
+    }
+  });
+
+  it("bodies run from a temp file under bash --noprofile --norc -eo pipefail", () => {
+    expect(runStepShellArgv({ run: "echo hi" })).toEqual(RUNNER_ARGV);
+    // No "-c": bash treats its argument as a file, so the body only runs if
+    // it was written to the temp script file.
+    expect(RUNNER_ARGV[1]).not.toContain("-c");
+    const result = executeRunScript({}, "echo hi", {});
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout.trim()).toBe("hi");
+  });
+
+  it("GITHUB_ACTIONS=true and CI=true are modelled in the scrubbed env", () => {
+    expect(MODELLED_RUNNER_ENV).toEqual({ GITHUB_ACTIONS: "true", CI: "true" });
+    const result = executeRunScript({}, 'echo "$GITHUB_ACTIONS $CI"', {});
+    expect(result.stdout.trim()).toBe("true true");
+    // The pinned ci-gate body runs with them too (a child program sees them).
+    const passed = executeRunScript({}, PINNED_CI_GATE_BODY, {
+      CI_RESULTS: JSON.stringify({
+        plan: "success",
+        format: "success",
+        integrity: "success",
+        lint: "success",
+        typecheck: "success",
+        unit: "success",
+        build: "success",
+      }),
+      CI_BUILD_REQUESTED: "true",
+    });
+    expect(passed.status, passed.stdout + passed.stderr).toBe(0);
+  });
 });
