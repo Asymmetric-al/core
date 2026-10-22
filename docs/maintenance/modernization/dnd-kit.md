@@ -2,15 +2,21 @@
 
 Tracking: [AL-1965](https://github.com/Asymmetric-al/core/issues/1965) and
 [PR #2195](https://github.com/Asymmetric-al/core/pull/2195).
-The [successor review-feedback record](dnd-kit-review-feedback.json) routes the
-current candidate and binds its source, evidence and remaining gates. Task
-notification and filtered-ordering fixes were committed through normal hooks as
-`906d5f4b1068187b36543fb559df5aff4dc6b7d6`, then normally merged with develop
-`cc568c92c1cd283d82a4ef9c6d4be7dabe4efee4` at source checkpoint
-`7b79de8e62d9abbfe047ddcd48dc449ee95df85f`. Current-lock installation and both
-strict quality guards pass locally. Final successor documentation/inventory/quality
-commit, full pre-push, current-head CI/review, all three hosted previews and merge
-remain open. Production execution is outside this checkpoint.
+The first-party public API replacement is merged through PR #2195 as
+`f59331942c6e84ab66bcdd14c3b120025cceecfd` from qualified head
+`89ff719a73d302b3ba9079838f64fdd634d0002e` and base
+`cc568c92c1cd283d82a4ef9c6d4be7dabe4efee4`. The active
+[release readback](dnd-kit-release-readback.json) binds normal pre-push, exact-head
+CI/review, three READY previews with manual smoke, merge ancestry/tree equality
+and successful Main/Integration post-merge attempt 2. This closes task 7.1a only;
+wider UI/AI/security/combined release work remains open. Production execution is
+outside this checkpoint.
+
+The [review-feedback record](dnd-kit-review-feedback.json) remains a dated
+prepublication snapshot. Its source fixes at `906d5f4b1068187b36543fb559df5aff4dc6b7d6`
+and integration checkpoint `7b79de8e62d9abbfe047ddcd48dc449ee95df85f` retain
+their actual source/lock/evidence bindings; pending gates in that snapshot are
+superseded for active release status by the later release readback.
 
 The original [qualification](dnd-kit-qualification.json), SHA256
 `27b47b8533522f2a8e729ed6acd4d9a9a442f56a85775198bcb95f4d80484c5b`, remains
@@ -109,17 +115,18 @@ The successor JSON contains exact hashes, times, commands, logs and independent
 reviews. Each result remains bound to its tested source and lock; later rows do
 not relabel earlier proofs.
 
-| Observation                                                    | Recorded result                                                                 | Boundary                                                                                       |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Original qualification and UI-base work                        | 19 dated receipts, original board/hash and hook bridge retained                 | Historical source; original record stays byte-exact                                            |
-| Published parent `de87149` normal pre-push                     | 923 unit files, 7,749 cases, 15 typechecks and three builds passed              | Completed parent gate before review-feedback fixes                                             |
-| Intermediate shared Alert browser run                          | 299 passed, five existing skips                                                 | Historical board fixture; no HTTP-hook or pending-unmount proof                                |
-| Hook toast deduplication units                                 | 17 passed across four files after meaningful RED                                | Historical test bytes; hook behavior retained, later units expanded                            |
-| Final global-Toaster browser run                               | 303 passed, five existing skips, zero unexpected/flaky, four projects           | Exact final board/fixture/spec bytes; old lock; no actual provider writes                      |
-| Final mapper/controller/HTTP-hook units                        | 63 passed across six files after rank-250 RED                                   | Exact current source bytes under tested old lock; actual page controls plus separate HTTP seam |
-| Merged-source frozen install                                   | Passed with lock `7935bcc9…` unchanged and opaque input link identity preserved | Current develop integration; no environment values read/copied                                 |
-| Current merged-lock strict Doctor/Shadscan                     | Both passed; details below                                                      | Current source/quality snapshot, independent of final publication                              |
-| Final successor pre-push, remote CI/reviews/previews and merge | Open                                                                            | New combined published head and final readback still required                                  |
+| Observation                                | Recorded result                                                                 | Boundary                                                                                                                     |
+| ------------------------------------------ | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Original qualification and UI-base work    | 19 dated receipts, original board/hash and hook bridge retained                 | Historical source; original record stays byte-exact                                                                          |
+| Published parent `de87149` normal pre-push | 923 unit files, 7,749 cases, 15 typechecks and three builds passed              | Completed parent gate before review-feedback fixes                                                                           |
+| Intermediate shared Alert browser run      | 299 passed, five existing skips                                                 | Historical board fixture; no HTTP-hook or pending-unmount proof                                                              |
+| Hook toast deduplication units             | 17 passed across four files after meaningful RED                                | Historical test bytes; hook behavior retained, later units expanded                                                          |
+| Final global-Toaster browser run           | 303 passed, five existing skips, zero unexpected/flaky, four projects           | Exact final board/fixture/spec bytes; old lock; no actual provider writes                                                    |
+| Final mapper/controller/HTTP-hook units    | 63 passed across six files after rank-250 RED                                   | Exact current source bytes under tested old lock; actual page controls plus separate HTTP seam                               |
+| Merged-source frozen install               | Passed with lock `7935bcc9…` unchanged and opaque input link identity preserved | Current develop integration; no environment values read/copied                                                               |
+| Current merged-lock strict Doctor/Shadscan | Both passed; details below                                                      | Current source/quality snapshot, independent of final publication                                                            |
+| Qualified Dnd publication and merge        | Passed at `89ff719a` / `f5933194`                                               | Normal pre-push, four required checks, full test-e2e, all 27 paths/review threads and three exact-head previews/manual smoke |
+| Post-merge Main / Integration              | Both passed on attempt 2 at `f5933194`                                          | First bootstrap failures retained; one failed-jobs retry, identical tree and no code/configuration/floor change              |
 
 The full offline browser matrix imports the real board, shared controls and
 actual shared Toaster. It covers pointer/touch and keyboard movement, empty
@@ -158,6 +165,21 @@ raw score 48, admin 43 (floor 43), donor 61 (floor 59) and missionary 47 (floor 
 The record binds current Doctor `44900787…`, Shadscan `5921a27b…`, merged lock and
 the separate exact execution receipts. Earlier strict scans remain dated history.
 
+Post-merge attempt 1 failed before the affected product checks ran: Ubuntu
+apt-index downloads exhausted the existing two 180-second bounds in canvas
+bootstrap. The first failure remains recorded. One failed-jobs-only retry passed
+both workflows at the identical merge head without source, configuration, policy
+or score-floor changes. Applicable unit/lint/type/format/integrity, full test-e2e
+and smoke jobs passed; post-merge build, instant-nav and production e2e-gate jobs
+were conditionally skipped as recorded. The earlier qualified PR includes its
+successful build; no skipped job is relabeled as an executed pass.
+
+The preview workflow definition came from trusted base `cc568c92`, while actual
+checkout/deployment/smoke used qualified head `89ff719a`. Provider readback
+confirmed all three project/repository/branch/SHA identities and READY states.
+The force-build marker was sent in creation requests; its value was not
+independently read back. This limit remains explicit in the release record.
+
 The bounded browser/unit harnesses use an OS-only environment and exact
 `bun run --no-env-file` placement. A harmless isolated public-sentinel experiment
 proves both Node script children omit `.env`/`.env.local` sentinels under that
@@ -184,8 +206,8 @@ security closure is granted here. Root recorded the two new current-develop
 `pg`/`@types/pg` identities as open inventory work; their 8.20.0-to-8.23.1 upgrade
 is separate and is not claimed complete by this Dnd checkpoint.
 
-Final successor commit/full pre-push, complete current-head review reconciliation,
-required CI, all three exact-head hosted previews/QA, approved-head merge and
-post-merge workflows remain open. The campaign also owns final SBOM/manual
-advisory reconciliation and the immutable production release package. Production
-migration execution remains excluded.
+The Dnd first-party checkpoint has completed its qualified publication, review,
+preview, merge and post-merge readback. Broader UI/telemetry/AI tasks 7.1 and 7.5,
+skill task 10.2, CMS compatibility, pg/types, live DocRaptor fidelity, whole-Core
+security/SBOM and combined release preparation remain open. The campaign owns
+the immutable production package; production migration execution is excluded.
