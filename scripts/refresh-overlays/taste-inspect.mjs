@@ -103,7 +103,7 @@ for (const f of readdirSync(outDir))
 const browser = await Browser.launch();
 const helper = await browser.newPage({ width: 1600, height: 1000 });
 const report = {
-  url: server ? target : url,
+  url,
   at: new Date().toISOString(),
   allow,
   viewports: [],

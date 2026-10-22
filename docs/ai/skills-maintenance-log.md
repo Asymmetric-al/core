@@ -225,10 +225,10 @@ Source-group failures restore directories and lock/companion files together; ret
 
 ## Verification and delivery - AL-2186
 
-- Full repository preflight passed before PR publication: 915 test files and
-  7,621 tests passed, with one expected failure and four skipped tests.
-  Application builds, workspace typechecks, formatting, OpenSpec, ownership,
-  lockfile and shared UI checks passed.
+- Full repository preflight passed, including application builds, workspace
+  typechecks, the complete unit suite, formatting, OpenSpec, ownership,
+  lockfile and shared UI checks. Current-head CI evidence and final test totals
+  are recorded in the delivery PR.
 - All 65 reviewed Cloudflare validator tests passed explicitly under WSL Node.
   Refresh regression tests cover immutable pins, missing/symlinked companions,
   overlay preservation, stale-file removal, directory/lock rollback, vendor
@@ -247,6 +247,9 @@ Source-group failures restore directories and lock/companion files together; ret
 - Additional PR review repairs preserve raw bundle provenance, distinguish
   historical snapshots from availability checks, keep generated Inngest review
   notes, and align the shared class helper with installed cn@0.4.0.
+- Follow-up PR review corrected the inspection report URL after removing its
+  filesystem server. HTTP and HTTPS regressions now complete report generation,
+  artifact output and browser cleanup using an isolated browser stub.
 - Imported frontend helper repairs render chart/caption labels as text and use
   generated scene filenames. Browser inspection requires an explicit dev-server
   URL; the tools do not start a server over repository files. Exact source hashes

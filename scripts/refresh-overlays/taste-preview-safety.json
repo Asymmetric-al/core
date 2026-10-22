@@ -6,7 +6,7 @@
     {
       "path": "scripts/inspect.mjs",
       "upstreamHash": "999ea1a4a53893576d1699799073754795f9532c297e52578f3fddf07bcb180d",
-      "coreHash": "b74303a66344a20c752ed2d4f4618015d7d53b0c0abfe3b1629b52871cb07b85",
+      "coreHash": "4329113ce4d609788784e80865ce4a5a17b52ec0eb63d0a0bb4a8e1a17e279d2",
       "template": "taste-inspect.mjs"
     },
     {

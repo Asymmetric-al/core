@@ -2051,7 +2051,7 @@
       "rawSkillHash": "d955dae4ba8ab2d994f4bb06b4bf412a1d9875433a8597939c391f4bae91dd7a",
       "lockHash": "d955dae4ba8ab2d994f4bb06b4bf412a1d9875433a8597939c391f4bae91dd7a",
       "entrypointHash": "8a9dc39069b9b73749c9da5cf1c55edd28292d9f4415d6136f1b84b04d38004b",
-      "treeHash": "cf4e7fc0b7ae01cb4d2a60eb332eb734b72c0dc2c592eee45847c512e7a1152e",
+      "treeHash": "016ae875ad1ef31c9262bd901ecae14def20e8916102bd204dd3427118358e1d",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -2151,7 +2151,7 @@
             "references/upstream.md": "f5f1f9f47322f792bc6d574f8566f3a0dd4e12c7b6a91306ecc57c036ac4cede",
             "scripts/assets.mjs": "028385e396effcfd892e03c3c4e607d771c9a8adb8c8e2754581ac56fc98880d",
             "scripts/draw.mjs": "13a5bd2a9776c451ffa2595be3edcba0d0893a1694648210757add34fabb728a",
-            "scripts/inspect.mjs": "b74303a66344a20c752ed2d4f4618015d7d53b0c0abfe3b1629b52871cb07b85",
+            "scripts/inspect.mjs": "4329113ce4d609788784e80865ce4a5a17b52ec0eb63d0a0bb4a8e1a17e279d2",
             "scripts/lib/app-draw.mjs": "9b60be054bbc103cea5ec56f3395ff1fb48bc834a3c45e5a0dbb492a22322888",
             "scripts/lib/cdp.mjs": "dfbc9f429d2a330238703ea13f3003d31900822fd3c1cda4fa31d036653e6bea",
             "scripts/lib/preview-boundary.mjs": "83a809f339119f7ea42398a7e007d91b16253e8c2f248fa00e7c750c99c7a303",

@@ -141,6 +141,87 @@ describe("Core taste browser boundaries", () => {
       expect(url.stderr).toContain("BROWSER_STUB_STARTED");
     },
   );
+  it.each([
+    "http://localhost:3000/preview?view=mobile",
+    "https://example.invalid/preview?view=mobile#details",
+  ])("completes an inspection report for explicit URL %s", async (url) => {
+    const root = await fixture();
+    await applyTastePreviewCompatibility(root);
+    await writeFile(
+      path.join(root, "scripts/lib/cdp.mjs"),
+      `import { writeFileSync } from "node:fs";
+const events = [];
+export const sleep = async () => {};
+export class Browser {
+  static async launch() { events.push("launch"); return new Browser(); }
+  async newPage({ width }) {
+    const helper = width === 1600;
+    events.push(helper ? "helper" : "page");
+    return {
+      consoleErrors: [],
+      async send() {},
+      async goto(url) { events.push({ goto: url }); return "load"; },
+      async eval(expression) {
+        return !helper && typeof expression === "function" ? expression() : null;
+      },
+      async screenshot({ path } = {}) {
+        const image = Buffer.from("synthetic screenshot");
+        if (path) writeFileSync(path, image);
+        return image.toString("base64");
+      },
+      async setViewport() {},
+      async close() { events.push(helper ? "helper-close" : "page-close"); },
+    };
+  }
+  async close() {
+    events.push("browser-close");
+    writeFileSync("browser-events.json", JSON.stringify(events));
+  }
+}`,
+    );
+    await writeFile(
+      path.join(root, "scripts/lib/probe.mjs"),
+      `export const probe = () => ({ page: { height: 844 }, headings: [] });
+export const frame = () => ({ covered: [], big: [], filled: 1 });
+export const layout = () => null, app = () => null, colourShare = () => null;`,
+    );
+    await writeFile(
+      path.join(root, "scripts/lib/rules.mjs"),
+      "export const judge=()=>[],judgeLayout=judge,judgeApp=judge,APP_SKIP=new Set();",
+    );
+    const result = spawnSync(
+      process.execPath,
+      ["scripts/inspect.mjs", url, "--widths", "390", "--json"],
+      { cwd: root, encoding: "utf8" },
+    );
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stderr).toBe("");
+    const report = JSON.parse(
+      await readFile(
+        path.join(root, ".taste-skill/inspect/report.json"),
+        "utf8",
+      ),
+    );
+    expect(report.url).toBe(url);
+    expect(report.viewports).toHaveLength(1);
+    expect(report.viewports[0]).toMatchObject({ width: 390, load: "load" });
+    expect(report.findings).toEqual([]);
+    expect(JSON.parse(result.stdout)).toEqual(report);
+    for (const image of [report.images[0].fold, ...report.images[0].pages])
+      expect(await readFile(image, "utf8")).toBe("synthetic screenshot");
+    expect(
+      JSON.parse(
+        await readFile(path.join(root, "browser-events.json"), "utf8"),
+      ),
+    ).toEqual([
+      "launch",
+      "helper",
+      "page",
+      { goto: url },
+      "page-close",
+      "browser-close",
+    ]);
+  });
   it("restores reviewed raw tools without execution and is idempotent", async () => {
     const root = await fixture();
     await applyTastePreviewCompatibility(root);
