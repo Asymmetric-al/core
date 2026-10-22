@@ -1,7 +1,7 @@
 # Test Organization
 
 > **When to use**: Structuring test files, naming tests, grouping with `describe`, tagging, filtering, and deciding parallel vs serial execution.
-> **Prerequisites**: [core/configuration.md](foundations/configuration.md)
+> **Prerequisites**: [core/configuration.md](configuration.md)
 
 ## Quick Reference
 
@@ -43,7 +43,7 @@ tests/
 ├── auth/
 │   ├── login.spec.ts
 │   ├── signup.spec.ts
-│   ├── password-reset.spec.ts // pragma: allowlist secret
+│   ├── password-reset.spec.ts
 │   └── mfa.spec.ts
 ├── dashboard/
 │   ├── widgets.spec.ts
@@ -70,7 +70,7 @@ tests/
 │   ├── auth/
 │   │   ├── login.spec.ts
 │   │   ├── signup.spec.ts
-│   │   ├── password-reset.spec.ts // pragma: allowlist secret
+│   │   ├── password-reset.spec.ts
 │   │   └── mfa.spec.ts
 │   ├── checkout/
 │   │   ├── cart.spec.ts
@@ -655,6 +655,14 @@ test('user completes full onboarding wizard', async ({ page }) => {
 });
 ```
 
+**Step options**: `test.step(title, body, { box, timeout, subtitle, params })`. `box: true` reports failures at the step call site instead of inside a helper; `timeout` caps one step. Since 1.63, `subtitle` and `params` attach structured data that the HTML report and trace viewer render next to the step title:
+
+```javascript
+await test.step('select plan', async () => {
+  await page.getByRole('radio', { name: 'Pro plan' }).check();
+}, { subtitle: 'Pro', params: { plan: 'pro', seats: 5 } });
+```
+
 ---
 
 ### Pattern 7: Monorepo Testing
@@ -940,8 +948,8 @@ test('should edit a product', async ({ page, request }) => {
 
 ## Related
 
-- [core/configuration.md](foundations/configuration.md) — `testMatch`, `testDir`, `fullyParallel`, `workers`
-- [core/fixtures-and-hooks.md](foundations/fixtures-and-hooks.md) — shared setup via fixtures instead of `beforeAll`
-- [core/test-architecture.md](decisions/test-architecture.md) — when to write E2E vs API vs component tests
-- [ci/parallel-and-sharding.md](infrastructure/parallel-and-sharding.md) — CI sharding for large suites
-- [ci/projects-and-dependencies.md](infrastructure/projects-and-dependencies.md) — multi-project config
+- [core/configuration.md](configuration.md) — `testMatch`, `testDir`, `fullyParallel`, `workers`
+- [core/fixtures-and-hooks.md](fixtures-and-hooks.md) — shared setup via fixtures instead of `beforeAll`
+- [core/test-architecture.md](test-architecture.md) — when to write E2E vs API vs component tests
+- [ci/parallel-and-sharding.md](../ci/parallel-and-sharding.md) — CI sharding for large suites
+- [ci/projects-and-dependencies.md](../ci/projects-and-dependencies.md) — multi-project config

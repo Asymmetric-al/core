@@ -158,7 +158,7 @@ test('form-urlencoded body', async ({ request }) => {
 
 **Typed responses (1.63+)** — pass a type argument so the parsed body is typed at the call site instead of being cast afterwards:
 
-```javascript
+```typescript
 const response = await request.get<User>('/api/users/42');
 const user = await response.json(); // typed as User
 ```
@@ -173,6 +173,18 @@ const timing = response.timing();
 ```
 
 Useful for catching a latency regression inside an existing API test rather than standing up a separate performance suite. Treat single-request numbers as noisy and assert on generous ceilings, not tight ranges, or you have traded a flaky UI test for a flaky timing test. See [core/performance-testing.md](performance-testing.md).
+
+### Managing Request Cookies (Playwright 1.64+)
+
+**Before 1.64**, cookies on an `APIRequestContext` could only be seeded through `storageState` at creation time or by hand-building `Cookie` headers. **1.64** adds `addCookies()`, `cookies()` and `clearCookies()`, mirroring the `BrowserContext` methods:
+
+```javascript
+await request.addCookies([{ name: 'session-id', value: '42', url: 'https://example.com' }]);
+console.log(await request.cookies('https://example.com'));
+await request.clearCookies({ name: 'session-id' });
+```
+
+Practical uses: assert that a login endpoint actually set the session cookie, test an expired-session path by clearing one cookie mid-test, or switch feature-flag cookies between calls without creating a new context.
 
 ### API Test Structure
 
@@ -347,7 +359,7 @@ export const test = base.extend<ApiFixtures>({
     const loginResponse = await loginContext.post('/api/auth/login', {
       data: {
         email: process.env.ADMIN_EMAIL,
-        password: process.env.ADMIN_PASSWORD, // pragma: allowlist secret
+        password: process.env.ADMIN_PASSWORD,
       },
     });
     expect(loginResponse.ok()).toBeTruthy();
@@ -417,7 +429,7 @@ const test = base.extend({
     const loginResponse = await loginContext.post('/api/auth/login', {
       data: {
         email: process.env.ADMIN_EMAIL,
-        password: process.env.ADMIN_PASSWORD, // pragma: allowlist secret
+        password: process.env.ADMIN_PASSWORD,
       },
     });
     expect(loginResponse.ok()).toBeTruthy();
@@ -824,17 +836,17 @@ type SeedFixtures = {
 export const test = base.extend<SeedFixtures>({
   seedUser: async ({ request }, use) => {
     const email = `user-${Date.now()}@example.com`;
-    const password = 'TestPass123!'; // pragma: allowlist secret
+    const password = 'TestPass123!';
 
     // Create via API
     const response = await request.post('/api/users', {
-      data: { name: 'Test User', email, password }, // pragma: allowlist secret
+      data: { name: 'Test User', email, password },
     });
     expect(response.ok()).toBeTruthy();
     const user = await response.json();
 
     // Pass to test
-    await use({ id: user.id, email, password }); // pragma: allowlist secret
+    await use({ id: user.id, email, password });
 
     // Cleanup after test — always delete what you created
     await request.delete(`/api/users/${user.id}`);
@@ -881,15 +893,15 @@ const { test: base, expect } = require('@playwright/test');
 const test = base.extend({
   seedUser: async ({ request }, use) => {
     const email = `user-${Date.now()}@example.com`;
-    const password = 'TestPass123!'; // pragma: allowlist secret
+    const password = 'TestPass123!';
 
     const response = await request.post('/api/users', {
-      data: { name: 'Test User', email, password }, // pragma: allowlist secret
+      data: { name: 'Test User', email, password },
     });
     expect(response.ok()).toBeTruthy();
     const user = await response.json();
 
-    await use({ id: user.id, email, password }); // pragma: allowlist secret
+    await use({ id: user.id, email, password });
 
     await request.delete(`/api/users/${user.id}`);
   },

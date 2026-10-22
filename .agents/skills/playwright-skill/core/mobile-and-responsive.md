@@ -152,6 +152,12 @@ test('mobile user can navigate via hamburger menu', async ({ page, isMobile }) =
 });
 ```
 
+> **Playwright 1.64 breaking change**: the `screen` size is now forwarded from device descriptors. With `...devices['Desktop Chrome']` (or any device), `window.screen` and screen-based media queries now see the emulated screen, not the host's. Tests that relied on the real screen size can opt out:
+>
+> ```typescript
+> use: { ...devices['Desktop Chrome'], screen: undefined }
+> ```
+
 ### 2. Custom Viewports
 
 **Use when**: Testing responsive layouts at specific breakpoints without full device emulation. Ideal for verifying CSS media queries fire at the right widths.

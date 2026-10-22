@@ -10,7 +10,7 @@ These are the minimum versions required for full functionality (sending, receivi
 |----------|---------|-------------|---------|
 | Node.js | `resend` | >= 6.14.0 | `npm install resend` |
 | Python | `resend` | >= 2.34.0 | `pip install resend` |
-| Go | `resend-go/v3` | >= 3.11.0 | `go get github.com/resend/resend-go/v3` |
+| Go | `resend-go/v4` | >= 4.0.0 | `go get github.com/resend/resend-go/v4` |
 | Ruby | `resend` | >= 1.6.0 | `gem install resend` |
 | PHP | `resend/resend-php` | >= 1.1.0 | `composer require resend/resend-php` |
 | Rust | `resend-rs` | >= 0.26.1 | `cargo add resend-rs` |
@@ -27,7 +27,7 @@ Check for these files to determine the project's language/framework:
 |------|----------|-----|
 | `package.json` | Node.js/TypeScript | resend |
 | `requirements.txt` or `pyproject.toml` | Python | resend |
-| `go.mod` | Go | resend-go/v3 |
+| `go.mod` | Go | resend-go/v4 |
 | `Gemfile` | Ruby | resend |
 | `composer.json` | PHP | resend/resend-php |
 | `Cargo.toml` | Rust | resend-rs |
@@ -59,7 +59,7 @@ pip install resend
 ### Go
 
 ```bash
-go get github.com/resend/resend-go/v3
+go get github.com/resend/resend-go/v4
 ```
 
 ### Ruby

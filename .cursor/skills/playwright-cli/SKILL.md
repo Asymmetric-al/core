@@ -66,6 +66,7 @@ is authoritative because the CLI evolves independently of Core's pinned
 playwright-cli open http://localhost:3000
 playwright-cli snapshot --filename=test-results/playwright-cli/snapshot.yaml --depth=4
 playwright-cli find "Sign in"
+playwright-cli find --regex "/sign (in|up)/i"
 playwright-cli click e15
 playwright-cli fill e21 "demo value"
 playwright-cli press Enter

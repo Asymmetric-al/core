@@ -43,14 +43,11 @@ The design IS the product. A ReUI block/component encodes senior-designer decisi
 
 - Replace every placeholder with the user's real data. Model it as **typed data structures** and **map over arrays** - never duplicate JSX per row/card. Keep small block-specific formatters next to the data.
 - Wire the real source (columns, fields, fetch). For `data-grid`, implement the server fetch contract if the user needs server-side data.
+- Never read `window`, `localStorage`, `location`, `Date.now()` or `Math.random()` in render or in a `useState` initializer; read them in an effect.
 - **Type from the component API, derive during render.** Type domain state through the component's own types - e.g. map status to `BadgeProps["variant"]` via a typed `Record<Status, …>` - instead of stringly-typed values. Compute view state during render; don't mirror derived data into `useState`/`useEffect`.
 - **Adapt on the right base.** Use the API for the project's base (Base UI vs Radix - see [components.md](./components.md)); the installed files are already base-correct, so reuse their shape rather than translating from memory.
 
 ## Believable content (no AI tells)
 
 - Use realistic labels, counts, timestamps, and statuses that map to a real workflow.
-- No decorative buttons, fake tabs, meaningless toggles, equal-weight card walls, empty gradients, ornamental icons, or generic SaaS filler. Every element should do something.
-
-## Operational surfaces (settings / profile / admin)
-
-Pick ONE archetype and keep the family consistent: a vertical rail (3-6 sections), horizontal tabs (5-8), or a frame/stack. Prefer `frame` for tool-like surfaces, a card for profile-like ones. Don't mix archetypes in one surface.
+- No decorative buttons, fake tabs, meaningless toggles, equal-weight card walls, empty gradients, ornamental icons, or generic SaaS filler. Every element should do something, and the layout must still hold with long names, empty values and crowded data.

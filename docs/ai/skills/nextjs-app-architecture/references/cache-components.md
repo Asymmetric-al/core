@@ -45,13 +45,25 @@ Dynamic reads are the exception: use them for values that must be recomputed for
 | Remote service, safe across users, worth durable storage        | `'use cache: remote'` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache-remote.md`)   | Durable sharing requires a qualified `cacheHandlers.remote` or provider-supplied remote handler. Without one, the installed runtime falls back to the default in-memory handler; the directive alone does not prove persistence.                                            |
 | Genuinely dynamic per request                                   | none                                                                                                                         | Must be justified. Read inside `<Suspense>`; mutations use `refresh()` because no tag exists.                                                                                                                                                                               |
 
-Cache the **query** when its result should be reused across requests. Cache the **component** when rendering is expensive and props are stable (a nav, a trending sidebar). Don't `'use cache'` a component that already calls a `'use cache'` query — double-caching, no benefit.
+When a flow needs the same data twice — once to _decide_ and once to _render_ — prefer one cached read so both callers share an identity when that entry is available. Add a lighter "exists" query only when it is measurably cheaper or has a different freshness requirement.
+
+Cache the **query** when its result should be reused independently of UI. Cache the **component** when the rendered output is the reusable unit and its props are stable. Usually cache one layer; add a second cache scope only when it has a distinct key, lifetime, or measured rendering benefit. For SWR or TanStack Query hydration, follow `references/single-page-applications.md` and its official guide links rather than defining a separate policy here.
+
+For personalized output that should be shared across server requests, keep request API reads in a thin uncached feature wrapper and pass only trusted, normalized identity values into the cached query or component. Do not choose `'use cache: private'` merely because the result is per-user; follow the version-matched Authentication with Cache Components guide (installed: `node_modules/next/dist/docs/01-app/02-guides/authentication-with-cache-components.md`) for the directive's current semantics.
 
 ## Keep a synchronous value out of the shell
 
 You usually don't need this. A query that reads `cookies()`/`headers()` or awaits a DB/`fetch` inside `<Suspense>` already stays out of the shell on its own. Only a _synchronous_ request-time read (`new Date()`, `Math.random()`, a sync sqlite read) needs help: `await` `io()` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/io.md`) before it, with the caller inside `<Suspense>`.
 
 Prefer `io()` over `connection()` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/connection.md`): both exclude what follows from the shell, but `connection()` blocks prefetches while `io()` stays prefetchable. Reach for `connection()` only when rendering must wait for a real user request.
+
+### A live async layer needs its own boundary
+
+For an async read that must be fresh on every request (stock, presence, a live count), leave it uncached and give it its own `<Suspense>` boundary. The official Caching guide (installed: `node_modules/next/dist/docs/01-app/01-getting-started/08-caching.md`) covers how its fallback joins the shell while the read streams at request time. Use `io()` or `connection()` only for the synchronous request-time cases described in their API references.
+
+### Choose the lifetime by who can change the data
+
+When every write to a read goes through the app's actions and each one calls `updateTag()` for it, the lifetime is only a fallback for changes made outside the app, so use `cacheLife('max')`. Pick a shorter profile only for data that changes somewhere no action can tag: an upstream API, another service writing to the same database, a value that ages on its own. Match it to how stale that data may get.
 
 ## Decide how to invalidate
 
@@ -62,6 +74,14 @@ Prefer `io()` over `connection()` (installed: `node_modules/next/dist/docs/01-ap
 
 Tag, cache, invalidate: the `cacheTag` on the API-owned read and the `updateTag` / `revalidateTag` in the owning mutation use the same string from `packages/api/src/shared/cache-tags.ts` (or that read's API domain module). Feature-local files own browser query keys only.
 
+### Choose remote caching from observed hit rate
+
+The default shared store for `'use cache'` is per-instance memory and may be ephemeral on serverless. `'use cache: remote'` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache-remote.md`) moves entries to a durable cache handler shared across instances, with infrastructure cost and network latency. Use it for shared reads whose upstream cost and expected hit rate justify that trade-off; keep high-cardinality or per-user keys out of the remote cache unless measurement supports them. The Caching guide (installed: `node_modules/next/dist/docs/01-app/01-getting-started/08-caching.md`) describes each store.
+
+### Tag by write frequency, not by screen
+
+When one view merges a slow, rarely changing read (a computed offer, a catalog) with a cheap, chatty one (reservations, presence, counters), give each its own cache function and tag. A write to the chatty layer then invalidates only that layer. If both share one tag, every small write recomputes the expensive read and the mutation feels as slow as the page. Measure the mutation from click to settled UI; a time that matches a cached read's cost means the tag is too broad.
+
 ## Coordinate hydrated client data
 
 When cached server data seeds SWR, TanStack Query, or another browser cache, follow `references/single-page-applications.md`. Server and client freshness policies are independent; hydration adds library-specific constraints.
@@ -71,7 +91,7 @@ When cached server data seeds SWR, TanStack Query, or another browser cache, fol
 When `next build` fails under Cache Components, map the error back to an architecture rule instead of patching locally:
 
 - Async work without `'use cache'` and without an ancestor `<Suspense>` → cache the reusable read, or wrap a justified dynamic read in a page-owned `<Suspense>`.
-- Request data inside `'use cache'` → prefer reading request inputs outside and passing safe stable values into a qualified cache; use `'use cache: private'` only for the bounded case above, or stream dynamic data.
+- Request data inside `'use cache'` → for cross-request reuse, resolve it in an uncached feature wrapper and pass trusted, normalized values into the cache scope; otherwise follow the version-matched private-cache guidance or keep the read dynamic with a documented reason.
 - `await params` / `await searchParams` at the top of a page → keep the page synchronous and move the read into `params.then()` / `searchParams.then()`.
 - Sync request-time values (`new Date()`, `Math.random()`, sync storage reads) captured in the shell → cache stable values, or use `io()` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/io.md`) for per-request values.
 

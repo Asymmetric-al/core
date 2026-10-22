@@ -1,7 +1,7 @@
 # Page Objects vs Fixtures vs Helpers
 
 > **When to use**: When deciding how to organize reusable test code in a Playwright project.
-> **Prerequisites**: [core/page-object-model.md](../core/page-object-model.md), [core/fixtures-and-hooks.md](../core/fixtures-and-hooks.md)
+> **Prerequisites**: [pom/page-object-model.md](page-object-model.md), [core/fixtures-and-hooks.md](../core/fixtures-and-hooks.md)
 
 ## Quick Answer
 
@@ -267,7 +267,7 @@ export const test = base.extend<MyFixtures>({
     const response = await request.post('/api/test/users', {
       data: {
         email: `test-${Date.now()}@example.com`,
-        password: 'TestPass123!', // pragma: allowlist secret
+        password: 'TestPass123!',
       },
     });
     const user = await response.json();
@@ -283,7 +283,7 @@ export const test = base.extend<MyFixtures>({
   authenticatedPage: async ({ page, testUser }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(testUser.email);
-    await page.getByLabel('Password').fill(testUser.password); // pragma: allowlist secret
+    await page.getByLabel('Password').fill(testUser.password);
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page).toHaveURL('/dashboard');
 
@@ -352,7 +352,7 @@ const test = base.extend({
     const response = await request.post('/api/test/users', {
       data: {
         email: `test-${Date.now()}@example.com`,
-        password: 'TestPass123!', // pragma: allowlist secret
+        password: 'TestPass123!',
       },
     });
     const user = await response.json();
@@ -365,7 +365,7 @@ const test = base.extend({
   authenticatedPage: async ({ page, testUser }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(testUser.email);
-    await page.getByLabel('Password').fill(testUser.password); // pragma: allowlist secret
+    await page.getByLabel('Password').fill(testUser.password);
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page).toHaveURL('/dashboard');
 
@@ -427,7 +427,7 @@ export function generateEmail(prefix = 'test'): string {
 export function generateUser(overrides: Partial<TestUser> = {}): TestUser {
   return {
     email: generateEmail(),
-    password: 'TestPass123!', // pragma: allowlist secret
+    password: 'TestPass123!',
     firstName: 'Test',
     lastName: 'User',
     ...overrides,
@@ -436,7 +436,7 @@ export function generateUser(overrides: Partial<TestUser> = {}): TestUser {
 
 interface TestUser {
   email: string;
-  password: string; // pragma: allowlist secret
+  password: string;
   firstName: string;
   lastName: string;
 }
@@ -510,7 +510,7 @@ function generateEmail(prefix = 'test') {
 function generateUser(overrides = {}) {
   return {
     email: generateEmail(),
-    password: 'TestPass123!', // pragma: allowlist secret
+    password: 'TestPass123!',
     firstName: 'Test',
     lastName: 'User',
     ...overrides,
@@ -653,7 +653,7 @@ export const test = base.extend<Fixtures>({
   // Composed fixture: depends on page object + resource fixture
   authenticatedPage: async ({ loginPage, testUser }, use) => {
     await loginPage.goto();
-    await loginPage.signIn(testUser.email, testUser.password); // pragma: allowlist secret
+    await loginPage.signIn(testUser.email, testUser.password);
     await use(loginPage.page);
   },
 });
@@ -728,7 +728,7 @@ const test = base.extend({
 
   authenticatedPage: async ({ loginPage, testUser }, use) => {
     await loginPage.goto();
-    await loginPage.signIn(testUser.email, testUser.password); // pragma: allowlist secret
+    await loginPage.signIn(testUser.email, testUser.password);
     await use(loginPage.page);
   },
 });
@@ -931,7 +931,7 @@ class ConfirmationPage {
 
 ## Related
 
-- [core/page-object-model.md](../core/page-object-model.md) -- detailed page object patterns and examples
+- [pom/page-object-model.md](page-object-model.md) -- detailed page object patterns and examples
 - [core/fixtures-and-hooks.md](../core/fixtures-and-hooks.md) -- complete guide to Playwright fixtures and lifecycle hooks
 - [core/test-organization.md](../core/test-organization.md) -- file structure and naming conventions
 - [core/test-architecture.md](../core/test-architecture.md) -- when to write E2E vs API vs component tests

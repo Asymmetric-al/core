@@ -165,6 +165,138 @@ describe("ReUI skill refresh staging", () => {
       originalSkill,
     );
   });
+  it("stages reviewed display-only OpenAI metadata without changing its bytes", async () => {
+    const f = await fixture();
+    const payload = bundle();
+    const metadata =
+      'interface:\n  display_name: "ReUI"\n  short_description: "ReUI component guidance."\n  default_prompt: "Use ReUI for this UI."\n';
+    payload.files.push({ path: "agents/openai.yaml", content: metadata });
+    await writeFile(f.bundlePath, JSON.stringify(payload));
+    const result = run(f.root, [
+      "--bundle=" + f.bundlePath,
+      "--output=" + f.output,
+    ]);
+    expect(result.status).toBe(0);
+    expect(
+      await readFile(path.join(f.output, "agents/openai.yaml"), "utf8"),
+    ).toBe(metadata);
+    expect(await readFile(path.join(f.canonical, "SKILL.md"), "utf8")).toBe(
+      originalSkill,
+    );
+  });
+
+  it("keeps multilingual display text, combining marks, valid surrogate pairs and language joiners", async () => {
+    const f = await fixture();
+    const payload = bundle();
+    const metadata =
+      "interface:\n" +
+      "  display_name: " +
+      JSON.stringify("ReUI واجهة") +
+      "\n" +
+      "  short_description: " +
+      JSON.stringify("ภาษาไทย 中文 e\u0301 فارسی می\u200cروم") +
+      "\n" +
+      "  default_prompt: " +
+      JSON.stringify("हिन्दी क्\u200dष 👩\u200d💻 🚀") +
+      "\n";
+    payload.files.push({ path: "agents/openai.yaml", content: metadata });
+    await writeFile(f.bundlePath, JSON.stringify(payload));
+    const result = run(f.root, [
+      "--bundle=" + f.bundlePath,
+      "--output=" + f.output,
+    ]);
+    expect(result.status, result.output).toBe(0);
+    expect(
+      await readFile(path.join(f.output, "agents/openai.yaml"), "utf8"),
+    ).toBe(metadata);
+  });
+
+  it.each([
+    ["C1 control", "\u0080"],
+    ["next-line control", "\u0085"],
+    ["C1 terminator", "\u009f"],
+    ["Arabic directional mark", "\u061c"],
+    ["right-to-left override", "\u202e"],
+    ["directional isolate", "\u2066"],
+    ["zero-width space", "\u200b"],
+    ["byte-order mark", "\ufeff"],
+    ["line separator", "\u2028"],
+    ["paragraph separator", "\u2029"],
+    ["lone high surrogate", "\ud800"],
+    ["lone low surrogate", "\udc00"],
+    ["surrogates separated by ZWJ", "\ud800\u200d\udc00"],
+    ["surrogates separated by ZWNJ", "\ud800\u200c\udc00"],
+  ])(
+    "rejects literal and escaped unsafe Unicode display values: %s",
+    async (_label, unsafe) => {
+      for (const escaped of [false, true]) {
+        const f = await fixture();
+        const payload = bundle();
+        const token = escaped
+          ? JSON.stringify("Unsafe" + unsafe + "value").replace(
+              /[\u007f-\uffff]/g,
+              (character) =>
+                "\\u" + character.charCodeAt(0).toString(16).padStart(4, "0"),
+            )
+          : '"Unsafe' + unsafe + 'value"';
+        payload.files.push({
+          path: "agents/openai.yaml",
+          content:
+            'interface:\n  display_name: "ReUI"\n  short_description: "Guidance"\n  default_prompt: ' +
+            token +
+            "\n",
+        });
+        await writeFile(f.bundlePath, JSON.stringify(payload));
+        const result = run(f.root, [
+          "--bundle=" + f.bundlePath,
+          "--output=" + f.output,
+        ]);
+        expect(result.status, result.output).not.toBe(0);
+        expect(result.output).toContain("invalid display value");
+        expect(existsSync(f.output)).toBe(false);
+        expect(await readFile(path.join(f.canonical, "SKILL.md"), "utf8")).toBe(
+          originalSkill,
+        );
+      }
+    },
+  );
+
+  it.each([
+    [
+      "agents/openai.yaml",
+      'interface:\n  display_name: "ReUI"\n  short_description: "Guidance"\n  default_prompt: "Unsafe\\u0000value"\n',
+    ],
+    ["agents/other.yaml", 'interface:\n  display_name: "ReUI"\n'],
+    ["agents/openai.yml", 'interface:\n  display_name: "ReUI"\n'],
+    [
+      "agents/openai.yaml",
+      'interface:\n  display_name: "ReUI"\ncommands:\n  run: "node hook.js"\n',
+    ],
+    ["agents/openai.yaml", 'interface: &display\n  display_name: "ReUI"\n'],
+    ["agents/openai.yaml", "interface:\n  display_name: !include secret.txt\n"],
+    [
+      "agents/openai.yaml",
+      'interface:\n  display_name: "ReUI"\n  display_name: "Duplicate"\n  short_description: "Guidance"\n  default_prompt: "Use ReUI"\n',
+    ],
+  ])(
+    "rejects unsupported metadata path or authority-bearing YAML: %s",
+    async (filePath, content) => {
+      const f = await fixture();
+      const payload = bundle();
+      payload.files.push({ path: filePath, content });
+      await writeFile(f.bundlePath, JSON.stringify(payload));
+      const result = run(f.root, [
+        "--bundle=" + f.bundlePath,
+        "--output=" + f.output,
+      ]);
+      expect(result.status).not.toBe(0);
+      expect(existsSync(f.output)).toBe(false);
+      expect(await readFile(path.join(f.canonical, "SKILL.md"), "utf8")).toBe(
+        originalSkill,
+      );
+    },
+  );
+
   it("stages a complete fresh bundle with Core overlays and provenance without changing canonical skills or MCP", async () => {
     const f = await fixture();
     const result = run(f.root, [

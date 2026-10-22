@@ -499,7 +499,7 @@ test('background sync retries failed requests when online', async ({ swContext }
 |---|---|---|
 | Test service workers with the default `page` fixture | Default context is temporary; SWs may not persist | Use `launchPersistentContext` for reliable SW testing |
 | Skip `navigator.serviceWorker.ready` before going offline | SW may not have finished caching | Always `await page.evaluate(() => navigator.serviceWorker.ready)` first |
-| Use `page.route()` to simulate offline | Only intercepts Playwright-visible requests; SW fetch events are not intercepted | Use `context.setOffline(true)` for true network-level offline |
+| Use `page.route()` to simulate offline | `page.route()` never sees requests the SW itself makes (only `context.route()` does, Chromium 1.57+), and requests the SW answers from cache never hit the network | Use `context.setOffline(true)` for true network-level offline |
 | Test the SW JavaScript file directly with unit tests only | Misses integration with the page and caching behavior | Combine unit tests with Playwright end-to-end SW tests |
 | Assume caches are clean at test start | Previous test runs may leave stale caches | Clear caches in fixture setup or use a fresh `userDataDir` |
 | `waitForTimeout` after `setOffline(false)` | Background sync timing is unpredictable | Use `expect(...).toHaveText('Synced', { timeout: 15000 })` |

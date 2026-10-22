@@ -86,7 +86,7 @@ result = resend.Batch.send(emails, idempotency_key=f"batch-orders/{batch_id}")
 Other SDKs use the `Idempotency-Key` header:
 
 ```go
-import "github.com/resend/resend-go/v3"
+import "github.com/resend/resend-go/v4"
 
 client := resend.NewClient(os.Getenv("RESEND_API_KEY"))
 
@@ -223,7 +223,7 @@ except resend.exceptions.ResendError as e:
 ```go
 import (
     "fmt"
-    "github.com/resend/resend-go/v3"
+    "github.com/resend/resend-go/v4"
 )
 
 client := resend.NewClient(os.Getenv("RESEND_API_KEY"))
@@ -359,7 +359,7 @@ result = send_email_with_retry(
 import (
     "fmt"
     "time"
-    "github.com/resend/resend-go/v3"
+    "github.com/resend/resend-go/v4"
 )
 
 func sendEmailWithRetry(client *resend.Client, params *resend.SendEmailRequest, maxRetries int) (*resend.SendEmailResponse, error) {

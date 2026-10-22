@@ -237,7 +237,7 @@ playwright-cli -s=configured open https://example.com --config=my-config.json
 playwright-cli -s=visible open https://example.com --headed
 
 # Connect to existing browser via extension
-playwright-cli -s=extension open --extension
+playwright-cli -s=extension attach --extension
 ```
 
 ## Environment Variable

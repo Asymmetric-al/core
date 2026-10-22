@@ -38,14 +38,16 @@
 # Playwright Skill Guides
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Playwright](https://img.shields.io/badge/Playwright-1.63%2B-2EAD33.svg)](https://playwright.dev)
-[![Guides](https://img.shields.io/badge/guides-70-blue.svg)](SKILL.md)
+[![Playwright](https://img.shields.io/badge/Playwright-1.64%2B-2EAD33.svg)](https://playwright.dev)
+[![Guides](https://img.shields.io/badge/guides-79-blue.svg)](SKILL.md)
 
-Production-tested Playwright guides for E2E, API, component, visual, accessibility, and security testing, plus CI/CD, CLI automation, trace-report debugging, page objects, and migration. **70 guides** with TypeScript and JavaScript examples throughout.
+Production-tested Playwright guides for E2E, API, component, visual, accessibility, and security testing, plus CI/CD, CLI automation, trace-report debugging, page objects, and migration. **79 guides** with TypeScript examples throughout and JavaScript in most core guides.
 
 These are [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills) — Markdown guides an AI coding agent loads on demand. Install them with the `skills` CLI and your agent pulls the right guide when you ask it to write, debug, or scale Playwright tests. [SKILL.md](SKILL.md) is the canonical index the agent reads, including the Golden Rules and architecture-decision guides.
 
-Playwright 1.63 coverage: test `lock` for serializing contention on a shared resource, `locator.visible()` replacing the `:visible` pseudo-class, aria and screen snapshots in traces (`snapshots: { dom, aria, screen }`), `--add-reporter` for appending rather than replacing reporters, the `perfetto` reporter, typed `request.get<User>()`, and `ariaSnapshotJSON()`. From 1.62: `reporter.preprocess()` for selecting tests before execution, `retryStrategy: 'isolated'`, WebP screenshots with a `quality` parameter, `AbortSignal` on actions and assertions, `locator.waitForFunction()`, `apiResponse.timing()`, and the stories-and-galleries component testing model that replaces the deprecated experimental CT packages. A dedicated [dynamic-test-selection.md](core/dynamic-test-selection.md) guide covers driving quarantine from an external flakiness API.
+Playwright 1.64 coverage: `locator.within()` for combining a target and a container locator (with per-parent `nth()` for column queries), WebMCP testing via `page.webmcp.tools()` / `callTool()` in a dedicated [webmcp-testing.md](core/webmcp-testing.md) guide, `--shuffle` for exposing order-dependent tests, `default: false` projects with `--project="*"` and `config.filteredProjects`, `test.describe.configure({ lock })`, 60fps videos with CSS-styled action callouts and VP9 encoding, `toHaveScreenshot: { type: 'webp' }`, `page.getByRef()`, `APIRequestContext` cookie methods, passkey `signCount`, and `page.content({ includeShadow })`. Breaking changes flagged where they bite: device `screen` forwarding, `--update-snapshots=missing` now passing, elements in hidden iframes counting as hidden, and JSX following `tsconfig.json`.
+
+From 1.63: test `lock` for serializing contention on a shared resource, `locator.visible()` replacing the `:visible` pseudo-class, aria and screen snapshots in traces (`snapshots: { dom, aria, screen }`), `--add-reporter` for appending rather than replacing reporters, the `perfetto` reporter, typed `request.get<User>()`, and `ariaSnapshotJSON()`. From 1.62: `reporter.preprocess()` for selecting tests before execution, `retryStrategy: 'isolated'`, WebP screenshots with a `quality` parameter, `AbortSignal` on actions and assertions, `locator.waitForFunction()`, `apiResponse.timing()`, and the stories-and-galleries component testing model that replaces the deprecated experimental CT packages. A dedicated [dynamic-test-selection.md](core/dynamic-test-selection.md) guide covers driving quarantine from an external flakiness API.
 
 ## Install
 
@@ -59,6 +61,8 @@ Or add individual packs:
 
 ```bash
 npx skills add testdino-hq/playwright-skill/core
+npx skills add testdino-hq/playwright-skill/frontend
+npx skills add testdino-hq/playwright-skill/qa
 npx skills add testdino-hq/playwright-skill/ci
 npx skills add testdino-hq/playwright-skill/pom
 npx skills add testdino-hq/playwright-skill/migration
@@ -72,7 +76,9 @@ npx skills add testdino-hq/playwright-skill/playwright-cli
 
 | Pack | Guides | What's covered |
 |---|:---:|---|
-| **core** | 47 | Locators, assertions, fixtures, auth, API testing, network mocking, visual regression, accessibility, debugging, trace-report analysis, framework recipes, architecture decisions |
+| **core** | 50 | Locators, assertions, fixtures, auth, API testing, network mocking, visual regression, accessibility, debugging, trace-report analysis, framework recipes, architecture decisions |
+| **qa** | 4 | For QA engineers: test case design from requirements, bug reports from failing tests, manual-to-automated conversion, test review |
+| **frontend** | 2 | For frontend engineers: adding valid, unique, stable `data-testid` attributes (naming, list uniqueness, stability) + React/Vue/Angular/Svelte patterns |
 | **ci** | 9 | GitHub Actions, GitLab CI, CircleCI, Azure DevOps, Jenkins, Docker, sharding, reporting, coverage |
 | **playwright-cli** | 10 | CLI browser automation, screenshots, tracing, session management, device emulation |
 | **pom** | 2 | Page Object Model patterns, POM vs fixtures vs helpers |
@@ -117,7 +123,7 @@ The foundation: writing, debugging, and maintaining reliable tests. New to Playw
 | [error-and-edge-cases.md](core/error-and-edge-cases.md) | Error states and edge-case coverage |
 | [visual-regression.md](core/visual-regression.md) | Screenshot comparison, thresholds, masking dynamic content |
 | [accessibility.md](core/accessibility.md) | axe-core integration, ARIA assertions, a11y auditing |
-| [component-testing.md](core/component-testing.md) | Mount React/Vue/Svelte components in isolation |
+| [component-testing.md](core/component-testing.md) | Component tests with the stories-and-galleries `mount()` model (1.62+) |
 | [mobile-and-responsive.md](core/mobile-and-responsive.md) | Device emulation, viewport testing, touch interactions |
 
 ### Debugging & Fixing
@@ -125,9 +131,11 @@ The foundation: writing, debugging, and maintaining reliable tests. New to Playw
 | Guide | Description |
 |---|---|
 | [debugging.md](core/debugging.md) | Trace viewer, `PWDEBUG`, UI mode, headed + slow-mo |
+| [test-agents.md](core/test-agents.md) | Playwright Test Agents: plan, generate and heal tests with an AI tool; when to use playwright-cli or MCP instead |
 | [trace-analysis.md](core/trace-analysis.md) | Debug a `trace.zip` from the terminal with the `npx playwright trace` CLI — agent-native, decision trees, failure playbooks |
 | [error-index.md](core/error-index.md) | Common error messages and how to fix them |
 | [flaky-tests.md](core/flaky-tests.md) | Root causes, retry strategies, stabilization patterns |
+| [dynamic-test-selection.md](core/dynamic-test-selection.md) | Select or quarantine tests at runtime with `reporter.preprocess()` and an external flakiness API |
 | [common-pitfalls.md](core/common-pitfalls.md) | Top beginner mistakes and how to avoid them |
 
 ### Architecture Decisions
@@ -144,7 +152,7 @@ The foundation: writing, debugging, and maintaining reliable tests. New to Playw
 | Guide | Description |
 |---|---|
 | [nextjs.md](core/nextjs.md) | App Router + Pages Router testing |
-| [react.md](core/react.md) | CRA, Vite, component testing |
+| [react.md](core/react.md) | Vite and React app testing |
 | [vue.md](core/vue.md) | Vue 3 / Nuxt testing |
 | [angular.md](core/angular.md) | Angular testing patterns |
 
@@ -164,8 +172,29 @@ The foundation: writing, debugging, and maintaining reliable tests. New to Playw
 | [clock-and-time-mocking.md](core/clock-and-time-mocking.md) | Fake timers, date mocking |
 | [service-workers-and-pwa.md](core/service-workers-and-pwa.md) | PWA testing, offline mode |
 | [browser-extensions.md](core/browser-extensions.md) | Extension testing patterns |
+| [webmcp-testing.md](core/webmcp-testing.md) | Testing agent tools a page exposes via WebMCP (1.64+) |
 | [third-party-integrations.md](core/third-party-integrations.md) | Testing against third-party services |
 | [i18n-and-localization.md](core/i18n-and-localization.md) | Multi-language, RTL, locale testing |
+
+## QA Skills
+
+For **QA engineers**: the work around the test code.
+
+| Guide | Description |
+|---|---|
+| [test-design.md](qa/test-design.md) | Requirements to test cases: boundaries, partitions, state transitions, risk ranking, generator-ready plans |
+| [bug-reports.md](qa/bug-reports.md) | Classify a failure, write a reproducible bug report, keep the test with `test.fail()` |
+| [manual-to-automated.md](qa/manual-to-automated.md) | Triage and convert manual cases to Playwright specs with case-ID traceability |
+| [test-review.md](qa/test-review.md) | Review checklist by severity, prove a test can fail, `eslint-plugin-playwright` |
+
+## Frontend Skills
+
+For **frontend engineers writing the app** — make components reliably locatable by tests and AI agents (the authoring counterpart to the test-author guides above).
+
+| Guide | Description |
+|---|---|
+| [data-testid-conventions.md](frontend/data-testid-conventions.md) | When to add `data-testid`, naming convention, uniqueness in lists, stability rules, `testIdAttribute` config |
+| [examples.md](frontend/examples.md) | React/JSX, Vue, Angular, Svelte patterns; centralizing IDs; optional production stripping |
 
 ## CI/CD Skills
 

@@ -983,7 +983,7 @@ Angular uses Zone.js to detect async operations and trigger change detection. Pl
 
 1. **Change detection timing**: After user interactions (click, fill), Angular schedules change detection via Zone.js. Playwright's auto-waiting handles this -- `expect(locator).toHaveText('new value')` retries until the DOM updates.
 
-2. **Zoneless Angular (experimental)**: Angular 17+ supports zoneless change detection. Tests work identically with Playwright because Playwright waits for DOM changes, not Zone.js ticks.
+2. **Zoneless Angular**: zoneless change detection is stable since Angular 20.2 (`provideZonelessChangeDetection()`) and the default for new apps in Angular 21+. Tests work identically with Playwright because Playwright waits for DOM changes, not Zone.js ticks.
 
 3. **Long-running async operations**: If your app has `setInterval` or long-running observables, Zone.js keeps Angular in a "not stable" state. This does not affect Playwright (unlike Protractor, which waited for Angular stability). Playwright simply interacts with whatever is on the screen.
 

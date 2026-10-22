@@ -11,10 +11,13 @@
 | Trace Viewer | `npx playwright show-trace trace.zip` | Post-mortem CI failure analysis |
 | CLI debugger | `npx playwright test --debug=cli` | Agent workflows, SSH sessions, terminal-first debugging |
 | Headed mode | `npx playwright test --headed` | Watching the browser during test execution |
-| Slow motion | `npx playwright test --headed --slow-mo=500` | Visually following fast interactions |
+| Slow motion | `--headed` + `launchOptions: { slowMo: 500 }` in config (no CLI flag) | Visually following fast interactions |
 | `page.pause()` | Insert in test code | Pausing at an exact point to inspect state |
 | Verbose API logs | `DEBUG=pw:api npx playwright test` | Seeing every Playwright API call with timing |
 | VS Code extension | Playwright Test for VS Code | Breakpoints, step-through, pick locator |
+| Re-run only failures | `npx playwright test --last-failed` | Fix-and-rerun loop after a full run |
+| Run only changed tests | `npx playwright test --only-changed[=origin/main]` | Test files changed vs `HEAD` (uncommitted) or a ref |
+| Stop at first failure | `npx playwright test -x` | Fast feedback; `--max-failures=N` for N |
 
 ## Systematic Debugging Workflow
 
@@ -22,7 +25,7 @@ Follow this order. Do not skip to step 5 — most issues resolve by step 2.
 
 ```
 1. Read the full error message
-   └─ Check troubleshooting/error-index.md for known patterns
+   └─ Check error-index.md for known patterns
 2. Run with --ui to see what happened visually
    └─ Timeline shows every action, screenshot at failure point
 3. Enable tracing if not already on
@@ -217,7 +220,7 @@ This flow is ideal when an agent or teammate needs to inspect the live browser s
 npx playwright trace open test-results/checkout-chromium/trace.zip
 npx playwright trace actions --grep="expect"
 npx playwright trace action 9
-npx playwright trace snapshot 9 --name after
+npx playwright trace snapshot 9 --phase after
 npx playwright trace close
 ```
 
@@ -231,7 +234,8 @@ This is especially helpful for agentic repair loops and flaky-test triage, where
 **TypeScript**
 ```typescript
 // From terminal — quick visual debugging:
-// npx playwright test tests/checkout.spec.ts --headed --slow-mo=500
+// npx playwright test tests/checkout.spec.ts --headed
+// (there is no --slow-mo flag; set launchOptions.slowMo in config, below)
 
 // playwright.config.ts — configure headed mode for local development
 import { defineConfig } from '@playwright/test';
@@ -253,7 +257,8 @@ export default defineConfig({
 **JavaScript**
 ```javascript
 // From terminal:
-// npx playwright test tests/checkout.spec.js --headed --slow-mo=500
+// npx playwright test tests/checkout.spec.js --headed
+// (there is no --slow-mo flag; set launchOptions.slowMo in config, below)
 
 // playwright.config.js
 const { defineConfig } = require('@playwright/test');
@@ -700,7 +705,7 @@ Use this table to pick the right tool based on the failure type.
 | **Test hangs / times out** | `DEBUG=pw:api` | See which API call is waiting and never resolving |
 | **Network / API failure** | Trace Viewer — Network tab | See request/response status codes, payloads, timing |
 | **Auth / session issues** | Network debugging (`page.on('response')`) | Check for 401/403 responses, missing cookies/tokens |
-| **Visual rendering wrong** | `--headed --slow-mo=500` | Watch the actual rendering in the browser |
+| **Visual rendering wrong** | `--headed` + `launchOptions.slowMo` | Watch the actual rendering in the browser |
 | **JavaScript error in app** | Console logging (`page.on('console')`) | Catch uncaught exceptions and error logs |
 | **CI-only failure** | Trace Viewer (from CI artifact) | Reproduce the exact CI state without running locally |
 | **Flaky / intermittent** | Trace on every run (`trace: 'on'`) + retries | Compare passing and failing traces side by side |

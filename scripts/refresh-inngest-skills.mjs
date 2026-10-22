@@ -9,8 +9,8 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 const skillsRoot = path.join(repoRoot, "docs", "ai", "skills");
 
-const INNGEST_SKILLS_REF = "ff42436bcedfb262d6a377571ce64a0d78d386a5";
-const INNGEST_CODEX_PLUGIN_REF = "39a5c1833f7b36ecd3402e04306dd43b9c3f1fa2";
+const INNGEST_SKILLS_REF = "082798a627bbe9c3ed3a6638a9f56116a035f122";
+const INNGEST_CODEX_PLUGIN_REF = "351e14c55a01f3924ab47f9feb69bae615b8bb52";
 const INNGEST_CLAUDE_PLUGIN_REF = "10536d34e593c436a76df9d313a66f480ea318c6";
 
 const coreSkills = [
@@ -170,7 +170,19 @@ async function writeReference({
   sourcePath,
   targetSkillName,
 }) {
-  const referenceText = await fetchText(rawUrl({ repo, ref, sourcePath }));
+  let referenceText = await fetchText(rawUrl({ repo, ref, sourcePath }));
+  if (targetSkillName === "inngest-api" && fileName === "rest-api-v2.md") {
+    const upstreamLink = "(cli-commands.md#insights-sql-over-execution-data)";
+    if (!referenceText.includes(upstreamLink)) {
+      throw new Error(
+        "Unable to apply Inngest API companion reference overlay; upstream link changed.",
+      );
+    }
+    referenceText = referenceText.replace(
+      upstreamLink,
+      "(../../inngest-api-cli/references/cli-commands.md#insights-sql-over-execution-data)",
+    );
+  }
   const referencesDir = path.join(skillsRoot, targetSkillName, "references");
 
   await mkdir(referencesDir, { recursive: true });
@@ -188,6 +200,20 @@ function applyRepoOverlay(skillName, content) {
     "../references/expressions.md",
     "../inngest/references/expressions.md",
   );
+
+  if (["inngest-api", "inngest-api-cli"].includes(skillName)) {
+    const cloudRoute =
+      "For Cloud operations with connected MCP tools, use `inngest-cloud` first.";
+    if (!nextContent.includes(cloudRoute)) {
+      throw new Error(
+        "Unable to apply Inngest Cloud routing overlay; upstream text changed.",
+      );
+    }
+    nextContent = nextContent.replace(
+      cloudRoute,
+      "For Cloud operations, prefer available connected Inngest Cloud MCP tools. This repository does not install the upstream inngest-cloud skill.",
+    );
+  }
 
   if (skillName === "inngest-agents") {
     const beforeAgentOverlay = nextContent;
@@ -244,7 +270,7 @@ right skill is unclear, start with \`docs/ai/skills/inngest/SKILL.md\`.
       or dependencies.
 - [ ] Existing workflows were audited before introducing or changing durable
       workflow behavior.
-- [ ] Any MCP usage is backed by a running Inngest dev server on the configured
+- [ ] Local dev-server MCP usage is backed by a running Inngest dev server on the configured
       port.
 - [ ] Upstream source and license attribution remain documented in
       \`docs/ai/skills/inngest/references/upstream.md\`.
@@ -359,9 +385,14 @@ The refresh script downloads only the official \`SKILL.md\` files listed above.
 It also downloads the referenced markdown files needed by those skills so local
 links stay readable and \`bun run skills:verify\` can catch reference drift. It
 does not vendor Codex plugin evals, examples, assets, or product runtime code.
-It applies one repo overlay to \`inngest-agents\` so the upstream companion
-example path points at \`inngest/inngest-codex-plugin\` instead of implying a
-local example directory exists.
+It applies repository workflow and ownership guidance to all twelve installed skills.
+The adapters repair shared expressions links and point the durable-agent example
+at \`inngest/inngest-codex-plugin\` instead of implying a local example directory
+exists. API and API-CLI routing uses available connected Cloud MCP tools rather
+than requiring an uninstalled \`inngest-cloud\` skill; explicit terminal and HTTP
+fallback remain available. Local dev-server MCP requirements are separate from
+Cloud OAuth. The API REST reference points Insights queries at the separate
+installed CLI companion.
 
 ## Manual Source Commands
 
@@ -376,6 +407,12 @@ git -C /tmp/inngest-codex-plugin checkout ${INNGEST_CODEX_PLUGIN_REF}
 Copy the files listed in the source table into their matching
 \`docs/ai/skills/<skill-name>/SKILL.md\` paths, then run the sync and verify
 commands above.
+
+## Reviewed refresh 2026-10-22
+
+Advanced immutable source pins after reviewing the complete upstream comparisons. The seven imported core skills and three non-API Codex skills are content-current; only API and API-CLI add Cloud MCP-first routing. Core maps the uninstalled inngest-cloud skill to available connected Cloud MCP tools, keeps explicit terminal/HTTP fallback, and distinguishes local dev-server MCP from Cloud OAuth. No new pack members or runtime packages were installed.
+
+The API REST reference remaps its Insights cross-link to \`../../inngest-api-cli/references/cli-commands.md\`; the pinned source keeps a bare sibling filename that is not valid in the separate installed skill directories. The refresh adapter requires and rewrites that link before publication.
 `;
 }
 

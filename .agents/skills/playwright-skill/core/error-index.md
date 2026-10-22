@@ -10,35 +10,17 @@ Quick-reference for specific Playwright error messages. Find your error, underst
 
 ---
 
-### "locator.click: Target closed"
+### "locator.click: Target page, context or browser has been closed"
 
-**Cause**: The page or frame navigated away (or was closed) before Playwright finished executing the action on the element.
+**Cause**: The page, context, or browser was closed while the action was still running. (Older Playwright versions printed `Target closed`.)
 
 **Common triggers**:
-- Clicking a link that triggers navigation while another action is still pending
-- A form submit causes a page reload before a subsequent `click()` or `fill()` resolves
+- A popup or window closes itself as a result of the click, and the test keeps acting on it
 - Calling `page.close()` or `context.close()` in a `finally` block that races with an in-flight action
-- An unhandled exception in the application triggers an error page redirect
+- A missing `await` lets the test finish and its fixtures tear down the page while the action is pending
+- The test timed out and Playwright closed the page; the error then reads `Test timeout of 30000ms exceeded.`
 
-**Fix**: Wait for navigation to complete before performing the next action, or use `Promise.all` to coordinate the click and navigation together.
-
-```typescript
-// TypeScript — wait for navigation caused by clicking a link
-await Promise.all([
-  page.waitForURL('**/dashboard'),
-  page.getByRole('link', { name: 'Dashboard' }).click(),
-]);
-```
-
-```javascript
-// JavaScript — same pattern
-await Promise.all([
-  page.waitForURL('**/dashboard'),
-  page.getByRole('link', { name: 'Dashboard' }).click(),
-]);
-```
-
-If the page is closing intentionally (e.g., a popup), capture a reference before the action:
+**Fix**: `await` every action, and do not close the page or context until all actions on it have resolved. If the page is closing intentionally (e.g., a popup), capture a reference before the action:
 
 ```typescript
 // TypeScript — handle popup that closes itself
@@ -162,9 +144,9 @@ await page.getByRole('listitem')
 
 ---
 
-### "Error: expect(locator).toBeVisible() — locator resolved to X elements"
+### "Error: expect(locator).toBeVisible() failed"
 
-**Cause**: Same root cause as strict mode violation above — the assertion's locator matched multiple elements, so Playwright cannot determine which one to assert on.
+**Cause**: When the output continues with `Error: strict mode violation: ... resolved to N elements`, it is the same root cause as the strict mode violation above — the assertion's locator matched multiple elements, so Playwright cannot determine which one to assert on. If it shows `Expected: visible` with `element(s) not found` (or a non-visible `Received:` value) instead, the element is missing or hidden; see "waiting for locator('...') to be visible" above.
 
 **Common triggers**:
 - Same as strict mode violation triggers above
@@ -258,9 +240,9 @@ await page.keyboard.type('user@example.com');
 
 ---
 
-### "Error: elementHandle.click: Node is not an Element"
+### "Element is not attached to the DOM"
 
-**Cause**: You are using the legacy ElementHandle API and the handle has gone stale — the underlying DOM node was removed or replaced by a re-render.
+**Cause**: You are using the legacy ElementHandle API (or a scoped `waitForSelector`) and the handle has gone stale — the underlying DOM node was removed or replaced by a re-render. Locators do not throw here: the call log shows `element was detached from the DOM, retrying` and Playwright re-queries.
 
 **Common triggers**:
 - Storing an `elementHandle` in a variable and using it after a navigation or React/Vue re-render
@@ -275,7 +257,7 @@ await page.keyboard.type('user@example.com');
 // BAD — stale handle
 const button = await page.$('button.submit');
 // ... page re-renders ...
-await button!.click(); // Node is not an Element
+await button!.click(); // Element is not attached to the DOM
 
 // GOOD — locator always re-queries
 const button = page.getByRole('button', { name: 'Submit' });
@@ -289,7 +271,7 @@ await button.click(); // works fine
 // BAD — stale handle
 const button = await page.$('button.submit');
 // ... page re-renders ...
-await button.click(); // Node is not an Element
+await button.click(); // Element is not attached to the DOM
 
 // GOOD — locator always re-queries
 const button = page.getByRole('button', { name: 'Submit' });
@@ -304,6 +286,8 @@ await button.click(); // works fine
 ### "Error: locator.click: Timeout 30000ms exceeded"
 
 **Cause**: The element was found in the DOM but was not actionable within the timeout. "Actionable" means visible, stable (not animating), enabled, and not obscured by another element.
+
+Under Playwright Test this message appears only when a timeout is set for the call or in config (`actionTimeout`, `navigationTimeout`, `timeout` option); with the defaults (0) the test instead fails with `Test timeout of 30000ms exceeded.`
 
 **Common triggers**:
 - An overlay, modal, or toast is covering the element
@@ -351,6 +335,104 @@ await page.getByRole('button', { name: 'Submit' }).click();
 ```
 
 **Related**: [core/assertions-and-waiting.md](assertions-and-waiting.md), [core/debugging.md](debugging.md)
+
+---
+
+### "<element> intercepts pointer events"
+
+**Cause**: A call-log line under an action timeout (`retrying click action` ... `<div class="overlay"> intercepts pointer events`). The element passed the visible/enabled/stable checks, but the hit-target check found a different element on top of the click point.
+
+**Common triggers**:
+- A modal backdrop, cookie banner, toast, or loading overlay covers the target
+- A sticky header or footer overlaps the element after auto-scroll
+- A transparent wrapper (e.g., a custom checkbox's styled `<span>`) sits over the real `<input>`
+
+**Fix**: Dismiss or wait out the element named in the log, or act on the element that actually receives the click.
+
+```typescript
+// TypeScript
+await page.getByRole('button', { name: 'Accept cookies' }).click();
+await expect(page.locator('.overlay')).toBeHidden();
+await page.getByRole('button', { name: 'Submit' }).click();
+
+// Custom checkbox: click the visible label instead of the covered input
+await page.getByText('I agree to the terms').click();
+```
+
+```javascript
+// JavaScript
+await page.getByRole('button', { name: 'Accept cookies' }).click();
+await expect(page.locator('.overlay')).toBeHidden();
+await page.getByRole('button', { name: 'Submit' }).click();
+
+await page.getByText('I agree to the terms').click();
+```
+
+**Related**: [core/assertions-and-waiting.md](assertions-and-waiting.md)
+
+---
+
+### "element is not stable"
+
+**Cause**: A call-log line under an action timeout (after `waiting for element to be visible, enabled and stable`). Playwright requires the element's bounding box to stay the same for two consecutive animation frames; it kept moving or resizing.
+
+**Common triggers**:
+- An infinite CSS animation or transition on the element or an ancestor (spinners, pulsing buttons)
+- A carousel or marquee that never stops
+- Layout shifts from content loading above the element
+
+**Fix**: Disable animations or wait for the layout to settle.
+
+```typescript
+// TypeScript — playwright.config.ts: emulate reduced motion (works if the app honors prefers-reduced-motion)
+export default defineConfig({
+  use: { contextOptions: { reducedMotion: 'reduce' } },
+});
+
+// Or wait for the content that causes the shift
+await expect(page.getByTestId('banner')).toBeVisible();
+await page.getByRole('button', { name: 'Submit' }).click();
+```
+
+```javascript
+// JavaScript — playwright.config.js
+module.exports = defineConfig({
+  use: { contextOptions: { reducedMotion: 'reduce' } },
+});
+```
+
+**Related**: [core/assertions-and-waiting.md](assertions-and-waiting.md)
+
+---
+
+### "element is outside of the viewport"
+
+**Cause**: A call-log line under an action timeout: after scrolling, the element's click point is still outside the viewport. With `force: true` it is thrown immediately as `Element is outside of the viewport`.
+
+**Common triggers**:
+- The element is positioned off-screen (negative offsets, `transform: translateX(-100%)` drawers)
+- A container with `overflow: hidden` clips the element so it cannot be scrolled into view
+- The viewport is too small for a fixed-size layout
+
+**Fix**: Open the container that holds the element, or enlarge the viewport.
+
+```typescript
+// TypeScript
+await page.getByRole('button', { name: 'Menu' }).click(); // slide the drawer in first
+await page.getByRole('link', { name: 'Settings' }).click();
+
+await page.setViewportSize({ width: 1440, height: 900 });
+```
+
+```javascript
+// JavaScript
+await page.getByRole('button', { name: 'Menu' }).click();
+await page.getByRole('link', { name: 'Settings' }).click();
+
+await page.setViewportSize({ width: 1440, height: 900 });
+```
+
+**Related**: [core/locators.md](locators.md)
 
 ---
 
@@ -413,6 +495,8 @@ module.exports = defineConfig({
 
 **Cause**: The page did not reach the `load` state (by default) within the navigation timeout. The server responded but the page took too long to fully load.
 
+Under Playwright Test this message appears only when a timeout is set for the call or in config (`actionTimeout`, `navigationTimeout`, `timeout` option); with the defaults (0) the test instead fails with `Test timeout of 30000ms exceeded.`
+
 **Common triggers**:
 - Large assets (images, fonts, scripts) slow the page load
 - Third-party scripts (analytics, ads) blocking the load event
@@ -458,9 +542,9 @@ module.exports = defineConfig({
 
 ---
 
-### "Error: page.goto: Navigation failed because page was closed!"
+### "Error: page.goto: Target page, context or browser has been closed"
 
-**Cause**: The page or browser context was closed while `goto()` was still in progress. This typically happens in teardown/cleanup race conditions.
+**Cause**: The page or browser context was closed while `goto()` was still in progress. This typically happens in teardown/cleanup race conditions. (Older Playwright versions printed `Navigation failed because page was closed!`.)
 
 **Common triggers**:
 - `afterEach` or a fixture closes the page/context before navigation completes
@@ -509,6 +593,8 @@ test('navigates to dashboard', async ({ page }) => {
 ### "page.waitForNavigation: Timeout 30000ms exceeded"
 
 **Cause**: `waitForNavigation()` waited for a full page navigation that never happened. In SPAs, client-side routing does not trigger a navigation event.
+
+Under Playwright Test this message appears only when a timeout is set for the call or in config (`actionTimeout`, `navigationTimeout`, `timeout` option); with the defaults (0) the test instead fails with `Test timeout of 30000ms exceeded.`
 
 **Common triggers**:
 - Using `waitForNavigation()` with a SPA that uses React Router, Vue Router, or Next.js client-side navigation
@@ -679,9 +765,9 @@ test('checkout flow', async ({ page }) => {
 
 ---
 
-### "Error: expect(received).toMatchSnapshot()"
+### "Error: expect(page).toHaveScreenshot(expected) failed"
 
-**Cause**: The current screenshot or text does not match the stored baseline snapshot.
+**Cause**: The current screenshot does not match the stored baseline; the output reports `N pixels (ratio 0.02 of all image pixels) are different.` Text and buffer snapshots fail the same way as `expect(string).toMatchSnapshot(expected) failed`.
 
 **Common triggers**:
 - Legitimate UI changes that require updating the snapshot
@@ -731,6 +817,84 @@ expect(sanitized).toMatchSnapshot('dashboard-content.txt');
 ```
 
 **Related**: [core/visual-regression.md](visual-regression.md)
+
+---
+
+### "A snapshot doesn't exist at ..., writing actual."
+
+**Cause**: First run of `toHaveScreenshot()` or `toMatchSnapshot()` — there is no baseline file yet. Playwright writes the actual image as the new baseline and fails the test once. With `--update-snapshots=none` the message ends at `.` and nothing is written.
+
+**Common triggers**:
+- A new visual test, or a renamed screenshot
+- Running on a new OS or browser: baselines are per platform (`-chromium-linux.png` vs `-chromium-darwin.png`)
+- CI checks out the repo without the committed snapshot directory
+
+**Fix**: Review the written baseline, commit it, and re-run. Generate CI baselines in the same environment CI uses.
+
+```bash
+npx playwright test --update-snapshots=missing
+# Linux baselines from macOS/Windows: run inside the official image
+docker run --rm --init --ipc=host -v $(pwd):/work -w /work mcr.microsoft.com/playwright:v1.64.0-noble npx playwright test --update-snapshots
+```
+
+**Related**: [core/visual-regression.md](visual-regression.md)
+
+---
+
+### "Playwright Test did not expect test() to be called here."
+
+**Cause**: `test()` (or `test.describe()`, `test.beforeEach()`, ...) ran outside a test file that the runner is loading.
+
+**Common triggers**:
+- Calling `test()` in `playwright.config.ts` or a file it imports
+- Two different versions of `@playwright/test` installed (often a dependency pulls its own)
+- Calling `test()` inside an `async` `test.describe()` callback — only sync callbacks are supported
+- Running a spec file directly with `node` or `ts-node`
+
+**Fix**:
+
+```bash
+npm ls @playwright/test   # must list exactly one version
+npx playwright test       # never node tests/example.spec.ts
+```
+
+```typescript
+// TypeScript — BAD: test() after an await inside an async describe. If the awaited promise is
+// already resolved there's no error, but the test silently lands outside the describe.
+test.describe('suite', async () => { await setup(); test('a', async () => {}); });
+// GOOD
+test.describe('suite', () => { test('a', async () => {}); });
+```
+
+**Related**: [core/configuration.md](configuration.md)
+
+---
+
+### "Error: duplicate test title"
+
+**Cause**: Two tests in the same file have the same full title (describe titles + test title). Full message: `Error: duplicate test title "<titles joined by ›>", first declared in <file>:<line>`. The run fails before any test executes.
+
+**Common triggers**:
+- Copy-pasting a test without renaming it
+- Generating tests in a loop with a title that does not include the loop variable
+
+**Fix**: Make every title unique within the file.
+
+```typescript
+// TypeScript
+for (const user of ['admin', 'viewer']) {
+  test(`login works for ${user}`, async ({ page }) => { /* ... */ });
+}
+```
+
+```javascript
+// JavaScript
+for (const user of ['admin', 'viewer']) {
+  test(`login works for ${user}`, async ({ page }) => { /* ... */ });
+}
+```
+
+**Related**: [core/test-organization.md](test-organization.md)
 
 ---
 
@@ -823,77 +987,38 @@ module.exports = defineConfig({ /* ... */ });
 
 ---
 
-### "Error: fixture \"xxx\" has already been registered"
+### "Fixture "xxx" has already been registered as a { scope: 'test' } fixture"
 
-**Cause**: A custom fixture was defined with the same name in multiple `test.extend()` calls that got merged, or the same fixture name was registered twice in the same extension.
+**Cause**: A later `test.extend()` (or a `mergeTests()` input) redefines an existing fixture with a different `scope`, `auto`, or `option` setting. Overriding a fixture with the same name and the same options is allowed; changing those options is not. The same error appears as `... registered as a { auto: ... }` or `... { option: ... }` fixture, and names the file where the first definition lives.
 
 **Common triggers**:
-- Two different fixture files both define a fixture with the same name
-- Importing the extended `test` object from multiple files that each add overlapping fixtures
-- Copy-pasting fixture definitions without renaming
+- Overriding a built-in or shared test-scoped fixture with `{ scope: 'worker' }` (or the reverse)
+- Two fixture files define the same name, one as an `option: true` fixture and one as a plain fixture
+- Adding `{ auto: true }` in an override of a fixture that was not auto
 
-**Fix**: Ensure each fixture name is unique across your merged fixture chain. Use a single fixture file that combines all extensions.
+**Fix**: Keep the original fixture's options when overriding it, or give the new fixture a different name.
 
 ```typescript
 // TypeScript
 
-// BAD — two separate extensions with the same fixture name
-// fixtures/auth.ts
-export const test = base.extend<{ user: User }>({
-  user: async ({}, use) => { /* ... */ },
+// BAD — base defines `account` as test-scoped; this redefines it as worker-scoped
+export const test = base.extend<{}, { account: Account }>({
+  account: [async ({}, use) => { await use(await createAccount()); }, { scope: 'worker' }],
 });
 
-// fixtures/data.ts — CONFLICT: "user" already exists
-export const test = base.extend<{ user: User }>({
-  user: async ({}, use) => { /* ... */ },
+// GOOD — new name for the worker-scoped variant
+export const test = base.extend<{}, { workerAccount: Account }>({
+  workerAccount: [async ({}, use) => { await use(await createAccount()); }, { scope: 'worker' }],
 });
-
-// GOOD — single combined fixture file
-// fixtures/index.ts
-import { test as base } from '@playwright/test';
-
-type MyFixtures = {
-  authenticatedUser: User;
-  testData: TestData;
-};
-
-export const test = base.extend<MyFixtures>({
-  authenticatedUser: async ({}, use) => {
-    const user = await createUser();
-    await use(user);
-    await deleteUser(user);
-  },
-  testData: async ({}, use) => {
-    const data = await seedData();
-    await use(data);
-    await cleanupData(data);
-  },
-});
-
-export { expect } from '@playwright/test';
 ```
 
 ```javascript
 // JavaScript
 
-// GOOD — single combined fixture file
-// fixtures/index.js
-const { test: base } = require('@playwright/test');
-
+// GOOD — new name for the worker-scoped variant
 const test = base.extend({
-  authenticatedUser: async ({}, use) => {
-    const user = await createUser();
-    await use(user);
-    await deleteUser(user);
-  },
-  testData: async ({}, use) => {
-    const data = await seedData();
-    await use(data);
-    await cleanupData(data);
-  },
+  workerAccount: [async ({}, use) => { await use(await createAccount()); }, { scope: 'worker' }],
 });
-
-module.exports = { test };
 ```
 
 **Related**: [core/fixtures-and-hooks.md](fixtures-and-hooks.md)
@@ -901,80 +1026,6 @@ module.exports = { test };
 ---
 
 ## Network & API Errors
-
----
-
-### "page.route: Pattern should start with..."
-
-**Cause**: The URL pattern passed to `page.route()` does not match the expected format. Playwright expects a glob pattern (starting with `**/` or `http`), a regex, or a predicate function.
-
-**Common triggers**:
-- Passing a bare path like `/api/users` instead of `**/api/users`
-- Missing the `**` glob prefix for relative patterns
-- Passing an object or invalid type instead of a string/regex
-
-**Fix**: Use the correct pattern format.
-
-```typescript
-// TypeScript
-
-// BAD — bare path without glob prefix
-await page.route('/api/users', route => route.fulfill({ body: '[]' }));
-
-// GOOD — glob pattern
-await page.route('**/api/users', route =>
-  route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify([{ id: 1, name: 'Alice' }]),
-  })
-);
-
-// GOOD — regex pattern
-await page.route(/\/api\/users\/\d+/, route =>
-  route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ id: 1, name: 'Alice' }),
-  })
-);
-
-// GOOD — predicate function for complex matching
-await page.route(
-  url => url.pathname.startsWith('/api/') && url.searchParams.has('filter'),
-  route => route.fulfill({ body: '[]' })
-);
-```
-
-```javascript
-// JavaScript
-
-// GOOD — glob pattern
-await page.route('**/api/users', route =>
-  route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify([{ id: 1, name: 'Alice' }]),
-  })
-);
-
-// GOOD — regex pattern
-await page.route(/\/api\/users\/\d+/, route =>
-  route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ id: 1, name: 'Alice' }),
-  })
-);
-
-// GOOD — predicate function
-await page.route(
-  url => url.pathname.startsWith('/api/') && url.searchParams.has('filter'),
-  route => route.fulfill({ body: '[]' })
-);
-```
-
-**Related**: [core/network-mocking.md](network-mocking.md)
 
 ---
 
@@ -1046,67 +1097,13 @@ module.exports = defineConfig({
 
 ---
 
-### "Request was not handled: GET https://..."
-
-**Cause**: A route handler was registered with `page.route()` using `{ times: N }` or `page.unrouteAll()` was called, and a subsequent request matching that pattern was not intercepted — Playwright warns you that a request fell through.
-
-**Common triggers**:
-- Using `page.route()` with `{ times: 1 }` but the app makes the same request more than once
-- Calling `route.fallback()` or `route.continue()` without a handler to catch it
-- Calling `page.unrouteAll({ behavior: 'wait' })` mid-test and the app makes another request
-
-**Fix**: Ensure your route handler covers all expected requests, or let unhandled requests pass through.
-
-```typescript
-// TypeScript
-
-// BAD — only handles the first request, second one is unhandled
-await page.route('**/api/data', route =>
-  route.fulfill({ body: '{}' }),
-  { times: 1 }
-);
-
-// GOOD — handle all requests to this URL
-await page.route('**/api/data', route =>
-  route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ items: [] }),
-  })
-);
-
-// GOOD — if you only want to intercept once, use waitForResponse for subsequent
-await page.route('**/api/data', route =>
-  route.fulfill({ body: '{"items": []}' }),
-  { times: 1 }
-);
-// For the second call, let it go to the real server (no route needed)
-```
-
-```javascript
-// JavaScript
-
-// GOOD — handle all requests to this URL
-await page.route('**/api/data', route =>
-  route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ items: [] }),
-  })
-);
-```
-
-**Related**: [core/network-mocking.md](network-mocking.md)
-
----
-
 ## Authentication & State Errors
 
 ---
 
-### "Error: browserContext.storageState: No such file"
+### "Error reading storage state from ... ENOENT: no such file or directory"
 
-**Cause**: The `storageState` path referenced in the config or test does not point to an existing file. The auth state file has not been generated yet.
+**Cause**: The `storageState` path referenced in the config or test does not point to an existing file, so `browser.newContext` fails with `Error reading storage state from playwright/.auth/user.json:` followed by `ENOENT: no such file or directory, open '...'`. The auth state file has not been generated yet.
 
 **Common triggers**:
 - Running tests before running the auth setup project
@@ -1277,9 +1274,9 @@ const test = base.extend({
 
 ---
 
-### "Error: browserType.launch: Browser closed unexpectedly"
+### "Error: browserType.launch: Failed to launch the browser process."
 
-**Cause**: The browser process crashed immediately after launch, usually because required OS-level dependencies are missing in the CI environment.
+**Cause**: The browser process exited immediately after launch, usually because required OS-level dependencies are missing in the CI environment. The `Browser logs:` section that follows names the missing library or sandbox problem. (Older Playwright versions printed `Browser closed unexpectedly`.)
 
 **Common triggers**:
 - Running on a minimal Docker image (e.g., `node:alpine`) without browser dependencies
@@ -1296,7 +1293,7 @@ npx playwright install --with-deps chromium
 
 # If using Docker, use the official Playwright image
 # Dockerfile
-FROM mcr.microsoft.com/playwright:v1.50.0-noble
+FROM mcr.microsoft.com/playwright:v1.64.0-noble
 WORKDIR /app
 COPY . .
 RUN npm ci
@@ -1312,7 +1309,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.50.0-noble
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
       options: --shm-size=2gb
 
 # Docker run — increase shared memory
@@ -1347,39 +1344,31 @@ module.exports = defineConfig({
 
 ---
 
-### "Error: Playwright Test needs to be invoked via 'npx playwright test'"
+### "Error: Playwright Test needs to be invoked via 'npx playwright test' and excluded from Jest test runs."
 
-**Cause**: The test file was executed directly with `node` or `ts-node` instead of through the Playwright test runner.
+**Cause**: Jest loaded a Playwright test file. Playwright throws this when it detects it is running inside a Jest worker. (Running a spec directly with `node` produces "Playwright Test did not expect test() to be called here." instead — see Test Framework Errors.)
 
 **Common triggers**:
-- Running `node tests/example.spec.ts` or `ts-node tests/example.spec.ts`
-- A misconfigured IDE run configuration that invokes `node` directly
-- Using Jest or Mocha to run Playwright test files that import from `@playwright/test`
-- A CI script that calls the wrong command
+- Jest's default `testMatch` picks up `*.spec.ts` files in the Playwright test directory
+- Running `npm test` (Jest) at the repo root of a project that also holds Playwright tests
+- An IDE Jest extension auto-running every spec file
 
-**Fix**: Always use the Playwright CLI to run tests.
+**Fix**: Keep Playwright tests in their own directory, exclude it from Jest, and run it with the Playwright CLI.
 
-```bash
-# Correct invocations
-npx playwright test                           # run all tests
-npx playwright test tests/login.spec.ts       # run specific file
-npx playwright test --grep "login"            # run tests matching pattern
-npx playwright test --project=chromium        # run specific project
-npx playwright test --debug                   # run with inspector
-
-# If using a package.json script
-# package.json
-# "scripts": { "test:e2e": "playwright test" }
-npm run test:e2e
+```javascript
+// jest.config.js
+module.exports = {
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/e2e/'],
+};
 ```
 
-For IDE configuration (VS Code):
+```bash
+npx playwright test                           # run all tests
+npx playwright test tests/login.spec.ts       # run specific file
 
-```json
-// .vscode/settings.json — install the Playwright VS Code extension instead of custom configs
-{
-  "playwright.reuseBrowser": true
-}
+# package.json
+# "scripts": { "test": "jest", "test:e2e": "playwright test" }
+npm run test:e2e
 ```
 
 **Related**: [core/configuration.md](configuration.md)
@@ -1435,9 +1424,9 @@ await expect(page).toHaveTitle('Dashboard');
 
 ---
 
-### "Error: page.screenshot: Cannot take a screenshot larger than..."
+### "Error: page.screenshot: Cannot take screenshot larger than 32767 pixels on any dimension"
 
-**Cause**: The requested screenshot dimensions exceed Playwright's limit (typically 16384x16384 pixels). This happens with full-page screenshots of very long pages.
+**Cause**: WebKit cannot capture an image taller or wider than 32767 pixels. This happens with full-page screenshots of very long pages.
 
 **Common triggers**:
 - `page.screenshot({ fullPage: true })` on an infinitely-scrolling page
@@ -1483,9 +1472,9 @@ await page.getByRole('main').screenshot({ path: 'main-content.png' });
 
 ---
 
-### "Error: waiting for locator('...').toBeAttached()"
+### "Error: expect(locator).toBeAttached() failed"
 
-**Cause**: The element never entered the DOM within the assertion timeout. Unlike `toBeVisible()`, `toBeAttached()` only checks DOM presence — but the element was never rendered at all.
+**Cause**: The element never entered the DOM within the assertion timeout (`Expected: attached`). Unlike `toBeVisible()`, `toBeAttached()` only checks DOM presence — but the element was never rendered at all.
 
 **Common triggers**:
 - The component is conditionally rendered and the condition is not met
@@ -1523,9 +1512,9 @@ await expect(page.getByTestId('advanced-panel')).toBeAttached({ timeout: 10_000 
 
 ---
 
-### "Error: protocol error: Target.createTarget: Failed to create target"
+### "Protocol error (Target.createTarget): Failed to create web contents"
 
-**Cause**: The browser could not create a new tab or context, usually due to resource exhaustion.
+**Cause**: Chromium could not create a new page, usually due to resource exhaustion. Headless shell reports `Failed to create web contents`; headed Chrome reports `Failed to open a new tab`.
 
 **Common triggers**:
 - Opening too many pages or contexts without closing them
@@ -1594,9 +1583,9 @@ test('multi-user test', async ({ browser }) => {
 
 ---
 
-### "Error: expect(locator).toHaveText() — expected string but received array"
+### "Error: expect(locator).toHaveText(expected) failed"
 
-**Cause**: The locator matched multiple elements and `toHaveText()` returned an array of strings instead of a single string.
+**Cause**: When followed by `Error: strict mode violation: ... resolved to N elements`, the locator matched multiple elements. A string or regex expectation is strict and needs exactly one element; only the array form accepts multiple matches.
 
 **Common triggers**:
 - Using a broad locator like `page.locator('.item')` that matches a list
@@ -1646,9 +1635,11 @@ await expect(page.getByRole('heading', { level: 1 })).toHaveText('Welcome');
 
 ---
 
-### "Error: page.waitForSelector: Timeout 30000ms exceeded (deprecated)"
+### "Error: page.waitForSelector: Timeout 30000ms exceeded"
 
-**Cause**: `page.waitForSelector()` timed out. This method is deprecated in favor of locator-based assertions.
+**Cause**: `page.waitForSelector()` timed out. This method is discouraged in favor of web-first assertions or `locator.waitFor()`.
+
+Under Playwright Test this message appears only when a timeout is set for the call or in config (`actionTimeout`, `navigationTimeout`, `timeout` option); with the defaults (0) the test instead fails with `Test timeout of 30000ms exceeded.`
 
 **Common triggers**:
 - Using legacy `page.waitForSelector()` from older tutorials or migration from Puppeteer
@@ -1693,7 +1684,7 @@ await expect(page.getByRole('main')).toBeVisible();
 
 ---
 
-### "Error: Test was expected to have a title matching /.../"
+### "Error: expect(page).toHaveTitle(expected) failed"
 
 **Cause**: The `expect(page).toHaveTitle()` assertion failed because the page title did not match the expected value or pattern within the timeout.
 
@@ -1733,45 +1724,6 @@ console.log(await page.title());
 ```
 
 **Related**: [core/assertions-and-waiting.md](assertions-and-waiting.md)
-
----
-
-### "Error: page.type: Element is not focusable"
-
-**Cause**: `page.type()` or `locator.type()` could not focus the target element before typing. The element may be hidden, disabled, or not an input.
-
-**Common triggers**:
-- The element is covered by an overlay or modal
-- The element has `tabindex="-1"` and is not natively focusable
-- Using `type()` instead of `fill()` — `fill()` is preferred in almost all cases
-- The element is inside a Shadow DOM and the locator does not pierce it
-
-**Fix**: Use `fill()` instead of `type()`. Only use `type()` when you specifically need to simulate individual keystrokes.
-
-```typescript
-// TypeScript
-
-// BAD — type() is slower and more fragile
-await page.locator('#search').type('hello');
-
-// GOOD — fill() clears and sets the value directly
-await page.getByRole('searchbox').fill('hello');
-
-// When you truly need keystroke-by-keystroke input (e.g., autocomplete trigger)
-await page.getByRole('searchbox').pressSequentially('hello', { delay: 100 });
-```
-
-```javascript
-// JavaScript
-
-// GOOD — fill() is preferred
-await page.getByRole('searchbox').fill('hello');
-
-// Keystroke-by-keystroke when needed (e.g., autocomplete)
-await page.getByRole('searchbox').pressSequentially('hello', { delay: 100 });
-```
-
-**Related**: [core/locators.md](locators.md), [core/forms-and-validation.md](forms-and-validation.md)
 
 ---
 
@@ -1827,9 +1779,9 @@ await page.getByLabel('Upload file').setInputFiles([]);
 
 ---
 
-### "Error: browser.newContext: Could not parse content-type application/json"
+### "Error reading storage state from ... is not valid JSON"
 
-**Cause**: The `storageState` option was given a path to a file with invalid JSON content, or the file is not a valid Playwright storage state format.
+**Cause**: The `storageState` option points to a file with invalid JSON, so `browser.newContext` fails with `Error reading storage state from <path>:` followed by the JSON parser error — `Unexpected end of JSON input` for an empty file, or `Unexpected token ..., "..." is not valid JSON` for a corrupted one.
 
 **Common triggers**:
 - The auth setup wrote an empty file or incomplete JSON
@@ -1895,7 +1847,7 @@ setup('authenticate', async ({ page }) => {
 
 When you hit an error not listed above, run through this checklist:
 
-1. **Read the full error** — Playwright errors include the locator, action, and a snippet of the page state. The answer is often in the details.
+1. **Read the full error** — Playwright errors include the locator, the action, and a `Call log:` of every retry. The last call-log lines (e.g., `intercepts pointer events`, `element is not stable`) usually name the blocker; search this file for them.
 2. **Enable traces** — Add `trace: 'on'` temporarily or `trace: 'on-first-retry'` in config. Run `npx playwright show-trace trace.zip` to see screenshots, DOM, network, and console at the point of failure.
 3. **Use the Playwright Inspector** — Run `npx playwright test --debug` to step through the test interactively.
 4. **Check the locator** — Run `npx playwright codegen <url>` to verify locators against the live page.

@@ -1,1193 +1,472 @@
 # Component Testing
 
-> **When to use**: When you need to test UI components in isolation — verifying rendering, interactions, and behavior without spinning up your full application. Ideal for design systems, shared component libraries, and complex interactive widgets.
+> **When to use**: Testing UI components in isolation (rendering, interactions, states) without the full application. Ideal for design systems, shared component libraries, and complex interactive widgets.
 > **Prerequisites**: [core/configuration.md](configuration.md), [core/fixtures-and-hooks.md](fixtures-and-hooks.md)
 
 ## Quick Reference
 
-```typescript
-// Install for your framework:
-// npm init playwright@latest -- --ct          (interactive)
-// npm install -D @playwright/experimental-ct-react
-// npm install -D @playwright/experimental-ct-vue
-// npm install -D @playwright/experimental-ct-svelte
-
-// Mount a component, interact, assert:
-import { test, expect } from '@playwright/experimental-ct-react';
+```tsx
+// src/components/Button.story.tsx: one named export per scenario
 import { Button } from './Button';
 
-test('button renders and responds to click', async ({ mount }) => {
-  let clicked = false;
-  const component = await mount(
-    <Button label="Save" onClick={() => { clicked = true; }} />
-  );
-  await expect(component).toContainText('Save');
-  await component.click();
-  expect(clicked).toBe(true);
+export const Primary = () => <Button title="Submit" />;
+export const Disabled = () => <Button title="Submit" disabled />;
+```
+
+```typescript
+// tests/components/button.spec.ts: plain Playwright test, built-in `mount` fixture (1.62+)
+import { test, expect } from '@playwright/test';
+
+test('renders primary button', async ({ mount }) => {
+  const component = await mount('components/Button/Primary');
+  await expect(component.getByRole('button')).toHaveText('Submit');
 });
 ```
 
-## Playwright 1.62 Changed the Component Testing Model
+```bash
+npx playwright init-skills                       # installs Playwright's own component-testing skill
+npx playwright test --project=components
+```
 
-> **Read this before using the patterns below.** Playwright 1.62 replaced the experimental component testing model with **stories and galleries**. `fixtures.mount()` now navigates to a gallery and mounts a story by ID, returning a scoped `Locator`.
+## How Component Testing Works (1.62+)
 
-The experimental packages are no longer updated:
+A component test is a regular Playwright test against a small **gallery** page that your own dev server serves. There is no component-testing package, bundler integration or separate config.
 
-- `@playwright/experimental-ct-react`
-- `@playwright/experimental-ct-react17`
-- `@playwright/experimental-ct-vue`
+- A **story** is a tiny wrapper component that puts the component under test into one scenario: hard-coded props, mock data, providers, recorded callbacks. Stories live next to the component in `*.story.tsx` (or `.ts`, `.jsx`, `.js`, `.vue`) files; each named export is one story.
+- The **gallery** is one page (`playwright/gallery/index.html`) that exposes `window.mount({ story, props })` and `window.unmount()`, rendering the story into `#root`. It is framework-specific application code that you own.
+- The **`mount(storyId, props?)` fixture** navigates to `baseURL` (the gallery), calls `window.mount`, and returns a `Locator` for `#root` with `update(props)` and `unmount()`.
 
-Existing suites on these packages keep running on a pinned Playwright version, but they will not receive fixes. New component suites should start on the stories model.
+Everything the component needs is set up **inside the story** (it runs in the browser). Everything the test asserts is observable **through the page**: DOM, URL, network.
 
-The patterns in the rest of this guide were written against the experimental `mount()` API. The testing concepts still hold — what to assert, when a component test beats an E2E test, how to handle providers and slots — but the mounting calls need translating to stories. Check the [official component testing docs](https://playwright.dev/docs/test-components) for the current `mount()` signature before copying a snippet verbatim.
+**Legacy packages**: `@playwright/experimental-ct-react`, `-react17` and `-vue` let tests write JSX inline (`mount(<Button />)`). They are not published for Playwright 1.63+ (`-svelte` was removed in 1.59), so suites on them must stay pinned to 1.62 until migrated. JSX `mount()` calls do not type-check against 1.64's `mount(storyId, props?)`. See [Migrating From the Experimental Packages](#migrating-from-the-experimental-packages).
 
 ## Patterns
 
-### 1. Setup and Configuration
+### 1. Setup: Gallery and Config
 
-**Use when**: Starting component testing in an existing Playwright project.
-**Avoid when**: You only need full E2E tests against a running application — component testing adds build complexity that is not justified for pure integration tests.
+**Use when**: Adding component tests to a project.
+**Avoid when**: You only need E2E tests against the running app.
 
-Component testing uses a separate config file (`playwright-ct.config.ts`) and a dedicated `playwright/index.html` entry point. Playwright bundles your component with Vite under the hood.
+The fastest setup is Playwright's own skill, which detects the framework and bundler, writes the gallery, adds the project and a first story and spec:
 
-**TypeScript**
+```bash
+npx playwright init-skills
+# then ask your coding agent: "Set up component testing using the playwright-component-testing skill."
+```
+
+To do it by hand on a Vite app, add a project whose `baseURL` is the gallery:
+
 ```typescript
-// playwright-ct.config.ts
-import { defineConfig, devices } from '@playwright/experimental-ct-react';
+// playwright.config.ts
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './src',
-  testMatch: '**/*.ct.tsx',
-  use: {
-    ctPort: 3100,
-    // Vite config for component bundling
-    ctViteConfig: {
-      resolve: {
-        alias: {
-          '@': '/src',
-        },
-      },
-    },
-  },
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      name: 'components',
+      testDir: './tests/components',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:5173/playwright/gallery/index.html',
+        serviceWorkers: 'block', // the app's service worker must not shadow page.route() mocks
+        reuseContext: true,      // reuse the browser context per worker: much faster suites
+      },
     },
   ],
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5173/playwright/gallery/index.html',
+    reuseExistingServer: !process.env.CI,
+  },
 });
 ```
+
+The gallery for React + Vite (Vite serves any `.html` under the project root and `vite build` ignores it):
 
 ```html
-<!-- playwright/index.html — entry point for component tests -->
+<!-- playwright/gallery/index.html -->
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Component Tests</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="./index.ts"></script>
-  </body>
-</html>
+<div id="root"></div>
+<script type="module" src="./main.tsx"></script>
 ```
 
-```typescript
-// playwright/index.ts — global styles and providers for all component tests
-import '../src/styles/globals.css';
-```
-
-**JavaScript**
-```javascript
-// playwright-ct.config.js
-const { defineConfig, devices } = require('@playwright/experimental-ct-react');
-
-module.exports = defineConfig({
-  testDir: './src',
-  testMatch: '**/*.ct.jsx',
-  use: {
-    ctPort: 3100,
-    ctViteConfig: {
-      resolve: {
-        alias: {
-          '@': '/src',
-        },
-      },
-    },
-  },
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-  ],
-});
-```
-
-Run component tests with:
-```bash
-npx playwright test -c playwright-ct.config.ts
-```
-
-### 2. Mounting Components
-
-**Use when**: You need to render a component in a real browser with full DOM, CSS, and event handling.
-**Avoid when**: The component is trivial (a pure function that returns a string) — use a unit test instead.
-
-The `mount()` fixture renders your component into a real browser page. It returns a `Locator` pointed at the mounted component root.
-
-**TypeScript**
-```typescript
-import { test, expect } from '@playwright/experimental-ct-react';
-import { Card } from './Card';
-
-test('mount a component with props', async ({ mount }) => {
-  const component = await mount(
-    <Card title="Welcome" description="Get started with Playwright" />
-  );
-
-  await expect(component.getByRole('heading', { name: 'Welcome' })).toBeVisible();
-  await expect(component.getByText('Get started with Playwright')).toBeVisible();
-});
-
-test('mount with children', async ({ mount }) => {
-  const component = await mount(
-    <Card title="Actions">
-      <button>Click me</button>
-    </Card>
-  );
-
-  await expect(component.getByRole('button', { name: 'Click me' })).toBeVisible();
-});
-
-test('update props after mount', async ({ mount }) => {
-  const component = await mount(<Card title="Initial" description="First" />);
-  await expect(component.getByRole('heading', { name: 'Initial' })).toBeVisible();
-
-  // Re-render with new props
-  await component.update(<Card title="Updated" description="Second" />);
-  await expect(component.getByRole('heading', { name: 'Updated' })).toBeVisible();
-});
-```
-
-**JavaScript**
-```javascript
-const { test, expect } = require('@playwright/experimental-ct-react');
-const { Card } = require('./Card');
-
-test('mount a component with props', async ({ mount }) => {
-  const component = await mount(
-    <Card title="Welcome" description="Get started with Playwright" />
-  );
-
-  await expect(component.getByRole('heading', { name: 'Welcome' })).toBeVisible();
-  await expect(component.getByText('Get started with Playwright')).toBeVisible();
-});
-
-test('mount with children', async ({ mount }) => {
-  const component = await mount(
-    <Card title="Actions">
-      <button>Click me</button>
-    </Card>
-  );
-
-  await expect(component.getByRole('button', { name: 'Click me' })).toBeVisible();
-});
-
-test('update props after mount', async ({ mount }) => {
-  const component = await mount(<Card title="Initial" description="First" />);
-  await expect(component.getByRole('heading', { name: 'Initial' })).toBeVisible();
-
-  await component.update(<Card title="Updated" description="Second" />);
-  await expect(component.getByRole('heading', { name: 'Updated' })).toBeVisible();
-});
-```
-
-### 3. Testing Interactions
-
-**Use when**: The component has clickable elements, form inputs, keyboard handling, or hover states.
-**Avoid when**: You are testing browser-level behavior (navigation, cookies) — use E2E tests for that.
-
-Component test interactions use the same Playwright locator API as E2E tests. The `mount()` return value is a `Locator`, so all standard methods work.
-
-**TypeScript**
-```typescript
-import { test, expect } from '@playwright/experimental-ct-react';
-import { Counter } from './Counter';
-import { SearchInput } from './SearchInput';
-import { Dropdown } from './Dropdown';
-
-test('click interactions', async ({ mount }) => {
-  const component = await mount(<Counter initialCount={0} />);
-
-  await component.getByRole('button', { name: 'Increment' }).click();
-  await component.getByRole('button', { name: 'Increment' }).click();
-  await expect(component.getByText('Count: 2')).toBeVisible();
-
-  await component.getByRole('button', { name: 'Decrement' }).click();
-  await expect(component.getByText('Count: 1')).toBeVisible();
-});
-
-test('typing interactions', async ({ mount }) => {
-  const component = await mount(<SearchInput placeholder="Search..." />);
-
-  const input = component.getByRole('textbox', { name: 'Search' });
-  await input.fill('playwright');
-  await expect(component.getByText('Showing results for: playwright')).toBeVisible();
-
-  // Clear and type again
-  await input.clear();
-  await input.fill('testing');
-  await expect(component.getByText('Showing results for: testing')).toBeVisible();
-});
-
-test('keyboard interactions', async ({ mount }) => {
-  const component = await mount(<SearchInput placeholder="Search..." />);
-
-  const input = component.getByRole('textbox', { name: 'Search' });
-  await input.fill('playwright');
-  await input.press('Enter');
-  await expect(component.getByText('Searched: playwright')).toBeVisible();
-});
-
-test('select from dropdown', async ({ mount }) => {
-  const component = await mount(
-    <Dropdown
-      label="Color"
-      options={['Red', 'Green', 'Blue']}
-    />
-  );
-
-  await component.getByRole('combobox', { name: 'Color' }).click();
-  await component.getByRole('option', { name: 'Green' }).click();
-  await expect(component.getByText('Selected: Green')).toBeVisible();
-});
-```
-
-**JavaScript**
-```javascript
-const { test, expect } = require('@playwright/experimental-ct-react');
-const { Counter } = require('./Counter');
-const { SearchInput } = require('./SearchInput');
-const { Dropdown } = require('./Dropdown');
-
-test('click interactions', async ({ mount }) => {
-  const component = await mount(<Counter initialCount={0} />);
-
-  await component.getByRole('button', { name: 'Increment' }).click();
-  await component.getByRole('button', { name: 'Increment' }).click();
-  await expect(component.getByText('Count: 2')).toBeVisible();
-
-  await component.getByRole('button', { name: 'Decrement' }).click();
-  await expect(component.getByText('Count: 1')).toBeVisible();
-});
-
-test('typing interactions', async ({ mount }) => {
-  const component = await mount(<SearchInput placeholder="Search..." />);
-
-  const input = component.getByRole('textbox', { name: 'Search' });
-  await input.fill('playwright');
-  await expect(component.getByText('Showing results for: playwright')).toBeVisible();
-
-  await input.clear();
-  await input.fill('testing');
-  await expect(component.getByText('Showing results for: testing')).toBeVisible();
-});
-
-test('keyboard interactions', async ({ mount }) => {
-  const component = await mount(<SearchInput placeholder="Search..." />);
-
-  const input = component.getByRole('textbox', { name: 'Search' });
-  await input.fill('playwright');
-  await input.press('Enter');
-  await expect(component.getByText('Searched: playwright')).toBeVisible();
-});
-
-test('select from dropdown', async ({ mount }) => {
-  const component = await mount(
-    <Dropdown label="Color" options={['Red', 'Green', 'Blue']} />
-  );
-
-  await component.getByRole('combobox', { name: 'Color' }).click();
-  await component.getByRole('option', { name: 'Green' }).click();
-  await expect(component.getByText('Selected: Green')).toBeVisible();
-});
-```
-
-### 4. Testing Props
-
-**Use when**: You need to verify a component renders correctly with different prop combinations — states, variants, edge cases.
-**Avoid when**: The prop differences are purely visual with no DOM change — use visual regression instead.
-
-**TypeScript**
-```typescript
-import { test, expect } from '@playwright/experimental-ct-react';
-import { Alert } from './Alert';
-import { Badge } from './Badge';
-import { Avatar } from './Avatar';
-
-test('alert renders different severity levels', async ({ mount }) => {
-  const success = await mount(<Alert severity="success" message="Saved!" />);
-  await expect(success.getByRole('alert')).toContainText('Saved!');
-  await expect(success.getByRole('alert')).toHaveAttribute('data-severity', 'success');
-
-  const error = await mount(<Alert severity="error" message="Failed to save" />);
-  await expect(error.getByRole('alert')).toContainText('Failed to save');
-  await expect(error.getByRole('alert')).toHaveAttribute('data-severity', 'error');
-});
-
-test('badge renders count and caps at 99+', async ({ mount }) => {
-  const low = await mount(<Badge count={5} />);
-  await expect(low).toContainText('5');
-
-  const high = await mount(<Badge count={150} />);
-  await expect(high).toContainText('99+');
-
-  const zero = await mount(<Badge count={0} />);
-  await expect(zero).toBeHidden();
-});
-
-test('avatar shows initials when no image provided', async ({ mount }) => {
-  const withImage = await mount(
-    <Avatar src="/photo.jpg" name="Jane Doe" />
-  );
-  await expect(withImage.getByRole('img', { name: 'Jane Doe' })).toBeVisible();
-
-  const withoutImage = await mount(<Avatar name="Jane Doe" />);
-  await expect(withoutImage.getByText('JD')).toBeVisible();
-  await expect(withoutImage.getByRole('img')).toHaveCount(0);
-});
-
-test('disabled button is not interactive', async ({ mount }) => {
-  const component = await mount(
-    <button disabled>Submit</button>
-  );
-  await expect(component.getByRole('button', { name: 'Submit' })).toBeDisabled();
-});
-```
-
-**JavaScript**
-```javascript
-const { test, expect } = require('@playwright/experimental-ct-react');
-const { Alert } = require('./Alert');
-const { Badge } = require('./Badge');
-const { Avatar } = require('./Avatar');
-
-test('alert renders different severity levels', async ({ mount }) => {
-  const success = await mount(<Alert severity="success" message="Saved!" />);
-  await expect(success.getByRole('alert')).toContainText('Saved!');
-  await expect(success.getByRole('alert')).toHaveAttribute('data-severity', 'success');
-
-  const error = await mount(<Alert severity="error" message="Failed to save" />);
-  await expect(error.getByRole('alert')).toContainText('Failed to save');
-  await expect(error.getByRole('alert')).toHaveAttribute('data-severity', 'error');
-});
-
-test('badge renders count and caps at 99+', async ({ mount }) => {
-  const low = await mount(<Badge count={5} />);
-  await expect(low).toContainText('5');
-
-  const high = await mount(<Badge count={150} />);
-  await expect(high).toContainText('99+');
-
-  const zero = await mount(<Badge count={0} />);
-  await expect(zero).toBeHidden();
-});
-
-test('avatar shows initials when no image provided', async ({ mount }) => {
-  const withImage = await mount(<Avatar src="/photo.jpg" name="Jane Doe" />);
-  await expect(withImage.getByRole('img', { name: 'Jane Doe' })).toBeVisible();
-
-  const withoutImage = await mount(<Avatar name="Jane Doe" />);
-  await expect(withoutImage.getByText('JD')).toBeVisible();
-  await expect(withoutImage.getByRole('img')).toHaveCount(0);
-});
-
-test('disabled button is not interactive', async ({ mount }) => {
-  const component = await mount(<button disabled>Submit</button>);
-  await expect(component.getByRole('button', { name: 'Submit' })).toBeDisabled();
-});
-```
-
-### 5. Testing Events
-
-**Use when**: A component emits events or calls callback props — form submissions, toggle changes, custom events.
-**Avoid when**: You only care that something renders — use a prop/snapshot test instead.
-
-Capture events by passing callback props to `mount()`. Use closures or arrays to collect values for assertion.
-
-**TypeScript**
-```typescript
-import { test, expect } from '@playwright/experimental-ct-react';
-import { Toggle } from './Toggle';
-import { ContactForm } from './ContactForm';
-import { TagInput } from './TagInput';
-
-test('toggle fires onChange with new value', async ({ mount }) => {
-  const events: boolean[] = [];
-  const component = await mount(
-    <Toggle
-      label="Dark mode"
-      onChange={(checked: boolean) => { events.push(checked); }}
-    />
-  );
-
-  await component.getByRole('switch', { name: 'Dark mode' }).click();
-  expect(events).toEqual([true]);
-
-  await component.getByRole('switch', { name: 'Dark mode' }).click();
-  expect(events).toEqual([true, false]);
-});
-
-test('form calls onSubmit with field values', async ({ mount }) => {
-  let submittedData: Record<string, string> | null = null;
-  const component = await mount(
-    <ContactForm
-      onSubmit={(data: Record<string, string>) => { submittedData = data; }}
-    />
-  );
-
-  await component.getByLabel('Name').fill('Jane Doe');
-  await component.getByLabel('Email').fill('jane@example.com');
-  await component.getByLabel('Message').fill('Hello!');
-  await component.getByRole('button', { name: 'Send' }).click();
-
-  expect(submittedData).toEqual({
-    name: 'Jane Doe',
-    email: 'jane@example.com',
-    message: 'Hello!',
-  });
-});
-
-test('tag input fires onTagAdd and onTagRemove', async ({ mount }) => {
-  const added: string[] = [];
-  const removed: string[] = [];
-  const component = await mount(
-    <TagInput
-      onTagAdd={(tag: string) => { added.push(tag); }}
-      onTagRemove={(tag: string) => { removed.push(tag); }}
-    />
-  );
-
-  const input = component.getByRole('textbox');
-  await input.fill('playwright');
-  await input.press('Enter');
-  expect(added).toEqual(['playwright']);
-
-  // Remove the tag
-  await component.getByRole('button', { name: 'Remove playwright' }).click();
-  expect(removed).toEqual(['playwright']);
-});
-```
-
-**JavaScript**
-```javascript
-const { test, expect } = require('@playwright/experimental-ct-react');
-const { Toggle } = require('./Toggle');
-const { ContactForm } = require('./ContactForm');
-const { TagInput } = require('./TagInput');
-
-test('toggle fires onChange with new value', async ({ mount }) => {
-  const events = [];
-  const component = await mount(
-    <Toggle
-      label="Dark mode"
-      onChange={(checked) => { events.push(checked); }}
-    />
-  );
-
-  await component.getByRole('switch', { name: 'Dark mode' }).click();
-  expect(events).toEqual([true]);
-
-  await component.getByRole('switch', { name: 'Dark mode' }).click();
-  expect(events).toEqual([true, false]);
-});
-
-test('form calls onSubmit with field values', async ({ mount }) => {
-  let submittedData = null;
-  const component = await mount(
-    <ContactForm
-      onSubmit={(data) => { submittedData = data; }}
-    />
-  );
-
-  await component.getByLabel('Name').fill('Jane Doe');
-  await component.getByLabel('Email').fill('jane@example.com');
-  await component.getByLabel('Message').fill('Hello!');
-  await component.getByRole('button', { name: 'Send' }).click();
-
-  expect(submittedData).toEqual({
-    name: 'Jane Doe',
-    email: 'jane@example.com',
-    message: 'Hello!',
-  });
-});
-
-test('tag input fires onTagAdd and onTagRemove', async ({ mount }) => {
-  const added = [];
-  const removed = [];
-  const component = await mount(
-    <TagInput
-      onTagAdd={(tag) => { added.push(tag); }}
-      onTagRemove={(tag) => { removed.push(tag); }}
-    />
-  );
-
-  const input = component.getByRole('textbox');
-  await input.fill('playwright');
-  await input.press('Enter');
-  expect(added).toEqual(['playwright']);
-
-  await component.getByRole('button', { name: 'Remove playwright' }).click();
-  expect(removed).toEqual(['playwright']);
-});
-```
-
-### 6. Testing Slots and Children
-
-**Use when**: Your component accepts children, named slots (Vue), or render props — layout components, wrappers, modals.
-**Avoid when**: The component has no slot/children API.
-
-**TypeScript**
-```typescript
-import { test, expect } from '@playwright/experimental-ct-react';
-import { Modal } from './Modal';
-import { Accordion } from './Accordion';
-import { Layout } from './Layout';
-
-test('modal renders children in the dialog', async ({ mount }) => {
-  const component = await mount(
-    <Modal open={true} title="Confirm">
-      <p>Are you sure you want to delete this item?</p>
-      <button>Delete</button>
-      <button>Cancel</button>
-    </Modal>
-  );
-
-  await expect(component.getByRole('dialog', { name: 'Confirm' })).toBeVisible();
-  await expect(component.getByText('Are you sure you want to delete this item?')).toBeVisible();
-  await expect(component.getByRole('button', { name: 'Delete' })).toBeVisible();
-  await expect(component.getByRole('button', { name: 'Cancel' })).toBeVisible();
-});
-
-test('accordion renders multiple sections', async ({ mount }) => {
-  const component = await mount(
-    <Accordion>
-      <Accordion.Item title="Section 1">Content for section 1</Accordion.Item>
-      <Accordion.Item title="Section 2">Content for section 2</Accordion.Item>
-    </Accordion>
-  );
-
-  // First section collapsed by default
-  await expect(component.getByText('Content for section 1')).toBeHidden();
-
-  // Expand first section
-  await component.getByRole('button', { name: 'Section 1' }).click();
-  await expect(component.getByText('Content for section 1')).toBeVisible();
-
-  // Second section remains collapsed
-  await expect(component.getByText('Content for section 2')).toBeHidden();
-});
-
-test('layout component renders header and body slots', async ({ mount }) => {
-  const component = await mount(
-    <Layout
-      header={<h1>Dashboard</h1>}
-      sidebar={<nav><a href="/settings">Settings</a></nav>}
-    >
-      <p>Main content goes here</p>
-    </Layout>
-  );
-
-  await expect(component.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
-  await expect(component.getByRole('link', { name: 'Settings' })).toBeVisible();
-  await expect(component.getByText('Main content goes here')).toBeVisible();
-});
-```
-
-**JavaScript**
-```javascript
-const { test, expect } = require('@playwright/experimental-ct-react');
-const { Modal } = require('./Modal');
-const { Accordion } = require('./Accordion');
-const { Layout } = require('./Layout');
-
-test('modal renders children in the dialog', async ({ mount }) => {
-  const component = await mount(
-    <Modal open={true} title="Confirm">
-      <p>Are you sure you want to delete this item?</p>
-      <button>Delete</button>
-      <button>Cancel</button>
-    </Modal>
-  );
-
-  await expect(component.getByRole('dialog', { name: 'Confirm' })).toBeVisible();
-  await expect(component.getByText('Are you sure you want to delete this item?')).toBeVisible();
-  await expect(component.getByRole('button', { name: 'Delete' })).toBeVisible();
-  await expect(component.getByRole('button', { name: 'Cancel' })).toBeVisible();
-});
-
-test('accordion renders multiple sections', async ({ mount }) => {
-  const component = await mount(
-    <Accordion>
-      <Accordion.Item title="Section 1">Content for section 1</Accordion.Item>
-      <Accordion.Item title="Section 2">Content for section 2</Accordion.Item>
-    </Accordion>
-  );
-
-  await expect(component.getByText('Content for section 1')).toBeHidden();
-  await component.getByRole('button', { name: 'Section 1' }).click();
-  await expect(component.getByText('Content for section 1')).toBeVisible();
-  await expect(component.getByText('Content for section 2')).toBeHidden();
-});
-
-test('layout component renders header and body slots', async ({ mount }) => {
-  const component = await mount(
-    <Layout
-      header={<h1>Dashboard</h1>}
-      sidebar={<nav><a href="/settings">Settings</a></nav>}
-    >
-      <p>Main content goes here</p>
-    </Layout>
-  );
-
-  await expect(component.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
-  await expect(component.getByRole('link', { name: 'Settings' })).toBeVisible();
-  await expect(component.getByText('Main content goes here')).toBeVisible();
-});
-```
-
-**Vue Slots Example (TypeScript)**
-```typescript
-import { test, expect } from '@playwright/experimental-ct-vue';
-import Card from './Card.vue';
-
-test('vue named slots', async ({ mount }) => {
-  const component = await mount(Card, {
-    props: { title: 'My Card' },
-    slots: {
-      default: '<p>Card body content</p>',
-      footer: '<button>Save</button>',
-    },
-  });
-
-  await expect(component.getByText('Card body content')).toBeVisible();
-  await expect(component.getByRole('button', { name: 'Save' })).toBeVisible();
-});
-```
-
-### 7. Providing Context (Wrappers and Providers)
-
-**Use when**: Your components depend on React context, Vue provide/inject, or global state (theme, auth, i18n, store).
-**Avoid when**: The component has no context dependencies — do not wrap unnecessarily.
-
-Use the `playwright/index.ts` file to register global wrappers, or wrap per-test using a wrapper component.
-
-**TypeScript**
-```typescript
-// playwright/index.tsx — global wrapper for ALL component tests
-import '../src/styles/globals.css';
-import { ThemeProvider } from '../src/providers/ThemeProvider';
-import { IntlProvider } from '../src/providers/IntlProvider';
-
-// beforeMount runs before every component is mounted
-// Use it to wrap all components with global providers
-import { beforeMount } from '@playwright/experimental-ct-react/hooks';
-
-beforeMount(async ({ App }) => {
-  return (
-    <IntlProvider locale="en">
-      <ThemeProvider theme="light">
-        <App />
-      </ThemeProvider>
-    </IntlProvider>
-  );
-});
-```
-
-```typescript
-// Per-test provider wrapping — for tests that need specific context
-import { test, expect } from '@playwright/experimental-ct-react';
-import { UserProfile } from './UserProfile';
-import { AuthContext } from '../contexts/AuthContext';
-
-// Create a test wrapper component
-function AuthWrapper({ children, user }: { children: React.ReactNode; user: any }) {
-  return (
-    <AuthContext.Provider value={{ user, isAuthenticated: true }}>
-      {children}
-    </AuthContext.Provider>
-  );
+```tsx
+// playwright/gallery/main.tsx
+import { flushSync } from 'react-dom';
+import { createRoot, type Root } from 'react-dom/client';
+import '../../src/index.css'; // global CSS, the same way the app entry imports it
+
+const stories = import.meta.glob('../../src/**/*.story.{tsx,jsx}');
+const id = (f: string) => f.replace(/^(\.\.\/)+src\//, '').replace(/\.story\.\w+$/, '');
+
+const find = (path: string) => Object.keys(stories).find(f => id(f) === path || id(f).endsWith('/' + path));
+
+async function resolve(storyId: string) {
+  const sep = storyId.lastIndexOf('/');
+  const file = find(storyId.slice(0, sep));  // 'components/Button/Primary': file + named export
+  if (file)
+    return ((await stories[file]()) as Record<string, any>)[storyId.slice(sep + 1)];
+  const single = find(storyId);              // 'components/Card.with-actions': one-story .vue file
+  return single && ((await stories[single]()) as Record<string, any>).default;
 }
 
-test('profile shows authenticated user info', async ({ mount }) => {
-  const user = { name: 'Jane Doe', email: 'jane@example.com', role: 'admin' };
+const rootEl = document.getElementById('root')!;
+let root: Root | undefined;
+let renderError: unknown;
 
-  const component = await mount(
-    <AuthWrapper user={user}>
-      <UserProfile />
-    </AuthWrapper>
-  );
+(window as any).mount = async ({ story, props }: { story: string, props?: Record<string, any> }) => {
+  const Story = await resolve(story);
+  if (!Story)
+    throw new Error(`Unknown story: ${story}`);
+  // React 19 reports render errors instead of throwing; capture them so mount() rejects.
+  root ??= createRoot(rootEl, { onUncaughtError: error => { renderError = error; } });
+  renderError = undefined;
+  flushSync(() => root!.render(<Story {...props} />)); // reuse the root so update() keeps state
+  if (renderError)
+    throw renderError;
+};
 
-  await expect(component.getByText('Jane Doe')).toBeVisible();
-  await expect(component.getByText('admin')).toBeVisible();
-});
+(window as any).unmount = async () => {
+  root?.unmount();
+  root = undefined;
+};
 ```
+
+For Vue, mount a reactive host once and swap its story and props refs, so `update()` re-renders in place:
 
 ```typescript
-// Redux/Zustand store wrapping
-import { test, expect } from '@playwright/experimental-ct-react';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import { cartReducer } from '../store/cartSlice';
-import { CartSummary } from './CartSummary';
+// playwright/gallery/main.ts (resolve() and the glob as above, with '../../src/**/*.story.{ts,js,vue}')
+import { createApp, h, shallowRef, type App, type Component } from 'vue';
 
-test('cart summary shows item count from store', async ({ mount }) => {
-  const store = configureStore({
-    reducer: { cart: cartReducer },
-    preloadedState: {
-      cart: {
-        items: [
-          { id: '1', name: 'Widget', quantity: 2, price: 9.99 },
-          { id: '2', name: 'Gadget', quantity: 1, price: 24.99 },
-        ],
-      },
-    },
-  });
+const story = shallowRef<Component | null>(null);
+const props = shallowRef<Record<string, any>>({});
+const host = { render: () => (story.value ? h(story.value, props.value) : null) };
+let app: App | undefined;
 
-  const component = await mount(
-    <Provider store={store}>
-      <CartSummary />
-    </Provider>
-  );
-
-  await expect(component.getByText('3 items')).toBeVisible();
-  await expect(component.getByText('$44.97')).toBeVisible();
-});
-```
-
-**JavaScript**
-```javascript
-// playwright/index.jsx — global wrapper
-import '../src/styles/globals.css';
-import { ThemeProvider } from '../src/providers/ThemeProvider';
-import { IntlProvider } from '../src/providers/IntlProvider';
-import { beforeMount } from '@playwright/experimental-ct-react/hooks';
-
-beforeMount(async ({ App }) => {
-  return (
-    <IntlProvider locale="en">
-      <ThemeProvider theme="light">
-        <App />
-      </ThemeProvider>
-    </IntlProvider>
-  );
-});
-```
-
-```javascript
-// Per-test store wrapping
-const { test, expect } = require('@playwright/experimental-ct-react');
-const { Provider } = require('react-redux');
-const { configureStore } = require('@reduxjs/toolkit');
-const { cartReducer } = require('../store/cartSlice');
-const { CartSummary } = require('./CartSummary');
-
-test('cart summary shows item count from store', async ({ mount }) => {
-  const store = configureStore({
-    reducer: { cart: cartReducer },
-    preloadedState: {
-      cart: {
-        items: [
-          { id: '1', name: 'Widget', quantity: 2, price: 9.99 },
-          { id: '2', name: 'Gadget', quantity: 1, price: 24.99 },
-        ],
-      },
-    },
-  });
-
-  const component = await mount(
-    <Provider store={store}>
-      <CartSummary />
-    </Provider>
-  );
-
-  await expect(component.getByText('3 items')).toBeVisible();
-  await expect(component.getByText('$44.97')).toBeVisible();
-});
-```
-
-### 8. Mocking Imports
-
-**Use when**: A component imports modules that should not run in tests — API clients, analytics, heavy third-party libraries.
-**Avoid when**: You can provide the dependency via props or context instead — explicit injection is always better than import mocking.
-
-Use the `beforeMount` hook in `playwright/index.ts` to intercept and replace modules.
-
-**TypeScript**
-```typescript
-// playwright/index.tsx — mock modules globally
-import { beforeMount } from '@playwright/experimental-ct-react/hooks';
-
-beforeMount(async ({ hooksConfig }) => {
-  // hooksConfig is passed from individual tests via mount options
-  if (hooksConfig?.mockApi) {
-    // Mock the API module before the component loads
-    const apiModule = await import('../src/api/client');
-    apiModule.fetchUser = async () => hooksConfig.mockUser;
-    apiModule.fetchProducts = async () => hooksConfig.mockProducts;
+(window as any).mount = async ({ story: id, props: next }: { story: string, props?: Record<string, any> }) => {
+  const resolved = await resolve(id);
+  if (!resolved)
+    throw new Error(`Unknown story: ${id}`);
+  story.value = resolved;
+  props.value = next ?? {};
+  if (!app) {
+    app = createApp(host);
+    app.mount('#root');
   }
+};
+
+(window as any).unmount = async () => {
+  app?.unmount();
+  app = undefined;
+};
+```
+
+Not on Vite (Next.js, webpack)? Run a small standalone Vite server for the gallery and point `baseURL` and `webServer` at it.
+
+### 2. Stories and Story IDs
+
+**Use when**: Writing any component test.
+
+- **Story id** = path under `src/` without `.story.*`, plus the export name: `src/components/Button.story.tsx` export `Primary` → `components/Button/Primary`. Any unique suffix works: `mount('Button/Primary')`. A `.story.vue` file is one story, addressed by its path: `components/Card.with-actions`.
+- **One export per scenario.** `Primary`, `Disabled`, `Loading` read as a specification of the component. Prefer a new export over parameterizing an existing one.
+- **Story ids are strings.** Renaming a story breaks specs at runtime, not compile time; `mount<typeof Story>` (Pattern 4) ties at least the props to the story.
+- Open the gallery URL in a browser and run `await window.mount({ story: 'components/Button/Primary' })` in DevTools to see exactly what the test sees.
+
+### 3. Interactions and Assertions
+
+**Use when**: Verifying what a component renders and how it responds to the user.
+
+`mount()` returns a locator for `#root`. Scope every query from it, and use web-first assertions:
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('dialog closes on Escape and returns focus', async ({ mount, page }) => {
+  const component = await mount('components/Dialog/OpenWithTrigger');
+
+  await expect(component.getByRole('dialog', { name: 'Delete project' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(component.getByRole('dialog')).toBeHidden();
+  await expect(component.getByRole('button', { name: 'Open dialog' })).toBeFocused();
 });
+```
+
+Use `page` for things outside the root: keyboard, mouse, viewport, and `page.route()`.
+
+### 4. Props: Per-Test Values, Types and `update()`
+
+**Use when**: One scenario is genuinely parametric (a boundary sweep), or you test a prop change on a live component.
+
+Pass plain serializable props as the second argument; the gallery hands them to the story. Pass the story type to `mount` to type-check them:
+
+```tsx
+// src/components/Counter.story.tsx
+import { Counter } from './Counter';
+
+export const Default = ({ value = 0 }: { value?: number }) => <Counter value={value} />;
 ```
 
 ```typescript
-// UserDashboard.ct.tsx
-import { test, expect } from '@playwright/experimental-ct-react';
-import { UserDashboard } from './UserDashboard';
+import { test, expect } from '@playwright/test';
+import type { Default } from '../../src/components/Counter.story';
 
-test('dashboard renders with mocked API data', async ({ mount }) => {
-  const component = await mount(<UserDashboard />, {
-    hooksConfig: {
-      mockApi: true,
-      mockUser: { name: 'Jane Doe', email: 'jane@example.com' },
-      mockProducts: [
-        { id: '1', name: 'Widget', price: 9.99 },
-        { id: '2', name: 'Gadget', price: 24.99 },
-      ],
-    },
-  });
+test('re-renders on prop change without remounting', async ({ mount }) => {
+  const component = await mount<typeof Default>('components/Counter/Default', { value: 1 });
+  await expect(component.getByTestId('value')).toHaveText('1');
 
-  await expect(component.getByText('Jane Doe')).toBeVisible();
-  await expect(component.getByRole('listitem')).toHaveCount(2);
+  await component.update({ value: 2 }); // same story, new props, state kept
+  await expect(component.getByTestId('value')).toHaveText('2');
 });
+```
+
+Vue stories that take props must also declare them at runtime, or Vue delivers them as attributes:
+
+```typescript
+// src/components/Button.story.ts
+import { defineComponent, h } from 'vue';
+import Button from './Button.vue';
+
+export const WithTitle = defineComponent(
+  (props: { title?: string }) => () => h(Button, { title: props.title ?? 'Default' }),
+  { props: ['title'] },
+);
+```
+
+Keep callbacks out of props. The documented contract is plain, serializable props; 1.64 happens to expose functions passed this way, but the call then runs in Node.js, outside the story, and the scenario is no longer visible in the gallery. Pattern 5 handles callbacks.
+
+### 5. Events and Callbacks: Record State in the Story
+
+**Use when**: The component reports something through a callback or event (`onChange`, `@update:expanded`).
+
+The story owns the state and the callbacks, and records the outcome in a hidden input. The test acts and asserts on that input with `toHaveValue()`, which retries until the state lands:
+
+```tsx
+// src/components/Expandable.story.tsx
+import { useState } from 'react';
+import { Expandable } from './Expandable';
+
+export const Stateful = () => {
+  const [expanded, setExpanded] = useState(false);
+  return <>
+    <Expandable expanded={expanded} setExpanded={setExpanded} title="Details">Hidden text</Expandable>
+    <form hidden><input data-testid="expanded" readOnly value={String(expanded)} /></form>
+  </>;
+};
 ```
 
 ```typescript
-// Alternative: mock at the network level using page.route()
-import { test, expect } from '@playwright/experimental-ct-react';
-import { ProductList } from './ProductList';
-
-test('product list with network-level mocking', async ({ mount, page }) => {
-  // Intercept fetch/XHR calls made by the component
-  await page.route('**/api/products', (route) =>
-    route.fulfill({
-      json: [
-        { id: '1', name: 'Widget', price: 9.99 },
-        { id: '2', name: 'Gadget', price: 24.99 },
-      ],
-    })
-  );
-
-  const component = await mount(<ProductList />);
-  await expect(component.getByRole('listitem')).toHaveCount(2);
-  await expect(component.getByText('Widget')).toBeVisible();
+test('click toggles expanded', async ({ mount }) => {
+  const component = await mount('components/Expandable/Stateful');
+  await component.getByRole('button', { name: 'Details' }).click();
+  await expect(component.getByTestId('expanded')).toHaveValue('true');
 });
 ```
 
-**JavaScript**
-```javascript
-// playwright/index.jsx — mock modules globally
-const { beforeMount } = require('@playwright/experimental-ct-react/hooks');
+The same story in Vue:
 
-beforeMount(async ({ hooksConfig }) => {
-  if (hooksConfig?.mockApi) {
-    const apiModule = await import('../src/api/client');
-    apiModule.fetchUser = async () => hooksConfig.mockUser;
-    apiModule.fetchProducts = async () => hooksConfig.mockProducts;
-  }
-});
-```
-
-```javascript
-// Alternative: network-level mocking
-const { test, expect } = require('@playwright/experimental-ct-react');
-const { ProductList } = require('./ProductList');
-
-test('product list with network-level mocking', async ({ mount, page }) => {
-  await page.route('**/api/products', (route) =>
-    route.fulfill({
-      json: [
-        { id: '1', name: 'Widget', price: 9.99 },
-        { id: '2', name: 'Gadget', price: 24.99 },
-      ],
-    })
-  );
-
-  const component = await mount(<ProductList />);
-  await expect(component.getByRole('listitem')).toHaveCount(2);
-  await expect(component.getByText('Widget')).toBeVisible();
-});
-```
-
-### 9. Visual Component Testing
-
-**Use when**: You need pixel-level verification of component appearance — design system components, theme variants, responsive states.
-**Avoid when**: The component is purely functional with no meaningful visual output.
-
-Component tests support `toHaveScreenshot()` just like E2E tests. This is powerful for testing individual component states without needing a full application.
-
-**TypeScript**
 ```typescript
-import { test, expect } from '@playwright/experimental-ct-react';
-import { Button } from './Button';
+// src/components/Expandable.story.ts
+import { defineComponent, h, ref } from 'vue';
+import Expandable from './Expandable.vue';
+
+export const Stateful = defineComponent(() => {
+  const expanded = ref(false);
+  return () => h('div', [
+    h(Expandable, {
+      'expanded': expanded.value,
+      'onUpdate:expanded': (value: boolean) => expanded.value = value,
+      'title': 'Details',
+    }),
+    h('form', { hidden: true }, [
+      h('input', { 'data-testid': 'expanded', 'readonly': true, 'value': String(expanded.value) }),
+    ]),
+  ]);
+});
+```
+
+- One `data-testid` input per observed value: `String(...)` for scalars, `JSON.stringify(...)` for payloads.
+- Negative checks work the same way: act, then assert the value did **not** change.
+- The recording is visible when you open the story in the gallery, so the story doubles as a manual test page.
+
+### 6. Children and Slots: One Story per Composition
+
+**Use when**: The component renders children (React) or slots (Vue).
+
+There is no per-test JSX. Each composition worth testing becomes its own export:
+
+```tsx
+// src/components/Card.story.tsx
 import { Card } from './Card';
 
-test('button visual variants', async ({ mount }) => {
-  const primary = await mount(<Button variant="primary">Save</Button>);
-  await expect(primary).toHaveScreenshot('button-primary.png');
+export const WithActions = () => (
+  <Card title="Invoice #42">
+    <p>Due in 3 days</p>
+    <button>Pay now</button>
+  </Card>
+);
 
-  const secondary = await mount(<Button variant="secondary">Cancel</Button>);
-  await expect(secondary).toHaveScreenshot('button-secondary.png');
+export const Empty = () => <Card title="Invoice #42" />;
+```
 
-  const danger = await mount(<Button variant="danger">Delete</Button>);
-  await expect(danger).toHaveScreenshot('button-danger.png');
-});
-
-test('button states', async ({ mount }) => {
-  const component = await mount(<Button variant="primary">Save</Button>);
-
-  // Default state
-  await expect(component).toHaveScreenshot('button-default.png');
-
-  // Hover state
-  await component.hover();
-  await expect(component).toHaveScreenshot('button-hover.png');
-
-  // Focus state
-  await component.focus();
-  await expect(component).toHaveScreenshot('button-focus.png');
-});
-
-test('card renders consistently', async ({ mount }) => {
-  const component = await mount(
-    <Card title="Product" description="A great product for testing.">
-      <Button variant="primary">Buy now</Button>
-    </Card>
-  );
-
-  await expect(component).toHaveScreenshot('card-with-button.png', {
-    maxDiffPixelRatio: 0.01,
-  });
-});
-
-test('responsive component at different widths', async ({ mount, page }) => {
-  const component = await mount(<Card title="Responsive" description="Adapts to width" />);
-
-  await page.setViewportSize({ width: 1200, height: 800 });
-  await expect(component).toHaveScreenshot('card-desktop.png');
-
-  await page.setViewportSize({ width: 375, height: 667 });
-  await expect(component).toHaveScreenshot('card-mobile.png');
+```typescript
+test('renders children inside the card body', async ({ mount }) => {
+  const component = await mount('components/Card/WithActions');
+  await expect(component.getByRole('heading', { name: 'Invoice #42' })).toBeVisible();
+  await expect(component.getByRole('button', { name: 'Pay now' })).toBeVisible();
 });
 ```
 
-**JavaScript**
-```javascript
-const { test, expect } = require('@playwright/experimental-ct-react');
-const { Button } = require('./Button');
-const { Card } = require('./Card');
+For slot-heavy Vue scenarios, a single-file story is clearer than render functions:
 
-test('button visual variants', async ({ mount }) => {
-  const primary = await mount(<Button variant="primary">Save</Button>);
-  await expect(primary).toHaveScreenshot('button-primary.png');
+```vue
+<!-- src/components/Card.with-actions.story.vue: addressed as 'components/Card.with-actions' -->
+<script setup lang="ts">
+import Card from './Card.vue';
+</script>
 
-  const secondary = await mount(<Button variant="secondary">Cancel</Button>);
-  await expect(secondary).toHaveScreenshot('button-secondary.png');
+<template>
+  <Card title="Invoice #42">
+    <template #default><p>Due in 3 days</p></template>
+    <template #actions><button>Pay now</button></template>
+  </Card>
+</template>
+```
 
-  const danger = await mount(<Button variant="danger">Delete</Button>);
-  await expect(danger).toHaveScreenshot('button-danger.png');
+### 7. Providers, Context and Plugins
+
+**Use when**: Components need a theme, store, router, i18n or query client.
+
+Wrap stories in one shared decorator kept next to the stories, not inside the gallery, so each story shows what it depends on and can opt out:
+
+```tsx
+// src/stories/decorators.tsx
+import type { ReactNode } from 'react';
+import { ThemeProvider } from '../theme';
+
+export function AppScaffold({ children, theme = 'light' }: { children: ReactNode, theme?: 'light' | 'dark' }) {
+  return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+}
+```
+
+```tsx
+// src/components/ThemedBadge.story.tsx
+import { AppScaffold } from '../stories/decorators';
+import { ThemedBadge } from './ThemedBadge';
+
+export const Dark = () => <AppScaffold theme="dark"><ThemedBadge label="New" /></AppScaffold>;
+```
+
+- Create clients (React Query, Apollo, Pinia) **inside** the story or decorator, so each `mount()` starts fresh.
+- Vue plugins that must be installed with `app.use(...)` go in the gallery right after `createApp(...)`, mirroring the app's bootstrap.
+- The body of `window.mount` replaces the old `beforeMount` / `afterMount` hooks for app-wide setup.
+
+### 8. Network and Dependencies
+
+**Use when**: The component fetches data or depends on a module you want to replace.
+
+Register `page.route()` **before** `mount()`, because mounting navigates:
+
+```typescript
+test('shows an error when items fail to load', async ({ mount, page }) => {
+  await page.route('**/api/items', route => route.fulfill({ status: 500 }));
+  const component = await mount('components/ItemList/Default');
+  await expect(component.getByRole('alert')).toContainText('Something went wrong');
 });
 
-test('button states', async ({ mount }) => {
-  const component = await mount(<Button variant="primary">Save</Button>);
-
-  await expect(component).toHaveScreenshot('button-default.png');
-
-  await component.hover();
-  await expect(component).toHaveScreenshot('button-hover.png');
-
-  await component.focus();
-  await expect(component).toHaveScreenshot('button-focus.png');
-});
-
-test('responsive component at different widths', async ({ mount, page }) => {
-  const component = await mount(<Card title="Responsive" description="Adapts to width" />);
-
-  await page.setViewportSize({ width: 1200, height: 800 });
-  await expect(component).toHaveScreenshot('card-desktop.png');
-
-  await page.setViewportSize({ width: 375, height: 667 });
-  await expect(component).toHaveScreenshot('card-mobile.png');
+test('renders items from the API', async ({ mount, page }) => {
+  await page.route('**/api/items', route => route.fulfill({ json: [{ id: 1, name: 'Blue Mug' }] }));
+  const component = await mount('components/ItemList/Default');
+  await expect(component.getByRole('listitem')).toHaveText(['Blue Mug']);
 });
 ```
+
+There is no test-side module mocking: the component runs in the browser, built by your dev server. To replace a dependency, pass it in through the story (a prop or provider with a fake implementation), use your bundler's aliasing for the gallery, or start an MSW worker inside a story or decorator.
+
+### 9. Visual Comparison
+
+**Use when**: Locking down the look of design-system components and states.
+
+Screenshot the returned root locator, not the page, and mount several stories per test cheaply:
+
+```typescript
+test('button states', async ({ mount }) => {
+  await expect(await mount('components/Button/Primary')).toHaveScreenshot('primary.png');
+  await expect(await mount('components/Button/Disabled')).toHaveScreenshot('disabled.png');
+});
+```
+
+Keep the recording form `hidden` so it stays out of baselines. Baseline rules (OS, fonts, Docker) are in [visual-regression.md](visual-regression.md).
 
 ### 10. Component Test vs E2E Test
 
-**Use when**: Deciding whether to write a component test, an E2E test, or both for a piece of UI.
-**Avoid when**: You already have a clear testing strategy for your project.
+**Use when**: Deciding where a piece of UI behavior should be tested.
 
-The core distinction: component tests verify **how a component behaves in isolation**, while E2E tests verify **how the whole system works together**. They complement each other.
-
-**TypeScript — Component test (isolated behavior)**
-```typescript
-// Button.ct.tsx — tests the Button component in isolation
-import { test, expect } from '@playwright/experimental-ct-react';
-import { Button } from './Button';
-
-test('button shows loading spinner when loading prop is true', async ({ mount }) => {
-  const component = await mount(<Button loading={true}>Save</Button>);
-
-  await expect(component.getByRole('button', { name: 'Save' })).toBeDisabled();
-  await expect(component.getByRole('progressbar')).toBeVisible();
-  await expect(component.getByText('Save')).toBeVisible();
-});
-
-test('button calls onClick when clicked', async ({ mount }) => {
-  let clicked = false;
-  const component = await mount(
-    <Button onClick={() => { clicked = true; }}>Save</Button>
-  );
-
-  await component.click();
-  expect(clicked).toBe(true);
-});
-```
-
-```typescript
-// checkout.spec.ts — E2E test verifying the full flow
-import { test, expect } from '@playwright/test';
-
-test('complete checkout flow', async ({ page }) => {
-  await page.goto('/products');
-  await page.getByRole('button', { name: 'Add to cart' }).first().click();
-  await page.getByRole('link', { name: 'Cart' }).click();
-  await page.getByRole('button', { name: 'Checkout' }).click();
-
-  // Fill shipping form
-  await page.getByLabel('Address').fill('123 Main St');
-  await page.getByLabel('City').fill('Springfield');
-  await page.getByRole('button', { name: 'Continue to payment' }).click();
-
-  // The Save button's loading state is tested in the component test.
-  // Here we test the real user flow end-to-end.
-  await page.getByRole('button', { name: 'Place order' }).click();
-  await expect(page.getByRole('heading', { name: 'Order confirmed' })).toBeVisible();
-});
-```
-
-**JavaScript — Component test (isolated behavior)**
-```javascript
-// Button.ct.jsx
-const { test, expect } = require('@playwright/experimental-ct-react');
-const { Button } = require('./Button');
-
-test('button shows loading spinner when loading prop is true', async ({ mount }) => {
-  const component = await mount(<Button loading={true}>Save</Button>);
-
-  await expect(component.getByRole('button', { name: 'Save' })).toBeDisabled();
-  await expect(component.getByRole('progressbar')).toBeVisible();
-});
-
-test('button calls onClick when clicked', async ({ mount }) => {
-  let clicked = false;
-  const component = await mount(
-    <Button onClick={() => { clicked = true; }}>Save</Button>
-  );
-
-  await component.click();
-  expect(clicked).toBe(true);
-});
-```
-
-```javascript
-// checkout.spec.js — E2E test
-const { test, expect } = require('@playwright/test');
-
-test('complete checkout flow', async ({ page }) => {
-  await page.goto('/products');
-  await page.getByRole('button', { name: 'Add to cart' }).first().click();
-  await page.getByRole('link', { name: 'Cart' }).click();
-  await page.getByRole('button', { name: 'Checkout' }).click();
-
-  await page.getByLabel('Address').fill('123 Main St');
-  await page.getByLabel('City').fill('Springfield');
-  await page.getByRole('button', { name: 'Continue to payment' }).click();
-
-  await page.getByRole('button', { name: 'Place order' }).click();
-  await expect(page.getByRole('heading', { name: 'Order confirmed' })).toBeVisible();
-});
-```
+Component tests verify **how a component behaves in isolation**; E2E tests verify **how the system works together**. A loading button's disabled state and spinner belong in a component test; "saving the form persists the record and shows a toast" belongs in E2E. See [test-architecture.md](test-architecture.md).
 
 ## Decision Guide
 
-| UI Element | Component Test | E2E Test | Unit Test |
+| UI element | Component test | E2E test | Unit test |
 |---|---|---|---|
-| **Button** (variants, states, loading) | Yes — test all visual variants, disabled state, loading state, click handlers | Only as part of a larger flow | No — needs real DOM for styling and accessibility |
-| **Form field** (validation, masking) | Yes — test validation messages, input masking, error states in isolation | Yes — test the full form submission flow with backend | Validate-only logic (regex, format functions) |
-| **Modal/Dialog** (open, close, content) | Yes — test open/close behavior, focus trap, content rendering | Yes — test the trigger flow that opens the modal | No — needs real DOM |
-| **Data table** (sorting, filtering, pagination) | Yes — test sort, filter, pagination with mock data | Yes — test with real API data and URL sync | Pure sort/filter logic on arrays |
-| **Navigation/Menu** | Partially — test dropdown behavior, active states | Yes — test actual route changes and page loads | No |
-| **Full page** (dashboard, settings) | No — too much context required; defeats isolation purpose | Yes — this is what E2E tests are for | No |
-| **Layout** (sidebar, header, grid) | Yes — test responsive behavior, slot rendering | Only if layout affects user flows (e.g., mobile nav) | No |
-| **Chart/Graph** | Yes — visual regression of rendered output | Only if charts are part of a critical flow | Data transformation logic only |
-| **Toast/Notification** | Yes — test appearance, auto-dismiss, action buttons | Yes — test that real actions trigger correct toasts | No |
-| **Design system primitives** | Yes — this is the primary use case for component testing | No — not needed for primitives | No |
+| **Button** (variants, states, loading) | Yes: every variant, disabled, loading, click recording | Only as part of a larger flow | No: needs real DOM for styling and accessibility |
+| **Form field** (validation, masking) | Yes: messages, masking, error states | Yes: full submission with backend | Validate-only logic (regex, formatters) |
+| **Modal / dialog** | Yes: open/close, focus trap, Escape | Yes: the flow that opens it | No |
+| **Data table** (sort, filter, paginate) | Yes: with routed mock data | Yes: real API data and URL sync | Pure sort/filter functions |
+| **Navigation / menu** | Partially: dropdown behavior, active states | Yes: real route changes | No |
+| **Full page** (dashboard, settings) | No: too much context; defeats isolation | Yes | No |
+| **Chart** | Yes: visual regression of rendered output | Only in critical flows | Data transformation only |
+| **Design-system primitives** | Yes: the primary use case | No | No |
 
-**Rule of thumb**: Component tests for **behavior and appearance in isolation**. E2E tests for **user journeys across multiple components and pages**. Unit tests for **pure logic with no DOM**.
+**Rule of thumb**: component tests for behavior and appearance in isolation, E2E for user journeys across components and pages, unit tests for pure logic with no DOM.
+
+## Migrating From the Experimental Packages
+
+| `@playwright/experimental-ct-*` | Story gallery (1.62+) |
+|---|---|
+| `mount(<Button onClick={spy} />)` | Stateful story records the effect in a hidden input; test asserts `toHaveValue()` (Pattern 5) |
+| Plain data props from the test | `mount(id, props)` (Pattern 4) |
+| JSX children / slots in the test | One story export per composition (Pattern 6) |
+| `component.update(<Button count={2} />)` | `component.update({ count: 2 })` |
+| `beforeMount` / `afterMount` hooks | Body of the gallery's `window.mount`, or story decorators |
+| `hooksConfig` | Props interpreted by the story |
+| `router` fixture / MSW in Node.js | `page.route()` in the test, or MSW inside a story |
+| `playwright/index.html` + `index.ts` | The gallery's `index.html` and entry module |
+| `ctViteConfig`, `ctPort`, `ctTemplateDir`, `playwright-ct.config.ts` | Gone: your dev server, `webServer` and `baseURL` |
+| `import { test } from '@playwright/experimental-ct-react'` | `import { test } from '@playwright/test'` |
+
+Migrate incrementally while still pinned to 1.62: add the gallery and `components` project next to the old CT project, port spec by spec, then remove the experimental dependency, `playwright/index.*` and `playwright/.cache`, and upgrade. Full guide: [upstream migration section](https://playwright.dev/docs/test-components#migration-from-the-experimental-packages).
 
 ## Anti-Patterns
 
-| Don't Do This | Problem | Do This Instead |
+| Don't | Problem | Do instead |
 |---|---|---|
-| Check internal state (`component.state.count`) | Couples test to implementation; breaks on any refactor | Assert on visible output: `expect(component.getByText('Count: 5')).toBeVisible()` |
-| Mount an entire page in a component test | Requires too many providers, mock data, and context; slow; defeats isolation purpose | Use E2E tests for full pages; component test only the individual widgets |
-| Skip required providers/context | Component crashes with "Cannot read property of undefined" or "useContext must be inside Provider" | Wrap with required providers in `playwright/index.tsx` or per-test wrapper |
-| Test framework internals (React lifecycle, Vue watchers) | You are testing the framework, not your code; these are already tested by React/Vue | Test user-visible behavior: what renders, what happens on click |
-| Mount and immediately screenshot without waiting | Screenshot captures loading/transition state | `await expect(component.getByText('...')).toBeVisible()` before screenshot |
-| Duplicate E2E coverage in component tests | Same behavior tested twice adds maintenance cost with no new confidence | Component tests: isolated behavior. E2E tests: integrated flows. Overlap only at critical boundaries |
-| Test CSS class names or inline styles | Implementation detail; breaks on any styling refactor | Use `toHaveScreenshot()` for visual verification or `toBeVisible()`/`toBeHidden()` for behavior |
-| Create one giant test file per component | Hard to debug, slow feedback loop, poor test isolation | One test file per component, grouped by behavior with `test.describe()` |
-| Pass mock data that does not match real API shape | Tests pass but component breaks with real data | Define shared TypeScript types or use a factory function for consistent test data |
-| Use `page.goto()` in component tests | Component tests do not navigate — `mount()` renders directly | Use `mount(<Component />)` only; use `page.goto()` in E2E tests |
+| `mount(<Component />)` with JSX on 1.63+ | The experimental packages are gone; it doesn't type-check or run | A story plus `mount('path/Story')` |
+| Pass callbacks or class instances as props | Outside the documented serializable-props contract; the behavior lives in Node.js instead of the story | Pattern 5: the story owns callbacks and records state |
+| `component.click()` on the returned locator | It's the `#root` container, not your component | `component.getByRole('button').click()` |
+| `page.route()` after `mount()` | Mounting navigates; the first requests already went out | Route first, then mount |
+| Build providers into the gallery | Hides dependencies; stories can't opt out | Decorators in story files (Pattern 7) |
+| Mount an entire page | Too much context; slow; defeats isolation | E2E for pages; component tests for widgets |
+| Assert internal state or instance methods | Couples tests to implementation | Assert the DOM, or record effects in the story |
+| Screenshot the page | Captures anything else in the gallery | Screenshot the returned root locator |
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `Cannot find module '@playwright/experimental-ct-react'` | Package not installed | `npm install -D @playwright/experimental-ct-react` (or `-vue`, `-svelte`) |
-| Component renders blank | Missing CSS imports or provider wrappers | Add global styles to `playwright/index.ts` and wrap with required providers |
-| `Error: No tests found` | Test file does not match `testMatch` pattern in `playwright-ct.config.ts` | Ensure files use the configured suffix (e.g., `*.ct.tsx`) and `testDir` is correct |
-| `Cannot use JSX` in test file | TypeScript/Vite not configured for JSX | Ensure test files use `.ct.tsx`/`.ct.jsx` extension and `tsconfig.json` has `"jsx": "react-jsx"` |
-| `useContext returns undefined` | Component depends on a context provider that was not wrapped | Add the provider in `playwright/index.tsx` via `beforeMount` hook or wrap per-test |
-| `hooksConfig` values are undefined | The `playwright/index.ts` hooks file is not set up or not reading `hooksConfig` | Ensure `beforeMount` destructures `{ hooksConfig }` and the file is at `playwright/index.ts` |
-| Screenshots differ between CI and local | Different OS renders fonts differently | Run screenshot tests in Docker or use `maxDiffPixelRatio` tolerance; generate baselines in CI |
-| Component test is slow (>5s per test) | Mounting a large component tree with many providers or importing heavy modules | Reduce provider scope; mock heavy imports; use `page.route()` instead of real API calls |
-| `mount()` returns but component is not visible | Component renders off-screen or with `display: none` by default | Check CSS and props; use `await expect(component).toBeVisible()` to debug |
-| `Error: page.route is not available` | Using `page` fixture without requesting it | Destructure `{ mount, page }` in the test function signature |
+| `mount()` throws `Unknown story: ...` | Id doesn't match the file path + export, or the glob doesn't cover the file | Check the id grammar (Pattern 2) and the gallery's `import.meta.glob` |
+| `The gallery page does not define window.mount().` | `baseURL` points at a page that isn't the gallery, or the gallery script failed to load | Set `baseURL` and `webServer.url` to `.../playwright/gallery/index.html`; check the gallery's console errors |
+| ``mount() requires `baseURL` to point at the component gallery.`` | No `baseURL` in the project's `use` | Add `baseURL` for the components project (Pattern 1) |
+| `mount()` succeeds but `#root` is empty, then a locator times out | A render error the gallery swallowed (React 19 reports instead of throwing) | Capture it with `onUncaughtError` and rethrow, as the Pattern 1 gallery does |
+| Component renders unstyled | Global CSS not imported in the gallery entry | Import it in `playwright/gallery/main.*` like the app entry does |
+| `update()` resets component state | The gallery recreates the root or app on each call | Reuse the root (React) or mount a reactive host once (Vue) |
+| Vue story ignores props passed from the test | Props not declared at runtime | Add `{ props: [...] }` to `defineComponent` (Pattern 4) |
+| `page.route()` mock is ignored | The app's service worker serves a cached response, or the route was added after `mount()` | `serviceWorkers: 'block'`; route before mount |
+| `Cannot find module '@playwright/experimental-ct-react'` on 1.63+ | Package not published for 1.63+ | Migrate to stories, or pin the suite to Playwright 1.62 |
+| useContext / inject returns undefined | Story doesn't wrap the component in its provider | Use the shared decorator (Pattern 7) |
 
 ## Related
 
-- [core/fixtures-and-hooks.md](fixtures-and-hooks.md) — fixtures work inside component tests the same way
-- [core/visual-regression.md](visual-regression.md) — screenshot comparison patterns applicable to component tests
-- [core/network-mocking.md](network-mocking.md) — `page.route()` works inside component tests for mocking API calls
-- [core/test-architecture.md](test-architecture.md) — when to use component vs E2E vs API tests
-- [core/react.md](react.md) — React-specific component testing setup
-- [core/vue.md](vue.md) — Vue-specific component testing with slots and provide/inject
+- [core/visual-regression.md](visual-regression.md): screenshot baselines for component states
+- [core/network-mocking.md](network-mocking.md): `page.route()` patterns
+- [core/test-architecture.md](test-architecture.md): component vs E2E vs API
+- [core/react.md](react.md), [core/vue.md](vue.md): framework recipes
+- [Playwright component testing docs](https://playwright.dev/docs/test-components)

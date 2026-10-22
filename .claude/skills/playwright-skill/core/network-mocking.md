@@ -579,10 +579,9 @@ import { test, expect } from '@playwright/test';
 
 // Record a HAR file — run once to capture traffic, then replay
 test('record HAR for later replay', async ({ page }) => {
-  // This records all matching network traffic to the HAR file.
-  // If the file already exists and responses match, it serves from HAR.
-  // If a request has no match in the HAR, it falls through to the network
-  // and the new response is appended to the HAR file.
+  // With update: true, matching requests go to the real network (nothing is
+  // served from the HAR) and the file is rewritten with the actual traffic
+  // when the context closes.
   await page.routeFromHAR('tests/data/users-api.har', {
     url: '**/api/**',
     update: true, // set to true to record, false (or omit) to replay
@@ -607,7 +606,7 @@ test('replay from HAR', async ({ page }) => {
 test('HAR replay with fallback behavior', async ({ page }) => {
   await page.routeFromHAR('tests/data/users-api.har', {
     url: '**/api/**',
-    notFound: 'abort', // 'abort' fails unmatched requests; 'fallback' lets them through
+    notFound: 'abort', // default; 'abort' fails unmatched requests, 'fallback' sends them to the network
   });
 
   await page.goto('/users');
@@ -664,7 +663,7 @@ test('HAR replay with fallback behavior', async ({ page }) => {
 **Use when**: You want to capture network traffic for a *specific slice* of a test — one user flow, one step — instead of the whole session, and you want to start/stop recording from inside the test body.
 **Avoid when**: You only need replay for mocking (use `routeFromHAR`), or you want HAR for the entire context (set `recordHar` at context creation). This API is for scoped, programmatic capture.
 
-Playwright 1.60 promotes HAR recording to a first-class tracing API: `context.tracing.startHar()` / `context.tracing.stopHar()`. It accepts the same `content`, `mode`, and `urlFilter` options as the context-level `recordHar`, and returns a disposable so `await using` cleans up automatically even if the test throws.
+Playwright 1.60 promotes HAR recording to a first-class tracing API: `context.tracing.startHar()` / `context.tracing.stopHar()`. It takes the HAR path as its first argument plus the same `content`, `mode`, and `urlFilter` options as the context-level `recordHar`, and returns a disposable so `await using` cleans up automatically even if the test throws.
 
 **TypeScript**
 ```typescript
@@ -674,8 +673,7 @@ test('capture HAR for the checkout flow only', async ({ context, page }) => {
   await page.goto('/cart');
 
   // Record only the network traffic during checkout
-  await context.tracing.startHar({
-    path: 'test-results/checkout.har',
+  await context.tracing.startHar('test-results/checkout.har', {
     urlFilter: '**/api/**',
     content: 'embed', // 'omit' | 'embed' | 'attach'
   });
@@ -691,8 +689,7 @@ test('scoped capture with automatic cleanup', async ({ context, page }) => {
   await page.goto('/search');
 
   // `await using` stops and flushes the HAR when the block exits — even on failure
-  await using _har = await context.tracing.startHar({
-    path: 'test-results/search.har',
+  await using _har = await context.tracing.startHar('test-results/search.har', {
     urlFilter: '**/api/search**',
   });
 
@@ -709,8 +706,7 @@ const { test, expect } = require('@playwright/test');
 test('capture HAR for the checkout flow only', async ({ context, page }) => {
   await page.goto('/cart');
 
-  await context.tracing.startHar({
-    path: 'test-results/checkout.har',
+  await context.tracing.startHar('test-results/checkout.har', {
     urlFilter: '**/api/**',
     content: 'embed',
   });

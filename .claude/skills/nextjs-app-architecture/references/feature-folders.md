@@ -61,7 +61,7 @@ Vendor next-beats also keeps `event-queries.ts` / `event-actions.ts` here. **Cor
 - `<folder>-queries.ts` — vendor naming; Core does not add this file.
 - `<folder>-actions.ts` — vendor naming even when a mutation is about a sub-concept; Core does not add this file.
 - Don't create empty query or action files for a cross-domain UI feature that doesn't own data access.
-- Other `<folder>-*.ts` files are fine when the folder needs them (`playlist-constants.ts`, `<folder>-schema.ts`), as long as they keep the folder-name prefix. Don't put reusable domain types in a root `*-types.ts` file; use `features/<domain>/types/` once a type is imported by multiple files.
+- Other `<folder>-*.ts` files are fine when the folder needs them (`playlist-constants.ts`, `<folder>-schema.ts`, `user-session.ts`, `post-cache.ts`), as long as they keep the folder-name prefix — `session.ts` on its own does not. Don't put reusable domain types in a root `*-types.ts` file; use `features/<domain>/types/` once a type is imported by multiple files.
 - Component files use any descriptive name. The component (not the feature) is the unit here.
 
 ## Local vs shared support folders

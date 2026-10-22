@@ -9,7 +9,7 @@
 # Install Playwright in a Vue project
 npm init playwright@latest
 
-# Install component testing (experimental)
+# Component testing (experimental package, last published for Playwright 1.62; 1.62+ uses stories, see core/component-testing.md)
 npm install -D @playwright/experimental-ct-vue
 
 # Run E2E tests
@@ -117,6 +117,8 @@ module.exports = defineConfig({
 ```
 
 ### Component Testing Config
+
+This config is for the experimental package, which was last published for Playwright 1.62; on 1.62+ use the stories model in [component-testing.md](component-testing.md).
 
 **TypeScript**
 ```typescript
@@ -249,6 +251,8 @@ module.exports = defineConfig({
 ## Patterns
 
 ### Component Testing with `@playwright/experimental-ct-vue`
+
+> **Deprecated package**: `@playwright/experimental-ct-vue` is not published for Playwright 1.63+. Playwright 1.62 moved component testing to stories mounted from `@playwright/test`. Use this pattern only on a suite pinned to 1.62; see [component-testing.md](component-testing.md#how-component-testing-works-162) for the current model.
 
 **Use when**: Testing complex interactive Vue components in isolation -- data tables, form components, custom select dropdowns, rich editors. The component needs a real browser but not a full application.
 **Avoid when**: The component depends heavily on Pinia stores, Vue Router, or backend data. Use E2E tests instead, or provide the dependencies in your component test setup.
@@ -960,7 +964,7 @@ test.describe('composition API patterns', () => {
 
 ### Testing Nuxt.js Specific Patterns
 
-**Use when**: Testing Nuxt 3 applications with server-side rendering, auto-imports, server routes (`/server/api/`), and middleware.
+**Use when**: Testing Nuxt 3+ applications with server-side rendering, auto-imports, server routes (`/server/api/`), and middleware.
 **Avoid when**: Testing a plain Vue SPA without Nuxt.
 
 **TypeScript**
@@ -1081,19 +1085,19 @@ await page.getByRole('combobox', { name: 'Role' }).selectOption('admin');
 
 ### Vue vs Nuxt: Configuration Differences
 
-| Aspect | Vue 3 (Vite) | Nuxt 3 |
+| Aspect | Vue 3 (Vite) | Nuxt 3+ |
 |---|---|---|
 | Default port | `5173` | `3000` |
 | Dev command | `npm run dev` (vite) | `npx nuxi dev` |
 | Build + preview | `npm run build && npx vite preview` | `npx nuxi build && npx nuxi preview` |
-| SSR | Optional (vue-server-renderer) | Built-in |
+| SSR | Optional (`vue/server-renderer`) | Built-in |
 | API routes | External backend | `/server/api/` built-in |
 | Environment variables | `VITE_*` prefix | `NUXT_PUBLIC_*` prefix for client, `NUXT_*` for server |
-| File-based routing | No (uses vue-router config) | Yes (automatic from `/pages/`) |
+| File-based routing | No (uses vue-router config) | Yes (automatic from `app/pages/` in Nuxt 4+, `pages/` in Nuxt 3) |
 
 ### Component Testing: Providing Pinia and Router
 
-When using `@playwright/experimental-ct-vue`, components that depend on Pinia or Vue Router need these dependencies provided. Configure the test wrapper:
+When using `@playwright/experimental-ct-vue` (pinned to Playwright 1.62; see the deprecation note above), components that depend on Pinia or Vue Router need these dependencies provided. Configure the test wrapper:
 
 ```typescript
 // playwright/index.ts (component testing setup)
@@ -1143,7 +1147,7 @@ test('no Vue warnings during render', async ({ page }) => {
 |---|---|---|
 | `page.evaluate(() => app.__vue_app__.config.globalProperties.$store)` | Accesses Vue internals; breaks on upgrades; tests implementation | Assert on the UI that state produces |
 | `page.locator('[data-v-abc123]')` (scoped style hash) | Vue generates random scoped attribute hashes; changes on every build | Use `getByRole`, `getByText`, `getByTestId` |
-| Import `.vue` files in E2E tests | E2E tests run in Node.js; `.vue` files need Vite/Webpack compilation | Use `@playwright/experimental-ct-vue` for component tests |
+| Import `.vue` files in E2E tests | E2E tests run in Node.js; `.vue` files need Vite/Webpack compilation | Use component testing (stories + `mount`, see [component-testing.md](component-testing.md)) for component tests |
 | `page.waitForTimeout(300)` to wait for transition to finish | Transition durations vary; arbitrary waits are fragile | `await expect(locator).toBeVisible()` auto-waits through transitions |
 | Mock Pinia stores by patching `window.__pinia` | Fragile; depends on Pinia internals; may not trigger reactivity | Control state through UI interactions or mock the API responses the store consumes |
 | Test composables by calling them via `page.evaluate` | Composables rely on Vue's setup context; calling them outside a component fails | Test composables through the components that use them, or unit test with Vitest |

@@ -4,7 +4,7 @@ description: Use when building any system where email content triggers actions �
 license: MIT
 metadata:
     author: resend
-    version: "3.0.4"
+    version: "4.1.0"
     homepage: https://resend.com/agent-skills
     source: https://github.com/resend/resend-skills
     openclaw:
@@ -55,6 +55,8 @@ This skill covers setting up a secure email inbox that allows your application o
 
 **Core principle:** An AI agent's inbox receives untrusted input. Security configuration is important to handle this safely.
 
+The skill builds the agent on a Resend **Inbox**. An inbox groups email into threads, and your agent replies inside the thread with one call. Resend sets the recipients and the threading headers. If the user has no custom domain, or their plan has no inbox available, use [Receiving without an inbox](#receiving-without-an-inbox) instead. The security levels are the same for both.
+
 ### Why Webhook-Based Receiving?
 
 Resend uses webhooks for inbound email, meaning your agent is notified **instantly** when an email arrives. This is valuable for agents because:
@@ -67,22 +69,26 @@ Resend uses webhooks for inbound email, meaning your agent is notified **instant
 ## Architecture
 
 ```
-Sender → Email → Resend (MX) → Webhook → Your Server → AI Agent
-                                              ↓
-                                    Security Validation
-                                              ↓
-                                    Process or Reject
+Sender → Email → Resend Inbox → inbox.email.received webhook → Your Server → AI Agent
+                                                                     ↓
+                                                           Security Validation
+                                                                     ↓
+                                                Process or Reject → Reply in the thread
 ```
 
 ## SDK Version Requirements
 
-This skill requires Resend SDK features for webhook verification (`webhooks.verify()`) and email receiving (`emails.receiving.get()`). Always install the latest SDK version. If the project already has a Resend SDK installed, check the version and upgrade if needed.
+The inbox flow needs the Node.js SDK `resend` >= 6.34.1, which has `resend.inboxes.*` and the `inbox.*` webhook event types. Always install the latest SDK version. If the project already has a Resend SDK installed, check the version and upgrade if needed.
+
+The Python SDK `resend` >= 2.50.0 also has the inbox methods. For the other languages, call the [Inboxes API](https://resend.com/docs/api-reference/inboxes/create-inbox) over HTTP until their SDK has inbox methods, or use [Receiving without an inbox](#receiving-without-an-inbox).
+
+The table below lists the minimums for the Receiving flow: webhook verification (`webhooks.verify()`) and email receiving (`emails.receiving.get()`). The `resend` skill lists higher minimums because it also covers newer features such as domain claims (`domains.claims.*`). If both skills are loaded, use the higher version.
 
 | Language | Package | Min Version |
 |----------|---------|-------------|
 | Node.js | `resend` | >= 6.9.2 |
 | Python | `resend` | >= 2.21.0 |
-| Go | `resend-go/v3` | >= 3.1.0 |
+| Go | `resend-go/v4` | >= 4.0.0 |
 | Ruby | `resend` | >= 1.0.0 |
 | PHP | `resend/resend-php` | >= 1.1.0 |
 | Rust | `resend-rs` | >= 0.20.0 |
@@ -93,13 +99,14 @@ Install the `resend` npm package: `npm install resend` (or the equivalent for yo
 
 ## Quick Start
 
-1. **Ask the user for their email address** — You need a real email address to send test emails to. Ask the user and wait for their response before proceeding.
-2. **Choose your security level** — Decide how to validate incoming emails *before* any are processed
-3. **Set up receiving domain** — Configure MX records for the user's custom domain (see Domain Setup section)
-4. **Create webhook endpoint** — Handle `email.received` events with security built in from the start. **The webhook endpoint MUST be a POST route.**
-5. **Set up tunneling** (local dev) — Use Tailscale Funnel (recommended) or ngrok. See [references/webhook-setup.md](references/webhook-setup.md)
-6. **Create webhook via API** — Use the Resend Webhook API to register your endpoint programmatically. See [references/webhook-setup.md](references/webhook-setup.md)
-7. **Connect to agent** — Pass validated emails to your AI agent for processing
+1. **Ask the user for their email address.** You need a real email address to send test emails to. Ask the user and wait for their response before proceeding.
+2. **Choose your security level.** Decide how to validate incoming emails *before* any are processed
+3. **Set up the domain.** Verify the user's custom domain for sending, and for receiving unless the inbox uses forwarding (see Domain Setup section)
+4. **Create the inbox.** Create the agent's address with `resend.inboxes.create()` (see Create the Inbox section)
+5. **Create webhook endpoint.** Handle `inbox.email.received` events with security built in from the start. **The webhook endpoint MUST be a POST route.**
+6. **Set up tunneling (local dev).** Use Tailscale Funnel (recommended) or ngrok. See [references/webhook-setup.md](references/webhook-setup.md)
+7. **Create webhook via API.** Use the Resend Webhook API to register your endpoint programmatically. See [references/webhook-setup.md](references/webhook-setup.md)
+8. **Connect to agent.** Pass validated emails to your AI agent, and reply in the thread
 
 ## Before You Start: Account & API Key Setup
 
@@ -107,7 +114,7 @@ Install the `resend` npm package: `npm install resend` (or the equivalent for yo
 
 Ask your human:
 - **New account just for the agent?** → Simpler setup, full account access is fine
-- **Existing account with other projects?** → Use domain-scoped API keys for sandboxing
+- **Existing account with other projects?** → The agent needs a full access key, which reaches every project. Prefer a new account for the agent (see API Key Permissions)
 
 ### Creating API Keys Securely
 
@@ -119,23 +126,23 @@ Ask your human:
 2. **Password manager / secrets manager:** Human stores key in 1Password, Vault, etc. <!-- pragma: allowlist secret -->
 3. **If key must be shared in chat:** Human should rotate the key immediately after setup
 
-### Domain-Scoped API Keys (Recommended for Existing Accounts)
+### API Key Permissions
 
-If your human has an existing Resend account with other projects, create a **domain-scoped API key**:
+The agent's server needs a **full access** API key. A "Sending access" key can only reply, forward, create drafts and send drafts. Reading inbox emails or registering webhooks with it returns 401 `restricted_api_key`. A sending access key limited to one domain returns 403 on an inbox of another domain.
 
-1. **Verify the agent's domain first** (Dashboard → Domains → Add Domain)
-2. **Create a scoped API key:** Dashboard → API Keys → Create API Key → "Sending access" → select only the agent's domain
-3. **Result:** Even if the key leaks, it can only send from one domain
+If your human has an existing Resend account with other projects, keep the risk contained:
+
+1. **Use a dedicated account for the agent** when possible, so a leaked key cannot reach other projects
+2. **Keep the key on the server only.** Never pass it to the AI model or put it in a prompt
+3. **Rotate the key** if it was ever pasted in chat or committed
 
 ## Domain Setup
 
-### Option 1: Resend-Managed Domain (Recommended for Getting Started)
+An inbox address lives on a custom domain the user has added to Resend. The domain must be verified for sending (DKIM and SPF). To receive email on it, either enable receiving on the domain, or create the inbox with `forwarding: true`.
 
-Use your auto-generated address: `<anything>@<your-id>.resend.app`
+**Use a subdomain** (e.g., `agent.example.com`) to avoid disrupting existing email services.
 
-No DNS configuration needed. Find your address in Dashboard → Emails → Receiving → "Receiving address".
-
-### Option 2: Custom Domain
+### Option 1: Receiving on the Domain (Recommended)
 
 The user must enable receiving in the Resend dashboard: Domains page → toggle on "Enable Receiving".
 
@@ -148,11 +155,34 @@ Then add an MX record:
 | **Value** | Provided in Resend dashboard |
 | **Priority** | 10 (must be lowest number to take precedence) |
 
-**Use a subdomain** (e.g., `agent.example.com`) to avoid disrupting existing email services.
-
 **Tip:** Verify DNS propagation at [dns.email](https://dns.email).
 
 > DNS Propagation: MX record changes can take up to 48 hours to propagate globally, though often complete within a few hours.
+
+### Option 2: Forwarding
+
+Create the inbox with `forwarding: true` when the address already receives mail elsewhere (for example, Google Workspace) and the user cannot change its MX record. Resend gives the inbox a receiving address. The user sets up forwarding from their mailbox to it. Read the address from `receiving_address` with `resend.inboxes.get()`.
+
+## Create the Inbox
+
+Create one inbox for the agent's address:
+
+```typescript
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const { data, error } = await resend.inboxes.create({
+  emailAddress: 'agent@agent.example.com',
+  name: 'AI Agent',
+  fromName: 'Acme Agent',
+});
+
+if (error) throw new Error(`Failed to create inbox: ${error.message}`);
+console.log('Inbox created:', data.id);
+```
+
+`fromName` is the name recipients see on the agent's replies. The part before the `@` can contain only letters, numbers, `.`, `_`, `%` and `-`, so `agent+test@` returns a 422. A 403 error means the plan has no inbox left; ask the user to upgrade or use [Receiving without an inbox](#receiving-without-an-inbox).
 
 ## Security Levels
 
@@ -175,30 +205,45 @@ For detailed implementation code for each level, see [references/security-levels
 Only process emails from explicitly approved addresses. Reject everything else.
 
 ```typescript
+import type { GetInboxThreadEmailResponseSuccess as InboxEmail } from 'resend';
+
 const ALLOWED_SENDERS = [
   'you@youremail.com',
   'notifications@github.com',
 ];
 
-async function processEmailForAgent(
-  eventData: EmailReceivedEvent,
-  emailContent: EmailContent
-) {
-  const sender = eventData.from.toLowerCase();
+// `from` is either `address` or `Name <address>`. Compare the address only:
+// a substring check would accept a display name such as "you@youremail.com".
+function senderAddress(from: string): string {
+  const match = from.match(/<([^<>]+)>\s*$/);
+  return (match ? match[1] : from).trim().toLowerCase();
+}
 
-  if (!ALLOWED_SENDERS.some(allowed => sender === allowed.toLowerCase())) {
-    console.log(`Rejected email from unauthorized sender: ${sender}`);
-    await notifyOwnerOfRejectedEmail(eventData);
+function isAllowedSender(from: string): boolean {
+  const sender = senderAddress(from);
+  return ALLOWED_SENDERS.some(allowed => sender === allowed.toLowerCase());
+}
+
+// Identifies the email, so the agent can reply in its thread
+type ThreadRef = { inboxId: string; threadId: string; emailId: string };
+
+async function processEmailForAgent(email: InboxEmail, thread: ThreadRef) {
+  if (!isAllowedSender(email.from)) {
+    console.log(`Rejected email from unauthorized sender: ${senderAddress(email.from)}`);
+    await notifyOwnerOfRejectedEmail(email);
     return;
   }
 
   await agent.processEmail({
-    from: eventData.from,
-    subject: eventData.subject,
-    body: emailContent.text || emailContent.html,
+    from: email.from,
+    subject: email.subject,
+    body: email.text || email.html,
+    thread,
   });
 }
 ```
+
+`InboxEmail` is the email returned by `resend.inboxes.threads.emails.get()`. The webhook payload carries the same fields without `html` and `text`. `agent` and `notifyOwnerOfRejectedEmail` stand for your own code.
 
 ### Security Best Practices
 
@@ -240,34 +285,47 @@ import { NextRequest, NextResponse } from 'next/server';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
-  try {
-    const payload = await req.text();
+  const payload = await req.text();
 
-    const event = resend.webhooks.verify({
+  let event;
+  try {
+    event = resend.webhooks.verify({
       payload,
       headers: {
-        'svix-id': req.headers.get('svix-id'),
-        'svix-timestamp': req.headers.get('svix-timestamp'),
-        'svix-signature': req.headers.get('svix-signature'),
+        id: req.headers.get('svix-id') ?? '',
+        timestamp: req.headers.get('svix-timestamp') ?? '',
+        signature: req.headers.get('svix-signature') ?? '',
       },
-      secret: process.env.RESEND_WEBHOOK_SECRET,
+      webhookSecret: process.env.RESEND_WEBHOOK_SECRET!,
+    });
+  } catch {
+    return new NextResponse('Invalid signature', { status: 400 });
+  }
+
+  if (event.type === 'inbox.email.received') {
+    const { inbox_id, thread_id, email_id } = event.data;
+
+    // The webhook payload has no body. Fetch the email to read it.
+    const { data: email, error } = await resend.inboxes.threads.emails.get({
+      inboxId: inbox_id,
+      threadId: thread_id,
+      emailId: email_id,
     });
 
-    if (event.type === 'email.received') {
-      // Webhook payload only includes metadata, not email body
-      const { data: email } = await resend.emails.receiving.get(
-        event.data.email_id
-      );
-
-      // Apply the security level chosen above
-      await processEmailForAgent(event.data, email);
+    if (error) {
+      // A non-2xx response makes Resend retry the webhook later
+      return new NextResponse('Error', { status: 500 });
     }
 
-    return new NextResponse('OK', { status: 200 });
-  } catch (error) {
-    console.error('Webhook error:', error);
-    return new NextResponse('Error', { status: 400 });
+    // Apply the security level chosen above
+    await processEmailForAgent(email, {
+      inboxId: inbox_id,
+      threadId: thread_id,
+      emailId: email_id,
+    });
   }
+
+  return new NextResponse('OK', { status: 200 });
 }
 ```
 
@@ -280,76 +338,124 @@ import { Resend } from 'resend';
 const app = express();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const ALLOWED_SENDERS = (process.env.ALLOWED_SENDERS || '').split(',').filter(Boolean);
-const isAllowedSender = (sender) =>
-  ALLOWED_SENDERS.some(allowed => sender === allowed.toLowerCase());
+const ALLOWED_SENDERS = (process.env.ALLOWED_SENDERS || '')
+  .split(',')
+  .map((sender) => sender.trim().toLowerCase())
+  .filter(Boolean);
+
+const senderAddress = (from) => {
+  const match = from.match(/<([^<>]+)>\s*$/);
+  return (match ? match[1] : from).trim().toLowerCase();
+};
+
+const isAllowedSender = (from) => ALLOWED_SENDERS.includes(senderAddress(from));
 
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  let event;
   try {
-    const payload = req.body.toString();
-
-    const event = resend.webhooks.verify({
-      payload,
+    event = resend.webhooks.verify({
+      payload: req.body.toString(),
       headers: {
-        'svix-id': req.headers['svix-id'],
-        'svix-timestamp': req.headers['svix-timestamp'],
-        'svix-signature': req.headers['svix-signature'],
+        id: req.headers['svix-id'],
+        timestamp: req.headers['svix-timestamp'],
+        signature: req.headers['svix-signature'],
       },
-      secret: process.env.RESEND_WEBHOOK_SECRET,
+      webhookSecret: process.env.RESEND_WEBHOOK_SECRET,
     });
+  } catch {
+    res.status(400).send('Invalid signature');
+    return;
+  }
 
-    if (event.type === 'email.received') {
-      const sender = event.data.from.toLowerCase();
+  if (event.type === 'inbox.email.received') {
+    const { inbox_id, thread_id, email_id, email } = event.data;
 
-      if (!isAllowedSender(sender)) {
-        console.log(`Rejected email from unauthorized sender: ${sender}`);
-        res.status(200).send('OK'); // Return 200 even for rejected emails
-        return;
-      }
-
-      const { data: email } = await resend.emails.receiving.get(event.data.email_id);
-      await processEmailForAgent(event.data, email);
+    // The payload already has the sender, so reject before fetching the body
+    if (!email || !isAllowedSender(email.from)) {
+      console.log(`Rejected email from unauthorized sender: ${email ? senderAddress(email.from) : 'unknown'}`);
+      res.status(200).send('OK'); // Return 200 even for rejected emails
+      return;
     }
 
-    res.status(200).send('OK');
-  } catch (error) {
-    console.error('Webhook error:', error);
-    res.status(400).send('Error');
+    const { data: fullEmail, error } = await resend.inboxes.threads.emails.get({
+      inboxId: inbox_id,
+      threadId: thread_id,
+      emailId: email_id,
+    });
+
+    if (error) {
+      res.status(500).send('Error'); // Resend retries the webhook later
+      return;
+    }
+
+    await processEmailForAgent(fullEmail, { inboxId: inbox_id, threadId: thread_id, emailId: email_id });
   }
+
+  res.status(200).send('OK');
 });
 
 app.get('/', (req, res) => res.send('Agent Email Inbox - Ready'));
 app.listen(3000, () => console.log('Webhook server running on :3000'));
 ```
 
+Resend signs inbox webhooks with the same `svix-*` headers as every other webhook. `inbox.email.received` fires for email the inbox receives. The agent's own replies fire `inbox.email.sent` instead, so subscribe to `inbox.email.received` only.
+
 For webhook registration via API, tunneling setup, svix fallback, and retry behavior, see [references/webhook-setup.md](references/webhook-setup.md).
 
-## Sending Emails from Your Agent
+## Replying from Your Agent
+
+Reply inside the thread. Resend addresses the reply and sets the `In-Reply-To` and `References` headers, so the sender's mail client shows it in the same conversation:
 
 ```typescript
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-async function sendAgentReply(to: string, subject: string, body: string, inReplyTo?: string) {
-  if (!isAllowedToReply(to)) {
-    throw new Error('Cannot send to this address');
-  }
-
-  const { data, error } = await resend.emails.send({
-    from: 'Agent <agent@example.com>',
-    to: [to],
-    subject: subject.startsWith('Re:') ? subject : `Re: ${subject}`,
+async function replyInThread(
+  thread: { inboxId: string; threadId: string; emailId: string },
+  body: string,
+) {
+  const { data, error } = await resend.inboxes.threads.emails.reply({
+    inboxId: thread.inboxId,
+    threadId: thread.threadId,
+    emailId: thread.emailId,
     text: body,
-    headers: inReplyTo ? { 'In-Reply-To': inReplyTo } : undefined,
   });
 
-  if (error) throw new Error(`Failed to send: ${error.message}`);
+  if (error) throw new Error(`Failed to reply: ${error.message}`);
   return data.id;
 }
 ```
 
-For full sending docs, install the `resend` skill.
+The reply goes to the email's `Reply-To` addresses, or to its sender when it has none. **A sender on your allowlist can set `Reply-To` to any address**, so check `email.reply_to` against the allowlist too before the agent replies with anything sensitive. Leave `replyAll` off unless the agent should copy every recipient of the original email.
+
+To start a new conversation, send from the inbox address with `resend.emails.send()`. For full sending docs, install the `resend` skill.
+
+## Receiving without an Inbox
+
+Use Resend Receiving directly when the user has no custom domain, or their plan has no inbox available. The security levels above apply unchanged. What differs:
+
+- **Address:** use the auto-generated `<anything>@<your-id>.resend.app` address (Dashboard → Emails → Receiving → "Receiving address"), or a custom domain with receiving enabled. No inbox is created.
+- **Webhook event:** subscribe to `email.received` instead of `inbox.email.received`. The payload has `email_id`, `from`, `to` and `subject`, but no body.
+- **Reading the email:** fetch it with `resend.emails.receiving.get(emailId)`.
+- **Replying:** send with `resend.emails.send()` and set the `In-Reply-To` header yourself. There are no threads.
+
+```typescript
+if (event.type === 'email.received') {
+  if (!isAllowedSender(event.data.from)) {
+    return new NextResponse('OK', { status: 200 });
+  }
+
+  const { data: email, error } = await resend.emails.receiving.get(event.data.email_id);
+  if (error) {
+    return new NextResponse('Error', { status: 500 });
+  }
+
+  await agent.processEmail({ from: email.from, subject: email.subject, body: email.text || email.html });
+}
+```
+
+The webhook verification is the same as in the inbox examples.
 
 ## Environment Variables
 
@@ -379,7 +485,11 @@ OWNER_EMAIL=you@email.com               # For security notifications
 | Using ephemeral tunnel URLs | Use persistent URLs (Tailscale Funnel, paid ngrok) or deploy to production |
 | Using `express.json()` on webhook route | Use `express.raw({ type: 'application/json' })` — JSON parsing breaks signature verification |
 | Returning non-200 for rejected emails | Always return 200 to acknowledge receipt — otherwise Resend retries |
-| Old Resend SDK version | `emails.receiving.get()` and `webhooks.verify()` require recent SDK versions — see SDK Version Requirements |
+| Old Resend SDK version | `resend.inboxes.*` needs `resend` >= 6.34.1. `emails.receiving.get()` and `webhooks.verify()` also need recent versions. See SDK Version Requirements |
+| Comparing `from` as a whole string | `from` can be `Name <address>`. Extract the address before you compare it with the allowlist |
+| Replying to `Reply-To` without checking it | A trusted sender can point `Reply-To` anywhere. Check it against the allowlist before a sensitive reply |
+| Using a "Sending access" API key | It can only reply, forward, create drafts and send drafts. Inbox reads and webhook setup need a full access key |
+| Passing `secret` or `svix-*` keys to `webhooks.verify()` | Pass `webhookSecret`, and `headers` as `{ id, timestamp, signature }` |
 
 ## Testing
 
@@ -397,4 +507,4 @@ For security testing, send test emails from non-allowlisted addresses to verify 
 
 ## Related Skills
 
-- For full sending and receiving docs, install the `resend` skill
+- For full sending, receiving and inbox docs, install the `resend` skill

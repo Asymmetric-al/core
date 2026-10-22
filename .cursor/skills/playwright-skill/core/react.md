@@ -9,7 +9,7 @@
 # Install Playwright in a React project
 npm init playwright@latest
 
-# Install component testing (experimental)
+# Component testing (experimental package, last published for Playwright 1.62; 1.62+ uses stories, see core/component-testing.md)
 npm install -D @playwright/experimental-ct-react
 
 # Run E2E tests
@@ -62,8 +62,8 @@ export default defineConfig({
 
   webServer: {
     command: process.env.CI
-      ? 'npm run build && npx serve -s build -l 5173' // CRA
-      // ? 'npm run build && npx vite preview --port 5173' // Vite
+      ? 'npm run build && npx vite preview --port 5173' // Vite
+      // ? 'npm run build && npx serve -s build -l 5173' // legacy CRA
       : 'npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
@@ -119,7 +119,7 @@ module.exports = defineConfig({
 
 ### Component Testing Config
 
-Component testing mounts individual React components in a real browser without a full dev server. This is experimental but useful for testing complex components in isolation.
+Component testing mounts individual React components in a real browser without a full dev server. This config is for the experimental package, which was last published for Playwright 1.62; on 1.62+ use the stories model in [component-testing.md](component-testing.md).
 
 **TypeScript**
 ```typescript
@@ -170,6 +170,8 @@ module.exports = defineConfig({
 ## Patterns
 
 ### Component Testing with `@playwright/experimental-ct-react`
+
+> **Deprecated package**: `@playwright/experimental-ct-react` is not published for Playwright 1.63+. Playwright 1.62 moved component testing to stories mounted from `@playwright/test`. Use this pattern only on a suite pinned to 1.62; see [component-testing.md](component-testing.md#how-component-testing-works-162) for the current model.
 
 **Use when**: Testing complex interactive components in isolation -- data tables, form wizards, rich text editors, dropdowns with keyboard navigation. The component needs a real browser (not jsdom) but not a full application.
 **Avoid when**: The component behavior depends heavily on backend data or routing context. Use E2E tests instead.
@@ -990,6 +992,8 @@ test.describe('error boundaries', () => {
 
 ### CRA vs Vite: Key Differences
 
+Create React App was deprecated by the React team in February 2025; new apps use Vite or a framework. The table helps when testing a legacy CRA app.
+
 | Aspect | Create React App (CRA) | Vite |
 |---|---|---|
 | Default port | `3000` | `5173` |
@@ -1062,12 +1066,12 @@ test('no state-update-on-unmounted warnings during navigation', async ({ page })
 | Don't Do This | Problem | Do This Instead |
 |---|---|---|
 | `page.evaluate(() => store.getState())` to assert Redux state | Couples tests to implementation; state shape changes break tests | Assert on the UI that the state produces: `expect(cartBadge).toHaveText('3')` |
-| Import React components in E2E test files | E2E tests run in Node.js, not the browser; component imports fail | Use `@playwright/experimental-ct-react` for component testing, E2E for full-app tests |
+| Import React components in E2E test files | E2E tests run in Node.js, not the browser; component imports fail | Use component testing (stories + `mount`, see [component-testing.md](component-testing.md)) for component testing, E2E for full-app tests |
 | `page.waitForTimeout(500)` after React state changes | React batches updates; timing varies across machines | Use `expect(locator).toHaveText('new value')` which auto-retries |
 | Test internal component state with `page.evaluate` | Fragile; breaks on refactors; tests implementation, not behavior | Interact through the UI and assert on visible output |
 | Mock `useState` or `useEffect` in Playwright tests | Playwright runs in the browser context, not the React component tree | Let hooks run naturally; control inputs (API responses, props via component testing) |
 | Use `page.locator('.MuiButton-root')` for Material UI | Class names change between MUI versions and are generated dynamically | `page.getByRole('button', { name: 'Submit' })` works regardless of the component library |
-| Test every component with `@playwright/experimental-ct-react` | Overhead of browser mounting for simple components; duplicates unit tests | Use component testing for complex interactive widgets; unit tests for pure logic; E2E for flows |
+| Test every component with component testing | Overhead of browser mounting for simple components; duplicates unit tests | Use component testing for complex interactive widgets; unit tests for pure logic; E2E for flows |
 | Skip testing keyboard navigation on custom components | Accessibility regressions are common in custom dropdowns, modals, tabs | Test `Tab`, `Enter`, `Escape`, `ArrowDown` interactions in component tests |
 | Assert on React DevTools or `__REACT_FIBER__` internals | Internal React properties are not stable across versions | Only interact with and assert on the rendered DOM |
 

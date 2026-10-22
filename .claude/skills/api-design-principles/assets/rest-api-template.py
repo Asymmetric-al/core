@@ -85,6 +85,7 @@ class ErrorResponse(BaseModel):
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
+    # Core adaptation: HTTPException.detail can be neither a string nor a dict.
     detail = exc.detail
     detail_dict = detail if isinstance(detail, dict) else None
 

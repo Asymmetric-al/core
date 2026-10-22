@@ -13,7 +13,7 @@ metadata:
   author: resend
   # Skill version is independent from the CLI/package.json version —
   # bump it on skill content changes, not CLI releases.
-  version: "2.13.0"
+  version: "2.23.0"
   homepage: https://resend.com/docs/cli-agents
   source: https://github.com/resend/resend-cli
   openclaw:
@@ -59,13 +59,14 @@ references:
   - references/logs.md
   - references/careers.md
   - references/suppressions.md
+  - references/inboxes.md
   - references/webhooks.md
   - references/auth.md
   - references/workflows.md
   - references/error-codes.md
 ---
 
-# Resend CLI
+<!-- CORE-OVERLAY-START -->
 
 ## This repository (Asymmetric-al/core)
 
@@ -96,6 +97,10 @@ terminal CLI, shell scripts, and CI automation.
 - [ ] Avoided printing API keys, tokens, or full secret values.
 - [ ] Used non-interactive flags suitable for agents/CI.
 - [ ] Recorded sanitized command evidence or a clear blocker.
+
+<!-- CORE-OVERLAY-END -->
+
+# Resend CLI
 
 ## Installation
 
@@ -163,30 +168,32 @@ Auth resolves: `RESEND_API_KEY` env > config file (`resend login --key`). Use `-
 
 ## Available Commands
 
-| Command Group                                        | What it does                                                                                      |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `emails`                                             | send, get, list, batch, cancel, update, metrics                                                   |
-| `emails receiving`                                   | list, get, attachments, forward, listen                                                           |
-| `domains`                                            | create, verify, get, claim, update, delete, list                                                  |
-| `logs`                                               | list, get, open                                                                                   |
-| `careers`                                            | list, apply — browse open positions at Resend and apply                                           |
-| `suppressions` _(beta)_                              | list, add, get, delete, batch — requires account enrollment                                       |
-| `api-keys`                                           | create, list, update, delete                                                                      |
-| `automations`                                        | create, get, list, update, delete, duplicate, stop, open, runs                                    |
-| `events`                                             | create, get, list, update, delete, send, open                                                     |
-| `broadcasts`                                         | create, send, get, update, delete, list, cancel, duplicate, open, clicked-links, recipients       |
-| `contacts`                                           | create, update, delete, segments, topics, imports                                                 |
-| `contact-properties`                                 | create, update, delete, list                                                                      |
-| `segments`                                           | create, get, list, update, delete, contacts                                                       |
-| `templates`                                          | create, publish, duplicate, delete, list                                                          |
-| `topics`                                             | create, update, delete, list                                                                      |
-| `webhooks`                                           | create, update, rotate-signing-secret, listen, delete, list, events (list, get, attempts, replay) |
-| `auth`                                               | login, logout, switch, rename, remove                                                             |
-| `whoami` / `doctor` / `update` / `open` / `commands` | Utility commands                                                                                  |
+| Command Group                                        | What it does                                                                                                                                                                                                                                                                |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `emails`                                             | send, get, list, batch, cancel, update, metrics                                                                                                                                                                                                                             |
+| `emails receiving`                                   | list, get, attachments, forward, listen                                                                                                                                                                                                                                     |
+| `domains`                                            | create, verify, get, claim, update, delete, list                                                                                                                                                                                                                            |
+| `logs`                                               | list, get, open                                                                                                                                                                                                                                                             |
+| `usage`                                              | Show account-level usage and quota limits (emails, contacts, segments, broadcasts, AI credits, automation runs, domains, rate limit)                                                                                                                                        |
+| `careers`                                            | list, apply — browse open positions at Resend and apply                                                                                                                                                                                                                     |
+| `suppressions` _(beta)_                              | list, add, get, delete, batch — requires account enrollment                                                                                                                                                                                                                 |
+| `inboxes`                                            | create, list, get, update, delete, threads (list, search, get, update, delete), threads labels (add, set, remove), threads emails (list, get, reply, forward), labels (list, create, update, delete), drafts (list, create, get, update, delete, send), agent (get, update) |
+| `api-keys`                                           | create, list, update, delete                                                                                                                                                                                                                                                |
+| `automations`                                        | create, get, list, update, delete, duplicate, stop, open, runs                                                                                                                                                                                                              |
+| `events`                                             | create, get, list, update, delete, send, open                                                                                                                                                                                                                               |
+| `broadcasts`                                         | create, send, get, update, delete, list, cancel, duplicate, open, clicked-links, recipients                                                                                                                                                                                 |
+| `contacts`                                           | create, update, delete, segments, topics, imports                                                                                                                                                                                                                           |
+| `contact-properties`                                 | create, update, delete, list                                                                                                                                                                                                                                                |
+| `segments`                                           | create, get, list, update, delete, contacts                                                                                                                                                                                                                                 |
+| `templates`                                          | create, publish, duplicate, delete, list                                                                                                                                                                                                                                    |
+| `topics`                                             | create, update, delete, list                                                                                                                                                                                                                                                |
+| `webhooks`                                           | create, update, rotate-signing-secret, listen, delete, list, events (list, get, attempts, replay)                                                                                                                                                                           |
+| `auth`                                               | login, logout, switch, rename, remove                                                                                                                                                                                                                                       |
+| `whoami` / `doctor` / `update` / `open` / `commands` | Utility commands                                                                                                                                                                                                                                                            |
 
 Read the matching reference file for detailed flags and output shapes.
 
-**Dry-run:** Only `emails send` and `broadcasts create` support `--dry-run` (payload validation before send/create). They print `{ "dryRun": true, "request": { ... } }` on stdout without calling the API. There is no `--dry-run` on `emails batch`, `broadcasts send`, or other commands yet.
+**Dry-run:** `emails send`, `broadcasts create`, and `emails batch` support `--dry-run` (payload validation before send/create). They print `{ "dryRun": true, "request": { ... } }` on stdout without calling the API. Other commands do not support `--dry-run`.
 
 ## Common Mistakes
 
@@ -202,6 +209,7 @@ Read the matching reference file for detailed flags and output shapes.
 | 8   | **Expecting `logs list` to include request/response bodies**               | List returns summary fields only — use `logs get <id>` for full `request_body` and `response_body`                                                                                                                                                                                                                                 |
 | 9   | **CSV import fails with `create_error` ("missing required email column")** | `contacts imports create` matches columns case-sensitively by lowercase names (`email`, `first_name`, `last_name`) — use `--column-map` for headers like `Email`/`First Name`                                                                                                                                                      |
 | 10  | **URL attachment "succeeds" but the email never arrives**                  | The API fetches `--attachment "https://..."` URLs after returning the email ID — an unreachable URL fails the email asynchronously. Verify with `emails get <id>` (`last_event: "failed"`), and always pass `;filename=` and `;type=` since neither is derived from the URL (defaults: `attachment-0`, `application/octet-stream`) |
+| 11  | **An inbox ID after `--to` becomes a recipient**                           | A variadic flag such as `--to`, `--cc` or `--labels` takes every value up to the next flag. Put the positional IDs of the `inboxes` commands first: `inboxes drafts create <inbox-id> --to a@example.com`                                                                                                                          |
 
 ## Common Patterns
 
@@ -263,6 +271,7 @@ resend doctor -q
 - **Viewing API request logs** → [references/logs.md](references/logs.md)
 - **Browsing or applying to jobs at Resend** → [references/careers.md](references/careers.md)
 - **Managing the suppression list** (beta) → [references/suppressions.md](references/suppressions.md)
+- **Managing inboxes and received email** → [references/inboxes.md](references/inboxes.md)
 - **Creating automations or sending events** → [references/automations.md](references/automations.md)
 - **Setting up webhooks or listening for events** → [references/webhooks.md](references/webhooks.md)
 - **Auth, profiles, or health checks** → [references/auth.md](references/auth.md)

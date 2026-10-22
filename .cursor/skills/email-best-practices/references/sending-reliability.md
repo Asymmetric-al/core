@@ -16,12 +16,12 @@ Send a unique key with each request. If the same key is sent again, the server r
 
 ```typescript
 // Generate deterministic key based on the business event
-const idempotencyKey = `password-reset-${userId}-${resetRequestId}`; // pragma: allowlist secret
+const idempotencyKey = `password-reset-${userId}-${resetRequestId}`;
 
 await resend.emails.send({
   from: 'noreply@example.com',
   to: user.email,
-  subject: 'Reset your password', // pragma: allowlist secret
+  subject: 'Reset your password',
   html: emailHtml,
 }, {
   headers: {
@@ -59,24 +59,23 @@ Handle transient failures with exponential backoff.
 ### Exponential Backoff
 
 ```typescript
-async function sendWithRetry(emailData, maxRetries = 3) {
+async function sendWithRetry(emailData, maxRetries = 5) {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await resend.emails.send(emailData);
-    } catch (error) {
-      if (!isRetryable(error) || attempt === maxRetries - 1) {
-        throw error;
-      }
-      const delay = Math.min(1000 * Math.pow(2, attempt), 30000);
-      await sleep(delay + Math.random() * 1000); // Add jitter
+    const { data, error } = await resend.emails.send(emailData);
+    if (!error) {
+      return data;
     }
+    if (!isRetryable(error) || attempt === maxRetries - 1) {
+      throw error;
+    }
+    const delay = Math.min(1000 * Math.pow(2, attempt), 30000);
+    await sleep(delay + Math.random() * 1000); // Add jitter
   }
 }
 
 function isRetryable(error) {
   return error.statusCode >= 500 ||
-         error.statusCode === 429 ||
-         error.code === 'ETIMEDOUT';
+         error.statusCode === 429;
 }
 ```
 
@@ -100,10 +99,9 @@ function isRetryable(error) {
 ### Error Handling Pattern
 
 ```typescript
-try {
-  const result = await resend.emails.send(emailData);
-  await logSuccess(result.id, emailData);
-} catch (error) {
+const { data, error } = await resend.emails.send(emailData);
+
+if (error) {
   if (error.statusCode === 429) {
     await queueForRetry(emailData, error.retryAfter);
   } else if (error.statusCode >= 500) {
@@ -112,6 +110,8 @@ try {
     await logFailure(error, emailData);
     await alertOnCriticalEmail(emailData); // For password resets, etc. // pragma: allowlist secret
   }
+} else {
+  await logSuccess(data.id, emailData);
 }
 ```
 
@@ -137,14 +137,9 @@ For critical emails, use a queue to ensure delivery even if the initial send fai
 Set appropriate timeouts to avoid hanging requests.
 
 ```typescript
-const controller = new AbortController();
-const timeout = setTimeout(() => controller.abort(), 10000);
+const signal = AbortSignal.timeout(10000);
 
-try {
-  await resend.emails.send(emailData, { signal: controller.signal });
-} finally {
-  clearTimeout(timeout);
-}
+await resend.emails.send(emailData, { signal });
 ```
 
 **Recommended:** 10-30 seconds for email API calls.

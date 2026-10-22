@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "source": "leonxlnx/taste-skill",
+  "reviewedRef": "6010f91a9935f1c167dfc500fb1a475681892e6b",
+  "relativePath": "assets/charts.js",
+  "rawSourceHash": "89071120bd09eb276d9e568bab433ed035ea8b3a1b72750a1fa204a63e3d4ab4",
+  "normalization": {
+    "parser": "babel",
+    "config": "repository"
+  },
+  "replacements": [
+    {
+      "upstream": "  // numbers follow the page's language (<html lang>), so separators match the rest of the screen\n",
+      "core": "  // Supplied labels and formatter results are text, never HTML.\n  const html = (tag, value = \"\", style = \"\") => {\n    const node = document.createElement(tag);\n    node.textContent = String(value);\n    node.style.cssText = style;\n    return node;\n  };\n  // numbers follow the page's language (<html lang>), so separators match the rest of the screen\n"
+    },
+    {
+      "upstream": "        tip.innerHTML =\n          `<div style=\"opacity:.7\">${labels[i]}</div>` +\n          series\n            .map(\n              (sr) =>\n                `<div><b style=\"font-weight:600\">${sr.values[i] == null ? \"–\" : format(sr.values[i])}</b> ${series.length > 1 ? sr.name : \"\"}</div>`,\n            )\n            .join(\"\");\n",
+      "core": "        tip.replaceChildren(\n          html(\"div\", labels[i], \"opacity:.7\"),\n          ...series.map((sr) => {\n            const row = document.createElement(\"div\");\n            row.append(\n              html(\n                \"b\",\n                sr.values[i] == null ? \"–\" : format(sr.values[i]),\n                \"font-weight:600\",\n              ),\n              document.createTextNode(\n                ` ${series.length > 1 ? sr.name : \"\"}`,\n              ),\n            );\n            return row;\n          }),\n        );\n"
+    },
+    {
+      "upstream": "    t.innerHTML = `<div style=\"font-size:${Math.round(size / 5.5)}px;font-weight:600;line-height:1\">${label}</div>${sub ? `<div style=\"font-size:12px;opacity:.7;margin-top:4px\">${sub}</div>` : \"\"}`;\n",
+      "core": "    t.appendChild(\n      html(\n        \"div\",\n        label,\n        `font-size:${Math.round(size / 5.5)}px;font-weight:600;line-height:1`,\n      ),\n    );\n    if (sub)\n      t.appendChild(\n        html(\"div\", sub, \"font-size:12px;opacity:.7;margin-top:4px\"),\n      );\n"
+    },
+    {
+      "upstream": "      top.innerHTML = `<span>${r.label}</span><span><b style=\"font-weight:500\">${format(r.spent)}</b> <span style=\"color:var(--muted,#5f6368)\">of ${format(r.planned)} · </span><span style=\"color:${over ? \"var(--negative,#c4242a)\" : \"var(--muted,#5f6368)\"}\">${note(r)}</span></span>`;\n",
+      "core": "      const figures = document.createElement(\"span\");\n      figures.append(\n        html(\"b\", format(r.spent), \"font-weight:500\"),\n        document.createTextNode(\" \"),\n        html(\n          \"span\",\n          `of ${format(r.planned)} · `,\n          \"color:var(--muted,#5f6368)\",\n        ),\n        html(\n          \"span\",\n          note(r),\n          `color:${over ? \"var(--negative,#c4242a)\" : \"var(--muted,#5f6368)\"}`,\n        ),\n      );\n      top.append(html(\"span\", r.label), figures);\n"
+    },
+    {
+      "upstream": "      track.innerHTML =\n        `<span style=\"position:absolute;inset:0 auto 0 0;width:${pct(spent)}%;border-radius:999px;background:var(--chart-1,#2f6fdf)\"></span>` +\n        (r.committed\n          ? `<span style=\"position:absolute;top:0;bottom:0;left:${pct(spent)}%;width:${Math.min(pct(r.committed), 100 - pct(spent))}%;background:var(--chart-1,#2f6fdf);opacity:.35\"></span>`\n          : \"\") +\n        (over\n          ? `<span style=\"position:absolute;top:-3px;bottom:-3px;left:100%;width:1px;background:var(--text,#111)\"></span><span style=\"position:absolute;top:0;bottom:0;left:calc(100% + 2px);width:max(12px, ${pct(r.spent - r.planned)}%);border-radius:0 999px 999px 0;background:var(--negative,#c4242a)\"></span>`\n          : \"\");\n",
+      "core": "      track.appendChild(\n        html(\n          \"span\",\n          \"\",\n          `position:absolute;inset:0 auto 0 0;width:${pct(spent)}%;border-radius:999px;background:var(--chart-1,#2f6fdf)`,\n        ),\n      );\n      if (r.committed)\n        track.appendChild(\n          html(\n            \"span\",\n            \"\",\n            `position:absolute;top:0;bottom:0;left:${pct(spent)}%;width:${Math.min(pct(r.committed), 100 - pct(spent))}%;background:var(--chart-1,#2f6fdf);opacity:.35`,\n          ),\n        );\n      if (over)\n        track.append(\n          html(\n            \"span\",\n            \"\",\n            \"position:absolute;top:-3px;bottom:-3px;left:100%;width:1px;background:var(--text,#111)\",\n          ),\n          html(\n            \"span\",\n            \"\",\n            `position:absolute;top:0;bottom:0;left:calc(100% + 2px);width:max(12px, ${pct(r.spent - r.planned)}%);border-radius:0 999px 999px 0;background:var(--negative,#c4242a)`,\n          ),\n        );\n"
+    },
+    {
+      "upstream": "      li.innerHTML = `<span>${r.label}</span><span style=\"position:relative;height:10px;background:var(--rule,#eceeef);border-radius:2px\"><span style=\"position:absolute;inset:0 auto 0 0;width:${(r.value / max) * 100}%;background:var(--chart-1,#2f6fdf);border-radius:2px\"></span><span style=\"position:absolute;top:-4px;bottom:-4px;left:${(r.target / max) * 100}%;width:2px;margin-left:-1px;background:var(--text,#111)\"></span></span><span><b style=\"font-weight:500\">${format(r.value)}</b> <span style=\"color:${Math.abs(drift) >= (r.tolerance ?? 0.02) ? \"var(--negative,#c4242a)\" : \"var(--muted,#5f6368)\"}\">${drift >= 0 ? \"+\" : \"−\"}${format(Math.abs(drift))} vs ${format(r.target)}</span></span>`;\n",
+      "core": "      const track = html(\n        \"span\",\n        \"\",\n        \"position:relative;height:10px;background:var(--rule,#eceeef);border-radius:2px\",\n      );\n      track.append(\n        html(\n          \"span\",\n          \"\",\n          `position:absolute;inset:0 auto 0 0;width:${(r.value / max) * 100}%;background:var(--chart-1,#2f6fdf);border-radius:2px`,\n        ),\n        html(\n          \"span\",\n          \"\",\n          `position:absolute;top:-4px;bottom:-4px;left:${(r.target / max) * 100}%;width:2px;margin-left:-1px;background:var(--text,#111)`,\n        ),\n      );\n      const figures = document.createElement(\"span\");\n      figures.append(\n        html(\"b\", format(r.value), \"font-weight:500\"),\n        document.createTextNode(\" \"),\n        html(\n          \"span\",\n          `${drift >= 0 ? \"+\" : \"−\"}${format(Math.abs(drift))} vs ${format(r.target)}`,\n          `color:${Math.abs(drift) >= (r.tolerance ?? 0.02) ? \"var(--negative,#c4242a)\" : \"var(--muted,#5f6368)\"}`,\n        ),\n      );\n      li.append(html(\"span\", r.label), track, figures);\n"
+    }
+  ],
+  "upstreamNormalizedHash": "c473b9d8557b03c47e6917a561a956a889973503ec945fbbd92e21e450310951",
+  "coreNormalizedHash": "afcdeba8b7bdc3ad526acae2472b183db146603d09c80158f448df20937ac705"
+}

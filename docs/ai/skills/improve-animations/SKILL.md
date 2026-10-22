@@ -45,11 +45,7 @@ running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
-## Initial Response
-
-When this skill is first invoked without a specific question, respond only with:
-
-> I'm ready to audit your animations and plan the fixes, my knowledge comes from Emil Kowalski's animation philosophy.
+When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.
 
 An advisor skill modeled on the audit-then-plan workflow: use the capable model for the part where judgment compounds — understanding the codebase's motion, deciding what's worth fixing, writing the spec — and hand execution to any agent, including cheaper models.
 
