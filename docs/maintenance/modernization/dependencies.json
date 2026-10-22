@@ -577,7 +577,7 @@
       "state": "first-party-replaced-awaiting-checkpoint",
       "disposition": "replaced-in-first-party",
       "verification": ["dnd-kit-qualification.json"],
-      "note": "Core first-party consumers now use the supported0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta4 owner refresh and final checkpoint qualification remain open.",
+      "note": "Core first-party consumers now use the supported 0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta.4 owner refresh and final checkpoint qualification remain open.",
       "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
@@ -595,7 +595,7 @@
           "@dnd-kit/utilities": "3.2.2"
         },
         "restriction": "Only upstream CMS-owned internals retain these APIs; no first-party source import or direct declaration remains.",
-        "state": "Owner release requalification OPEN: Payload4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
+        "state": "Owner release requalification OPEN: Payload 4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
         "recheckWhen": "Every Payload owner release, legacy consumer/import change, dependency constraint or advisory change invalidates prior compatibility evidence.",
         "newReleaseEvidence": {
           "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
@@ -627,7 +627,7 @@
       "state": "first-party-replaced-awaiting-checkpoint",
       "disposition": "replaced-in-first-party",
       "verification": ["dnd-kit-qualification.json"],
-      "note": "Core first-party consumers now use the supported0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta4 owner refresh and final checkpoint qualification remain open.",
+      "note": "Core first-party consumers now use the supported 0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta.4 owner refresh and final checkpoint qualification remain open.",
       "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
@@ -645,7 +645,7 @@
           "@dnd-kit/utilities": "3.2.2"
         },
         "restriction": "Only upstream CMS-owned internals retain these APIs; no first-party source import or direct declaration remains.",
-        "state": "Owner release requalification OPEN: Payload4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
+        "state": "Owner release requalification OPEN: Payload 4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
         "recheckWhen": "Every Payload owner release, legacy consumer/import change, dependency constraint or advisory change invalidates prior compatibility evidence.",
         "newReleaseEvidence": {
           "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
@@ -684,7 +684,7 @@
       "state": "first-party-replaced-awaiting-checkpoint",
       "disposition": "replaced-in-first-party",
       "verification": ["dnd-kit-qualification.json"],
-      "note": "Core first-party consumers now use the supported0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta4 owner refresh and final checkpoint qualification remain open.",
+      "note": "Core first-party consumers now use the supported 0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta.4 owner refresh and final checkpoint qualification remain open.",
       "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
@@ -702,7 +702,7 @@
           "@dnd-kit/utilities": "3.2.2"
         },
         "restriction": "Only upstream CMS-owned internals retain these APIs; no first-party source import or direct declaration remains.",
-        "state": "Owner release requalification OPEN: Payload4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
+        "state": "Owner release requalification OPEN: Payload 4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
         "recheckWhen": "Every Payload owner release, legacy consumer/import change, dependency constraint or advisory change invalidates prior compatibility evidence.",
         "newReleaseEvidence": {
           "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
@@ -741,7 +741,7 @@
       "state": "first-party-replaced-awaiting-checkpoint",
       "disposition": "replaced-in-first-party",
       "verification": ["dnd-kit-qualification.json"],
-      "note": "Core first-party consumers now use the supported0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta4 owner refresh and final checkpoint qualification remain open.",
+      "note": "Core first-party consumers now use the supported 0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta.4 owner refresh and final checkpoint qualification remain open.",
       "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
@@ -759,7 +759,7 @@
           "@dnd-kit/utilities": "3.2.2"
         },
         "restriction": "Only upstream CMS-owned internals retain these APIs; no first-party source import or direct declaration remains.",
-        "state": "Owner release requalification OPEN: Payload4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
+        "state": "Owner release requalification OPEN: Payload 4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
         "recheckWhen": "Every Payload owner release, legacy consumer/import change, dependency constraint or advisory change invalidates prior compatibility evidence.",
         "newReleaseEvidence": {
           "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
@@ -7695,10 +7695,78 @@
       "disposition": "replacement-for-legacy-dnd-api",
       "verification": ["dnd-kit-qualification.json"],
       "note": "Exact coordinated current API pin; final current-head gates and merged checkpoint remain required."
+    },
+    {
+      "name": "pg",
+      "cohort": "postgres-client",
+      "owner": "Core data and document-cutover maintainers",
+      "upstream": {
+        "url": "git://github.com/brianc/node-postgres.git",
+        "type": "git",
+        "directory": "packages/pg"
+      },
+      "registrySource": "https://registry.npmjs.org/pg",
+      "auditedAt": "2026-10-22T20:55:45.611739+00:00",
+      "initialTarget": "8.23.1",
+      "uses": [],
+      "currentUses": [
+        {
+          "path": "package.json",
+          "section": "dependencies",
+          "declaredAs": "pg",
+          "declared": "8.20.0",
+          "target": "8.23.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "New direct declaration inherited from merged document-cutover PR #2169 (cc568c92c1cd283d82a4ef9c6d4be7dabe4efee4), after the original audit baseline. The installed 8.20.0 pin is behind the current official 8.23.1 release and remains OPEN for coordinated pg/type, TLS, database-reader and migration-tool qualification. Current task-board verification does not qualify this upgrade.",
+      "selectedTarget": "8.23.1",
+      "releaseMetadata": {
+        "source": "https://registry.npmjs.org/pg",
+        "capturedAt": "2026-10-22T20:55:45.611739+00:00",
+        "publishedAt": "2026-09-30T15:39:58.489Z",
+        "integrity": "sha512-aL96AHANtWjPLDOLqnhx+ngp9+UK7ETEU8VJrDCGvsSSi/mGLcWYsS6Herg7lmaBJe4uwrfqsa7gTEFaSizDoQ=="
+      }
+    },
+    {
+      "name": "@types/pg",
+      "cohort": "postgres-client",
+      "owner": "Core data and document-cutover maintainers",
+      "upstream": {
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "type": "git",
+        "directory": "types/pg"
+      },
+      "registrySource": "https://registry.npmjs.org/%40types%2Fpg",
+      "auditedAt": "2026-10-22T20:55:46.563100+00:00",
+      "initialTarget": "8.23.1",
+      "uses": [],
+      "currentUses": [
+        {
+          "path": "package.json",
+          "section": "devDependencies",
+          "declaredAs": "@types/pg",
+          "declared": "8.20.0",
+          "target": "8.23.1"
+        }
+      ],
+      "state": "unqualified",
+      "disposition": null,
+      "verification": [],
+      "note": "New direct declaration inherited from merged document-cutover PR #2169 (cc568c92c1cd283d82a4ef9c6d4be7dabe4efee4), after the original audit baseline. The installed 8.20.0 pin is behind the current official 8.23.1 release and remains OPEN for coordinated pg/type, TLS, database-reader and migration-tool qualification. Current task-board verification does not qualify this upgrade.",
+      "selectedTarget": "8.23.1",
+      "releaseMetadata": {
+        "source": "https://registry.npmjs.org/%40types%2Fpg",
+        "capturedAt": "2026-10-22T20:55:46.563100+00:00",
+        "publishedAt": "2026-08-17T20:10:18.296Z",
+        "integrity": "sha512-fKVHpikPdg4GKks3JuLEhvwSyvwzF23hnabPy6DD8ljVbC7+6J5dQzdv4arV6jqq57djnMgs1HKBxX4P8aBI3A=="
+      }
     }
   ],
   "manifestCoverage": {
-    "capturedAt": "2026-10-22T16:19:30.511211+00:00",
+    "capturedAt": "2026-10-22T20:57:47.895027+00:00",
     "baselineCommit": "800213405e2c51e07180e86ee8322355e0fdb4eb",
     "activeManifests": [
       "package.json",
@@ -7726,8 +7794,8 @@
       "vendor/react-pdf-packages/asym-pdf-template-schema/package.json"
     ],
     "manifestCount": 23,
-    "canonicalExternalAndImportedIdentities": 130,
-    "currentDeclarationCount": 298,
+    "canonicalExternalAndImportedIdentities": 132,
+    "currentDeclarationCount": 300,
     "internalWorkspaceLinks": [
       {
         "path": "package.json",
@@ -8259,7 +8327,7 @@
       }
     ],
     "normalization": "npm aliases retain declaredAs and exact declarations under their canonical upstream identity; imported PDF workspace/file declarations retain all consumers. Replaced baseline Dnd identities remain inventoried with empty currentUses; their CMS-owned nested compatibility is tracked separately.",
-    "currentSourceBase": "61b709ac244678605d926d415f0ff8d52204a44d",
+    "currentSourceBase": "cc568c92c1cd283d82a4ef9c6d4be7dabe4efee4",
     "importedOwnerBuildMetadata": {
       "ownerRepository": "Asymmetric-al/react-PDF",
       "sourceCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
@@ -8490,6 +8558,6 @@
         }
       ]
     },
-    "inventoriedIdentitiesIncludingHistorical": 134
+    "inventoriedIdentitiesIncludingHistorical": 136
   }
 }
