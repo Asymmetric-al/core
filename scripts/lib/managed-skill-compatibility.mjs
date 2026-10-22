@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { applyTasteChartCompatibility } from "./taste-charts-adapter.mjs";
 import { applyTastePreviewCompatibility } from "./taste-preview-adapter.mjs";
+import { applyComponentsBuildCompatibility } from "./components-build-adapter.mjs";
 
 // Reviewed source text is data. Never import code from a skill tree.
 const repositoryPackage = fileURLToPath(
@@ -63,6 +64,10 @@ function replaceReviewed(content, rule, label) {
  * directory formatter skips ignored staging trees. Only Markdown is parsed.
  */
 export async function applyManagedSkillCompatibility(skillName, targetRoot) {
+  if (skillName === "components-build") {
+    await applyComponentsBuildCompatibility(targetRoot);
+    return;
+  }
   const guidance = await config();
   const skill = guidance?.skills?.[skillName];
   if (!skill) return;

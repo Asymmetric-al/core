@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "source": "nolly-studio/components-build-skill",
+  "upstreamSkillHash": "55c76ed69a72f69b9e0a19ac08422f64bf88624f4f5f4069903f418883efba97",
+  "notice": "<!-- CORE-COMPONENTS-CN-START -->\n**Core shared class helper:** consume the existing helper through the shared UI\nboundary:\n\n```tsx\nimport { cn } from \"@asym/ui/lib/utils\";\n```\n\nDo not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`\nfor these recipes. The generic npm dependency examples below are retained\nupstream material and are **non-operative in Core**. Current workspace manifests\nand `packages/ui/lib/utils.ts` own the implementation and dependency choices.\n<!-- CORE-COMPONENTS-CN-END -->",
+  "replacements": [
+    {
+      "path": "SKILL.md",
+      "upstream": "- `styling-cn-utility` - Combine clsx and tailwind-merge",
+      "core": "- `styling-cn-utility` - Consume the shared Core `cn` helper."
+    },
+    {
+      "path": "SKILL.md",
+      "upstream": "7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge",
+      "core": "7. **Intelligent Class Merging** - Import `cn` from `@asym/ui/lib/utils`."
+    },
+    {
+      "path": "README.md",
+      "upstream": "7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge",
+      "core": "7. **Intelligent Class Merging** - Import `cn` from `@asym/ui/lib/utils`."
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "Use Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).",
+      "core": "Use Tailwind CSS with Core’s shared `cn` helper for class merging and conditional classes, and existing variant APIs (CVA)."
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.",
+      "core": "**Why:** Core’s shared `cn` helper resolves class conflicts consistently with the installed UI implementation."
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "// Without tailwind-merge, conflicting classes both apply",
+      "core": "// Without class merging, conflicting classes both apply"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "twMerge(\"bg-red-500\", \"bg-blue-500\"); // \"bg-blue-500\"\ntwMerge(\"px-4 py-2\", \"px-8\"); // \"py-2 px-8\"\ntwMerge(\"text-sm\", \"text-lg\"); // \"text-lg\"",
+      "core": "import { cn } from \"@asym/ui/lib/utils\";\n\ncn(\"bg-red-500\", \"bg-blue-500\"); // \"bg-blue-500\"\ncn(\"px-4 py-2\", \"px-8\"); // \"py-2 px-8\"\ncn(\"text-sm\", \"text-lg\"); // \"text-lg\""
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "Use Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).",
+      "core": "Use Tailwind CSS with Core’s shared `cn` helper for class merging and conditional classes, and existing variant APIs (CVA)."
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.",
+      "core": "**Why:** Core’s shared `cn` helper resolves class conflicts consistently with the installed UI implementation."
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "// Without tailwind-merge, conflicting classes both apply",
+      "core": "// Without class merging, conflicting classes both apply"
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "twMerge(\"bg-red-500\", \"bg-blue-500\"); // \"bg-blue-500\"\ntwMerge(\"px-4 py-2\", \"px-8\"); // \"py-2 px-8\"\ntwMerge(\"text-sm\", \"text-lg\"); // \"text-lg\"",
+      "core": "import { cn } from \"@asym/ui/lib/utils\";\n\ncn(\"bg-red-500\", \"bg-blue-500\"); // \"bg-blue-500\"\ncn(\"px-4 py-2\", \"px-8\"); // \"py-2 px-8\"\ncn(\"text-sm\", \"text-lg\"); // \"text-lg\""
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs));\n}",
+      "core": "import { cn } from \"@asym/ui/lib/utils\";",
+      "allowRepeatedCore": true
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "### Conditional Classes with `clsx`",
+      "core": "### Conditional Classes with Core’s `cn`"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "import { cn } from \"@/lib/utils\";",
+      "core": "import { cn } from \"@asym/ui/lib/utils\";",
+      "allowRepeatedCore": true
+    },
+    {
+      "path": "rules/overview.md",
+      "upstream": "import { cn } from \"@/lib/utils\";",
+      "core": "import { cn } from \"@asym/ui/lib/utils\";",
+      "allowRepeatedCore": true
+    }
+  ]
+}

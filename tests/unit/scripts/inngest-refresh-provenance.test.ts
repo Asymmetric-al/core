@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+
 import { afterEach, describe, expect, it } from "vitest";
 
 const repoRoot = process.cwd();
@@ -139,11 +140,51 @@ afterEach(async () => {
     await rm(root, { recursive: true, force: true });
 });
 describe("Inngest generated provenance", () => {
+  it("keeps the generated router grounded in Core's installed runtime", async () => {
+    const { root } = await fixture();
+    refresh(root);
+    const router = await readFile(
+      path.join(root, "docs/ai/skills/inngest/SKILL.md"),
+      "utf8",
+    );
+    expect(router).toContain(
+      "Core already uses Inngest as a runtime dependency",
+    );
+    for (const owner of [
+      "packages/api/package.json",
+      "packages/api/src/workflows/inngest/client.ts",
+      "packages/api/src/workflows/serve.ts",
+      "apps/admin/app/api/inngest/route.ts",
+      "docs/guides/features/inngest-workflows/local-development.md",
+    ]) {
+      expect(router).toContain(owner);
+      expect(await readFile(path.join(repoRoot, owner), "utf8")).not.toBe("");
+    }
+    const apiPackage = JSON.parse(
+      await readFile(path.join(repoRoot, "packages/api/package.json"), "utf8"),
+    ) as { dependencies: Record<string, string> };
+    expect(apiPackage.dependencies.inngest).toBeTruthy();
+    expect(router).not.toContain("not an app runtime");
+    expect(router).not.toContain("planned or referenced in this repo");
+    expect(router).toContain(
+      "Keep new runtime adoption, provider provisioning",
+    );
+    expect(router).toContain("out of agent-tooling-only changes");
+    refresh(root);
+    expect(
+      await readFile(
+        path.join(root, "docs/ai/skills/inngest/SKILL.md"),
+        "utf8",
+      ),
+    ).toBe(router);
+  });
   it("retains the reviewed refresh note and documents every installed adapter after repeated offline refresh", async () => {
     const { root, reference } = await fixture();
     refresh(root);
     const first = await readFile(reference, "utf8");
     expect(first).toContain("## Reviewed refresh 2026-10-22");
+    expect(first).toContain("## Core runtime guidance correction 2026-10-22");
+    expect(first).toContain("update-skill-audit-hashes.mjs --skill inngest");
     expect(first).toContain("only API and API-CLI add Cloud MCP-first routing");
     expect(first).toContain("all twelve installed skills");
     expect(first).toContain("shared expressions links");

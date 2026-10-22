@@ -7,27 +7,37 @@ tags: styling, tailwind, cn, clsx, tailwind-merge, cva, class-variance-authority
 
 ## Component Styling with Tailwind CSS
 
-Use Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).
+<!-- CORE-COMPONENTS-CN-START -->
+
+**Core shared class helper:** consume the existing helper through the shared UI
+boundary:
+
+```tsx
+import { cn } from "@asym/ui/lib/utils";
+```
+
+Do not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`
+for these recipes. The generic npm dependency examples below are retained
+upstream material and are **non-operative in Core**. Current workspace manifests
+and `packages/ui/lib/utils.ts` own the implementation and dependency choices.
+<!-- CORE-COMPONENTS-CN-END -->
+
+Use Tailwind CSS with Core’s shared `cn` helper for class merging and conditional classes, and existing variant APIs (CVA).
 
 ### The `cn` Utility Function
 
 ```tsx
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from "@asym/ui/lib/utils";
 ```
 
-**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.
+**Why:** Core’s shared `cn` helper resolves class conflicts consistently with the installed UI implementation.
 
 ### Class Merging
 
 **Incorrect:**
 
 ```tsx
-// Without tailwind-merge, conflicting classes both apply
+// Without class merging, conflicting classes both apply
 className = "bg-red-500 bg-blue-500"; // Both classes apply, causing conflicts
 className = "px-4 py-2 px-8"; // Both px-4 and px-8 apply
 ```
@@ -35,9 +45,11 @@ className = "px-4 py-2 px-8"; // Both px-4 and px-8 apply
 **Correct:**
 
 ```tsx
-twMerge("bg-red-500", "bg-blue-500"); // "bg-blue-500"
-twMerge("px-4 py-2", "px-8"); // "py-2 px-8"
-twMerge("text-sm", "text-lg"); // "text-lg"
+import { cn } from "@asym/ui/lib/utils";
+
+cn("bg-red-500", "bg-blue-500"); // "bg-blue-500"
+cn("px-4 py-2", "px-8"); // "py-2 px-8"
+cn("text-sm", "text-lg"); // "text-lg"
 ```
 
 ### Component Pattern: Order Matters
@@ -79,7 +91,7 @@ const Component = ({
 };
 ```
 
-### Conditional Classes with `clsx`
+### Conditional Classes with Core’s `cn`
 
 ```tsx
 cn("base", isActive && "active");

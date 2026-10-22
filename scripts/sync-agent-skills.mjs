@@ -22,6 +22,7 @@ import { restoreReviewedEcosystemSkills } from "./lib/ecosystem-skill-adapters.m
 import { restoreStripeCoreGuidance } from "./lib/stripe-skill-adapters.mjs";
 import { applyManagedSkillCompatibility } from "./lib/managed-skill-compatibility.mjs";
 import { assertReviewedSkillFileModes } from "./lib/skill-file-modes.mjs";
+import { normalizeImpeccableLauncher } from "./lib/impeccable-source-adapter.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1057,6 +1058,8 @@ async function main() {
       skillName,
       path.join(sourceRoot, skillName),
     );
+  if (canonicalSkills.includes("impeccable"))
+    await normalizeImpeccableLauncher(path.join(sourceRoot, "impeccable"));
   const canonicalSkillFiles = await buildCanonicalSkillFiles(canonicalSkills);
   const previousManifests = new Map();
 
@@ -1104,7 +1107,13 @@ async function main() {
   }
 
   await restoreGitGuardrailsFailClosedHook();
-  for (const name of ["claude-handoff", "handoff", "teach", "wizard"]) {
+  for (const name of [
+    "claude-handoff",
+    "components-build",
+    "handoff",
+    "teach",
+    "wizard",
+  ]) {
     const target = path.join(repoRoot, ".agents/skills", name);
     if (await pathExists(path.join(target, "SKILL.md")))
       await applyManagedSkillCompatibility(name, target);

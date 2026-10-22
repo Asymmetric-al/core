@@ -7,6 +7,21 @@ tags: overview, introduction, philosophy, goals
 
 ## Components.build Overview
 
+<!-- CORE-COMPONENTS-CN-START -->
+
+**Core shared class helper:** consume the existing helper through the shared UI
+boundary:
+
+```tsx
+import { cn } from "@asym/ui/lib/utils";
+```
+
+Do not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`
+for these recipes. The generic npm dependency examples below are retained
+upstream material and are **non-operative in Core**. Current workspace manifests
+and `packages/ui/lib/utils.ts` own the implementation and dependency choices.
+<!-- CORE-COMPONENTS-CN-END -->
+
 The components.build specification is an open-source standard for building modern, composable, and accessible UI components. It provides high-level guidelines, best practices, and common terminology for designing UI components that integrate smoothly into any codebase.
 
 **What This Specification Is:**
@@ -77,7 +92,7 @@ function Button() {
 
 ```tsx
 // Composable, accessible, customizable
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "default" | "outline";

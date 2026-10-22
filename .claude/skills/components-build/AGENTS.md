@@ -1,5 +1,20 @@
 # Components.build Specification
 
+<!-- CORE-COMPONENTS-CN-START -->
+
+**Core shared class helper:** consume the existing helper through the shared UI
+boundary:
+
+```tsx
+import { cn } from "@asym/ui/lib/utils";
+```
+
+Do not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`
+for these recipes. The generic npm dependency examples below are retained
+upstream material and are **non-operative in Core**. Current workspace manifests
+and `packages/ui/lib/utils.ts` own the implementation and dependency choices.
+<!-- CORE-COMPONENTS-CN-END -->
+
 **Version 1.0.0**  
 components.build  
 January 2026
@@ -164,7 +179,7 @@ function Button() {
 
 ```tsx
 // Composable, accessible, customizable
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "default" | "outline";
@@ -1300,14 +1315,14 @@ Component styling with Tailwind CSS, cn utility, class-variance-authority
 
 **Impact: HIGH (Predictable, maintainable styling patterns)**
 
-Use Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).
+Use Tailwind CSS with Core’s shared `cn` helper for class merging and conditional classes, and existing variant APIs (CVA).
 
-**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.
+**Why:** Core’s shared `cn` helper resolves class conflicts consistently with the installed UI implementation.
 
 **Incorrect:**
 
 ```tsx
-// Without tailwind-merge, conflicting classes both apply
+// Without class merging, conflicting classes both apply
 className = "bg-red-500 bg-blue-500"; // Both classes apply, causing conflicts
 className = "px-4 py-2 px-8"; // Both px-4 and px-8 apply
 ```
@@ -1315,9 +1330,11 @@ className = "px-4 py-2 px-8"; // Both px-4 and px-8 apply
 **Correct:**
 
 ```tsx
-twMerge("bg-red-500", "bg-blue-500"); // "bg-blue-500"
-twMerge("px-4 py-2", "px-8"); // "py-2 px-8"
-twMerge("text-sm", "text-lg"); // "text-lg"
+import { cn } from "@asym/ui/lib/utils";
+
+cn("bg-red-500", "bg-blue-500"); // "bg-blue-500"
+cn("px-4 py-2", "px-8"); // "py-2 px-8"
+cn("text-sm", "text-lg"); // "text-lg"
 ```
 
 Apply classes in this order:

@@ -9,6 +9,21 @@ metadata:
 
 # Components.build Specification
 
+<!-- CORE-COMPONENTS-CN-START -->
+
+**Core shared class helper:** consume the existing helper through the shared UI
+boundary:
+
+```tsx
+import { cn } from "@asym/ui/lib/utils";
+```
+
+Do not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`
+for these recipes. The generic npm dependency examples below are retained
+upstream material and are **non-operative in Core**. Current workspace manifests
+and `packages/ui/lib/utils.ts` own the implementation and dependency choices.
+<!-- CORE-COMPONENTS-CN-END -->
+
 ## This repository (Asymmetric-al/core)
 
 These repo-owned sections are intentionally kept on top of the vendored
@@ -137,7 +152,7 @@ Reference these guidelines when:
 
 ### 11. Styling
 
-- `styling-cn-utility` - Combine clsx and tailwind-merge
+- `styling-cn-utility` - Consume the shared Core `cn` helper.
 - `styling-order` - Base → Variants → Conditionals → User overrides
 - `styling-cva` - Class Variance Authority for variants
 - `styling-css-variables` - Dynamic values with CSS variables
@@ -195,7 +210,7 @@ For the complete guide with all rules expanded: `AGENTS.md`
 4. **Extend HTML Attributes** - Always extend native element props
 5. **Export Types** - Make prop types available to consumers
 6. **Support Both State Patterns** - Controlled and uncontrolled
-7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge
+7. **Intelligent Class Merging** - Import `cn` from `@asym/ui/lib/utils`.
 
 ## Authors
 

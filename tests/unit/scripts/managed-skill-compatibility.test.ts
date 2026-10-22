@@ -10,7 +10,10 @@ import {
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
+
+import { format } from "prettier";
 import { afterEach, describe, expect, it } from "vitest";
+
 import {
   applyManagedSkillCompatibility,
   formatManagedSkillOutput,
@@ -33,6 +36,39 @@ const emil = [
   "review-animations",
   "write-swift",
 ];
+
+// Synthetic raw-source excerpts retain the reviewed competing examples. They
+// exercise restoration without claiming a new upstream capture or source hash.
+const componentsRawFiles: Record<string, string> = {
+  "SKILL.md":
+    "---\nname: components-build\nlicense: MIT\n---\n\n# Components.build Specification\n\n## This repository (Asymmetric-al/core)\n\nExisting Base UI overlay stays intact.\n\n- `styling-cn-utility` - Combine clsx and tailwind-merge\n\n7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge\n",
+  "README.md":
+    "# Components Build Skill\n\n7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge\n\n## Authors\n\nHayden Bleasel, shadcn, Jordan Gilliam\n\n## License\n\nMIT\n",
+  "AGENTS.md":
+    '# Compiled components\n\n```tsx\nimport { cn } from "@/lib/utils";\n```\n\nUse Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).\n\n**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.\n\n```tsx\n// Without tailwind-merge, conflicting classes both apply\n```\n\n```tsx\ntwMerge("bg-red-500", "bg-blue-500"); // "bg-blue-500"\ntwMerge("px-4 py-2", "px-8"); // "py-2 px-8"\ntwMerge("text-sm", "text-lg"); // "text-lg"\n```\n\n```json\n{"dependencies":{"clsx":"^2.0.0","tailwind-merge":"^2.0.0"}}\n```\n',
+  "rules/styling.md":
+    '---\ntitle: Component Styling with Tailwind CSS\n---\n\nUse Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).\n\n```tsx\nimport { type ClassValue, clsx } from "clsx";\nimport { twMerge } from "tailwind-merge";\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs));\n}\n```\n\n**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.\n\n```tsx\n// Without tailwind-merge, conflicting classes both apply\n```\n\n```tsx\ntwMerge("bg-red-500", "bg-blue-500"); // "bg-blue-500"\ntwMerge("px-4 py-2", "px-8"); // "py-2 px-8"\ntwMerge("text-sm", "text-lg"); // "text-lg"\n```\n\n### Conditional Classes with `clsx`\n\ncn("base", { active: true });\n',
+  "rules/overview.md":
+    '---\ntitle: Component Overview\n---\n\n# Overview\n\n```tsx\nimport { cn } from "@/lib/utils";\n```\n',
+  "rules/npm.md":
+    '---\ntitle: Publishing to NPM\n---\n\n# Generic npm recipe\n\n```json\n{"dependencies":{"clsx":"^2.0.0","tailwind-merge":"^2.0.0"}}\n```\n',
+  "references/upstream.md":
+    "---\nsource_name: nolly-studio/components-build-skill\nskills_lock_hash: original-upstream-hash\n---\n\nOriginal provenance remains unchanged.\n",
+  "references/LICENSE.md": "MIT\nOriginal rights notice.\n",
+  "references/original.md.raw": "Original raw source: clsx and twMerge.\n",
+};
+
+async function componentsFixture() {
+  await mkdir(path.join(repo, ".tmp"), { recursive: true });
+  const root = await mkdtemp(path.join(repo, ".tmp/components-build-test-"));
+  roots.push(root);
+  for (const [relative, content] of Object.entries(componentsRawFiles)) {
+    const file = path.join(root, relative);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, content);
+  }
+  return root;
+}
 async function rawTree(name: string, target: string, relative = "") {
   await mkdir(path.join(target, relative), { recursive: true });
   for (const entry of await readdir(path.join(fixtureRoot, name, relative), {
@@ -90,6 +126,173 @@ afterEach(async () => {
     await rm(root, { recursive: true, force: true });
 });
 describe("reviewed raw managed-skill restoration", () => {
+  it("restores the components shared cn contract without changing provenance, rights or raw source", async () => {
+    const root = await componentsFixture();
+    await applyManagedSkillCompatibility("components-build", root);
+    const first = new Map<string, string>();
+    for (const relative of Object.keys(componentsRawFiles)) {
+      const actual = await readFile(path.join(root, relative), "utf8");
+      first.set(relative, actual);
+      if (relative.startsWith("references/")) {
+        expect(actual, relative).toBe(componentsRawFiles[relative]);
+      } else {
+        expect(actual, relative).toContain(
+          'import { cn } from "@asym/ui/lib/utils";',
+        );
+        expect(actual, relative).toContain("non-operative in Core");
+      }
+    }
+    const styling = first.get("rules/styling.md")!;
+    expect(styling).not.toContain("export function cn(");
+    expect(styling).not.toContain("twMerge(");
+    expect(styling).toContain('cn("px-4 py-2", "px-8")');
+    expect(first.get("AGENTS.md")).not.toContain("twMerge(");
+    expect(first.get("AGENTS.md")).not.toContain('from "@/lib/utils"');
+    expect(first.get("rules/overview.md")).not.toContain('from "@/lib/utils"');
+    expect(first.get("rules/npm.md")).toContain('"tailwind-merge":"^2.0.0"');
+    expect(first.get("SKILL.md")).toContain(
+      "Existing Base UI overlay stays intact.",
+    );
+    expect(first.get("README.md")).toContain(
+      "Hayden Bleasel, shadcn, Jordan Gilliam",
+    );
+    // Formatting the restored Markdown must not invalidate the owned notice.
+    for (const [relative, content] of first) {
+      if (relative.startsWith("references/")) continue;
+      const formatted = await format(content, { parser: "markdown" });
+      await writeFile(path.join(root, relative), formatted);
+      first.set(relative, formatted);
+    }
+    await applyManagedSkillCompatibility("components-build", root);
+    for (const [relative, expected] of first) {
+      expect(await readFile(path.join(root, relative), "utf8"), relative).toBe(
+        expected,
+      );
+    }
+  });
+  it("accepts the actual formatted canonical components documents byte-for-byte", async () => {
+    const root = await componentsFixture();
+    await cp(path.join(repo, "docs/ai/skills/components-build"), root, {
+      recursive: true,
+    });
+    const before = new Map<string, string>();
+    for (const relative of Object.keys(componentsRawFiles)) {
+      if (relative.startsWith("references/")) continue;
+      before.set(relative, await readFile(path.join(root, relative), "utf8"));
+    }
+    await applyManagedSkillCompatibility("components-build", root);
+    for (const [relative, content] of before)
+      expect(await readFile(path.join(root, relative), "utf8"), relative).toBe(
+        content,
+      );
+  });
+  it("rejects a drifted components helper before writing any of the reviewed documents", async () => {
+    const root = await componentsFixture();
+    const file = path.join(root, "rules/styling.md");
+    await writeFile(
+      file,
+      (await readFile(file, "utf8")).replace(
+        "return twMerge(clsx(inputs));",
+        "return twMerge(inputs);",
+      ),
+    );
+    const before = new Map<string, string>();
+    for (const relative of Object.keys(componentsRawFiles))
+      before.set(relative, await readFile(path.join(root, relative), "utf8"));
+    await expect(
+      applyManagedSkillCompatibility("components-build", root),
+    ).rejects.toThrow("components-build");
+    for (const [relative, content] of before)
+      expect(await readFile(path.join(root, relative), "utf8"), relative).toBe(
+        content,
+      );
+  });
+  it.each(["semantic drift", "duplicate marker"])(
+    "rejects components notice %s without publishing any document",
+    async (drift) => {
+      const root = await componentsFixture();
+      await applyManagedSkillCompatibility("components-build", root);
+      const file = path.join(root, "rules/npm.md");
+      const content = await readFile(file, "utf8");
+      await writeFile(
+        file,
+        drift === "semantic drift"
+          ? content.replace("non-operative in Core", "required in Core")
+          : content.replace(
+              "<!-- CORE-COMPONENTS-CN-START -->",
+              "<!-- CORE-COMPONENTS-CN-START -->\n<!-- CORE-COMPONENTS-CN-START -->",
+            ),
+      );
+      const before = new Map<string, string>();
+      for (const relative of Object.keys(componentsRawFiles))
+        before.set(relative, await readFile(path.join(root, relative), "utf8"));
+      await expect(
+        applyManagedSkillCompatibility("components-build", root),
+      ).rejects.toThrow("notice drifted");
+      for (const [relative, expected] of before)
+        expect(
+          await readFile(path.join(root, relative), "utf8"),
+          relative,
+        ).toBe(expected);
+    },
+  );
+  it("keeps the components shared cn guidance in every runtime after raw canonical restoration and sync", async () => {
+    const raw = await componentsFixture();
+    const root = await mkdtemp(
+      path.join(repo, ".tmp/components-build-sync-test-"),
+    );
+    roots.push(root);
+    await mkdir(path.join(root, "scripts"), { recursive: true });
+    await cp(
+      path.join(repo, "scripts/sync-agent-skills.mjs"),
+      path.join(root, "scripts/sync-agent-skills.mjs"),
+    );
+    await cp(path.join(repo, "scripts/lib"), path.join(root, "scripts/lib"), {
+      recursive: true,
+    });
+    await cp(
+      path.join(repo, "scripts/refresh-overlays"),
+      path.join(root, "scripts/refresh-overlays"),
+      { recursive: true },
+    );
+    await mkdir(path.join(root, "docs/ai/skills"), { recursive: true });
+    await cp(raw, path.join(root, "docs/ai/skills/components-build"), {
+      recursive: true,
+    });
+    const sync = () =>
+      spawnSync(process.execPath, ["scripts/sync-agent-skills.mjs"], {
+        cwd: root,
+        encoding: "utf8",
+      });
+    const first = sync();
+    expect(first.status, first.stdout + first.stderr).toBe(0);
+    const mirrored = new Map<string, string>();
+    for (const runtime of [".agents", ".cursor", ".claude"]) {
+      for (const relative of Object.keys(componentsRawFiles)) {
+        const file = path.join(
+          root,
+          runtime,
+          "skills/components-build",
+          relative,
+        );
+        const content = await readFile(file, "utf8");
+        mirrored.set(file, content);
+        if (relative.startsWith("references/"))
+          expect(content, file).toBe(componentsRawFiles[relative]);
+        else {
+          expect(content, file).toContain(
+            'import { cn } from "@asym/ui/lib/utils";',
+          );
+          expect(content, file).not.toContain("twMerge(");
+          expect(content, file).not.toContain("export function cn(");
+        }
+      }
+    }
+    const again = sync();
+    expect(again.status, again.stdout + again.stderr).toBe(0);
+    for (const [file, expected] of mirrored)
+      expect(await readFile(file, "utf8"), file).toBe(expected);
+  });
   it("uses byte-exact upstream fixtures with independently recorded immutable source hashes", async () => {
     const manifest = JSON.parse(
       await readFile(path.join(fixtureRoot, "source-manifest.json"), "utf8"),

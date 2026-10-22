@@ -79,3 +79,18 @@ commands above.
 Advanced immutable source pins after reviewing the complete upstream comparisons. The seven imported core skills and three non-API Codex skills are content-current; only API and API-CLI add Cloud MCP-first routing. Core maps the uninstalled inngest-cloud skill to available connected Cloud MCP tools, keeps explicit terminal/HTTP fallback, and distinguishes local dev-server MCP from Cloud OAuth. No new pack members or runtime packages were installed.
 
 The API REST reference remaps its Insights cross-link to `../../inngest-api-cli/references/cli-commands.md`; the pinned source keeps a bare sibling filename that is not valid in the separate installed skill directories. The refresh adapter requires and rewrites that link before publication.
+
+## Core runtime guidance correction 2026-10-22
+
+The Core-authored router and its `scripts/refresh-inngest-skills.mjs` template
+identify the installed API runtime, owned client and serving route, and current
+local development guide. This corrects the earlier planned-only classification;
+it does not establish live Cloud qualification or change upstream pins, notices,
+source payloads, runtime code or provider configuration. The offline refresher
+regression checks the generated router after repeated refreshes.
+
+After reviewing local guidance changes, run `bun run skills:sync`, then
+`node scripts/update-skill-audit-hashes.mjs --skill inngest` and
+`bun run skills:verify`. The explicit-name hash command records the final
+installed payload only; source, license, historical review and freshness decisions
+remain separately owned by the source audit.
