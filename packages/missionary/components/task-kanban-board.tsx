@@ -35,6 +35,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import type { Task, TaskStatus } from "../types";
 import type { Plugins } from "@dnd-kit/abstract";
@@ -126,7 +127,7 @@ export function TaskKanbanBoard({
 }: TaskKanbanBoardProps) {
   const reducedMotion = useReducedMotion();
   const [keyboardInteraction, setKeyboardInteraction] = React.useState(false);
-  const [moveError, setMoveError] = React.useState<string | null>(null);
+  const moveErrorToastId = React.useRef<string | number | undefined>(undefined);
   const [draftTasks, setDraftTasks] = React.useState<Record<
     TaskStatus,
     Task[]
@@ -204,6 +205,15 @@ export function TaskKanbanBoard({
     setDraftTasks(next);
   }
 
+  function reportMoveError() {
+    moveErrorToastId.current = toast.error(
+      "Task move failed. Please try again.",
+      {
+        id: moveErrorToastId.current,
+      },
+    );
+  }
+
   async function handleDragEnd(event: DragEndEvent) {
     const { source, target } = event.operation;
     if (event.canceled || !source || !target || !isSortable(source)) {
@@ -230,10 +240,9 @@ export function TaskKanbanBoard({
     }
     const pending = event.suspend();
     try {
-      if (!(await onMoveTask(activeId, status, index)))
-        setMoveError("Task move failed. Please try again.");
+      if (!(await onMoveTask(activeId, status, index))) reportMoveError();
     } catch {
-      setMoveError("Task move failed. Please try again.");
+      reportMoveError();
     } finally {
       resetDraft();
       pending.resume();
@@ -245,7 +254,8 @@ export function TaskKanbanBoard({
       sensors={DRAG_SENSORS}
       plugins={boardPlugins}
       onDragStart={(event) => {
-        setMoveError(null);
+        if (moveErrorToastId.current !== undefined)
+          toast.dismiss(moveErrorToastId.current);
         const keyboard = event.nativeEvent instanceof KeyboardEvent;
         setKeyboardInteraction(keyboard);
         keyboardSourceId.current =
@@ -297,11 +307,6 @@ export function TaskKanbanBoard({
           ) : null;
         }}
       </DragOverlay>
-      {moveError && (
-        <p role="alert" className="text-destructive text-sm">
-          {moveError}
-        </p>
-      )}
     </DragDropProvider>
   );
 }

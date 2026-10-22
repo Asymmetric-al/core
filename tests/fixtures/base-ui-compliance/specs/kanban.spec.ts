@@ -132,10 +132,18 @@ test("a thrown save restores order and focus, reports failure and allows retry",
     "Call Anna",
     "Send newsletter",
   ]);
-  await expect(page.getByRole("alert")).toHaveText(
-    "Task move failed. Please try again.",
-  );
+  await expect(
+    page
+      .getByRole("region", { name: "Notifications alt+T", exact: true })
+      .getByText("Task move failed. Please try again.", { exact: true }),
+  ).toBeVisible();
   await expect(handle).toBeFocused();
+  await page
+    .getByRole("button", { name: "Show unrelated notice", exact: true })
+    .click();
+  await expect(
+    page.getByText("Unrelated task update", { exact: true }),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Save normally", exact: true })
     .click();
@@ -152,7 +160,12 @@ test("a thrown save restores order and focus, reports failure and allows retry",
   ).toHaveText(
     '[{"taskId":"call","status":"not_started","index":1},{"taskId":"call","status":"not_started","index":1}]',
   );
-  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(
+    page.getByText("Task move failed. Please try again.", { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Unrelated task update", { exact: true }),
+  ).toHaveCount(1);
   await expect(handle).toBeFocused();
 });
 
@@ -177,13 +190,96 @@ test("a declined save restores the controlled list and announces failure", async
     "Call Anna",
     "Send newsletter",
   ]);
-  await expect(page.getByRole("alert")).toHaveText(
-    "Task move failed. Please try again.",
-  );
+  await expect(
+    page
+      .getByRole("region", { name: "Notifications alt+T", exact: true })
+      .getByText("Task move failed. Please try again.", { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByLabel("Submitted task moves", { exact: true }),
   ).toHaveText('[{"taskId":"call","status":"not_started","index":1}]');
   await expect(handle).toBeFocused();
+  await page.keyboard.press("Space");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Space");
+  await expect(
+    page
+      .getByRole("region", { name: "Notifications alt+T", exact: true })
+      .getByText("Task move failed. Please try again.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Task move failed. Please try again.", { exact: true }),
+  ).toHaveCount(1);
+  await expect(
+    page.getByLabel("Submitted task moves", { exact: true }),
+  ).toHaveText(
+    '[{"taskId":"call","status":"not_started","index":1},{"taskId":"call","status":"not_started","index":1}]',
+  );
+  await expect(handle).toBeFocused();
+});
+
+test("a pending failure survives switching to List view without duplicate feedback or stuck dragging", async ({
+  page,
+}, testInfo) => {
+  for (const outcome of ["false", "throw"] as const) {
+    await page.goto(`/kanban.html?moveResult=pending-${outcome}`);
+    const handle = page.getByRole("button", {
+      name: "Move Call Anna",
+      exact: true,
+    });
+    await handle.focus();
+    await page.keyboard.press("Space");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Space");
+    await expect(
+      page.getByLabel("Task save phase", { exact: true }),
+    ).toHaveText("pending");
+    await page.getByRole("button", { name: "List view", exact: true }).click();
+    await expect(
+      page.getByRole("region", { name: "Task list", exact: true }),
+    ).toBeVisible();
+    await expect(handle).toHaveCount(0);
+    const finish = page.getByRole("button", {
+      name: "Finish task save",
+      exact: true,
+    });
+    await finish.click();
+    await expect(
+      page.getByLabel("Task save phase", { exact: true }),
+    ).toHaveText("idle");
+    const message = "Task move failed. Please try again.";
+    const notifications = page.getByRole("region", {
+      name: "Notifications alt+T",
+      exact: true,
+    });
+    const failure = notifications.getByText(message, { exact: true });
+    await expect(failure).toBeVisible();
+    await expect(page.getByText(message, { exact: true })).toHaveCount(1);
+    await expect(notifications).toHaveAttribute("aria-live", "polite");
+    await expect(
+      page.locator("[data-sonner-toast]").filter({ hasText: message }),
+    ).toHaveCSS("opacity", "1");
+    await expect(finish).toBeFocused();
+    await expect(page.locator('[data-drag-overlay="true"]')).toHaveCount(0);
+    await testInfo.attach(`pending-${outcome}-after-unmount`, {
+      body: await page.screenshot(),
+      contentType: "image/png",
+    });
+    await page.getByRole("button", { name: "Board view", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Save normally", exact: true })
+      .click();
+    await handle.focus();
+    await page.keyboard.press("Space");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Space");
+    await expect(
+      page.getByLabel("Submitted task moves", { exact: true }),
+    ).toHaveText(
+      '[{"taskId":"call","status":"not_started","index":1},{"taskId":"call","status":"not_started","index":1}]',
+    );
+    await expect(handle).toBeFocused();
+  }
 });
 
 test("a pending save admits no second move and preserves later user focus", async ({
