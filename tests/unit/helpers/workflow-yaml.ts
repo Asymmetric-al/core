@@ -1213,17 +1213,414 @@ export function assertScriptVariablesModelled(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Exact command allowlist for reject/gate run bodies
+// ---------------------------------------------------------------------------
+
+/**
+ * The one pinned non-shell body: ci.yml `ci-gate` runs this repo script with
+ * fixed arguments (it reads `CI_RESULTS`/`CI_BUILD_REQUESTED` from the step
+ * env). Only this exact whole body (after trimming) is allowed; any other
+ * `node` use, other arguments, or an extra command fails as "not allowed".
+ */
+export const PINNED_CI_GATE_BODY =
+  "node scripts/verify/ci-build-policy.mjs --gate";
+
+type ShellWord = {
+  /** Text with quotes removed; expansions appear as `$NAME` / `$?`. */
+  text: string;
+  /** Any part was quoted or backslash-escaped. */
+  quoted: boolean;
+  /** Unquoted literal text before the first quoted/expanded part. */
+  plainPrefix: string;
+  /** Expansions in the word and whether each was inside double quotes. */
+  expansions: { name: string; quoted: boolean }[];
+  /** An unquoted `[` or `]` appeared in the word. */
+  bracket: boolean;
+};
+type ShellOp = ";" | "&&" | "||" | "\n";
+type ShellToken =
+  { kind: "word"; word: ShellWord } | { kind: "op"; op: ShellOp };
+
+function notAllowed(what: string): never {
+  throw new Error(`${what} is not allowed in reject/gate run bodies`);
+}
+
+const UNQUOTED_WORD_CHAR = /[A-Za-z0-9_./:=+,@%!-]/;
+const TEST_UNARY = new Set(["-n", "-z"]);
+const TEST_BINARY = new Set([
+  "=",
+  "==",
+  "!=",
+  "-eq",
+  "-ne",
+  "-lt",
+  "-le",
+  "-gt",
+  "-ge",
+]);
+
+/** Read `$NAME`, `${NAME}` or `$?` at `start`; every other `$` form is not allowed. */
+function readExpansion(
+  script: string,
+  start: number,
+  quoted: boolean,
+  word: ShellWord,
+): number {
+  const rest = script.slice(start + 1);
+  if (rest.startsWith("?")) {
+    word.expansions.push({ name: "?", quoted });
+    word.text += "$?";
+    return start + 2;
+  }
+  const name =
+    /^\{([A-Za-z_][A-Za-z0-9_]*)\}/.exec(rest) ??
+    /^([A-Za-z_][A-Za-z0-9_]*)/.exec(rest);
+  if (!name) {
+    const close = rest.startsWith("{") ? rest.indexOf("}") : -1;
+    const shown = close === -1 ? rest.slice(0, 12) : rest.slice(0, close + 1);
+    notAllowed(`Expansion \`$${shown}\``);
+  }
+  word.expansions.push({ name: name[1]!, quoted });
+  word.text += `$${name[1]}`;
+  return start + 1 + name[0].length;
+}
+
+function tokenizeAllowedScript(script: string): ShellToken[] {
+  const tokens: ShellToken[] = [];
+  let word: ShellWord | undefined;
+  let plain = true;
+  const current = (): ShellWord =>
+    (word ??= {
+      text: "",
+      quoted: false,
+      plainPrefix: "",
+      expansions: [],
+      bracket: false,
+    });
+  const flush = () => {
+    if (word) tokens.push({ kind: "word", word });
+    word = undefined;
+    plain = true;
+  };
+  const op = (value: ShellOp) => {
+    flush();
+    tokens.push({ kind: "op", op: value });
+  };
+  let i = 0;
+  while (i < script.length) {
+    const c = script[i]!;
+    if (c === "\\") {
+      const next = script[i + 1];
+      if (next === "\n") {
+        i += 2; // line continuation
+        continue;
+      }
+      if (next === undefined) notAllowed("A trailing backslash");
+      const w = current();
+      w.text += next;
+      w.quoted = true;
+      plain = false;
+      i += 2;
+      continue;
+    }
+    if (c === "'") {
+      const end = script.indexOf("'", i + 1);
+      if (end === -1) notAllowed("An unterminated single quote");
+      const w = current();
+      w.text += script.slice(i + 1, end);
+      w.quoted = true;
+      plain = false;
+      i = end + 1;
+      continue;
+    }
+    if (c === '"') {
+      const w = current();
+      w.quoted = true;
+      plain = false;
+      i += 1;
+      for (;;) {
+        if (i >= script.length) notAllowed("An unterminated double quote");
+        const d = script[i]!;
+        if (d === '"') {
+          i += 1;
+          break;
+        }
+        if (d === "`") notAllowed("Backtick command substitution");
+        if (d === "$") {
+          i = readExpansion(script, i, true, w);
+          continue;
+        }
+        if (d === "\\") {
+          const n = script[i + 1];
+          if (n === "\n") {
+            i += 2;
+            continue;
+          }
+          if (n !== undefined && '$`"\\'.includes(n)) {
+            w.text += n;
+            i += 2;
+            continue;
+          }
+        }
+        w.text += d;
+        i += 1;
+      }
+      continue;
+    }
+    if (c === "$") {
+      i = readExpansion(script, i, false, current());
+      plain = false;
+      continue;
+    }
+    if (c === "#" && word === undefined) {
+      const end = script.indexOf("\n", i);
+      i = end === -1 ? script.length : end;
+      continue;
+    }
+    if (c === " " || c === "\t") {
+      flush();
+      i += 1;
+      continue;
+    }
+    if (c === "\n") {
+      op("\n");
+      i += 1;
+      continue;
+    }
+    if (c === ";") {
+      if (script[i + 1] === ";") notAllowed("`;;`");
+      op(";");
+      i += 1;
+      continue;
+    }
+    if (c === "&" && script[i + 1] === "&") {
+      op("&&");
+      i += 2;
+      continue;
+    }
+    if (c === "|" && script[i + 1] === "|") {
+      op("||");
+      i += 2;
+      continue;
+    }
+    if ("|&()<>{}`".includes(c)) {
+      const what: Record<string, string> = {
+        "|": "A pipe `|`",
+        "&": "Background or redirection `&`",
+        "(": "A subshell, `((` or function definition `(`",
+        ")": "`)`",
+        "<": "A redirection `<`",
+        ">": "A redirection `>`",
+        "{": "A group or brace expansion `{`",
+        "}": "`}`",
+        "`": "Backtick command substitution",
+      };
+      notAllowed(what[c]!);
+    }
+    const w = current();
+    if (c === "[" || c === "]") w.bracket = true;
+    else if (!UNQUOTED_WORD_CHAR.test(c)) notAllowed(`Unquoted \`${c}\``);
+    w.text += c;
+    if (plain) w.plainPrefix += c;
+    i += 1;
+  }
+  flush();
+  return tokens;
+}
+
+const plainWord = (word: ShellWord | undefined): string | undefined =>
+  word && !word.quoted && word.expansions.length === 0 ? word.text : undefined;
+
+/** An argument: literal or quoted text; expansions must be double-quoted. */
+function checkArgument(word: ShellWord): void {
+  if (word.bracket) notAllowed(`Word \`${word.text}\``);
+  const bare = word.expansions.find((expansion) => !expansion.quoted);
+  if (bare) notAllowed(`Unquoted expansion \`$${bare.name}\``);
+}
+
+function checkTest(inner: ShellWord[]): void {
+  for (const word of inner) {
+    const text = plainWord(word) ?? (word.expansions.length ? "" : word.text);
+    if (
+      text.startsWith("-") &&
+      !TEST_UNARY.has(text) &&
+      !TEST_BINARY.has(text)
+    ) {
+      notAllowed(`Test operator \`${text}\``);
+    }
+  }
+  const args = plainWord(inner[0]) === "!" ? inner.slice(1) : inner;
+  const operator = (word: ShellWord | undefined) =>
+    word && word.expansions.length === 0 ? word.text : undefined;
+  if (args.length === 2 && TEST_UNARY.has(operator(args[0]) ?? "")) {
+    checkArgument(args[1]!);
+    return;
+  }
+  if (args.length === 3 && TEST_BINARY.has(operator(args[1]) ?? "")) {
+    checkArgument(args[0]!);
+    checkArgument(args[2]!);
+    return;
+  }
+  notAllowed(
+    `Test expression \`[ ${inner.map((word) => word.text).join(" ")} ]\``,
+  );
+}
+
+function checkSimpleCommand(words: ShellWord[]): void {
+  const first = words[0]!;
+  if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(first.plainPrefix)) {
+    if (words.length > 1) {
+      notAllowed(`A prefix assignment before \`${words[1]!.text}\``);
+    }
+    if (first.bracket) notAllowed(`Assignment \`${first.text}\``);
+    return; // NAME=value (no word splitting in assignments)
+  }
+  const name = plainWord(first);
+  if (name === undefined) {
+    notAllowed(`A quoted or expanded command name \`${first.text}\``);
+  }
+  const args = words.slice(1);
+  if (name === "echo") {
+    args.forEach(checkArgument);
+    return;
+  }
+  if (name === "exit") {
+    const [code, extra] = args;
+    const ok =
+      extra === undefined &&
+      (code === undefined ||
+        /^\d+$/.test(plainWord(code) ?? "") ||
+        (code.text === "$?" && code.expansions.length === 1));
+    if (!ok) notAllowed(`\`exit ${args.map((w) => w.text).join(" ")}\``);
+    return;
+  }
+  if (name === "[") {
+    if (plainWord(words.at(-1)) !== "]" || words.length < 2) {
+      notAllowed("A `[` test without a closing `]`");
+    }
+    checkTest(words.slice(1, -1));
+    return;
+  }
+  notAllowed(`Command \`${name}\``);
+}
+
+type BlockState = "if-cond" | "if-body" | "else-body" | "for-head" | "for-body";
+
+function checkSegment(words: ShellWord[], stack: BlockState[]): void {
+  let rest = words;
+  while (rest.length > 0) {
+    const head = plainWord(rest[0]);
+    const top = stack.at(-1);
+    const advance = (state: BlockState) => {
+      stack[stack.length - 1] = state;
+      rest = rest.slice(1);
+    };
+    if (head === "if") {
+      stack.push("if-cond");
+      rest = rest.slice(1);
+      if (rest.length === 0) notAllowed("An empty `if` condition");
+      continue;
+    }
+    if (head === "then") {
+      if (top !== "if-cond") notAllowed("`then` outside an `if` condition");
+      advance("if-body");
+      continue;
+    }
+    if (head === "else") {
+      if (top !== "if-body") notAllowed("`else` outside an `if` body");
+      advance("else-body");
+      continue;
+    }
+    if (head === "do") {
+      if (top !== "for-head") notAllowed("`do` outside a `for` loop");
+      advance("for-body");
+      continue;
+    }
+    if (head === "fi" || head === "done") {
+      const open = head === "fi" ? ["if-body", "else-body"] : ["for-body"];
+      if (!open.includes(top ?? "")) notAllowed(`An unmatched \`${head}\``);
+      if (rest.length > 1) notAllowed(`Words after \`${head}\``);
+      stack.pop();
+      return;
+    }
+    if (head === "for") {
+      const [, loopName, inWord, ...items] = rest;
+      if (!NAME.test(plainWord(loopName) ?? "") || plainWord(inWord) !== "in") {
+        notAllowed("A `for` loop other than `for NAME in ...`");
+      }
+      items.forEach(checkArgument);
+      stack.push("for-head");
+      return;
+    }
+    checkSimpleCommand(rest);
+    return;
+  }
+}
+
+/**
+ * Fail-closed allowlist for reject/gate `run:` bodies (checked by
+ * {@link executeRunScript} before the `$`-reference scan and before spawning).
+ * Anything not listed throws "... is not allowed ...", naming the token.
+ *
+ * Inventory of the real bodies (after `${{ }}` rendering), which this allows:
+ * - ci-integration migrate/smoke "Reject fork pull requests": `echo`, `exit 1`.
+ * - e2e-smoke-gate "Fail if E2E smoke failed": `echo`,
+ *   `if [ "…" != "…" ]; then … fi`, `exit 1`.
+ * - integration-gate: `echo`, `failed=0`/`failed=1`,
+ *   `for result in \ "…" \ … do … done` (backslash-newline), `if [ "$result"
+ *   != "success" ]; then … fi`, `[ "$failed" -ne 0 ]`, `exit 1`.
+ * - e2e-gate: `echo`, `if [ … ] || \ [ … ]; then … fi`, `exit 1`.
+ * - ci.yml ci-gate: exactly {@link PINNED_CI_GATE_BODY} (pinned-body exception).
+ *
+ * Allowed: commands `echo`, `[ … ]`, `exit` (no argument, an integer literal,
+ * or `$?`); whole-command assignments `NAME=value`; keywords
+ * `if`/`then`/`else`/`fi` and `for NAME in …; do … done`; separators `;`,
+ * `&&`, `||`, newline; backslash-newline; single/double quotes and backslash
+ * escapes; `#` comments. `[` tests: `-n X`, `-z X`, `X op Y` with op in
+ * `=`, `==`, `!=`, `-eq`, `-ne`, `-lt`, `-le`, `-gt`, `-ge`, optionally negated
+ * by a leading `!`. Expansions: only `$NAME`, `${NAME}` (double-quoted, except
+ * in assignment values) and `$?`; unquoted words use `[A-Za-z0-9_./:=+,@%!-]`.
+ *
+ * Not allowed (examples): `[[`, `elif`, `((`, `$((`, `$( )`, backticks, `let`,
+ * `declare`/`local`/`export`/`readonly`/`typeset`/`read`, `eval`, `exec`,
+ * `source`, `.`, `case`, `while`, `until`, `select`, functions, `( )`, `{ }`,
+ * `|`, `&`, every redirection, `${…}` forms other than `${NAME}`, `[` operators
+ * `-v`/`-R`/`-o`/`-a`/file tests, prefix assignments (`X=1 cmd`), globs, `~`,
+ * and every other command (`true`, `false`, `test`, `printf`, `:`, `set`,
+ * `bash`, `sh`, `node`, `python3`, …).
+ */
+export function assertScriptAllowed(script: string): void {
+  if (script.trim() === PINNED_CI_GATE_BODY) return;
+  const stack: BlockState[] = [];
+  let segment: ShellWord[] = [];
+  for (const token of [
+    ...tokenizeAllowedScript(script),
+    { kind: "op", op: "\n" } as const,
+  ]) {
+    if (token.kind === "word") {
+      segment.push(token.word);
+      continue;
+    }
+    if (segment.length > 0) checkSegment(segment, stack);
+    segment = [];
+  }
+  if (stack.length > 0) notAllowed(`An unterminated \`${stack.at(-1)}\` block`);
+}
+
 /**
  * Run one rendered `run:` body (from the repo root) under the step's shell with
  * the scrubbed {@link scriptSpawnEnv}; memoized on the full spawned env. Throws
- * (see {@link scanScriptVariables}) before running a script whose variable
- * references are not modelled, so callers fail closed.
+ * before running a script that is outside the {@link assertScriptAllowed}
+ * allowlist ("not allowed") or whose variable references are not modelled
+ * ({@link scanScriptVariables}), so callers fail closed.
  */
 export function executeRunScript(
   step: WorkflowStep,
   script: string,
   env: Record<string, string>,
 ): GateExecution {
+  assertScriptAllowed(script);
   assertScriptVariablesModelled(script, env);
   const [command, args] = runStepShellArgv(step);
   const spawnEnv = scriptSpawnEnv(env);

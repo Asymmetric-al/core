@@ -1,6 +1,7 @@
 /**
  * Mutation coverage for the #2158 self-hosted CI workflow harness
- * (PR #2160 review MAJOR-1..6, MINOR-7, and the N1/N2 runner-variable follow-up).
+ * (PR #2160 review MAJOR-1..6, MINOR-7, the N1/N2 runner-variable follow-up,
+ * and the run-body allowlist bypasses).
  * Each reviewer mutation is applied to an
  * in-memory copy of the real workflow YAML; the harness must accept the real
  * workflow and reject every mutated copy.
@@ -15,7 +16,9 @@ import {
   FORK_FAIL_MESSAGE,
   FORK_ONLY_STEP_GUARD,
   MODELED_TRIGGER_EVENTS,
+  PINNED_CI_GATE_BODY,
   analyzeSelfHostedForkSafety,
+  assertScriptAllowed,
   assertScriptVariablesModelled,
   effectiveStepEnv,
   evaluateIfCondition,
@@ -344,14 +347,14 @@ describe("MAJOR-3: fork-reject steps are matched by executing them", () => {
     expect(isForkRejectStep(rejectStep())).toBe(true);
   });
 
-  it("accepts a body that fails through bash -e", () => {
+  it("rejects a body that fails through bash -e via `false` (not on the run-body allowlist)", () => {
     expect(
       isForkRejectStep(
         rejectStep({
           run: `echo "${FORK_FAIL_MESSAGE}"\nfalse\necho unreachable\n`,
         }),
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it.each([
@@ -791,8 +794,9 @@ describe("runner variables do not leak: scrubbed script env, fail-closed referen
     expect(() => assertScriptVariablesModelled(script, { OK: "1" })).toThrow(
       /\$UNSET_X .*not modelled/,
     );
+    // The run-body allowlist may reject the form first; either way it fails closed.
     expect(() => executeRunScript({}, script, { OK: "1" })).toThrow(
-      /not modelled/,
+      /not (modelled|allowed)/,
     );
   });
 
@@ -892,19 +896,230 @@ describe("runner variables do not leak: scrubbed script env, fail-closed referen
   });
 
   it("variables set in the test process are not visible to the spawned script", () => {
-    const listEnv = `node -e 'console.log(JSON.stringify(Object.keys(process.env)))'`;
-    const keys = withProcessEnv(
-      { REVIEW_LEAK: "yes", GITHUB_JOB: "migrate", CI: "true" },
-      () => {
-        const result = executeRunScript({}, listEnv, { STEP_ONLY: "1" });
-        expect(result.status, result.stderr).toBe(0);
-        return JSON.parse(result.stdout) as string[];
+    // Observed through the pinned ci-gate body (the only allowed child program):
+    // an all-success CI_RESULTS planted in the test process must not reach it.
+    const allSuccess = JSON.stringify({
+      plan: "success",
+      format: "success",
+      integrity: "success",
+      lint: "success",
+      typecheck: "success",
+      unit: "success",
+      build: "success",
+    });
+    const leaked = withProcessEnv(
+      {
+        CI_RESULTS: allSuccess,
+        CI_BUILD_REQUESTED: "true",
+        REVIEW_LEAK: "yes",
+        GITHUB_JOB: "migrate",
+        CI: "true",
       },
+      () => executeRunScript({}, PINNED_CI_GATE_BODY, { STEP_ONLY: "1" }),
     );
-    expect(keys).toEqual(expect.arrayContaining(["PATH", "STEP_ONLY"]));
-    expect(keys).not.toContain("REVIEW_LEAK");
-    expect(keys).not.toContain("HOME");
-    expect(keys).not.toContain("CI");
-    expect(keys.filter((key) => key.startsWith("GITHUB_"))).toEqual([]);
+    expect(leaked.stdout).toContain("CI results: {}");
+    expect(leaked.status).not.toBe(0);
+    // The effective env given to the script does reach the child.
+    const passed = executeRunScript({}, PINNED_CI_GATE_BODY, {
+      CI_RESULTS: allSuccess,
+      CI_BUILD_REQUESTED: "true",
+    });
+    expect(passed.status, passed.stdout + passed.stderr).toBe(0);
+  });
+});
+
+describe("reject/gate run bodies are limited to an exact command allowlist", () => {
+  const BYPASSES = [
+    ["[[ -v ]]", "if [[ -v GITHUB_JOB ]]; then exit 0; fi"],
+    ["(( ))", "if (( GITHUB_RUN_ATTEMPT )); then exit 0; fi"],
+    ["nested bash", `bash -c '[ -n "$GITHUB_JOB" ]' && exit 0`],
+    [
+      "nested node",
+      "node -e 'process.exit(process.env.GITHUB_ACTIONS ? 0 : 1)' && exit 0",
+    ],
+  ] as const;
+  const rejectEcho = `          echo "${FORK_FAIL_MESSAGE}"\n`;
+  const gateEcho =
+    "          echo \"test-e2e-smoke: ${{ needs['test-e2e-smoke'].result }}\"\n";
+  const smokeGate = ENFORCING_STEPS.find(
+    (entry) => entry.job === "e2e-smoke-gate",
+  )!;
+
+  for (const [label, line] of BYPASSES) {
+    it(`${label} early exit in both reject steps is not a reject step: ${line}`, () => {
+      const text = mutate(
+        source(CI_INTEGRATION),
+        rejectEcho,
+        `          ${line}\n${rejectEcho}`,
+        2,
+      );
+      const jobs = jobsOf(text, label);
+      for (const jobId of ["migrate", "smoke"] as const) {
+        const job = jobs[jobId]!;
+        expect(forkRejectStepIndex(job), jobId).toBe(-1);
+        expect(requiredJobFailsClosedOnFork(job), jobId).toBe(false);
+        expect(
+          analyzeSelfHostedForkSafety(job).problems.join("\n"),
+          jobId,
+        ).toMatch(/no fork-reject step/);
+        expect(() =>
+          executeRunScript(job.steps![0]!, job.steps![0]!.run!, {}),
+        ).toThrow(/not allowed/);
+      }
+    });
+
+    it(`${label} early exit in "Fail if E2E smoke failed" is reported, not fail-closed: ${line}`, () => {
+      const text = mutate(
+        source(CI_INTEGRATION),
+        gateEcho,
+        `          ${line}\n${gateEcho}`,
+        1,
+      );
+      const problems = enforcementProblems(text, smokeGate);
+      expect(problems).not.toEqual([]);
+      expect(problems.join("\n")).toMatch(/not allowed/);
+      expect(
+        hostedGateFailsClosedWhenHeavyNeedsSkipped(
+          jobsOf(text, label)["e2e-smoke-gate"]!,
+          ["test-e2e-smoke"],
+        ),
+      ).toBe(false);
+    });
+  }
+
+  it.each([
+    ["let", "let x=1", "let"],
+    ["declare", "declare X=1", "declare"],
+    ["local", "local x=1", "local"],
+    ["export", "export X=1", "export"],
+    ["read", "read x", "read"],
+    ["sh -c", "sh -c 'exit 0'", "sh"],
+    ["python3 -c", "python3 -c 'print(1)'", "python3"],
+    ["true", "true", "true"],
+    ["false", "false", "false"],
+    ["test", "test -n x", "test"],
+    ["printf", "printf x", "printf"],
+    [":", ": x", ":"],
+    ["set", "set -e", "set"],
+    ["eval", "eval echo", "eval"],
+    ["exec", "exec echo x", "exec"],
+    ["source", "source ./x.sh", "source"],
+    ["dot", ". ./x.sh", "."],
+    ["env", "env", "env"],
+    ["printenv", "printenv X", "printenv"],
+    ["case", "case x in x) exit 0;; esac", "`)`"],
+    ["while", "while [ 1 = 1 ]; do exit 0; done", "while"],
+    ["until", "until [ 1 = 1 ]; do exit 0; done", "until"],
+    [
+      "elif",
+      "if [ a = b ]; then echo; elif [ a = a ]; then exit 0; fi",
+      "elif",
+    ],
+    ["a function definition", "f() { exit 0; }", "("],
+    ["the function keyword", "function f", "function"],
+    ["[[", '[[ "$X" = x ]]', "[["],
+    ["(( ))", "(( 1 ))", "("],
+    ["$(( ))", "echo $((1 + 1))", "$(("],
+    ["$( )", 'echo "$(id)"', "$("],
+    ["backticks", "echo `id`", "Backtick"],
+    ["${X@P}", 'echo "${GITHUB_JOB@P}"', "${GITHUB_JOB@P}"],
+    ["${X+x}", 'echo "${GITHUB_JOB+x}"', "${GITHUB_JOB+x}"],
+    ["${X:-d}", 'echo "${GITHUB_JOB:-d}"', "${GITHUB_JOB:-d}"],
+    ["${#X}", 'echo "${#GITHUB_JOB}"', "${#GITHUB_JOB}"],
+    ["${!X}", 'echo "${!GITHUB_JOB}"', "${!GITHUB_JOB}"],
+    ["${X/a/b}", 'echo "${GITHUB_JOB/a/b}"', "${GITHUB_JOB/a/b}"],
+    ["positional $1", 'echo "$1"', "$1"],
+    ["a /dev/tcp redirection", "echo x > /dev/tcp/127.0.0.1/80", ">"],
+    ["an input redirection", "echo < /etc/passwd", "<"],
+    ["2> redirection", "echo x 2>/dev/null", ">"],
+    ["&> redirection", "echo x &>/dev/null", "&"],
+    ["a heredoc", "echo <<EOF\nx\nEOF", "<"],
+    ["a pipe", "echo x | cat", "|"],
+    ["background", "echo x &", "&"],
+    ["a subshell", "(exit 0)", "("],
+    ["a group", "{ exit 0; }", "{"],
+    ["a prefix assignment", "X=1 echo x", "prefix assignment"],
+    ["[ -v ]", "[ -v GITHUB_JOB ]", "-v"],
+    ["[ -R ]", "[ -R GITHUB_JOB ]", "-R"],
+    ["[ -o ]", "[ a = b -o c = d ]", "-o"],
+    ["[ -a ]", "[ a = b -a c = d ]", "-a"],
+    ["a file test", "[ -f /etc/passwd ]", "-f"],
+    ["an unquoted expansion", "echo $GITHUB_JOB", "Unquoted expansion"],
+    ["a glob", "echo /home/*", "*"],
+    ["a tilde", "echo ~", "~"],
+    ["exit with two arguments", "exit 1 2", "exit"],
+    ["exit with a variable", 'exit "$X"', "exit"],
+    ["a quoted command name", '"echo" x', "quoted or expanded command name"],
+    ["an unterminated if", "if [ a = a ]; then exit 0", "unterminated"],
+  ])("throws 'not allowed' for %s", (_label, script, token) => {
+    expect(() => assertScriptAllowed(script)).toThrow(/not allowed/);
+    expect(() => assertScriptAllowed(script)).toThrow(token);
+  });
+
+  it("every real reject and gate body passes the allowlist", () => {
+    const integration = jobsOf(source(CI_INTEGRATION), CI_INTEGRATION);
+    const results = {
+      migrate: "success",
+      smoke: "success",
+      "e2e-smoke-gate": "success",
+      "test-e2e-smoke": "skipped",
+      "test-e2e": "failure",
+      "instant-nav": "success",
+    };
+    for (const jobId of [
+      "migrate",
+      "smoke",
+      "e2e-smoke-gate",
+      "integration-gate",
+      "e2e-gate",
+    ]) {
+      const script = renderStepText(integration[jobId]!.steps![0]!.run!, {
+        results,
+      });
+      expect(() => assertScriptAllowed(script), jobId).not.toThrow();
+    }
+  });
+
+  it("the ci.yml ci-gate body is exactly the pinned body and passes", () => {
+    const ciGate = jobsOf(source(CI), CI)["ci-gate"]!.steps!.find(
+      (step) => step.env?.CI_RESULTS !== undefined,
+    )!;
+    expect(ciGate.run!.trim()).toBe(PINNED_CI_GATE_BODY);
+    expect(() => assertScriptAllowed(ciGate.run!)).not.toThrow();
+    expect(() =>
+      assertScriptAllowed(`\n  ${PINNED_CI_GATE_BODY}\n`),
+    ).not.toThrow();
+  });
+
+  it.each([
+    ["other arguments", "node scripts/verify/ci-build-policy.mjs --build"],
+    ["an extra argument", `${PINNED_CI_GATE_BODY} --verbose`],
+    ["an extra command", `${PINNED_CI_GATE_BODY}\necho hi`],
+    ["a chained exit", `${PINNED_CI_GATE_BODY} || exit 0`],
+    ["another script", "node scripts/verify/other.mjs --gate"],
+    ["node -e", "node -e 'process.exit(0)'"],
+  ])("the pinned ci-gate exception rejects %s", (_label, script) => {
+    expect(() => assertScriptAllowed(script)).toThrow(/not allowed/);
+  });
+
+  it.each([
+    [
+      "if/else with && and ||",
+      'if [ -n "$X" ] && [ "$Y" = y ] || [ "$Z" != z ]; then exit 0; else echo no; fi',
+    ],
+    ["negated test", 'if [ ! "$X" = x ]; then exit 1; fi'],
+    ["numeric tests", 'if [ "$N" -lt 2 ] || [ "$N" -ge 9 ]; then exit 1; fi'],
+    ["-z test", 'if [ -z "$X" ]; then exit 1; fi'],
+    ["exit $?", "echo hi\nexit $?"],
+    ["bare exit", "exit"],
+    ["assignments", "x=1\ny=\"$X\"\nz=$X\nw='lit'"],
+    ["for loop", 'for x in a "b" \\\n  c; do echo "$x"; done'],
+    [
+      "comments and escapes",
+      'echo ok # trailing $X\n# full line\necho "\\$HOME" \\$x',
+    ],
+    ["single quotes", "echo '$X ${Y} $(id) `id`'"],
+  ])("accepts %s", (_label, script) => {
+    expect(() => assertScriptAllowed(script)).not.toThrow();
   });
 });
