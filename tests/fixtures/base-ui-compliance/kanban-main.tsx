@@ -1,8 +1,10 @@
 import React, { useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { toast } from "sonner";
 
 import { TaskKanbanBoard } from "../../../packages/missionary/components/task-kanban-board";
 import { Button } from "../../../packages/ui/components/shadcn/button";
+import { Toaster } from "../../../packages/ui/components/shadcn/sonner";
 
 import type { Task, TaskStatus } from "../../../packages/missionary/types";
 import "virtual:base-ui-styles";
@@ -47,11 +49,21 @@ const initialTasks: Task[] = [
 ];
 function App() {
   const [tasks, setTasks] = useState(initialTasks);
+  const [viewMode, setViewMode] = useState<"board" | "list">("board");
   const requested = new URLSearchParams(location.search).get("moveResult");
   const [saveResult, setSaveResult] = useState<
-    "success" | "false" | "throw" | "pending"
+    | "success"
+    | "false"
+    | "throw"
+    | "pending"
+    | "pending-false"
+    | "pending-throw"
   >(
-    requested === "false" || requested === "throw" || requested === "pending"
+    requested === "false" ||
+      requested === "throw" ||
+      requested === "pending" ||
+      requested === "pending-false" ||
+      requested === "pending-throw"
       ? requested
       : "success",
   );
@@ -62,52 +74,87 @@ function App() {
   >([]);
   return (
     <main className="min-h-svh bg-background text-foreground p-4 space-y-4">
+      <Toaster />
       <h1>Task board contracts</h1>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
+        <Button
+          aria-pressed={viewMode === "board"}
+          onClick={() => setViewMode("board")}
+        >
+          Board view
+        </Button>
+        <Button
+          aria-pressed={viewMode === "list"}
+          onClick={() => setViewMode("list")}
+        >
+          List view
+        </Button>
+        <Button
+          onClick={() =>
+            toast.message("Unrelated task update", {
+              id: "kanban-fixture-unrelated",
+              duration: Infinity,
+            })
+          }
+        >
+          Show unrelated notice
+        </Button>
         <Button onClick={() => setSaveResult("success")}>Save normally</Button>
         <Button onClick={() => setSaveResult("false")}>Decline saves</Button>
         <Button onClick={() => setSaveResult("throw")}>Throw on saves</Button>
         <Button onClick={() => finishSave.current?.()}>Finish task save</Button>
       </div>
       <h2 className="sr-only">Tasks by status</h2>
-      <TaskKanbanBoard
-        tasks={tasks}
-        onMoveTask={async (taskId, status, index) => {
-          setMoves((current) => [...current, { taskId, status, index }]);
-          if (saveResult === "pending") {
-            setSaving(true);
-            await new Promise<void>((resolve) => {
-              finishSave.current = resolve;
+      {viewMode === "board" ? (
+        <TaskKanbanBoard
+          tasks={tasks}
+          onMoveTask={async (taskId, status, index) => {
+            setMoves((current) => [...current, { taskId, status, index }]);
+            if (saveResult.startsWith("pending")) {
+              setSaving(true);
+              await new Promise<void>((resolve) => {
+                finishSave.current = resolve;
+              });
+              finishSave.current = null;
+              setSaving(false);
+            }
+            if (saveResult === "throw" || saveResult === "pending-throw")
+              throw new Error("Simulated task persistence failure");
+            if (saveResult === "false" || saveResult === "pending-false")
+              return false;
+            setTasks((current) => {
+              const moving = current.find((task) => task.id === taskId);
+              if (!moving) return current;
+              const destination = current
+                .filter((task) => task.status === status && task.id !== taskId)
+                .sort((a, b) => a.sort_key - b.sort_key);
+              destination.splice(index, 0, { ...moving, status });
+              return [
+                ...current.filter(
+                  (task) => task.status !== status && task.id !== taskId,
+                ),
+                ...destination.map((task, position) => ({
+                  ...task,
+                  sort_key: (position + 1) * 100,
+                })),
+              ];
             });
-            finishSave.current = null;
-            setSaving(false);
-          }
-          if (saveResult === "throw")
-            throw new Error("Simulated task persistence failure");
-          if (saveResult === "false") return false;
-          setTasks((current) => {
-            const moving = current.find((task) => task.id === taskId);
-            if (!moving) return current;
-            const destination = current
-              .filter((task) => task.status === status && task.id !== taskId)
-              .sort((a, b) => a.sort_key - b.sort_key);
-            destination.splice(index, 0, { ...moving, status });
-            return [
-              ...current.filter(
-                (task) => task.status !== status && task.id !== taskId,
-              ),
-              ...destination.map((task, position) => ({
-                ...task,
-                sort_key: (position + 1) * 100,
-              })),
-            ];
-          });
-          return true;
-        }}
-        onEditTask={() => {}}
-        onCompleteTask={() => {}}
-        onDeleteTask={() => {}}
-      />
+            return true;
+          }}
+          onEditTask={() => {}}
+          onCompleteTask={() => {}}
+          onDeleteTask={() => {}}
+        />
+      ) : (
+        <section aria-label="Task list">
+          <h2>Task list</h2>
+          <ul>
+            {tasks.map((task) => (
+              <li key={task.id}>{task.title}</li>
+            ))}
+          </ul>
+        </section>
+      )}
       <output aria-label="Task save phase">
         {saving ? "pending" : "idle"}
       </output>

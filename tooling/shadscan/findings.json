@@ -1905,7 +1905,7 @@
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "f79e7ddccf813b2866903295e36d264f1fd3f93bcc806d03819c9064a6980d5e"
+          "sha256": "858035b8e9a9ce2833ec0d795ab7b96895878245414169a9849df1f48c1ed89b"
         }
       ]
     },
@@ -1922,7 +1922,7 @@
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "f79e7ddccf813b2866903295e36d264f1fd3f93bcc806d03819c9064a6980d5e"
+          "sha256": "858035b8e9a9ce2833ec0d795ab7b96895878245414169a9849df1f48c1ed89b"
         }
       ]
     },
@@ -1939,7 +1939,7 @@
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "f79e7ddccf813b2866903295e36d264f1fd3f93bcc806d03819c9064a6980d5e"
+          "sha256": "858035b8e9a9ce2833ec0d795ab7b96895878245414169a9849df1f48c1ed89b"
         }
       ]
     },
@@ -1956,7 +1956,7 @@
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "f79e7ddccf813b2866903295e36d264f1fd3f93bcc806d03819c9064a6980d5e"
+          "sha256": "858035b8e9a9ce2833ec0d795ab7b96895878245414169a9849df1f48c1ed89b"
         }
       ]
     },
@@ -1973,7 +1973,7 @@
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "f79e7ddccf813b2866903295e36d264f1fd3f93bcc806d03819c9064a6980d5e"
+          "sha256": "858035b8e9a9ce2833ec0d795ab7b96895878245414169a9849df1f48c1ed89b"
         }
       ]
     },
@@ -1990,7 +1990,7 @@
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "f79e7ddccf813b2866903295e36d264f1fd3f93bcc806d03819c9064a6980d5e"
+          "sha256": "858035b8e9a9ce2833ec0d795ab7b96895878245414169a9849df1f48c1ed89b"
         }
       ]
     },
@@ -2007,7 +2007,7 @@
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "f79e7ddccf813b2866903295e36d264f1fd3f93bcc806d03819c9064a6980d5e"
+          "sha256": "858035b8e9a9ce2833ec0d795ab7b96895878245414169a9849df1f48c1ed89b"
         }
       ]
     },
@@ -2024,7 +2024,7 @@
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "f79e7ddccf813b2866903295e36d264f1fd3f93bcc806d03819c9064a6980d5e"
+          "sha256": "858035b8e9a9ce2833ec0d795ab7b96895878245414169a9849df1f48c1ed89b"
         }
       ]
     },
@@ -2041,7 +2041,7 @@
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "f79e7ddccf813b2866903295e36d264f1fd3f93bcc806d03819c9064a6980d5e"
+          "sha256": "858035b8e9a9ce2833ec0d795ab7b96895878245414169a9849df1f48c1ed89b"
         }
       ]
     },
@@ -2172,7 +2172,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-kanban-board.tsx",
-          "sha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba"
+          "sha256": "f69b510c8fea99015913705d67dcf3c2edb2d280920d0090e10b40b483c654be"
         },
         {
           "path": "packages/missionary/components/task-row.tsx",
@@ -2204,11 +2204,11 @@
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/kanban.spec.ts",
-          "sha256": "05d3c1e3e8b1cc0e6e4006a37810261fadcfdc23f1f1dc703c1b54572d964f7e"
+          "sha256": "a050e0b1a755d856bd43cf72774452a9c1e4e2d4fd6807a3bd9c2488253d026f"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/kanban-main.tsx",
-          "sha256": "a0eafed1ed269c614ecd9fd3421c97bbdeb8f3c99604fd37240de6432a121e2f"
+          "sha256": "039485a6d638522071dd7b3a29ea6795b3e95c93396c0c1e22d1e9d5becd982b"
         }
       ]
     },

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedAt": "2026-10-22T17:01:20.176360+00:00",
-  "status": "local-qualified-awaiting-ui-base-ci-review-previews-and-merge",
+  "status": "merged-ui-base-browser-qualified-awaiting-prepush-ci-review-previews-and-merge",
   "baseCommit": "61b709ac244678605d926d415f0ff8d52204a44d",
   "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
   "cohort": {
@@ -175,7 +175,8 @@
     "The earlier 36-case selection and the pre-hook cold full matrix (299 passed, five existing skips, including 40 task-board cases) remain dated evidence for the pre-normalization source. After import ordering, all 40 task-board cases pass again across four projects; the full browser matrix and full preflight were not rerun after this import-only change.",
     "The real useTasks HTTP hook has6new preservation tests and14 focused lifecycle/realtime/API tests overall. Offline controlled responses do not substitute for hosted authenticated provider checks.",
     "Pointer Escape, pointercancel and active-provider-unmount cleanup are confirmed in inspected installed source but have no new focused runtime test in this checkpoint.",
-    "The original independent source review and quality-ledger review retain their original byte hashes. The current task-board and Shadscan ledger hashes are qualified through the explicit import-only and one-proof-hash bridges below; prior full-preflight and source-review artifacts are not relabeled as current whole-file evidence."
+    "The original independent source review and quality-ledger review retain their original byte hashes. The current task-board and Shadscan ledger hashes are qualified through the explicit import-only and one-proof-hash bridges below; prior full-preflight and source-review artifacts are not relabeled as current whole-file evidence.",
+    "The normal merge of qualified UI2190 into this Dnd branch is recorded in currentBaseRequalification. Its fresh full-browser run passed 299 cases with 5 existing skips; prior15 baseline/pre-hook and4 post-hook receipts remain unchanged dated evidence. New-base pre-push, PR/current-head CI/review, hosted-preview and merge qualification remain open."
   ],
   "graph": {
     "newFamilyPackages": 7,
@@ -207,7 +208,7 @@
   },
   "openSecurity": "Whole-Core70 unique advisories including Braces3.0.3 remain open. This cohort introduces no advisory pair and grants no unreachability exception.",
   "releasePending": [
-    "Requalification against merged UI checkpoint/current develop",
+    "Complete merged-UI/current-develop pre-push qualification at 043fc189d6cd36d355582476aae16796d24dd186",
     "Reviewable PR, current-head CI/review, three deployed previews, merge and post-merge readback"
   ],
   "browser": {
@@ -376,5 +377,130 @@
       "interpretation": "This full preflight passed before the import-only normalization. Its receipt, source review and complete browser run remain historical evidence at their original hashes; the focused board browser, strict Doctor/Shadscan and workspace lint checks were rerun on the normalized source. No post-hook full-preflight rerun is claimed."
     },
     "releaseBoundary": "Existing current-head CI/review, UI-base/current-develop requalification, three hosted previews, merge and post-merge readback remain open; no hook bypass, security waiver or production qualification is granted."
+  },
+  "currentBaseRequalification": {
+    "recordedAt": "2026-10-22T18:59:00.773047+00:00",
+    "candidateBaseCommit": "043fc189d6cd36d355582476aae16796d24dd186",
+    "normalMergeParents": [
+      "8b31d2cc8bbd8189e03936cf1f355967ced538d3",
+      "e29b7c4f4f2e30cab456f7a047944c2998477dca"
+    ],
+    "mergedUi": {
+      "pullRequest": "https://github.com/Asymmetric-al/core/pull/2190",
+      "reviewedHead": "3e33a371356bea237d16eaa52209ed57f6a8d23f",
+      "mergeCommit": "e29b7c4f4f2e30cab456f7a047944c2998477dca",
+      "releaseReadback": "ui-utilities-release-readback.json"
+    },
+    "historicalQualification": {
+      "recordedAt": "2026-10-22T17:01:20.176360+00:00",
+      "baseCommit": "61b709ac244678605d926d415f0ff8d52204a44d",
+      "status": "local-qualified-awaiting-ui-base-ci-review-previews-and-merge",
+      "releasePending": [
+        "Requalification against merged UI checkpoint/current develop",
+        "Reviewable PR, current-head CI/review, three deployed previews, merge and post-merge readback"
+      ],
+      "passedReceipts": 19,
+      "preHookAndBaselineReceipts": 15,
+      "postHookReceipts": 4,
+      "interpretation": "All original receipt contents, source hashes, dates and hook bridges remain unchanged; they do not claim fresh combined-base gates."
+    },
+    "sourceAndLockReadback": {
+      "comparedTo": "currentSourceReadback recorded after hook import normalization",
+      "paths": [
+        {
+          "path": "apps/admin/package.json",
+          "sha256": "c3574c0ddf18d6bd51ec06aab78bc0b9141ebe9028d67eb8d94de4d072aa2700"
+        },
+        {
+          "path": "bun.lock",
+          "sha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d"
+        },
+        {
+          "path": "packages/missionary/components/task-kanban-board.tsx",
+          "sha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "sha256": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/server.mjs",
+          "sha256": "66006a1d5f431f5649046def07b5feb16b4cfe841bae6992d0ed4096295daa2c"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/tsconfig.json",
+          "sha256": "1840b91a9aeeca91789e808303e9411856bbacd32e466458c4a49f771ea9ea50"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/kanban-main.tsx",
+          "sha256": "a0eafed1ed269c614ecd9fd3421c97bbdeb8f3c99604fd37240de6432a121e2f"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/kanban.html",
+          "sha256": "cbc5cd6cc4959e2c368693eb96f6d82a1801d615dc3020dc17af1920dcb4d9f1"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/kanban.spec.ts",
+          "sha256": "05d3c1e3e8b1cc0e6e4006a37810261fadcfdc23f1f1dc703c1b54572d964f7e"
+        },
+        {
+          "path": "tests/unit/packages/lib/use-tasks-move-contract.test.tsx",
+          "sha256": "92435c56223ed283de2fbc0a8cc399452654de8fde282c8d267ccd24decc0236"
+        }
+      ],
+      "allTenPathsAndLockUnchanged": true,
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d"
+    },
+    "officialSelectedReleaseRefresh": {
+      "path": "/tmp/core-modernization-dnd-official-release-refresh-after-ui-merge.json",
+      "sha256": "0f17ee59dfe8982332c28af11a5063136348355f3bffb83eaca216a007ae2a86",
+      "selectedDeclarations": 4,
+      "selectedVersion": "0.5.1",
+      "allSelectedCurrent": true,
+      "selectedIntegritiesVerified": true
+    },
+    "currentBaseGates": {
+      "fullBrowser": {
+        "status": "passed",
+        "acceptedReceipt": {
+          "path": "/tmp/core-modernization-dnd-current-develop-full-browser.json",
+          "sha256": "73f30d30485a63b8998076e5506e3b0713aa42aed2fcb71c7e289570919e84cb"
+        },
+        "command": ["bun", "run", "test:e2e:base-ui"],
+        "startedAt": "2026-10-22T18:49:07.074941+00:00",
+        "endedAt": "2026-10-22T18:54:12.926787+00:00",
+        "exitCode": 0,
+        "casesPassed": 299,
+        "existingSkips": 5,
+        "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+        "log": "/tmp/core-modernization-dnd-current-develop-full-browser.log",
+        "logSha256": "5f999a10980f80d52b9284cdcea3f1a859497f256be6519805a20dff96aa0296",
+        "qualification": "Accepted full browser matrix on the normally merged UI base; product/source and lock hashes remain unchanged."
+      },
+      "prepush": "open",
+      "pullRequest": "open",
+      "currentHeadCiAndReview": "open",
+      "hostedPreviews": "open",
+      "merge": "open",
+      "postMergeReadback": "open"
+    },
+    "remainingBoundary": "Required upstream CMS beta.4 owner requalification, whole-Core advisories including Braces, and production-release evidence remain open.",
+    "latestReadbackAt": "2026-10-22T19:12:31.570203+00:00",
+    "historicalGateReadbacks": [
+      {
+        "recordedAt": "2026-10-22T18:59:00.773047+00:00",
+        "status": "merged-ui-base-requalification-in-progress-awaiting-prepush-ci-review-previews-and-merge",
+        "fullBrowser": {
+          "status": "running",
+          "acceptedReceipt": null,
+          "qualification": "The parent is running the new-base full browser suite; no completed count or pass is recorded here."
+        },
+        "releasePending": [
+          "Complete merged-UI/current-develop browser and pre-push requalification at 043fc189d6cd36d355582476aae16796d24dd186",
+          "Reviewable PR, current-head CI/review, three deployed previews, merge and post-merge readback"
+        ]
+      }
+    ],
+    "historicalBrowserLimitSupersession": "The original post-hook no-full-browser-rerun statement in coverageLimits describes its dated capture. This accepted merged-base run supersedes that browser limit only; no new-base full-preflight or publication result is inferred."
   }
 }

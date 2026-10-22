@@ -103,5 +103,19 @@
     "path": "/tmp/core-modernization-dnd-prepublication-upstream-refresh.json",
     "sha256": "0b251bd661a0dd7ef32e5df0cc590ca9d16e9ff013c00932ab5ad1a39f0feb84",
     "coherentCurrentPackages": 7
+  },
+  "currentBaseOfficialRefresh": {
+    "recordedAt": "2026-10-22T18:43:12.462171+00:00",
+    "candidateBaseCommit": "043fc189d6cd36d355582476aae16796d24dd186",
+    "mergedUiCommit": "e29b7c4f4f2e30cab456f7a047944c2998477dca",
+    "evidence": {
+      "path": "/tmp/core-modernization-dnd-official-release-refresh-after-ui-merge.json",
+      "sha256": "0f17ee59dfe8982332c28af11a5063136348355f3bffb83eaca216a007ae2a86"
+    },
+    "selectedDeclarations": 4,
+    "allSelectedCurrent": true,
+    "selectedVersion": "0.5.1",
+    "selectedIntegritiesVerified": true,
+    "scope": "Fresh official metadata confirms the four selected declarations after the normal UI merge. The existing seven-package cohort/graph receipts remain preserved at their original snapshots; no new install, graph, browser or publication result is inferred."
   }
 }
