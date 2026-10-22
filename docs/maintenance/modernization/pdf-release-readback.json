@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-22T14:29:43.563991+00:00",
+  "status": "merged-qualified-checkpoint",
+  "pullRequest": "https://github.com/Asymmetric-al/core/pull/2188",
+  "reviewedHead": "f05cdc7fb15c19c26b986693077b591d2647ee17",
+  "mergeCommit": "3a8f77043f0fbcff692be14ad99ec6fdd55e7f99",
+  "lockSha256": "266bf5acfe2eb096459585a45ef5745b81c1e937951e2d3c7249701a62302233",
+  "ownerRelease": "pdf-package-provenance.json",
+  "prepublicationQualification": "pdf-qualification.json",
+  "ci": {
+    "prMain": {
+      "run": 39787229115,
+      "status": "success"
+    },
+    "prIntegration": {
+      "run": 39787229041,
+      "status": "success"
+    },
+    "previewQa": {
+      "run": 39787464271,
+      "status": "success",
+      "projects": [
+        "development-admin",
+        "development-donor",
+        "development-missionary"
+      ]
+    },
+    "postMerge": [
+      {
+        "run": 39791990407,
+        "workflow": "CI",
+        "status": "success"
+      },
+      {
+        "run": 39791990364,
+        "workflow": "CI Integration",
+        "status": "success"
+      }
+    ]
+  },
+  "previews": [
+    {
+      "app": "admin",
+      "id": "dpl_CmJJHZDsxp5ZvoLpLS9SEkg7kpWR",
+      "url": "admin-idczy8ebx-asymmetric-al.vercel.app",
+      "readyState": "READY",
+      "target": null,
+      "projectId": "prj_SB9DucsrJOT0wF1v43SWMFsSNdn8",
+      "gitSource": null,
+      "meta": {
+        "githubCommitSha": "f05cdc7fb15c19c26b986693077b591d2647ee17",
+        "githubCommitRef": "chore/AL-1965-pdf-package-modernization"
+      }
+    },
+    {
+      "app": "donor",
+      "id": "dpl_GG5bSj39oRZqav1UrzQuXgRG9R4d",
+      "url": "donor-4weqvfqt2-asymmetric-al.vercel.app",
+      "readyState": "READY",
+      "target": null,
+      "projectId": "prj_dZG3XkklLVZyqm85FW5Vvv7ph3kL",
+      "gitSource": null,
+      "meta": {
+        "githubCommitSha": "f05cdc7fb15c19c26b986693077b591d2647ee17",
+        "githubCommitRef": "chore/AL-1965-pdf-package-modernization"
+      }
+    },
+    {
+      "app": "missionary",
+      "id": "dpl_4tkMHCvagdkzM3CYy34h6YyUJwYN",
+      "url": "missionary-d12vjhbnm-asymmetric-al.vercel.app",
+      "readyState": "READY",
+      "target": null,
+      "projectId": "prj_6tXSJKsdv2JpK70GKkg9HIg5hiYN",
+      "gitSource": null,
+      "meta": {
+        "githubCommitSha": "f05cdc7fb15c19c26b986693077b591d2647ee17",
+        "githubCommitRef": "chore/AL-1965-pdf-package-modernization"
+      }
+    }
+  ],
+  "reviews": {
+    "independentCompleteChangedPaths": 144,
+    "remoteChangedFiles": 137,
+    "exactRemoteBlobMatches": 137,
+    "unresolvedThreads": 0,
+    "restReviewComments": 0,
+    "greptile": {
+      "reviewedHead": "f05cdc7fb15c19c26b986693077b591d2647ee17",
+      "confidence": "5/5",
+      "importantFindings": 0
+    },
+    "codeRabbit": {
+      "importantFindings": 0,
+      "minorDocumentationSpacingComments": 2,
+      "spacingResolution": "Addressed in subsequent UI checkpoint documentation edits"
+    },
+    "serviceLimits": [
+      "Codex automatic review unavailable due review quota; no completed review claimed.",
+      "Bugbot declined artifact-heavy change size; no completed review claimed."
+    ]
+  },
+  "ancestryProof": {
+    "path": "/tmp/core-modernization-core-pdf-merge-ancestry.json",
+    "sha256": "5dd93d92a821987579d8656139b3d872d9f07de5885041e00d91426339dd8862"
+  },
+  "preserved": {
+    "nativeBuilderActivation": "unchanged",
+    "databaseSchemaChanges": false,
+    "primaryUserChanges": "preserved outside isolated checkouts",
+    "productionExecution": false
+  },
+  "remaining": [
+    "Whole-Core security/SBOM and combined production-release package"
+  ]
+}

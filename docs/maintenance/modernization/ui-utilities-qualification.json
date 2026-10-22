@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-22T14:29:43.563991+00:00",
+  "status": "local-qualified-awaiting-ci-review-previews",
+  "baseCommit": "3a8f77043f0fbcff692be14ad99ec6fdd55e7f99",
+  "baselineSourceCommit": "f05cdc7fb15c19c26b986693077b591d2647ee17",
+  "baseTreeEquivalenceProof": "/tmp/core-modernization-core-pdf-merge-ancestry.json",
+  "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+  "cohort": {
+    "cn": "0.5.0",
+    "lucide-react": "1.61.0",
+    "maplibre-gl": "6.15.0",
+    "motion": "14.6.0",
+    "nuqs": "2.10.2",
+    "react-resizable-panels": "4.14.8"
+  },
+  "declarations": 20,
+  "manifests": 7,
+  "passed": [
+    {
+      "kind": "baseline-install",
+      "proof": "/tmp/core-modernization-ui-utilities-baseline-install.json",
+      "sha256": "a116fcb2fe12b49de816a74c4b8292c507c57081543182a739bb981a0474f264",
+      "lockSha256": "266bf5acfe2eb096459585a45ef5745b81c1e937951e2d3c7249701a62302233",
+      "exit": 0,
+      "logSha256": "7bbedb22faf2c9c1b50c012d441c5276cfe1872f32016b673b2e8e183ec33bd7"
+    },
+    {
+      "kind": "baseline-focused",
+      "proof": "/tmp/core-modernization-ui-utilities-baseline-focused.json",
+      "sha256": "a10c385e9a2d6c1b79142e342fc33ab7a03f450caecd84ad23f7a504132b070c",
+      "lockSha256": "266bf5acfe2eb096459585a45ef5745b81c1e937951e2d3c7249701a62302233",
+      "exit": 0,
+      "logSha256": "ff675b7edea51f30ecb1791281959e7640742c27d51214034b18bf793868330f"
+    },
+    {
+      "kind": "baseline-browser",
+      "proof": "/tmp/core-modernization-ui-utilities-baseline-browser-v2.json",
+      "sha256": "06eb4b9b1b110996454ce4cb23b8ff7dde8aacff432c98770906c2cf5b5fa841",
+      "lockSha256": "266bf5acfe2eb096459585a45ef5745b81c1e937951e2d3c7249701a62302233",
+      "exit": 0,
+      "logSha256": "f46ab65a1ccc531a996a3e962341220a700eea69f73d8aeab2b5983a7905256b"
+    },
+    {
+      "kind": "cold-install",
+      "proof": "/tmp/core-modernization-ui-utilities-final-41d6-cold-install.json",
+      "sha256": "0975e97294bd778cfc917f292e9273ff49f01f0f2bbe1b79d9a4c6e5857bec83",
+      "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+      "exit": 0,
+      "logSha256": "88c747cd8285769a09b14b70720e2945b6befbbe0def08f0f0fa341aecf14148"
+    },
+    {
+      "kind": "cold-focused",
+      "proof": "/tmp/core-modernization-ui-utilities-final-41d6-cold-focused.json",
+      "sha256": "4e01107aa2c5db8745c4d15898cbe02190852189d7cdc51a16b0fe801e24f498",
+      "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+      "exit": 0,
+      "logSha256": "e0002f7d48e7c7e498fd7fd783508cb909a2a956f5a75c97204ae2f6364df654"
+    },
+    {
+      "kind": "fixture-typecheck",
+      "proof": "/tmp/core-modernization-ui-utilities-final-41d6-cold-fixture-typecheck.json",
+      "sha256": "4772a9b0b31487a0d9617411cade52f4a21099e8599177b74979abcd75eb1f4c",
+      "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "react-doctor",
+      "proof": "/tmp/core-modernization-ui-utilities-final-41d6-react-doctor.json",
+      "sha256": "e6eae08649af08bd87abd25cd4b81a153786a0a3b68bb569871742a126fae7a9",
+      "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+      "exit": 0,
+      "logSha256": "c038c86b327d187df96ccd777eb81e1e42946c037f3f4446ed01cba83f3b4e75"
+    },
+    {
+      "kind": "shadscan",
+      "proof": "/tmp/core-modernization-ui-utilities-final-41d6-shadscan.json",
+      "sha256": "6326cb9ffbc2e7a7eb3fb1569e5800bd90d6df642c2141f947f8bdd6822d4a6e",
+      "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+      "exit": 0,
+      "logSha256": "b62a019ef5316ed90a841d467a9a23276f9254261734ee5345d3cc6f7c616cb0"
+    },
+    {
+      "kind": "full-browser",
+      "proof": "/tmp/core-modernization-ui-utilities-final-41d6-full-browser.json",
+      "sha256": "11c34f76d636f2e0cc1f581cde311b2a91ae2d9f59f47290b5c536afa805dc61",
+      "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+      "exit": 0,
+      "logSha256": "7a00032e80c658b05fa063e16bb7c2d776849297b721ca3a8c37fc82848a2ada"
+    },
+    {
+      "kind": "full-preflight",
+      "proof": "/tmp/core-modernization-ui-utilities-final-41d6-full-preflight.json",
+      "sha256": "443664df411a4be62720995f97abe72494b36807d34a234bcd684108fd0b8b5a",
+      "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+      "exit": 0,
+      "logSha256": "3ee7322d0742cc61ac4d28fd5c799b6f9101e4fb70cfd7f615baaa659e6c803a"
+    }
+  ],
+  "independentReviews": [
+    {
+      "path": "/tmp/core-modernization-ui-utilities-source-lock-review.json",
+      "sha256": "ebeb26f4a17b56236f6d283c3e3eb7ae844a63d13770e3aa98d898a4d47946eb"
+    },
+    {
+      "path": "/tmp/core-modernization-ui-utilities-source-lock-review-quality-readback-41d600.json",
+      "sha256": "9bbb5558a281f7874cd364e98257f8ce95bdc95e2ff64b8407115f925609bdf0"
+    },
+    {
+      "path": "/tmp/core-modernization-ui-utilities-graph-security-review.json",
+      "sha256": "3e7abaecba424e3fa41f03ad08926b3d769ded90e4a061417f0090f4e1a7d40f"
+    },
+    {
+      "path": "/tmp/core-modernization-ui-utilities-docs-review.json",
+      "sha256": "8e09eca9ab8591f7aac854cb2a63551644bb847190387fdb3d912bae4c6a058a"
+    }
+  ],
+  "qualityEvidence": {
+    "doctorRecords": 294,
+    "doctorSupportingSubstitutions": 109,
+    "doctorAffectedRecords": 96,
+    "doctorPrimaryManifestContexts": [139, 150],
+    "shadscanRecords": 118,
+    "shadscanSupportingSubstitutions": 32,
+    "newExceptions": 0,
+    "removedExceptions": 0,
+    "reasonOrFloorChanges": 0
+  },
+  "browserScope": "Real MapLibre WebGL2/worker/local GeoJSON and shared controls; shared panels; actual URL-state hook/history; Motion and semantic gradients across four display/preference projects. Headless WebGL uses explicit SwiftShader for trusted offline fixtures and is not a device-GPU performance claim.",
+  "historicalEvidenceLimit": "Initial412dd upgrade receipts precede the compatible leaf refresh. The baseline panel case had one-sided Home/End bounds; final tests require both20/80percent boundaries. Initial fixture typecheck exposed isolated workspace resolution and CSS declarations; exact owner resolution fixed it without new direct dependencies. Old proofs remain dated snapshots.",
+  "security": {
+    "dependencyOnlyEntries": 35,
+    "peerExpandedEntries": 118,
+    "wholeCoreRangeRecords": 81,
+    "wholeCoreNames": 33,
+    "wholeCoreUniqueAdvisories": 70,
+    "exactAffectedLockEntries": 56,
+    "introducedOrWorsenedPairs": 0,
+    "removedPairs": 3,
+    "openAdvisory": "GHSA-vfj7-8cjw-p6xm at braces 3.0.3 via inherited glob/watch parents; reachability remains under review",
+    "exceptionsGranted": 0,
+    "limit": "Version/path inventory only; braces and whole-Core entrypoint reachability remain open.",
+    "auditInput": {
+      "path": "/tmp/core-modernization-ui-utilities-final-41d6-audit.log",
+      "sha256": "c0bc90c5e603e10cc53508d36adb508686bdc36e1ff4796ce5974f72ed75ca64"
+    },
+    "staticTriage": {
+      "verdict": "needs_review",
+      "exceptionsGranted": 0,
+      "artifact": "artifacts/braces-triage/triage.json",
+      "sha256": "c220cc6528dc779152104a7051357222dadbab97ab4227cfc35c88d7e51b0fc0",
+      "graphArtifact": "artifacts/braces-triage/lock-ancestry.json",
+      "graphSha256": "485daa95c64dec821b4ac3c527a7a473aaf2e0b41d2a73249f75cc74b6999f50",
+      "storage": "Codex Security persistent standalone target for this checkout",
+      "limit": "Static inspection only. No dynamic validation or all-path unreachability proof. Raw NFT substring hits were Lucide icon names, not the affected package."
+    }
+  },
+  "remaining": [
+    "Current-head CI/review/deployed previews, merge and readback",
+    "Separate legacy dnd-kit and Lighthouse owning-chain migrations",
+    "Remaining telemetry/AI/payment/legal/security/docs and combined production release"
+  ],
+  "results": {
+    "typecheckTargets": 15,
+    "appBuilds": ["admin", "donor", "missionary"],
+    "unitFilesPassed": 912,
+    "unitFilesSkipped": 2,
+    "unitTestsPassed": 7583,
+    "unitTestsExpectedFailure": 1,
+    "unitTestsSkipped": 4,
+    "browserPassed": 259,
+    "browserExistingSkips": 5,
+    "newSeamBrowserCases": 20,
+    "focusedUnitCases": 37
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "version": 8,
+  "name": "Core offline light",
+  "sources": {
+    "offline": {
+      "type": "geojson",
+      "data": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [0, 20]
+            },
+            "properties": {
+              "contract": "offline"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "layers": [
+    {
+      "id": "offline-points",
+      "type": "circle",
+      "source": "offline",
+      "paint": {
+        "circle-radius": 8
+      }
+    }
+  ]
+}

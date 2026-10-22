@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-22T14:08:30.058087+00:00",
+  "status": "exact tested candidate pins; see qualification record for release state",
+  "cohort": [
+    {
+      "name": "cn",
+      "version": "0.5.0",
+      "upstream": "https://registry.npmjs.org/cn/latest",
+      "responseDate": "Thu, 22 Oct 2026 12:55:38 GMT",
+      "responseSha256": "eac077cd94812e176a8004c2f8a7da88bd8491da60213520dbc3d97f45970375",
+      "engines": {
+        "node": ">=22"
+      },
+      "repository": {
+        "url": "git+https://github.com/shadcn-ui/cn.git",
+        "type": "git",
+        "directory": "packages/cn"
+      },
+      "deprecated": null
+    },
+    {
+      "name": "lucide-react",
+      "version": "1.61.0",
+      "upstream": "https://registry.npmjs.org/lucide-react/latest",
+      "responseDate": "Thu, 22 Oct 2026 12:55:38 GMT",
+      "responseSha256": "7d01a86a78ed805e020a8d9aedc4b8dc65d2c658bc13a64bb36dcbcefee08f2f",
+      "engines": null,
+      "repository": {
+        "url": "https://github.com/lucide-icons/lucide.git",
+        "type": "git",
+        "directory": "packages/lucide-react"
+      },
+      "deprecated": null
+    },
+    {
+      "name": "maplibre-gl",
+      "version": "6.15.0",
+      "upstream": "https://registry.npmjs.org/maplibre-gl/latest",
+      "responseDate": "Thu, 22 Oct 2026 12:55:38 GMT",
+      "responseSha256": "3efd7f79bc47d0163a26e8692c3a80645582362b0bd16f20475751ad46ea779e",
+      "engines": {
+        "npm": ">=8.1.0",
+        "node": ">=16.14.0"
+      },
+      "repository": {
+        "url": "git+https://github.com/maplibre/maplibre-gl-js.git",
+        "type": "git"
+      },
+      "deprecated": null
+    },
+    {
+      "name": "motion",
+      "version": "14.6.0",
+      "upstream": "https://registry.npmjs.org/motion/latest",
+      "responseDate": "Thu, 22 Oct 2026 12:55:38 GMT",
+      "responseSha256": "d31fce5c7fa3b605aa87f88b7c884b7082a1bbef5af19709035eb37eb5cb292c",
+      "engines": null,
+      "repository": {
+        "url": "git+https://github.com/motiondivision/motion.git",
+        "type": "git"
+      },
+      "deprecated": null
+    },
+    {
+      "name": "nuqs",
+      "version": "2.10.2",
+      "upstream": "https://registry.npmjs.org/nuqs/latest",
+      "responseDate": "Thu, 22 Oct 2026 12:55:38 GMT",
+      "responseSha256": "df6e328b404730006958f80c93c30dec5015284628d51a5e461dab5be14495c6",
+      "engines": null,
+      "repository": {
+        "url": "git+https://github.com/47ng/nuqs.git",
+        "type": "git",
+        "directory": "packages/nuqs"
+      },
+      "deprecated": null
+    },
+    {
+      "name": "react-resizable-panels",
+      "version": "4.14.8",
+      "upstream": "https://registry.npmjs.org/react-resizable-panels/latest",
+      "responseDate": "Thu, 22 Oct 2026 12:55:38 GMT",
+      "responseSha256": "e66c9e2f39cc686719022dfe75aca0a93ad3e75c5399264487b0937faed2d5f7",
+      "engines": null,
+      "repository": {
+        "url": "git+https://github.com/bvaughn/react-resizable-panels.git",
+        "type": "git"
+      },
+      "deprecated": null
+    }
+  ],
+  "independentOfficialRefresh": {
+    "path": "/tmp/core-modernization-ui-utilities-source-lock-review.json",
+    "sha256": "ebeb26f4a17b56236f6d283c3e3eb7ae844a63d13770e3aa98d898a4d47946eb"
+  },
+  "baselineRegistrySnapshot": {
+    "path": "/tmp/core-modernization-ui-utilities-upstream-refresh-2026-10-22.json",
+    "sha256": "f011483183c0b114beb8ac58a27c59ebcba6e6af02ad8685d52c6168724566db"
+  },
+  "replacementCandidates": {
+    "dndKit": {
+      "version": "0.5.1",
+      "status": "not installed or qualified",
+      "guide": "https://dndkit.com/react/guides/migration/",
+      "evidence": "/tmp/core-modernization-dnd-replacement-upstream-2026-10-22.json"
+    },
+    "lighthouse": {
+      "cli": "0.15.1",
+      "pinnedEngine": "12.6.1",
+      "status": "owning-chain replacement open",
+      "currentEngineResearch": "https://github.com/GoogleChrome/lighthouse/releases/tag/v13.5.0"
+    }
+  }
+}
