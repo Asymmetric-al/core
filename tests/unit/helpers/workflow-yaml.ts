@@ -81,6 +81,69 @@ export function isPinnedForkRejectIf(condition: unknown): boolean {
   );
 }
 
+/**
+ * Exact `if:` pins for the reject and gate jobs, as the real workflows write
+ * them today (compared after {@link normalizeWorkflowExpression}); `null`
+ * means "absent". Steps: in a reject job, step 0 is pinned to
+ * {@link FORK_REJECT_IF} and every other step to absent; in a gate job every
+ * step is absent (gate steps also have no `if` key in the key allowlist).
+ */
+export const PINNED_JOB_IFS: Record<
+  string,
+  { role: ModelledRole; jobIf: string | null }
+> = {
+  migrate: { role: "reject", jobIf: null },
+  smoke: {
+    role: "reject",
+    jobIf:
+      "always() && (needs.migrate.result == 'success' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository))",
+  },
+  "e2e-smoke-gate": { role: "gate", jobIf: "always()" },
+  "integration-gate": { role: "gate", jobIf: "always()" },
+  "e2e-gate": {
+    role: "gate",
+    jobIf:
+      "always() && ( (github.event_name == 'pull_request' && github.base_ref == 'production') || (github.event_name == 'push' && github.ref == 'refs/heads/production') )",
+  },
+  "ci-gate": { role: "gate", jobIf: "always()" },
+};
+
+function pinnedText(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  return typeof value === "string"
+    ? normalizeWorkflowExpression(value)
+    : JSON.stringify(value);
+}
+
+/**
+ * Problems with the job- and step-level `if:` of a pinned reject/gate job
+ * (identified by its `jobs:` key; fixtures without one are not pinned): a
+ * missing, added or changed `if:` "is not allowed".
+ */
+export function pinnedIfProblems(job: WorkflowJob): string[] {
+  const jobId = jobIdByJob.get(job);
+  const pin = jobId === undefined ? undefined : PINNED_JOB_IFS[jobId];
+  if (!pin) return [];
+  const problems: string[] = [];
+  const check = (where: string, actual: unknown, expected: string | null) => {
+    const text = pinnedText(actual);
+    if (text !== expected) {
+      problems.push(
+        `${where} if ${JSON.stringify(text ?? "absent")} is not allowed: pinned to ${JSON.stringify(expected ?? "absent")}`,
+      );
+    }
+  };
+  check(`Job '${jobId}'`, job.if, pin.jobIf);
+  allSteps(job).forEach((step, index) =>
+    check(
+      `Job '${jobId}' step ${index}`,
+      step.if,
+      pin.role === "reject" && index === 0 ? FORK_REJECT_IF : null,
+    ),
+  );
+  return problems;
+}
+
 /** Throws "... is not allowed" unless the step `if:` is exactly {@link FORK_REJECT_IF}. */
 export function assertPinnedForkRejectIf(step: WorkflowStep): void {
   if (!isPinnedForkRejectIf(step.if)) {
@@ -137,6 +200,13 @@ export function loadWorkflowDocument(relativePath: string): WorkflowDocument {
 const workflowDocByJob = new WeakMap<WorkflowJob, WorkflowDocument>();
 /** Owning job of each step handed out by {@link workflowJobs}. */
 const jobByStep = new WeakMap<WorkflowStep, WorkflowJob>();
+/** Job id (its key under `jobs:`) of each job handed out by {@link workflowJobs}. */
+const jobIdByJob = new WeakMap<WorkflowJob, string>();
+
+/** The `jobs:` key a job was loaded under (undefined for fixtures). */
+export function jobIdOf(job: WorkflowJob): string | undefined {
+  return jobIdByJob.get(job);
+}
 
 export function workflowJobs(
   doc: WorkflowDocument,
@@ -145,9 +215,10 @@ export function workflowJobs(
   if (!doc?.jobs || typeof doc.jobs !== "object") {
     throw new Error(`Missing jobs map in ${label}`);
   }
-  for (const job of Object.values(doc.jobs)) {
+  for (const [jobId, job] of Object.entries(doc.jobs)) {
     if (!job || typeof job !== "object") continue;
     workflowDocByJob.set(job, doc);
+    jobIdByJob.set(job, jobId);
     for (const step of job.steps ?? []) {
       if (step && typeof step === "object") jobByStep.set(step, job);
     }
@@ -536,24 +607,67 @@ export type EventScenario = {
   label: string;
   /** True only for a pull_request whose head repo differs from the base repo. */
   fork: boolean;
+  /** Pull-request value set ("A" or "B"); undefined for push/dispatch. */
+  valueSet?: PullRequestValueSet["id"];
   github: ExprValue;
 };
 
-function pullRequestScenario(fork: boolean, baseRef: string): EventScenario {
-  const headRepo = fork ? FORK_REPOSITORY : REPOSITORY;
+/**
+ * Concrete pull-request values. Every pull_request scenario runs under two
+ * distinct sets, so an expression that only holds for one fixed value (for
+ * example `github.event.pull_request.number == 1`) cannot pass as fork-safe.
+ * `sha` varies too but is deliberately not put in the `github` context: no
+ * reject/gate expression reads `github.sha` or `head.sha`, so it stays
+ * unmodelled (a read throws "not modelled").
+ */
+export type PullRequestValueSet = {
+  id: "A" | "B";
+  number: number;
+  forkFullName: string;
+  headRef: string;
+  mergeRef: string;
+  sha: string;
+};
+
+export const PULL_REQUEST_VALUE_SETS: readonly PullRequestValueSet[] = [
+  {
+    id: "A",
+    number: 1,
+    forkFullName: FORK_REPOSITORY,
+    headRef: "feature",
+    mergeRef: "refs/pull/1/merge",
+    sha: "1111111111111111111111111111111111111111",
+  },
+  {
+    id: "B",
+    number: 2160,
+    forkFullName: "second-contributor/core-fork",
+    headRef: "fix/other-branch",
+    mergeRef: "refs/pull/2160/merge",
+    sha: "2160216021602160216021602160216021602160",
+  },
+];
+
+function pullRequestScenario(
+  fork: boolean,
+  baseRef: string,
+  values: PullRequestValueSet = PULL_REQUEST_VALUE_SETS[0]!,
+): EventScenario {
+  const headRepo = fork ? values.forkFullName : REPOSITORY;
   return {
-    label: `pull_request ${fork ? "fork" : "same-repo"} -> ${baseRef}`,
+    label: `pull_request ${fork ? "fork" : "same-repo"} -> ${baseRef}${values.id === "A" ? "" : ` [values ${values.id}]`}`,
     fork,
+    valueSet: values.id,
     github: {
       event_name: "pull_request",
       repository: REPOSITORY,
-      ref: "refs/pull/1/merge",
+      ref: values.mergeRef,
       base_ref: baseRef,
-      head_ref: "feature",
+      head_ref: values.headRef,
       event: {
         pull_request: {
-          number: 1,
-          head: { ref: "feature", repo: { full_name: headRepo } },
+          number: values.number,
+          head: { ref: values.headRef, repo: { full_name: headRepo } },
           base: { ref: baseRef, repo: { full_name: REPOSITORY } },
         },
       },
@@ -577,7 +691,11 @@ function refScenario(eventName: string, branch: string): EventScenario {
   };
 }
 
-/** Every event shape the CI workflows trigger on, fork and same-repo. */
+/**
+ * Every event shape the CI workflows trigger on, fork and same-repo. The
+ * pull_request scenarios run under value set A first (the original nine, in
+ * their original order) and again under value set B (appended).
+ */
 export const EVENT_SCENARIOS: readonly EventScenario[] = [
   pullRequestScenario(true, "develop"),
   pullRequestScenario(true, "production"),
@@ -588,6 +706,12 @@ export const EVENT_SCENARIOS: readonly EventScenario[] = [
   refScenario("workflow_dispatch", "develop"),
   refScenario("workflow_dispatch", "production"),
   refScenario("workflow_dispatch", "feature"),
+  ...PULL_REQUEST_VALUE_SETS.slice(1).flatMap((values) => [
+    pullRequestScenario(true, "develop", values),
+    pullRequestScenario(true, "production", values),
+    pullRequestScenario(false, "develop", values),
+    pullRequestScenario(false, "production", values),
+  ]),
 ];
 
 /**
@@ -842,7 +966,10 @@ export function forkRejectStepIndex(job: WorkflowJob): number {
  * container values exist before any step, so no step can precede them).
  */
 export function forkRejectProblems(job: WorkflowJob): string[] {
-  const problems: string[] = modelledKeyProblems(job, "reject");
+  const problems: string[] = [
+    ...modelledKeyProblems(job, "reject"),
+    ...pinnedIfProblems(job),
+  ];
   const steps = allSteps(job);
   const rejectIndex = forkRejectStepIndex(job);
   if (rejectIndex === -1) {
@@ -917,7 +1044,7 @@ export type ForkSafetyReport = {
 export function analyzeSelfHostedForkSafety(
   job: WorkflowJob,
 ): ForkSafetyReport {
-  const problems: string[] = [];
+  const problems: string[] = [...pinnedIfProblems(job)];
   let forkReachable = false;
   let runsForEveryFork = true;
   let runsForSomeSameRepo = false;
@@ -1942,6 +2069,8 @@ export function executeGateJob(
   scenario: EventScenario,
 ): GateJobExecution {
   assertJobKeysModelled(job, "gate");
+  const [pinProblem] = pinnedIfProblems(job);
+  if (pinProblem !== undefined) throw new Error(pinProblem);
   const jobCtx = scenarioContext(scenario, needsStateFromContext(context));
   if (!evaluateIfCondition(ifExpression(job) || undefined, jobCtx)) {
     return {

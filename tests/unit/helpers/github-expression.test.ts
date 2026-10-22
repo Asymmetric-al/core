@@ -187,6 +187,51 @@ describe("github-expression parser/evaluator", () => {
     expect(evalIn("'ı'", {})).toBe("ı");
   });
 
+  it.each([
+    ["toJSON(github)", "github"],
+    ["toJSON(github.event)", "github.event"],
+    ["contains(toJSON(github.event), 'fork')", "github.event"],
+    ["contains(github.event, 'fork')", "github.event"],
+    ["startsWith(github.event, 'x')", "github.event"],
+    ["endsWith(github, 'x')", "github"],
+    ["fromJSON(github.event)", "github.event"],
+    ["contains(github.labels, 'x')", "github.labels"],
+  ])(
+    "a function on a whole (non-leaf) context value fails closed: %s",
+    (expr, member) => {
+      const github = {
+        event_name: "push",
+        event: { a: { b: 1 } },
+        labels: ["x"],
+      };
+      expect(() => evalIn(expr, github)).toThrow(
+        /non-leaf context value .*is not modelled/,
+      );
+      expect(() => evalIn(expr, github)).toThrow(`'${member}'`);
+    },
+  );
+
+  it.each([
+    ["format('{0}', github)"],
+    ["join(github.labels, ',')"],
+    ["hashFiles('x')"],
+  ])("unimplemented functions fail closed: %s", (expr) => {
+    expect(() => evalIn(expr, { labels: ["x"] })).toThrow(
+      /Unsupported function .*is not modelled/,
+    );
+  });
+
+  it("functions on leaf values and expression-built values still work", () => {
+    expect(evalIn("toJSON(github.event_name)", { event_name: "push" })).toBe(
+      '"push"',
+    );
+    expect(
+      evalIn("contains(github.event_name, 'us')", { event_name: "push" }),
+    ).toBe(true);
+    expect(evalIn("contains(fromJSON('[\"a\"]'), 'a')", {})).toBe(true);
+    expect(evalIn("toJSON(fromJSON('{\"a\":1}'))", {})).toBe('{"a":1}');
+  });
+
   it("supports index access and contains/startsWith", () => {
     expect(evalIn("github['ref']", { ref: "refs/heads/x" })).toBe(
       "refs/heads/x",

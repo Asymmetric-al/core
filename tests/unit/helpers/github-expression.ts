@@ -507,6 +507,31 @@ function lookup(object: ExprValue, key: string, node: ExprNode): ExprValue {
   return object[match]!;
 }
 
+const contextObjectCache = new WeakMap<EvalContext, WeakSet<object>>();
+
+/**
+ * Every object and array reachable from the evaluation contexts. A function
+ * argument in this set is a whole (non-leaf) context value: `toJSON(github)`,
+ * `contains(toJSON(github.event), …)`, `startsWith(github.event, …)` and so
+ * on would read members the scenario does not model (they would be present on
+ * GitHub), so every function throws "not modelled" on such an argument.
+ * Leaf values (strings, numbers, booleans, null) and values built inside the
+ * expression (for example `fromJSON('[...]')`) are unaffected.
+ */
+function contextObjects(ctx: EvalContext): WeakSet<object> {
+  const cached = contextObjectCache.get(ctx);
+  if (cached) return cached;
+  const seen = new WeakSet<object>();
+  const visit = (value: ExprValue) => {
+    if (value === null || typeof value !== "object" || seen.has(value)) return;
+    seen.add(value);
+    Object.values(value).forEach(visit);
+  };
+  Object.values(ctx.contexts).forEach(visit);
+  contextObjectCache.set(ctx, seen);
+  return seen;
+}
+
 const FUNCTIONS: Record<
   string,
   (args: ExprValue[], ctx: EvalContext) => ExprValue
@@ -564,11 +589,22 @@ export function evaluateExpression(
     }
     case "call": {
       const fn = FUNCTIONS[node.name];
-      if (!fn) throw new Error(`Unsupported function '${node.name}()'`);
-      return fn(
-        node.args.map((arg) => evaluateExpression(arg, ctx)),
-        ctx,
-      );
+      if (!fn) {
+        throw new Error(
+          `Unsupported function '${node.name}()' is not modelled`,
+        );
+      }
+      const args = node.args.map((arg) => evaluateExpression(arg, ctx));
+      args.forEach((value, i) => {
+        if (value !== null && typeof value === "object") {
+          if (contextObjects(ctx).has(value)) {
+            throw new Error(
+              `Function '${node.name}()' on the non-leaf context value '${describeMember(node.args[i]!)}' is not modelled`,
+            );
+          }
+        }
+      });
+      return fn(args, ctx);
     }
     case "not":
       return !truthy(evaluateExpression(node.operand, ctx));

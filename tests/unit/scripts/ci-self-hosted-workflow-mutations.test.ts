@@ -2,7 +2,8 @@
  * Mutation coverage for the #2158 self-hosted CI workflow harness
  * (PR #2160 review MAJOR-1..6, MINOR-7, the N1/N2 runner-variable follow-up,
  * the run-body allowlist bypasses, MAJOR-9 unmodelled context members, and
- * MAJOR-10 defaults.run shells plus the workflow key allowlist).
+ * MAJOR-10 defaults.run shells plus the workflow key allowlist, and the
+ * repair-6 if: pins, whole-object functions and second value set).
  * Each reviewer mutation is applied to an
  * in-memory copy of the real workflow YAML; the harness must accept the real
  * workflow and reject every mutated copy.
@@ -21,6 +22,8 @@ import {
   MODELLED_JOB_KEYS,
   MODELLED_STEP_KEYS,
   MODELLED_WORKFLOW_KEYS,
+  PINNED_JOB_IFS,
+  PULL_REQUEST_VALUE_SETS,
   PINNED_CI_GATE_BODY,
   analyzeSelfHostedForkSafety,
   assertPinnedForkRejectIf,
@@ -29,6 +32,7 @@ import {
   assertScriptVariablesModelled,
   effectiveStepEnv,
   evaluateIfCondition,
+  evaluateRunsOn,
   executeCiGateResultsStep,
   executeGateJob,
   executeRunScript,
@@ -41,6 +45,7 @@ import {
   isForkRejectStep,
   isPinnedForkRejectIf,
   modelledKeyProblems,
+  pinnedIfProblems,
   resolveRunSettings,
   runStepShellArgv,
   isSelfHostedJob,
@@ -1307,8 +1312,9 @@ describe("MAJOR-9: pinned fork-reject if; unmodelled context members fail closed
       1,
     );
     const job = jobsOf(text, "gate if")["e2e-smoke-gate"]!;
+    // Rejected by the gate job if pin before evaluation, or not modelled.
     expect(gateEnforcementProblems(job, ["test-e2e-smoke"]).join("\n")).toMatch(
-      /'github\.job' is not modelled/,
+      /'github\.job' is not modelled|is not allowed: pinned to "always\(\)"/,
     );
     expect(
       hostedGateFailsClosedWhenHeavyNeedsSkipped(job, ["test-e2e-smoke"]),
@@ -1684,5 +1690,333 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
       /working-directory "apps" \(from job defaults\.run\) is not modelled/,
     );
     expect(forkRejectStepIndex(job)).toBe(-1);
+  });
+});
+
+describe("repair 6: pinned reject/gate if, whole-object functions, second value set", () => {
+  const PROBES = [
+    ["P1", `\${{ !contains(toJSON(github), '"job"') }}`, "whole"],
+    ["P2", "${{ !contains(toJSON(github.event), 'fork') }}", "whole"],
+    [
+      "P3",
+      "${{ github.event_name != 'pull_request' || !contains(toJSON(github.event.pull_request.head.repo), 'fork') }}",
+      "whole",
+    ],
+    ["P4", "!contains(toJSON(github.event.pull_request), 'draft')", "whole"],
+    ["P5", "github.event.pull_request.number == 1", "value"],
+    [
+      "P6",
+      "github.event.pull_request.head.repo.full_name == 'outside-contributor/core'",
+      "value",
+    ],
+    ["P7", "github.event.pull_request.head.ref == 'feature'", "value"],
+    ["P8", "github.ref == 'refs/pull/1/merge'", "value"],
+  ] as const;
+  const unwrap = (expr: string) =>
+    expr.replace(/^\$\{\{\s*([\s\S]*?)\s*\}\}$/, "$1");
+  const forkScenarios = EVENT_SCENARIOS.filter((scenario) => scenario.fork);
+  const smokeNeeds = { migrate: { result: "skipped", outputs: {} } };
+
+  const onMigrateIf = (probe: string) =>
+    mutate(
+      source(CI_INTEGRATION),
+      "\n  migrate:\n",
+      `\n  migrate:\n    if: ${JSON.stringify(probe)}\n`,
+      1,
+    );
+  const onSmokeIf = (probe: string) =>
+    mutateJob(source(CI_INTEGRATION), "smoke", (block) =>
+      mutate(
+        block,
+        "head.repo.full_name != github.repository))\n    runs-on:",
+        `head.repo.full_name != github.repository))\n      && (${unwrap(probe)})\n    runs-on:`,
+        1,
+      ),
+    );
+  const onGateIf = (probe: string) =>
+    mutate(
+      source(CI_INTEGRATION),
+      "  e2e-smoke-gate:\n    if: always()\n",
+      `  e2e-smoke-gate:\n    if: ${JSON.stringify(`always() && (${unwrap(probe)})`)}\n`,
+      1,
+    );
+
+  for (const [id, probe, kind] of PROBES) {
+    for (const [where, build, jobId] of [
+      ["the migrate job if", onMigrateIf, "migrate"],
+      ["appended to the smoke job if", onSmokeIf, "smoke"],
+    ] as const) {
+      describe(`${id} ${where}: ${probe}`, () => {
+        const job = () => jobsOf(build(probe), id)[jobId]!;
+        const needs = jobId === "smoke" ? smokeNeeds : {};
+
+        it("the required job fails closed end to end", () => {
+          expect(String(job().if)).toContain(unwrap(probe).slice(0, 20));
+          expect(failsClosed(() => requiredJobFailsClosedOnFork(job()))).toBe(
+            true,
+          );
+        });
+
+        it("the job if pin rejects it", () => {
+          expect(pinnedIfProblems(job()).join("\n")).toMatch(
+            new RegExp(`Job '${jobId}' if .* is not allowed: pinned to`),
+          );
+        });
+
+        if (kind === "whole") {
+          it("evaluating it reaches toJSON on a whole context value, which is not modelled", () => {
+            for (const scenario of forkScenarios) {
+              expect(() =>
+                evaluateIfCondition(job().if, scenarioContext(scenario, needs)),
+              ).toThrow(
+                /tojson\(\)' on the non-leaf context value .*is not modelled/i,
+              );
+            }
+          });
+        } else {
+          it("value set A makes it look fork-safe; value set B shows forks skip the job", () => {
+            const runs = (scenario: (typeof forkScenarios)[number]) =>
+              evaluateIfCondition(job().if, scenarioContext(scenario, needs));
+            expect(
+              forkScenarios.filter((s) => s.valueSet === "A").every(runs),
+            ).toBe(true);
+            expect(
+              forkScenarios
+                .filter((s) => s.valueSet === "B")
+                .some((s) => !runs(s)),
+            ).toBe(true);
+          });
+        }
+      });
+    }
+
+    if (kind === "whole") {
+      describe(`${id} inside the e2e-smoke-gate job if`, () => {
+        const gate = () => jobsOf(onGateIf(probe), id)["e2e-smoke-gate"]!;
+
+        it("the gate is reported, not fail-closed", () => {
+          expect(
+            gateEnforcementProblems(gate(), ["test-e2e-smoke"]),
+          ).not.toEqual([]);
+          expect(
+            hostedGateFailsClosedWhenHeavyNeedsSkipped(gate(), [
+              "test-e2e-smoke",
+            ]),
+          ).toBe(false);
+        });
+
+        it("the gate job if pin rejects it", () => {
+          expect(pinnedIfProblems(gate()).join("\n")).toMatch(
+            /Job 'e2e-smoke-gate' if .* is not allowed: pinned to "always\(\)"/,
+          );
+        });
+
+        it("evaluating it reaches toJSON on a whole context value, which is not modelled", () => {
+          const needs = {
+            "test-e2e-smoke": { result: "skipped", outputs: {} },
+          };
+          for (const scenario of forkScenarios) {
+            expect(() =>
+              evaluateIfCondition(gate().if, scenarioContext(scenario, needs)),
+            ).toThrow(/non-leaf context value .*is not modelled/);
+          }
+        });
+      });
+    }
+  }
+
+  it("every pinned job if and step if in the real files matches its pin", () => {
+    const integration = jobsOf(source(CI_INTEGRATION), CI_INTEGRATION);
+    const ci = jobsOf(source(CI), CI);
+    for (const jobId of Object.keys(PINNED_JOB_IFS)) {
+      const job = (jobId === "ci-gate" ? ci : integration)[jobId]!;
+      expect(pinnedIfProblems(job), jobId).toEqual([]);
+    }
+    expect(PINNED_JOB_IFS.migrate!.jobIf).toBeNull();
+  });
+
+  const withJob = (
+    file: WorkflowPath,
+    jobId: string,
+    fn: (block: string) => string,
+  ) => jobsOf(mutateJob(source(file), jobId, fn), `${jobId} pin`)[jobId]!;
+
+  it.each([
+    [
+      "reject job: an if added to migrate (pinned absent)",
+      () => withJob(CI_INTEGRATION, "migrate", (b) => `    if: always()\n${b}`),
+      /Job 'migrate' if "always\(\)" is not allowed: pinned to "absent"/,
+    ],
+    [
+      "reject job: smoke's if removed",
+      () =>
+        withJob(CI_INTEGRATION, "smoke", (b) =>
+          b.replace(/    if: >-\n(?: {6,}.*\n)+/, ""),
+        ),
+      /Job 'smoke' if "absent" is not allowed: pinned to "always\(\) &&/,
+    ],
+    [
+      "reject job: smoke's if changed",
+      () =>
+        withJob(CI_INTEGRATION, "smoke", (b) =>
+          mutate(
+            b,
+            "    if: >-\n      always() &&\n",
+            "    if: >-\n      always() && true &&\n",
+            1,
+          ),
+        ),
+      /Job 'smoke' if .* is not allowed/,
+    ],
+    [
+      "reject step: step 0 if removed",
+      () =>
+        withJob(CI_INTEGRATION, "migrate", (b) =>
+          b.replace(/        if: >-\n(?: {10,}.*\n)+/, ""),
+        ),
+      /Job 'migrate' step 0 if "absent" is not allowed: pinned to "github\.event_name/,
+    ],
+    [
+      "reject step: an if added to step 1 (pinned absent)",
+      () =>
+        withJob(CI_INTEGRATION, "smoke", (b) =>
+          mutate(
+            b,
+            "      - uses: actions/checkout@",
+            "      - if: always()\n        uses: actions/checkout@",
+            1,
+          ),
+        ),
+      /Job 'smoke' step 1 if "always\(\)" is not allowed: pinned to "absent"/,
+    ],
+    [
+      "gate job: e2e-gate's if removed",
+      () =>
+        withJob(CI_INTEGRATION, "e2e-gate", (b) =>
+          b.replace(/    if: >\n(?: {6,}.*\n)+/, ""),
+        ),
+      /Job 'e2e-gate' if "absent" is not allowed: pinned to "always\(\) && \(/,
+    ],
+    [
+      "gate job: integration-gate's if changed",
+      () =>
+        withJob(CI_INTEGRATION, "integration-gate", (b) =>
+          mutate(b, "    if: always()\n", "    if: always() || true\n", 1),
+        ),
+      /Job 'integration-gate' if "always\(\) \|\| true" is not allowed/,
+    ],
+    [
+      "gate job: ci-gate's if changed",
+      () =>
+        withJob(CI, "ci-gate", (b) =>
+          mutate(b, "    if: always()\n", "    if: success()\n", 1),
+        ),
+      /Job 'ci-gate' if "success\(\)" is not allowed: pinned to "always\(\)"/,
+    ],
+  ])("%s fails closed", (_label, build, message) => {
+    const job = build();
+    expect(pinnedIfProblems(job).join("\n")).toMatch(message);
+  });
+
+  it("gate step: an if on a gate step fails both the pin and the key allowlist, separately", () => {
+    const job = withJob(CI_INTEGRATION, "e2e-smoke-gate", (b) =>
+      mutate(
+        b,
+        "      - name: Fail if E2E smoke failed\n",
+        "      - name: Fail if E2E smoke failed\n        if: always()\n",
+        1,
+      ),
+    );
+    expect(pinnedIfProblems(job).join("\n")).toMatch(
+      /Job 'e2e-smoke-gate' step 0 if "always\(\)" is not allowed: pinned to "absent"/,
+    );
+    expect(modelledKeyProblems(job, "gate").join("\n")).toMatch(
+      /Step 0 \(gate\) key 'if' is not modelled/,
+    );
+    expect(gateEnforcementProblems(job, ["test-e2e-smoke"]).join("\n")).toMatch(
+      /not (allowed|modelled)/,
+    );
+  });
+
+  it("reject job: an added migrate if is reported by the fork analysis and forkRejectProblems", () => {
+    const job = withJob(
+      CI_INTEGRATION,
+      "migrate",
+      (b) => `    if: always()\n${b}`,
+    );
+    expect(analyzeSelfHostedForkSafety(job).problems.join("\n")).toMatch(
+      /Job 'migrate' if .* is not allowed/,
+    );
+    expect(forkRejectProblems(job).join("\n")).toMatch(
+      /Job 'migrate' if .* is not allowed/,
+    );
+    expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+  });
+
+  it("the two pull-request value sets differ in every varied field", () => {
+    const [a, b] = PULL_REQUEST_VALUE_SETS;
+    for (const key of [
+      "number",
+      "forkFullName",
+      "headRef",
+      "mergeRef",
+      "sha",
+    ] as const) {
+      expect(a![key], key).not.toEqual(b![key]);
+    }
+    const byLabel = (label: string) =>
+      EVENT_SCENARIOS.find((s) => s.label === label)!;
+    expect(
+      byLabel("pull_request fork -> develop [values B]").github,
+    ).toMatchObject({
+      ref: b!.mergeRef,
+      head_ref: b!.headRef,
+      event: {
+        pull_request: {
+          number: b!.number,
+          head: { repo: { full_name: b!.forkFullName } },
+        },
+      },
+    });
+    expect(EVENT_SCENARIOS.filter((s) => s.valueSet === "B")).toHaveLength(4);
+  });
+
+  it("the real yml is fork-safe under both value sets", () => {
+    const integration = jobsOf(source(CI_INTEGRATION), CI_INTEGRATION);
+    for (const set of ["A", "B"] as const) {
+      const prs = EVENT_SCENARIOS.filter((s) => s.valueSet === set);
+      expect(prs.length, set).toBe(4);
+      for (const jobId of ["migrate", "smoke"] as const) {
+        const job = integration[jobId]!;
+        for (const scenario of prs) {
+          const ctx = scenarioContext(
+            scenario,
+            jobId === "smoke" ? smokeNeeds : {},
+          );
+          const labels = evaluateRunsOn(job["runs-on"], ctx);
+          expect(labels, `${jobId} ${scenario.label}`).toEqual(
+            scenario.fork
+              ? ["ubuntu-latest"]
+              : ["self-hosted", "linux", "x64", "proxmox"],
+          );
+          // Step-level success() reflects earlier steps (none before step 0).
+          const stepCtx = {
+            ...ctx,
+            status: { success: true, failure: false, cancelled: false },
+          };
+          expect(
+            evaluateIfCondition(job.steps![0]!.if, stepCtx),
+            scenario.label,
+          ).toBe(scenario.fork);
+          if (scenario.fork)
+            expect(evaluateIfCondition(job.if, ctx), scenario.label).toBe(true);
+        }
+      }
+      const gate = integration["e2e-smoke-gate"]!;
+      expect(
+        gateEnforcementProblems(gate, ["test-e2e-smoke"], prs),
+        set,
+      ).toEqual([]);
+    }
   });
 });

@@ -261,6 +261,8 @@ describe("ci-integration e2e-gate requires success from test-e2e and instant-nav
       "pull_request fork -> production",
       "pull_request same-repo -> production",
       "push production",
+      "pull_request fork -> production [values B]",
+      "pull_request same-repo -> production [values B]",
     ]);
     expect([...needsList(job)].sort()).toEqual([...heavyNeeds].sort());
   });
