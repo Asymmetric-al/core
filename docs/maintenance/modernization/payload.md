@@ -1,8 +1,9 @@
 # Public Payload v4 checkpoint
 
 Tracking: [AL-1965](https://github.com/Asymmetric-al/core/issues/1965).
-Status: implemented locally; full repository, browser and release qualification
-remain open. Production execution is outside this delivery.
+Status: local migration, restore, authenticated browser and clean-install checks
+pass. Full repository and deployed release qualification remain open. Production
+execution is outside this delivery.
 
 The complete eight-package cohort is pinned to official `4.0.0-beta.3`, including
 `@payloadcms/transformer-sharp`. The internal release overrides are removed.
@@ -54,8 +55,8 @@ and reapplication. A migrated backup restored to a second database with all
 hashes. These are synthetic local fixture results, not hosted/provider or
 production qualification.
 
-All 50 selected existing/focused CMS files and 516 cases pass. Four additional
-actual SDK JWT cases verify signed legacy/wrong-version denial, a valid current
+All 51 selected existing/focused CMS files and 520 cases pass in a fresh frozen
+installation against merged develop. The four actual SDK JWT cases verify signed legacy/wrong-version denial, a valid current
 token and the disabled-local-strategy boundary. Generated types remain present
 during typechecking. All three applications build against the owned local Auth
 service with bypass disabled. The real-session browser probe verifies password
@@ -65,10 +66,11 @@ existing CMS browser cases pass without skips, including native autosave and
 seeded editor/template/preview flows. Mission Control retains its forced-light
 contract under either system preference; a temporary CSS token fixture checks
 the dark mapping without enabling product dark mode. The [qualification record](payload-qualification.json)
-freezes versions, source and evidence as qualification proceeds. Clean combined
-installation, complete gates, all three deployed previews, independent final
-review and merge readback remain
-required before this checkpoint closes.
+freezes versions, source and evidence as qualification proceeds. The frozen
+installation has no lock drift; import map/types regenerate identically twice,
+and all 15 typecheck tasks pass with the generated types present and caches
+bypassed. Complete gates, all three deployed previews, independent final review
+and merge readback remain required before this checkpoint closes.
 
 The [operations runbook](../../guides/development/web-studio-runbook.md)
 contains migration order, write pause, backup/restore and rollback boundaries.

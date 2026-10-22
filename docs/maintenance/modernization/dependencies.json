@@ -1065,9 +1065,9 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "All50 retained focused CMS files/516 cases pass; generated types present during typecheck; actual compiled Mission Control build passes.",
+        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
-        "Full combined gates, clean installation, real authenticated browsers, previews, final review/security reconciliation and merged-develop readback remain open."
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
       "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
@@ -1109,9 +1109,9 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "All50 retained focused CMS files/516 cases pass; generated types present during typecheck; actual compiled Mission Control build passes.",
+        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
-        "Full combined gates, clean installation, real authenticated browsers, previews, final review/security reconciliation and merged-develop readback remain open."
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
       "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
@@ -1153,9 +1153,9 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "All50 retained focused CMS files/516 cases pass; generated types present during typecheck; actual compiled Mission Control build passes.",
+        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
-        "Full combined gates, clean installation, real authenticated browsers, previews, final review/security reconciliation and merged-develop readback remain open."
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
       "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
@@ -1197,9 +1197,9 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "All50 retained focused CMS files/516 cases pass; generated types present during typecheck; actual compiled Mission Control build passes.",
+        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
-        "Full combined gates, clean installation, real authenticated browsers, previews, final review/security reconciliation and merged-develop readback remain open."
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
       "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
@@ -1241,9 +1241,9 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "All50 retained focused CMS files/516 cases pass; generated types present during typecheck; actual compiled Mission Control build passes.",
+        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
-        "Full combined gates, clean installation, real authenticated browsers, previews, final review/security reconciliation and merged-develop readback remain open."
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
       "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
@@ -1291,9 +1291,9 @@
       "qualification": "payload-qualification.json",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "All50 retained focused CMS files/516 cases pass; generated types present during typecheck; actual compiled Mission Control build passes.",
+        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
-        "Full combined gates, clean installation, real authenticated browsers, previews, final review/security reconciliation and merged-develop readback remain open."
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
       "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed."
     },
@@ -1322,9 +1322,9 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "All50 retained focused CMS files/516 cases pass; generated types present during typecheck; actual compiled Mission Control build passes.",
+        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
-        "Full combined gates, clean installation, real authenticated browsers, previews, final review/security reconciliation and merged-develop readback remain open."
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
       "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
@@ -5645,9 +5645,9 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "All50 retained focused CMS files/516 cases pass; generated types present during typecheck; actual compiled Mission Control build passes.",
+        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
-        "Full combined gates, clean installation, real authenticated browsers, previews, final review/security reconciliation and merged-develop readback remain open."
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
       "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [

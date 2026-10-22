@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "capturedAt": "2026-10-22T01:49:28.019427+00:00",
-  "status": "local qualification in progress",
+  "status": "local migration/browser/cold-install/typecheck qualification passed; full gates and release qualification open",
   "owner": "Core CMS maintainers",
   "startingHead": "715a970957035e08f81778daa8c90de8762cdc99",
   "selectedVersions": {
@@ -1113,6 +1113,161 @@
       "exitCode": 0,
       "logSha256": "140f41e70fa2554fdfe6aca83abd333479eb9e08ef1d88709142aa3ff5b53e74",
       "scope": "actual public SDK JWT signer/authenticator; only storage lookup is stubbed, positive current-version case validates that seam"
+    },
+    "coldInstall": {
+      "proofSha256": "90ff7c22b7af303a357931c7fee8c9a0a535705a067b663505926c9a78519bf0",
+      "record": {
+        "startedAt": "2026-10-22T02:56:30.314641+00:00",
+        "completedAt": "2026-10-22T02:56:36.634609+00:00",
+        "head": "8441e754e820a2b232aede39fa610d594b2ac1f0",
+        "worktree": "/home/conrad/code/core-worktrees/payload-cold-install-2026-10-22",
+        "command": ["bun", "ci", "--no-cache", "--backend=copyfile"],
+        "exitCode": 0,
+        "logSha256": "1bdb0c55fc842b9dd140e9c1f8e72ac8fb45622e4edd7a9ec19d0b71d99d81cd",
+        "lockBeforeSha256": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793",
+        "lockAfterSha256": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793",
+        "workingTreeClean": true,
+        "opaqueDatabaseAbsent": true,
+        "environmentFileAbsent": true
+      }
+    },
+    "coldFocused": {
+      "proofSha256": "620870fa8d83daf7ea7d67b96a9405dfcc1bc9e18ad9803316a738dd56f6b072",
+      "record": {
+        "startedAt": "2026-10-22T02:56:36.958137+00:00",
+        "completedAt": "2026-10-22T02:57:01.359254+00:00",
+        "head": "8441e754e820a2b232aede39fa610d594b2ac1f0",
+        "worktree": "/home/conrad/code/core-worktrees/payload-cold-install-2026-10-22",
+        "command": [
+          "bun",
+          "run",
+          "vitest",
+          "run",
+          "tests/unit/admin/eve-preview-build.test.ts",
+          "tests/unit/apps/admin/cms-create-feedback.test.tsx",
+          "tests/unit/apps/admin/cms-flow-loading.test.tsx",
+          "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
+          "tests/unit/apps/react-doctor-complexity-admin-contracts.test.ts",
+          "tests/unit/cms/collection-contracts.test.ts",
+          "tests/unit/cms/create-from-template-endpoint.test.ts",
+          "tests/unit/cms/local-cms-scripts.test.ts",
+          "tests/unit/cms/media-variants-serialization.test.ts",
+          "tests/unit/cms/payload-configuration-contract.test.ts",
+          "tests/unit/cms/payload-database-config.test.ts",
+          "tests/unit/cms/payload-import-map.test.ts",
+          "tests/unit/cms/payload-runtime-integrations.test.ts",
+          "tests/unit/cms/payload-semantic-theme.test.ts",
+          "tests/unit/cms/phase3-collections.test.ts",
+          "tests/unit/cms/public-content.test.ts",
+          "tests/unit/cms/public-media.test.ts",
+          "tests/unit/cms/public-missionary-project-pages-route.test.ts",
+          "tests/unit/cms/public-navigation-route.test.ts",
+          "tests/unit/cms/public-page-media.test.tsx",
+          "tests/unit/cms/public-pages-route.test.ts",
+          "tests/unit/cms/public-read-access.test.ts",
+          "tests/unit/cms/public-updates-route.test.ts",
+          "tests/unit/cms/published-content-reader.test.ts",
+          "tests/unit/cms/serialize-published-page.test.ts",
+          "tests/unit/cms/sharp-native-media.test.ts",
+          "tests/unit/cms/supabase-strategy.test.ts",
+          "tests/unit/cms/tenant-access.test.ts",
+          "tests/unit/cms/tenant-context.test.ts",
+          "tests/unit/cms/transformer-sharp-native-dependencies.test.ts",
+          "tests/unit/cms/web-studio-authenticated-preview.test.ts",
+          "tests/unit/cms/web-studio-create-api-url.test.ts",
+          "tests/unit/cms/web-studio-editor-state.test.ts",
+          "tests/unit/cms/web-studio-feature-flags.test.ts",
+          "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx",
+          "tests/unit/cms/web-studio-preview-url.test.ts",
+          "tests/unit/graphql-runtime-boundary.test.ts",
+          "tests/unit/packages/api/eve-sandbox-guardrails.test.ts",
+          "tests/unit/script-verifiers.test.ts",
+          "tests/unit/scripts/cms-media-remote-pattern.test.ts",
+          "tests/unit/scripts/cms-migration-target.test.ts",
+          "tests/unit/scripts/cms-payload-command.test.ts",
+          "tests/unit/scripts/cms-postgres.test.ts",
+          "tests/unit/scripts/cms-public-sole-entry.test.ts",
+          "tests/unit/scripts/data-boundary-tanstack-db.test.ts",
+          "tests/unit/scripts/design-system-exceptions.test.ts",
+          "tests/unit/scripts/phase24-authority-manifest.test.ts",
+          "tests/unit/scripts/phase24-authority-provenance.test.ts",
+          "tests/unit/cms/payload-rich-text-compatibility.test.ts",
+          "tests/unit/cms/payload-schema-identifiers.test.ts",
+          "tests/unit/cms/payload-jwt-version-compatibility.test.ts"
+        ],
+        "exitCode": 0,
+        "logSha256": "6251529f3940f8d27b63863a3e11e8d7b95e274e87599c0b335b5c82b06233b9",
+        "lockBeforeSha256": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793",
+        "lockAfterSha256": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793",
+        "workingTreeClean": true,
+        "opaqueDatabaseAbsent": true,
+        "environmentFileAbsent": true
+      }
+    },
+    "coldGenerationAndTypecheck": {
+      "proofSha256": "5dd3349109dcfe03af9b2300b7a0418122cb6b343c9d1cc3e7cfc8f21fc9d253",
+      "record": {
+        "startedAt": "2026-10-22T02:58:50.201019+00:00",
+        "head": "8441e754e820a2b232aede39fa610d594b2ac1f0",
+        "steps": [
+          {
+            "command": ["node", "scripts/cms/generate-importmap.mjs"],
+            "exitCode": 0,
+            "logSha256": "d01f8d1f701acfdde4e29eb09118ff485edddadc64f1de891ad918cd5883bc51",
+            "generated": {
+              "apps/admin/app/(payload)/web-studio/importMap.js": "0b91666f8cd1d1f3285f0dcf23c8a243cc9e95ab614e859abfbcc6e63105d654"
+            }
+          },
+          {
+            "command": [
+              "node",
+              "scripts/cms/run-payload-command.mjs",
+              "generate:types"
+            ],
+            "exitCode": 0,
+            "logSha256": "3af8a6cfc85b2f982fc2bd2e8251820b53ca96443f21a7286904f92b2f9a3af2",
+            "generated": {
+              "apps/admin/payload-types.ts": "34abe9109052319f7fc5455dba730b1ca36296f143a5f1a28f35a3c8d13278ff",
+              "apps/admin/app/(payload)/web-studio/importMap.js": "0b91666f8cd1d1f3285f0dcf23c8a243cc9e95ab614e859abfbcc6e63105d654"
+            }
+          },
+          {
+            "command": ["node", "scripts/cms/generate-importmap.mjs"],
+            "exitCode": 0,
+            "logSha256": "447bcf056c5b55dc31ac4623b5077b92e7c2087c1f097a065f41e2d65e8147cd",
+            "generated": {
+              "apps/admin/payload-types.ts": "34abe9109052319f7fc5455dba730b1ca36296f143a5f1a28f35a3c8d13278ff",
+              "apps/admin/app/(payload)/web-studio/importMap.js": "0b91666f8cd1d1f3285f0dcf23c8a243cc9e95ab614e859abfbcc6e63105d654"
+            }
+          },
+          {
+            "command": [
+              "node",
+              "scripts/cms/run-payload-command.mjs",
+              "generate:types"
+            ],
+            "exitCode": 0,
+            "logSha256": "1aa3b5b684e2d8685e3e6b80a24284111c62ab5f78c2bc54dafa07f3af7ebb72",
+            "generated": {
+              "apps/admin/payload-types.ts": "34abe9109052319f7fc5455dba730b1ca36296f143a5f1a28f35a3c8d13278ff",
+              "apps/admin/app/(payload)/web-studio/importMap.js": "0b91666f8cd1d1f3285f0dcf23c8a243cc9e95ab614e859abfbcc6e63105d654"
+            }
+          },
+          {
+            "command": ["bun", "run", "turbo", "run", "typecheck", "--force"],
+            "exitCode": 0,
+            "logSha256": "cae0d39f3bb0722f37d2d240902b633bd5bd54bd6bca3f46497b3fb759d64726",
+            "generated": {
+              "apps/admin/payload-types.ts": "34abe9109052319f7fc5455dba730b1ca36296f143a5f1a28f35a3c8d13278ff",
+              "apps/admin/app/(payload)/web-studio/importMap.js": "0b91666f8cd1d1f3285f0dcf23c8a243cc9e95ab614e859abfbcc6e63105d654"
+            }
+          }
+        ],
+        "completedAt": "2026-10-22T02:59:18.864678+00:00",
+        "workingTreeDiff": [],
+        "lockSha256": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793",
+        "opaqueDatabaseAbsent": true
+      }
     }
   },
   "independentRuntimeReview": {
@@ -2080,7 +2235,7 @@
   "materialLimits": [
     "Synthetic representative local PostgreSQL and owned loopback Supabase Auth; no hosted database or production execution",
     "Local API serializer comparison explicitly requests depth2 and trusted access; real browser tenant/auth tests are separately recorded",
-    "Complete repository gates and cold combined installation pending",
+    "Complete repository gates pending; cold combined installation and fresh typechecks passed",
     "Three deployed previews and final current-base family review/CI/merge readback pending",
     "Full graph security review remains open; first fresh Bun audit request returned HTTP503, which is not a clean audit",
     "Mission Control intentionally forces light mode; dark CSS token mapping is a temporary browser fixture, not product dark-mode activation"
@@ -7669,5 +7824,62 @@
     "allUnownedDependencyRowsEqualMergedDevelop": true,
     "beforeDependencySha256": "07f4c3e3114ad4fc84300586cd5dcbb2a7081f0f10fd9c2b7bdbc316535c8a62",
     "afterDependencySha256": "8705f4ab19a09d188e274235114c941915a3d1ee52bbd3af883f0b0dad1de2a0"
+  },
+  "workflowPostMergeReadback": {
+    "proofSha256": "f13a833d47628ab0f5c857febddeac71ce3ae1789a889f81b39509115ae6d697",
+    "record": {
+      "baseRefName": "develop",
+      "headRefOid": "218a062b8411e054858c740264375d6716d4af0a",
+      "mergeCommit": {
+        "oid": "7df55820eee8a1e0076dea489f3836e8d15d7c69"
+      },
+      "mergedAt": "2026-10-22T02:41:04Z",
+      "number": 2184,
+      "state": "MERGED",
+      "url": "https://github.com/Asymmetric-al/core/pull/2184",
+      "capturedAt": "2026-10-22T02:41:07.270901+00:00",
+      "developReadback": "7df55820eee8a1e0076dea489f3836e8d15d7c69",
+      "qualifiedHeadAncestorOfDevelop": true,
+      "mergedTreeEqualsQualifiedTree": true,
+      "postMergeRuns": [
+        {
+          "conclusion": "success",
+          "databaseId": 39712734603,
+          "headSha": "7df55820eee8a1e0076dea489f3836e8d15d7c69",
+          "status": "completed",
+          "url": "https://github.com/Asymmetric-al/core/actions/runs/39712734603"
+        },
+        {
+          "conclusion": "success",
+          "databaseId": 39712734623,
+          "headSha": "7df55820eee8a1e0076dea489f3836e8d15d7c69",
+          "status": "completed",
+          "url": "https://github.com/Asymmetric-al/core/actions/runs/39712734623"
+        }
+      ],
+      "postMergeVerifiedAt": "2026-10-22T02:55:30.593480+00:00"
+    }
+  },
+  "postCommitSourceQualification": {
+    "observedAt": "2026-10-22T03:08:30.933940+00:00",
+    "initialCommit": "8441e754e820a2b232aede39fa610d594b2ac1f0",
+    "normalHookFormatting": {
+      "path": "apps/admin/src/migrations/20261022_002409_payload_v4_sizes_to_variants.ts",
+      "rehearsedSha256": "ead74cda4d03a66ab75d17091c12d51f532c1e1b489a1e74b702c058be98f4c8",
+      "committedSha256": "ff2cef8da12eddb735b28d5e120185e5ec966d4b1a2e4ffc3d7cc3423936877a",
+      "difference": "One blank line added between value and type imports by the normal ESLint pre-commit task; all nonblank lines are identical.",
+      "runtimeStatementsUnchanged": true
+    },
+    "coldChecksRunAgainstCommittedBytes": true,
+    "historicalProofHashesRetained": true
+  },
+  "secondAuditAttempt": {
+    "observedAt": "2026-10-22T03:06:37.631642+00:00",
+    "command": ["bun", "audit", "--json"],
+    "outcome": "timeout",
+    "timeoutSeconds": 90,
+    "auditSucceeded": false,
+    "cleanAuditEstablished": false,
+    "lockSha256": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
   }
 }

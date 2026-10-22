@@ -32,7 +32,7 @@ maintained compatibility dependency with a current upstream reason and owner.
   security checkpoint; #2160 remains a draft owned by its existing branch.
 
 The [owner exclusions](owner-exclusions.json) record the user-requested skip of
-the unauthenticated, read-only hosted-development Supabase CLI `config diff`
+the unexecuted, read-only hosted-development Supabase CLI `config diff`
 check. This is a check exclusion; it does not waive a vulnerability or authorize
 production operations.
 
@@ -50,7 +50,7 @@ donor 61, missionary 47. Existing floors remain binding.
 | ---------------------- | --------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Framework security     | Next family 16.4.2, React/DOM 19.3.1, Node 24.22.1, Bun 1.4.3   | Merged                                  | [Checkpoint record](framework-security.md)                                                 |
 | Tools / infrastructure | Supported ESLint 10, current tools and reproducible executables | Merged                                  | [Tooling record](development-tools.md); [infrastructure record](runtime-infrastructure.md) |
-| Data / workflows / API | Current supported cohorts, GraphQL 17 product / 16 CMS boundary | Merged; post-merge workflow CI pending  | [Data](data-access.md), [GraphQL](graphql.md), [workflows](workflows.md)                   |
+| Data / workflows / API | Current supported cohorts, GraphQL 17 product / 16 CMS boundary | Merged; post-merge CI passed            | [Data](data-access.md), [GraphQL](graphql.md), [workflows](workflows.md)                   |
 | Payload                | Public 4.0.0-beta.3 coherent cohort                             | Implemented; release qualification open | [Migration, restore, browser and unit evidence](payload.md)                                |
 | PDF source / artifacts | Recover shipped Phase 47, then modernize in owner repository    | Pending                                 | Source provenance and baseline required                                                    |
 | UI / telemetry / AI    | Current compatible families and pre-call governance             | Pending                                 | Behavior/provider checks required                                                          |
@@ -63,5 +63,4 @@ The [data access](data-access.md), [product GraphQL](graphql.md) and
 family PRs. Their earlier committed local records remain dated evidence; the
 current merge, CI and preview readbacks are reconciled into the next checkpoint.
 The [Payload record](payload.md) tracks its migration, restore and actual browser
-qualification while clean installation, complete gates, current-base review and
-deployed previews remain open.
+qualification while complete gates, current-base review and deployed previews remain open.
