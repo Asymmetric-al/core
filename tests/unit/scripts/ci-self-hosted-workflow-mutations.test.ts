@@ -1,7 +1,8 @@
 /**
  * Mutation coverage for the #2158 self-hosted CI workflow harness
  * (PR #2160 review MAJOR-1..6, MINOR-7, the N1/N2 runner-variable follow-up,
- * the run-body allowlist bypasses, and MAJOR-9 unmodelled context members).
+ * the run-body allowlist bypasses, MAJOR-9 unmodelled context members, and
+ * MAJOR-10 defaults.run shells plus the workflow key allowlist).
  * Each reviewer mutation is applied to an
  * in-memory copy of the real workflow YAML; the harness must accept the real
  * workflow and reject every mutated copy.
@@ -17,9 +18,13 @@ import {
   FORK_ONLY_STEP_GUARD,
   FORK_REJECT_IF,
   MODELED_TRIGGER_EVENTS,
+  MODELLED_JOB_KEYS,
+  MODELLED_STEP_KEYS,
+  MODELLED_WORKFLOW_KEYS,
   PINNED_CI_GATE_BODY,
   analyzeSelfHostedForkSafety,
   assertPinnedForkRejectIf,
+  assertWorkflowKeysModelled,
   assertScriptAllowed,
   assertScriptVariablesModelled,
   effectiveStepEnv,
@@ -35,6 +40,9 @@ import {
   isForkAwareRunsOnExpression,
   isForkRejectStep,
   isPinnedForkRejectIf,
+  modelledKeyProblems,
+  resolveRunSettings,
+  runStepShellArgv,
   isSelfHostedJob,
   needsList,
   parseWorkflowSource,
@@ -271,8 +279,10 @@ describe("MAJOR-2: enforcing gate steps honor step if and continue-on-error", ()
         ],
       ])("rejects %s on the enforcing step", (_label, keyLine) => {
         const mutated = addStepKey(source(gate.file), gate.step, keyLine);
+        // Fails closed either way: modelled as passing, or (step `if` /
+        // `continue-on-error` are outside the key allowlist) not modelled.
         expect(enforcementProblems(mutated, gate).join("\n")).toMatch(
-          /gate passes when/,
+          /gate passes when|not modelled/,
         );
       });
 
@@ -284,8 +294,10 @@ describe("MAJOR-2: enforcing gate steps honor step if and continue-on-error", ()
           `${header}    continue-on-error: true\n`,
           1,
         );
+        // Fails closed either way: modelled as passing, or (step `if` /
+        // `continue-on-error` are outside the key allowlist) not modelled.
         expect(enforcementProblems(mutated, gate).join("\n")).toMatch(
-          /gate passes when/,
+          /gate passes when|not modelled/,
         );
       });
     });
@@ -326,9 +338,17 @@ describe("MAJOR-2: enforcing gate steps honor step if and continue-on-error", ()
         ),
         CI,
       );
-      expect(
-        ciGateRun(ci, { build: "skipped", "test-unit": "skipped" }).status,
-      ).toBe(0);
+      // The mutated ci-gate either passes when it must fail, or is not modelled.
+      const outcome = (() => {
+        try {
+          return String(
+            ciGateRun(ci, { build: "skipped", "test-unit": "skipped" }).status,
+          );
+        } catch (error) {
+          return (error as Error).message;
+        }
+      })();
+      expect(outcome).toMatch(/^0$|not modelled/);
     }
 
     const realCi = jobsOf(source(CI), CI);
@@ -543,7 +563,10 @@ describe("MAJOR-5: fork-reject steps run with the runner's workflow -> job -> st
     expect(isForkRejectStep(step, { jobEnv: { REVIEW_ALLOW: "yes" } })).toBe(
       false,
     );
-    // Step env wins over job and workflow env.
+    // A reject step's own `env` is outside the reject-step key allowlist (no
+    // real reject step uses it), so it fails closed whatever its value;
+    // step-over-job-over-workflow precedence is covered by effectiveStepEnv
+    // and the gate step env tests.
     expect(
       isForkRejectStep(
         { ...step, env: { REVIEW_ALLOW: "no" } },
@@ -552,7 +575,7 @@ describe("MAJOR-5: fork-reject steps run with the runner's workflow -> job -> st
           jobEnv: { REVIEW_ALLOW: "yes" },
         },
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it.each([
@@ -632,7 +655,7 @@ describe("MAJOR-6: gate jobs run with the runner's workflow -> job -> step env",
     (_level, mutated) => {
       const text = mutated();
       expect(enforcementProblems(text, gate).join("\n")).toMatch(
-        /gate passes when test-e2e-smoke (skipped|failure)/,
+        /gate passes when test-e2e-smoke (skipped|failure)|not modelled/,
       );
       expect(
         hostedGateFailsClosedWhenHeavyNeedsSkipped(gateJob(text), [
@@ -1310,7 +1333,7 @@ describe("MAJOR-9: pinned fork-reject if; unmodelled context members fail closed
         ["test-e2e", "instant-nav"],
         production,
       ).join("\n"),
-    ).toMatch(/'github\.job' is not modelled/);
+    ).toMatch(/'github\.job' is not modelled|key 'if' is not modelled/);
   });
 
   it("an unmodelled member in the fork-aware runs-on is not fork-aware", () => {
@@ -1329,5 +1352,337 @@ describe("MAJOR-9: pinned fork-reject if; unmodelled context members fail closed
         failsClosed(() => requiredJobFailsClosedOnFork(jobs[jobId]!)),
       ).toBe(true);
     }
+  });
+});
+
+describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist", () => {
+  const SHELLS = [
+    "bash --noprofile --norc -c 'exit 0' {0}",
+    "true {0}",
+  ] as const;
+  const defaultsBlock = (indent: string, shell: string) =>
+    `${indent}defaults:\n${indent}  run:\n${indent}    shell: ${JSON.stringify(shell)}\n`;
+  const REJECT_JOBS = ["migrate", "smoke"] as const;
+  const GATE_JOBS: [string, string][] = [
+    [CI_INTEGRATION, "e2e-smoke-gate"],
+    [CI_INTEGRATION, "integration-gate"],
+    [CI_INTEGRATION, "e2e-gate"],
+    [CI, "ci-gate"],
+  ];
+  const smokeGate = ENFORCING_STEPS.find(
+    (entry) => entry.job === "e2e-smoke-gate",
+  )!;
+
+  for (const shell of SHELLS) {
+    describe(`shell ${shell}`, () => {
+      const b2 = () =>
+        mutate(
+          source(CI_INTEGRATION),
+          "\njobs:\n",
+          `\n${defaultsBlock("", shell)}jobs:\n`,
+          1,
+        );
+      const b3 = () =>
+        mutate(
+          source(CI_INTEGRATION),
+          "\n  migrate:\n",
+          `\n  migrate:\n${defaultsBlock("    ", shell)}`,
+          1,
+        );
+      const b4 = () =>
+        mutate(
+          source(CI_INTEGRATION),
+          "\n  e2e-smoke-gate:\n",
+          `\n  e2e-smoke-gate:\n${defaultsBlock("    ", shell)}`,
+          1,
+        );
+
+      it("B2 (workflow defaults.run.shell): reject steps and the gate fail closed", () => {
+        const jobs = jobsOf(b2(), "B2");
+        for (const jobId of REJECT_JOBS) {
+          expect(forkRejectStepIndex(jobs[jobId]!), jobId).toBe(-1);
+          expect(
+            failsClosed(() => requiredJobFailsClosedOnFork(jobs[jobId]!)),
+          ).toBe(true);
+          expect(forkRejectProblems(jobs[jobId]!).join("\n")).toMatch(
+            /'defaults' is not modelled/,
+          );
+        }
+        expect(enforcementProblems(b2(), smokeGate).join("\n")).toMatch(
+          /not modelled/,
+        );
+        expect(
+          hostedGateFailsClosedWhenHeavyNeedsSkipped(jobs["e2e-smoke-gate"]!, [
+            "test-e2e-smoke",
+          ]),
+        ).toBe(false);
+      });
+
+      it("B3 (migrate job defaults.run.shell): the migrate reject step fails closed", () => {
+        const job = jobsOf(b3(), "B3").migrate!;
+        expect(forkRejectStepIndex(job)).toBe(-1);
+        expect(failsClosed(() => requiredJobFailsClosedOnFork(job))).toBe(true);
+        expect(forkRejectProblems(job).join("\n")).toMatch(
+          /'defaults' is not modelled/,
+        );
+      });
+
+      it("B4 (e2e-smoke-gate job defaults.run.shell): the gate is reported, not fail-closed", () => {
+        const problems = enforcementProblems(b4(), smokeGate);
+        expect(problems).not.toEqual([]);
+        expect(problems.join("\n")).toMatch(/not modelled/);
+        expect(
+          hostedGateFailsClosedWhenHeavyNeedsSkipped(
+            jobsOf(b4(), "B4")["e2e-smoke-gate"]!,
+            ["test-e2e-smoke"],
+          ),
+        ).toBe(false);
+      });
+
+      it("key allowlist alone: B2-B4 add an unmodelled 'defaults' key", () => {
+        expect(() =>
+          assertWorkflowKeysModelled(parseWorkflowSource(b2())),
+        ).toThrow(/Workflow key 'defaults' is not modelled/);
+        expect(
+          modelledKeyProblems(jobsOf(b3(), "B3").migrate!, "reject").join("\n"),
+        ).toMatch(/Job \(reject\) key 'defaults' is not modelled/);
+        expect(
+          modelledKeyProblems(
+            jobsOf(b4(), "B4")["e2e-smoke-gate"]!,
+            "gate",
+          ).join("\n"),
+        ).toMatch(/Job \(gate\) key 'defaults' is not modelled/);
+      });
+
+      it("shell resolution alone: B2-B4 resolve a non-default shell, which is not modelled", () => {
+        const b2Jobs = jobsOf(b2(), "B2");
+        for (const jobId of REJECT_JOBS) {
+          expect(() => runStepShellArgv(b2Jobs[jobId]!.steps![0]!)).toThrow(
+            /\(from workflow defaults\.run\) is not modelled/,
+          );
+        }
+        expect(() =>
+          runStepShellArgv(b2Jobs["e2e-smoke-gate"]!.steps![0]!),
+        ).toThrow(/\(from workflow defaults\.run\) is not modelled/);
+        expect(() =>
+          runStepShellArgv(jobsOf(b3(), "B3").migrate!.steps![0]!),
+        ).toThrow(/\(from job defaults\.run\) is not modelled/);
+        expect(runStepShellArgv(jobsOf(b3(), "B3").smoke!.steps![0]!)).toEqual([
+          "bash",
+          ["-e", "-c"],
+        ]);
+        expect(() =>
+          runStepShellArgv(jobsOf(b4(), "B4")["e2e-smoke-gate"]!.steps![0]!),
+        ).toThrow(/\(from job defaults\.run\) is not modelled/);
+      });
+    });
+  }
+
+  it("the real ci.yml and ci-integration.yml pass the key allowlist unchanged", () => {
+    for (const file of WORKFLOWS) {
+      expect(() =>
+        assertWorkflowKeysModelled(parseWorkflowSource(source(file))),
+      ).not.toThrow();
+    }
+    const integration = jobsOf(source(CI_INTEGRATION), CI_INTEGRATION);
+    for (const jobId of REJECT_JOBS) {
+      expect(modelledKeyProblems(integration[jobId]!, "reject"), jobId).toEqual(
+        [],
+      );
+    }
+    for (const [file, jobId] of GATE_JOBS) {
+      const job = jobsOf(source(file as WorkflowPath), file)[jobId]!;
+      expect(modelledKeyProblems(job, "gate"), jobId).toEqual([]);
+      for (const step of job.steps ?? []) {
+        if (typeof step.run === "string") {
+          expect(runStepShellArgv(step), jobId).toEqual(["bash", ["-e", "-c"]]);
+        }
+      }
+    }
+    for (const jobId of REJECT_JOBS) {
+      expect(runStepShellArgv(integration[jobId]!.steps![0]!)).toEqual([
+        "bash",
+        ["-e", "-c"],
+      ]);
+    }
+  });
+
+  it("the allowlists are exactly the keys the real files use", () => {
+    expect([...MODELLED_WORKFLOW_KEYS].sort()).toEqual([
+      "concurrency",
+      "env",
+      "jobs",
+      "name",
+      "on",
+      "permissions",
+    ]);
+    const used = (jobs: WorkflowJob[]) => ({
+      job: [...new Set(jobs.flatMap((job) => Object.keys(job)))].sort(),
+      step: [
+        ...new Set(
+          jobs.flatMap((job) =>
+            (job.steps ?? []).flatMap((step) => Object.keys(step)),
+          ),
+        ),
+      ].sort(),
+    });
+    const integration = jobsOf(source(CI_INTEGRATION), CI_INTEGRATION);
+    const ci = jobsOf(source(CI), CI);
+    const reject = used(REJECT_JOBS.map((jobId) => integration[jobId]!));
+    const gate = used([
+      integration["e2e-smoke-gate"]!,
+      integration["integration-gate"]!,
+      integration["e2e-gate"]!,
+      ci["ci-gate"]!,
+    ]);
+    expect([...MODELLED_JOB_KEYS.reject].sort()).toEqual(reject.job);
+    expect([...MODELLED_STEP_KEYS.reject].sort()).toEqual(reject.step);
+    expect([...MODELLED_JOB_KEYS.gate].sort()).toEqual(gate.job);
+    expect([...MODELLED_STEP_KEYS.gate].sort()).toEqual(gate.step);
+  });
+
+  const realJob = (role: "reject" | "gate"): WorkflowJob =>
+    role === "reject"
+      ? jobsOf(source(CI_INTEGRATION), CI_INTEGRATION).migrate!
+      : jobsOf(source(CI_INTEGRATION), CI_INTEGRATION)["e2e-smoke-gate"]!;
+
+  it.each([
+    ["reject", "defaults", { run: { shell: "bash" } }],
+    ["gate", "defaults", { run: { "working-directory": "x" } }],
+    ["reject", "container", { image: "node:24" }],
+    ["gate", "container", { image: "node:24" }],
+    ["reject", "strategy", { matrix: { os: ["a", "b"] } }],
+    ["gate", "strategy", { matrix: { os: ["a", "b"] } }],
+    ["reject", "continue-on-error", true],
+    ["gate", "continue-on-error", true],
+    ["gate", "env", { X: "1" }],
+    ["gate", "timeout-minutes", 5],
+    ["reject", "outputs", { a: "b" }],
+  ] as const)("a %s job with '%s' is not modelled", (role, key, value) => {
+    const job = { ...realJob(role), [key]: value } as WorkflowJob;
+    expect(modelledKeyProblems(job, role).join("\n")).toMatch(
+      new RegExp(`Job \\(${role}\\) key '${key}' is not modelled`),
+    );
+  });
+
+  it.each([
+    ["reject", "continue-on-error", true],
+    ["gate", "continue-on-error", true],
+    ["reject", "working-directory", "apps"],
+    ["gate", "working-directory", "apps"],
+    ["reject", "timeout-minutes", 1],
+    ["gate", "timeout-minutes", 1],
+    ["reject", "shell", "bash"],
+    ["gate", "shell", "bash"],
+    ["reject", "env", { X: "1" }],
+    ["gate", "if", "always()"],
+    ["reject", "id", "x"],
+  ] as const)("a %s step with '%s' is not modelled", (role, key, value) => {
+    const job = realJob(role);
+    const steps = [{ ...job.steps![0]!, [key]: value }, ...job.steps!.slice(1)];
+    expect(modelledKeyProblems({ ...job, steps }, role).join("\n")).toMatch(
+      new RegExp(`Step 0 \\(${role}\\) key '${key}' is not modelled`),
+    );
+  });
+
+  it("an unmodelled workflow top-level key is reported through the reject and gate checks", () => {
+    const text = mutate(
+      source(CI_INTEGRATION),
+      "\njobs:\n",
+      "\nrun-name: x\njobs:\n",
+      1,
+    );
+    const jobs = jobsOf(text, "run-name");
+    expect(forkRejectStepIndex(jobs.migrate!)).toBe(-1);
+    expect(forkRejectProblems(jobs.migrate!).join("\n")).toMatch(
+      /Workflow key 'run-name' is not modelled/,
+    );
+    expect(enforcementProblems(text, smokeGate).join("\n")).toMatch(
+      /Workflow key 'run-name' is not modelled/,
+    );
+  });
+
+  it("shell resolution precedence: step over job defaults.run over workflow defaults.run", () => {
+    const yaml = (stepShell: boolean, jobShell: boolean) =>
+      [
+        "on: push",
+        "defaults:",
+        "  run:",
+        "    shell: workflow-shell {0}",
+        "    working-directory: wf-dir",
+        "jobs:",
+        "  j:",
+        "    runs-on: ubuntu-latest",
+        ...(jobShell
+          ? ["    defaults:", "      run:", "        shell: job-shell {0}"]
+          : []),
+        "    steps:",
+        "      - run: echo hi",
+        ...(stepShell ? ["        shell: step-shell {0}"] : []),
+      ].join("\n");
+    const settings = (stepShell: boolean, jobShell: boolean) =>
+      resolveRunSettings(
+        jobsOf(yaml(stepShell, jobShell), "precedence").j!.steps![0]!,
+      );
+    expect(settings(true, true).shell).toEqual({
+      value: "step-shell {0}",
+      source: "step",
+    });
+    expect(settings(false, true).shell).toEqual({
+      value: "job-shell {0}",
+      source: "job defaults.run",
+    });
+    expect(settings(false, false).shell).toEqual({
+      value: "workflow-shell {0}",
+      source: "workflow defaults.run",
+    });
+    expect(settings(false, false).workingDirectory).toEqual({
+      value: "wf-dir",
+      source: "workflow defaults.run",
+    });
+    expect(resolveRunSettings({ run: "echo hi" })).toEqual({
+      shell: { value: undefined, source: "unset" },
+      workingDirectory: { value: undefined, source: "unset" },
+    });
+  });
+
+  it.each([
+    [
+      "an explicit bash",
+      { run: "echo hi", shell: "bash" },
+      /Shell "bash" \(from step\) is not modelled/,
+    ],
+    [
+      "sh",
+      { run: "echo hi", shell: "sh" },
+      /Shell "sh" \(from step\) is not modelled/,
+    ],
+    [
+      "a step working-directory",
+      { run: "echo hi", "working-directory": "apps" },
+      /working-directory "apps" \(from step\) is not modelled/,
+    ],
+  ])(
+    "only the default shell is modelled: %s throws",
+    (_label, step, message) => {
+      expect(() => runStepShellArgv(step as WorkflowStep)).toThrow(message);
+      expect(() =>
+        executeRunScript(step as WorkflowStep, "echo hi", {}),
+      ).toThrow(/not modelled/);
+    },
+  );
+
+  it("a job defaults.run.working-directory on a reject job fails closed", () => {
+    const text = mutate(
+      source(CI_INTEGRATION),
+      "\n  smoke:\n",
+      "\n  smoke:\n    defaults:\n      run:\n        working-directory: apps\n",
+      1,
+    );
+    const job = jobsOf(text, "wd").smoke!;
+    expect(() => runStepShellArgv(job.steps![0]!)).toThrow(
+      /working-directory "apps" \(from job defaults\.run\) is not modelled/,
+    );
+    expect(forkRejectStepIndex(job)).toBe(-1);
   });
 });

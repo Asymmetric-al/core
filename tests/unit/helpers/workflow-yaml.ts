@@ -133,8 +133,8 @@ export function loadWorkflowDocument(relativePath: string): WorkflowDocument {
   return parseWorkflowSource(readFileSync(path.resolve(relativePath), "utf8"));
 }
 
-/** Owning workflow-level `env` of each job handed out by {@link workflowJobs}. */
-const workflowEnvByJob = new WeakMap<WorkflowJob, unknown>();
+/** Owning workflow document of each job handed out by {@link workflowJobs}. */
+const workflowDocByJob = new WeakMap<WorkflowJob, WorkflowDocument>();
 /** Owning job of each step handed out by {@link workflowJobs}. */
 const jobByStep = new WeakMap<WorkflowStep, WorkflowJob>();
 
@@ -147,7 +147,7 @@ export function workflowJobs(
   }
   for (const job of Object.values(doc.jobs)) {
     if (!job || typeof job !== "object") continue;
-    workflowEnvByJob.set(job, doc.env);
+    workflowDocByJob.set(job, doc);
     for (const step of job.steps ?? []) {
       if (step && typeof step === "object") jobByStep.set(step, job);
     }
@@ -157,7 +157,178 @@ export function workflowJobs(
 
 /** The workflow-level `env` of the document a job was loaded from (undefined for fixtures). */
 export function workflowEnvOf(job: WorkflowJob): unknown {
-  return workflowEnvByJob.get(job);
+  return workflowDocByJob.get(job)?.env;
+}
+
+// ---------------------------------------------------------------------------
+// Exact key allowlists for the reject and gate jobs (fail closed)
+// ---------------------------------------------------------------------------
+
+/**
+ * Keys the harness models, derived from what ci.yml and ci-integration.yml use
+ * today (union per role). Any other key throws/reports "... is not modelled".
+ * - workflow top level (both files): `name`, `on`, `permissions`, `env`,
+ *   `concurrency`, `jobs`.
+ * - reject jobs (ci-integration migrate, smoke): `env`, `runs-on`, `services`,
+ *   `steps`, `timeout-minutes`, plus `if`/`needs` (smoke).
+ * - reject-job steps: `name`, `if`, `run`, `uses`, `with` (no step `env`).
+ * - gate jobs (e2e-smoke-gate, integration-gate, e2e-gate, ci.yml ci-gate):
+ *   `if`, `needs`, `runs-on`, `steps`.
+ * - gate-job steps: `name`, `run`, `uses`, `with`, plus `env` (ci-gate); no
+ *   step `if`.
+ * Not modelled anywhere, for example: `defaults`, `container`, `strategy`
+ * (and so `matrix`), `continue-on-error`, `shell`, `working-directory`,
+ * step `timeout-minutes`, `outputs`, `permissions` on a job, `id`.
+ */
+export const MODELLED_WORKFLOW_KEYS: readonly string[] = [
+  "name",
+  "on",
+  "permissions",
+  "env",
+  "concurrency",
+  "jobs",
+];
+export type ModelledRole = "reject" | "gate";
+export const MODELLED_JOB_KEYS: Record<ModelledRole, readonly string[]> = {
+  reject: [
+    "env",
+    "if",
+    "needs",
+    "runs-on",
+    "services",
+    "steps",
+    "timeout-minutes",
+  ],
+  gate: ["if", "needs", "runs-on", "steps"],
+};
+export const MODELLED_STEP_KEYS: Record<ModelledRole, readonly string[]> = {
+  reject: ["if", "name", "run", "uses", "with"],
+  gate: ["env", "name", "run", "uses", "with"],
+};
+
+function assertKeysModelled(
+  value: unknown,
+  allowed: readonly string[],
+  where: string,
+): void {
+  if (!value || typeof value !== "object") return;
+  const extra = Object.keys(value).filter((key) => !allowed.includes(key));
+  if (extra.length > 0) {
+    throw new Error(
+      `${where} key ${extra.map((key) => `'${key}'`).join(", ")} is not modelled (modelled: ${allowed.join(", ")})`,
+    );
+  }
+}
+
+export function assertWorkflowKeysModelled(doc: WorkflowDocument): void {
+  assertKeysModelled(doc, MODELLED_WORKFLOW_KEYS, "Workflow");
+}
+
+export function assertStepKeysModelled(
+  step: WorkflowStep,
+  role: ModelledRole,
+  label = "Step",
+): void {
+  assertKeysModelled(step, MODELLED_STEP_KEYS[role], `${label} (${role})`);
+}
+
+/**
+ * Every allowlist problem for a reject or gate job: its owning workflow's top
+ * level (when the job was loaded from a document), the job, and each step.
+ */
+export function modelledKeyProblems(
+  job: WorkflowJob,
+  role: ModelledRole,
+): string[] {
+  const problems: string[] = [];
+  const check = (fn: () => void) => {
+    try {
+      fn();
+    } catch (error) {
+      problems.push((error as Error).message);
+    }
+  };
+  const doc = workflowDocByJob.get(job);
+  if (doc) check(() => assertWorkflowKeysModelled(doc));
+  check(() =>
+    assertKeysModelled(job, MODELLED_JOB_KEYS[role], `Job (${role})`),
+  );
+  allSteps(job).forEach((step, index) =>
+    check(() => assertStepKeysModelled(step, role, `Step ${index}`)),
+  );
+  return problems;
+}
+
+/** Throws the first {@link modelledKeyProblems} entry, if any. */
+export function assertJobKeysModelled(
+  job: WorkflowJob,
+  role: ModelledRole,
+): void {
+  const [first] = modelledKeyProblems(job, role);
+  if (first !== undefined) throw new Error(first);
+}
+
+// ---------------------------------------------------------------------------
+// `run:` shell and working-directory resolution (GitHub order, fail closed)
+// ---------------------------------------------------------------------------
+
+export type RunSetting = {
+  value: unknown;
+  source: "step" | "job defaults.run" | "workflow defaults.run" | "unset";
+};
+
+function runDefaults(
+  defaults: unknown,
+  label: string,
+): Record<string, unknown> {
+  if (defaults === undefined || defaults === null) return {};
+  if (typeof defaults !== "object" || Array.isArray(defaults)) {
+    throw new Error(
+      `${label} defaults ${JSON.stringify(defaults)} is not modelled`,
+    );
+  }
+  const { run, ...rest } = defaults as Record<string, unknown>;
+  if (Object.keys(rest).length > 0) {
+    throw new Error(
+      `${label} defaults keys ${Object.keys(rest).join(", ")} are not modelled`,
+    );
+  }
+  if (run === undefined || run === null) return {};
+  if (typeof run !== "object" || Array.isArray(run)) {
+    throw new Error(
+      `${label} defaults.run ${JSON.stringify(run)} is not modelled`,
+    );
+  }
+  return run as Record<string, unknown>;
+}
+
+/**
+ * A `run:` step's effective `shell` and `working-directory`, resolved as GitHub
+ * does: the step's own key, else the job's `defaults.run`, else the owning
+ * workflow's `defaults.run` (`job` defaults to the step's owner when it was
+ * loaded through {@link workflowJobs}).
+ */
+export function resolveRunSettings(
+  step: WorkflowStep,
+  job: WorkflowJob | undefined = jobByStep.get(step),
+): { shell: RunSetting; workingDirectory: RunSetting } {
+  const jobRun = runDefaults(job?.defaults, "Job");
+  const doc = job ? workflowDocByJob.get(job) : undefined;
+  const workflowRun = runDefaults(doc?.defaults, "Workflow");
+  const resolve = (key: "shell" | "working-directory"): RunSetting => {
+    if (step[key] !== undefined) return { value: step[key], source: "step" };
+    if (jobRun[key] !== undefined) {
+      return { value: jobRun[key], source: "job defaults.run" };
+    }
+    if (workflowRun[key] !== undefined) {
+      return { value: workflowRun[key], source: "workflow defaults.run" };
+    }
+    return { value: undefined, source: "unset" };
+  };
+  return {
+    shell: resolve("shell"),
+    workingDirectory: resolve("working-directory"),
+  };
 }
 
 /** Env levels outside the step itself: workflow `env` and job `env`. */
@@ -637,6 +808,8 @@ export function isForkRejectStep(
   const owner = jobByStep.get(step);
   const envCtx = ctx ?? (owner ? stepEnvContextOf(owner) : {});
   try {
+    assertStepKeysModelled(step, "reject");
+    if (owner) assertJobKeysModelled(owner, "reject");
     const env = effectiveStepEnv(envCtx.workflowEnv, envCtx.jobEnv, step.env);
     if ([run, ...Object.values(env)].some((text) => text.includes("${{"))) {
       return false;
@@ -645,7 +818,7 @@ export function isForkRejectStep(
       evaluateFlag(step["continue-on-error"], scenarioContext(scenario, {})),
     );
     if (neutralized) return false;
-    const result = executeRunScript(step, run, env);
+    const result = executeRunScript(step, run, env, owner);
     return (
       result.status !== 0 &&
       `${result.stdout}\n${result.stderr}`.includes(FORK_FAIL_MESSAGE)
@@ -669,7 +842,7 @@ export function forkRejectStepIndex(job: WorkflowJob): number {
  * container values exist before any step, so no step can precede them).
  */
 export function forkRejectProblems(job: WorkflowJob): string[] {
-  const problems: string[] = [];
+  const problems: string[] = modelledKeyProblems(job, "reject");
   const steps = allSteps(job);
   const rejectIndex = forkRejectStepIndex(job);
   if (rejectIndex === -1) {
@@ -688,6 +861,7 @@ export function forkRejectProblems(job: WorkflowJob): string[] {
     });
     return [
       "no fork-reject step (pinned FORK_REJECT_IF; body exits non-zero printing the message; no continue-on-error)",
+      ...problems,
       ...unpinned,
       ...(jobLevelReferencesSecrets(job)
         ? ["job-level keys reference secrets in a fork-reachable job"]
@@ -1008,19 +1182,30 @@ export function findCiGateResultsStep(
 export type GateExecution = { status: number; stdout: string; stderr: string };
 
 /**
- * Argv for a `run:` step under GitHub's shell rules on Linux runners: no
- * `shell:` means `bash -e {0}`; `shell: bash` means
- * `bash --noprofile --norc -eo pipefail {0}`; `shell: sh` means `sh -e {0}`.
- * Any other shell is outside this harness and throws.
+ * Argv for a reject/gate `run:` step. Only GitHub's default is modelled: no
+ * `shell` at the step, job `defaults.run` or workflow `defaults.run` level,
+ * which on Linux runners is `bash -e {0}`. Any resolved shell — including an
+ * explicit `bash` (it changes the invocation to
+ * `bash --noprofile --norc -eo pipefail {0}`, which no real step uses) and any
+ * custom template such as `true {0}` — and any resolved `working-directory`
+ * throws "... is not modelled" (fail closed); see {@link resolveRunSettings}.
  */
-export function runStepShellArgv(step: WorkflowStep): [string, string[]] {
-  const shell = step.shell;
-  if (shell === undefined) return ["bash", ["-e", "-c"]];
-  if (shell === "bash") {
-    return ["bash", ["--noprofile", "--norc", "-eo", "pipefail", "-c"]];
+export function runStepShellArgv(
+  step: WorkflowStep,
+  job: WorkflowJob | undefined = jobByStep.get(step),
+): [string, string[]] {
+  const { shell, workingDirectory } = resolveRunSettings(step, job);
+  if (workingDirectory.value !== undefined) {
+    throw new Error(
+      `working-directory ${JSON.stringify(workingDirectory.value)} (from ${workingDirectory.source}) is not modelled`,
+    );
   }
-  if (shell === "sh") return ["sh", ["-e", "-c"]];
-  throw new Error(`Unsupported step shell: ${JSON.stringify(shell)}`);
+  if (shell.value !== undefined) {
+    throw new Error(
+      `Shell ${JSON.stringify(shell.value)} (from ${shell.source}) is not modelled: only the default \`bash -e {0}\` (no shell at step, job or workflow level) is`,
+    );
+  }
+  return ["bash", ["-e", "-c"]];
 }
 
 const scriptExecutionCache = new Map<string, GateExecution>();
@@ -1669,10 +1854,11 @@ export function executeRunScript(
   step: WorkflowStep,
   script: string,
   env: Record<string, string>,
+  job: WorkflowJob | undefined = jobByStep.get(step),
 ): GateExecution {
   assertScriptAllowed(script);
   assertScriptVariablesModelled(script, env);
-  const [command, args] = runStepShellArgv(step);
+  const [command, args] = runStepShellArgv(step, job);
   const spawnEnv = scriptSpawnEnv(env);
   const key = JSON.stringify([command, args, script, spawnEnv, process.cwd()]);
   const cached = scriptExecutionCache.get(key);
@@ -1755,6 +1941,7 @@ export function executeGateJob(
   context: NeedsContext,
   scenario: EventScenario,
 ): GateJobExecution {
+  assertJobKeysModelled(job, "gate");
   const jobCtx = scenarioContext(scenario, needsStateFromContext(context));
   if (!evaluateIfCondition(ifExpression(job) || undefined, jobCtx)) {
     return {
@@ -1794,7 +1981,12 @@ export function executeGateJob(
           effectiveStepEnv(workflowEnvOf(job), job.env, step.env),
         ).map(([key, value]) => [key, renderStepText(value, context)]),
       );
-      result = executeRunScript(step, renderStepText(step.run, context), env);
+      result = executeRunScript(
+        step,
+        renderStepText(step.run, context),
+        env,
+        job,
+      );
     }
     steps.push({ ...base, ran: true, continueOnError, ...result });
     if (result.status !== 0 && !continueOnError) failed = true;
