@@ -161,6 +161,7 @@ await build({
       input: {
         main: resolve(fixtureDirectory, "index.html"),
         modernization: resolve(fixtureDirectory, "modernization.html"),
+        pdfModernization: resolve(fixtureDirectory, "pdf-modernization.html"),
         support: resolve(fixtureDirectory, "support.html"),
         workspace: resolve(fixtureDirectory, "workspace.html"),
         taskToolbar: resolve(fixtureDirectory, "task-toolbar.html"),

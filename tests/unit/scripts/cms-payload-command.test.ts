@@ -62,9 +62,10 @@ syncBuiltinESMExports();
 describe("Payload CLI migration preflight", () => {
   it.each([
     ["migrate"],
-    ["MIGRATE"],
-    ["--force-accept-warning=true", "migrate:fresh"],
-    ["--config", "fixture.config.ts", "migrate"],
+    ["--json", "migrate"],
+    ["--no-json", "migrate:reset"],
+    ["--cron", "0 * * * *", "migrate:fresh"],
+    ["--cron=0 * * * *", "--json", "migrate:refresh"],
     ["--", "migrate:down"],
   ])("blocks unapproved hosted writes for argv %j", (...args) => {
     const result = runCommand(args);
@@ -73,9 +74,34 @@ describe("Payload CLI migration preflight", () => {
     expect(result.childSpawned).toBe(false);
   });
 
-  it("allows a status check without hosted write approval", () => {
-    const result = runCommand(["--config=fixture.config.ts", "migrate:status"]);
-    expect(result.status, result.stderr).toBe(0);
-    expect(result.childSpawned).toBe(true);
+  it.each([
+    ["migrate:status"],
+    ["--json", "migrate:status"],
+    ["--no-json", "migrate:status"],
+    ["--cron", "0 * * * *", "migrate:status"],
+  ])(
+    "allows a status check without hosted write approval for argv %j",
+    (...args) => {
+      const result = runCommand(args);
+      expect(result.status, result.stderr).toBe(0);
+      expect(result.childSpawned).toBe(true);
+    },
+  );
+
+  it.each([
+    ["MIGRATE"],
+    ["--force-accept-warning=true", "migrate:fresh"],
+    ["--config", "fixture.config.ts", "migrate"],
+    ["--config=fixture.config.ts", "migrate:status"],
+    ["--cron"],
+    ["deleteDocuments", "--collection", "pages"],
+    ["--json", "createDocuments", "--collection", "pages"],
+    ["updateDocument", "--collection", "pages", "--id", "1"],
+    ["run", "fixture.mjs"],
+    ["jobs:run"],
+  ])("rejects unsupported or unsafe wrapper arguments %j", (...args) => {
+    const result = runCommand(args);
+    expect(result.status, result.stderr).toBe(1);
+    expect(result.childSpawned).toBe(false);
   });
 });

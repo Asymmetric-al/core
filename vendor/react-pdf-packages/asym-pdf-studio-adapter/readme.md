@@ -1,5 +1,11 @@
 # @asym/pdf-studio-adapter
 
+> Historical phase-baseline notes follow. For the current restored 0.1.0 API,
+> exports, supported toolchain and qualification, see
+> [Core PDF modernization](../../docs/maintenance/core-pdf-modernization/README.md)
+> and this package's `src/index.ts` and `package.json`. Later shipped functionality
+> supersedes the phase-specific omissions below; native-builder rollout remains unchanged.
+
 Phase 39 core integration adapter contract for the Asym PDF Document Builder.
 
 ## Purpose

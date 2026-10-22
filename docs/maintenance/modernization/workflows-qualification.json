@@ -1,0 +1,782 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "workflow-sdk-cli-and-local-mcp",
+  "status": "implemented-awaiting-workflow-checkpoint-qualification",
+  "owner": "Core workflow maintainers",
+  "capturedAt": "2026-10-21T22:52:51.809768+00:00",
+  "temporaryStackBase": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+  "mustRequalifyOnMergedDevelop": true,
+  "targets": {
+    "inngest": "4.25.0",
+    "@inngest/test": "1.0.0",
+    "inngest-cli": "1.47.0"
+  },
+  "releaseMetadata": {
+    "capturedAt": "2026-10-21T21:28:39.387189+00:00",
+    "packages": [
+      {
+        "name": "inngest",
+        "latest": "4.25.0",
+        "publishedAt": "2026-10-19T18:22:53.481Z",
+        "engines": {
+          "node": ">=20"
+        },
+        "dependencies": {
+          "ms": "^2.1.3",
+          "zod": "^3.25.0",
+          "ulid": "^2.3.0",
+          "debug": "^4.3.4",
+          "hash.js": "^1.1.7",
+          "@types/ms": "~2.1.0",
+          "@inngest/ai": "^0.1.3",
+          "cross-fetch": "^4.0.0",
+          "@types/debug": "^4.1.12",
+          "canonicalize": "^1.0.8",
+          "temporal-polyfill": "^0.2.5",
+          "@bufbuild/protobuf": "^2.2.3",
+          "@opentelemetry/api": "^1.9.0",
+          "json-stringify-safe": "^5.0.1",
+          "@jpwilliams/waitgroup": "^2.1.1",
+          "@standard-schema/spec": "^1.0.0",
+          "@opentelemetry/resources": ">=2.0.0 <3.0.0",
+          "@opentelemetry/sdk-trace-base": ">=2.0.0 <3.0.0",
+          "@opentelemetry/instrumentation": ">=0.200.0 <0.300.0",
+          "@opentelemetry/context-async-hooks": ">=2.0.0 <3.0.0",
+          "@traceloop/instrumentation-anthropic": "^0.20.0",
+          "@opentelemetry/exporter-trace-otlp-http": ">=0.200.0 <0.300.0",
+          "@opentelemetry/auto-instrumentations-node": ">=0.75.0 <1.0.0"
+        },
+        "peers": {
+          "h3": ">=1.8.1",
+          "koa": ">=2.14.2",
+          "zod": "^3.25.0 || ^4.0.0",
+          "hono": ">=4.2.7",
+          "next": ">=12.0.0",
+          "react": ">=18.0.0",
+          "express": ">=4.19.2",
+          "fastify": ">=4.21.0",
+          "aws-lambda": ">=1.0.7",
+          "typescript": ">=5.8.0",
+          "@vercel/node": ">=2.15.9",
+          "@sveltejs/kit": ">=1.27.3"
+        },
+        "integrity": "sha512-WLrGXEiCBGFpEne6nBOj7+2joUKcGNb05AljK2/X6Hf+A0CLc694IzH7hVIn4IlUN6+7cCEcS4iJjoz6eS0fiA==",
+        "tarball": "https://registry.npmjs.org/inngest/-/inngest-4.25.0.tgz",
+        "deprecated": null
+      },
+      {
+        "name": "@inngest/test",
+        "latest": "1.0.0",
+        "publishedAt": "2026-03-25T14:11:16.511Z",
+        "engines": null,
+        "dependencies": {
+          "tinyspy": "^3.0.2",
+          "ulid": "^2.3.0"
+        },
+        "peers": {
+          "inngest": "^4.0.0"
+        },
+        "integrity": "sha512-T3K6w0o/AHk34zzYhh1lC183ziQUCTEmY+G7ZOFwR5q4vXkbmZpXzbRecuG+Om/mixJnJCjZbt43e6OMR3QAnQ==",
+        "tarball": "https://registry.npmjs.org/@inngest/test/-/test-1.0.0.tgz",
+        "deprecated": null
+      },
+      {
+        "name": "inngest-cli",
+        "latest": "1.47.0",
+        "publishedAt": "2026-10-21T19:43:06.605Z",
+        "engines": null,
+        "dependencies": {
+          "tar": "^7.5.3",
+          "debug": "^4.3.4",
+          "adm-zip": "^0.5.10",
+          "node-fetch": "^2.6.7"
+        },
+        "peers": null,
+        "integrity": "sha512-XkoW7OkjWeW/THR74vrSAGORXAIlKBXRvCsQglonSTkTTrEiAbHM92Uzyykv66PEVsWMfn69F2XiBu3xE+f9OA==",
+        "tarball": "https://registry.npmjs.org/inngest-cli/-/inngest-cli-1.47.0.tgz",
+        "deprecated": null
+      }
+    ]
+  },
+  "migrationReview": {
+    "existingSdkMajor": 4,
+    "sourceChangesRequired": false,
+    "reason": "Existing registrations already use current v4 trigger options, event types, function middleware and step APIs. All business workflow sources and nine complete registrations are unchanged.",
+    "registrationCount": 9,
+    "businessFunctionCount": 7,
+    "failureFunctionCount": 2,
+    "configurationSha256": "5c1ab26aff03b5e457c711e6d088c5e1b318777bd76d8667c29c3e32eed39867",
+    "workflowSources": {
+      "packages/api/src/workflows/admin-client.ts": "8c046cf174df5c9df0d27140ebd9fb35f0f67c47991e423e871a2598213e61dc",
+      "packages/api/src/workflows/serve.ts": "6ca6389eccfb20241ee8476d723c3712c9a40f640e789569cfc3d2fc32191033",
+      "packages/api/src/workflows/notification-policy.ts": "8f08a23d01bfa40e8178fe3f20eed0b24bee3d0059fc319a79203381a98177a6",
+      "packages/api/src/workflows/recovery.ts": "509935484eb7057dfc9bb4ee6368fdccdc22e454cff3401b557378471b48a494",
+      "packages/api/src/workflows/events.ts": "41424cc564f5168ca9d7fdc67d24ae2df80280e2cf3ceb23f541db9e6bd1229e",
+      "packages/api/src/workflows/envelope-guard.ts": "74bc3e777bd535ec801821f9f15134762f96daa281cb2a84d6fa9e2b315bcf7b",
+      "packages/api/src/workflows/ledger.ts": "f654eb82ef6ca1df9f852fc64486eb56d63ce3aebc2c0137ea20df59f3365c90",
+      "packages/api/src/workflows/summaries.ts": "5786cd720ba8cff16efb9290aee4840a5a3a77ba6ce6f355327cd50e78059c52",
+      "packages/api/src/workflows/claims.ts": "67253e6305c5170e4fd9cfb8cfa93fe9c66c2121bd48c2379221b07d47824a02",
+      "packages/api/src/workflows/dispatch.ts": "1b57c8ec78937fc37dcba0c71498d2e9d4529f404ca0eb95b7902456379d443e",
+      "packages/api/src/workflows/adapters/inbound-email.ts": "e6dd0c78259b2fd3f79f9512687ba486716c6b1a77bbff64bddadf6c2cfe5385",
+      "packages/api/src/workflows/adapters/stripe-events.ts": "1236e34716ad2c05aaaf540df89da68bf7d45ebb3670eb3fd3f8d782c22a9169",
+      "packages/api/src/workflows/adapters/inbound-routing.ts": "7f7eb18917d9e8cddaaa82f5a13e1a1ba31798041e3bd76222504699d7d63293",
+      "packages/api/src/workflows/adapters/donations.ts": "4683928ae06840b17361a425920ba2b4c9f43d824e8318c2e1255ae7bd8b5018",
+      "packages/api/src/workflows/inngest/client.ts": "6ded372b6d54fa431b5fda67d99a7c1f3d04331bb67876377c8dd7da4758d72f",
+      "packages/api/src/workflows/functions/dispatch-recovery-scan.ts": "ad55444606722c918a1f112afc5c374bd229b0e540a1b45feaa9be6580e2feb8",
+      "packages/api/src/workflows/functions/stripe-event-processing.ts": "d12513d5ad3589a7cc775f9af711ec98e57257af5320613ae1c15f3506fada1d",
+      "packages/api/src/workflows/functions/donation-saga-recovery.ts": "f8f39e19224cf52b6ae3e5c8690b0c860dcd13ad4a17842478fea7be930d1900",
+      "packages/api/src/workflows/functions/workflow-smoke.ts": "2541d7878b95281924c089fd0210562fa2de51f3e5f987a134caa62b3ad1a47c",
+      "packages/api/src/workflows/functions/inbound-email-processing.ts": "4b317fbec1cc7a1d4cb6d646408d2e0377bfa877d2b2b8837d1823e1c1375c84"
+    }
+  },
+  "unitCharacterization": {
+    "baseline": {
+      "startedAt": "2026-10-21T21:30:58.523978+00:00",
+      "completedAt": "2026-10-21T21:31:08.155688+00:00",
+      "head": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+      "exitCode": 0,
+      "logSha256": "527c824a7dab46af494957c910682cd1351b0d2a06adf6d259d956bcd6392713",
+      "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "filesPassed": 10,
+      "testsPassed": 95
+    },
+    "upgraded": {
+      "startedAt": "2026-10-21T21:35:57.851191+00:00",
+      "completedAt": "2026-10-21T21:36:01.981460+00:00",
+      "exitCode": 0,
+      "logSha256": "bc740cf7635d813b0a65b75b414238d44c37c85d17fb067d2841d986b1c50375",
+      "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "filesPassed": 10,
+      "testsPassed": 95
+    },
+    "scope": "Existing envelope, dispatch, claim, recovery, Stripe/email adapter, ledger and no-op contracts; these are isolated tests, not sandbox provider evidence."
+  },
+  "localRuntimeRegistration": {
+    "capturedAt": "2026-10-21T22:17:49.883855+00:00",
+    "baselineSdk": "4.22.0",
+    "currentSdk": "4.25.0",
+    "cli": "1.47.0",
+    "registeredFunctionCount": 9,
+    "completeRegistrationConfigurationsEqual": true,
+    "workflowSourceHashesEqual": true,
+    "noOpOutputEqual": true,
+    "duplicateEventProducedNoSecondRunBothVersions": true,
+    "mcpProtocol": "2025-06-18",
+    "mcpOfferedProtocol": "2026-07-28",
+    "configurationSha256": "5c1ab26aff03b5e457c711e6d088c5e1b318777bd76d8667c29c3e32eed39867",
+    "proofs": {
+      "core-modernization-inngest-local-baseline-proof.json": "b7d0bcc9da18b88bcccc56c25b4e4714d2f90b861e69559a0bc82fabaf681283",
+      "core-modernization-inngest-local-current-proof.json": "5d851c821fa5d16ae7a7f2c661b96fc144f09aeb0057b60d2557ca02ac90109c"
+    },
+    "limits": "Bun fixture wraps actual owned Next serve exports; compiled Next app and deployed preview qualification still required. No provider credentials or business effects.",
+    "proof": {
+      "artifact": "core-modernization-inngest-registration-comparison-proof.json",
+      "sha256": "39bf74dc15d333844761a1090a9ada4c18ecb4a0d4062d7e821de789ceb48217"
+    },
+    "scope": "Actual owned Next serve handlers wrapped by a Bun HTTP fixture; no provider keys or environment files. Pagination and MCP isError results checked. All nine function configurations match SDK 4.22.0.",
+    "sourceProof": {
+      "artifact": "core-modernization-inngest-local-current-proof.json",
+      "sha256": "5d851c821fa5d16ae7a7f2c661b96fc144f09aeb0057b60d2557ca02ac90109c"
+    }
+  },
+  "localMcp": {
+    "endpoint": "http://127.0.0.1:8288/mcp",
+    "launcher": "package.json#scripts.dev:workflows",
+    "offeredProtocol": "2026-07-28",
+    "negotiatedProtocol": "2025-06-18",
+    "server": "inngest-dev v1.0.0",
+    "disposition": "verified-maintained-protocol-compatibility",
+    "owner": "Core workflow maintainers",
+    "evidence": "Current CLI negotiates its supported protocol; complete tool discovery and paginated app/function reads succeed. A tenant-scoped no-op completes; replaying its stable event ID produces no second function run.",
+    "recheck": "Invalidate on any CLI, SDK, MCP client or protocol change. Re-negotiate; do not force a protocol the server does not support."
+  },
+  "cliNativeArtifact": {
+    "capturedAt": "2026-10-21T21:46:19.292285+00:00",
+    "version": "1.47.0",
+    "platform": "linux_amd64",
+    "releaseUrl": "https://github.com/inngest/inngest/releases/tag/v1.47.0",
+    "archiveUrl": "https://github.com/inngest/inngest/releases/download/v1.47.0/inngest_1.47.0_linux_amd64.tar.gz",
+    "archiveSha256": "d9103728d527b0d291492406f4ce2a71b777e6012f2d59dd8987d3412f74d1f3",
+    "binarySha256": "f0077c157baaabfe55735874537873aa5739736149be4f6c3683aa15b309febe",
+    "installedBinaryMatchesOfficialRelease": true,
+    "cacheBinary": "/home/conrad/.npm/_npx/aade6c20c8d857e5/node_modules/inngest-cli/bin/inngest"
+  },
+  "launcherQualification": {
+    "command": "bun run dev:workflows",
+    "nativeInstall": "npm exec with exact inngest-cli@1.47.0 and required install script enabled",
+    "scope": "Linux amd64 on approved WSL runtime. Explicit loopback host, no automatic app discovery, one explicit Mission Control URL.",
+    "correctedAttempt": {
+      "artifact": "core-modernization-inngest-local-bun-npx-rewrite-attempt.json",
+      "sha256": "258055399bdef70cb7013e9e9f7f3438e9a8803e1c2438950edf5a79fff1fe07"
+    },
+    "reason": "Bun rewrites npx inside package scripts to bunx and omits the required native-binary installation; the npm exec launcher passes the actual Bun-script launch."
+  },
+  "durabilityComparison": {
+    "baselineSdk": "4.22.0",
+    "currentSdk": "4.25.0",
+    "cli": "1.47.0",
+    "scope": "Only three synthetic functions; no business functions, provider credentials or environment files",
+    "checks": [
+      "retry-reuses-completed-step-and-retries-only-failed-effect",
+      "cancelled-durable-sleep-never-runs-later-effect",
+      "sdk-process-restart-preserves-wait-state-and-memoized-effect-in-live-orchestrator"
+    ],
+    "bothPassed": true,
+    "sameEffectCounts": {
+      "retry-effect": 1,
+      "retry-attempt": 2,
+      "cancel-started": 1,
+      "cancel-after": 0,
+      "restart-before": 1,
+      "restart-after": 1
+    },
+    "retryOutcome": "COMPLETED with attempt 2; first completed effect executes once, failed effect twice.",
+    "cancellationOutcome": "CANCELLED with endedAt; no later effect observed during the short initial run. The separate deadline qualification supplies observation beyond the original sleep deadline.",
+    "restartOutcome": "SDK app process restarts while orchestrator stays alive; pending wait resumes, before and after effects each execute once.",
+    "finality": "Require endedAt and expected output/effect counts. A transient status alone does not establish final completion.",
+    "fixtureSha256": "9a3ffd317bf09af81ad3028ce8246f48c37f5e3c3a7d77e01cbddf423457ac81",
+    "runnerSha256": "1499bf4fc482b1acdf5a46ecb66fe31bd898003c344f8cfbf9434caea3c12c8b",
+    "baseline": {
+      "artifact": "core-modernization-inngest-durability-baseline-proof.json",
+      "sha256": "663ac08babad8a6113a687abbdd6a937ae31535155c00c6c05986fe0d82b0e32"
+    },
+    "current": {
+      "artifact": "core-modernization-inngest-durability-current-proof.json",
+      "sha256": "e3e7b7dd32917a485aef2c5ddbaa31381c87a49603d0e7809b04f4478041daec"
+    }
+  },
+  "localDevServerRestartLimit": {
+    "observed": "Restarting both the CLI dev server and SDK under dev --persist retains SQL history but loses in-memory execution state. This is not a new SDK regression and is not a production Cloud durability test.",
+    "negativeProbe": {
+      "artifact": "core-modernization-inngest-devserver-restart-history-only-proof.json",
+      "sha256": "41199dc78e54b6f59c25360ee4b96c960dc6fcea1b7518a08b2589409bfd2fa7"
+    },
+    "upstreamSources": [
+      {
+        "path": "cmd/devserver/cmd.go",
+        "source": "https://raw.githubusercontent.com/inngest/inngest/v1.47.0/cmd/devserver/cmd.go",
+        "sha256": "b4a19f33bc82c399957e50799db1e253539fc3a67f2a79a412ad48a457a2ab8d"
+      },
+      {
+        "path": "cmd/devserver/devserver.go",
+        "source": "https://raw.githubusercontent.com/inngest/inngest/v1.47.0/cmd/devserver/devserver.go",
+        "sha256": "ba9f49f8694a9b7e193846dcba31d94dc991bc254d6b5689f4aa50b4d9724a9e"
+      },
+      {
+        "path": "pkg/devserver/devserver.go",
+        "source": "https://raw.githubusercontent.com/inngest/inngest/v1.47.0/pkg/devserver/devserver.go",
+        "sha256": "75eba6ed6359eff2e1e21751e67f88d6c597c81944da0ae05d489e8b673eb4e3"
+      },
+      {
+        "path": "pkg/devserver/service.go",
+        "source": "https://raw.githubusercontent.com/inngest/inngest/v1.47.0/pkg/devserver/service.go",
+        "sha256": "4e6e0626a95263053576591c8c4713e69eac219f6f65baac355d80068609cae4"
+      }
+    ],
+    "recheck": "Every CLI release or local orchestration change; use app-only restart tests unless the selected server documents and demonstrates durable execution persistence."
+  },
+  "installation": {
+    "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+    "frozenInstall": {
+      "startedAt": "2026-10-21T21:35:57.588167+00:00",
+      "completedAt": "2026-10-21T21:35:57.849510+00:00",
+      "exitCode": 0,
+      "logSha256": "dc884d253781985c509eb5b2aeb9508a75f06cad02dcd58d3ef948c58b13abdc",
+      "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+    },
+    "limitations": "A separate clean checkout passed a first-attempt frozen 1,946-package install without lock drift, an environment file, or the opaque vendored database. Existing file-package postinstall repairs remain owned by the PDF modernization checkpoint; no manual installation repair was used."
+  },
+  "limitations": [
+    "Full repository gates, current-head CI and complete review reconciliation remain pending.",
+    "Requalified against merged develop 3408edad69c8cb6032e2cee301447653403b383f after the data-access and GraphQL checkpoints. Final-head full repository gates, deployed previews, CI/review and merge readback remain required.",
+    "Actual local compiled Next endpoint qualification passes; deployed preview qualification remains pending.",
+    "No hosted Inngest Cloud execution or real payment/email provider operation was performed. Existing sandbox qualification belongs to those owning cohorts.",
+    "Nested SDK/CLI dependency graphs and advisories remain open for full security reconciliation.",
+    "No production operation was executed."
+  ],
+  "designSystemRequalification": {
+    "capturedAt": "2026-10-21T22:57:25.171329+00:00",
+    "rawShadscanFindingsEqual": true,
+    "rawFindings": 528,
+    "classifications": 118,
+    "pooledScore": 48,
+    "appScores": {
+      "apps/admin": 43,
+      "apps/donor": 61,
+      "apps/missionary": 47
+    },
+    "reactDoctorDiagnosticsEqual": true,
+    "reactDoctorTargets": 8,
+    "reactDoctorDiagnostics": 294,
+    "supportUpdates": [
+      {
+        "scanner": "shadscan",
+        "entry": 0,
+        "proof": 1,
+        "path": "package.json",
+        "before": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+        "after": "99e21f32113c57dffe1301421df13f2f939fceb2c0e2377a98a4dce9b7e068a9"
+      },
+      {
+        "scanner": "shadscan",
+        "entry": 1,
+        "proof": 1,
+        "path": "package.json",
+        "before": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+        "after": "99e21f32113c57dffe1301421df13f2f939fceb2c0e2377a98a4dce9b7e068a9"
+      },
+      {
+        "scanner": "shadscan",
+        "entry": 2,
+        "proof": 1,
+        "path": "package.json",
+        "before": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+        "after": "99e21f32113c57dffe1301421df13f2f939fceb2c0e2377a98a4dce9b7e068a9"
+      },
+      {
+        "scanner": "shadscan",
+        "entry": 3,
+        "proof": 1,
+        "path": "package.json",
+        "before": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+        "after": "99e21f32113c57dffe1301421df13f2f939fceb2c0e2377a98a4dce9b7e068a9"
+      },
+      {
+        "scanner": "shadscan",
+        "entry": 4,
+        "proof": 1,
+        "path": "package.json",
+        "before": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+        "after": "99e21f32113c57dffe1301421df13f2f939fceb2c0e2377a98a4dce9b7e068a9"
+      },
+      {
+        "scanner": "shadscan",
+        "entry": 5,
+        "proof": 1,
+        "path": "package.json",
+        "before": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+        "after": "99e21f32113c57dffe1301421df13f2f939fceb2c0e2377a98a4dce9b7e068a9"
+      },
+      {
+        "scanner": "shadscan",
+        "entry": 6,
+        "proof": 1,
+        "path": "package.json",
+        "before": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+        "after": "99e21f32113c57dffe1301421df13f2f939fceb2c0e2377a98a4dce9b7e068a9"
+      },
+      {
+        "scanner": "shadscan",
+        "entry": 7,
+        "proof": 1,
+        "path": "package.json",
+        "before": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+        "after": "99e21f32113c57dffe1301421df13f2f939fceb2c0e2377a98a4dce9b7e068a9"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 4,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 45,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 50,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 51,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 63,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 66,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 130,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 159,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 161,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 162,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 183,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 184,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 201,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 202,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 203,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 205,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 235,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 242,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 250,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 258,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 274,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      },
+      {
+        "scanner": "react-doctor",
+        "entry": 280,
+        "path": "bun.lock",
+        "before": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "after": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+      }
+    ],
+    "semanticChanges": "One exact-pinned local workflow development script, SDK 4.22.0 to 4.25.0, and its lock integrity. No diagnostic, classification, reason, scope, policy or floor changes.",
+    "firstScans": {
+      "shadscan": {
+        "startedAt": "2026-10-21T22:55:39.247837+00:00",
+        "completedAt": "2026-10-21T22:56:01.239649+00:00",
+        "exitCode": 1,
+        "logSha256": "b22031a0dd529b8383359f62d4f82391bdffa33bcff7d4717e5396d30eab075e",
+        "scope": "Actual scan before support-file evidence requalification; no ledger edits during scan"
+      },
+      "reactDoctor": {
+        "startedAt": "2026-10-21T22:56:01.239985+00:00",
+        "completedAt": "2026-10-21T22:56:31.550491+00:00",
+        "exitCode": 1,
+        "logSha256": "dc9cafe5f59e033f0dbe5e7801809eedea3bc54b85dcc6089021153d5d09db89",
+        "scope": "Actual scan before support-file evidence requalification; no ledger edits during scan"
+      }
+    },
+    "strictFinalScans": {
+      "shadscan": {
+        "startedAt": "2026-10-21T22:57:37.134198+00:00",
+        "completedAt": "2026-10-21T22:57:55.752189+00:00",
+        "exitCode": 0,
+        "logSha256": "b87803e200141766a60aeb4a945397c5569e44136a535ada21fd4768eb0ac9d9",
+        "scope": "Fresh strict scan after support-file evidence requalification; no ledger edits during scan"
+      },
+      "reactDoctor": {
+        "startedAt": "2026-10-21T22:57:55.752486+00:00",
+        "completedAt": "2026-10-21T22:58:27.191555+00:00",
+        "exitCode": 0,
+        "logSha256": "e51d982d987e12bbaa0a652678ff65c60be1a44c06fbc5cdfe3588a89b7ef795",
+        "scope": "Fresh strict scan after support-file evidence requalification; no ledger edits during scan"
+      },
+      "allSupportingHashReferencesValid": 1188,
+      "shadscanLedgerSha256": "7c79243a09670d5a8ee16763f2e0d05581c9a9c5978f757ee9df0d9cc6585966",
+      "reactDoctorLedgerSha256": "5bc5e5c1c384e790ff8fce345f7bcb6346693e74d4585e1baa05034870b6f112",
+      "sourceIntegritySha256": "f52478be3ac654d0d875841d5cb770574081c179f02249c70c452b1d5d991b03",
+      "zeroActionable": true
+    }
+  },
+  "productTypecheck": {
+    "startedAt": "2026-10-21T22:58:45.543896+00:00",
+    "completedAt": "2026-10-21T22:58:59.023953+00:00",
+    "exitCode": 0,
+    "logSha256": "0c121fe34927b8c8e2970c5c3b7549d02d5c7650791bd0278f504194a6ccc0c1",
+    "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+  },
+  "cancellationDeadlineQualification": {
+    "baseline": {
+      "artifact": "core-modernization-inngest-durability-deadline-baseline-proof.json",
+      "sha256": "ca4bf95e368b75df1e19857ee1d25ca61695c8f098b5accfc046c424a35bd86c"
+    },
+    "current": {
+      "artifact": "core-modernization-inngest-durability-deadline-current-proof.json",
+      "sha256": "cc67468784676a11d830bfb9f1772b349ffa4d50ccd142ad25bd2a52e4047388"
+    },
+    "baselineSdk": "4.22.0",
+    "currentSdk": "4.25.0",
+    "fixtureSha256": "9a3ffd317bf09af81ad3028ce8246f48c37f5e3c3a7d77e01cbddf423457ac81",
+    "runnerSha256": "2c69b766ebc22fba6db590a8cd54d8d9fc0ff886b1e8149712d5e4ce88b93c5b",
+    "originalSleepSeconds": 60,
+    "elapsedSinceWaitingObservedSeconds": {
+      "baseline": 65.149,
+      "current": 65.241
+    },
+    "bothRunsFinalCancelled": true,
+    "noLaterEffectsAfterOriginalDeadline": true,
+    "orchestratorContinuouslyRunning": true,
+    "sameAllEffectCounts": {
+      "retry-effect": 1,
+      "retry-attempt": 2,
+      "cancel-started": 1,
+      "cancel-after": 0,
+      "restart-before": 1,
+      "restart-after": 1
+    },
+    "scope": "Same three synthetic functions, unchanged fixture, no business functions or provider credentials. Each version remained under observation past its original one-minute sleep; SDK app restart and retry checks also passed."
+  },
+  "compiledNextQualification": {
+    "build": {
+      "startedAt": "2026-10-21T23:01:40.215430+00:00",
+      "completedAt": "2026-10-21T23:03:30.688190+00:00",
+      "exitCode": 0,
+      "logSha256": "4fd3107746841ae80f1782d5bb3e1c441b08ea6cad1b07eceadf8af8df861372",
+      "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "scope": "Current SDK 4.25.0 compiled Mission Control for real Next serve qualification; no environment file"
+    },
+    "probe": {
+      "artifact": "core-modernization-inngest-compiled-next-current-proof.json",
+      "sha256": "932941eda4ed7c2a6bfb1c5feb1ac388c6f980f3cfa14fcf43b0105d1481ca2f"
+    },
+    "runnerSha256": "c1f753818b4ecfe7bb4121f16fae0407a1589b0f7869ce3bc7249f9a24f7bb87",
+    "scope": "Actual compiled Mission Control Next production server and its owned Inngest route; loopback only; no business effects",
+    "compiledRouteSha256": "8d9ce21e2689a740bc38c63ca8d9ac3cc7f62ac3c1fc52b7ec9c041410f941bc",
+    "buildId": "6OktQFcKst2POz-R-Dlbk",
+    "sourceUnchangedDuringExecution": true,
+    "complete9RegistrationsMatchLocalBaselineAndCurrent": true,
+    "noOpAuthoritativelyCompleted": true,
+    "noOpOutput": {
+      "acknowledged": true,
+      "dispatchRequestId": null,
+      "noOp": true,
+      "tenantId": "11111111-1111-4111-8111-111111111111"
+    },
+    "duplicateProducedNoSecondRun": true,
+    "negotiatedMcpProtocol": "2025-06-18",
+    "providerCredentials": "none",
+    "environmentFiles": "none"
+  },
+  "externalCliSecurityResidual": {
+    "dependencyPath": "inngest-cli@1.47.0 > adm-zip@0.5.18",
+    "advisory": "https://github.com/advisories/GHSA-xcpc-8h2w-3j85",
+    "cve": "CVE-2026-39244",
+    "severity": "high",
+    "owner": "Core workflow maintainers",
+    "state": "requires-final-reachability-qualification",
+    "installerSha256": "289327825da79916671ae169e03a58781106e2a3eab2dec5c19e345f18ff9f53",
+    "evidence": {
+      "artifact": "core-modernization-inngest-cli-admzip-residual.json",
+      "sha256": "d92bc812930691389dabf355768ecdc3d5e7a1c652988b4d8b5c645b3ad35f6c"
+    },
+    "scope": "Observed ZIP extraction is selected on Windows. Current canonical WSL/Linux launcher selects tar. This is entrypoint evidence, not completed advisory closure; execution inputs, supported platforms and full graph must be reconciled.",
+    "recheck": "Any CLI/wrapper, installed adm-zip version, installer code, archive source or supported platform change invalidates reachability evidence."
+  },
+  "mergedDevelopQualification": {
+    "capturedAt": "2026-10-22T00:59:42.546829+00:00",
+    "develop": "3408edad69c8cb6032e2cee301447653403b383f",
+    "headBeforeEvidenceCommit": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+    "targetsRefresh": {
+      "observedAt": "2026-10-22T00:56:58.159539+00:00",
+      "head": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+      "allSelectedTargetsCurrent": true,
+      "records": [
+        {
+          "name": "inngest",
+          "target": "4.25.0",
+          "latest": "4.25.0",
+          "publishedAt": "2026-10-19T18:22:53.481Z",
+          "integrity": "sha512-WLrGXEiCBGFpEne6nBOj7+2joUKcGNb05AljK2/X6Hf+A0CLc694IzH7hVIn4IlUN6+7cCEcS4iJjoz6eS0fiA==",
+          "source": "https://registry.npmjs.org/inngest"
+        },
+        {
+          "name": "@inngest/test",
+          "target": "1.0.0",
+          "latest": "1.0.0",
+          "publishedAt": "2026-03-25T14:11:16.511Z",
+          "integrity": "sha512-T3K6w0o/AHk34zzYhh1lC183ziQUCTEmY+G7ZOFwR5q4vXkbmZpXzbRecuG+Om/mixJnJCjZbt43e6OMR3QAnQ==",
+          "source": "https://registry.npmjs.org/@inngest%2ftest"
+        },
+        {
+          "name": "inngest-cli",
+          "target": "1.47.0",
+          "latest": "1.47.0",
+          "publishedAt": "2026-10-21T19:43:06.605Z",
+          "integrity": "sha512-XkoW7OkjWeW/THR74vrSAGORXAIlKBXRvCsQglonSTkTTrEiAbHM92Uzyykv66PEVsWMfn69F2XiBu3xE+f9OA==",
+          "source": "https://registry.npmjs.org/inngest-cli"
+        }
+      ]
+    },
+    "combinedUnit": {
+      "startedAt": "2026-10-22T00:56:53.476151+00:00",
+      "completedAt": "2026-10-22T00:56:56.062309+00:00",
+      "head": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+      "command": [
+        "bunx",
+        "--no-install",
+        "vitest",
+        "run",
+        "tests/unit/packages/api/workflows",
+        "tests/unit/graphql-http-contract.test.ts",
+        "tests/unit/graphql-runtime-boundary.test.ts",
+        "tests/unit/graphql-gift-engagement-adapters.test.ts",
+        "tests/unit/packages/database/supabase-adapter-compatibility.test.ts",
+        "tests/unit/packages/database/tanstack-runtime-identity.test.ts",
+        "tests/unit/scripts/ci-build-policy.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-checks.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-verification.test.ts"
+      ],
+      "exitCode": 0,
+      "logSha256": "c2a3496999f1deffde773ef39ab12763318dd9ed7f3d706b96d7057b7684f5eb",
+      "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "filesPassed": 19,
+      "testsPassed": 210
+    },
+    "cleanInstallation": {
+      "startedAt": "2026-10-22T00:57:02.190606+00:00",
+      "completedAt": "2026-10-22T00:57:06.163159+00:00",
+      "head": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+      "worktree": "/home/conrad/code/core-worktrees/workflow-cold-install-2026-10-22",
+      "command": ["bun", "ci", "--no-cache", "--backend=copyfile"],
+      "exitCode": 0,
+      "logSha256": "6419d0bf73b1f9781afca34b2d453938eddc26572fbc22402ff554e4a299018c",
+      "lockBeforeSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "lockAfterSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "opaqueDatabaseAbsent": true,
+      "environmentFileAbsent": true,
+      "packagesInstalled": 1946,
+      "firstAttemptPassed": true,
+      "existingPostinstallRepairRetainedForPdfOwner": true,
+      "workingTreeClean": true
+    },
+    "cleanUnit": {
+      "startedAt": "2026-10-22T00:57:38.198072+00:00",
+      "completedAt": "2026-10-22T00:57:41.031499+00:00",
+      "head": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+      "command": [
+        "bunx",
+        "--no-install",
+        "vitest",
+        "run",
+        "tests/unit/packages/api/workflows",
+        "tests/unit/graphql-http-contract.test.ts",
+        "tests/unit/graphql-runtime-boundary.test.ts",
+        "tests/unit/graphql-gift-engagement-adapters.test.ts",
+        "tests/unit/packages/database/supabase-adapter-compatibility.test.ts",
+        "tests/unit/packages/database/tanstack-runtime-identity.test.ts",
+        "tests/unit/scripts/ci-build-policy.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-checks.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-verification.test.ts"
+      ],
+      "exitCode": 0,
+      "logSha256": "9b185bd59c37f2f178953986cdc4c2ff8e1f11b8970837e3b1d723928680a7b1",
+      "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "filesPassed": 19,
+      "testsPassed": 210
+    },
+    "cleanForcedTypecheck": {
+      "startedAt": "2026-10-22T00:57:41.037548+00:00",
+      "completedAt": "2026-10-22T00:57:53.258310+00:00",
+      "head": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+      "command": [
+        "bunx",
+        "--no-install",
+        "turbo",
+        "run",
+        "typecheck",
+        "--force"
+      ],
+      "exitCode": 0,
+      "logSha256": "c20abf0f0d694dc4d9c8501fbf937fe13aa8e9aa559d219cc0d6f885d25464cc",
+      "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "tasksPassed": 15,
+      "cacheHits": 0
+    },
+    "installationInputsUnchangedFromCompiledQualification": {
+      "package.json": "99e21f32113c57dffe1301421df13f2f939fceb2c0e2377a98a4dce9b7e068a9",
+      "packages/api/package.json": "136c651a7fc0eb3928174c4bbd1362a595fd5de319f759fa50ec1cc4621db7c1",
+      "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+    }
+  }
+}

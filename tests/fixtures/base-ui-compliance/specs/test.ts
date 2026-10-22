@@ -13,7 +13,14 @@ export const test = base.extend<{ runtimeErrors: string[]; fixture: Fixture }>({
       const errors: string[] = [];
       page.on("pageerror", (error) => errors.push(error.message));
       page.on("console", (message) => {
-        if (message.type() === "error") errors.push(message.text());
+        if (
+          message.type() === "error" ||
+          (message.type() === "warning" &&
+            /duplicate extension names|multiple versions|already registered|loaded more than once/i.test(
+              message.text(),
+            ))
+        )
+          errors.push(message.text());
       });
       await page.route("**/*", async (route) => {
         const url = new URL(route.request().url());

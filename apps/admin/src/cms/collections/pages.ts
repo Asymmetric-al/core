@@ -17,6 +17,7 @@ import {
 } from "../access/tenant-access";
 import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
 import { applyTenantFromContext } from "../hooks/tenant";
+import { coreRichTextDocumentSchema } from "../rich-text-document-schema";
 
 import type { CollectionConfig } from "payload";
 
@@ -41,6 +42,7 @@ const nativePagesAdmin = isNativePagesWebStudioEnabled()
 
 export const Pages: CollectionConfig = {
   slug: "pages",
+  authorship: false,
   admin: {
     defaultColumns: ["title", "slug", "tenant", "updatedAt"],
     useAsTitle: "title",
@@ -99,6 +101,7 @@ export const Pages: CollectionConfig = {
       name: "content",
       type: "richText",
       required: true,
+      jsonSchema: [coreRichTextDocumentSchema],
       admin: {
         description:
           "Legacy rich-text fallback during the layout rollout. Public rendering should prefer layout when present.",

@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-10-22T02:38:53.868789+00:00",
+  "area": "hosted Supabase CLI qualification",
+  "operation": "read-only config diff against development",
+  "disposition": "excluded-by-user",
+  "authorization": "User replied just skip to the pending approved credential-loader question.",
+  "executed": false,
+  "reason": "No existing approved CLI authentication loader was available; user excluded the check instead of providing a loader.",
+  "scope": "Only this hosted CLI config-diff check is excluded. Existing local/runtime/hosted-version observations remain separate evidence.",
+  "productionExecutionAuthorized": false
+}

@@ -354,8 +354,11 @@ describe("agent instruction routing fixtures", () => {
 
   it("routes Supabase, Payload, Stripe, Resend, Eve, and OpenSpec work without bloating root catalogs", () => {
     expect(skillRouting).toContain("docs/ai/skills/supabase/SKILL.md");
-    expect(skillRouting).toContain(
-      "docs/ai/skills/payloadcms-payload/SKILL.md",
+    expect(skillRouting).toContain("docs/ai/skills/payload/SKILL.md");
+    expect(skillRouting).toContain("docs/ai/skills/cms-migration/SKILL.md");
+    expect(skillRouting).not.toContain("docs/ai/skills/payloadcms-payload/");
+    expect(skillRouting).not.toContain(
+      "docs/ai/skills/payloadcms-cms-migration/",
     );
     expect(skillRouting).toContain(
       "docs/ai/skills/idempotency-handling/SKILL.md",

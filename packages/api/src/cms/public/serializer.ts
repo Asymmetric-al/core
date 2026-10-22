@@ -289,9 +289,9 @@ function serializePublicMediaValue(value: unknown): SerializedPublicMediaValue {
   }
 
   const media = value as UnknownRecord;
-  const sizes =
-    media.sizes && typeof media.sizes === "object"
-      ? (media.sizes as UnknownRecord)
+  const variants =
+    media.variants && typeof media.variants === "object"
+      ? (media.variants as UnknownRecord)
       : undefined;
 
   const serialized: SerializedPublicMedia = {
@@ -301,8 +301,8 @@ function serializePublicMediaValue(value: unknown): SerializedPublicMediaValue {
         : null,
     alt: readOptionalString(media.alt),
     url: readOptionalString(media.url),
-    thumbnailURL: readMediaSizeUrl(sizes?.thumbnail),
-    cardURL: readMediaSizeUrl(sizes?.card),
+    thumbnailURL: readMediaVariantUrl(variants?.thumbnail),
+    cardURL: readMediaVariantUrl(variants?.card),
     width: typeof media.width === "number" ? media.width : null,
     height: typeof media.height === "number" ? media.height : null,
     mimeType: readOptionalString(media.mimeType),
@@ -321,7 +321,7 @@ function serializePublicMediaValue(value: unknown): SerializedPublicMediaValue {
   return serialized;
 }
 
-function readMediaSizeUrl(value: unknown): string | null {
+function readMediaVariantUrl(value: unknown): string | null {
   if (!value || typeof value !== "object") {
     return null;
   }

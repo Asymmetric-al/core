@@ -935,16 +935,17 @@
       "sourcePaths": [
         ".mcp.json",
         ".cursor/mcp.json",
-        "docs/guides/features/inngest-workflows/local-development.md"
+        "docs/guides/features/inngest-workflows/local-development.md",
+        "package.json"
       ],
       "selector": "http://127.0.0.1:8288/mcp",
-      "version": "unqualified; development server currently launched by documented floating inngest-cli@latest command",
+      "version": "inngest-cli 1.47.0; negotiated MCP 2025-06-18",
       "upstream": "https://www.inngest.com/docs/ai-dev-tools/mcp",
       "owner": "Core workflow maintainers",
-      "state": "open-data-workflows-api-cohort",
-      "disposition": null,
-      "verification": "Endpoint configuration observed only. Exact CLI/server pin, negotiated protocol and function-discovery smoke are required alongside the Inngest SDK cohort. This infrastructure checkpoint does not qualify this service.",
-      "recheck": "Qualify the CLI/server and MCP endpoint with every Inngest cohort change."
+      "state": "implemented-awaiting-workflow-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": "Actual root Bun launcher, official Linux binary identity, protocol negotiation, complete tool discovery, paginated nine-function registration, tenant-scoped no-op and duplicate suppression pass. Full combined-stack and deployed endpoint gates remain pending; see workflows-qualification.json.",
+      "recheck": "Invalidate qualification on any CLI, SDK, MCP client or protocol change. Core workflow maintainers repeat binary verification, negotiation, discovery and execution smoke."
     },
     {
       "kind": "container-image",
@@ -1014,7 +1015,7 @@
     }
   ],
   "remainingCoverage": [
-    "Local Inngest development MCP and its floating CLI launcher remain owned by the unqualified data-workflows/API cohort.",
+    "Inngest CLI 1.47.0 and local MCP pass isolated runtime qualification; full combined-stack workflow checkpoint remains open in workflows-qualification.json.",
     "Operational Stripe CLI is owned by the payment sandbox qualification.",
     "Imported skill command templates and version references are owned by the provenance/docs refresh.",
     "Full nested external CLI graphs and security reachability remain open for final advisory qualification.",

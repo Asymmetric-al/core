@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-22T13:10:06.733577+00:00",
+  "status": "local-core-qualified-awaiting-current-head-ci-previews-and-merge",
+  "baseCommit": "c4d36cb029121641b8882237632d0d6da434049e",
+  "lockSha256": "266bf5acfe2eb096459585a45ef5745b81c1e937951e2d3c7249701a62302233",
+  "sourceBuildCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+  "provenance": "pdf-package-provenance.json",
+  "ownerMerge": {
+    "pullRequest": 25,
+    "commit": "1a224e14dea72cd8539c3547bb5c55ffc0bf39d2",
+    "proof": "/tmp/core-modernization-pdf-owner-postmerge-qualified.json",
+    "sha256": "53b177ebad9de358c48e3cccd229025549a1e43c8551ec2c2b4a2405c08008f1",
+    "successfulPostMergeRuns": 5
+  },
+  "currentPassed": [
+    {
+      "kind": "cold-frozen",
+      "proof": "/tmp/core-modernization-core-pdf-frozen-266b-cold-frozen.json",
+      "sha256": "06172eaddf277cac31b7dcbca4b0d7e88df615cb6a0394017f64e053d05832b2",
+      "command": ["bun", "ci", "--backend=copyfile"],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22",
+      "exit": 0,
+      "logSha256": "d3b44d60e56b9f208156cd814895ba60e6e8afe3812eeafdba4dc2a95c2e06c6"
+    },
+    {
+      "kind": "cold-integrity",
+      "proof": "/tmp/core-modernization-core-pdf-frozen-266b-cold-integrity.json",
+      "sha256": "5ed61b9cc13c5df32ba5ab35f3353624c67d069c272f286cb814715c97f99f30",
+      "command": ["node", "scripts/verify/pdf-package-provenance.mjs"],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22",
+      "exit": 0,
+      "logSha256": "30008616271e619c55db82b7d3ad8f553b8ab03776c0b2b75d7b4d143ac3f988"
+    },
+    {
+      "kind": "cold-cohort",
+      "proof": "/tmp/core-modernization-core-pdf-frozen-266b-cold-cohort.json",
+      "sha256": "aeb360aa4318d01266368951f8226e844db4428d9a4b52f3568a747336aefdd4",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/unit/packages/ui/studio/pdf-package-identities.test.ts",
+        "tests/unit/packages/ui/studio/pdf-editor-upstream.test.tsx",
+        "tests/unit/packages/api/pdf-studio-native-adapter.test.ts",
+        "tests/unit/packages/api/pdf-studio-docraptor.test.ts",
+        "tests/unit/packages/api/pdf-studio-native-routes.test.ts",
+        "tests/unit/packages/api/admin/contribution-receipt-pdf.test.ts",
+        "tests/unit/scripts/pdf-package-provenance.test.ts",
+        "tests/unit/scripts/ci-build-policy.test.ts",
+        "tests/unit/script-verifiers.test.ts",
+        "tests/unit/packages/ui/studio/react-email-upstream.test.tsx",
+        "tests/unit/packages/ui/studio/editor-accessibility.test.tsx",
+        "tests/unit/packages/ui/studio/react-email-editor.test.tsx"
+      ],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22",
+      "exit": 0,
+      "logSha256": "533a9a01ecc771999f3da47202fab557dbc43451255150a231031319fa5b8ea2"
+    },
+    {
+      "kind": "cold-consumption",
+      "proof": "/tmp/core-modernization-core-pdf-frozen-266b-cold-consumption.json",
+      "sha256": "a49fa7a266c0bf29909136ed44a12f92f2d0df3712b1f06d5f943641b098ea02",
+      "command": ["bun", "run", "verify:pdf-studio-package-consumption"],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22/packages/api",
+      "exit": 0,
+      "logSha256": "81a13cb38973fd231620700aa5684daa2a9791bdaa70f8e017c50bd9d3b1f10f"
+    },
+    {
+      "kind": "editor-accessibility-unit-v2",
+      "proof": "/tmp/core-modernization-core-pdf-editor-a11y-extension-unit-v2.json",
+      "sha256": "153009a7561132c8f7956cf04331e06606727ab64b84c66cc0bac88a3dcdb461",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/unit/packages/ui/studio/react-email-upstream.test.tsx",
+        "tests/unit/packages/ui/studio/editor-accessibility.test.tsx",
+        "tests/unit/packages/ui/studio/react-email-editor.test.tsx"
+      ],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22",
+      "exit": 0,
+      "logSha256": "0b6492d64a0786b414351644fdc2f51d4542a19bcf86cba4860eca3ec0fd4f04"
+    },
+    {
+      "kind": "editor-accessibility-browser-v2",
+      "proof": "/tmp/core-modernization-core-pdf-editor-a11y-extension-browser-v2.json",
+      "sha256": "6dbd5313b62f8cd054a396be1d98cbfb177ac47ef9d2246f2f2b24a171ef7dbd",
+      "command": [
+        "bun",
+        "run",
+        "test:e2e:base-ui",
+        "pdf-modernization.spec.ts"
+      ],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22",
+      "exit": 0,
+      "logSha256": "74c7a7aedea519e20699d83c651ce3e457a105dc7394cdcee41eccf91d2e5a1f"
+    },
+    {
+      "kind": "full-browser-matrix",
+      "proof": "/tmp/core-modernization-core-pdf-frozen-266b-browser-matrix.json",
+      "sha256": "203be1f232d405fb1879e11c614587a6b9b7dbf5a7dd2ed6ad89203eea59958d",
+      "command": ["bun", "run", "test:e2e:base-ui"],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22",
+      "exit": 0,
+      "logSha256": "c5e61f6eab12688699fcafebbb917c76b8ab958eb675f7ed24860e65ecc886ac"
+    },
+    {
+      "kind": "react-doctor",
+      "proof": "/tmp/core-modernization-core-pdf-final-source-doctor.json",
+      "sha256": "77aba76565f26aaeff90e5bf084575e6849b2e9f17caf34dc22b5502e226b268",
+      "command": ["bun", "run", "react-doctor:check"],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22",
+      "exit": 0,
+      "logSha256": "bed1d76bf8e29afc7636606b4ea145da1e4447ea360722e2c4bea4df35c269b6"
+    },
+    {
+      "kind": "ui-lint",
+      "proof": "/tmp/core-modernization-core-pdf-final-source-ui-lint.json",
+      "sha256": "69b39c3f140e10fdddf4f7a11a6fade5fa5544996a7c2792ac3150455f8b395f",
+      "command": ["node", "../../tooling/eslint-config/lint.mjs"],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22/packages/ui",
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "final-editor-source-unit",
+      "proof": "/tmp/core-modernization-core-pdf-final-source-unit.json",
+      "sha256": "118a65bb96726517fa78a74dcd9b32044e5c3920333db4cecf90a570365e2e54",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/unit/packages/ui/studio/react-email-upstream.test.tsx",
+        "tests/unit/packages/ui/studio/editor-accessibility.test.tsx"
+      ],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22",
+      "exit": 0,
+      "logSha256": "95762115f8d09f1c37c0d6c1213f5d202359aee5e047a75a50d68ebea5235df4"
+    },
+    {
+      "kind": "shadscan",
+      "proof": "/tmp/core-modernization-core-pdf-final-qualification-shadscan.json",
+      "sha256": "65d24a698d69e6791939d51b440cca9a1978c35a63fb7178c9d2b0e64a0e197a",
+      "command": ["bun", "run", "verify:shadscan"],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22",
+      "exit": 0,
+      "logSha256": "607f78de1da468dcbd96fd1b5dcf6f7471ec11f68b84d00d71b5c5e4de7be940"
+    },
+    {
+      "kind": "full-preflight",
+      "proof": "/tmp/core-modernization-core-pdf-qualified-final-full-preflight.json",
+      "sha256": "8f0a962e774ef6785ff7701b1ef128f6124dfd415c1660880915828bfe8ac038",
+      "command": ["bun", "run", "ci:preflight", "--full"],
+      "cwd": "/home/conrad/code/core-worktrees/pdf-package-modernization-2026-10-22",
+      "exit": 0,
+      "logSha256": "ac812178542af83e3505addd18796050e30cf481b44726b009c23cf9f669e8c2"
+    }
+  ],
+  "observedCounts": {
+    "focusedUnitFiles": 12,
+    "focusedUnitCases": 133,
+    "coldRuntimeCases": 8,
+    "artifactPackages": 5,
+    "artifactFiles": 91,
+    "focusedBrowserCases": 16,
+    "fullBrowserPassed": 239,
+    "fullBrowserExistingSkips": 5,
+    "reactDoctorTargets": 8,
+    "reactDoctorExactExceptions": 294,
+    "reactDoctorActionable": 0,
+    "productTypecheckTargets": 15,
+    "appBuilds": 3
+  },
+  "preserved": {
+    "nativeBuilderActivation": "unchanged",
+    "publicExportsAndDocumentVersions": "retained",
+    "baseMaiaAndSemanticTokens": "unchanged",
+    "primaryEnvironment": "opaque in-place loader; not copied"
+  },
+  "remaining": [
+    "Current-head Core CI and deployed-preview qualification",
+    "Core merge and post-merge readback",
+    "Whole-Core security/SBOM and combined production-release preparation"
+  ],
+  "historicalEvidenceLimit": "Earlier 41a2, 4c4f and 248b proofs remain dated snapshots. The 41a2/4c4f full preflights were terminated before dependency changes. Early accessibility probes failed and drove the persistent standard extension; the first 266b full runs exposed stale supporting evidence and import formatting. The final frozen 266b full preflight passed on 2026-10-22. CI, hosted previews and Core merge remain separately required.",
+  "security": {
+    "status": "family-graph-qualified-whole-core-open",
+    "lockSha256": "266bf5acfe2eb096459585a45ef5745b81c1e937951e2d3c7249701a62302233",
+    "familyGraphNodes": 282,
+    "familyAffectedNodes": 0,
+    "wholeCoreRecords": 84,
+    "wholeCorePackageNames": 35,
+    "wholeCoreUniqueAdvisories": 73,
+    "unreachabilityExceptions": 0,
+    "independentReview": {
+      "path": "/mnt/c/Users/Conrad/.codex/state/plugins/codex-security/scans/pdf-package-modernization-2026-10-22/artifacts-bf2ea7c0a88b86777265c0fc8d9c020b1b6cf8e4c79a09f13183ea80937956da/artifacts/core-pdf-audit-review-266bf5ac.json",
+      "sha256": "660800c320ea9d1806895b96e383afc2fb96bcc85e391a43e8c1bb597942958d"
+    },
+    "limits": "Fresh version/graph advisory matching includes installed editor CLI and build descendants. It is not a blanket runtime security qualification. Remaining Core findings require separate resolution.",
+    "auditInput": {
+      "path": "/tmp/core-modernization-core-pdf-freshness-audit-266b.json",
+      "sha256": "60abd3784fa7a0aab48f06344c29d783f154aca631271d538a2c727ea144449f"
+    },
+    "auditExecutionProof": {
+      "path": "/tmp/core-modernization-core-pdf-freshness-audit-266b-proof.json",
+      "sha256": "3ff43e4883b71a3a4dff4baa6c6e1e5326cdeaf8b98e71d3cf9f7d246cf2b7cc"
+    }
+  },
+  "dependencyDispositions": "pdf-dependency-dispositions.json",
+  "reviewedExceptionEvidence": {
+    "recordsRefreshed": 97,
+    "newExceptions": 0,
+    "removedExceptions": 0,
+    "review": {
+      "path": "/tmp/core-modernization-core-pdf-react-doctor-exception-review.json",
+      "sha256": "16ddd935070eade52fb00484c9285220bdc410135daa677d2e0024613d6145c4"
+    },
+    "editorAddendum": {
+      "path": "/tmp/core-modernization-core-pdf-react-doctor-editor-a11y-addendum.json",
+      "sha256": "8069fd40df9e0b9b9b68777cae20836cb6807ff72ac6ae3e3c4ff269ce86bd64"
+    },
+    "limit": "Final strict scan passed on all eight targets with zero actionable findings and 294 exact existing exceptions. Cosmetic import sorting required only the same unchanged spinner supporting/source hash refresh; identity/context and reviewed reasons remain intact."
+  },
+  "qualityLedgersFinalReadback": {
+    "path": "/tmp/core-modernization-core-pdf-quality-ledgers-final-readback.json",
+    "sha256": "48ec67db0f01175e4c0121f7efe430fd3e371094fcaa0fe0df97946f398b38e7"
+  },
+  "shadscanSupportingEvidenceReview": {
+    "path": "/tmp/core-modernization-core-pdf-shadscan-support-independent-review-266b.json",
+    "sha256": "f6eb590e577495a47dea60a8cbee46d609a4ef83a3931f37061f4834a84500d7"
+  }
+}

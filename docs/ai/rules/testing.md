@@ -54,7 +54,7 @@ non-runtime changes. The label is the gate for
 `.github/workflows/qa-smoke-preview-deploy.yml`; Vercel itself does not filter
 Preview Deployments by GitHub label.
 
-The preview smoke workflow compiles on the GitHub runner and uploads prebuilt preview output. Automatic develop Git deployments are disabled. It keeps the deployed Playwright URL handoff on these
+The preview smoke workflow requests hosted builds from the exact API-selected PR SHA and branch, then verifies the returned project, repository, SHA, branch and Preview target before accepting READY. Application Secrets remain with Vercel. Automatic develop Git deployments are disabled. It keeps the deployed Playwright URL handoff on these
 variables:
 
 - `QA_ADMIN_BASE_URL`
