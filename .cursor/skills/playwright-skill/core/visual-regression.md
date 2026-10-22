@@ -403,7 +403,8 @@ test('page with JS animations', async ({ page }) => {
 
   // Wait for the hero animation to settle
   await page.getByTestId('hero-section').waitFor({ state: 'visible' });
-  await page.waitForTimeout(500); // last resort for JS animations -- use sparingly
+  // No fixed sleep: toHaveScreenshot retries until two consecutive captures match.
+  // Libraries that honor prefers-reduced-motion skip animations under test.use({ reducedMotion: 'reduce' }).
 
   await expect(page).toHaveScreenshot('landing.png', {
     animations: 'disabled',
@@ -447,6 +448,15 @@ npx playwright test --project=chromium --update-snapshots
    ```
 
 4. Commit the updated snapshots with a clear message explaining why they changed.
+
+**`--update-snapshots=missing` now passes (Playwright 1.64 breaking change).** Before 1.64, a test that wrote a missing baseline still failed, so CI could not create new baselines and verify existing ones in the same run. In 1.64 the `'missing'` mode writes missing snapshots **and passes**, while existing snapshots are still compared. The mode used when you pass no option is now called `'default'` and keeps the old behavior: missing snapshots are written and the test fails.
+
+```bash
+# CI: create baselines for new tests, verify everything else, stay green
+npx playwright test --update-snapshots=missing
+```
+
+Use this for the first run of newly added visual tests in a container whose rendering matches CI. Still review and commit the generated files; a baseline nobody looked at is a regression waiting to be approved.
 
 **Tip**: Never run `--update-snapshots` in CI. Always update locally, review the diffs, and commit the new baselines.
 
@@ -676,13 +686,13 @@ jobs:
   visual-tests:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.50.0-noble
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: lts/*
           cache: npm
 
       - run: npm ci
@@ -692,7 +702,7 @@ jobs:
         env:
           HOME: /root  # required for Playwright in Docker
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: visual-test-report
@@ -704,8 +714,8 @@ jobs:
 
 ```bash
 # Generate/update snapshots using the same container as CI
-docker run --rm -v $(pwd):/work -w /work \
-  mcr.microsoft.com/playwright:v1.50.0-noble \
+docker run --rm --init --ipc=host -v $(pwd):/work -w /work \
+  mcr.microsoft.com/playwright:v1.64.0-noble \
   npx playwright test --update-snapshots --project=visual
 ```
 
@@ -715,7 +725,7 @@ docker run --rm -v $(pwd):/work -w /work \
 {
   "scripts": {
     "test:visual": "npx playwright test --project=visual",
-    "test:visual:update": "docker run --rm -v $(pwd):/work -w /work mcr.microsoft.com/playwright:v1.50.0-noble npx playwright test --update-snapshots --project=visual"
+    "test:visual:update": "docker run --rm --init --ipc=host -v $(pwd):/work -w /work mcr.microsoft.com/playwright:v1.64.0-noble npx playwright test --update-snapshots --project=visual"
   }
 }
 ```
@@ -877,16 +887,25 @@ await page.screenshot({ path: 'homepage.webp', type: 'webp', quality: 50 });
 
 **For visual regression baselines, stay lossless.** A lossy baseline bakes compression artifacts into the reference image, and your pixel threshold then has to absorb both real rendering differences and codec noise. Lossless WebP is typically 20 to 30% smaller than PNG for UI screenshots at identical pixels, so it cuts repository size with no effect on comparison.
 
-**For failure artifacts, lossy is the right trade.** Screenshots captured under `screenshot: 'only-on-failure'` exist to be looked at by a human, not diffed. On a sharded suite these dominate artifact storage and upload time, and `quality: 50` to `80` cuts them dramatically while staying perfectly readable.
+**For failure artifacts, lossy is the right trade.** Failure screenshots exist to be looked at by a human, not diffed, and `quality: 50` to `80` cuts them dramatically while staying readable. The `use.screenshot` option only accepts `mode`, `fullPage`, and `omitBackground` (no `type`/`quality`), so capture lossy artifacts yourself:
 
 ```typescript
-// playwright.config.ts — lossless baselines, compressed failure artifacts
+test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status !== testInfo.expectedStatus) {
+    await testInfo.attach('failure', {
+      body: await page.screenshot({ type: 'webp', quality: 70 }),
+      contentType: 'image/webp',
+    });
+  }
+});
+```
+
+**Make WebP the default for unnamed snapshots (1.64+)**: `expect(page).toHaveScreenshot()` without a name previously always produced `.png`. Set `type` once in config and every unnamed baseline is stored as WebP:
+
+```typescript
 export default defineConfig({
   expect: {
-    toHaveScreenshot: { pathTemplate: '{testDir}/__screenshots__/{arg}.webp' },
-  },
-  use: {
-    screenshot: { mode: 'only-on-failure', type: 'webp', quality: 70 },
+    toHaveScreenshot: { type: 'webp' },
   },
 });
 ```
@@ -908,11 +927,11 @@ test('status badge renders a green dot via ::before', async ({ page }) => {
 
   const badge = page.getByTestId('status-online');
   // No snapshot file to update — assert the computed style directly
-  await expect(badge).toHaveCSS('background-color', 'rgb(22, 163, 74)', { pseudo: '::before' });
+  await expect(badge).toHaveCSS('background-color', 'rgb(22, 163, 74)', { pseudo: 'before' });
 });
 ```
 
-This complements visual snapshots: use it to lock down specific pseudo-element styling that would otherwise force a full screenshot. See [core/assertions-and-waiting.md](assertions-and-waiting.md#asserting-pseudo-element-styles-tohavecss-pseudo-playwright-160).
+This complements visual snapshots: use it to lock down specific pseudo-element styling that would otherwise force a full screenshot. See [core/assertions-and-waiting.md](assertions-and-waiting.md#asserting-pseudo-element-styles-tohavecss-pseudo--playwright-160).
 
 ## Decision Guide
 
@@ -955,8 +974,8 @@ This complements visual snapshots: use it to lock down specific pseudo-element s
 **Fix**: Generate snapshots using Docker locally so they match CI:
 
 ```bash
-docker run --rm -v $(pwd):/work -w /work \
-  mcr.microsoft.com/playwright:v1.50.0-noble \
+docker run --rm --init --ipc=host -v $(pwd):/work -w /work \
+  mcr.microsoft.com/playwright:v1.64.0-noble \
   npx playwright test --update-snapshots --project=visual
 ```
 
@@ -986,7 +1005,7 @@ If the diff is larger, check the HTML report. Look at the diff image to determin
 ```json
 {
   "devDependencies": {
-    "@playwright/test": "1.50.0"
+    "@playwright/test": "1.64.0"
   }
 }
 ```
@@ -994,7 +1013,7 @@ If the diff is larger, check the HTML report. Look at the diff image to determin
 ```yaml
 # CI config
 container:
-  image: mcr.microsoft.com/playwright:v1.50.0-noble  # must match
+  image: mcr.microsoft.com/playwright:v1.64.0-noble  # must match
 ```
 
 ### Animations cause random diff failures
@@ -1014,7 +1033,7 @@ export default defineConfig({
 });
 ```
 
-For JavaScript-driven animations, wait for a stable state before screenshotting. As a last resort, use `page.waitForTimeout(300)` after the animation trigger.
+For JavaScript-driven animations, wait for a stable state before screenshotting: assert on the element's end state, set `reducedMotion: 'reduce'` if the animation library honors `prefers-reduced-motion`, and rely on `toHaveScreenshot` retrying until two consecutive captures match. Avoid `page.waitForTimeout()`.
 
 ### Snapshot file names conflict between tests
 

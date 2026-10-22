@@ -77,6 +77,45 @@ function assertDirectorySpellings(filePaths) {
   }
 }
 
+function validateDisplayMetadata(content) {
+  const lines = content.trimEnd().split("\n");
+  if (lines.shift() !== "interface:") {
+    throw new Error("ReUI OpenAI metadata must contain only display fields");
+  }
+  const allowed = new Set([
+    "display_name",
+    "short_description",
+    "default_prompt",
+  ]);
+  for (const line of lines) {
+    const match =
+      /^  ([a-z_]+): ("(?:[^"\\\x00-\x1f]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*")$/.exec(
+        line,
+      );
+    if (!match || !allowed.delete(match[1])) {
+      throw new Error(
+        "ReUI OpenAI metadata contains unsupported or duplicate fields",
+      );
+    }
+    const value = JSON.parse(match[2]);
+    // Validate decoded Unicode, including escaped controls and lone surrogates.
+    // ZWNJ/ZWJ remain valid for Persian/Indic spelling and joined emoji; other
+    // format controls can hide or reorder display text and are not metadata.
+    const visibleValue = value.replace(/[\u200c\u200d]/gu, "");
+    if (
+      !visibleValue.trim() ||
+      value.length > 1000 ||
+      /[\p{Cc}\p{Cs}\p{Zl}\p{Zp}]/u.test(value) ||
+      /\p{Cf}/u.test(visibleValue)
+    ) {
+      throw new Error("ReUI OpenAI metadata has an invalid display value");
+    }
+  }
+  if (allowed.size) {
+    throw new Error("ReUI OpenAI metadata is missing required display fields");
+  }
+}
+
 function validateBundle(bytes) {
   if (bytes.length > maxBundleBytes)
     throw new Error("ReUI bundle exceeds the size limit");
@@ -103,13 +142,15 @@ function validateBundle(bytes) {
     }
     const filePath = validatePath(file.path);
     if (
-      !filePath.endsWith(".md") ||
+      (!filePath.endsWith(".md") && filePath !== "agents/openai.yaml") ||
       [provenancePath, manifestPath].includes(filePath.toLowerCase())
     ) {
       throw new Error(
         "ReUI bundle contains an unsupported or reserved file path",
       );
     }
+    if (filePath === "agents/openai.yaml")
+      validateDisplayMetadata(file.content);
     const portablePath = filePath.toLowerCase();
     if (portablePaths.has(portablePath))
       throw new Error("ReUI bundle contains duplicate file paths");

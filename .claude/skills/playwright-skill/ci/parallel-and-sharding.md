@@ -115,7 +115,7 @@ npx playwright merge-reports --reporter=html ./all-blob-reports
 npx playwright merge-reports --reporter=html,json,junit ./all-blob-reports
 
 # Custom output directory
-PLAYWRIGHT_HTML_REPORT=merged-report npx playwright merge-reports --reporter=html ./all-blob-reports
+PLAYWRIGHT_HTML_OUTPUT_DIR=merged-report npx playwright merge-reports --reporter=html ./all-blob-reports
 ```
 
 **GitHub Actions example (merge job):**
@@ -126,14 +126,14 @@ merge-reports:
   needs: test
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
+    - uses: actions/checkout@v7
+    - uses: actions/setup-node@v7
       with:
-        node-version: 20
+        node-version: lts/*
         cache: 'npm'
     - run: npm ci
 
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         path: all-blob-reports
         pattern: blob-report-*
@@ -141,7 +141,7 @@ merge-reports:
 
     - run: npx playwright merge-reports --reporter=html ./all-blob-reports
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: playwright-report
         path: playwright-report/
@@ -177,7 +177,7 @@ export const test = base.extend<{}, WorkerFixtures>({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: `worker-user-${workerInfo.workerIndex}`,
-        password: process.env.TEST_PASSWORD, // pragma: allowlist secret
+        password: process.env.TEST_PASSWORD,
       }),
     });
     const { token } = await response.json();
@@ -249,6 +249,12 @@ test('update user settings', { lock: 'user-settings' }, async ({ page }) => {
 
 Tests holding the same lock name never run concurrently, regardless of which file or worker they live in. Everything else in the suite keeps running in parallel.
 
+**Locking a whole file or group (1.64+)**: when every test in a file or `describe` touches the resource, set the lock once instead of repeating it per test:
+
+```javascript
+test.describe.configure({ lock: 'user-settings' });
+```
+
 **Choose the lock name for the resource, not the feature.** `'user-settings'` is right if that is the row being mutated. Naming it after the spec file recreates `describe.serial()` with extra steps.
 
 **A lock is not isolation.** It prevents overlap; it does not reset state between holders. Each test still has to leave the resource in a state the next holder can use, or seed what it needs. See Pattern 5 above.
@@ -269,10 +275,10 @@ jobs:
       shard-count: ${{ steps.calc.outputs.count }}
       shard-matrix: ${{ steps.calc.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: lts/*
           cache: 'npm'
       - run: npm ci
       - id: calc
@@ -304,10 +310,10 @@ jobs:
       matrix:
         shard: ${{ fromJson(needs.determine-shards.outputs.shard-matrix) }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: lts/*
           cache: 'npm'
       - run: npm ci
       - run: npx playwright install --with-deps
@@ -384,13 +390,13 @@ npx playwright test --shard=1/20  # Some shards will be empty
 
 ```yaml
 # Each shard
-- uses: actions/upload-artifact@v4
+- uses: actions/upload-artifact@v7
   with:
     name: blob-report-${{ strategy.job-index }}  # unique per shard
     path: blob-report/
 
 # Merge step
-- uses: actions/download-artifact@v4
+- uses: actions/download-artifact@v8
   with:
     pattern: blob-report-*
     merge-multiple: true

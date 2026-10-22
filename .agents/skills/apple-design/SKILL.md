@@ -44,11 +44,7 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
-## Initial Response
-
-When this skill is first invoked without a specific question, respond only with:
-
-> I'm ready to help you build fluid, Apple-style interfaces on the web, my knowledge comes from Apple's WWDC design talks, translated for the web.
+When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.
 
 How Apple builds interfaces that stop feeling like a computer and start feeling like an extension of you. This knowledge comes from Apple's WWDC design talks — chiefly _Designing Fluid Interfaces_ (WWDC 2018) — distilled and translated into the web platform (CSS, Pointer Events, `requestAnimationFrame`, spring libraries like Motion/Framer Motion).
 

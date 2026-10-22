@@ -1,0 +1,23 @@
+{
+  "version": "1.4.1",
+  "organization": "Aurora Scharff",
+  "date": "October 2026",
+  "abstract": "Build and audit Next.js 16 App Router apps with a next-beats-style RSC architecture: synchronous pages that compose static shells, Suspense, and error boundaries; feature-owned async server components that receive IDs or parsed values; co-located skeletons; server-only queries; server actions; enforced Cache Components practice when enabled; and build/runtime verification of the resulting loading shape. References cover each topic in depth so the agent only loads what's needed for the task.",
+  "references": [
+    "https://preview.nextjs.org/docs/app",
+    "https://preview.nextjs.org/docs/app/guides/ai-agents",
+    "https://preview.nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents",
+    "https://preview.nextjs.org/docs/app/api-reference/directives/use-cache",
+    "https://preview.nextjs.org/docs/app/api-reference/functions/cacheTag",
+    "https://preview.nextjs.org/docs/app/api-reference/config/next-config-js/cacheLife",
+    "https://preview.nextjs.org/docs/app/api-reference/functions/updateTag",
+    "https://preview.nextjs.org/docs/app/guides/adopting-partial-prefetching",
+    "https://preview.nextjs.org/docs/app/guides/migrating-to-cache-components",
+    "https://preview.nextjs.org/docs/app/guides/authentication-with-cache-components",
+    "https://preview.nextjs.org/docs/app/guides/interactive-apps",
+    "https://nextjs.org/docs/app/guides/client-side-data-fetching/tanstack-query",
+    "https://nextjs.org/docs/app/guides/client-side-data-fetching/swr",
+    "https://aurorascharff.no/posts/component-architecture-for-react-server-components/",
+    "https://github.com/vercel-labs/next-beats"
+  ]
+}

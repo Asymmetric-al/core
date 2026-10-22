@@ -3,8 +3,6 @@
 
 "use client"
 
-import { useState } from "react"
-
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -17,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState } from "react"
 
 export function AuthLayout() {
   const [isLoading, setIsLoading] = useState<boolean>(false)

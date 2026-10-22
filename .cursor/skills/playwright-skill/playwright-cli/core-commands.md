@@ -92,7 +92,7 @@ playwright-cli open https://example.com --config=my-config.json
 Connect to an existing browser via extension instead of launching a new one:
 
 ```bash
-playwright-cli open --extension
+playwright-cli attach --extension
 ```
 
 ### Closing
@@ -364,6 +364,30 @@ playwright-cli tab-select 2         # Go to GitHub tab
 playwright-cli snapshot
 
 playwright-cli close                # Closes all tabs
+```
+
+## WebMCP Tools (Playwright 1.64+)
+
+Pages can register tools for AI agents through the experimental WebMCP API. List and call them straight from the CLI:
+
+```bash
+playwright-cli webmcp-list
+playwright-cli webmcp-call search_catalog --params '{"query":"cats"}'
+```
+
+Calling a tool is the fastest way to check that it is wired to real app state: call it, then `snapshot` to see the page update. For writing tests against these tools, see [core/webmcp-testing.md](../core/webmcp-testing.md).
+
+## More Commands
+
+```bash
+playwright-cli find "Sign in"              # Search the snapshot instead of reading all of it
+playwright-cli find --regex "Sign (in|up)"
+playwright-cli generate-locator e5         # Turn a ref into a Playwright locator
+playwright-cli highlight e5                # Overlay a highlight; --hide removes it
+playwright-cli drop e4 --path=./image.png  # Drop files or data onto an element
+playwright-cli tab-close 2                 # Close a tab (current tab if no index)
+playwright-cli detach                      # Leave an attached browser running
+playwright-cli network-state-set offline   # Or: online
 ```
 
 ## Tips

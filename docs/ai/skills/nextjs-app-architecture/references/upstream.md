@@ -3,10 +3,10 @@ source_name: aurorascharff/nextjs-app-architecture-skill (nextjs-app-architectur
 source_url: https://github.com/aurorascharff/nextjs-app-architecture-skill
 source_type: github
 upstream_path: SKILL.md
-reviewed_commit: f2902b8538b25610da694394ecf88e69adf5f96a
-skills_lock_hash: 94f700fb57aef401e135ddbb0d13a2986d6416820ee4e1b2bf1fd8e17fae0d66
+reviewed_commit: 84842f3c66da70462f36753603db86a347dfb83c
+skills_lock_hash: 0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b
 license: MIT
-last_reviewed: 2026-08-28
+last_reviewed: 2026-10-22
 ---
 
 # Upstream: nextjs-app-architecture
@@ -14,7 +14,7 @@ last_reviewed: 2026-08-28
 Canonical copy in this repo: `docs/ai/skills/nextjs-app-architecture/` (mirrored to `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/aurorascharff/nextjs-app-architecture-skill
-- **Upstream path:** `SKILL.md` plus `references/{cache-components,components,example,feature-folders,pages-suspense,queries-actions,single-page-applications,ux-patterns}.md`
+- **Upstream path:** `SKILL.md` plus `references/{cache-components,components,example,feature-folders,instant-navigation,pages-suspense,queries-actions,single-page-applications,testing,ux-patterns}.md`
 - **License:** MIT; copyright Aurora Scharff (see the ecosystem `LICENSE` copied by the Skills CLI)
 - **Install via Skills CLI:** `npx --yes skills@1.5.7` with the reviewed local checkout below
 
@@ -23,14 +23,14 @@ The skill packages next-beats-style RSC composition for Next.js 16 App Router: s
 ## Refresh from ecosystem
 
 1. Select the exact reviewed upstream commit. The current raw upstream pin is
-   `f2902b8538b25610da694394ecf88e69adf5f96a`; advancing it requires reviewing the
+   `84842f3c66da70462f36753603db86a347dfb83c`; advancing it requires reviewing the
    new tree and its diff, not following a mutable branch or dist-tag. Prepare an
    isolated checkout and install outside Core before copying any canonical file:
 
    ```bash
    set -eu
    refresh_dir=$(mktemp -d)
-   reviewed_commit=f2902b8538b25610da694394ecf88e69adf5f96a
+   reviewed_commit=84842f3c66da70462f36753603db86a347dfb83c
    git clone --no-checkout https://github.com/aurorascharff/nextjs-app-architecture-skill "$refresh_dir/source"
    git -C "$refresh_dir/source" checkout --detach "$reviewed_commit"
    test "$(git -C "$refresh_dir/source" rev-parse HEAD)" = "$reviewed_commit"
@@ -63,3 +63,9 @@ The skill packages next-beats-style RSC composition for Next.js 16 App Router: s
    raw tree, hash, reviewed diff, and validation as refresh evidence.
 
 This skill is **not** updated by `bun run skills:refresh-upstream` today.
+
+## Reviewed refresh 2026-10-22
+
+Updated to the complete upstream skill tree at `84842f3c66da70462f36753603db86a347dfb83c` (raw SKILL.md SHA-256 `0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b`). Added instant-navigation and testing references. A three-way reconciliation retained every Core API ownership remap, installed-doc qualification, authenticated transport example, pending-attribute wiring, canonical optimistic result commit, metadata/cache qualification and portal snapshot correction. New canary-oriented guidance remains subordinate to installed docs and the existing Core frontend and test contracts. Imported scripts, hooks and tests were not executed.
+
+Every newly introduced preview documentation link was reconciled to an existing installed `next@16.4.2` document; no preview doc replaces version-matched local framework evidence.

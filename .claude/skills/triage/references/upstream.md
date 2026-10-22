@@ -1,10 +1,13 @@
 ---
-source_name: mattpocock/skills (triage)
+source_name: mattpocock/skills
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/engineering/triage/SKILL.md
-skills_lock_hash: 7caa274494d702d8c668d1ff17267b4a69b6d58e34a00c20b2df9de67ef6edc9
-last_reviewed: 2026-07-09
+skills_lock_hash: 917b0baf74be583e74f110857ed45df2766617f75c00baf61fd136d7af515edf
+last_reviewed: 2026-10-22
+source_path: skills/engineering/triage/
+reviewed_commit: 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+license: MIT
 ---
 
 # Upstream: triage
@@ -23,3 +26,11 @@ Canonical copy in this repo: `docs/ai/skills/triage/` (mirrored to `.agents/skil
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 
 This skill is **not** updated by `bun run skills:refresh-upstream`.
+
+## Reviewed refresh, 2026-10-22
+
+- Source: `mattpocock/skills` at `5beb35b040e3de97e54fa9e386d7e42d15c295c2`.
+- Complete upstream skill tree: `skills/engineering/triage/`; MIT notice: [LICENSE.md](LICENSE.md).
+- Raw upstream `SKILL.md` SHA-256: `917b0baf74be583e74f110857ed45df2766617f75c00baf61fd136d7af515edf`.
+- Preserve Core discovery metadata, explicit-only invocation, existing overlays and compatibility corrections. Raw upstream scripts are vendored data; none were executed during this refresh.
+- Core keeps CONTEXT.md, CONTEXT-MAP.md and CONTEXT-FORMAT.md; upstream glossary filenames are remapped without renaming repository documents. Core TDD and authorization rules override generic seam, refactor and commit instructions.

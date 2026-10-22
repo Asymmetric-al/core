@@ -4,7 +4,7 @@ description: Build or audit Next.js 16 App Router apps using a next-beats-style 
 license: MIT
 metadata:
   author: aurorascharff
-  version: "1.3.9"
+  version: "1.4.1"
 ---
 
 # Next.js App Architecture
@@ -91,13 +91,15 @@ Run these in order for build-from-scratch, feature work, or audits. Each step na
 5. **Build the component + skeleton.** `features/<domain>/components/<name>.tsx`: an async server component that awaits its own query from minimal props; `'use client'` only on interactive leaves. **(CORE: the async server owner calls a published `@asym/api/*` read; an approved database hook belongs in a separate `'use client'` leaf, never in the async server owner. No new `*-queries.ts`.)**
    → `references/components.md`; for a client data library or strict-SPA/CSR feature → `references/single-page-applications.md`.
    ✓ Component receives IDs/handles/parsed filters or already-resolved records, not `params`; skeleton is a sibling export at the end; no alias skeleton wrappers.
-6. **Compose the page.** `app/<route>/page.tsx`: synchronous, `params.then()` / `Promise.all(...).then(...)`, place Suspense around data bodies, and wrap fallible sections in an error boundary.
-   → `references/pages-suspense.md`.
+6. **Compose the page.** `app/<route>/page.tsx`: synchronous, `params.then()` / `Promise.all(...).then(...)`, place Suspense around data bodies, and wrap the section that can fail independently in an error boundary.
+   → `references/pages-suspense.md`; with `cacheComponents: true`, also → `references/instant-navigation.md` for which links prefetch and which reads wait for the navigation.
    ✓ Route props become plain values; stable cards/sections wrap Suspense when they set layout; boundaries stay visible at the page.
 7. **Add interaction** (if any): optimistic updates, pending state, toasts, confirmation.
    → `references/ux-patterns.md`.
    ✓ Feedback isn't doubled; optimistic reducers/actions live with the feature; URL/search params own shareable state; client effects synchronize external systems, not derived React state.
-8. **Verify** against the checklist below before declaring done.
+8. **Verify** against the checklist below before declaring done. When the change touches a loading sequence, lock it in with an end-to-end test.
+   → `references/testing.md`.
+   ✓ The test asserts which content is available before uncached work resolves, using visibility-aware locators.
 
 ## Verify before done
 
@@ -109,14 +111,21 @@ Inspect the diff against every invariant — each is checkable by reading the ch
 - [ ] Every `<Suspense>` for page data sits in the page; no feature pre-wraps itself.
 - [ ] Stable wrappers/cards/chrome sit outside Suspense; fallback and final content do not duplicate the same outer card.
 - [ ] Every component has its real `*Skeleton` in the same file, at the end; no tiny skeleton aliases just to pass props.
+- [ ] Skeleton and content are the same height (measured), section headings sit outside the boundary, and sections that can be empty reserve their space.
+- [ ] Sections below a variable-height section are nested sibling boundaries inside it, not awaited by it and not passed through it as children.
+- [ ] `unstable_prefetch()` / `unstable_navigation()` are awaited in the component before its query call; no wrapper query exists just to hold the gate.
 - [ ] Every `*-queries.ts` starts with `import 'server-only'`; every `*-actions.ts` with `'use server'`. **(CORE: skip file creation. A new `*-queries.ts` / `*-actions.ts` under `apps/*/features/` means the change is wrong.)**
 - [ ] With `cacheComponents: true`, reusable reads use `'use cache'` / `cacheTag` / `cacheLife`, or `'use cache: private'` / `'use cache: remote'` when appropriate; any dynamic read is intentional and justified.
+- [ ] A personalized shared-cache scope receives trusted, normalized identity values from an uncached feature wrapper; it never reads request APIs or trusts a client-provided identity inside the cache scope.
+- [ ] Reads whose every write calls `updateTag()` use `cacheLife('max')`; a shorter profile is reserved for data that changes outside the app's actions.
 - [ ] Mutations touching cached reads call `updateTag()` / `revalidateTag(..., 'max')` for the matching tags; `refresh()` is not a substitute for tag invalidation.
+- [ ] `prefetch={true}` is reserved for links users predictably follow, or for rows whose per-link prefetch was made cheap by gating the heavy part behind `unstable_navigation()`.
 - [ ] Action files are named `<folder>-actions.ts`; no entity-owned sub-concept spawned its own folder, and cross-domain product features do not take ownership of entity queries/actions. **(CORE: skip file creation.)**
 - [ ] Features with both server tags and client query keys define them once in a pure `<domain>-cache.ts`; queries, actions, hydration, query options, and hooks import from it. **(CORE: server tags/invalidators stay API-owned; browser keys stay client-owned, and coordination never requires `packages/api` to import an app feature or duplicate server tag strings.)**
 - [ ] Feature-local client-support files sit in the smallest fitting place: query options at the feature root, `use-*` hook wrappers in `hooks/`, leaf components in `components/`, and shared support only after real cross-feature reuse.
-- [ ] `'use client'` components are leaves — they import actions/hooks/providers, not async server components.
+- [ ] `'use client'` components are leaves — they import actions/hooks/providers, not async server components. A client component that needs server data has a server half in the feature (`ComposePanel` → `ComposePanelClient`); no page or layout creates query promises for it.
 - [ ] Client leaves use `useOptimistic`, transitions, reducers, URL state, or form actions for interaction; they do not call `setState` in effects for derived React state.
+- [ ] Forms whose action can reject input keep what the user typed: the action state returns the submitted values and the fields read them as `defaultValue`.
 - [ ] Mutations validate their input and invalidate the affected data.
 
 ## Reference index
@@ -124,8 +133,10 @@ Inspect the diff against every invariant — each is checkable by reading the ch
 - **`references/feature-folders.md`** — where code goes: folder layout, cache contracts, naming, and merging sub-concepts.
 - **`references/queries-actions.md`** — query/action rules: server-only, dedup, validation, invalidation, return shape.
 - **`references/components.md`** — server/client boundary, skeletons, `use()`, single-use helpers, live data.
-- **`references/pages-suspense.md`** — page composition, `params.then()`, Suspense placement, CLS, error boundaries, prefetch.
+- **`references/pages-suspense.md`** — page composition, `params.then()`, Suspense placement, CLS, error boundaries.
+- **`references/instant-navigation.md`** — prefetching decisions: `prefetch={true}`, the three render stages and their gates, validating what a navigation shows, hidden routes.
 - **`references/cache-components.md`** — the `cacheComponents` decisions: which reads to cache, which directive to use, how to invalidate.
 - **`references/single-page-applications.md`** — client cache decisions: placement, server seeding, Cache Components coordination, hydration, and mutations.
 - **`references/ux-patterns.md`** — interaction decisions: optimistic vs pending vs inline error, toasts, action-prop, confirmations.
+- **`references/testing.md`** — end-to-end tests: asserting the loading sequence with `instant()`, locating content across hidden routes, testing mutations.
 - **`references/example.md`** — the next-beats reference app: invariant → file map, for seeing any rule in real code.

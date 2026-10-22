@@ -64,5 +64,12 @@ describe("Inngest skill reference verifier", () => {
       "../../inngest-api-cli/references/cli-commands.md#insights-sql-over-execution-data",
     );
     expect(restApi).not.toContain("(cli-commands.md");
+    const refreshScript = await readFile(refreshScriptPath, "utf8");
+    expect(refreshScript).toContain(
+      "Unable to apply Inngest API companion reference overlay",
+    );
+    expect(refreshScript).toContain(
+      "../../inngest-api-cli/references/cli-commands.md#insights-sql-over-execution-data",
+    );
   });
 });

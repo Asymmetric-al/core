@@ -21,36 +21,37 @@ See [Core workflow](../SKILL.md#this-repository-asymmetric-alcore).
 
 <!-- END:core-reui-overlay -->
 
-The 24 ReUI building blocks: `alert`, `autocomplete`, `badge`, `cascader`, `code-block`, `data-grid`, `date-selector`, `event-calendar`, `filters`, `frame`, `gantt`, `icon-stack`, `icon-tile`, `kanban`, `number-field`, `phone-input`, `rating`, `scrollspy`, `signature-pad`, `sortable`, `stepper`, `time-picker`, `timeline`, `tree`. Examples and blocks are composed from these. `file-upload` is a ReUI component too, shipped as the `use-file-upload` hook rather than a primitive, so it is not in the 24: install it as `@reui/use-file-upload`, call `get_component("file-upload")` for its API and `get_examples("file-upload")` for its free examples.
+The ReUI components: `alert`, `autocomplete`, `badge`, `cascader`, `code-block`, `color-picker`, `data-grid`, `date-selector`, `emoji-picker`, `event-calendar`, `file-type`, `filters`, `frame`, `gantt`, `icon-stack`, `icon-tile`, `kanban`, `number-field`, `phone-input`, `rating`, `scrollspy`, `signature-pad`, `sortable`, `stepper`, `time-picker`, `timeline`, `tree`. Examples and blocks are composed from these. `file-upload` is a ReUI component too, shipped as the `use-file-upload` hook rather than a primitive, so it is not in that list: install it as `@reui/use-file-upload`, which writes `hooks/use-file-upload.ts` (import `useFileUpload` from `@/hooks/use-file-upload`), call `get_component("file-upload")` for its API and `get_examples("file-upload")` for its free examples. There is no `@reui/file-upload`: the UI is a `c-file-upload-<n>` example, and one built on the hook installs it.
 
-**Rule one: never guess a component's API. Read it first.** Call **`get_component(name)`** for its inline `api` (props + usage, no web fetch), and **share the result's `docsUrl`** (the component's API documentation page) with the user whenever you work with that component's API, so they have the full reference (the `/llms.txt` index is a further fallback). Then call **`get_examples(name)`** to install a worked example and copy real composition. The contracts below are first-try orientation (required props, composition shape, the one gotcha); the inline `api` is the deeper reference. Do not assume you received all of it: a very large API (`cascader`, `filters`, `data-grid`) is trimmed on heading boundaries to fit your context, and every dropped heading is named in `sectionsOmitted`, so a trimmed capsule is a partial read - follow the response's own `next` hint to pull back the part you need instead of guessing at it. `validate_usage` always checks the FULL API, trimmed capsule or not. No single block fits? Compose: search the components you need, read each `get_component`, install a `get_examples` example per component, and adapt.
+**Rule one: never guess a component's API.** Call **`get_component(name)`** for its inline `api` and share its `docsUrl` with the user, then **`get_examples(name)`** and copy a worked example. The contracts below are first-try orientation (required props, shape, the one gotcha); the `api` is the reference. A large `api` (`cascader`, `filters`, `data-grid`) is trimmed on heading boundaries: `sectionsOmitted` names what was dropped and the response's `next` hint pulls it back. `validate_usage` always checks the full API. No single block fits? Compose from components, 1 `get_examples` example each ([compose.md](./compose.md)).
 
 ## data-grid (the flagship - read its API every time)
 
 `data-grid` wraps TanStack Table v9. It is NOT a styled `<table>` and does NOT take `data`/`columns` props directly. The contract:
 
-- Build a TanStack table instance with `useTable({ features: dataGridFeatures, ... })` (columns, data). `dataGridFeatures` is exported by the primitive and already bundles sorting, filtering, pagination, row selection, expanding, pinning, resizing and faceting, so there are no per-table row models to wire.
+- Build a TanStack table with `useTable({ features: dataGridFeatures, ... })`. `dataGridFeatures` already bundles sorting, filtering, pagination, selection, expanding, pinning, resizing and faceting: no row models to wire.
 - Pass that instance to `<DataGrid table={table} recordCount={total}>`.
 - Compose the body with `DataGridTable` inside `DataGrid`, and enable features through `tableLayout` (e.g. `{ headerSticky: true, columnsResizable: true }`), not ad-hoc classes.
-- Server-side data uses the documented fetch shape (`recordCount` is the total for pagination).
+- Server-side data: `manualPagination: true` and `rowCount: total` in `useTable`, `recordCount={total}`, and fetch with the table's `pagination` state (`DataGridPagination` changes `pageSize`).
+- Columns are TanStack v9, `ColumnDef<DataGridFeatures, Order>[]`, never v8's `ColumnDef<Order>[]`; a sortable column's `header` renders `DataGridColumnHeader` (a string header cannot sort).
+- Imports, each from `@/components/reui/data-grid/<file>`: `DataGrid`, `DataGridFeatures` and `dataGridFeatures` from `data-grid`, `DataGridColumnHeader` from `data-grid-column-header`, `DataGridTable` from `data-grid-table`, `DataGridPagination` from `data-grid-pagination`, `DataGridScrollArea` from `data-grid-scroll-area`; `useTable` and `ColumnDef` from `@tanstack/react-table`.
+- States: `isLoading` renders skeleton rows from each column's `meta.skeleton` (a `ReactNode`: `<Skeleton className="h-4 w-20" />`); `emptyMessage` (a `ReactNode`) fills a grid with no rows: after a failed fetch, pass it the error with a Retry.
+- Numeric column: `meta: { headerClassName: "text-end [&>div]:justify-end", cellClassName: "text-end tabular-nums" }`.
+- Rows edited in place: `autoResetPageIndex: false` in `useTable`, or each write jumps back to page 1.
+- In a Frame: `<FramePanel className="p-0">` around `DataGridScrollArea` and `DataGridTable`, plus `tableClassNames={{ base: "min-w-[720px]" }}` so on a phone the table scrolls inside the panel instead of squeezing.
 
 ```tsx
-const table = useTable({
-  features: dataGridFeatures,
-  data,
-  columns,
-})
+const columns = useMemo<ColumnDef<DataGridFeatures, Order>[]>(() => [
+  { accessorKey: "total", header: ({ column }) => <DataGridColumnHeader title="Total" column={column} /> },
+], [])
+const table = useTable({ features: dataGridFeatures, data, columns })
 
 <DataGrid table={table} recordCount={data.length}>
   <DataGridTable />
 </DataGrid>
 ```
 
-Common mistakes:
-
-- **Incorrect:** `<DataGrid data={rows} columns={cols} />` - these props do not exist. **Correct:** build a `useTable({ features: dataGridFeatures, ... })` instance and pass `table={table}` + `recordCount`.
-- **Incorrect:** a raw `<table>` / hand-rolled pagination. **Correct:** use `data-grid`; read its API for sticky header, pagination, virtualization, row selection.
-- **Incorrect:** styling rows/cells with arbitrary classes. **Correct:** drive layout via `tableLayout` and the primitive's `DataGridColumnMeta` (e.g. `cellClassName`, `headerTitle`), set through the bundle's `columnMeta` slot.
+Never a raw `<table>` or hand-rolled pagination: the API covers sticky header, virtualization and row selection.
 
 ## event-calendar
 
@@ -95,9 +96,12 @@ Common mistakes:
   <KanbanBoard>
     {Object.entries(cols).map(([id, items]) => (
       <KanbanColumn key={id} value={id}>
-        <KanbanColumnHandle>
+        <div className="flex items-center justify-between">
           <h3>{id}</h3>
-        </KanbanColumnHandle>
+          <KanbanColumnHandle aria-label="Move column">
+            <GripVertical />
+          </KanbanColumnHandle>
+        </div>
         <KanbanColumnContent value={id}>
           {items.map((i) => (
             <KanbanItem key={i.id} value={i.id}>
@@ -114,7 +118,7 @@ Common mistakes:
 </Kanban>
 ```
 
-**Gotcha:** state is `Record<columnId, T[]>`. Each `KanbanColumnContent value` must match its parent `KanbanColumn value`. Omit `KanbanOverlay` and the drag preview silently breaks.
+**Gotcha:** state is `Record<columnId, T[]>`. Each `KanbanColumnContent value` must match its parent `KanbanColumn value`. Omit `KanbanOverlay` and the drag preview silently breaks. `KanbanColumnHandle` is hidden until its column is hovered or it has keyboard focus, so keep the column title outside it.
 
 ## sortable
 
@@ -191,7 +195,7 @@ const [query, setQuery] = useState<FilterQuery>(() => createFilterQuery())
 
 **Gotcha:** pressing a branch NAVIGATES, it does not select - only leaves are selectable until you pass `selectable="any"` or a predicate, and once a branch is selectable its chevron becomes the only way to open it. `CascaderInput` must stay inside `CascaderContent` (Base UI refills the query from the selection when the input sits outside the popup). Always include `CascaderStatus`: it is the live region announcing level changes, which the visual breadcrumb does not provide to screen readers. Accepts a flat adjacency list via `getParent` as well as nested `children`. `searchScope="deep"` searches the current level and everything under it, `searchScope="global"` the whole tree from any level, and both annotate results with their path; `multiple` gives checkbox rows; `inline` + a bare `CascaderPanel` embeds it with no popover.
 
-The shape above is `mode="drill"`, the default. `mode="tree"` keeps the same parts (drop `CascaderBreadcrumb`, pass `showBack={false}`, drive expansion with `expanded`/`onExpandedChange`); `mode="columns"` REPLACES `CascaderList` + `CascaderItems` with a single `CascaderColumns`, and has no breadcrumb. Other props worth knowing before you hand-roll them: `cascade` (multi-select only, parent/child selection with indeterminate branches - pair it with `selectable="any"`, since a leaf-only tree can never cascade), `indicator={false}` to drop the single-select check and its gutter (visual only, no-op with `multiple`), `virtualize`/`virtualizeThreshold` plus `CascaderVirtualItems` for long levels, and `getChildren` for async levels with cursor paging, retry on failure and optional `prefetch`. `CascaderFooter` pins commands below the list (`actions` is the quick path) and `CascaderSubmenu` opens one as a side-anchored flyout with the full menu keyboard model. To head a run of rows use `CascaderGroup` wrapping a `CascaderLabel` - a bare label inside a listbox names nothing and is dropped from the accessibility tree - and `CascaderSeparator` for the rule between runs. Every rendered string comes from `labels`, and the panel is RTL-correct under a `DirectionProvider` or `dir="rtl"`.
+The shape above is `mode="drill"`, the default. `mode="tree"` keeps the same parts (drop `CascaderBreadcrumb`, pass `showBack={false}`, drive expansion with `expanded`/`onExpandedChange`); `mode="columns"` REPLACES `CascaderList` + `CascaderItems` with a single `CascaderColumns`, and has no breadcrumb. Other props worth knowing before you hand-roll them: `cascade` (multi-select only, parent/child selection with indeterminate branches - pair it with `selectable="any"`, since a leaf-only tree can never cascade), `virtualize` plus `CascaderVirtualItems` for long levels, and `getChildren` for async levels (paging, retry, `prefetch`). `CascaderFooter` pins commands below the list and `CascaderSubmenu` opens one as a side flyout. To head a run of rows use `CascaderGroup` wrapping a `CascaderLabel` - a bare label inside a listbox names nothing and is dropped from the accessibility tree - and `CascaderSeparator` for the rule between runs.
 
 ## date-selector
 
@@ -366,7 +370,7 @@ import {
 </div>
 ```
 
-**Gotcha:** each link's `data-scrollspy-anchor` must match a section `id`. `targetRef` is the scrollable container (defaults to the window).
+**Gotcha:** each link's `data-scrollspy-anchor` must match a section `id`. `targetRef` is the scrollable container (defaults to the window). `smooth` defaults to true: pass `smooth={!reduceMotion}` from motion/react's `useReducedMotion()`. Mark the active link `aria-current="location"` (track it with `onUpdate`); `"page"` is for route links.
 
 ## frame
 
@@ -375,18 +379,16 @@ import {
 
 ```tsx
 <Frame>
-  <FramePanel>
-    <FrameHeader>
-      <FrameTitle>Title</FrameTitle>
-      <FrameDescription>Description</FrameDescription>
-    </FrameHeader>
-    <div className="p-5">Content</div>
-    <FrameFooter>Footer</FrameFooter>
-  </FramePanel>
+  <FrameHeader>
+    <FrameTitle>Title</FrameTitle>
+    <FrameDescription>Description</FrameDescription>
+  </FrameHeader>
+  <FramePanel>Content</FramePanel>
+  <FrameFooter>Footer</FrameFooter>
 </Frame>
 ```
 
-**Gotcha:** a structured card shell for tool-like surfaces. `stacked` connects multiple panels with shared borders; `dense` removes panel padding; radius via the `--frame-radius` CSS variable.
+**Gotcha:** the shell for data and tool-like surfaces. `spacing` (`xs` | `sm` | `default` | `lg`) sets panel padding and the gap between panels, so pick it instead of padding classes (the 1 exception: `<FramePanel className="p-0">` around a `data-grid`); `variant` is `default` | `inverse` | `ghost`; `stacked` joins panels with shared borders; `dense` removes the frame's own inset and gap (panels sit flush), and panel padding stays; `--frame-radius` is the one radius knob (panels derive `--frame-panel-radius`).
 
 ## icon-stack
 
@@ -432,7 +434,7 @@ import {
 </CodeBlock>
 ```
 
-**Gotcha:** the one-liner is already a complete block; every child (header, title, language label, copy button, wrap toggle, expand button, line actions) is optional chrome, at any depth. Shiki is the only npm dependency and loads lazily, one chunk per language, on first highlight; `lines` (from `highlightCode` in `code-block-highlight`, which is server-safe and has no `"use client"`) or `highlight={false}` loads nothing at all. `maxLines` caps the height AND marks the block collapsible, which is what makes `CodeBlockExpandButton` appear. Use `variant="ghost"` when the block sits inside a surface that already has a border.
+**Gotcha:** the one-liner is already a complete block; every child is optional chrome, at any depth. Shiki is the only npm dependency and loads lazily on first highlight; `lines` (from `highlightCode` in `code-block-highlight`, which is server-safe and has no `"use client"`) or `highlight={false}` loads nothing at all. `maxLines` caps the height AND marks the block collapsible, which is what makes `CodeBlockExpandButton` appear. Use `variant="ghost"` when the block sits inside a surface that already has a border.
 
 ## alert
 
@@ -450,7 +452,7 @@ import {
 </Alert>
 ```
 
-**Gotcha:** shadcn-compatible API. `variant`: `default | destructive | info | success | warning | invert`. The non-default variants use ReUI extended color tokens (`--success`/`--info`/`--warning`/`--invert`), which the install adds. Defer generic alert rules to the shadcn skill.
+**Gotcha:** shadcn-compatible API. `variant`: `default | destructive | info | success | warning | invert`. The non-default variants use ReUI extended color tokens (`--success`/`--info`/`--warning`/`--invert`), which the install adds.
 
 ## badge
 
@@ -458,25 +460,116 @@ import {
 **Shape:**
 
 ```tsx
-<Badge variant="success-light" size="sm">Success</Badge>
-<Badge variant="outline" radius="full">Pill</Badge>
+<Badge variant="success-light">Success</Badge>
+<Badge variant="outline">Draft</Badge>
 ```
 
-**Gotcha:** shadcn-compatible. Rich `variant` set (solid, `-outline`, `-light` per color), `size` `xs..xl`, `radius` `default | full`. Like `alert`, the color variants rely on ReUI extended tokens. Prefer `Badge` variants over raw color classes for statuses.
+**Gotcha:** shadcn-compatible. Rich `variant` set (solid, `-outline`, `-light` per color), `size` `xs..xl` (keep the default), `radius` `default | full`. Like `alert`, the color variants rely on ReUI extended tokens. Prefer `Badge` variants over raw color classes: `<tone>-light` for a state, `outline` for a neutral label; an omitted `variant` is the solid primary fill.
+
+## color-picker
+
+**Required:** none (`<ColorPicker />` alone is complete); wire `value` + `onValueChange`.
+**Shape:**
+
+```tsx
+<ColorPicker value={color} onValueChange={setColor} alpha>
+  <ColorPickerTrigger />
+  <ColorPickerContent>
+    <ColorPickerPanel>
+      <ColorPickerArea />
+      <ColorPickerSlider channel="hue" />
+      <ColorPickerSlider channel="alpha" />
+      <ColorPickerFields />
+    </ColorPickerPanel>
+  </ColorPickerContent>
+</ColorPicker>
+```
+
+**Gotcha:** the value is a CSS color string in `format` (`"hex"` default, `"rgb"`, `"hsl"`, `"hsb"` or `"oklch"`), `null` when empty, never an object. `onValueChange` fires on every drag move, so save in `onValueCommit`. Without `alpha` the value is always opaque. A bare `ColorPickerPanel` inside the root is an inline picker; `ColorPickerInput` replaces the trigger with a typable field.
+
+## emoji-picker
+
+**Required:** none; wire `onEmojiSelect` to insert a pick, or `value` + `onValueChange` to use it as a field.
+**Shape:**
+
+```tsx
+<EmojiPicker onEmojiSelect={({ value }) => insert(value)}>
+  <EmojiPickerTrigger />
+  <EmojiPickerContent>
+    <EmojiPickerHeader>
+      <EmojiPickerSearch />
+    </EmojiPickerHeader>
+    <EmojiPickerCategories />
+    <EmojiPickerList />
+    <EmojiPickerFooter>
+      <EmojiPickerPreview />
+      <EmojiPickerSkinTone />
+    </EmojiPickerFooter>
+  </EmojiPickerContent>
+</EmojiPicker>
+```
+
+**Gotcha:** the emoji data is fetched at runtime from a pinned jsDelivr path (`EMOJI_PICKER_DATA_URL`): under a strict Content Security Policy allow it in `connect-src`, self-host with `dataUrl`, or pass `data` (from `normalizeEmojibaseData`). Store the pick's `value` (the native emoji in its skin tone, or `:shortcode:` for a custom one). `multiple` makes the value a list, capped by `max`.
+
+## file-type
+
+**Required:** none; pass `type` (an extension, a family name or any string).
+**Shape:**
+
+```tsx
+<FileType type="pdf" />
+<FileType type={getFileType(file.name)} size="sm" aria-hidden="true" />
+```
+
+**Gotcha:** one `span` with `role="img"`, no children, no `"use client"` (fine in a Server Component). Resolve a file name, path, URL or MIME type with `getFileType`, never by splitting on the dot. `variant`: `outline` (default) | `solid` | `light` | `mono`; `size`: `mini` | `xs` | `sm` | `default` | `lg` | `xl` (18 to 56px); recolor with a `text-*` class. Pass `aria-hidden="true"` when the file name sits beside it.
+
+## signature-pad
+
+**Required:** `SignaturePad` > `SignaturePadArea`
+**Shape:**
+
+```tsx
+<SignaturePad value={strokes} onValueChange={setStrokes}>
+  <SignaturePadArea>
+    <SignaturePadGuide />
+    <SignaturePadPlaceholder />
+    <SignaturePadControls>
+      <SignaturePadUndo />
+      <SignaturePadClear />
+    </SignaturePadControls>
+  </SignaturePadArea>
+</SignaturePad>
+```
+
+**Gotcha:** the value is an array of strokes (`{ points: [x, y, size][], color? }`), not an image: store it as JSON, and export with `useSignaturePad()` or `apiRef` (`toSVG`, `toDataURL`, `toBlob`) or `SignaturePadSave` (`format`, `onSave`). `onValueChange` fires per finished stroke, never per pointer move. Size the area with a class (`h-40` by default); an overlay in it that is not a control needs `pointer-events-none`. Drawing needs a pointer, so offer a typed name where a signature is required.
+
+## time-picker
+
+**Required:** none (`<TimePicker />` alone is complete); wire `value` + `onValueChange`.
+**Shape:**
+
+```tsx
+<TimePicker value={time} onValueChange={setTime}>
+  <TimePickerTrigger />
+  <TimePickerContent>
+    <TimePickerColumns />
+    <TimePickerFooter>
+      <TimePickerNow />
+      <TimePickerClear />
+      <TimePickerConfirm />
+    </TimePickerFooter>
+  </TimePickerContent>
+</TimePicker>
+```
+
+**Gotcha:** the value is a 24-hour `"HH:mm"` string (`"HH:mm:ss"` with `granularity="second"`) or `null`, never a `Date`, whatever `hourCycle={12}` shows. `minuteStep`, `min`, `max` and `isTimeDisabled` narrow the options; keep `isTimeDisabled` stable (module scope or memoized). `requireConfirm` holds picks as a draft until OK. `TimePickerInput` replaces `TimePickerTrigger` for a typable field, never beside it.
 
 ## base vs radix - write for the project's base
 
-ReUI ships every component in two builds: `base` (Base UI) and `radix` (Radix UI). The install command and name are identical, and the CLI installs the build matching the project. But you must write/adapt code against the **right base**, because their APIs differ.
-
-**Detect the base first.** Read `components.json` -> `style` and take the segment before the first `-`:
-
-- `"style": "base-nova"` -> **Base UI**
-- `"style": "radix-nova"` -> **Radix UI**
-
-**Then use that base's API.** The deltas mirror shadcn's base-vs-radix split:
+Every component ships a `base` (Base UI) and a `radix` (Radix UI) build under 1 name, and the CLI installs the one the project uses. Read `components.json` `style`: the part before the first `-` is the base (`base-nova` is **Base UI**, `radix-nova` is **Radix UI**). Write against that base; the deltas mirror shadcn's:
 
 - Slot/composition: Base UI `render={<… />}` vs Radix `asChild`.
 - `Select`: Base UI takes `items`; Radix uses `<SelectItem>` children.
 - `ToggleGroup`: Base UI `multiple` boolean vs Radix `type="single" | "multiple"`.
 
-The safest path is to **read the installed files and `c-*` examples** - they're already in your base, so reuse their wiring instead of guessing. When `get_component`'s inline `api` or an example shows the other base's shape, translate it to your base (or `validate_usage` to confirm). Defer the generic base/radix mechanics to the shadcn skill.
+Installed files and `c-*` examples are already in your base: reuse their wiring. When an `api` or example shows the other base's shape, translate it (or `validate_usage` to confirm).

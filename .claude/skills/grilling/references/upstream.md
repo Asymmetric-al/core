@@ -1,10 +1,13 @@
 ---
-source_name: mattpocock/skills (grilling)
+source_name: mattpocock/skills
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/productivity/grilling/SKILL.md
-skills_lock_hash: 5e05f3e63506a5c11f7bd202d26a1b38f331ea609bcd0ffd3b84eac9c8ac973a
-last_reviewed: 2026-07-09
+skills_lock_hash: befdff1e27a1dfe2a294d5871169ac1afe16d983911daa4f32627514a48c1e15
+last_reviewed: 2026-10-22
+source_path: skills/productivity/grilling/
+reviewed_commit: 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+license: MIT
 ---
 
 # Upstream: grilling
@@ -23,3 +26,11 @@ Canonical copy in this repo: `docs/ai/skills/grilling/` (mirrored to `.agents/sk
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 
 This skill is **not** updated by `bun run skills:refresh-upstream`.
+
+## Reviewed refresh, 2026-10-22
+
+- Source: `mattpocock/skills` at `5beb35b040e3de97e54fa9e386d7e42d15c295c2`.
+- Complete upstream skill tree: `skills/productivity/grilling/`; MIT notice: [LICENSE.md](LICENSE.md).
+- Raw upstream `SKILL.md` SHA-256: `befdff1e27a1dfe2a294d5871169ac1afe16d983911daa4f32627514a48c1e15`.
+- Preserve Core discovery metadata, explicit-only invocation, existing overlays and compatibility corrections. Raw upstream scripts are vendored data; none were executed during this refresh.
+- Core keeps CONTEXT.md, CONTEXT-MAP.md and CONTEXT-FORMAT.md; upstream glossary filenames are remapped without renaming repository documents. Core TDD and authorization rules override generic seam, refactor and commit instructions.

@@ -134,7 +134,7 @@ export const test = base.extend<{}, WorkerFixtures>({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: 'test-user',
-        password: process.env.TEST_PASSWORD, // pragma: allowlist secret
+        password: process.env.TEST_PASSWORD,
       }),
     });
     const { token } = await response.json();
@@ -164,7 +164,7 @@ const test = base.extend({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: 'test-user',
-        password: process.env.TEST_PASSWORD, // pragma: allowlist secret
+        password: process.env.TEST_PASSWORD,
       }),
     });
     const { token } = await response.json();
@@ -408,13 +408,13 @@ export const test = base.extend<OptionFixtures & DerivedFixtures>({
   authenticatedPage: async ({ page, userRole, locale }, use) => {
     await page.goto(`/login?locale=${locale}`);
     const credentials = {
-      admin: { email: 'admin@test.com', password: 'admin-pass' }, // pragma: allowlist secret
-      editor: { email: 'editor@test.com', password: 'editor-pass' }, // pragma: allowlist secret
-      viewer: { email: 'viewer@test.com', password: 'viewer-pass' }, // pragma: allowlist secret
+      admin: { email: 'admin@test.com', password: 'admin-pass' },
+      editor: { email: 'editor@test.com', password: 'editor-pass' },
+      viewer: { email: 'viewer@test.com', password: 'viewer-pass' },
     };
-    const { email, password } = credentials[userRole]; // pragma: allowlist secret
+    const { email, password } = credentials[userRole];
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password); // pragma: allowlist secret
+    await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: 'Sign in' }).click();
     await use(page);
   },
@@ -469,13 +469,13 @@ const test = base.extend({
   authenticatedPage: async ({ page, userRole, locale }, use) => {
     await page.goto(`/login?locale=${locale}`);
     const credentials = {
-      admin: { email: 'admin@test.com', password: 'admin-pass' }, // pragma: allowlist secret
-      editor: { email: 'editor@test.com', password: 'editor-pass' }, // pragma: allowlist secret
-      viewer: { email: 'viewer@test.com', password: 'viewer-pass' }, // pragma: allowlist secret
+      admin: { email: 'admin@test.com', password: 'admin-pass' },
+      editor: { email: 'editor@test.com', password: 'editor-pass' },
+      viewer: { email: 'viewer@test.com', password: 'viewer-pass' },
     };
-    const { email, password } = credentials[userRole]; // pragma: allowlist secret
+    const { email, password } = credentials[userRole];
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password); // pragma: allowlist secret
+    await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: 'Sign in' }).click();
     await use(page);
   },
@@ -526,7 +526,7 @@ export const test = base.extend<Fixtures>({
   userPage: async ({ page, testUser }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(testUser.email);
-    await page.getByLabel('Password').fill('default-test-password'); // pragma: allowlist secret
+    await page.getByLabel('Password').fill('default-test-password');
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
     await use(page);
@@ -562,7 +562,7 @@ const test = base.extend({
   userPage: async ({ page, testUser }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(testUser.email);
-    await page.getByLabel('Password').fill('default-test-password'); // pragma: allowlist secret
+    await page.getByLabel('Password').fill('default-test-password');
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
     await use(page);
