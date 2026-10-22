@@ -151,3 +151,18 @@ process status and fixed signal, spawn-error and category labels so diagnosis
 can continue without disclosing environment values. Five regressions verify
 that raw output and arbitrary error/signal strings stay withheld. These labels
 are diagnostic hints; a killed process alone does not establish a memory cause.
+
+### Bounded preview failure categories
+
+The published diagnostic head passed normal full pre-push verification, but its
+admin QA build exited with status 1 and no matching category. It remains
+unqualified. Ten additional fixed categories cover URL, network, TLS, memory,
+compiler, module, prerender, framework and installation markers without emitting
+raw child text. Every wildcard is bounded to 200 same-line characters. Review
+caught one unbounded installation marker; its regression fails before the fix
+and passes afterward. All 37 focused helper/workflow cases pass, and independent
+review approves the corrected source, including large near-match checks.
+
+A separate hosted Git build reported memory exhaustion and exit 137. The QA
+status-1 failure is a distinct observation; diagnostic labels do not establish
+a shared cause. Current-head previews and cutover remain required.

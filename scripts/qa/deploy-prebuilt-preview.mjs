@@ -57,6 +57,42 @@ function describeFailure(result) {
     )
   )
     categories.push("tls-configuration");
+  const markers = [
+    ["invalid-url", /(?:TypeError: )?Invalid URL|ERR_INVALID_URL/],
+    [
+      "connection-failure",
+      /ECONNREFUSED|ENOTFOUND|ETIMEDOUT|connection terminated unexpectedly/,
+    ],
+    [
+      "tls-runtime",
+      /self-signed certificate|unable to verify the first certificate|ERR_TLS_CERT_ALTNAME_INVALID|UNABLE_TO_VERIFY_LEAF_SIGNATURE/i,
+    ],
+    [
+      "memory-limit",
+      /heap (?:limit|out of memory)|Allocation failed|out_of_memory/i,
+    ],
+    [
+      "nested-process-killed",
+      /(?:exited with(?: code)?|exit code)[: ]+137|Killed[^\r\n]{0,200}(?:build|process)/i,
+    ],
+    ["typescript", /Type error:|error TS[0-9]{4,5}/],
+    [
+      "module-resolution",
+      /Module not found|Cannot find module|Could not resolve/,
+    ],
+    [
+      "prerender",
+      /Error occurred prerendering|prerender-error|blocking-prerender/,
+    ],
+    ["framework-build", /Build error occurred|Failed to compile/],
+    [
+      "installation",
+      /lockfile[^\r\n]{0,200}frozen|ERR_PNPM_|error: install[^\r\n]{0,200}failed/i,
+    ],
+  ];
+  for (const [category, pattern] of markers) {
+    if (pattern.test(output)) categories.push(category);
+  }
   // Only bounded numbers and fixed labels leave this boundary. Never include
   // child messages, environment values or arbitrary signal/error-code strings.
   return `status=${status}; signal=${signal}; spawn=${spawn}; categories=${categories.join(",") || "unclassified"}`;

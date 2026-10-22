@@ -133,6 +133,71 @@ describe("prebuilt preview delivery", () => {
     },
   );
 
+  it.each([
+    ["TypeError: Invalid URL private-cms-password", "invalid-url"],
+    ["connect ECONNREFUSED private-cms-password", "connection-failure"],
+    [
+      "self-signed certificate in certificate chain private-cms-password",
+      "tls-runtime",
+    ],
+    [
+      "FATAL ERROR: Reached heap limit Allocation failed private-cms-password",
+      "memory-limit",
+    ],
+    [
+      "Command exited with code 137 private-cms-password",
+      "nested-process-killed",
+    ],
+    ["Type error: Type mismatch private-cms-password", "typescript"],
+    ["Module not found: private-cms-password", "module-resolution"],
+    ["Error occurred prerendering page private-cms-password", "prerender"],
+    ["Build error occurred private-cms-password", "framework-build"],
+    [
+      "error: lockfile had changes, but lockfile is frozen private-cms-password",
+      "installation",
+    ],
+  ])(
+    "classifies the fixed failure marker %s without child text",
+    (stderr, category) => {
+      const run = vi
+        .fn()
+        .mockReturnValueOnce({ status: 0, stdout: "pulled" })
+        .mockReturnValueOnce({ status: 1, stderr });
+      expect(() =>
+        deployPrebuiltPreview({ app: "admin", env, run, remove: vi.fn() }),
+      ).toThrow(`categories=${category}`);
+      try {
+        deployPrebuiltPreview({
+          app: "admin",
+          env,
+          run: vi.fn().mockReturnValue({ status: 1, stderr }),
+          remove: vi.fn(),
+        });
+      } catch (error) {
+        expect(error instanceof Error ? error.message : "").not.toContain(
+          "private-cms-password",
+        );
+      }
+    },
+  );
+
+  it.each([
+    ["error: install failed private-cms-password", "installation"],
+    [
+      `error: install ${"x".repeat(201)} failed private-cms-password`,
+      "unclassified",
+    ],
+  ])("bounds the installation failure marker (%s)", (stderr, category) => {
+    expect(() =>
+      deployPrebuiltPreview({
+        app: "admin",
+        env,
+        run: vi.fn().mockReturnValue({ status: 1, stderr }),
+        remove: vi.fn(),
+      }),
+    ).toThrow(`categories=${category}`);
+  });
+
   it.each([undefined, "", "HEAD", "feature\nother"])(
     "rejects an absent or invalid explicit PR branch (%s) before local mutation",
     (branch) => {

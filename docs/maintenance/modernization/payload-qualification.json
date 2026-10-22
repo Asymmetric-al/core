@@ -9385,5 +9385,68 @@
       "sha256": "0436c98738fbfa05d5482c4fb097637043f60349333aaf74cf0201f5b85651e0"
     },
     "qualificationLimit": "Failure categories are hints, not root-cause or deployed release qualification. Earlier hosted Git build failed with out_of_memory/137; separate QA failure withheld raw output and remains undiagnosed."
+  },
+  "previewFailureCategoryExpansion": {
+    "recordedAt": "2026-10-22T07:12:18.593848+00:00",
+    "baseHead": "f0b8d96f5e2876cdd1f2c0199700f84c19fea304",
+    "behavior": "Ten additional fixed marker categories; all wildcard spans bounded to 200 same-line characters. Raw child output, environment values, arbitrary signal/error strings remain private. Categories are diagnostic hints only.",
+    "sourceSha256": {
+      "scripts/qa/deploy-prebuilt-preview.mjs": "303fa2ddc34cc78fef3c02ca4e6e184a8ca00db3f86394c79ac408d4fac32068",
+      "tests/unit/scripts/deploy-prebuilt-preview.test.ts": "b68f74f3d5a4c79e56f47ae556832d05a53c20487cafb5cfe7fe05b0e60d6bf1"
+    },
+    "checks": {
+      "red": {
+        "path": "/tmp/core-modernization-preview-failure-categories-red-proof.json",
+        "sha256": "581a7ca343f2c3c48eacd15dc23dca5fabffaa56aadbf548c3d707015a184ad1",
+        "utc": "2026-10-22T06:54:44.971200+00:00",
+        "exitCode": 1,
+        "logSha256": "57cd13e96c489403cbd56fb37a3eb0941b6851b2faaed4fda41daea9d133356a"
+      },
+      "boundRed": {
+        "path": "/tmp/core-modernization-preview-installation-bound-red-proof.json",
+        "sha256": "61bb7d36b1172339f9fe9976320c6fd5810fb3f83f3b1decd486343fac104cd1",
+        "exitCode": 1,
+        "logSha256": "5d3ef52ce05d16474c4c8761869b37d716a03964c6a767f0cdee7af3c9a6e9d4"
+      },
+      "green": {
+        "path": "/tmp/core-modernization-preview-installation-bound-green-proof.json",
+        "sha256": "8db8afc5e485b7c08280aab93fb018624ef973b81b057cf340d27eca7f69c56a",
+        "exitCode": 0,
+        "logSha256": "d3564ac91a5db534848c46b1fd90e7eb993b4c9b17358967e34edb8f4ce55c6e",
+        "sourceSha256": {
+          "scripts/qa/deploy-prebuilt-preview.mjs": "303fa2ddc34cc78fef3c02ca4e6e184a8ca00db3f86394c79ac408d4fac32068",
+          "tests/unit/scripts/deploy-prebuilt-preview.test.ts": "b68f74f3d5a4c79e56f47ae556832d05a53c20487cafb5cfe7fe05b0e60d6bf1"
+        }
+      }
+    },
+    "independentReview": {
+      "path": "/tmp/core-modernization-preview-failure-categories-independent-review.json",
+      "sha256": "c38fc888c3c97900297b55c306bb441d28ac414e00673519d3d5b16f9d181bbe",
+      "finding": "P2 unbounded install marker; corrected and qualified in immutable addendum"
+    },
+    "fixReview": {
+      "path": "/tmp/core-modernization-preview-failure-categories-fix-review.json",
+      "sha256": "3c98b5578adbd0a762d9c9d533a64013fbcb7d3706198944ce3f08eae3788e5d",
+      "disposition": "P2 addressed; exact source approved; independent near-match probe through 32 MiB completed"
+    },
+    "previousPublishedPush": {
+      "path": "/tmp/core-modernization-preview-safe-diagnostics-push-proof.json",
+      "sha256": "f5349f94b9eee604f1b8cfe203c22f8c719f8613e26060eb231260d7921021df",
+      "startedAt": "2026-10-22T06:28:22.665604+00:00",
+      "completedAt": "2026-10-22T06:37:06.386928+00:00",
+      "head": "f0b8d96f5e2876cdd1f2c0199700f84c19fea304",
+      "exitCode": 0,
+      "normalPrePushHooks": true,
+      "logSha256": "b59523a78382369676cae6df2a8c305620faa948a67799b3ac67d27a8a38a8df"
+    },
+    "previousPublishedPreview": {
+      "runId": 39735261078,
+      "jobId": 119679350180,
+      "head": "f0b8d96f5e2876cdd1f2c0199700f84c19fea304",
+      "result": "failure",
+      "message": "Preview build failed for admin (status=1; signal=none; spawn=none; categories=unclassified)",
+      "logSha256": "caa7940b9de3ffe06661a5233aae3bc7befd9bb2bd091ef55a0bb9f3f8238ec1"
+    },
+    "qualificationLimit": "Current QA failure remains undiagnosed. A separate hosted Git build reported out_of_memory/137; these are distinct observations. Current-head CI, hosted product preview, cutover and final release qualification remain open."
   }
 }
