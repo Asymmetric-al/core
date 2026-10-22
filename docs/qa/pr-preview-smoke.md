@@ -45,8 +45,23 @@ Production.
    - shared runtime/config/smoke changes -> all three previews
 4. If no surface is affected, the action comments that all previews were
    skipped and exits successfully.
-5. For affected surfaces, the action runs `vercel pull --environment=preview`, `vercel build --target=preview`, then `vercel deploy --prebuilt --target=preview` with
-   the selected project ID.
+5. For affected surfaces, `scripts/qa/deploy-hosted-preview.mjs` requests a
+   hosted Git-source Preview for the approved project, PR branch and exact head
+   SHA. Each request asks for a fresh deployment so an earlier canceled
+   same-SHA build cannot be reused. Application secrets stay with Vercel. Every
+   returned deployment requires a readback of the approved project,
+   repository, branch, SHA and Preview target before a READY URL is accepted.
+   ERROR, CANCELED and timeout outcomes fail qualification; unfinished owned
+   deployments receive bounded cleanup. Admin uses the qualified Turbo build
+   machine because its standard 8 GiB build exhausted memory.
+   The request includes a nonsecret, deployment-only build variable,
+   `CORE_QA_FORCE_BUILD_SHA`. The committed ignored-build helper forces a build
+   only for a known app in Preview when this valid SHA equals both Vercel's
+   commit SHA and actual Git HEAD. Missing or rejected markers retain normal
+   change-based decisions. No project-wide ignore setting changes. Initial
+   hosted qualification must confirm the fixed `QA Preview marker matched`
+   log for each app; local request tests alone do not establish visibility at
+   Vercel's earlier ignored-build step.
 6. The action upserts a PR comment with preview URLs and this marker:
 
 ```html
@@ -181,7 +196,7 @@ Each file keeps:
 ```
 
 This is safe for the label-gated workflow because the action creates explicit
-CLI preview deployments only after `qa:smoke` passes, while branch-bound
+hosted Git-source Preview deployments only after the `qa:smoke` gate passes, while branch-bound
 production deployments remain available. Existing development URLs keep the last successful deployment until an explicit refresh.
 
 ## Checklist
@@ -200,4 +215,12 @@ production deployments remain available. Existing development URLs keep the last
 
 Configure both Preview credential secrets together. A partial Preview pair fails validation; the legacy QA pair is used only when both Preview secrets are absent.
 
-Preview compilation runs on the standard GitHub runner using the pinned Vercel CLI helper, with Node Functions and artifact-only Eve builds. Downloaded environment files and build output are transient and excluded from diagnostic artifacts; local `.vercel` state is removed between surfaces and on failure.
+Preview compilation runs on Vercel against the selected immutable PR head.
+GitHub Actions installs only the dependencies and browser needed for smoke QA;
+it does not download application secrets to build locally. Node Functions and
+artifact-only Eve behavior remain governed by the committed Vercel build
+configuration. Diagnostic artifacts contain only the sanitized QA allowlist.
+
+A manual recovery must select Preview, preserve the exact PR SHA and project,
+and retain the qualified admin build machine. A canceled ignored build or an
+older successful deployment cannot satisfy the current-head checkpoint.

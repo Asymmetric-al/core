@@ -3,8 +3,10 @@
 Owner [react-PDF PR #25](https://github.com/Asymmetric-al/react-PDF/pull/25)
 merged as `1a224e14dea72cd8539c3547bb5c55ffc0bf39d2`. All five post-merge
 workflows passed. Core local qualification passes: frozen installation, full preflight, all three
-app builds and the full browser matrix. Current-head review/CI, deployed previews
-and Core merge remain required.
+app builds and the full browser matrix. [Core PR #2188](https://github.com/Asymmetric-al/core/pull/2188) merged as
+`3a8f77043f0fbcff692be14ad99ec6fdd55e7f99` after current-head review/CI and all
+three hosted preview smoke projects passed. Post-merge readback is tracked
+separately in [the release receipt](pdf-release-readback.json).
 
 ## Source and release identity
 
@@ -52,20 +54,20 @@ separate workspace-link repair remains build infrastructure: cached Turbo
 outputs can hollow links between app builds. Its removal requires separate
 cached-build and supported-platform qualification.
 
-The normal Bun family refresh also removes all retained Tiptap3.31.4 identities,
-uses one ProseMirror transform1.12.3 and model1.25.12, and updates source-map-js
-1.2.2 and socket.io-parser4.2.7 within upstream ranges. The installed React Email
-CLI chain also uses Socket.IO4.8.4, adapter2.5.8, Engine.IO6.6.11, esbuild0.28.2
-and fast-uri3.1.9. No new overrides or unused direct dependencies are introduced.
+The normal Bun family refresh also removes all retained Tiptap 3.31.4 identities,
+uses one ProseMirror transform 1.12.3 and model 1.25.12, and updates source-map-js
+1.2.2 and socket.io-parser 4.2.7 within upstream ranges. The installed React Email
+CLI chain also uses Socket.IO 4.8.4, adapter 2.5.8, Engine.IO 6.6.11, esbuild 0.28.2
+and fast-uri 3.1.9. No new overrides or unused direct dependencies are introduced.
 
 [The complete dependency disposition ledger](pdf-dependency-dispositions.json)
-accounts for all282 installed family identities:215 current stable selections,
+accounts for all 282 installed family identities: 215 current stable selections,
 60 current maxima required by upstream parent constraints, five owner releases,
-current24.x Node typings, and one shared peer selection. Payload's current public
-v4 UI pins Floating UI DOM1.7.6 exactly; both Tiptap peers support it, and no
+current 24.x Node typings, and one shared peer selection. Payload's current public
+v4 UI pins Floating UI DOM 1.7.6 exactly; both Tiptap peers support it, and no
 ordinary PDF child is stale. Core CMS/shared-editor maintainers own this verified
-compatibility dependency. Engine.IO/Socket.IO's current parents require ws~8.21,
-qualified at8.21.3; Ajv's current parents require fast-uri3, qualified at3.1.9.
+compatibility dependency. Engine.IO/Socket.IO's current parents require ws ~8.21,
+qualified at 8.21.3; Ajv's current parents require fast-uri 3, qualified at 3.1.9.
 Every parent/lock/advisory change triggers requalification. No forced override,
 unused direct dependency or undocumented permanent hold is introduced.
 
@@ -84,12 +86,12 @@ ordinary rules, read-only behavior and axe accessibility across desktop/mobile
 and light/dark reduced-motion projects. A Core-owned standard Tiptap extension
 provides persistent names without replacing attribute functions or handlers;
 real-editor regressions preserve selection and document contents. Email export
-metadata now identifies the installed1.7.14 builder and is checked against the
-consuming manifest. The final cold install passes133 cases across12 files and
+metadata now identifies the installed 1.7.14 builder and is checked against the
+consuming manifest. The final cold install passes 133 cases across 12 files and
 all five package boundaries without lock drift. The full browser matrix passes
 239 cases with five existing skips; strict React Doctor passes eight targets with
-zero actionable findings and the same294 exact exceptions. Only supporting
-evidence for97 existing records was requalified, including one unchanged spinner
+zero actionable findings and the same 294 exact exceptions. Only supporting
+evidence for 97 existing records was requalified, including one unchanged spinner
 that moved by two lines. Full preflight passes on the final frozen graph, including all 15 product
 typechecks, all three app builds and the complete unit suite. Shadscan retains
 its 48 pooled score and every application floor; 22 existing supporting proof
@@ -113,8 +115,9 @@ The fresh complete-graph audit and independent review find no affected versions
 in the 282-node closure of all five packages, the shared editor, and installed
 CLI/build dependencies. Whole Core still has 84 records across 35 package names
 and 73 unique advisories requiring review; no unreachability exceptions were
-granted. See [the dated qualification record](pdf-qualification.json) for exact
-lock, logs and review hashes.
+granted. See [the dated pre-publication qualification record](pdf-qualification.json) for
+exact lock, logs and review hashes, and [the release receipt](pdf-release-readback.json)
+for later CI, deployed-preview and merge evidence.
 
 ## Refresh procedure
 
