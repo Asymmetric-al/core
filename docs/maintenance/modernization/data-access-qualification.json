@@ -1,0 +1,1065 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "data-access",
+  "status": "implemented-awaiting-final-review-fix-qualification",
+  "temporaryStackBase": "c4fd85dd0201d3d0e2d0406c3a0524c239f47f5c",
+  "mustRequalifyOnMergedDevelop": true,
+  "capturedAt": "2026-10-21T22:45:45.787989+00:00",
+  "owner": "Core database, auth and UI maintainers",
+  "targets": [
+    {
+      "name": "@supabase/supabase-js",
+      "version": "2.118.0",
+      "publishedAt": "2026-10-15T12:57:17.683Z",
+      "dependencies": {
+        "@supabase/auth-js": "2.118.0",
+        "@supabase/storage-js": "2.118.0",
+        "@supabase/realtime-js": "2.118.0",
+        "@supabase/functions-js": "2.118.0",
+        "@supabase/postgrest-js": "2.118.0"
+      },
+      "peers": {
+        "@opentelemetry/api": ">=1.0.0"
+      },
+      "engines": {
+        "node": ">=22.0.0"
+      },
+      "deprecated": null,
+      "integrity": "sha512-FxI8UXMVC2UG7IkeiI8fuQZqq2oI3JeSuN8MPIC2RLVaoEAxKS0nqE6kii9Ewpq8f9gNPM6git1Y8f0vN/QLFw==",
+      "upstream": "https://registry.npmjs.org/@supabase/supabase-js",
+      "tarball": "https://registry.npmjs.org/@supabase/supabase-js/-/supabase-js-2.118.0.tgz"
+    },
+    {
+      "name": "@supabase/ssr",
+      "version": "0.12.7",
+      "publishedAt": "2026-09-08T08:14:27.765Z",
+      "dependencies": {
+        "cookie": "^1.0.2"
+      },
+      "peers": {
+        "@supabase/supabase-js": "^2.114.0"
+      },
+      "engines": {},
+      "deprecated": null,
+      "integrity": "sha512-wiBtEie1KkRJi9RrZWY3R2imRhX1JY7qMyUCH2z9AUk15gQebNEplM+urbCKamdxaTJLXUU6LlpkJsaxhojCEg==",
+      "upstream": "https://registry.npmjs.org/@supabase/ssr",
+      "tarball": "https://registry.npmjs.org/@supabase/ssr/-/ssr-0.12.7.tgz"
+    },
+    {
+      "name": "@supabase-labs/tanstack-db",
+      "version": "0.1.0",
+      "publishedAt": "2026-09-25T21:18:06.137Z",
+      "dependencies": {
+        "@tanstack/db": ">=0.6 <1.0",
+        "@tanstack/query-core": "^5.0.0",
+        "@standard-schema/spec": "^1.1.0",
+        "@supabase/supabase-js": "^2.74.0",
+        "@supabase/postgrest-js": "^2.0.0",
+        "@tanstack/query-db-collection": "^1.0.0"
+      },
+      "peers": {},
+      "engines": {},
+      "deprecated": null,
+      "integrity": "sha512-4KccEP0NsmhwzTUw9g+1izvsLdIWXLIOKFP6ycoK1XI42vgiCAvGseXGllGp/ZPwddt5H15pKFJXoJ4uWskAFw==",
+      "upstream": "https://registry.npmjs.org/@supabase-labs/tanstack-db",
+      "tarball": "https://registry.npmjs.org/@supabase-labs/tanstack-db/-/tanstack-db-0.1.0.tgz"
+    },
+    {
+      "name": "zod",
+      "version": "4.6.7",
+      "publishedAt": "2026-10-12T16:29:37.778Z",
+      "dependencies": {},
+      "peers": {},
+      "engines": {},
+      "deprecated": null,
+      "integrity": "sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==",
+      "upstream": "https://registry.npmjs.org/zod",
+      "tarball": "https://registry.npmjs.org/zod/-/zod-4.6.7.tgz"
+    },
+    {
+      "name": "@tanstack/db",
+      "version": "0.15.2",
+      "publishedAt": "2026-10-21T18:07:02.609Z",
+      "dependencies": {
+        "@tanstack/db-ivm": "0.2.0",
+        "@tanstack/pacer-lite": "^0.2.1",
+        "@standard-schema/spec": "^1.1.0"
+      },
+      "peers": {
+        "typescript": ">=4.7"
+      },
+      "engines": {},
+      "deprecated": null,
+      "integrity": "sha512-s7CR8kOgkF1oPEGyKWItWHsg7U3hhQQu+k9CPjjAWwS6wzWVvjCbHbu/xnJvO1aPe7v3SBwo1tf6CMyKjNPNxg==",
+      "upstream": "https://registry.npmjs.org/@tanstack/db",
+      "tarball": "https://registry.npmjs.org/@tanstack/db/-/db-0.15.2.tgz"
+    },
+    {
+      "name": "@tanstack/react-db",
+      "version": "0.5.12",
+      "publishedAt": "2026-10-21T18:06:02.030Z",
+      "dependencies": {
+        "@tanstack/db": "0.15.2"
+      },
+      "peers": {
+        "react": ">=18.0.0"
+      },
+      "engines": {},
+      "deprecated": null,
+      "integrity": "sha512-Sq5qtW/vJRzV3+vSFnr5dEk3GHOc/x7aG3lte6Y1wnC3GwsbnrBm1xy7XccPIvkeV8AU88Bo9QJwQXoElYqKLg==",
+      "upstream": "https://registry.npmjs.org/@tanstack/react-db",
+      "tarball": "https://registry.npmjs.org/@tanstack/react-db/-/react-db-0.5.12.tgz"
+    },
+    {
+      "name": "@tanstack/query-db-collection",
+      "version": "1.4.8",
+      "publishedAt": "2026-10-21T18:05:57.353Z",
+      "dependencies": {
+        "@tanstack/db": "0.15.2",
+        "@standard-schema/spec": "^1.1.0"
+      },
+      "peers": {
+        "typescript": ">=4.7",
+        "@tanstack/query-core": "^5.90.15"
+      },
+      "engines": {},
+      "deprecated": null,
+      "integrity": "sha512-ysoX+BSYt6fbp0dPb/+vIe7wLlhPVXP0GKUP1sJ9FnbP2FkgxOzPzk2JDQsqlJweFl7P3z4kNViAyREJfbfc4w==",
+      "upstream": "https://registry.npmjs.org/@tanstack/query-db-collection",
+      "tarball": "https://registry.npmjs.org/@tanstack/query-db-collection/-/query-db-collection-1.4.8.tgz"
+    },
+    {
+      "name": "@tanstack/react-query",
+      "version": "5.104.5",
+      "publishedAt": "2026-10-19T16:57:50.440Z",
+      "dependencies": {
+        "@tanstack/query-core": "5.104.5"
+      },
+      "peers": {
+        "react": "^18 || ^19",
+        "@types/react": "^18 || ^19"
+      },
+      "engines": {},
+      "deprecated": null,
+      "integrity": "sha512-RORgFe052U+93weaNuqg7qHq7vNVNzXN/VrXqD4bbAuQCWUqOl2lV5Ui9flWk5CVvMyL/Bh27QWhzwH0aaOx9g==",
+      "upstream": "https://registry.npmjs.org/@tanstack/react-query",
+      "tarball": "https://registry.npmjs.org/@tanstack/react-query/-/react-query-5.104.5.tgz"
+    },
+    {
+      "name": "@tanstack/react-query-devtools",
+      "version": "5.104.5",
+      "publishedAt": "2026-10-19T16:57:59.075Z",
+      "dependencies": {
+        "@tanstack/query-devtools": "5.104.5"
+      },
+      "peers": {
+        "react": "^18 || ^19",
+        "@types/react": "^18 || ^19",
+        "@tanstack/react-query": "^5.104.5"
+      },
+      "engines": {},
+      "deprecated": null,
+      "integrity": "sha512-2SMhSSYnOGSaPLuSTKLOj5nPoP4sqasOfkpTn5BLe6LIZuHzrpcqrJx0Rm8uUSN5Ob4lPAbh/1oWClnnGaR7Bg==",
+      "upstream": "https://registry.npmjs.org/@tanstack/react-query-devtools",
+      "tarball": "https://registry.npmjs.org/@tanstack/react-query-devtools/-/react-query-devtools-5.104.5.tgz"
+    },
+    {
+      "name": "@tanstack/react-table",
+      "version": "9.3.1",
+      "publishedAt": "2026-10-12T16:50:44.806Z",
+      "dependencies": {
+        "@tanstack/table-core": "9.3.1",
+        "@tanstack/react-store": "^0.11.2"
+      },
+      "peers": {
+        "react": ">=18"
+      },
+      "engines": {
+        "node": ">=20"
+      },
+      "deprecated": null,
+      "integrity": "sha512-E6Ya5TnY6EaGyZYIUqig/29Lr/gJSAubQkLJFqiWkUl5nRCr0Xr9hvJot+NiRTtG+TzGxHTiqUW3bnLtQxlHug==",
+      "upstream": "https://registry.npmjs.org/@tanstack/react-table",
+      "tarball": "https://registry.npmjs.org/@tanstack/react-table/-/react-table-9.3.1.tgz"
+    },
+    {
+      "name": "@tanstack/react-table-devtools",
+      "version": "9.3.1",
+      "publishedAt": "2026-10-12T16:51:46.714Z",
+      "dependencies": {
+        "@tanstack/devtools-utils": "^0.7.0",
+        "@tanstack/table-devtools": "9.3.1"
+      },
+      "peers": {
+        "react": ">=18",
+        "react-dom": ">=18",
+        "@types/react": ">=18.0.0",
+        "@types/react-dom": ">=18.0.0",
+        "@tanstack/table-core": "^9.0.0",
+        "@tanstack/react-devtools": ">=0.10.0"
+      },
+      "engines": {
+        "node": ">=20"
+      },
+      "deprecated": null,
+      "integrity": "sha512-6c++l5BIrhSlKTvl2cdVNwfybmXDZNwouAlr+iTbjEbBz2s4cdQTrPHFSyXvJuo1+thVKb9ul6zm46SKZIcwuQ==",
+      "upstream": "https://registry.npmjs.org/@tanstack/react-table-devtools",
+      "tarball": "https://registry.npmjs.org/@tanstack/react-table-devtools/-/react-table-devtools-9.3.1.tgz"
+    },
+    {
+      "name": "@tanstack/react-virtual",
+      "version": "3.14.21",
+      "publishedAt": "2026-10-16T11:19:18.479Z",
+      "dependencies": {
+        "@tanstack/virtual-core": "3.19.6"
+      },
+      "peers": {
+        "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+        "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+      },
+      "engines": {},
+      "deprecated": null,
+      "integrity": "sha512-wWE/ZJDNNDp18JHWy7n5PQooqerHePVkEEu6Op0twKQ2InF9DPhYMQptQY0syDEviMd3/r8D0OUvKJibDGm9HQ==",
+      "upstream": "https://registry.npmjs.org/@tanstack/react-virtual",
+      "tarball": "https://registry.npmjs.org/@tanstack/react-virtual/-/react-virtual-3.14.21.tgz"
+    },
+    {
+      "name": "@tanstack/react-devtools",
+      "version": "0.10.13",
+      "publishedAt": "2026-09-23T11:38:55.325Z",
+      "dependencies": {
+        "@tanstack/devtools": "0.15.0"
+      },
+      "peers": {
+        "react": ">=16.8",
+        "react-dom": ">=16.8",
+        "@types/react": ">=16.8",
+        "@types/react-dom": ">=16.8"
+      },
+      "engines": {
+        "node": ">=18"
+      },
+      "deprecated": null,
+      "integrity": "sha512-r0cdB/14+st2Vxl/1Bodlyq4VC8pf9SykLQDYbGHDc1+V146WQo5B3KlYLkfyxD9Q/6+9NPRQHZyl8fvZVMdRA==",
+      "upstream": "https://registry.npmjs.org/@tanstack/react-devtools",
+      "tarball": "https://registry.npmjs.org/@tanstack/react-devtools/-/react-devtools-0.10.13.tgz"
+    },
+    {
+      "name": "@tanstack/devtools",
+      "version": "0.15.0",
+      "publishedAt": "2026-09-23T11:38:26.575Z",
+      "dependencies": {
+        "clsx": "^2.1.1",
+        "goober": "^2.1.16",
+        "solid-js": "^1.9.9",
+        "@neodrag/core": "3.0.0-next.11",
+        "@neodrag/solid": "3.0.0-next.11",
+        "@tanstack/devtools-ui": "0.7.1",
+        "@tanstack/devtools-client": "0.0.8",
+        "@solid-primitives/keyboard": "^1.3.3",
+        "@tanstack/devtools-event-bus": "0.4.3",
+        "@solid-primitives/event-listener": "^2.4.3",
+        "@solid-primitives/resize-observer": "^2.1.3"
+      },
+      "peers": {
+        "solid-js": ">=1.9.7"
+      },
+      "engines": {
+        "node": ">=18"
+      },
+      "deprecated": null,
+      "integrity": "sha512-KyS7Qi82Eq9yG8C+uae3ikAPb+D5rfzVhvOOjXVAHZ/64s6TWJlDWpREw1FrHIYZaI7paErpsExSSKlF5BKA/A==",
+      "upstream": "https://registry.npmjs.org/@tanstack/devtools",
+      "tarball": "https://registry.npmjs.org/@tanstack/devtools/-/devtools-0.15.0.tgz"
+    },
+    {
+      "name": "@tanstack/cli",
+      "version": "0.72.0",
+      "publishedAt": "2026-10-16T22:04:50.886Z",
+      "dependencies": {
+        "zod": "^3.24.2",
+        "diff": "^7.0.0",
+        "chalk": "^5.4.1",
+        "tempy": "^3.1.0",
+        "semver": "^7.7.2",
+        "chokidar": "^3.6.0",
+        "commander": "^13.1.0",
+        "@clack/prompts": "^0.10.0",
+        "@tanstack/create": "0.71.0",
+        "validate-npm-package-name": "^7.0.0"
+      },
+      "peers": {},
+      "engines": {
+        "node": ">=20"
+      },
+      "deprecated": null,
+      "integrity": "sha512-DfQaTPs4++uECOxw3eMeUOEg9Fdugw/SX05k33K0RX2pR1VwsjNS9Yf1fcpIJ1X9VKo3pHmv0jcceKrGyzD99A==",
+      "upstream": "https://registry.npmjs.org/@tanstack/cli",
+      "tarball": "https://registry.npmjs.org/@tanstack/cli/-/cli-0.72.0.tgz"
+    },
+    {
+      "name": "@tanstack/react-form",
+      "version": "1.33.5",
+      "publishedAt": "2026-08-11T12:45:38.642Z",
+      "dependencies": {
+        "@tanstack/form-core": "1.33.5",
+        "@tanstack/react-store": "^0.11.0"
+      },
+      "peers": {
+        "react": "^17.0.0 || ^18.0.0 || ^19.0.0"
+      },
+      "engines": {},
+      "deprecated": null,
+      "integrity": "sha512-LlRB28qJwO/QCGaHvWnbdh4haBgTFiZVmzA2uzxSBS3YA7/IqrQ6HOBK70CkFQ+DbflZ7NawsmSln13h5iIdTA==",
+      "upstream": "https://registry.npmjs.org/@tanstack/react-form",
+      "tarball": "https://registry.npmjs.org/@tanstack/react-form/-/react-form-1.33.5.tgz"
+    },
+    {
+      "name": "@tanstack/react-store",
+      "version": "0.11.2",
+      "publishedAt": "2026-09-29T07:59:49.429Z",
+      "dependencies": {
+        "@tanstack/store": "0.11.2",
+        "use-sync-external-store": "^1.6.0"
+      },
+      "peers": {
+        "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+        "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+      },
+      "engines": {},
+      "deprecated": null,
+      "integrity": "sha512-oj5O5DmiMWE+ih+SioX2ayC1kbK7d3fpLx0B75fPJr9nY3zU+hoW010yr64qXsY/9fyiLVE2bn5mGNV3owm8RQ==",
+      "upstream": "https://registry.npmjs.org/@tanstack/react-store",
+      "tarball": "https://registry.npmjs.org/@tanstack/react-store/-/react-store-0.11.2.tgz"
+    }
+  ],
+  "databaseBaseline": {
+    "filesPassed": 20,
+    "testsPassed": 185
+  },
+  "authAndTableCharacterization": {
+    "filesPassed": 50,
+    "testsPassed": 327
+  },
+  "removedCompatibility": [
+    "@tanstack/db 0.12.1 override",
+    "postinstall DB symlink rewrite and its obsolete helper tests; real installed-runtime identity and behavioral suites replace it"
+  ],
+  "retainedCompatibility": [
+    "Current Supabase adapter 0.1.0 and its required registered patch",
+    "PDF compatibility packages/installation repairs until source recovery and artifact rebuild"
+  ],
+  "limitations": [
+    "No production execution.",
+    "SSR 0.12.7, Form 1.33.5, Store 0.11.2 and React Devtools 0.10.13 were already current; this does not claim version upgrades for them.",
+    "Separate frozen installation, full gates, CI/full integration/E2E and all three previews passed at published b350. The table follow-up still requires repeated full gates/current-head CI/review, browser previews and merge readback. Full security reconciliation remains open.",
+    "Native Windows installation not independently qualified."
+  ],
+  "initialDatabaseSelection": {
+    "filesPassed": 21,
+    "testsPassed": 187,
+    "withoutDbOverride": true,
+    "withoutDbInstallRepair": true,
+    "onePhysicalRuntimeAcrossFiveConsumers": true,
+    "versions": {
+      "@tanstack/db": "0.15.1",
+      "@tanstack/react-db": "0.5.11",
+      "@tanstack/query-db-collection": "1.4.7"
+    },
+    "status": "historical-superseded-by-current-coordinated-patches"
+  },
+  "currentDatabaseSelection": {
+    "versions": {
+      "@tanstack/db": "0.15.2",
+      "@tanstack/react-db": "0.5.12",
+      "@tanstack/query-db-collection": "1.4.8"
+    },
+    "qualification": "143 selected files /917 tests pass on the current patches; physical identity and current tarballs independently reviewed. Final clean/full/merged-base gates remain required."
+  },
+  "coordinatedPatchRefresh": {
+    "capturedAt": "2026-10-21T19:07:54.542350+00:00",
+    "officialDbRelease": "https://github.com/TanStack/db/releases/tag/@tanstack%2Fdb@0.15.2",
+    "officialQueryCollectionRelease": "https://github.com/TanStack/db/releases/tag/@tanstack%2Fquery-db-collection@1.4.8",
+    "sourceDeltaSha256": "ea81fbc27d2c9150fa38d7f9652038b595d1e48ec88d59ec2ef2a1720a8097a8",
+    "changes": "Persisted optimistic-row retention, lossless local-storage serialization and on-demand query reacquisition during a deferred release/refetch failure."
+  },
+  "initialTemporaryStackBase": "6fc8afa0e6cfa2f81d56d76a4761849e33b857db",
+  "mergedBaseQualification": "Earlier infrastructure integration preserved all 34 then-owned paths. The later metadata-only merge of develop c4fd85dd0201d3d0e2d0406c3a0524c239f47f5c preserved the complete 35-path source tree and passed full pre-push. Review fixes and their remaining qualification are recorded separately.",
+  "initialAdapterPatchRetention": {
+    "capturedAt": "2026-10-21T18:07:03.329119+00:00",
+    "scope": "Public settlement assertion against pristine current adapter versus registered Core patch; transaction.when was already available in the baseline, so initial characterization correctly passed.",
+    "upstreamVersion": "0.1.0",
+    "pristineArtifactSha256": "37b4d15c8d1dd3ea08bffcf9e6dbc0f6de82d8de1b81d9734fa383160172b2e2",
+    "patchedArtifactSha256": "99f11268906edf3758908dd84930cc1b61b7405561737e8ca669a656af2a598f",
+    "pristineExitCode": 1,
+    "patchedExitCode": 0,
+    "pristineLogSha256": "211000e499052b38bdbfb7dbeb4920a5a14a42c3165bdf74c8a87bc028f623db",
+    "patchedLogSha256": "91610c4dfb4b7c8c09f825c4da3a0298f0c3c1822dfe0b4c409569c59b250756",
+    "installedArtifactRestored": true
+  },
+  "adapterPatchRetention": {
+    "capturedAt": "2026-10-21T19:35:52.643334+00:00",
+    "upstreamVersion": "0.1.0",
+    "databaseVersions": {
+      "@tanstack/db": "0.15.2",
+      "@tanstack/react-db": "0.5.12",
+      "@tanstack/query-db-collection": "1.4.8"
+    },
+    "testedLockSha256": "d24aca2ff9e9a5d9cd94bddfc8dae599f13f1beb95d5beae2a5c022a3e67cb94",
+    "pristineArtifactSha256": "37b4d15c8d1dd3ea08bffcf9e6dbc0f6de82d8de1b81d9734fa383160172b2e2",
+    "patchedArtifactSha256": "99f11268906edf3758908dd84930cc1b61b7405561737e8ca669a656af2a598f",
+    "results": [
+      {
+        "phase": "pristine",
+        "exitCode": 1,
+        "logSha256": "236ee9364e49761e116581d1dea26f9976b6b39ef3a4a78608573c7b0f12124a"
+      },
+      {
+        "phase": "patched",
+        "exitCode": 0,
+        "logSha256": "9f61224e38662474b902c8e7dcd1eac859dc0e2509af1664e29115ee17c5feaa"
+      }
+    ],
+    "installedArtifactRestored": true,
+    "scope": "Public transaction settlement must await confirmed-row acceptance; only derived installed adapter bytes were replaced temporarily and restored."
+  },
+  "currentFocusedTests": {
+    "filesPassed": 143,
+    "testsPassed": 917,
+    "logSha256": "e5833df9af4ae2dfa4200f08fcfd6e5a2937698f9962e06e54ab813d12268df3",
+    "overlapPolicy": "Historical 185/187/327/952 and current 917 results overlap; do not add them."
+  },
+  "supabaseSdkLocalProvider": {
+    "capturedAt": "2026-10-21T22:43:09.382034+00:00",
+    "sdkVersion": "2.118.0",
+    "ssrVersion": "0.12.7",
+    "ownedProjectId": "asym-modernization-20261021",
+    "publicKeyKind": "publishable",
+    "exitCode": 0,
+    "fixtureSha256": "af37168e5fdd904aeab4c5d1db583a4885f605e06e2e24447968e3c3438b3e1a",
+    "helperSha256": "8c245c84072120feec0f6261573dd0a8d87288521d0eccb9a611786b2857ad4e",
+    "results": [
+      {
+        "passed": true,
+        "checks": [
+          "local-target-bound-to-owned-gateway",
+          "fixture-user-tenant-metadata",
+          "fixture-profile-tenant-assigned",
+          "fixture-user-tenant-metadata",
+          "fixture-profile-tenant-assigned",
+          "password-session",
+          "verified-user",
+          "own-profile-visible",
+          "own-profile-tenant-preserved",
+          "cross-tenant-profile-denied",
+          "anonymous-profiles-denied",
+          "tenant-secret-table-denied",
+          "self-role-escalation-denied",
+          "realtime-preserves-minor-units-and-currency",
+          "browser-session-refresh",
+          "ssr-writes-session-cookies",
+          "ssr-recreated-request-verifies-user",
+          "ssr-session-refresh",
+          "ssr-signout-clears-session-cookies",
+          "fixture-census-restored"
+        ],
+        "productionTouched": false
+      }
+    ],
+    "credentialsOrIdentityPersisted": false,
+    "rawOutputSha256": "61569ed69cec762bca1290c7c34dc19f0fd15727ac95fb1d48c57188ddd1aa52",
+    "productionTouched": false,
+    "simulation": null,
+    "sourcesUnchangedDuringExecution": true
+  },
+  "sdkFixtureRegression": {
+    "red": {
+      "startedAt": "2026-10-21T22:40:48.091471+00:00",
+      "completedAt": "2026-10-21T22:40:49.413616+00:00",
+      "exitCode": 1,
+      "logSha256": "d187117a6d8318ad58f1d20c2c24f0861a8c7f3f50c7774cbaa7124b70df534e",
+      "sources": {
+        "tests/integration/supabase/client-runtime-checks.mjs": "f558e09ae9c9450b2dd56a734eb1007dffe025fd659e85f77b190ed0d9b3abe4",
+        "tests/integration/supabase/client-runtime-verification.mjs": "4e4b737b365a9cc727a86a7fbe65503574abf7e21192082d69165bf824d87738",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts": "b41ca2011ac79ba2fb5054cbe8c24fa25f254bc11e8ec1e23a3ff34479c2e5d5"
+      },
+      "legacyTableCleanupPatchSha256": "eae5954fb481df144ecd55f6ddbe56b3a737cfd1b9cbbca4303766b724a5fe88"
+    },
+    "green": {
+      "startedAt": "2026-10-21T22:41:59.514740+00:00",
+      "completedAt": "2026-10-21T22:42:00.824047+00:00",
+      "exitCode": 0,
+      "logSha256": "53b07a5e4c13ff6a8d2d7e03999bd6ac889c84a821fc4f37c1a4d1b2d608a3c0",
+      "sources": {
+        "tests/integration/supabase/client-runtime-checks.mjs": "8c245c84072120feec0f6261573dd0a8d87288521d0eccb9a611786b2857ad4e",
+        "tests/integration/supabase/client-runtime-verification.mjs": "af37168e5fdd904aeab4c5d1db583a4885f605e06e2e24447968e3c3438b3e1a",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts": "a439125ecb15e2620b3f595bda6a88417b7d62a995f131e5998178ebf49e41f1"
+      }
+    },
+    "lint": {
+      "startedAt": "2026-10-21T22:41:58.484785+00:00",
+      "completedAt": "2026-10-21T22:41:59.513949+00:00",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sources": {
+        "tests/integration/supabase/client-runtime-checks.mjs": "8c245c84072120feec0f6261573dd0a8d87288521d0eccb9a611786b2857ad4e",
+        "tests/integration/supabase/client-runtime-verification.mjs": "af37168e5fdd904aeab4c5d1db583a4885f605e06e2e24447968e3c3438b3e1a",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts": "a439125ecb15e2620b3f595bda6a88417b7d62a995f131e5998178ebf49e41f1"
+      }
+    },
+    "filesPassed": 4,
+    "testsPassed": 64,
+    "fixtureTests": 45,
+    "ciBuildPolicyTests": 19,
+    "scope": "All original 13 fixture tests, the previous 19 ownership/Auth cases and 13 additional table cases pass, alongside all 19 build-policy cases. The table follow-up RED reproduces eight behavioral failures against the extracted legacy deletion seam; 56 other assertions pass. Overlapping runs are not additive totals.",
+    "testSourceEvolution": "Existing assertions remain; four target-guard assertions now require their specific rejection messages. New table cases cover journaling, thrown/resolved committed-response loss, late unobserved commits, collision preservation, exact-ID absence and unattempted reservations."
+  },
+  "currentProductTypecheck": {
+    "capturedAt": "2026-10-21T19:54:37.487307+00:00",
+    "exitCode": 0,
+    "logSha256": "f470df0e15cef070b3f711f96df7a2dd5c016b5eade2e8fc09c971e9e30f2d5e",
+    "testedLockSha256": "d24aca2ff9e9a5d9cd94bddfc8dae599f13f1beb95d5beae2a5c022a3e67cb94",
+    "productWorkspacesPassed": 15
+  },
+  "currentDesignSystemQualification": {
+    "capturedAt": "2026-10-21T19:54:24.623Z",
+    "doctor": {
+      "actionable": 0,
+      "excepted": 294,
+      "allEightTargetsComplete": true,
+      "skippedChecks": 0,
+      "integritySha256": "8eb85119516a910a441af11c9d57907bf8b6afc2e3602b13247515bb98acdd7d",
+      "ledgerSha256": "cfad1fe628ab57b3747a4fa4738ac2e2d4dcd965c0fa6cde3ed0c001cede3eb2"
+    },
+    "shadscan": {
+      "passed": true,
+      "score": 48,
+      "ledgerSha256": "7ec98aaaf000d707e57c70e4952b3744717071f2232282ab58106f5acbc3f5cf",
+      "reportSha256": "b667eb74f62d4064b1a96e70a0ac63863453e7d9aa73f2fe1081d1dca1a4d78e"
+    },
+    "testedLockSha256": "d24aca2ff9e9a5d9cd94bddfc8dae599f13f1beb95d5beae2a5c022a3e67cb94"
+  },
+  "independentReviews": {
+    "currentDependencies": "Verified current six tarballs,133 installed source files, one DB across five consumers and one Query Core across seven consumers; no important new findings.",
+    "behavior": "Settlement semantics preserved and retained adapter patch behavior proved; both guide contradictions corrected.",
+    "sdkFixture": "Both important qualification-fixture findings resolved and the exact four-file fix independently approved.",
+    "tableCleanup": "All three final table follow-up implementation/test paths and four filtered provider proofs independently approved; no important findings."
+  },
+  "releaseMetadataRefresh": {
+    "capturedAt": "2026-10-21T20:27:54.566319+00:00",
+    "targetCount": 17,
+    "allSelectedStillLatest": true,
+    "allIntegrityMatches": true,
+    "proofSha256": "12e0683f625c4ec8426bb5552e5c523065ff8f3a9e57215657827322c943b0ef"
+  },
+  "instructionVersionRegression": {
+    "red": {
+      "startedAt": "2026-10-21T20:02:46.438423+00:00",
+      "completedAt": "2026-10-21T20:14:06.438924+00:00",
+      "exitCode": 1,
+      "logSha256": "8cd1e16e53225c41136719db9000b8bc1714b05f68578294ea48da53d2ce124d",
+      "testedLockSha256": "d24aca2ff9e9a5d9cd94bddfc8dae599f13f1beb95d5beae2a5c022a3e67cb94",
+      "sourceBase": "5943f5923f67021ca7778c34f35df523daf7999e",
+      "fullFlag": true,
+      "noEnvLocal": true
+    },
+    "green": {
+      "capturedAt": "2026-10-21T20:22:25.407078+00:00",
+      "exitCode": 0,
+      "sourcePath": "tests/unit/docs/agent-instruction-routing.test.ts",
+      "sourceSha256": "e08eb3e7ec4d552e2b566346b3e5f38f2f507863c099757a6c825ef9fae764cc",
+      "logSha256": "9d259e2e34c71ab6d5f884c0af8fa289ec54f32436364e26440b66f3a6623a14",
+      "redProof": "/tmp/core-modernization-data-current-full-preflight-proof.json",
+      "preservedContract": "Installed TanStack routing plus exact current Table/devtools version parity across all six manifests and the guide, including its exact pin qualifier."
+    },
+    "fix": "Derive Table version from the UI manifest and require the guide and all six consuming manifests to agree; retain all existing instruction-routing tests.",
+    "independentDeltaReview": "Complete source/changed-line review passed; all 16 original tests and all previously approved 34 paths preserved.",
+    "remaining": "Normal full repository pre-push must pass after this focused fix."
+  },
+  "previousTemporaryStackBase": "2e1ebf397af60eb1b0613561f2535b96770ec6ca",
+  "cleanInstallation": {
+    "startedAt": "2026-10-21T20:33:19.995508+00:00",
+    "completedAt": "2026-10-21T20:33:32.091843+00:00",
+    "head": "c48420906f78760b39f2de877b31a736fd0c474f",
+    "exitCode": 0,
+    "logSha256": "6f3274b79fd2218ed43d528fc2c1a3f15ad43cfa9c99db52fa2fbaf77dc8f006",
+    "lockSha256": "d24aca2ff9e9a5d9cd94bddfc8dae599f13f1beb95d5beae2a5c022a3e67cb94",
+    "noLockDrift": true,
+    "trackedClean": true,
+    "opaqueVendorDatabaseNeverMaterialized": true,
+    "noEnvLocal": true,
+    "includedFilesRestored": 21583,
+    "root": "/home/conrad/code/core-worktrees/data-clean-install-2026-10-22"
+  },
+  "cleanInstallationContractTests": {
+    "startedAt": "2026-10-21T20:33:32.266875+00:00",
+    "completedAt": "2026-10-21T20:33:36.904368+00:00",
+    "head": "c48420906f78760b39f2de877b31a736fd0c474f",
+    "exitCode": 0,
+    "logSha256": "2daf55ed5a83f2a9b798b14f84e9a3a2c523b4a8c50cc9c4353def7c5fa83d2c",
+    "paths": [
+      "tests/unit/packages/database/tanstack-runtime-identity.test.ts",
+      "tests/unit/packages/database/supabase-adapter-compatibility.test.ts",
+      "tests/unit/scripts/supabase-client-runtime-verification.test.ts",
+      "tests/unit/scripts/supabase-client-runtime-checks.test.ts",
+      "tests/unit/docs/agent-instruction-routing.test.ts"
+    ],
+    "lockSha256": "d24aca2ff9e9a5d9cd94bddfc8dae599f13f1beb95d5beae2a5c022a3e67cb94",
+    "noEnvLocal": true,
+    "files": 5,
+    "tests": 44
+  },
+  "stackRequalification": {
+    "capturedAt": "2026-10-21T20:54:07.939420+00:00",
+    "infrastructureSource": "2e1ebf397af60eb1b0613561f2535b96770ec6ca",
+    "all35OwnedPathHashesPreservedOnMerge": true,
+    "coldInstallInputsUnchanged": true,
+    "coldInstallCheckpoint": "c48420906f78760b39f2de877b31a736fd0c474f",
+    "opaqueVendorDatabaseUntouchedByMerge": true,
+    "opaqueVendorDatabaseAbsentBeforeAndAfterMerge": true,
+    "noEnvLocal": true,
+    "remaining": "Historical stack evidence; infrastructure is now merged. See currentReviewFixes for the final source qualification still required."
+  },
+  "historicalProviderQualification": {
+    "scope": "Earlier 19-check local run; superseded standalone target and cleanup safety evidence is completed below.",
+    "record": {
+      "capturedAt": "2026-10-21T19:42:30.796302+00:00",
+      "sdkVersion": "2.118.0",
+      "ssrVersion": "0.12.7",
+      "ownedProjectId": "asym-modernization-20261021",
+      "publicKeyKind": "publishable",
+      "exitCode": 0,
+      "fixtureSha256": "ef709f5367ba2cadb55dc6ade334f340e0352a5953ea56fb38005231921928f7",
+      "results": [
+        {
+          "passed": true,
+          "checks": [
+            "fixture-user-tenant-metadata",
+            "fixture-profile-tenant-assigned",
+            "fixture-user-tenant-metadata",
+            "fixture-profile-tenant-assigned",
+            "password-session",
+            "verified-user",
+            "own-profile-visible",
+            "own-profile-tenant-preserved",
+            "cross-tenant-profile-denied",
+            "anonymous-profiles-denied",
+            "tenant-secret-table-denied",
+            "self-role-escalation-denied",
+            "realtime-preserves-minor-units-and-currency",
+            "browser-session-refresh",
+            "ssr-writes-session-cookies",
+            "ssr-recreated-request-verifies-user",
+            "ssr-session-refresh",
+            "ssr-signout-clears-session-cookies",
+            "fixture-census-restored"
+          ],
+          "productionTouched": false
+        }
+      ],
+      "credentialsOrIdentityPersisted": false,
+      "rawOutputSha256": "457b6f0454ff0aebf74c947d25a0de9ced215f427eacc306788199418d9fde1e",
+      "productionTouched": false
+    }
+  },
+  "historicalSdkFixtureRegression": {
+    "scope": "Earlier 13-case denial and cleanup characterization; stricter target ownership and ambiguous-creation regressions are recorded below.",
+    "record": {
+      "red": {
+        "phase": "red",
+        "exitCode": 1,
+        "logSha256": "797bb02e78002da5aa4ab007ed75bf7cf1e0684f57b1dbe0664c28e9039a5b0a",
+        "source": {
+          "tests/integration/supabase/client-runtime-checks.mjs": "354b433ded3d2d6004954d213473313b5d028945e3e47eab3934b3c3bc0da17f",
+          "tests/integration/supabase/client-runtime-verification.mjs": "179766cb7c0392fc123c2efa17e629a8cec36c58c02d3ec642d7f05bb4fc6020",
+          "tests/unit/scripts/supabase-client-runtime-checks.test.ts": "b8539bc09451e251ec08333ce2ee1254f3a95c8bae95808c767e342cfe0b7e3f"
+        }
+      },
+      "green": {
+        "capturedAt": "2026-10-21T19:42:09.943118+00:00",
+        "phase": "green",
+        "exitCode": 0,
+        "logSha256": "8a4c1b1e79ced2d8c109b37010c60597418f9fc6fbf548b009d7ab0ee074ba8e",
+        "source": {
+          "tests/integration/supabase/client-runtime-checks.mjs": "d6ee55f4ebc819a26366e7645fd868ff271da213bdc93f4100f8f26a06c45eec",
+          "tests/integration/supabase/client-runtime-verification.mjs": "ef709f5367ba2cadb55dc6ade334f340e0352a5953ea56fb38005231921928f7",
+          "tests/unit/scripts/supabase-client-runtime-checks.test.ts": "1fe87b755333b482c48229ab41ddf629aa2d09a14b17902b760e65add5cfe0ea",
+          "tests/unit/scripts/supabase-client-runtime-verification.test.ts": "11d8b27cbeee8648e503dbc54e248989690dcffdc833cc8a24c4f686b87c7355"
+        }
+      },
+      "filesPassed": 2,
+      "testsPassed": 13,
+      "independentReview": "Both cleanup short-circuit and false-positive authorization-denial findings resolved; exact four-file fix independently approved."
+    }
+  },
+  "supabaseSdkLostResponseProvider": {
+    "expectedExitCode": 1,
+    "expectedOutcomeVerified": true,
+    "assertion": "Auth returned a success response before the fixture deliberately lost it. The SDK reports verification failure; reserved UUID ownership is recovered and deleted, absence is confirmed, tenants and the original census are restored with no cleanup failures.",
+    "record": {
+      "capturedAt": "2026-10-21T22:43:24.379649+00:00",
+      "sdkVersion": "2.118.0",
+      "ssrVersion": "0.12.7",
+      "ownedProjectId": "asym-modernization-20261021",
+      "publicKeyKind": "publishable",
+      "exitCode": 1,
+      "fixtureSha256": "af37168e5fdd904aeab4c5d1db583a4885f605e06e2e24447968e3c3438b3e1a",
+      "helperSha256": "8c245c84072120feec0f6261573dd0a8d87288521d0eccb9a611786b2857ad4e",
+      "results": [
+        {
+          "passed": false,
+          "step": "create-owned-fixtures",
+          "failedCheck": "provider-request",
+          "checks": [
+            "local-target-bound-to-owned-gateway",
+            "simulated-committed-user-creation-response-loss",
+            "fixture-census-restored"
+          ]
+        }
+      ],
+      "credentialsOrIdentityPersisted": false,
+      "rawOutputSha256": "009023efed9c56690bb9624e2c5b2c949256f908ddd1c4c0f8497a60a1d567df",
+      "productionTouched": false,
+      "simulation": "auth-user",
+      "sourcesUnchangedDuringExecution": true
+    }
+  },
+  "currentReviewFixes": {
+    "capturedAt": "2026-10-21T22:45:45.787989+00:00",
+    "sourceBase": "b350a6880d95c39631cdd9e5bf5747909db63974",
+    "owner": "Core data maintainers",
+    "implementation": {
+      "capturedAt": "2026-10-21T22:43:12.199889+00:00",
+      "base": "b350a6880d95c39631cdd9e5bf5747909db63974",
+      "patchSha256": "02f59b51acc6783f892def70c1bf8d7f53cc7a1d16a460177e58f83b648959e6",
+      "files": {
+        "tests/integration/supabase/client-runtime-checks.mjs": "8c245c84072120feec0f6261573dd0a8d87288521d0eccb9a611786b2857ad4e",
+        "tests/integration/supabase/client-runtime-verification.mjs": "af37168e5fdd904aeab4c5d1db583a4885f605e06e2e24447968e3c3438b3e1a",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts": "a439125ecb15e2620b3f595bda6a88417b7d62a995f131e5998178ebf49e41f1"
+      },
+      "red": "8 meaningful failures / 56 pass across 4 files against extracted legacy deletion; no missing-export or import failures",
+      "green": "64 pass across 4 files; all previous 51 retained",
+      "lint": "clean, 0 warnings"
+    },
+    "tableCreationJournal": "Record each reserved tenant/fund ID, ownership fields, attempted state and acknowledgement before awaiting its only insert. Names include the random run marker. Never remove an unattempted reservation.",
+    "tableCleanup": "For each attempted row, separately verify ID plus run-specific name and tenant/slug ownership, delete only a matching owned row, then confirm that exact ID is absent. Each operation retains the 16-second budget. A missing unacknowledged creation is unresolved because its server transaction may still commit later, even when global counts currently match. Any failure suppresses fixture-census-restored and preserves the primary verification failure.",
+    "postgrestRetryBoundary": {
+      "version": "2.118.0",
+      "installedPath": "node_modules/.bun/@supabase+postgrest-js@2.118.0/node_modules/@supabase/postgrest-js/dist/index.mjs",
+      "sha256": "1bed557508b6bc15f77eb4c78bc6fdd620abdf7d1ad39b670df92d83547cc538",
+      "retryMethods": ["GET", "HEAD", "OPTIONS"],
+      "evidence": "The installed fetchWithRetry implementation rejects retries for POST and other non-idempotent methods. Main creates each reserved table identity once; an observed matching row therefore resolves that creation before guarded deletion.",
+      "recheck": "Any SDK/PostgREST upgrade or change to creation retries/submission count invalidates this boundary proof."
+    },
+    "inheritedFixes": "The local Docker socket/gateway binding, guarded Auth UUID cleanup and all-three-app file-package-repair build selection remain implemented; prior exact review evidence is retained in historicalTargetAndAuthReviewQualification.",
+    "independentImplementationReview": {
+      "changedPaths": 3,
+      "patchSha256": "02f59b51acc6783f892def70c1bf8d7f53cc7a1d16a460177e58f83b648959e6",
+      "importantFindings": 0,
+      "allSourceHashesPreserved": true,
+      "allPrevious51TestsPreserved": true,
+      "fourProviderProofsVerified": true
+    },
+    "remaining": "Final documentation delta review, normal full pre-push, current-head CI/review, all-three deployed preview checks and merge readback remain required for the table follow-up."
+  },
+  "historicalTargetAndAuthReviewQualification": {
+    "scope": "Prior published b350 ownership/Auth review checkpoint. Its original records are preserved exactly; the current table-safe sources and evidence below supersede those source hashes.",
+    "provider": {
+      "capturedAt": "2026-10-21T22:00:11.640803+00:00",
+      "sdkVersion": "2.118.0",
+      "ssrVersion": "0.12.7",
+      "ownedProjectId": "asym-modernization-20261021",
+      "publicKeyKind": "publishable",
+      "exitCode": 0,
+      "fixtureSha256": "82688f8ef9fb68435f5e2334a6d1ebc31cdc01f0133be27afe9310af7181b8da",
+      "helperSha256": "3a880f13ace4cc4a4cb83ae60ae6c1b28fe534f144c91ec55e86ef8a97ce25b7",
+      "results": [
+        {
+          "passed": true,
+          "checks": [
+            "local-target-bound-to-owned-gateway",
+            "fixture-user-tenant-metadata",
+            "fixture-profile-tenant-assigned",
+            "fixture-user-tenant-metadata",
+            "fixture-profile-tenant-assigned",
+            "password-session",
+            "verified-user",
+            "own-profile-visible",
+            "own-profile-tenant-preserved",
+            "cross-tenant-profile-denied",
+            "anonymous-profiles-denied",
+            "tenant-secret-table-denied",
+            "self-role-escalation-denied",
+            "realtime-preserves-minor-units-and-currency",
+            "browser-session-refresh",
+            "ssr-writes-session-cookies",
+            "ssr-recreated-request-verifies-user",
+            "ssr-session-refresh",
+            "ssr-signout-clears-session-cookies",
+            "fixture-census-restored"
+          ],
+          "productionTouched": false
+        }
+      ],
+      "credentialsOrIdentityPersisted": false,
+      "rawOutputSha256": "61569ed69cec762bca1290c7c34dc19f0fd15727ac95fb1d48c57188ddd1aa52",
+      "productionTouched": false
+    },
+    "regressions": {
+      "red": {
+        "startedAt": "2026-10-21T21:54:45.464364+00:00",
+        "completedAt": "2026-10-21T21:54:46.724851+00:00",
+        "exitCode": 1,
+        "logSha256": "e428fa1c4aa18df0517a72abc70bba886a8b4edc4b0efdd1f1826e5d801d1b2b",
+        "sources": {
+          "tests/unit/scripts/supabase-client-runtime-safety.test.ts": "0990e2ec5d5cce5abf761db7093ec87275df2ea0c3316b55defa03ccb375b1bd",
+          "tests/unit/scripts/ci-build-policy.test.ts": "02053b183df6e412fa1486956b4dd5c3d4309edc5d424f379d4f016a9e0d3783"
+        }
+      },
+      "green": {
+        "startedAt": "2026-10-21T22:02:24.234305+00:00",
+        "completedAt": "2026-10-21T22:02:25.570013+00:00",
+        "exitCode": 0,
+        "logSha256": "17659cd05b589c17310dcc09f5a38cabc088953583130290d654ec28103341c6",
+        "sources": {
+          "tests/integration/supabase/client-runtime-checks.mjs": "3a880f13ace4cc4a4cb83ae60ae6c1b28fe534f144c91ec55e86ef8a97ce25b7",
+          "tests/integration/supabase/client-runtime-verification.mjs": "82688f8ef9fb68435f5e2334a6d1ebc31cdc01f0133be27afe9310af7181b8da",
+          "tests/unit/scripts/supabase-client-runtime-safety.test.ts": "167d1f393f1f0a7b1c5fd371f0af2b44f96da0e626e629b7de971a6dcb96bbbc",
+          "scripts/verify/ci-build-policy.mjs": "786292889ea3efcdab8182cc012bef5663c3f4349bdaa8be46ad78a39e760808",
+          "tests/unit/scripts/ci-build-policy.test.ts": "02053b183df6e412fa1486956b4dd5c3d4309edc5d424f379d4f016a9e0d3783"
+        }
+      },
+      "filesPassed": 4,
+      "testsPassed": 51,
+      "fixtureTests": 32,
+      "ciBuildPolicyTests": 19,
+      "scope": "All original 13 fixture tests remain, with 19 new ownership/ambiguous-creation cases and 19 total build-policy cases. These overlap the full suite and are not additive totals.",
+      "testSourceEvolution": "After the recorded RED, one test name gained a missing space and one additional case covers the SDK returning a retryable error result after commit. All original assertions remain."
+    },
+    "lostAuthResponse": {
+      "expectedExitCode": 1,
+      "expectedOutcomeVerified": true,
+      "assertion": "Auth returned a success response before the fixture deliberately lost it. The SDK reports verification failure; reserved UUID ownership is recovered and deleted, absence is confirmed, tenants and the original census are restored with no cleanup failures.",
+      "record": {
+        "capturedAt": "2026-10-21T22:00:26.420605+00:00",
+        "sdkVersion": "2.118.0",
+        "ssrVersion": "0.12.7",
+        "ownedProjectId": "asym-modernization-20261021",
+        "publicKeyKind": "publishable",
+        "exitCode": 1,
+        "fixtureSha256": "82688f8ef9fb68435f5e2334a6d1ebc31cdc01f0133be27afe9310af7181b8da",
+        "helperSha256": "3a880f13ace4cc4a4cb83ae60ae6c1b28fe534f144c91ec55e86ef8a97ce25b7",
+        "results": [
+          {
+            "passed": false,
+            "step": "create-owned-fixtures",
+            "failedCheck": "provider-request",
+            "checks": [
+              "local-target-bound-to-owned-gateway",
+              "simulated-committed-user-creation-response-loss",
+              "fixture-census-restored"
+            ]
+          }
+        ],
+        "credentialsOrIdentityPersisted": false,
+        "rawOutputSha256": "009023efed9c56690bb9624e2c5b2c949256f908ddd1c4c0f8497a60a1d567df",
+        "productionTouched": false
+      }
+    },
+    "reviewFixes": {
+      "capturedAt": "2026-10-21T22:04:18.971306+00:00",
+      "sourceBase": "1dcdade63e012898f237663a634eca28c8275193",
+      "owner": "Core data and CI maintainers",
+      "implementation": {
+        "capturedAt": "2026-10-21T22:02:25.632307+00:00",
+        "base": "1dcdade63e012898f237663a634eca28c8275193",
+        "patchSha256": "8a232f522e16a569d3b7ad34cb053e510d2f59f74c6b4fbb85775fcf4d5f9cab",
+        "files": {
+          "tests/integration/supabase/client-runtime-checks.mjs": "3a880f13ace4cc4a4cb83ae60ae6c1b28fe534f144c91ec55e86ef8a97ce25b7",
+          "tests/integration/supabase/client-runtime-verification.mjs": "82688f8ef9fb68435f5e2334a6d1ebc31cdc01f0133be27afe9310af7181b8da",
+          "tests/unit/scripts/supabase-client-runtime-safety.test.ts": "167d1f393f1f0a7b1c5fd371f0af2b44f96da0e626e629b7de971a6dcb96bbbc",
+          "scripts/verify/ci-build-policy.mjs": "786292889ea3efcdab8182cc012bef5663c3f4349bdaa8be46ad78a39e760808",
+          "tests/unit/scripts/ci-build-policy.test.ts": "02053b183df6e412fa1486956b4dd5c3d4309edc5d424f379d4f016a9e0d3783"
+        }
+      },
+      "targetBinding": "Before constructing SDK clients, require a validated local Docker socket, pin it explicitly for read-only inspection, and match the running Kong name, project label, API port and address family. Read only public ownership/binding fields; never inspect environment or mounts. HTTP redirects are refused.",
+      "creationJournal": "Reserve and journal each UUID/email/tenant/random run marker before awaiting createUser. Current SDK supports caller-selected UUIDs. Cleanup verifies the trusted marker, tenant and email before deletion and confirms absence.",
+      "cleanupBounds": "Ownership lookup, deletion and final absence confirmation are separate operations under the existing 16-second cleanup budget; each provider fetch is limited to 15 seconds. Later cleanup/census still runs after failure. Ambiguous creation plus immediate 404 is unresolved and fails qualification, even if row counts currently match.",
+      "sourceReferences": [
+        "https://github.com/supabase/supabase-js/blob/5adfffef8aa540eb735196bec0e3ca250cb579a6/packages/core/auth-js/src/lib/types.ts#L644-L649",
+        "https://github.com/supabase/auth/blob/c3348e8f1cb31454e9783e4eb9eab1e71ad9652f/internal/api/admin.go#L481-L490"
+      ],
+      "ciCoverage": "Changing scripts/repair-file-package-links.mjs now selects all three app builds; the new regression fails against the old policy.",
+      "remaining": "Final documentation review, normal full pre-push, current-head CI/review, deployed previews and merge readback.",
+      "independentImplementationReview": {
+        "changedPaths": 5,
+        "patchSha256": "8a232f522e16a569d3b7ad34cb053e510d2f59f74c6b4fbb85775fcf4d5f9cab",
+        "importantFindings": 0,
+        "allSourceHashesPreserved": true,
+        "original13FixtureTestsUnchanged": true
+      }
+    }
+  },
+  "supabaseSdkLostTableResponseProviders": [
+    {
+      "table": "tenants",
+      "expectedExitCode": 1,
+      "expectedOutcomeVerified": true,
+      "assertion": "The real table insert committed before the response was deliberately lost. Qualification retains its original failure while ownership-checked exact-ID cleanup removes the rows and restores the census.",
+      "record": {
+        "capturedAt": "2026-10-21T22:43:36.571613+00:00",
+        "sdkVersion": "2.118.0",
+        "ssrVersion": "0.12.7",
+        "ownedProjectId": "asym-modernization-20261021",
+        "publicKeyKind": "publishable",
+        "exitCode": 1,
+        "fixtureSha256": "af37168e5fdd904aeab4c5d1db583a4885f605e06e2e24447968e3c3438b3e1a",
+        "helperSha256": "8c245c84072120feec0f6261573dd0a8d87288521d0eccb9a611786b2857ad4e",
+        "results": [
+          {
+            "passed": false,
+            "step": "create-owned-fixtures",
+            "failedCheck": "provider-request",
+            "providerErrorCode": "unclassified",
+            "checks": [
+              "local-target-bound-to-owned-gateway",
+              "simulated-committed-tenants-creation-response-loss",
+              "fixture-census-restored"
+            ]
+          }
+        ],
+        "credentialsOrIdentityPersisted": false,
+        "rawOutputSha256": "7b017e6acb6f5208149550f93887b66cf64b43fb2b8a8638b0a17bdb1fd1f4a0",
+        "productionTouched": false,
+        "simulation": "tenants",
+        "sourcesUnchangedDuringExecution": true
+      }
+    },
+    {
+      "table": "funds",
+      "expectedExitCode": 1,
+      "expectedOutcomeVerified": true,
+      "assertion": "The real table insert committed before the response was deliberately lost. Qualification retains its original failure while ownership-checked exact-ID cleanup removes the rows and restores the census.",
+      "record": {
+        "capturedAt": "2026-10-21T22:43:49.117786+00:00",
+        "sdkVersion": "2.118.0",
+        "ssrVersion": "0.12.7",
+        "ownedProjectId": "asym-modernization-20261021",
+        "publicKeyKind": "publishable",
+        "exitCode": 1,
+        "fixtureSha256": "af37168e5fdd904aeab4c5d1db583a4885f605e06e2e24447968e3c3438b3e1a",
+        "helperSha256": "8c245c84072120feec0f6261573dd0a8d87288521d0eccb9a611786b2857ad4e",
+        "results": [
+          {
+            "passed": false,
+            "step": "authenticated-realtime-and-money-contract",
+            "failedCheck": "provider-request",
+            "providerErrorCode": "unclassified",
+            "realtimeStatus": "SUBSCRIBED",
+            "checks": [
+              "local-target-bound-to-owned-gateway",
+              "fixture-user-tenant-metadata",
+              "fixture-profile-tenant-assigned",
+              "fixture-user-tenant-metadata",
+              "fixture-profile-tenant-assigned",
+              "password-session",
+              "verified-user",
+              "own-profile-visible",
+              "own-profile-tenant-preserved",
+              "cross-tenant-profile-denied",
+              "anonymous-profiles-denied",
+              "tenant-secret-table-denied",
+              "self-role-escalation-denied",
+              "simulated-committed-funds-creation-response-loss",
+              "fixture-census-restored"
+            ]
+          }
+        ],
+        "credentialsOrIdentityPersisted": false,
+        "rawOutputSha256": "fa1813aedb0b2a50294f2beb58625d521c880d7e4f0e2660e224ac06cc96720f",
+        "productionTouched": false,
+        "simulation": "funds",
+        "sourcesUnchangedDuringExecution": true
+      }
+    }
+  ],
+  "publishedB350Qualification": {
+    "head": "b350a6880d95c39631cdd9e5bf5747909db63974",
+    "scope": "Previously published source before the current table follow-up; retained qualification is not current-head completion.",
+    "fullPrePush": {
+      "startedAt": "2026-10-21T22:12:46.813781+00:00",
+      "completedAt": "2026-10-21T22:20:14.800416+00:00",
+      "head": "b350a6880d95c39631cdd9e5bf5747909db63974",
+      "exitCode": 0,
+      "logSha256": "a7c17c85b60f380847e6a9624f82c4534efc2b48bd06b946626c76147d964322"
+    },
+    "passedTestFiles": 899,
+    "skippedTestFiles": 2,
+    "passedTests": 7364,
+    "expectedFailedTests": 1,
+    "skippedTests": 4,
+    "ci": "https://github.com/Asymmetric-al/core/actions/runs/39685757476",
+    "integrationAndFullE2e": "https://github.com/Asymmetric-al/core/actions/runs/39685757500",
+    "previewSmoke": "https://github.com/Asymmetric-al/core/actions/runs/39685799502",
+    "allThreeReadyReadback": {
+      "capturedAt": "2026-10-21 22:31:47 UTC",
+      "head": "b350a6880d95c39631cdd9e5bf5747909db63974",
+      "allThreeReadyAtExactHead": true,
+      "deployments": [
+        {
+          "host": "admin-kbboznu3m-asymmetric-al.vercel.app",
+          "id": "dpl_CJNBhUd2jjCy77y5Dz2kvNWQMW8a",
+          "url": "admin-kbboznu3m-asymmetric-al.vercel.app",
+          "state": "READY",
+          "readyState": "READY",
+          "target": null,
+          "meta": {
+            "githubCommitRef": "HEAD",
+            "githubCommitSha": "b350a6880d95c39631cdd9e5bf5747909db63974",
+            "githubRepo": "core"
+          }
+        },
+        {
+          "host": "donor-ce64sad23-asymmetric-al.vercel.app",
+          "id": "dpl_2TFMNSPFUEogf1V5DctUqxBM8uBo",
+          "url": "donor-ce64sad23-asymmetric-al.vercel.app",
+          "state": "READY",
+          "readyState": "READY",
+          "target": null,
+          "meta": {
+            "githubCommitRef": "HEAD",
+            "githubCommitSha": "b350a6880d95c39631cdd9e5bf5747909db63974",
+            "githubRepo": "core"
+          }
+        },
+        {
+          "host": "missionary-gq3ovebfn-asymmetric-al.vercel.app",
+          "id": "dpl_HqyGWPHqFzKyynAL2wsvYxHmaSxo",
+          "url": "missionary-gq3ovebfn-asymmetric-al.vercel.app",
+          "state": "READY",
+          "readyState": "READY",
+          "target": null,
+          "meta": {
+            "githubCommitRef": "HEAD",
+            "githubCommitSha": "b350a6880d95c39631cdd9e5bf5747909db63974",
+            "githubRepo": "core"
+          }
+        }
+      ]
+    },
+    "cleanContractTests": {
+      "startedAt": "2026-10-21T22:23:31.205733+00:00",
+      "completedAt": "2026-10-21T22:23:32.733201+00:00",
+      "head": "b350a6880d95c39631cdd9e5bf5747909db63974",
+      "previousCleanInstallHead": "c48420906f78760b39f2de877b31a736fd0c474f",
+      "installationInputsChanged": [],
+      "exitCode": 0,
+      "logSha256": "d5c240a0f4c4c2c838f17f52c90ec0a191412dd833dd5d6af8d92b6f8e3e6410",
+      "environmentFileAbsent": true,
+      "opaqueVendoredDatabaseAbsent": true,
+      "trackedStatus": ""
+    },
+    "cleanContractTestCount": 66,
+    "cleanContractTestFiles": 6
+  }
+}

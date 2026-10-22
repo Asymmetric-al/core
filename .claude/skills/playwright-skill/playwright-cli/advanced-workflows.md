@@ -86,9 +86,9 @@ playwright-cli run-code "async page => {
   // Handle Google OAuth in the popup
   await popup.fill('input[type=email]', 'user@gmail.com');
   await popup.click('#identifierNext');
-  await popup.waitForSelector('input[type=password]', { state: 'visible' }); // pragma: allowlist secret
-  await popup.fill('input[type=password]', 'password'); // pragma: allowlist secret
-  await popup.click('#passwordNext'); // pragma: allowlist secret
+  await popup.waitForSelector('input[type=password]', { state: 'visible' });
+  await popup.fill('input[type=password]', 'password');
+  await popup.click('#passwordNext');
 
   // Popup closes after auth, main page redirects
   await popup.waitForEvent('close');

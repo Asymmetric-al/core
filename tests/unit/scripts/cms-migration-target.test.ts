@@ -31,6 +31,80 @@ describe("CMS migration target", () => {
     expect(() => assertCmsMigrationTarget(hosted)).not.toThrow();
   });
 
+  it.each([
+    "postgresql://cms_fixture.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full",
+    "postgresql://cms_fixture:fake-password@db.fixture.supabase.co:5432/postgres?sslmode=verify-full",
+  ])(
+    "allows an explicitly approved scoped role at the approved project: %s",
+    (databaseUrl) => {
+      expect(() =>
+        assertCmsMigrationTarget({
+          ...hosted,
+          databaseUrl,
+          environment: { CMS_HOSTED_MIGRATION_ROLE: "cms_fixture" },
+        }),
+      ).not.toThrow();
+    },
+  );
+
+  it("does not infer role approval from a custom connection username", () => {
+    expect(() =>
+      assertCmsMigrationTarget({
+        ...hosted,
+        databaseUrl: hosted.databaseUrl.replace(
+          "postgres.fixture",
+          "cms_fixture.fixture",
+        ),
+      }),
+    ).toThrow("does not match");
+  });
+
+  it("keeps approved role and project identities exact", () => {
+    for (const username of [
+      "other.fixture",
+      "cms_fixture.other",
+      "postgres.fixture",
+    ]) {
+      expect(() =>
+        assertCmsMigrationTarget({
+          ...hosted,
+          databaseUrl: hosted.databaseUrl.replace("postgres.fixture", username),
+          environment: { CMS_HOSTED_MIGRATION_ROLE: "cms_fixture" },
+        }),
+      ).toThrow("does not match");
+    }
+  });
+
+  it("rejects ambiguous or oversized approved role names", () => {
+    for (const role of [
+      "role.other",
+      "role@host",
+      "role name",
+      "role;DROP",
+      "-role",
+      "a".repeat(64),
+    ]) {
+      expect(() =>
+        assertCmsMigrationTarget({
+          ...hosted,
+          environment: { CMS_HOSTED_MIGRATION_ROLE: role },
+        }),
+      ).toThrow("plain Postgres role name");
+    }
+  });
+
+  it("still requires encrypted transport for a scoped role", () => {
+    expect(() =>
+      assertCmsMigrationTarget({
+        ...hosted,
+        databaseUrl: hosted.databaseUrl
+          .replace("postgres.fixture", "cms_fixture.fixture")
+          .replace("no-verify", "disable"),
+        environment: { CMS_HOSTED_MIGRATION_ROLE: "cms_fixture" },
+      }),
+    ).toThrow("encrypted");
+  });
+
   it("rejects a pooler username belonging to another project", () => {
     expect(() =>
       assertCmsMigrationTarget({

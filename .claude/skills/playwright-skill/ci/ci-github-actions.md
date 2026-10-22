@@ -10,6 +10,8 @@ npx playwright install --with-deps    # install browsers + OS deps
 npx playwright test --shard=1/4       # run 1 of 4 shards
 npx playwright test --reporter=github # annotate PR with failures
 npx playwright merge-reports ./blob-report  # merge shard reports
+npx playwright test --fail-on-flaky-tests  # exit 1 if any test passed only on retry
+npx playwright test --last-failed --last-failed-file=prev/.last-run.json  # re-run a downloaded run's failures (file flag 1.61+)
 ```
 
 ## Patterns
@@ -42,11 +44,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: lts/*
           cache: 'npm'
 
       - name: Install dependencies
@@ -54,7 +56,7 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -71,7 +73,7 @@ jobs:
         run: npx playwright test
 
       - name: Upload HTML report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
@@ -79,7 +81,7 @@ jobs:
           retention-days: 14
 
       - name: Upload test traces
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-traces
@@ -119,11 +121,11 @@ jobs:
         shard: [1/4, 2/4, 3/4, 4/4]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: lts/*
           cache: 'npm'
 
       - name: Install dependencies
@@ -131,7 +133,7 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -148,7 +150,7 @@ jobs:
         run: npx playwright test --shard=${{ matrix.shard }}
 
       - name: Upload blob report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: blob-report-${{ strategy.job-index }}
@@ -161,18 +163,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: lts/*
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Download all blob reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: all-blob-reports
           pattern: blob-report-*
@@ -182,7 +184,7 @@ jobs:
         run: npx playwright merge-reports --reporter=html ./all-blob-reports
 
       - name: Upload merged HTML report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report/
@@ -216,7 +218,7 @@ on:
     inputs:
       node-version:
         type: string
-        default: '20'
+        default: 'lts/*'
       test-command:
         type: string
         default: 'npx playwright test'
@@ -241,12 +243,12 @@ jobs:
     env:
       CI: true
       BASE_URL: ${{ secrets.BASE_URL }}
-      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }} // pragma: allowlist secret
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ inputs.node-version }}
           cache: 'npm'
@@ -255,7 +257,7 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -271,7 +273,7 @@ jobs:
       - name: Run tests
         run: ${{ inputs.test-command }} --shard=${{ matrix.shard }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: playwright-report-${{ strategy.job-index }}
@@ -292,7 +294,7 @@ jobs:
   e2e:
     uses: ./.github/workflows/playwright-reusable.yml
     with:
-      node-version: '20'
+      node-version: 'lts/*'
       shard-total: 4
     secrets:
       BASE_URL: ${{ secrets.STAGING_URL }}
@@ -317,14 +319,15 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.52.0-noble
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: lts/*
 
       - run: npm ci
 
@@ -334,7 +337,7 @@ jobs:
         env:
           HOME: /root  # required when running as root in container
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
@@ -369,18 +372,18 @@ jobs:
       API_KEY: ${{ secrets.API_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: lts/*
           cache: 'npm'
 
       - run: npm ci
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -396,7 +399,7 @@ jobs:
       - name: Run tests against staging
         run: npx playwright test --grep @smoke
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: staging-report
@@ -428,11 +431,11 @@ jobs:
       BASE_URL: ${{ vars.STAGING_URL }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: lts/*
           cache: 'npm'
 
       - run: npm ci
@@ -443,7 +446,7 @@ jobs:
       - name: Run full regression suite
         run: npx playwright test --grep @regression
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: nightly-report-${{ github.run_number }}
@@ -452,14 +455,12 @@ jobs:
 
       - name: Notify on failure
         if: failure()
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v4.0.0
         with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
-            {
-              "text": "Nightly Playwright regression failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+            text: "Nightly Playwright regression failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 ```
 
 ## Decision Guide
@@ -477,16 +478,16 @@ jobs:
 
 ## Security: Pinning Actions to Commit SHAs
 
-Version tags like `actions/checkout@v4` are mutable — the tag can be moved to a different commit without warning, introducing unverified code into your CI pipeline (supply-chain risk W012).
+Version tags like `actions/checkout@v7` are mutable — the tag can be moved to a different commit without warning, introducing unverified code into your CI pipeline (supply-chain risk W012).
 
 **Best practice**: pin every action to its full commit SHA.
 
 ```yaml
 # Instead of:
-- uses: actions/checkout@v4
+- uses: actions/checkout@v7
 
 # Pin to a specific immutable commit SHA:
-- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 ```
 
 **How to find the SHA for any action:**
@@ -497,18 +498,18 @@ Version tags like `actions/checkout@v4` are mutable — the tag can be moved to 
 # Click the tag → copy the full commit SHA from the URL or commit details
 
 # Or use the gh CLI:
-gh api repos/actions/checkout/git/ref/tags/v4.2.2 --jq '.object.sha'
+gh api repos/actions/checkout/git/ref/tags/v7.0.1 --jq '.object.sha'
 ```
 
 **Example pinned workflow step set (verify SHAs at release pages before use):**
 
 ```yaml
 steps:
-  - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683        # v4.2.2
-  - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af        # v4.1.0
-  - uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf             # v4.2.2
-  - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b   # v4.5.0
-  - uses: actions/download-artifact@fa0a91b85d4f404e444306234b4f18a22b3d1e57 # v4.1.8
+  - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1        # v7.0.1
+  - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1        # v7.1.0
+  - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9             # v6.1.0
+  - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9   # v7.0.2
+  - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
 ```
 
 > Always verify these SHAs against the official release pages at github.com/actions before adding them to production workflows.
@@ -526,7 +527,7 @@ steps:
 | Running all browsers on every PR | 3x CI cost for marginal benefit | Chromium on PR; cross-browser on main merge |
 | `actions/upload-artifact` with no retention | Default 90-day retention fills storage | Set `retention-days: 7-14` for reports |
 | No `--with-deps` on browser install | Missing OS libraries cause browser launch failures | Always use `npx playwright install --with-deps` |
-| Using mutable action version tags (`@v4`) | Tag can be silently re-pointed to a different commit (supply-chain risk) | Pin to full commit SHA; see Security section above |
+| Using mutable action version tags (`@v7`) | Tag can be silently re-pointed to a different commit (supply-chain risk) | Pin to full commit SHA; see Security section above |
 
 ## Troubleshooting
 
@@ -563,19 +564,19 @@ export default defineConfig({
 
 ### Sharded reports are incomplete -- some shards missing from merged report
 
-**Cause**: Using `actions/download-artifact@v4` without `merge-multiple: true`, or artifact names collide across shards.
+**Cause**: Using `actions/download-artifact@v8` without `merge-multiple: true`, or artifact names collide across shards.
 
 **Fix**: Give each shard a unique artifact name and use `merge-multiple`:
 
 ```yaml
 # Upload in each shard job
-- uses: actions/upload-artifact@v4
+- uses: actions/upload-artifact@v7
   with:
     name: blob-report-${{ strategy.job-index }}
     path: blob-report/
 
 # Download in merge job
-- uses: actions/download-artifact@v4
+- uses: actions/download-artifact@v8
   with:
     path: all-blob-reports
     pattern: blob-report-*

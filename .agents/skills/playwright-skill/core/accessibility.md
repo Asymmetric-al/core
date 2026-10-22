@@ -31,6 +31,9 @@ const dialogTree = await page.getByRole('dialog', { name: 'Checkout' }).ariaSnap
 // Playwright 1.60+: assert the whole page's aria tree, and capture bounding boxes
 await expect(page).toMatchAriaSnapshot();
 const treeWithBoxes = await page.ariaSnapshot({ boxes: true });
+
+// Playwright 1.63+: the same tree as a JSON value instead of YAML (accepts mode, depth, boxes)
+const treeJson = await page.getByRole('navigation').ariaSnapshotJSON();
 ```
 
 ## Patterns
@@ -114,7 +117,7 @@ test('home page matches its aria snapshot', async ({ page }) => {
 test('capture aria tree with bounding boxes', async ({ page }) => {
   await page.goto('/dashboard');
 
-  // `boxes: true` appends each node's [x, y, width, height] to the snapshot
+  // `boxes: true` appends each node's bounding box as [box=x,y,width,height]
   const treeWithBoxes = await page.ariaSnapshot({ boxes: true });
   expect(treeWithBoxes).toContain('heading "Dashboard"');
 });
@@ -944,6 +947,12 @@ test.describe('color contrast', () => {
 });
 ```
 
+**Emulating user display preferences (1.63+)**: `contrast`, `forcedColors`, and `reducedMotion` are standalone test options, so a project or `test.use()` can run the same contrast scan under OS-level preferences instead of toggling an in-app setting:
+
+```typescript
+test.use({ contrast: 'more', forcedColors: 'active', reducedMotion: 'reduce' });
+```
+
 ### Focus Trap Testing
 
 **Use when**: Testing modals, dialogs, dropdown menus, slide-over panels, and any overlay that must trap focus within itself to prevent users from accidentally interacting with background content.
@@ -1384,10 +1393,10 @@ jobs:
   accessibility:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: lts/*
       - run: npm ci
       - run: npx playwright install --with-deps chromium
 
@@ -1396,7 +1405,7 @@ jobs:
 
       - name: Upload accessibility report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: accessibility-report
           path: playwright-report/

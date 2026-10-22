@@ -30,7 +30,7 @@ Trace files capture **everything**: full DOM snapshots, request/response bodies,
 1. **`open` once, then interrogate** — every command after `open` runs against the current trace; you never re-pass the path. Opening another trace replaces it.
 2. **`actions --errors-only` first** — jump to the failure instead of reading the whole tree.
 3. **`action <id>` for the error, `snapshot <id>` for the page state** — the error says *what* failed; the snapshot says *why the page wasn't ready*.
-4. **Use the right phase** — `--name before` is the DOM the action saw (use for locator/click failures); `--name after` is the result (use for assertion-of-state failures).
+4. **Use the right phase** — `--phase before` is the DOM the action saw (use for locator/click failures); `--phase after` is the result (use for assertion-of-state failures).
 5. **Query the frozen DOM, don't guess** — `snapshot <id> -- eval "…"` runs a real query against the captured DOM. Confirm state; don't assume.
 6. **Cross-check network and console** — `requests --failed` and `console --errors-only` find the `500` or JS exception behind many UI failures in one command each.
 7. **Confirm before you fix** — never propose a fix you haven't verified against the snapshot or network. Patching the symptom (add a timeout, loosen an assertion) reintroduces flakiness.
@@ -50,7 +50,7 @@ requests           network requests, incl. WebSockets (1.61+)  [--grep] [--metho
 request <id>       one request: headers, body, security  (contains secrets — redact)
 console            console + stdio             [--errors-only] [--warnings] [--browser] [--stdio]
 errors             all errors with stack traces
-snapshot <id>      run a command against the DOM snapshot  [--name before|input|after] [--serve]
+snapshot <id>      run a command against the DOM snapshot  [--phase before|action|after] [--serve]  (1.63+; was --name before|input|after)
 screenshot <id>    save the recorded frame     [-o <path>]
 attachments        list attachments (visual-diff expected/actual/diff live here)
 attachment <id>    extract an attachment       [-o <path>]
@@ -61,7 +61,7 @@ install-skill      write Playwright's own SKILL.md for LLM integration
 
 ```bash
 npx playwright trace snapshot 12                                      # accessibility snapshot (default)
-npx playwright trace snapshot 12 --name before                       # the DOM the action faced
+npx playwright trace snapshot 12 --phase before                       # the DOM the action faced
 npx playwright trace snapshot 12 -- eval "document.querySelectorAll('.item').length"
 npx playwright trace snapshot 12 -- eval "el => getComputedStyle(el).display" e5   # refs come from snapshot output
 npx playwright trace snapshot 12 -- screenshot --filename=fail.png
@@ -88,7 +88,7 @@ Run top to bottom; stop as soon as the cause is confirmed:
 npx playwright trace open test-results/checkout-chromium/trace.zip  # 1. extract + metadata
 npx playwright trace actions --errors-only                          # 2. what failed? (note the id)
 npx playwright trace action 12                                      # 3. read error, timeout, source line
-npx playwright trace snapshot 12 --name before                      # 4. what did the page look like?
+npx playwright trace snapshot 12 --phase before                      # 4. what did the page look like?
 npx playwright trace snapshot 12 -- eval "document.querySelector('.error')?.textContent"  # 5. confirm
 npx playwright trace requests --failed                              # 6. API failure behind it?
 npx playwright trace console --errors-only                          # 7. JS exception behind it?
@@ -98,12 +98,12 @@ npx playwright trace close                                          # 8. clean u
 Branch after step 3 on the error class:
 
 ```
-"waiting for locator" / "hidden" / "not stable"   → snapshot --name before + eval count
+"waiting for locator" / "hidden" / "not stable"   → snapshot --phase before + eval count
       0 matches → locator wrong or content changed
       1 match, hidden → timing / overlay / animation
       >1 match → ambiguous locator (strict-mode)
 
-"expect(...) failed"                              → snapshot --name after + compare
+"expect(...) failed"                              → snapshot --phase after + compare
       page already correct → assertion raced ahead (timing)
       page genuinely wrong → real app bug
       value is dynamic → assert a pattern, not exact
@@ -120,7 +120,7 @@ For an **intermittent** failure, diff a passing trace against a failing one — 
 npx playwright trace open passing/trace.zip && npx playwright trace actions > /tmp/pass.txt
 npx playwright trace open failing/trace.zip && npx playwright trace actions > /tmp/fail.txt
 diff /tmp/pass.txt /tmp/fail.txt
-npx playwright trace snapshot <first-diverging-id> --name before   # in the failing trace
+npx playwright trace snapshot <first-diverging-id> --phase before   # in the failing trace
 ```
 
 For a directory of CI traces, sweep and cluster by shared failing request/console signature — a cluster failing on the same `500` is one backend bug, not N flaky tests:
@@ -135,8 +135,8 @@ done; npx playwright trace close
 
 | Signal in `action <id>` | Confirm with | Cause → fix |
 |---|---|---|
-| `waiting for locator(...)`, `hidden element` | `snapshot --name before -- eval "…querySelectorAll(…).length"` | `0` = wrong/changed selector → [locators.md](locators.md); hidden = timing/overlay → [assertions-and-waiting.md](assertions-and-waiting.md); `>1` = ambiguous → [locator-strategy.md](locator-strategy.md) |
-| `expect(...) failed`, expected vs received | `snapshot --name after -- eval "…"` | page correct = assertion raced → web-first assertion; page wrong = app bug; dynamic value = assert a pattern ([assertions-and-waiting.md](assertions-and-waiting.md)) |
+| `waiting for locator(...)`, `hidden element` | `snapshot --phase before -- eval "…querySelectorAll(…).length"` | `0` = wrong/changed selector → [locators.md](locators.md); hidden = timing/overlay → [assertions-and-waiting.md](assertions-and-waiting.md); `>1` = ambiguous → [locator-strategy.md](locator-strategy.md) |
+| `expect(...) failed`, expected vs received | `snapshot --phase after -- eval "…"` | page correct = assertion raced → web-first assertion; page wrong = app bug; dynamic value = assert a pattern ([assertions-and-waiting.md](assertions-and-waiting.md)) |
 | `Timeout Nms exceeded` (goto/waitFor/click) | `requests --failed`, `console --errors-only` | blocking 5xx/unmocked route → [network-mocking.md](network-mocking.md), [when-to-mock.md](when-to-mock.md); JS exception → app code; else timing race → [flaky-tests.md](flaky-tests.md) |
 | UI fails downstream of a bad response | `requests --failed`, `request <id>` | 4xx = auth/validation ([authentication.md](authentication.md)); 5xx = app bug; real service hit in a test = add mock ([network-mocking.md](network-mocking.md)) |
 | No DOM reason; page never renders | `console --errors-only`, `errors` | JS exception the test correctly caught → fix app at the stack location; don't loosen the test |

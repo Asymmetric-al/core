@@ -1,3 +1,5 @@
+> Core adaptation: these generic examples remain subordinate to the marked Core overlay in `SKILL.md`; reuse Base UI/base-maia and `@asym/ui` rather than copying another primitive or theme.
+
 # Design Tokens Deep Dive
 
 ## Overview

@@ -301,13 +301,13 @@ test('registration', async ({ page }) => {
   const user = {
     name: 'Jane Doe',
     email: `test+${Date.now()}@example.com`,
-    password: 'SecurePass123!' // pragma: allowlist secret
+    password: 'SecurePass123!'
   };
 
   await page.goto('/register');
   await page.getByRole('textbox', { name: 'Name' }).fill(user.name);
   await page.getByRole('textbox', { name: 'Email' }).fill(user.email);
-  await page.getByRole('textbox', { name: 'Password' }).fill(user.password); // pragma: allowlist secret
+  await page.getByRole('textbox', { name: 'Password' }).fill(user.password);
   await page.getByRole('button', { name: 'Create Account' }).click();
 
   await expect(page).toHaveURL(/.*welcome/);

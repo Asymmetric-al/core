@@ -1,21 +1,41 @@
 ---
 name: playwright-skill
-description: Battle-tested Playwright patterns for writing, debugging, and scaling reliable test suites. Use when you need guidance for E2E, API, component, visual, accessibility, or security testing, plus CI/CD, CLI automation, page objects, and migration from Cypress or Selenium. TypeScript and JavaScript.
+description: Current Playwright (1.64) patterns for writing, debugging, and scaling reliable test suites. Use for any Playwright task, even ones you think you know, because the guides cover APIs and CLI flags newer than most training data. Covers writing or fixing tests, locators, a failing or flaky test, a trace.zip or error message, playwright.config and projects, network mocking, auth, visual and accessibility testing, Docker and CI sharding, playwright-cli browser automation, Playwright Test Agents, page objects, migrating from Cypress or Selenium, and QA work: test case design, bug reports from failures, automating manual test cases, and reviewing tests. TypeScript and JavaScript.
 license: MIT
 metadata:
   author: testdino.com
-  version: "2.5.0"
+  version: "2.8.0"
 ---
 
 # Playwright Skill
 
 > Opinionated, production-tested Playwright guidance — every pattern includes when (and when *not*) to use it.
 
-**50+ reference guides** covering the full Playwright surface: selectors, assertions, fixtures, page objects, network mocking, auth, visual regression, accessibility, API testing, CI/CD, debugging, and more — with TypeScript and JavaScript examples throughout.
+**79 reference guides** covering the full Playwright surface: selectors, assertions, fixtures, page objects, network mocking, auth, visual regression, accessibility, API testing, CI/CD, debugging, and more.
 
-Playwright 1.63 highlights covered in these guides: test `lock` for serializing contention on a shared resource, `locator.visible()` replacing the `:visible` pseudo-class, aria and screen snapshots in traces (`snapshots: { dom, aria, screen }`), `--add-reporter` for appending rather than replacing reporters, the `perfetto` reporter, typed `request.get<User>()`, and `ariaSnapshotJSON()`. From 1.62: `reporter.preprocess()` for selecting tests before execution, `retryStrategy: 'isolated'`, WebP screenshots with a `quality` parameter, `AbortSignal` on actions and assertions, `locator.waitForFunction()`, `apiResponse.timing()`, and the stories-and-galleries component testing model that replaces the deprecated experimental CT packages. A dedicated [dynamic-test-selection.md](core/dynamic-test-selection.md) guide covers driving quarantine from an external flakiness API.
+**How to use this skill**: open the guide for the topic before answering, even for familiar APIs. Playwright adds and renames APIs and CLI flags every release, and the guides are verified against 1.64. Guides tag newer APIs with the release that added them, e.g. `(1.62+)`; check the project's version (`npx playwright --version`) before using one.
 
-Earlier releases remain covered: 1.61 (WebAuthn passkeys via `context.credentials`, `page.localStorage` / `page.sessionStorage`, video retention modes, `expect.soft.poll()`, WebSockets in HAR and traces), 1.60 (on-demand HAR in tracing, `locator.drop()`, page-level aria snapshots, `test.abort()`), and 1.59 (screencast recording, CLI debugging and trace analysis). A dedicated [trace-analysis.md](core/trace-analysis.md) guide covers agent-native debugging of `trace.zip` reports with the `npx playwright trace` CLI.
+### Newer APIs (1.59–1.64) You May Not Know
+
+| Need | API | Guide |
+|---|---|---|
+| Per-row / per-parent locator (column queries) | `locator.within(container)` (1.64) | [locators.md](core/locators.md) |
+| Element from an aria-snapshot ref | `page.getByRef('e2')` (1.64) | [locators.md](core/locators.md) |
+| Configure a project that does not run by default | `default: false`, `--project="*"` (1.64) | [projects-and-dependencies.md](ci/projects-and-dependencies.md) |
+| Find order-dependent tests | `--shuffle [seed]` (1.64) | [flaky-tests.md](core/flaky-tests.md) |
+| Serialize tests sharing a resource | `{ lock: 'name' }`, `describe.configure({ lock })` (1.63/1.64) | [parallel-and-sharding.md](ci/parallel-and-sharding.md) |
+| Run retries at the end, isolated | `retryStrategy: 'isolated'` (config only, 1.62) | [flaky-tests.md](core/flaky-tests.md) |
+| Select or quarantine tests before the run | `reporter.preprocess()` + `testRun.fail()` (1.62) | [dynamic-test-selection.md](core/dynamic-test-selection.md) |
+| Re-run failures / changed files | `--last-failed`, `--only-changed`, `-x` | [debugging.md](core/debugging.md) |
+| Inspect a `trace.zip` from the terminal | `npx playwright trace ...`, `snapshot --phase` (1.63) | [trace-analysis.md](core/trace-analysis.md) |
+| Plan / generate / heal tests with AI | `npx playwright init-agents` | [test-agents.md](core/test-agents.md) |
+| Component tests | stories-and-galleries `mount('story/id')` (1.62); experimental CT packages frozen | [component-testing.md](core/component-testing.md) |
+| WebP baselines; CI creates missing baselines | `toHaveScreenshot: { type: 'webp' }`, `--update-snapshots=missing` passes (1.64) | [visual-regression.md](core/visual-regression.md) |
+| Scoped HAR recording | `tracing.startHar(path, options)` (1.60) | [network-mocking.md](core/network-mocking.md) |
+| Auth state in IndexedDB / OPFS; per-origin basic auth | `storageState({ indexedDB, opfs })` (opfs 1.63), `httpCredentials: [...]` (1.63) | [authentication.md](core/authentication.md) |
+| Passkeys | `context.credentials`, `signCount` (1.61/1.64) | [auth-flows.md](core/auth-flows.md) |
+| Cookies on an API request context | `request.addCookies()` / `cookies()` (1.64) | [api-testing.md](core/api-testing.md) |
+| Page-registered agent tools | `page.webmcp.tools()` / `callTool()` (1.64) | [webmcp-testing.md](core/webmcp-testing.md) |
 
 ## Security Trust Boundary
 
@@ -65,6 +85,24 @@ For CI/CD workflows, pin all external dependencies (GitHub Actions, Docker image
 | Drag and drop | [drag-and-drop.md](core/drag-and-drop.md) | |
 | Search & filter UI | [search-and-filter.md](core/search-and-filter.md) | |
 
+### Authoring Locatable Markup (Frontend)
+
+> For **frontend engineers writing the app** — make components reliably locatable by tests and AI agents.
+
+| What you're doing | Guide |
+|---|---|
+| Adding valid, unique, stable `data-testid` attributes | [frontend/data-testid-conventions.md](frontend/data-testid-conventions.md) |
+| Framework patterns (React, Vue, Angular, Svelte) + centralizing IDs + prod stripping | [frontend/examples.md](frontend/examples.md) |
+
+### QA Workflows
+
+| What you're doing | Guide |
+|---|---|
+| Ticket / acceptance criteria → test cases, risk ranking, test plan | [test-design.md](qa/test-design.md) |
+| Failing test → bug report; app bug vs test bug vs flake | [bug-reports.md](qa/bug-reports.md) |
+| Manual test cases / CSV export → Playwright specs | [manual-to-automated.md](qa/manual-to-automated.md) |
+| Review Playwright tests or a PR | [test-review.md](qa/test-review.md) |
+
 ### Debugging & Fixing
 
 | Problem | Guide |
@@ -75,13 +113,14 @@ For CI/CD workflows, pin all external dependencies (GitHub Actions, Docker image
 | Quarantine or select tests from a reporter | [dynamic-test-selection.md](core/dynamic-test-selection.md) |
 | Common beginner mistakes | [common-pitfalls.md](core/common-pitfalls.md) |
 | Debug a `trace.zip` from the terminal / with an agent | [trace-analysis.md](core/trace-analysis.md) |
+| Generate or auto-heal tests with Playwright Test Agents | [test-agents.md](core/test-agents.md) |
 
 ### Framework Recipes
 
 | Framework | Guide |
 |---|---|
 | Next.js (App Router + Pages Router) | [nextjs.md](core/nextjs.md) |
-| React (CRA, Vite) | [react.md](core/react.md) |
+| React (Vite) | [react.md](core/react.md) |
 | Vue 3 / Nuxt | [vue.md](core/vue.md) |
 | Angular | [angular.md](core/angular.md) |
 
@@ -127,6 +166,7 @@ For CI/CD workflows, pin all external dependencies (GitHub Actions, Docker image
 | Service workers & PWA | [service-workers-and-pwa.md](core/service-workers-and-pwa.md) |
 | Electron apps | [electron-testing.md](core/electron-testing.md) |
 | Browser extensions | [browser-extensions.md](core/browser-extensions.md) |
+| WebMCP agent tools | [webmcp-testing.md](core/webmcp-testing.md) |
 | Security testing | [security-testing.md](core/security-testing.md) |
 | Performance & benchmarks | [performance-testing.md](core/performance-testing.md) |
 | i18n & localization | [i18n-and-localization.md](core/i18n-and-localization.md) |
@@ -152,4 +192,4 @@ For CI/CD workflows, pin all external dependencies (GitHub Actions, Docker image
 
 ## Language Note
 
-All guides include TypeScript and JavaScript examples. When the project uses `.js` files or has no `tsconfig.json`, examples are adapted to plain JavaScript.
+Examples are TypeScript; most core guides also show JavaScript. When the project uses `.js` files or has no `tsconfig.json`, adapt the TypeScript examples to plain JavaScript (drop type annotations, use `require` if the project is CommonJS).

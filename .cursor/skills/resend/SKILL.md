@@ -1,10 +1,10 @@
 ---
 name: resend
-description: Use when working with the Resend email API — sending transactional emails (single or batch), receiving inbound emails via webhooks, managing email templates, tracking delivery events, managing domains, contacts, broadcasts, webhooks, API keys, automations, events, viewing API request logs, or setting up the Resend SDK. Always use this skill when the user mentions Resend, even for simple tasks like "send an email with Resend" — the skill contains critical gotchas (idempotency keys, webhook verification, template variable syntax) that prevent common production issues.
+description: Use when working with the Resend email API — sending transactional emails (single or batch), receiving inbound emails via webhooks, managing email templates, tracking delivery events, managing domains, contacts, broadcasts, webhooks, API keys, inboxes (threads, labels, drafts, replies), automations, events, viewing API request logs, checking account usage and quotas, or setting up the Resend SDK. Always use this skill when the user mentions Resend, even for simple tasks like "send an email with Resend" — the skill contains critical gotchas (idempotency keys, webhook verification, template variable syntax) that prevent common production issues.
 license: MIT
 metadata:
     author: resend
-    version: "3.10.0"
+    version: "3.16.0"
     homepage: https://resend.com/agent-skills
     source: https://github.com/resend/resend-skills
     openclaw:
@@ -44,6 +44,8 @@ references:
     - topics.md
     - automations.md
     - events.md
+    - usage.md
+    - inboxes.md
     - installation.md
     - fetch-all-templates.mjs
 ---
@@ -170,27 +172,18 @@ export async function POST(req: Request) {
 | **Manage topics** (subscriptions) | [topics.md](references/topics.md) — opt-in/out preferences, broadcast filtering |
 | **Create automations** (event-driven workflows) | [automations.md](references/automations.md) — steps, connections, runs, conditions |
 | **Define and send events** (automation triggers) | [events.md](references/events.md) — schemas, payloads, contact association |
+| **Check account usage and quotas** | [usage.md](references/usage.md) — emails, contacts, segments, broadcasts, AI credits, automation runs, domains, rate limit |
+| **Manage inboxes** (threads, replies, drafts) | [inboxes.md](references/inboxes.md) — labels, folders, search, agent settings, inbox webhook events |
 | **Install SDK** (8+ languages) | [installation.md](references/installation.md) |
 | **Set up an AI agent inbox** | Install the `agent-email-inbox` skill — covers security levels for untrusted input |
 
 ## SDK Version Requirements
 
-Always install the latest SDK version. These are the minimum versions for full functionality (sending, receiving, webhook verification):
+Always install the latest SDK version. Older SDKs may be missing `webhooks.verify()`, `emails.receiving.get()`, or `domains.claims.*`.
 
-| Language | Package | Min Version | Install |
-|----------|---------|-------------|---------|
-| Node.js | `resend` | >= 6.14.0 | `npm install resend` |
-| Python | `resend` | >= 2.34.0 | `pip install resend` |
-| Go | `resend-go/v3` | >= 3.11.0 | `go get github.com/resend/resend-go/v3` |
-| Ruby | `resend` | >= 1.6.0 | `gem install resend` |
-| PHP | `resend/resend-php` | >= 1.1.0 | `composer require resend/resend-php` |
-| Rust | `resend-rs` | >= 0.26.1 | `cargo add resend-rs` |
-| Java | `resend-java` | >= 4.16.0 | See [installation.md](references/installation.md) |
-| .NET | `Resend` | >= 0.2.1 | `dotnet add package Resend` |
+> **If the project already has a Resend SDK installed**, check its version against the minimum versions in [installation.md](references/installation.md) and upgrade if it's below.
 
-> **If the project already has a Resend SDK installed**, check the version and upgrade if it's below the minimum. Older SDKs may be missing `webhooks.verify()`, `emails.receiving.get()`, or `domains.claims.*`.
-
-See [installation.md](references/installation.md) for full installation commands, language detection, and cURL fallback.
+See [installation.md](references/installation.md) for the minimum version per language, full installation commands, language detection, and cURL fallback.
 
 ## Common Setup
 

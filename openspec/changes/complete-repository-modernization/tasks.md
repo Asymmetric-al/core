@@ -38,8 +38,8 @@
 
 ## 6. Imported PDF provenance and modernization
 
-- [ ] 6.1 Recover shipped runtime and missing type sources in the owning react-PDF repository; record provenance and hashes without replacing Phase 47 behavior with Phase 22.
-- [ ] 6.2 Prove baseline exports/schemas/document round trips/rendering, then upgrade the consumed editor/email/Zod/renderer/client dependencies using pnpm.
+- [x] 6.1 Recover shipped runtime and missing type sources in the owning react-PDF repository; record provenance and hashes without replacing Phase 47 behavior with Phase 22.
+- [x] 6.2 Prove baseline exports/schemas/document round trips/rendering, then upgrade the consumed editor/email/Zod/renderer/client dependencies using pnpm.
 - [ ] 6.3 Rebuild/import versioned artifacts, prove clean install identities, remove obsolete compatibility repairs and preserve rollout settings.
 - [ ] 6.4 Qualify, review, deploy editor/document previews and merge owner/Core checkpoints.
 

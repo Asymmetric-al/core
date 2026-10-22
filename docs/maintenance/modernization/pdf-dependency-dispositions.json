@@ -1,0 +1,4000 @@
+{
+  "schemaVersion": 1,
+  "qualifiedAt": "2026-10-22T12:23:30.789Z",
+  "lockSha256": "266bf5acfe2eb096459585a45ef5745b81c1e937951e2d3c7249701a62302233",
+  "scope": "All five imported PDF packages, shared React Email editor, and installed dependency/optional/peer/CLI/build descendants. Other Core families remain open.",
+  "owner": "Core PDF/shared-editor maintainers; CMS maintainers own the Payload-required Floating UI peer selection.",
+  "recheckCondition": "Every owning PDF/editor/CLI/CMS release, lock/incoming-constraint change, upstream deprecation or new advisory invalidates this snapshot and requires graph, source and runtime requalification.",
+  "evidence": {
+    "registry": {
+      "path": "/tmp/core-modernization-core-pdf-full-closure-registry-inventory-266b.json",
+      "sha256": "46519352bf501d046a2ef61a1ceb17fb1753a99aa258e547ce6a5423b72b331b",
+      "startedAt": "2026-10-22T12:15:48.085Z",
+      "completedAt": "2026-10-22T12:16:00.323Z",
+      "registryNames": 251,
+      "fetchFailures": []
+    },
+    "independentDispositions": {
+      "path": "/tmp/core-modernization-core-pdf-freshness-dispositions-266b.json",
+      "sha256": "1794d4432735462396ecd275eedd3e635d99b9da42d0802d7478c9f138226f72"
+    },
+    "ownerRecord": "pdf-owner-release.json",
+    "securityAndRuntime": "pdf-qualification.json"
+  },
+  "counts": {
+    "current-owner-release": 5,
+    "current-max-supported-by-owning-parent-constraints": 60,
+    "current-latest-stable": 215,
+    "verified-current-upstream-shared-peer-compatibility": 1,
+    "current-supported-runtime-family": 1
+  },
+  "nodes": [
+    {
+      "lockedAs": "@asym/docraptor-client",
+      "name": "@asym/docraptor-client",
+      "version": "0.1.0",
+      "disposition": "current-owner-release",
+      "latestStable": null,
+      "maxWithinOwningConstraints": null
+    },
+    {
+      "lockedAs": "@asym/pdf-editor",
+      "name": "@asym/pdf-editor",
+      "version": "0.1.0",
+      "disposition": "current-owner-release",
+      "latestStable": null,
+      "maxWithinOwningConstraints": null
+    },
+    {
+      "lockedAs": "@asym/pdf-renderer",
+      "name": "@asym/pdf-renderer",
+      "version": "0.1.0",
+      "disposition": "current-owner-release",
+      "latestStable": null,
+      "maxWithinOwningConstraints": null
+    },
+    {
+      "lockedAs": "@asym/pdf-studio-adapter",
+      "name": "@asym/pdf-studio-adapter",
+      "version": "0.1.0",
+      "disposition": "current-owner-release",
+      "latestStable": null,
+      "maxWithinOwningConstraints": null
+    },
+    {
+      "lockedAs": "@asym/pdf-template-schema",
+      "name": "@asym/pdf-template-schema",
+      "version": "0.1.0",
+      "disposition": "current-owner-release",
+      "latestStable": null,
+      "maxWithinOwningConstraints": null
+    },
+    {
+      "lockedAs": "@babel/code-frame",
+      "name": "@babel/code-frame",
+      "version": "7.29.7",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.0.6",
+      "maxWithinOwningConstraints": "7.29.7",
+      "upstream": "https://registry.npmjs.org/%40babel%2Fcode-frame",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@babel/core",
+          "kind": "dependencies",
+          "range": "^7.29.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/template",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "@testing-library/dom",
+          "kind": "dependencies",
+          "range": "^7.10.4",
+          "parentInScope": false
+        },
+        {
+          "parent": "parse-json",
+          "kind": "dependencies",
+          "range": "^7.0.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-create-class-features-plugin/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-member-expression-to-functions/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-replace-supers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-skip-transparent-expression-wrappers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/plugin-transform-modules-commonjs/@babel/helper-module-transforms/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "@babel/generator",
+      "name": "@babel/generator",
+      "version": "7.29.8",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.0.6",
+      "maxWithinOwningConstraints": "7.29.8",
+      "upstream": "https://registry.npmjs.org/%40babel%2Fgenerator",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@babel/core",
+          "kind": "dependencies",
+          "range": "^7.29.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/helper-create-class-features-plugin/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-member-expression-to-functions/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-replace-supers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-skip-transparent-expression-wrappers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/plugin-transform-modules-commonjs/@babel/helper-module-transforms/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "@babel/helper-globals",
+      "name": "@babel/helper-globals",
+      "version": "7.29.7",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.0.6",
+      "maxWithinOwningConstraints": "7.29.7",
+      "upstream": "https://registry.npmjs.org/%40babel%2Fhelper-globals",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.28.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/helper-create-class-features-plugin/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-member-expression-to-functions/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-replace-supers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-skip-transparent-expression-wrappers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/plugin-transform-modules-commonjs/@babel/helper-module-transforms/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "@babel/helper-string-parser",
+      "name": "@babel/helper-string-parser",
+      "version": "7.29.7",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.0.6",
+      "maxWithinOwningConstraints": "7.29.7",
+      "upstream": "https://registry.npmjs.org/%40babel%2Fhelper-string-parser",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@babel/types",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "@babel/helper-validator-identifier",
+      "name": "@babel/helper-validator-identifier",
+      "version": "7.29.7",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.0.6",
+      "maxWithinOwningConstraints": "7.29.7",
+      "upstream": "https://registry.npmjs.org/%40babel%2Fhelper-validator-identifier",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@babel/code-frame",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/helper-module-transforms",
+          "kind": "dependencies",
+          "range": "^7.28.5",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/types",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/plugin-transform-modules-commonjs/@babel/helper-module-transforms",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "@babel/parser",
+      "name": "@babel/parser",
+      "version": "7.29.9",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.0.7",
+      "maxWithinOwningConstraints": "7.29.9",
+      "upstream": "https://registry.npmjs.org/%40babel%2Fparser",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@babel/core",
+          "kind": "dependencies",
+          "range": "^7.29.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/generator",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/template",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "@shadcn/registry",
+          "kind": "dependencies",
+          "range": "^7.28.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "eslint-plugin-react-hooks",
+          "kind": "dependencies",
+          "range": "^7.24.4",
+          "parentInScope": false
+        },
+        {
+          "parent": "magicast",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "shadcn",
+          "kind": "dependencies",
+          "range": "^7.28.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-create-class-features-plugin/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-member-expression-to-functions/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-replace-supers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-skip-transparent-expression-wrappers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/plugin-transform-modules-commonjs/@babel/helper-module-transforms/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "@babel/template",
+      "name": "@babel/template",
+      "version": "7.29.7",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.0.0",
+      "maxWithinOwningConstraints": "7.29.7",
+      "upstream": "https://registry.npmjs.org/%40babel%2Ftemplate",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@babel/core",
+          "kind": "dependencies",
+          "range": "^7.28.6",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helpers",
+          "kind": "dependencies",
+          "range": "^7.28.6",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.28.6",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/helper-create-class-features-plugin/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-member-expression-to-functions/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-replace-supers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-skip-transparent-expression-wrappers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/plugin-transform-modules-commonjs/@babel/helper-module-transforms/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "@babel/traverse",
+      "name": "@babel/traverse",
+      "version": "7.29.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.0.7",
+      "maxWithinOwningConstraints": "7.29.0",
+      "upstream": "https://registry.npmjs.org/%40babel%2Ftraverse",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@babel/core",
+          "kind": "dependencies",
+          "range": "^7.29.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-module-imports",
+          "kind": "dependencies",
+          "range": "^7.28.6",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-module-transforms",
+          "kind": "dependencies",
+          "range": "^7.28.6",
+          "parentInScope": false
+        },
+        {
+          "parent": "react-email",
+          "kind": "dependencies",
+          "range": "7.29.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "@babel/types",
+      "name": "@babel/types",
+      "version": "7.29.8",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.0.6",
+      "maxWithinOwningConstraints": "7.29.8",
+      "upstream": "https://registry.npmjs.org/%40babel%2Ftypes",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@babel/core",
+          "kind": "dependencies",
+          "range": "^7.29.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/generator",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/helper-annotate-as-pure",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-member-expression-to-functions",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-module-imports",
+          "kind": "dependencies",
+          "range": "^7.28.6",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-optimise-call-expression",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-skip-transparent-expression-wrappers",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helpers",
+          "kind": "dependencies",
+          "range": "^7.29.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/parser",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/template",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "babel-plugin-react-compiler",
+          "kind": "dependencies",
+          "range": "^7.26.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "magicast",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-create-class-features-plugin/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-member-expression-to-functions/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-replace-supers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/helper-skip-transparent-expression-wrappers/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        },
+        {
+          "parent": "react-email/@babel/parser",
+          "kind": "dependencies",
+          "range": "^7.29.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "@babel/plugin-transform-modules-commonjs/@babel/helper-module-transforms/@babel/helper-module-imports",
+          "kind": "dependencies",
+          "range": "^7.29.7",
+          "parentInScope": false
+        },
+        {
+          "parent": "@babel/plugin-transform-modules-commonjs/@babel/helper-module-transforms/@babel/traverse",
+          "kind": "dependencies",
+          "range": "^7.29.8",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "@esbuild/aix-ppc64",
+      "name": "@esbuild/aix-ppc64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Faix-ppc64"
+    },
+    {
+      "lockedAs": "@esbuild/android-arm",
+      "name": "@esbuild/android-arm",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fandroid-arm"
+    },
+    {
+      "lockedAs": "@esbuild/android-arm64",
+      "name": "@esbuild/android-arm64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fandroid-arm64"
+    },
+    {
+      "lockedAs": "@esbuild/android-x64",
+      "name": "@esbuild/android-x64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fandroid-x64"
+    },
+    {
+      "lockedAs": "@esbuild/darwin-arm64",
+      "name": "@esbuild/darwin-arm64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fdarwin-arm64"
+    },
+    {
+      "lockedAs": "@esbuild/darwin-x64",
+      "name": "@esbuild/darwin-x64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fdarwin-x64"
+    },
+    {
+      "lockedAs": "@esbuild/freebsd-arm64",
+      "name": "@esbuild/freebsd-arm64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Ffreebsd-arm64"
+    },
+    {
+      "lockedAs": "@esbuild/freebsd-x64",
+      "name": "@esbuild/freebsd-x64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Ffreebsd-x64"
+    },
+    {
+      "lockedAs": "@esbuild/linux-arm",
+      "name": "@esbuild/linux-arm",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Flinux-arm"
+    },
+    {
+      "lockedAs": "@esbuild/linux-arm64",
+      "name": "@esbuild/linux-arm64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Flinux-arm64"
+    },
+    {
+      "lockedAs": "@esbuild/linux-ia32",
+      "name": "@esbuild/linux-ia32",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Flinux-ia32"
+    },
+    {
+      "lockedAs": "@esbuild/linux-loong64",
+      "name": "@esbuild/linux-loong64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Flinux-loong64"
+    },
+    {
+      "lockedAs": "@esbuild/linux-mips64el",
+      "name": "@esbuild/linux-mips64el",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Flinux-mips64el"
+    },
+    {
+      "lockedAs": "@esbuild/linux-ppc64",
+      "name": "@esbuild/linux-ppc64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Flinux-ppc64"
+    },
+    {
+      "lockedAs": "@esbuild/linux-riscv64",
+      "name": "@esbuild/linux-riscv64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Flinux-riscv64"
+    },
+    {
+      "lockedAs": "@esbuild/linux-s390x",
+      "name": "@esbuild/linux-s390x",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Flinux-s390x"
+    },
+    {
+      "lockedAs": "@esbuild/linux-x64",
+      "name": "@esbuild/linux-x64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Flinux-x64"
+    },
+    {
+      "lockedAs": "@esbuild/netbsd-arm64",
+      "name": "@esbuild/netbsd-arm64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fnetbsd-arm64"
+    },
+    {
+      "lockedAs": "@esbuild/netbsd-x64",
+      "name": "@esbuild/netbsd-x64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fnetbsd-x64"
+    },
+    {
+      "lockedAs": "@esbuild/openbsd-arm64",
+      "name": "@esbuild/openbsd-arm64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fopenbsd-arm64"
+    },
+    {
+      "lockedAs": "@esbuild/openbsd-x64",
+      "name": "@esbuild/openbsd-x64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fopenbsd-x64"
+    },
+    {
+      "lockedAs": "@esbuild/openharmony-arm64",
+      "name": "@esbuild/openharmony-arm64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fopenharmony-arm64"
+    },
+    {
+      "lockedAs": "@esbuild/sunos-x64",
+      "name": "@esbuild/sunos-x64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fsunos-x64"
+    },
+    {
+      "lockedAs": "@esbuild/win32-arm64",
+      "name": "@esbuild/win32-arm64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fwin32-arm64"
+    },
+    {
+      "lockedAs": "@esbuild/win32-ia32",
+      "name": "@esbuild/win32-ia32",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fwin32-ia32"
+    },
+    {
+      "lockedAs": "@esbuild/win32-x64",
+      "name": "@esbuild/win32-x64",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/%40esbuild%2Fwin32-x64"
+    },
+    {
+      "lockedAs": "@floating-ui/core",
+      "name": "@floating-ui/core",
+      "version": "1.8.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.8.0",
+      "maxWithinOwningConstraints": "1.8.0",
+      "upstream": "https://registry.npmjs.org/%40floating-ui%2Fcore"
+    },
+    {
+      "lockedAs": "@floating-ui/dom",
+      "name": "@floating-ui/dom",
+      "version": "1.7.6",
+      "disposition": "verified-current-upstream-shared-peer-compatibility",
+      "latestStable": "1.8.0",
+      "maxWithinOwningConstraints": "1.7.6",
+      "upstream": "https://registry.npmjs.org/%40floating-ui%2Fdom",
+      "reason": "Public Payload4.0.0-beta.3 UI exactly requires1.7.6; the only closure incoming edges are Tiptap floating-menu and suggestion peers ^1.0.0, both explicitly supporting1.7.6. No ordinary PDF dependency requests an older DOM release; replacing the shared row would violate the exact outside owner pin.1.8.0 is available but is not forced or added as an unused direct dependency.",
+      "owner": "Core CMS/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@payloadcms/ui",
+          "kind": "dependencies",
+          "range": "1.7.6",
+          "parentInScope": false
+        },
+        {
+          "parent": "@tiptap/extension-floating-menu",
+          "kind": "peerDependencies",
+          "range": "^1.0.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "@tiptap/suggestion",
+          "kind": "peerDependencies",
+          "range": "^1.0.0",
+          "parentInScope": true
+        }
+      ],
+      "maxWithinFamilyConstraints": "1.8.0"
+    },
+    {
+      "lockedAs": "@floating-ui/react-dom",
+      "name": "@floating-ui/react-dom",
+      "version": "2.1.9",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.1.9",
+      "maxWithinOwningConstraints": "2.1.9",
+      "upstream": "https://registry.npmjs.org/%40floating-ui%2Freact-dom"
+    },
+    {
+      "lockedAs": "@floating-ui/react-dom/@floating-ui/dom",
+      "name": "@floating-ui/dom",
+      "version": "1.8.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.8.0",
+      "maxWithinOwningConstraints": "1.8.0",
+      "upstream": "https://registry.npmjs.org/%40floating-ui%2Fdom"
+    },
+    {
+      "lockedAs": "@floating-ui/utils",
+      "name": "@floating-ui/utils",
+      "version": "0.2.12",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.2.12",
+      "maxWithinOwningConstraints": "0.2.12",
+      "upstream": "https://registry.npmjs.org/%40floating-ui%2Futils"
+    },
+    {
+      "lockedAs": "@jridgewell/gen-mapping",
+      "name": "@jridgewell/gen-mapping",
+      "version": "0.3.13",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.3.13",
+      "maxWithinOwningConstraints": "0.3.13",
+      "upstream": "https://registry.npmjs.org/%40jridgewell%2Fgen-mapping"
+    },
+    {
+      "lockedAs": "@jridgewell/resolve-uri",
+      "name": "@jridgewell/resolve-uri",
+      "version": "3.1.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.1.2",
+      "maxWithinOwningConstraints": "3.1.2",
+      "upstream": "https://registry.npmjs.org/%40jridgewell%2Fresolve-uri"
+    },
+    {
+      "lockedAs": "@jridgewell/sourcemap-codec",
+      "name": "@jridgewell/sourcemap-codec",
+      "version": "1.6.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.6.0",
+      "maxWithinOwningConstraints": "1.6.0",
+      "upstream": "https://registry.npmjs.org/%40jridgewell%2Fsourcemap-codec"
+    },
+    {
+      "lockedAs": "@jridgewell/trace-mapping",
+      "name": "@jridgewell/trace-mapping",
+      "version": "0.3.31",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.3.31",
+      "maxWithinOwningConstraints": "0.3.31",
+      "upstream": "https://registry.npmjs.org/%40jridgewell%2Ftrace-mapping"
+    },
+    {
+      "lockedAs": "@radix-ui/primitive",
+      "name": "@radix-ui/primitive",
+      "version": "1.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.2.0",
+      "maxWithinOwningConstraints": "1.2.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Fprimitive"
+    },
+    {
+      "lockedAs": "@radix-ui/react-arrow",
+      "name": "@radix-ui/react-arrow",
+      "version": "1.1.17",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.17",
+      "maxWithinOwningConstraints": "1.1.17",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-arrow"
+    },
+    {
+      "lockedAs": "@radix-ui/react-arrow/@radix-ui/react-primitive",
+      "name": "@radix-ui/react-primitive",
+      "version": "2.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.2.0",
+      "maxWithinOwningConstraints": "2.2.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-primitive"
+    },
+    {
+      "lockedAs": "@radix-ui/react-context",
+      "name": "@radix-ui/react-context",
+      "version": "1.3.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.3.0",
+      "maxWithinOwningConstraints": "1.3.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-context"
+    },
+    {
+      "lockedAs": "@radix-ui/react-dismissable-layer",
+      "name": "@radix-ui/react-dismissable-layer",
+      "version": "1.2.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.2.1",
+      "maxWithinOwningConstraints": "1.2.1",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-dismissable-layer"
+    },
+    {
+      "lockedAs": "@radix-ui/react-dismissable-layer/@radix-ui/react-compose-refs",
+      "name": "@radix-ui/react-compose-refs",
+      "version": "1.1.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.5",
+      "maxWithinOwningConstraints": "1.1.5",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-compose-refs"
+    },
+    {
+      "lockedAs": "@radix-ui/react-dismissable-layer/@radix-ui/react-primitive",
+      "name": "@radix-ui/react-primitive",
+      "version": "2.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.2.0",
+      "maxWithinOwningConstraints": "2.2.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-primitive"
+    },
+    {
+      "lockedAs": "@radix-ui/react-focus-guards",
+      "name": "@radix-ui/react-focus-guards",
+      "version": "1.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.2.0",
+      "maxWithinOwningConstraints": "1.2.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-focus-guards"
+    },
+    {
+      "lockedAs": "@radix-ui/react-focus-scope",
+      "name": "@radix-ui/react-focus-scope",
+      "version": "1.3.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.3.1",
+      "maxWithinOwningConstraints": "1.3.1",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-focus-scope"
+    },
+    {
+      "lockedAs": "@radix-ui/react-focus-scope/@radix-ui/react-compose-refs",
+      "name": "@radix-ui/react-compose-refs",
+      "version": "1.1.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.5",
+      "maxWithinOwningConstraints": "1.1.5",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-compose-refs"
+    },
+    {
+      "lockedAs": "@radix-ui/react-focus-scope/@radix-ui/react-primitive",
+      "name": "@radix-ui/react-primitive",
+      "version": "2.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.2.0",
+      "maxWithinOwningConstraints": "2.2.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-primitive"
+    },
+    {
+      "lockedAs": "@radix-ui/react-popover",
+      "name": "@radix-ui/react-popover",
+      "version": "1.3.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.3.1",
+      "maxWithinOwningConstraints": "1.3.1",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-popover"
+    },
+    {
+      "lockedAs": "@radix-ui/react-popover/@radix-ui/react-compose-refs",
+      "name": "@radix-ui/react-compose-refs",
+      "version": "1.1.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.5",
+      "maxWithinOwningConstraints": "1.1.5",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-compose-refs"
+    },
+    {
+      "lockedAs": "@radix-ui/react-popover/@radix-ui/react-id",
+      "name": "@radix-ui/react-id",
+      "version": "1.1.4",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.4",
+      "maxWithinOwningConstraints": "1.1.4",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-id"
+    },
+    {
+      "lockedAs": "@radix-ui/react-popover/@radix-ui/react-primitive",
+      "name": "@radix-ui/react-primitive",
+      "version": "2.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.2.0",
+      "maxWithinOwningConstraints": "2.2.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-primitive"
+    },
+    {
+      "lockedAs": "@radix-ui/react-popper",
+      "name": "@radix-ui/react-popper",
+      "version": "1.4.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.4.0",
+      "maxWithinOwningConstraints": "1.4.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-popper"
+    },
+    {
+      "lockedAs": "@radix-ui/react-popper/@radix-ui/react-compose-refs",
+      "name": "@radix-ui/react-compose-refs",
+      "version": "1.1.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.5",
+      "maxWithinOwningConstraints": "1.1.5",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-compose-refs"
+    },
+    {
+      "lockedAs": "@radix-ui/react-popper/@radix-ui/react-primitive",
+      "name": "@radix-ui/react-primitive",
+      "version": "2.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.2.0",
+      "maxWithinOwningConstraints": "2.2.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-primitive"
+    },
+    {
+      "lockedAs": "@radix-ui/react-portal",
+      "name": "@radix-ui/react-portal",
+      "version": "1.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.2.0",
+      "maxWithinOwningConstraints": "1.2.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-portal"
+    },
+    {
+      "lockedAs": "@radix-ui/react-portal/@radix-ui/react-primitive",
+      "name": "@radix-ui/react-primitive",
+      "version": "2.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.2.0",
+      "maxWithinOwningConstraints": "2.2.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-primitive"
+    },
+    {
+      "lockedAs": "@radix-ui/react-presence",
+      "name": "@radix-ui/react-presence",
+      "version": "1.1.11",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.11",
+      "maxWithinOwningConstraints": "1.1.11",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-presence"
+    },
+    {
+      "lockedAs": "@radix-ui/react-slot",
+      "name": "@radix-ui/react-slot",
+      "version": "1.5.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.5.0",
+      "maxWithinOwningConstraints": "1.5.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-slot"
+    },
+    {
+      "lockedAs": "@radix-ui/react-slot/@radix-ui/react-compose-refs",
+      "name": "@radix-ui/react-compose-refs",
+      "version": "1.1.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.5",
+      "maxWithinOwningConstraints": "1.1.5",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-compose-refs"
+    },
+    {
+      "lockedAs": "@radix-ui/react-use-callback-ref",
+      "name": "@radix-ui/react-use-callback-ref",
+      "version": "1.1.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.5",
+      "maxWithinOwningConstraints": "1.1.5",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-use-callback-ref"
+    },
+    {
+      "lockedAs": "@radix-ui/react-use-controllable-state",
+      "name": "@radix-ui/react-use-controllable-state",
+      "version": "1.3.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.3.0",
+      "maxWithinOwningConstraints": "1.3.0",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-use-controllable-state"
+    },
+    {
+      "lockedAs": "@radix-ui/react-use-effect-event",
+      "name": "@radix-ui/react-use-effect-event",
+      "version": "0.0.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.0.5",
+      "maxWithinOwningConstraints": "0.0.5",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-use-effect-event"
+    },
+    {
+      "lockedAs": "@radix-ui/react-use-layout-effect",
+      "name": "@radix-ui/react-use-layout-effect",
+      "version": "1.1.4",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.4",
+      "maxWithinOwningConstraints": "1.1.4",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-use-layout-effect"
+    },
+    {
+      "lockedAs": "@radix-ui/react-use-rect",
+      "name": "@radix-ui/react-use-rect",
+      "version": "1.1.4",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.4",
+      "maxWithinOwningConstraints": "1.1.4",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-use-rect"
+    },
+    {
+      "lockedAs": "@radix-ui/react-use-size",
+      "name": "@radix-ui/react-use-size",
+      "version": "1.1.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.5",
+      "maxWithinOwningConstraints": "1.1.5",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Freact-use-size"
+    },
+    {
+      "lockedAs": "@radix-ui/rect",
+      "name": "@radix-ui/rect",
+      "version": "1.1.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.3",
+      "maxWithinOwningConstraints": "1.1.3",
+      "upstream": "https://registry.npmjs.org/%40radix-ui%2Frect"
+    },
+    {
+      "lockedAs": "@react-email/editor",
+      "name": "@react-email/editor",
+      "version": "1.7.14",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.7.14",
+      "maxWithinOwningConstraints": "1.7.14",
+      "upstream": "https://registry.npmjs.org/%40react-email%2Feditor"
+    },
+    {
+      "lockedAs": "@react-email/render",
+      "name": "@react-email/render",
+      "version": "2.1.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.1.1",
+      "maxWithinOwningConstraints": "2.1.1",
+      "upstream": "https://registry.npmjs.org/%40react-email%2Frender"
+    },
+    {
+      "lockedAs": "@react-email/render/entities",
+      "name": "entities",
+      "version": "4.5.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.1.0",
+      "maxWithinOwningConstraints": "4.5.0",
+      "upstream": "https://registry.npmjs.org/entities",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@react-email/render",
+          "kind": "dependencies",
+          "range": "^4.5.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "@selderee/plugin-htmlparser2",
+      "name": "@selderee/plugin-htmlparser2",
+      "version": "0.11.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "0.12.0",
+      "maxWithinOwningConstraints": "0.11.0",
+      "upstream": "https://registry.npmjs.org/%40selderee%2Fplugin-htmlparser2",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "html-to-text",
+          "kind": "dependencies",
+          "range": "^0.11.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "@selderee/plugin-htmlparser2/domhandler",
+      "name": "domhandler",
+      "version": "5.0.3",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "6.0.1",
+      "maxWithinOwningConstraints": "5.0.3",
+      "upstream": "https://registry.npmjs.org/domhandler",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@selderee/plugin-htmlparser2",
+          "kind": "dependencies",
+          "range": "^5.0.3",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "@selderee/plugin-htmlparser2/domhandler/domelementtype",
+      "name": "domelementtype",
+      "version": "2.3.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "3.0.0",
+      "maxWithinOwningConstraints": "2.3.0",
+      "upstream": "https://registry.npmjs.org/domelementtype",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@selderee/plugin-htmlparser2/domhandler",
+          "kind": "dependencies",
+          "range": "^2.3.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "@socket.io/component-emitter",
+      "name": "@socket.io/component-emitter",
+      "version": "3.1.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.1.2",
+      "maxWithinOwningConstraints": "3.1.2",
+      "upstream": "https://registry.npmjs.org/%40socket.io%2Fcomponent-emitter"
+    },
+    {
+      "lockedAs": "@tiptap/core",
+      "name": "@tiptap/core",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fcore"
+    },
+    {
+      "lockedAs": "@tiptap/extension-blockquote",
+      "name": "@tiptap/extension-blockquote",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-blockquote"
+    },
+    {
+      "lockedAs": "@tiptap/extension-bold",
+      "name": "@tiptap/extension-bold",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-bold"
+    },
+    {
+      "lockedAs": "@tiptap/extension-bubble-menu",
+      "name": "@tiptap/extension-bubble-menu",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-bubble-menu"
+    },
+    {
+      "lockedAs": "@tiptap/extension-bubble-menu/@floating-ui/dom",
+      "name": "@floating-ui/dom",
+      "version": "1.8.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.8.0",
+      "maxWithinOwningConstraints": "1.8.0",
+      "upstream": "https://registry.npmjs.org/%40floating-ui%2Fdom"
+    },
+    {
+      "lockedAs": "@tiptap/extension-bullet-list",
+      "name": "@tiptap/extension-bullet-list",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-bullet-list"
+    },
+    {
+      "lockedAs": "@tiptap/extension-code",
+      "name": "@tiptap/extension-code",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-code"
+    },
+    {
+      "lockedAs": "@tiptap/extension-code-block",
+      "name": "@tiptap/extension-code-block",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-code-block"
+    },
+    {
+      "lockedAs": "@tiptap/extension-document",
+      "name": "@tiptap/extension-document",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-document"
+    },
+    {
+      "lockedAs": "@tiptap/extension-dropcursor",
+      "name": "@tiptap/extension-dropcursor",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-dropcursor"
+    },
+    {
+      "lockedAs": "@tiptap/extension-floating-menu",
+      "name": "@tiptap/extension-floating-menu",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-floating-menu"
+    },
+    {
+      "lockedAs": "@tiptap/extension-gapcursor",
+      "name": "@tiptap/extension-gapcursor",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-gapcursor"
+    },
+    {
+      "lockedAs": "@tiptap/extension-hard-break",
+      "name": "@tiptap/extension-hard-break",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-hard-break"
+    },
+    {
+      "lockedAs": "@tiptap/extension-heading",
+      "name": "@tiptap/extension-heading",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-heading"
+    },
+    {
+      "lockedAs": "@tiptap/extension-horizontal-rule",
+      "name": "@tiptap/extension-horizontal-rule",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-horizontal-rule"
+    },
+    {
+      "lockedAs": "@tiptap/extension-italic",
+      "name": "@tiptap/extension-italic",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-italic"
+    },
+    {
+      "lockedAs": "@tiptap/extension-link",
+      "name": "@tiptap/extension-link",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-link"
+    },
+    {
+      "lockedAs": "@tiptap/extension-list",
+      "name": "@tiptap/extension-list",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-list"
+    },
+    {
+      "lockedAs": "@tiptap/extension-list-item",
+      "name": "@tiptap/extension-list-item",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-list-item"
+    },
+    {
+      "lockedAs": "@tiptap/extension-list-keymap",
+      "name": "@tiptap/extension-list-keymap",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-list-keymap"
+    },
+    {
+      "lockedAs": "@tiptap/extension-mention",
+      "name": "@tiptap/extension-mention",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-mention"
+    },
+    {
+      "lockedAs": "@tiptap/extension-ordered-list",
+      "name": "@tiptap/extension-ordered-list",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-ordered-list"
+    },
+    {
+      "lockedAs": "@tiptap/extension-paragraph",
+      "name": "@tiptap/extension-paragraph",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-paragraph"
+    },
+    {
+      "lockedAs": "@tiptap/extension-placeholder",
+      "name": "@tiptap/extension-placeholder",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-placeholder"
+    },
+    {
+      "lockedAs": "@tiptap/extension-strike",
+      "name": "@tiptap/extension-strike",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-strike"
+    },
+    {
+      "lockedAs": "@tiptap/extension-superscript",
+      "name": "@tiptap/extension-superscript",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-superscript"
+    },
+    {
+      "lockedAs": "@tiptap/extension-text",
+      "name": "@tiptap/extension-text",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-text"
+    },
+    {
+      "lockedAs": "@tiptap/extension-underline",
+      "name": "@tiptap/extension-underline",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextension-underline"
+    },
+    {
+      "lockedAs": "@tiptap/extensions",
+      "name": "@tiptap/extensions",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fextensions"
+    },
+    {
+      "lockedAs": "@tiptap/html",
+      "name": "@tiptap/html",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fhtml"
+    },
+    {
+      "lockedAs": "@tiptap/pm",
+      "name": "@tiptap/pm",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fpm"
+    },
+    {
+      "lockedAs": "@tiptap/react",
+      "name": "@tiptap/react",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Freact"
+    },
+    {
+      "lockedAs": "@tiptap/starter-kit",
+      "name": "@tiptap/starter-kit",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fstarter-kit"
+    },
+    {
+      "lockedAs": "@tiptap/suggestion",
+      "name": "@tiptap/suggestion",
+      "version": "3.32.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.32.0",
+      "maxWithinOwningConstraints": "3.32.0",
+      "upstream": "https://registry.npmjs.org/%40tiptap%2Fsuggestion"
+    },
+    {
+      "lockedAs": "@types/cors",
+      "name": "@types/cors",
+      "version": "2.8.19",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.8.19",
+      "maxWithinOwningConstraints": "2.8.19",
+      "upstream": "https://registry.npmjs.org/%40types%2Fcors"
+    },
+    {
+      "lockedAs": "@types/hast",
+      "name": "@types/hast",
+      "version": "3.0.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.0.5",
+      "maxWithinOwningConstraints": "3.0.5",
+      "upstream": "https://registry.npmjs.org/%40types%2Fhast"
+    },
+    {
+      "lockedAs": "@types/node",
+      "name": "@types/node",
+      "version": "24.19.2",
+      "disposition": "current-supported-runtime-family",
+      "latestStable": "26.6.5",
+      "maxWithinOwningConstraints": "24.19.2",
+      "upstream": "https://registry.npmjs.org/%40types%2Fnode",
+      "reason": "24.19.2 is the fresh maximum nondeprecated stable24.x version matching approved Node24.22.1; Node26 latest tag does not supersede this runtime family.",
+      "owner": "Core runtime/tooling maintainers",
+      "constraints": [
+        {
+          "parent": "@asym/admin",
+          "kind": "devDependencies",
+          "range": "24.19.2",
+          "parentInScope": false
+        },
+        {
+          "parent": "@asym/donor",
+          "kind": "devDependencies",
+          "range": "24.19.2",
+          "parentInScope": false
+        },
+        {
+          "parent": "@asym/eve-runtime",
+          "kind": "devDependencies",
+          "range": "24.19.2",
+          "parentInScope": false
+        },
+        {
+          "parent": "@asym/missionary-app",
+          "kind": "devDependencies",
+          "range": "24.19.2",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/checkbox",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/confirm",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/core",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/editor",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/expand",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/external-editor",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/input",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/number",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/password",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/prompts",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/rawlist",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/search",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/select",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@inquirer/type",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "@types/bunyan",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "@types/busboy",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "@types/connect",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "@types/cors",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": true
+        },
+        {
+          "parent": "@types/memcached",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "@types/mysql",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "@types/oracledb",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "@types/pdfkit",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "@types/pg",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "@types/tedious",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "@types/ws",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": true
+        },
+        {
+          "parent": "@types/yauzl",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "buffer-image-size",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": true
+        },
+        {
+          "parent": "chrome-launcher",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "engine.io",
+          "kind": "dependencies",
+          "range": ">=10.0.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "happy-dom",
+          "kind": "dependencies",
+          "range": ">=20.0.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "protobufjs",
+          "kind": "dependencies",
+          "range": ">=13.7.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "sharp",
+          "kind": "peerDependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "speedline-core",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "stripe",
+          "kind": "peerDependencies",
+          "range": ">=18",
+          "parentInScope": false
+        },
+        {
+          "parent": "vite",
+          "kind": "peerDependencies",
+          "range": "^20.19.0 || >=22.12.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "vitest",
+          "kind": "peerDependencies",
+          "range": "^22.0.0 || >=24.0.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "@opentelemetry/instrumentation-pg/@types/pg",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "@types/pg-pool/@types/pg",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "lighthouse/chrome-launcher",
+          "kind": "dependencies",
+          "range": "*",
+          "parentInScope": false
+        },
+        {
+          "parent": "__root__",
+          "kind": "devDependencies",
+          "range": "24.19.2",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "@types/react",
+      "name": "@types/react",
+      "version": "19.3.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "19.3.0",
+      "maxWithinOwningConstraints": "19.3.0",
+      "upstream": "https://registry.npmjs.org/%40types%2Freact"
+    },
+    {
+      "lockedAs": "@types/react-dom",
+      "name": "@types/react-dom",
+      "version": "19.3.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "19.3.0",
+      "maxWithinOwningConstraints": "19.3.0",
+      "upstream": "https://registry.npmjs.org/%40types%2Freact-dom"
+    },
+    {
+      "lockedAs": "@types/unist",
+      "name": "@types/unist",
+      "version": "3.0.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.0.3",
+      "maxWithinOwningConstraints": "3.0.3",
+      "upstream": "https://registry.npmjs.org/%40types%2Funist"
+    },
+    {
+      "lockedAs": "@types/use-sync-external-store",
+      "name": "@types/use-sync-external-store",
+      "version": "0.0.6",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "1.7.0",
+      "maxWithinOwningConstraints": "0.0.6",
+      "upstream": "https://registry.npmjs.org/%40types%2Fuse-sync-external-store",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@tiptap/react",
+          "kind": "dependencies",
+          "range": "^0.0.6",
+          "parentInScope": true
+        },
+        {
+          "parent": "react-redux",
+          "kind": "dependencies",
+          "range": "^0.0.6",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "@types/whatwg-mimetype",
+      "name": "@types/whatwg-mimetype",
+      "version": "3.0.2",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "5.0.0",
+      "maxWithinOwningConstraints": "3.0.2",
+      "upstream": "https://registry.npmjs.org/%40types%2Fwhatwg-mimetype",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "happy-dom",
+          "kind": "dependencies",
+          "range": "^3.0.2",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "@types/ws",
+      "name": "@types/ws",
+      "version": "8.18.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "8.18.2",
+      "maxWithinOwningConstraints": "8.18.2",
+      "upstream": "https://registry.npmjs.org/%40types%2Fws"
+    },
+    {
+      "lockedAs": "accepts",
+      "name": "accepts",
+      "version": "1.3.8",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.3.8",
+      "maxWithinOwningConstraints": "1.3.8",
+      "upstream": "https://registry.npmjs.org/accepts"
+    },
+    {
+      "lockedAs": "accepts/mime-types",
+      "name": "mime-types",
+      "version": "2.1.35",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "3.0.2",
+      "maxWithinOwningConstraints": "2.1.35",
+      "upstream": "https://registry.npmjs.org/mime-types",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "accepts",
+          "kind": "dependencies",
+          "range": "~2.1.34",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "accepts/mime-types/mime-db",
+      "name": "mime-db",
+      "version": "1.52.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "1.54.0",
+      "maxWithinOwningConstraints": "1.52.0",
+      "upstream": "https://registry.npmjs.org/mime-db",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "accepts/mime-types",
+          "kind": "dependencies",
+          "range": "1.52.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "accepts/negotiator",
+      "name": "negotiator",
+      "version": "0.6.3",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "1.1.0",
+      "maxWithinOwningConstraints": "0.6.3",
+      "upstream": "https://registry.npmjs.org/negotiator",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "accepts",
+          "kind": "dependencies",
+          "range": "0.6.3",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "ajv-formats",
+      "name": "ajv-formats",
+      "version": "3.0.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.0.1",
+      "maxWithinOwningConstraints": "3.0.1",
+      "upstream": "https://registry.npmjs.org/ajv-formats"
+    },
+    {
+      "lockedAs": "ajv-formats/ajv",
+      "name": "ajv",
+      "version": "8.20.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "8.20.0",
+      "maxWithinOwningConstraints": "8.20.0",
+      "upstream": "https://registry.npmjs.org/ajv"
+    },
+    {
+      "lockedAs": "ajv-formats/ajv/json-schema-traverse",
+      "name": "json-schema-traverse",
+      "version": "1.0.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.0.0",
+      "maxWithinOwningConstraints": "1.0.0",
+      "upstream": "https://registry.npmjs.org/json-schema-traverse"
+    },
+    {
+      "lockedAs": "aria-hidden",
+      "name": "aria-hidden",
+      "version": "1.2.6",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.2.6",
+      "maxWithinOwningConstraints": "1.2.6",
+      "upstream": "https://registry.npmjs.org/aria-hidden"
+    },
+    {
+      "lockedAs": "balanced-match",
+      "name": "balanced-match",
+      "version": "4.0.4",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "5.0.0",
+      "maxWithinOwningConstraints": "4.0.4",
+      "upstream": "https://registry.npmjs.org/balanced-match",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "brace-expansion",
+          "kind": "dependencies",
+          "range": "^4.0.2",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "brace-expansion",
+      "name": "brace-expansion",
+      "version": "5.0.12",
+      "disposition": "current-latest-stable",
+      "latestStable": "5.0.12",
+      "maxWithinOwningConstraints": "5.0.12",
+      "upstream": "https://registry.npmjs.org/brace-expansion"
+    },
+    {
+      "lockedAs": "buffer-image-size",
+      "name": "buffer-image-size",
+      "version": "0.6.4",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.6.4",
+      "maxWithinOwningConstraints": "0.6.4",
+      "upstream": "https://registry.npmjs.org/buffer-image-size"
+    },
+    {
+      "lockedAs": "citty",
+      "name": "citty",
+      "version": "0.2.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.2.2",
+      "maxWithinOwningConstraints": "0.2.2",
+      "upstream": "https://registry.npmjs.org/citty"
+    },
+    {
+      "lockedAs": "comma-separated-tokens",
+      "name": "comma-separated-tokens",
+      "version": "2.0.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.0.3",
+      "maxWithinOwningConstraints": "2.0.3",
+      "upstream": "https://registry.npmjs.org/comma-separated-tokens"
+    },
+    {
+      "lockedAs": "cors",
+      "name": "cors",
+      "version": "2.8.6",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.8.6",
+      "maxWithinOwningConstraints": "2.8.6",
+      "upstream": "https://registry.npmjs.org/cors"
+    },
+    {
+      "lockedAs": "css-tree",
+      "name": "css-tree",
+      "version": "3.2.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.2.1",
+      "maxWithinOwningConstraints": "3.2.1",
+      "upstream": "https://registry.npmjs.org/css-tree"
+    },
+    {
+      "lockedAs": "csstype",
+      "name": "csstype",
+      "version": "3.2.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.2.3",
+      "maxWithinOwningConstraints": "3.2.3",
+      "upstream": "https://registry.npmjs.org/csstype"
+    },
+    {
+      "lockedAs": "debounce",
+      "name": "debounce",
+      "version": "2.2.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "3.0.0",
+      "maxWithinOwningConstraints": "2.2.0",
+      "upstream": "https://registry.npmjs.org/debounce",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "react-email",
+          "kind": "dependencies",
+          "range": "^2.0.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "debug",
+      "name": "debug",
+      "version": "4.4.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.4.3",
+      "maxWithinOwningConstraints": "4.4.3",
+      "upstream": "https://registry.npmjs.org/debug"
+    },
+    {
+      "lockedAs": "deepmerge",
+      "name": "deepmerge",
+      "version": "4.3.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.3.1",
+      "maxWithinOwningConstraints": "4.3.1",
+      "upstream": "https://registry.npmjs.org/deepmerge"
+    },
+    {
+      "lockedAs": "dequal",
+      "name": "dequal",
+      "version": "2.0.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.0.3",
+      "maxWithinOwningConstraints": "2.0.3",
+      "upstream": "https://registry.npmjs.org/dequal"
+    },
+    {
+      "lockedAs": "detect-node-es",
+      "name": "detect-node-es",
+      "version": "1.1.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.0",
+      "maxWithinOwningConstraints": "1.1.0",
+      "upstream": "https://registry.npmjs.org/detect-node-es"
+    },
+    {
+      "lockedAs": "devlop",
+      "name": "devlop",
+      "version": "1.1.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.0",
+      "maxWithinOwningConstraints": "1.1.0",
+      "upstream": "https://registry.npmjs.org/devlop"
+    },
+    {
+      "lockedAs": "dom-serializer",
+      "name": "dom-serializer",
+      "version": "2.0.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "3.1.1",
+      "maxWithinOwningConstraints": "2.0.0",
+      "upstream": "https://registry.npmjs.org/dom-serializer",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "html-to-text",
+          "kind": "dependencies",
+          "range": "^2.0.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "html-to-text/htmlparser2/domutils",
+          "kind": "dependencies",
+          "range": "^2.0.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "dom-serializer/domelementtype",
+      "name": "domelementtype",
+      "version": "2.3.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "3.0.0",
+      "maxWithinOwningConstraints": "2.3.0",
+      "upstream": "https://registry.npmjs.org/domelementtype",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "dom-serializer",
+          "kind": "dependencies",
+          "range": "^2.3.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "dom-serializer/domhandler",
+          "kind": "dependencies",
+          "range": "^2.3.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "dom-serializer/domhandler",
+      "name": "domhandler",
+      "version": "5.0.3",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "6.0.1",
+      "maxWithinOwningConstraints": "5.0.3",
+      "upstream": "https://registry.npmjs.org/domhandler",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "dom-serializer",
+          "kind": "dependencies",
+          "range": "^5.0.2",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "dom-serializer/entities",
+      "name": "entities",
+      "version": "4.5.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.1.0",
+      "maxWithinOwningConstraints": "4.5.0",
+      "upstream": "https://registry.npmjs.org/entities",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "dom-serializer",
+          "kind": "dependencies",
+          "range": "^4.2.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "engine.io",
+      "name": "engine.io",
+      "version": "6.6.11",
+      "disposition": "current-latest-stable",
+      "latestStable": "6.6.11",
+      "maxWithinOwningConstraints": "6.6.11",
+      "upstream": "https://registry.npmjs.org/engine.io"
+    },
+    {
+      "lockedAs": "engine.io-parser",
+      "name": "engine.io-parser",
+      "version": "5.2.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "5.2.3",
+      "maxWithinOwningConstraints": "5.2.3",
+      "upstream": "https://registry.npmjs.org/engine.io-parser"
+    },
+    {
+      "lockedAs": "engine.io/cookie",
+      "name": "cookie",
+      "version": "0.7.2",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "2.0.1",
+      "maxWithinOwningConstraints": "0.7.2",
+      "upstream": "https://registry.npmjs.org/cookie",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "engine.io",
+          "kind": "dependencies",
+          "range": "~0.7.2",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "engine.io/ws",
+      "name": "ws",
+      "version": "8.21.3",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.22.0",
+      "maxWithinOwningConstraints": "8.21.3",
+      "upstream": "https://registry.npmjs.org/ws",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "engine.io",
+          "kind": "dependencies",
+          "range": "~8.21.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "esbuild",
+      "name": "esbuild",
+      "version": "0.28.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.2",
+      "maxWithinOwningConstraints": "0.28.2",
+      "upstream": "https://registry.npmjs.org/esbuild"
+    },
+    {
+      "lockedAs": "fast-deep-equal",
+      "name": "fast-deep-equal",
+      "version": "3.1.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.1.3",
+      "maxWithinOwningConstraints": "3.1.3",
+      "upstream": "https://registry.npmjs.org/fast-deep-equal"
+    },
+    {
+      "lockedAs": "fast-equals",
+      "name": "fast-equals",
+      "version": "5.4.5",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "6.2.1",
+      "maxWithinOwningConstraints": "5.4.5",
+      "upstream": "https://registry.npmjs.org/fast-equals",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@tiptap/react",
+          "kind": "dependencies",
+          "range": "^5.3.3",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "fast-uri",
+      "name": "fast-uri",
+      "version": "3.1.9",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "4.2.3",
+      "maxWithinOwningConstraints": "3.1.9",
+      "upstream": "https://registry.npmjs.org/fast-uri",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@modelcontextprotocol/sdk/ajv",
+          "kind": "dependencies",
+          "range": "^3.0.1",
+          "parentInScope": false
+        },
+        {
+          "parent": "ajv-formats/ajv",
+          "kind": "dependencies",
+          "range": "^3.0.1",
+          "parentInScope": true
+        },
+        {
+          "parent": "conf/ajv",
+          "kind": "dependencies",
+          "range": "^3.0.1",
+          "parentInScope": false
+        },
+        {
+          "parent": "react-email/conf/ajv",
+          "kind": "dependencies",
+          "range": "^3.0.1",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "get-nonce",
+      "name": "get-nonce",
+      "version": "1.0.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.0.1",
+      "maxWithinOwningConstraints": "1.0.1",
+      "upstream": "https://registry.npmjs.org/get-nonce"
+    },
+    {
+      "lockedAs": "glob",
+      "name": "glob",
+      "version": "13.0.6",
+      "disposition": "current-latest-stable",
+      "latestStable": "13.0.6",
+      "maxWithinOwningConstraints": "13.0.6",
+      "upstream": "https://registry.npmjs.org/glob"
+    },
+    {
+      "lockedAs": "happy-dom",
+      "name": "happy-dom",
+      "version": "20.14.6",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "21.0.4",
+      "maxWithinOwningConstraints": "20.14.6",
+      "upstream": "https://registry.npmjs.org/happy-dom",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@lexical/headless",
+          "kind": "dependencies",
+          "range": "^20.9.0",
+          "parentInScope": false
+        },
+        {
+          "parent": "@tiptap/html",
+          "kind": "peerDependencies",
+          "range": "^20.8.9",
+          "parentInScope": true
+        },
+        {
+          "parent": "vitest",
+          "kind": "peerDependencies",
+          "range": "*",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "happy-dom/entities",
+      "name": "entities",
+      "version": "7.0.1",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.1.0",
+      "maxWithinOwningConstraints": "7.0.1",
+      "upstream": "https://registry.npmjs.org/entities",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "happy-dom",
+          "kind": "dependencies",
+          "range": "^7.0.1",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "happy-dom/whatwg-mimetype",
+      "name": "whatwg-mimetype",
+      "version": "3.0.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "5.0.0",
+      "maxWithinOwningConstraints": "3.0.0",
+      "upstream": "https://registry.npmjs.org/whatwg-mimetype",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "happy-dom",
+          "kind": "dependencies",
+          "range": "^3.0.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "hast-util-from-html",
+      "name": "hast-util-from-html",
+      "version": "2.0.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.0.3",
+      "maxWithinOwningConstraints": "2.0.3",
+      "upstream": "https://registry.npmjs.org/hast-util-from-html"
+    },
+    {
+      "lockedAs": "hast-util-from-html/parse5",
+      "name": "parse5",
+      "version": "7.3.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.0.1",
+      "maxWithinOwningConstraints": "7.3.0",
+      "upstream": "https://registry.npmjs.org/parse5",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "hast-util-from-html",
+          "kind": "dependencies",
+          "range": "^7.0.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "hast-util-from-html/parse5/entities",
+      "name": "entities",
+      "version": "6.0.1",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.1.0",
+      "maxWithinOwningConstraints": "6.0.1",
+      "upstream": "https://registry.npmjs.org/entities",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "hast-util-from-html/parse5",
+          "kind": "dependencies",
+          "range": "^6.0.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "hast-util-from-parse5",
+      "name": "hast-util-from-parse5",
+      "version": "8.0.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "8.0.3",
+      "maxWithinOwningConstraints": "8.0.3",
+      "upstream": "https://registry.npmjs.org/hast-util-from-parse5"
+    },
+    {
+      "lockedAs": "hast-util-parse-selector",
+      "name": "hast-util-parse-selector",
+      "version": "4.0.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.0.0",
+      "maxWithinOwningConstraints": "4.0.0",
+      "upstream": "https://registry.npmjs.org/hast-util-parse-selector"
+    },
+    {
+      "lockedAs": "hastscript",
+      "name": "hastscript",
+      "version": "9.0.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "9.0.1",
+      "maxWithinOwningConstraints": "9.0.1",
+      "upstream": "https://registry.npmjs.org/hastscript"
+    },
+    {
+      "lockedAs": "html-to-text",
+      "name": "html-to-text",
+      "version": "9.0.5",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "10.0.1",
+      "maxWithinOwningConstraints": "9.0.5",
+      "upstream": "https://registry.npmjs.org/html-to-text",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@react-email/render",
+          "kind": "dependencies",
+          "range": "^9.0.5",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "html-to-text/htmlparser2",
+      "name": "htmlparser2",
+      "version": "8.0.2",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "12.0.0",
+      "maxWithinOwningConstraints": "8.0.2",
+      "upstream": "https://registry.npmjs.org/htmlparser2",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "html-to-text",
+          "kind": "dependencies",
+          "range": "^8.0.2",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "html-to-text/htmlparser2/domelementtype",
+      "name": "domelementtype",
+      "version": "2.3.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "3.0.0",
+      "maxWithinOwningConstraints": "2.3.0",
+      "upstream": "https://registry.npmjs.org/domelementtype",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "html-to-text/htmlparser2",
+          "kind": "dependencies",
+          "range": "^2.3.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "html-to-text/htmlparser2/domhandler",
+          "kind": "dependencies",
+          "range": "^2.3.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "html-to-text/htmlparser2/domutils",
+          "kind": "dependencies",
+          "range": "^2.3.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "html-to-text/htmlparser2/domhandler",
+      "name": "domhandler",
+      "version": "5.0.3",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "6.0.1",
+      "maxWithinOwningConstraints": "5.0.3",
+      "upstream": "https://registry.npmjs.org/domhandler",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "html-to-text/htmlparser2",
+          "kind": "dependencies",
+          "range": "^5.0.3",
+          "parentInScope": true
+        },
+        {
+          "parent": "html-to-text/htmlparser2/domutils",
+          "kind": "dependencies",
+          "range": "^5.0.3",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "html-to-text/htmlparser2/domutils",
+      "name": "domutils",
+      "version": "3.2.2",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "4.0.2",
+      "maxWithinOwningConstraints": "3.2.2",
+      "upstream": "https://registry.npmjs.org/domutils",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "html-to-text/htmlparser2",
+          "kind": "dependencies",
+          "range": "^3.0.1",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "html-to-text/htmlparser2/entities",
+      "name": "entities",
+      "version": "4.5.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.1.0",
+      "maxWithinOwningConstraints": "4.5.0",
+      "upstream": "https://registry.npmjs.org/entities",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "html-to-text/htmlparser2",
+          "kind": "dependencies",
+          "range": "^4.4.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "html5parser",
+      "name": "html5parser",
+      "version": "3.0.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.0.0",
+      "maxWithinOwningConstraints": "3.0.0",
+      "upstream": "https://registry.npmjs.org/html5parser"
+    },
+    {
+      "lockedAs": "is-unicode-supported",
+      "name": "is-unicode-supported",
+      "version": "2.1.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.1.0",
+      "maxWithinOwningConstraints": "2.1.0",
+      "upstream": "https://registry.npmjs.org/is-unicode-supported"
+    },
+    {
+      "lockedAs": "js-tokens",
+      "name": "js-tokens",
+      "version": "4.0.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "10.0.0",
+      "maxWithinOwningConstraints": "4.0.0",
+      "upstream": "https://registry.npmjs.org/js-tokens",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@babel/code-frame",
+          "kind": "dependencies",
+          "range": "^4.0.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "loose-envify",
+          "kind": "dependencies",
+          "range": "^3.0.0 || ^4.0.0",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "jsesc",
+      "name": "jsesc",
+      "version": "3.1.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.1.0",
+      "maxWithinOwningConstraints": "3.1.0",
+      "upstream": "https://registry.npmjs.org/jsesc"
+    },
+    {
+      "lockedAs": "json-schema-typed",
+      "name": "json-schema-typed",
+      "version": "8.0.2",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "9.0.0",
+      "maxWithinOwningConstraints": "8.0.2",
+      "upstream": "https://registry.npmjs.org/json-schema-typed",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@modelcontextprotocol/sdk",
+          "kind": "dependencies",
+          "range": "^8.0.2",
+          "parentInScope": false
+        },
+        {
+          "parent": "react-email/conf",
+          "kind": "dependencies",
+          "range": "^8.0.1",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "json5",
+      "name": "json5",
+      "version": "2.2.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.2.3",
+      "maxWithinOwningConstraints": "2.2.3",
+      "upstream": "https://registry.npmjs.org/json5"
+    },
+    {
+      "lockedAs": "leac",
+      "name": "leac",
+      "version": "0.6.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "0.7.0",
+      "maxWithinOwningConstraints": "0.6.0",
+      "upstream": "https://registry.npmjs.org/leac",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "parseley",
+          "kind": "dependencies",
+          "range": "^0.6.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "linkifyjs",
+      "name": "linkifyjs",
+      "version": "4.3.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.3.3",
+      "maxWithinOwningConstraints": "4.3.3",
+      "upstream": "https://registry.npmjs.org/linkifyjs"
+    },
+    {
+      "lockedAs": "log-symbols",
+      "name": "log-symbols",
+      "version": "7.0.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "7.0.1",
+      "maxWithinOwningConstraints": "7.0.1",
+      "upstream": "https://registry.npmjs.org/log-symbols"
+    },
+    {
+      "lockedAs": "lru-cache",
+      "name": "lru-cache",
+      "version": "11.5.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "11.5.3",
+      "maxWithinOwningConstraints": "11.5.3",
+      "upstream": "https://registry.npmjs.org/lru-cache"
+    },
+    {
+      "lockedAs": "marked",
+      "name": "marked",
+      "version": "15.0.12",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "18.1.1",
+      "maxWithinOwningConstraints": "15.0.12",
+      "upstream": "https://registry.npmjs.org/marked",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "react-email",
+          "kind": "dependencies",
+          "range": "^15.0.12",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "mdn-data",
+      "name": "mdn-data",
+      "version": "2.27.1",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "2.37.2",
+      "maxWithinOwningConstraints": "2.27.1",
+      "upstream": "https://registry.npmjs.org/mdn-data",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "css-tree",
+          "kind": "dependencies",
+          "range": "2.27.1",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "mime-db",
+      "name": "mime-db",
+      "version": "1.54.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.54.0",
+      "maxWithinOwningConstraints": "1.54.0",
+      "upstream": "https://registry.npmjs.org/mime-db"
+    },
+    {
+      "lockedAs": "mime-types",
+      "name": "mime-types",
+      "version": "3.0.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.0.2",
+      "maxWithinOwningConstraints": "3.0.2",
+      "upstream": "https://registry.npmjs.org/mime-types"
+    },
+    {
+      "lockedAs": "mimic-function",
+      "name": "mimic-function",
+      "version": "5.0.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "5.0.1",
+      "maxWithinOwningConstraints": "5.0.1",
+      "upstream": "https://registry.npmjs.org/mimic-function"
+    },
+    {
+      "lockedAs": "minimatch",
+      "name": "minimatch",
+      "version": "10.2.6",
+      "disposition": "current-latest-stable",
+      "latestStable": "10.2.6",
+      "maxWithinOwningConstraints": "10.2.6",
+      "upstream": "https://registry.npmjs.org/minimatch"
+    },
+    {
+      "lockedAs": "minimist",
+      "name": "minimist",
+      "version": "1.2.8",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.2.8",
+      "maxWithinOwningConstraints": "1.2.8",
+      "upstream": "https://registry.npmjs.org/minimist"
+    },
+    {
+      "lockedAs": "minipass",
+      "name": "minipass",
+      "version": "7.1.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "7.1.3",
+      "maxWithinOwningConstraints": "7.1.3",
+      "upstream": "https://registry.npmjs.org/minipass"
+    },
+    {
+      "lockedAs": "ms",
+      "name": "ms",
+      "version": "2.1.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.1.3",
+      "maxWithinOwningConstraints": "2.1.3",
+      "upstream": "https://registry.npmjs.org/ms"
+    },
+    {
+      "lockedAs": "normalize-path",
+      "name": "normalize-path",
+      "version": "3.0.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.0.0",
+      "maxWithinOwningConstraints": "3.0.0",
+      "upstream": "https://registry.npmjs.org/normalize-path"
+    },
+    {
+      "lockedAs": "nypm",
+      "name": "nypm",
+      "version": "0.6.6",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "0.6.11",
+      "maxWithinOwningConstraints": "0.6.6",
+      "upstream": "https://registry.npmjs.org/nypm",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "react-email",
+          "kind": "dependencies",
+          "range": "0.6.6",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "object-assign",
+      "name": "object-assign",
+      "version": "4.1.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.1.1",
+      "maxWithinOwningConstraints": "4.1.1",
+      "upstream": "https://registry.npmjs.org/object-assign"
+    },
+    {
+      "lockedAs": "orderedmap",
+      "name": "orderedmap",
+      "version": "2.1.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.1.1",
+      "maxWithinOwningConstraints": "2.1.1",
+      "upstream": "https://registry.npmjs.org/orderedmap"
+    },
+    {
+      "lockedAs": "parseley",
+      "name": "parseley",
+      "version": "0.12.1",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "0.13.1",
+      "maxWithinOwningConstraints": "0.12.1",
+      "upstream": "https://registry.npmjs.org/parseley",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "selderee",
+          "kind": "dependencies",
+          "range": "^0.12.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "path-scurry",
+      "name": "path-scurry",
+      "version": "2.0.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.0.2",
+      "maxWithinOwningConstraints": "2.0.2",
+      "upstream": "https://registry.npmjs.org/path-scurry"
+    },
+    {
+      "lockedAs": "pathe",
+      "name": "pathe",
+      "version": "2.0.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.0.3",
+      "maxWithinOwningConstraints": "2.0.3",
+      "upstream": "https://registry.npmjs.org/pathe"
+    },
+    {
+      "lockedAs": "peberminta",
+      "name": "peberminta",
+      "version": "0.9.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "0.10.0",
+      "maxWithinOwningConstraints": "0.9.0",
+      "upstream": "https://registry.npmjs.org/peberminta",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "parseley",
+          "kind": "dependencies",
+          "range": "^0.9.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "picocolors",
+      "name": "picocolors",
+      "version": "1.1.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.1",
+      "maxWithinOwningConstraints": "1.1.1",
+      "upstream": "https://registry.npmjs.org/picocolors"
+    },
+    {
+      "lockedAs": "picospinner",
+      "name": "picospinner",
+      "version": "3.1.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.1.2",
+      "maxWithinOwningConstraints": "3.1.2",
+      "upstream": "https://registry.npmjs.org/picospinner"
+    },
+    {
+      "lockedAs": "prettier",
+      "name": "prettier",
+      "version": "3.9.10",
+      "disposition": "current-latest-stable",
+      "latestStable": "3.9.10",
+      "maxWithinOwningConstraints": "3.9.10",
+      "upstream": "https://registry.npmjs.org/prettier"
+    },
+    {
+      "lockedAs": "prismjs",
+      "name": "prismjs",
+      "version": "1.30.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.30.0",
+      "maxWithinOwningConstraints": "1.30.0",
+      "upstream": "https://registry.npmjs.org/prismjs"
+    },
+    {
+      "lockedAs": "prompts",
+      "name": "prompts",
+      "version": "2.4.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.4.2",
+      "maxWithinOwningConstraints": "2.4.2",
+      "upstream": "https://registry.npmjs.org/prompts"
+    },
+    {
+      "lockedAs": "prompts/kleur",
+      "name": "kleur",
+      "version": "3.0.3",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "4.1.5",
+      "maxWithinOwningConstraints": "3.0.3",
+      "upstream": "https://registry.npmjs.org/kleur",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "prompts",
+          "kind": "dependencies",
+          "range": "^3.0.3",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "property-information",
+      "name": "property-information",
+      "version": "7.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "7.2.0",
+      "maxWithinOwningConstraints": "7.2.0",
+      "upstream": "https://registry.npmjs.org/property-information"
+    },
+    {
+      "lockedAs": "prosemirror-changeset",
+      "name": "prosemirror-changeset",
+      "version": "2.4.4",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.4.4",
+      "maxWithinOwningConstraints": "2.4.4",
+      "upstream": "https://registry.npmjs.org/prosemirror-changeset"
+    },
+    {
+      "lockedAs": "prosemirror-commands",
+      "name": "prosemirror-commands",
+      "version": "1.7.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.7.2",
+      "maxWithinOwningConstraints": "1.7.2",
+      "upstream": "https://registry.npmjs.org/prosemirror-commands"
+    },
+    {
+      "lockedAs": "prosemirror-dropcursor",
+      "name": "prosemirror-dropcursor",
+      "version": "1.8.4",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.8.4",
+      "maxWithinOwningConstraints": "1.8.4",
+      "upstream": "https://registry.npmjs.org/prosemirror-dropcursor"
+    },
+    {
+      "lockedAs": "prosemirror-gapcursor",
+      "name": "prosemirror-gapcursor",
+      "version": "1.4.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.4.1",
+      "maxWithinOwningConstraints": "1.4.1",
+      "upstream": "https://registry.npmjs.org/prosemirror-gapcursor"
+    },
+    {
+      "lockedAs": "prosemirror-history",
+      "name": "prosemirror-history",
+      "version": "1.5.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.5.1",
+      "maxWithinOwningConstraints": "1.5.1",
+      "upstream": "https://registry.npmjs.org/prosemirror-history"
+    },
+    {
+      "lockedAs": "prosemirror-inputrules",
+      "name": "prosemirror-inputrules",
+      "version": "1.5.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.5.1",
+      "maxWithinOwningConstraints": "1.5.1",
+      "upstream": "https://registry.npmjs.org/prosemirror-inputrules"
+    },
+    {
+      "lockedAs": "prosemirror-keymap",
+      "name": "prosemirror-keymap",
+      "version": "1.2.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.2.3",
+      "maxWithinOwningConstraints": "1.2.3",
+      "upstream": "https://registry.npmjs.org/prosemirror-keymap"
+    },
+    {
+      "lockedAs": "prosemirror-model",
+      "name": "prosemirror-model",
+      "version": "1.25.12",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.25.12",
+      "maxWithinOwningConstraints": "1.25.12",
+      "upstream": "https://registry.npmjs.org/prosemirror-model"
+    },
+    {
+      "lockedAs": "prosemirror-schema-list",
+      "name": "prosemirror-schema-list",
+      "version": "1.5.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.5.1",
+      "maxWithinOwningConstraints": "1.5.1",
+      "upstream": "https://registry.npmjs.org/prosemirror-schema-list"
+    },
+    {
+      "lockedAs": "prosemirror-state",
+      "name": "prosemirror-state",
+      "version": "1.4.4",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.4.4",
+      "maxWithinOwningConstraints": "1.4.4",
+      "upstream": "https://registry.npmjs.org/prosemirror-state"
+    },
+    {
+      "lockedAs": "prosemirror-tables",
+      "name": "prosemirror-tables",
+      "version": "1.8.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.8.5",
+      "maxWithinOwningConstraints": "1.8.5",
+      "upstream": "https://registry.npmjs.org/prosemirror-tables"
+    },
+    {
+      "lockedAs": "prosemirror-transform",
+      "name": "prosemirror-transform",
+      "version": "1.12.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.12.3",
+      "maxWithinOwningConstraints": "1.12.3",
+      "upstream": "https://registry.npmjs.org/prosemirror-transform"
+    },
+    {
+      "lockedAs": "prosemirror-view",
+      "name": "prosemirror-view",
+      "version": "1.42.7",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.42.7",
+      "maxWithinOwningConstraints": "1.42.7",
+      "upstream": "https://registry.npmjs.org/prosemirror-view"
+    },
+    {
+      "lockedAs": "react",
+      "name": "react",
+      "version": "19.3.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "19.3.1",
+      "maxWithinOwningConstraints": "19.3.1",
+      "upstream": "https://registry.npmjs.org/react"
+    },
+    {
+      "lockedAs": "react-dom",
+      "name": "react-dom",
+      "version": "19.3.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "19.3.1",
+      "maxWithinOwningConstraints": "19.3.1",
+      "upstream": "https://registry.npmjs.org/react-dom"
+    },
+    {
+      "lockedAs": "react-email",
+      "name": "react-email",
+      "version": "6.11.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "6.11.3",
+      "maxWithinOwningConstraints": "6.11.3",
+      "upstream": "https://registry.npmjs.org/react-email"
+    },
+    {
+      "lockedAs": "react-email/@babel/parser",
+      "name": "@babel/parser",
+      "version": "7.29.2",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.0.7",
+      "maxWithinOwningConstraints": "7.29.2",
+      "upstream": "https://registry.npmjs.org/%40babel%2Fparser",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "react-email",
+          "kind": "dependencies",
+          "range": "7.29.2",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "react-email/chokidar",
+      "name": "chokidar",
+      "version": "5.0.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "6.0.0",
+      "maxWithinOwningConstraints": "5.0.0",
+      "upstream": "https://registry.npmjs.org/chokidar",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "react-email",
+          "kind": "dependencies",
+          "range": "^5.0.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "react-email/chokidar/readdirp",
+      "name": "readdirp",
+      "version": "5.1.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "5.1.1",
+      "maxWithinOwningConstraints": "5.1.1",
+      "upstream": "https://registry.npmjs.org/readdirp"
+    },
+    {
+      "lockedAs": "react-email/commander",
+      "name": "commander",
+      "version": "13.1.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "15.0.0",
+      "maxWithinOwningConstraints": "13.1.0",
+      "upstream": "https://registry.npmjs.org/commander",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "react-email",
+          "kind": "dependencies",
+          "range": "^13.0.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "react-email/conf",
+      "name": "conf",
+      "version": "15.1.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "16.0.0",
+      "maxWithinOwningConstraints": "15.1.0",
+      "upstream": "https://registry.npmjs.org/conf",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "react-email",
+          "kind": "dependencies",
+          "range": "^15.0.2",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "react-email/conf/ajv",
+      "name": "ajv",
+      "version": "8.20.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "8.20.0",
+      "maxWithinOwningConstraints": "8.20.0",
+      "upstream": "https://registry.npmjs.org/ajv"
+    },
+    {
+      "lockedAs": "react-email/conf/ajv/json-schema-traverse",
+      "name": "json-schema-traverse",
+      "version": "1.0.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.0.0",
+      "maxWithinOwningConstraints": "1.0.0",
+      "upstream": "https://registry.npmjs.org/json-schema-traverse"
+    },
+    {
+      "lockedAs": "react-email/conf/atomically",
+      "name": "atomically",
+      "version": "2.1.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.1.1",
+      "maxWithinOwningConstraints": "2.1.1",
+      "upstream": "https://registry.npmjs.org/atomically"
+    },
+    {
+      "lockedAs": "react-email/conf/debounce-fn",
+      "name": "debounce-fn",
+      "version": "6.0.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "7.0.0",
+      "maxWithinOwningConstraints": "6.0.0",
+      "upstream": "https://registry.npmjs.org/debounce-fn",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "react-email/conf",
+          "kind": "dependencies",
+          "range": "^6.0.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "react-email/conf/dot-prop",
+      "name": "dot-prop",
+      "version": "10.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "10.2.0",
+      "maxWithinOwningConstraints": "10.2.0",
+      "upstream": "https://registry.npmjs.org/dot-prop"
+    },
+    {
+      "lockedAs": "react-email/conf/dot-prop/type-fest",
+      "name": "type-fest",
+      "version": "5.10.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "5.10.0",
+      "maxWithinOwningConstraints": "5.10.0",
+      "upstream": "https://registry.npmjs.org/type-fest"
+    },
+    {
+      "lockedAs": "react-email/conf/env-paths",
+      "name": "env-paths",
+      "version": "3.0.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "4.0.0",
+      "maxWithinOwningConstraints": "3.0.0",
+      "upstream": "https://registry.npmjs.org/env-paths",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "react-email/conf",
+          "kind": "dependencies",
+          "range": "^3.0.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "react-email/jiti",
+      "name": "jiti",
+      "version": "2.6.1",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "2.7.0",
+      "maxWithinOwningConstraints": "2.6.1",
+      "upstream": "https://registry.npmjs.org/jiti",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "react-email",
+          "kind": "dependencies",
+          "range": "2.6.1",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "react-remove-scroll",
+      "name": "react-remove-scroll",
+      "version": "2.7.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.7.2",
+      "maxWithinOwningConstraints": "2.7.2",
+      "upstream": "https://registry.npmjs.org/react-remove-scroll"
+    },
+    {
+      "lockedAs": "react-remove-scroll-bar",
+      "name": "react-remove-scroll-bar",
+      "version": "2.3.8",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.3.8",
+      "maxWithinOwningConstraints": "2.3.8",
+      "upstream": "https://registry.npmjs.org/react-remove-scroll-bar"
+    },
+    {
+      "lockedAs": "react-style-singleton",
+      "name": "react-style-singleton",
+      "version": "2.2.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.2.3",
+      "maxWithinOwningConstraints": "2.2.3",
+      "upstream": "https://registry.npmjs.org/react-style-singleton"
+    },
+    {
+      "lockedAs": "require-from-string",
+      "name": "require-from-string",
+      "version": "2.0.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.0.2",
+      "maxWithinOwningConstraints": "2.0.2",
+      "upstream": "https://registry.npmjs.org/require-from-string"
+    },
+    {
+      "lockedAs": "rope-sequence",
+      "name": "rope-sequence",
+      "version": "1.3.4",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.3.4",
+      "maxWithinOwningConstraints": "1.3.4",
+      "upstream": "https://registry.npmjs.org/rope-sequence"
+    },
+    {
+      "lockedAs": "scheduler",
+      "name": "scheduler",
+      "version": "0.28.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "0.28.0",
+      "maxWithinOwningConstraints": "0.28.0",
+      "upstream": "https://registry.npmjs.org/scheduler"
+    },
+    {
+      "lockedAs": "selderee",
+      "name": "selderee",
+      "version": "0.11.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "0.12.0",
+      "maxWithinOwningConstraints": "0.11.0",
+      "upstream": "https://registry.npmjs.org/selderee",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@selderee/plugin-htmlparser2",
+          "kind": "dependencies",
+          "range": "^0.11.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "html-to-text",
+          "kind": "dependencies",
+          "range": "^0.11.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "semver",
+      "name": "semver",
+      "version": "7.8.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "7.8.5",
+      "maxWithinOwningConstraints": "7.8.5",
+      "upstream": "https://registry.npmjs.org/semver"
+    },
+    {
+      "lockedAs": "sisteransi",
+      "name": "sisteransi",
+      "version": "1.0.5",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "2.0.0",
+      "maxWithinOwningConstraints": "1.0.5",
+      "upstream": "https://registry.npmjs.org/sisteransi",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@clack/core",
+          "kind": "dependencies",
+          "range": "^1.0.5",
+          "parentInScope": false
+        },
+        {
+          "parent": "@clack/prompts",
+          "kind": "dependencies",
+          "range": "^1.0.5",
+          "parentInScope": false
+        },
+        {
+          "parent": "prompts",
+          "kind": "dependencies",
+          "range": "^1.0.5",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "socket.io",
+      "name": "socket.io",
+      "version": "4.8.4",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.8.4",
+      "maxWithinOwningConstraints": "4.8.4",
+      "upstream": "https://registry.npmjs.org/socket.io"
+    },
+    {
+      "lockedAs": "socket.io-adapter",
+      "name": "socket.io-adapter",
+      "version": "2.5.8",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.5.8",
+      "maxWithinOwningConstraints": "2.5.8",
+      "upstream": "https://registry.npmjs.org/socket.io-adapter"
+    },
+    {
+      "lockedAs": "socket.io-adapter/ws",
+      "name": "ws",
+      "version": "8.21.3",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.22.0",
+      "maxWithinOwningConstraints": "8.21.3",
+      "upstream": "https://registry.npmjs.org/ws",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "socket.io-adapter",
+          "kind": "dependencies",
+          "range": "~8.21.0",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "socket.io-parser",
+      "name": "socket.io-parser",
+      "version": "4.2.7",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.2.7",
+      "maxWithinOwningConstraints": "4.2.7",
+      "upstream": "https://registry.npmjs.org/socket.io-parser"
+    },
+    {
+      "lockedAs": "source-map-js",
+      "name": "source-map-js",
+      "version": "1.2.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.2.2",
+      "maxWithinOwningConstraints": "1.2.2",
+      "upstream": "https://registry.npmjs.org/source-map-js"
+    },
+    {
+      "lockedAs": "space-separated-tokens",
+      "name": "space-separated-tokens",
+      "version": "2.0.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.0.2",
+      "maxWithinOwningConstraints": "2.0.2",
+      "upstream": "https://registry.npmjs.org/space-separated-tokens"
+    },
+    {
+      "lockedAs": "strip-bom",
+      "name": "strip-bom",
+      "version": "3.0.0",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "5.0.0",
+      "maxWithinOwningConstraints": "3.0.0",
+      "upstream": "https://registry.npmjs.org/strip-bom",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "tsconfig-paths",
+          "kind": "dependencies",
+          "range": "^3.0.0",
+          "parentInScope": true
+        },
+        {
+          "parent": "eslint-plugin-import/tsconfig-paths",
+          "kind": "dependencies",
+          "range": "^3.0.0",
+          "parentInScope": false
+        }
+      ]
+    },
+    {
+      "lockedAs": "stubborn-fs",
+      "name": "stubborn-fs",
+      "version": "2.0.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.0.0",
+      "maxWithinOwningConstraints": "2.0.0",
+      "upstream": "https://registry.npmjs.org/stubborn-fs"
+    },
+    {
+      "lockedAs": "stubborn-utils",
+      "name": "stubborn-utils",
+      "version": "1.0.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.0.2",
+      "maxWithinOwningConstraints": "1.0.2",
+      "upstream": "https://registry.npmjs.org/stubborn-utils"
+    },
+    {
+      "lockedAs": "tagged-tag",
+      "name": "tagged-tag",
+      "version": "1.0.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.0.0",
+      "maxWithinOwningConstraints": "1.0.0",
+      "upstream": "https://registry.npmjs.org/tagged-tag"
+    },
+    {
+      "lockedAs": "tailwindcss",
+      "name": "tailwindcss",
+      "version": "4.3.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.3.3",
+      "maxWithinOwningConstraints": null,
+      "upstream": "https://registry.npmjs.org/tailwindcss",
+      "maxWithinFamilyConstraints": "4.3.3"
+    },
+    {
+      "lockedAs": "tinyexec",
+      "name": "tinyexec",
+      "version": "1.3.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.3.1",
+      "maxWithinOwningConstraints": "1.3.1",
+      "upstream": "https://registry.npmjs.org/tinyexec"
+    },
+    {
+      "lockedAs": "tsconfig-paths",
+      "name": "tsconfig-paths",
+      "version": "4.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.2.0",
+      "maxWithinOwningConstraints": "4.2.0",
+      "upstream": "https://registry.npmjs.org/tsconfig-paths"
+    },
+    {
+      "lockedAs": "tslib",
+      "name": "tslib",
+      "version": "2.8.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.8.1",
+      "maxWithinOwningConstraints": "2.8.1",
+      "upstream": "https://registry.npmjs.org/tslib"
+    },
+    {
+      "lockedAs": "uint8array-extras",
+      "name": "uint8array-extras",
+      "version": "1.6.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.6.0",
+      "maxWithinOwningConstraints": "1.6.0",
+      "upstream": "https://registry.npmjs.org/uint8array-extras"
+    },
+    {
+      "lockedAs": "undici-types",
+      "name": "undici-types",
+      "version": "7.24.6",
+      "disposition": "current-max-supported-by-owning-parent-constraints",
+      "latestStable": "8.12.3",
+      "maxWithinOwningConstraints": "7.24.6",
+      "upstream": "https://registry.npmjs.org/undici-types",
+      "reason": "Selected version is the fresh maximum nondeprecated Node24.22.1-compatible stable release allowed by the actual intersection of current closure-parent ranges/exact pins; latest is outside that intersection. A parent release/range change triggers requalification. This alone is not proof of indefinite upstream maintenance or advisory closure.",
+      "owner": "Core PDF/shared-editor maintainers",
+      "constraints": [
+        {
+          "parent": "@types/node",
+          "kind": "dependencies",
+          "range": ">=7.24.0 <7.24.7",
+          "parentInScope": true
+        }
+      ]
+    },
+    {
+      "lockedAs": "unist-util-stringify-position",
+      "name": "unist-util-stringify-position",
+      "version": "4.0.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.0.0",
+      "maxWithinOwningConstraints": "4.0.0",
+      "upstream": "https://registry.npmjs.org/unist-util-stringify-position"
+    },
+    {
+      "lockedAs": "use-callback-ref",
+      "name": "use-callback-ref",
+      "version": "1.3.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.3.3",
+      "maxWithinOwningConstraints": "1.3.3",
+      "upstream": "https://registry.npmjs.org/use-callback-ref"
+    },
+    {
+      "lockedAs": "use-sidecar",
+      "name": "use-sidecar",
+      "version": "1.1.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.3",
+      "maxWithinOwningConstraints": "1.1.3",
+      "upstream": "https://registry.npmjs.org/use-sidecar"
+    },
+    {
+      "lockedAs": "use-sync-external-store",
+      "name": "use-sync-external-store",
+      "version": "1.7.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.7.0",
+      "maxWithinOwningConstraints": "1.7.0",
+      "upstream": "https://registry.npmjs.org/use-sync-external-store"
+    },
+    {
+      "lockedAs": "vary",
+      "name": "vary",
+      "version": "1.1.2",
+      "disposition": "current-latest-stable",
+      "latestStable": "1.1.2",
+      "maxWithinOwningConstraints": "1.1.2",
+      "upstream": "https://registry.npmjs.org/vary"
+    },
+    {
+      "lockedAs": "vfile",
+      "name": "vfile",
+      "version": "6.0.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "6.0.3",
+      "maxWithinOwningConstraints": "6.0.3",
+      "upstream": "https://registry.npmjs.org/vfile"
+    },
+    {
+      "lockedAs": "vfile-location",
+      "name": "vfile-location",
+      "version": "5.0.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "5.0.3",
+      "maxWithinOwningConstraints": "5.0.3",
+      "upstream": "https://registry.npmjs.org/vfile-location"
+    },
+    {
+      "lockedAs": "vfile-message",
+      "name": "vfile-message",
+      "version": "4.0.3",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.0.3",
+      "maxWithinOwningConstraints": "4.0.3",
+      "upstream": "https://registry.npmjs.org/vfile-message"
+    },
+    {
+      "lockedAs": "w3c-keyname",
+      "name": "w3c-keyname",
+      "version": "2.2.8",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.2.8",
+      "maxWithinOwningConstraints": "2.2.8",
+      "upstream": "https://registry.npmjs.org/w3c-keyname"
+    },
+    {
+      "lockedAs": "web-namespaces",
+      "name": "web-namespaces",
+      "version": "2.0.1",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.0.1",
+      "maxWithinOwningConstraints": "2.0.1",
+      "upstream": "https://registry.npmjs.org/web-namespaces"
+    },
+    {
+      "lockedAs": "when-exit",
+      "name": "when-exit",
+      "version": "2.1.5",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.1.5",
+      "maxWithinOwningConstraints": "2.1.5",
+      "upstream": "https://registry.npmjs.org/when-exit"
+    },
+    {
+      "lockedAs": "ws",
+      "name": "ws",
+      "version": "8.22.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "8.22.0",
+      "maxWithinOwningConstraints": "8.22.0",
+      "upstream": "https://registry.npmjs.org/ws"
+    },
+    {
+      "lockedAs": "yoctocolors",
+      "name": "yoctocolors",
+      "version": "2.2.0",
+      "disposition": "current-latest-stable",
+      "latestStable": "2.2.0",
+      "maxWithinOwningConstraints": "2.2.0",
+      "upstream": "https://registry.npmjs.org/yoctocolors"
+    },
+    {
+      "lockedAs": "zod",
+      "name": "zod",
+      "version": "4.6.7",
+      "disposition": "current-latest-stable",
+      "latestStable": "4.6.7",
+      "maxWithinOwningConstraints": "4.6.7",
+      "upstream": "https://registry.npmjs.org/zod"
+    }
+  ],
+  "optionalPeerDeclarations": [
+    {
+      "from": "ws",
+      "to": null,
+      "dependency": "bufferutil",
+      "range": "^4.0.1",
+      "kind": "peerDependencies",
+      "optionalPeer": true
+    },
+    {
+      "from": "ws",
+      "to": null,
+      "dependency": "utf-8-validate",
+      "range": ">=5.0.2",
+      "kind": "peerDependencies",
+      "optionalPeer": true
+    },
+    {
+      "from": "engine.io/ws",
+      "to": null,
+      "dependency": "bufferutil",
+      "range": "^4.0.1",
+      "kind": "peerDependencies",
+      "optionalPeer": true
+    },
+    {
+      "from": "engine.io/ws",
+      "to": null,
+      "dependency": "utf-8-validate",
+      "range": ">=5.0.2",
+      "kind": "peerDependencies",
+      "optionalPeer": true
+    },
+    {
+      "from": "socket.io-adapter/ws",
+      "to": null,
+      "dependency": "bufferutil",
+      "range": "^4.0.1",
+      "kind": "peerDependencies",
+      "optionalPeer": true
+    },
+    {
+      "from": "socket.io-adapter/ws",
+      "to": null,
+      "dependency": "utf-8-validate",
+      "range": ">=5.0.2",
+      "kind": "peerDependencies",
+      "optionalPeer": true
+    }
+  ],
+  "limits": [
+    "Freshness snapshot is scoped to282-node five-package/editor/installed-CLI closure, not all2577 locked package identities.",
+    "No selected published registry identity is deprecated or Node24-engine-incompatible. Registry metadata is a dated snapshot; ranges are a compatibility disposition, not a security waiver.",
+    "Independent current closure audit has0 affected identities; whole-Core84 records/35 modules/73 unique advisories remain open. Security analysis is separately owned and is not replaced by registry freshness.",
+    "No test or platform qualification is established by this metadata report."
+  ]
+}

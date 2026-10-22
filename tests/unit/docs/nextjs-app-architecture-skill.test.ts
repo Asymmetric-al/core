@@ -11,9 +11,14 @@ const runtimeRoots = [
   ".cursor/skills",
   ".claude/skills",
 ] as const;
-const ecosystemExtraFiles = ["LICENSE", "README.md"] as const;
+const ecosystemExtraFiles = [] as const;
 const sharedSkillFiles = [
+  "LICENSE",
+  "README.md",
+  "metadata.json",
   "SKILL.md",
+  "references/instant-navigation.md",
+  "references/testing.md",
   "references/upstream.md",
   "references/cache-components.md",
   "references/components.md",
@@ -73,7 +78,7 @@ describe("nextjs-app-architecture skill", () => {
       sourceType: "github",
       skillPath: "SKILL.md",
       computedHash:
-        "94f700fb57aef401e135ddbb0d13a2986d6416820ee4e1b2bf1fd8e17fae0d66",
+        "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
     });
   });
 
@@ -85,7 +90,7 @@ describe("nextjs-app-architecture skill", () => {
     );
 
     expect(skill).toContain("\nname: nextjs-app-architecture\n");
-    expect(skill).toContain('version: "1.3.9"');
+    expect(skill).toContain('version: "1.4.1"');
     expect(skill).toContain("## This repository (Asymmetric-al/core)");
     expect(skill).toContain("docs/guides/architecture/data-access-boundary.md");
     expect(skill).toContain("packages/api");
@@ -179,9 +184,9 @@ describe("nextjs-app-architecture skill", () => {
     expect(readSkillFile("docs/ai/skills", "references/example.md")).toContain(
       "packages/api",
     );
-    expect(provenance).toContain("f2902b8538b25610da694394ecf88e69adf5f96a");
+    expect(provenance).toContain("84842f3c66da70462f36753603db86a347dfb83c");
     expect(provenance).toContain(
-      "94f700fb57aef401e135ddbb0d13a2986d6416820ee4e1b2bf1fd8e17fae0d66",
+      "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
     );
     expect(provenance).toContain(
       "not** updated by `bun run skills:refresh-upstream`",
@@ -376,9 +381,28 @@ describe("nextjs-app-architecture skill", () => {
     expect(qualityGate).toContain(
       "const fullyManagedCanonicalSkills = new Set([",
     );
-    expect(qualityGate).not.toMatch(
+    expect(qualityGate).toMatch(
       /fullyManagedCanonicalSkills = new Set\(\[[^\]]*nextjs-app-architecture/,
     );
+  });
+
+  it("keeps new navigation and testing references under Core ownership and installed-version contracts", () => {
+    for (const reference of [
+      "references/instant-navigation.md",
+      "references/testing.md",
+    ]) {
+      const content = readSkillFile("docs/ai/skills", reference);
+      expect(content).toContain("<!-- CORE-OVERLAY-START -->");
+      expect(content).toContain(
+        "docs/guides/architecture/data-access-boundary.md",
+      );
+      expect(content).toContain("installed Next.js and Playwright versions");
+      expect(content).toContain("business commands in packages/api");
+      expect(content).toContain(
+        "app feature folders own UI and browser query keys only",
+      );
+      expect(content).toContain("<!-- CORE-OVERLAY-END -->");
+    }
   });
 
   it("keeps shared skill files byte-identical across runtime mirrors", () => {

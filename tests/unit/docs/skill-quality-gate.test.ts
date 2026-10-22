@@ -86,9 +86,16 @@ describe("skill quality gate overlays", () => {
     const findSkills = readRepoFile("docs/ai/skills/find-skills/SKILL.md");
 
     const skillRouting = readRepoFile("docs/ai/rules/agent-skill-routing.md");
-    expect(skillRouting).toContain("To **restore** those installs");
     expect(skillRouting).toContain(
-      "To **pull newer upstream** content for Supabase",
+      "**Reviewed project-local installation and refresh:**",
+    );
+    expect(skillRouting).toContain("--agent codex --copy -y");
+    expect(skillRouting).toContain("not a reproducible restore");
+    expect(skillRouting).toContain(
+      "publish the tree and lock/provenance together",
+    );
+    expect(skillRouting).toContain(
+      "skills:refresh-upstream --only=supabase/agent-skills",
     );
     expect(skillRouting).toContain(
       "**Resend CLI** (`docs/ai/skills/resend-cli/`)",

@@ -48,10 +48,16 @@ export function assertCmsMigrationTarget({
     );
   }
 
-  const direct =
-    hostname === `db.${ref}.supabase.co` && username === "postgres";
+  const role = environment.CMS_HOSTED_MIGRATION_ROLE || "postgres";
+  if (!/^[a-z_][a-z0-9_]{0,62}$/.test(role)) {
+    throw new Error(
+      "CMS_HOSTED_MIGRATION_ROLE must be a plain Postgres role name.",
+    );
+  }
+
+  const direct = hostname === `db.${ref}.supabase.co` && username === role;
   const pooled =
-    hostname.endsWith(".pooler.supabase.com") && username === `postgres.${ref}`;
+    hostname.endsWith(".pooler.supabase.com") && username === `${role}.${ref}`;
   if (!direct && !pooled) {
     throw new Error(
       "The CMS database target does not match the approved Supabase project.",

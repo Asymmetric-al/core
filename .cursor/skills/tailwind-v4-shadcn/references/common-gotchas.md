@@ -355,7 +355,7 @@ npm install @tailwindcss/vite
   "dependencies": {
     "tailwindcss": "^4.1.0",
     "@tailwindcss/vite": "^4.1.0",
-    "cnfast": "^0.0.8"
+    "cn": "0.4.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0"

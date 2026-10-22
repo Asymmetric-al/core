@@ -43,11 +43,7 @@ after upstream refreshes before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
-## Initial Response
-
-When this skill is first invoked without a specific question, respond only with:
-
-> I'm ready to review your animations against a high craft bar, my standards come from Emil Kowalski's animation philosophy.
+When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.
 
 A specialized review skill. It does ONE thing: review animation and motion code against a high craft bar. It does not write features, fix unrelated bugs, or review non-motion code. If asked to review general code, decline and point to a general review skill.
 

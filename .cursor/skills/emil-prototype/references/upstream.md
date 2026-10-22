@@ -2,10 +2,12 @@
 source_name: emilkowalski/skills
 source_url: https://github.com/emilkowalski/skills
 source_path: skills/prototype/
-source_commit: d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7
-upstream_skill_commit: 70744e3816f1d93eafb697161a8b880a7384c5ff
+source_commit: 2d228630ba1446365f614a108cb8252f1feda202
+upstream_skill_commit: 2d228630ba1446365f614a108cb8252f1feda202
 license: MIT
-last_reviewed: 2026-08-29
+last_reviewed: 2026-10-22
+reviewed_commit: 2d228630ba1446365f614a108cb8252f1feda202
+skills_lock_hash: bba39c955eb1871c5a02733976ceec5d0324198e0812e667604756489c89f7b9
 ---
 
 # Upstream: emil-prototype
@@ -15,7 +17,7 @@ Canonical copy in this repo: `docs/ai/skills/emil-prototype/`, mirrored to
 `bun run skills:sync`.
 
 - **Repository:** https://github.com/emilkowalski/skills
-- **Reviewed pack commit:** `d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7`
+- **Reviewed pack commit:** `2d228630ba1446365f614a108cb8252f1feda202`
 - **Source path:** `skills/prototype/`
 - **Vendored upstream files:** `SKILL.md` and `PICKER.md`
 - **License:** MIT; the exact upstream notice is preserved in
@@ -47,3 +49,10 @@ Canonical copy in this repo: `docs/ai/skills/emil-prototype/`, mirrored to
   `docs/ai/skills/prototype/`.
 - Update `source_commit`, `upstream_skill_commit`, and `last_reviewed`
   whenever the vendored upstream changes.
+
+## Reviewed refresh, 2026-10-22
+
+- Source: `emilkowalski/skills` at `2d228630ba1446365f614a108cb8252f1feda202`.
+- Complete upstream skill tree: `skills/prototype/`; MIT notice: [LICENSE.md](LICENSE.md).
+- Raw upstream `SKILL.md` SHA-256: `bba39c955eb1871c5a02733976ceec5d0324198e0812e667604756489c89f7b9`.
+- Preserve Core discovery metadata, explicit-only invocation, existing overlays and compatibility corrections. Raw upstream scripts are vendored data; none were executed during this refresh.

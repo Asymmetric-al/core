@@ -73,7 +73,7 @@ and vendor output retain their existing lint coverage outside this web policy.
 not first-party styled editor chrome; reevaluate scope if that changes.
 
 Preserve exact `base-maia`, Base UI behavior, semantic CSS variables,
-`@asym/ui` ownership, existing variants/sizes, and the current `cnfast`/CVA
+`@asym/ui` ownership, existing variants/sizes, and the current `cn`/CVA
 implementation. The shared `packages/ui/components.json` and CSS stay shared;
 do not add app-level component configuration or duplicate theme declarations.
 

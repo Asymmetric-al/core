@@ -15,6 +15,7 @@ import type { CollectionConfig } from "payload";
 
 export const Media: CollectionConfig = {
   slug: "media",
+  authorship: false,
   versions: false,
   admin: {
     defaultColumns: ["filename", "alt", "tenant", "updatedAt"],
@@ -53,18 +54,6 @@ export const Media: CollectionConfig = {
     afterDelete: [logCmsDeleteAudit],
   },
   upload: {
-    imageSizes: [
-      {
-        name: "thumbnail",
-        width: 320,
-        height: 320,
-      },
-      {
-        name: "card",
-        width: 960,
-        height: 540,
-      },
-    ],
     mimeTypes: [
       "image/avif",
       "image/gif",

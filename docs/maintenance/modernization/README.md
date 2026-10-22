@@ -14,11 +14,12 @@ maintained compatibility dependency with a current upstream reason and owner.
 
 ## Coverage
 
-- [Dependency inventory](dependencies.json): all 129 current canonical external
+- [Dependency inventory](dependencies.json): all 130 current canonical external
   and imported identities across 23 active manifests (18 workspace/root manifests
   plus five imported PDF packages). Baseline and current declarations retain
   alias names and every imported-package consumer. Internal workspace links are
-  recorded separately. The supported V8 provider was introduced after baseline;
+  recorded separately. The supported V8 provider and public Payload Sharp
+  transformer were introduced after baseline;
   all five private PDF identities point to their owner source and artifact
   manifests rather than a public-registry lookup.
 - Locked graph, advisory reachability, overrides/patches, imported artifacts,
@@ -30,6 +31,11 @@ maintained compatibility dependency with a current upstream reason and owner.
   `5cf4855dc322eafcccfeca0dd528695ae72832d9` and is incorporated into the
   security checkpoint; #2160 remains a draft owned by its existing branch.
 
+The [owner exclusions](owner-exclusions.json) record the user-requested skip of
+the unexecuted, read-only hosted-development Supabase CLI `config diff`
+check. This is a check exclusion; it does not waive a vulnerability or authorize
+production operations.
+
 ## Baseline
 
 Starting develop: `800213405e2c51e07180e86ee8322355e0fdb4eb`.
@@ -40,14 +46,30 @@ donor 61, missionary 47. Existing floors remain binding.
 
 ## Checkpoints
 
-| Checkpoint             | Exact initial target                                            | Status                                    | Qualification                                                                              |
-| ---------------------- | --------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Framework security     | Next family 16.4.2, React/DOM 19.3.1, Node 24.22.1, Bun 1.4.3   | Merged                                    | [Checkpoint record](framework-security.md)                                                 |
-| Tools / infrastructure | Supported ESLint 10, current tools and reproducible executables | Tools merged; infrastructure implementing | [Tooling record](development-tools.md); [infrastructure record](runtime-infrastructure.md) |
-| Data / workflows / API | Current supported cohorts, GraphQL 17 product / 16 CMS boundary | Pending                                   | Not qualified                                                                              |
-| Payload                | Public 4.0.0-beta.3 coherent cohort                             | Pending                                   | Migration/restore rehearsal required                                                       |
-| PDF source / artifacts | Recover shipped Phase 47, then modernize in owner repository    | Pending                                   | Source provenance and baseline required                                                    |
-| UI / telemetry / AI    | Current compatible families and pre-call governance             | Pending                                   | Behavior/provider checks required                                                          |
-| Payments / legal       | Stripe 23 / Endive; OpenPolicy current + owned Terms            | Pending                                   | Sandbox drain/abort and document equality required                                         |
-| Nested security / docs | Complete graph, owned exceptions, current active instructions   | Pending                                   | Final SBOM/manual reconciliation required                                                  |
-| Combined release       | All merged exact versions                                       | Pending                                   | Clean install, deployed previews and immutable production package required                 |
+| Checkpoint             | Exact initial target                                            | Status                                | Qualification                                                                              |
+| ---------------------- | --------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Framework security     | Next family 16.4.2, React/DOM 19.3.1, Node 24.22.1, Bun 1.4.3   | Merged                                | [Checkpoint record](framework-security.md)                                                 |
+| Tools / infrastructure | Supported ESLint 10, current tools and reproducible executables | Merged                                | [Tooling record](development-tools.md); [infrastructure record](runtime-infrastructure.md) |
+| Data / workflows / API | Current supported cohorts, GraphQL 17 product / 16 CMS boundary | Merged; post-merge CI passed          | [Data](data-access.md), [GraphQL](graphql.md), [workflows](workflows.md)                   |
+| Payload                | Public 4.0.0-beta.3 coherent cohort                             | Merged; production cutover open       | [Migration, restore, browser and unit evidence](payload.md)                                |
+| PDF source / artifacts | Current coordinated 0.1.0 artifacts                             | Owner merged; Core qualification open | [Source, import and verification](pdf-packages.md)                                         |
+| UI / telemetry / AI    | Current compatible families and pre-call governance             | Pending                               | Behavior/provider checks required                                                          |
+| Payments / legal       | Stripe 23 / Endive; OpenPolicy current + owned Terms            | Pending                               | Sandbox drain/abort and document equality required                                         |
+| Nested security / docs | Complete graph, owned exceptions, current active instructions   | Pending                               | Final SBOM/manual reconciliation required                                                  |
+| Combined release       | All merged exact versions                                       | Pending                               | Clean install, deployed previews and immutable production package required                 |
+
+The [data access](data-access.md), [product GraphQL](graphql.md) and
+[workflow](workflows.md) implementations have merged through their qualified
+family PRs. Their earlier committed local records remain dated evidence; the
+current merge, CI and preview readbacks are reconciled into the next checkpoint.
+The [Payload record](payload.md) retains dated migration, restore and browser
+evidence. [Core PR #2185](https://github.com/Asymmetric-al/core/pull/2185) merged
+as `c4d36cb029121641b8882237632d0d6da434049e` after full gates, current-head
+review/CI and all three deployed previews passed; both post-merge workflows
+passed. Shared-development cutover, strict-TLS fallback retirement and the final
+production release package remain separate open work.
+
+The [PDF checkpoint](pdf-packages.md) supersedes historical PDF alias and
+installation-repair workarounds in dated data-access evidence. Inventory `uses`
+retain the baseline; `currentUses` reflects checked-out consuming declarations.
+Owner-only build metadata is inventoried separately from Core-installed software.

@@ -73,6 +73,45 @@ afterEach(async () => {
 });
 
 describe("sync-agent-skills EXDEV fallback", () => {
+  it.each(["payload", "cms-migration"])(
+    "removes obsolete upstream references when Core takes ownership of %s",
+    async (name) => {
+      const tempRoot = await createTempRepo("sync-payload-adapter");
+      await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+      const canonical = path.join(tempRoot, "docs/ai/skills", name);
+      const installed = path.join(tempRoot, ".agents/skills", name);
+      await mkdir(canonical, { recursive: true });
+      await mkdir(path.join(installed, "reference"), { recursive: true });
+      const current = `---\nname: ${name}\ndescription: Core public v4 adapter\n---\n`;
+      await writeFile(path.join(canonical, "SKILL.md"), current);
+      await writeFile(
+        path.join(installed, "SKILL.md"),
+        "# Previous upstream guidance\n",
+      );
+      await writeFile(
+        path.join(installed, "reference/obsolete.md"),
+        "Local API bypasses access control by default.\n",
+      );
+
+      expect(runSync(tempRoot)).toContain("agent skill sync complete");
+
+      for (const runtimeRoot of [
+        ".agents/skills",
+        ".cursor/skills",
+        ".claude/skills",
+      ]) {
+        const mirror = path.join(tempRoot, runtimeRoot, name);
+        expect(existsSync(path.join(mirror, "reference/obsolete.md"))).toBe(
+          false,
+        );
+        expect(await readFile(path.join(mirror, "SKILL.md"), "utf8")).toBe(
+          current,
+        );
+      }
+      expect(leftoverSwapDirectories(tempRoot)).toEqual([]);
+    },
+  );
+
   it.each(["occupied", "partial-remove"])(
     "preserves recoverable data after %s failure",
     async (fault) => {

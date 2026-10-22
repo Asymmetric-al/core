@@ -31,7 +31,7 @@ The testing trophy (coined by Kent C. Dodds) replaces the traditional testing py
 
 **Where Playwright fits**:
 - **E2E layer**: `@playwright/test` with a browser -- full user flow testing
-- **Integration / Component layer**: `@playwright/experimental-ct-*` -- render components in a real browser without a full app
+- **Integration / Component layer**: the built-in `mount` fixture from `@playwright/test` (stories and galleries model, 1.62+) -- render components in a real browser without a full app. See [component-testing.md](component-testing.md)
 - **Integration / API layer**: `@playwright/test` with `request` context -- HTTP testing without a browser
 - **Static layer**: Not Playwright's job. Use TypeScript and ESLint.
 
@@ -183,6 +183,8 @@ test.describe('checkout flow', () => {
 - Data persistence or API contract validation (use API tests)
 - Third-party iframe interactions (use E2E)
 - Anything requiring multiple pages or browser contexts (use E2E)
+
+> **Legacy package**: the examples below use `@playwright/experimental-ct-react`, which is no longer updated since Playwright 1.63. New suites should use the stories model, where `mount('components/LoginForm/Default')` takes a story id instead of JSX. See [component-testing.md](component-testing.md). The test-level guidance (what to cover, how to assert) is unchanged.
 
 **TypeScript** (React example using `@playwright/experimental-ct-react`)
 ```typescript
@@ -377,7 +379,7 @@ test.describe('Users API', () => {
   test('non-admin cannot create users', async ({ request }) => {
     // Login as a non-admin user
     const loginResponse = await request.post('/api/auth/login', {
-      data: { email: 'viewer@example.com', password: 'viewer-pass' }, // pragma: allowlist secret
+      data: { email: 'viewer@example.com', password: 'viewer-pass' },
     });
     const { token: viewerToken } = await loginResponse.json();
 
@@ -465,7 +467,7 @@ test.describe('Users API', () => {
 
   test('non-admin cannot create users', async ({ request }) => {
     const loginResponse = await request.post('/api/auth/login', {
-      data: { email: 'viewer@example.com', password: 'viewer-pass' }, // pragma: allowlist secret
+      data: { email: 'viewer@example.com', password: 'viewer-pass' },
     });
     const { token: viewerToken } = await loginResponse.json();
 

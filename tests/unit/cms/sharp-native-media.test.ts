@@ -4,23 +4,41 @@ import os from "node:os";
 import path from "node:path";
 
 import sharp from "sharp";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-const { Media } = await import("../../../apps/admin/src/cms/collections/media");
-// Payload does not expose its resizing helper through package exports. Use
-// the installed SDK implementation that generateFileData calls, without
-// initializing Payload, a database, storage adapters, or an HTTP server.
-const { checkFileRestrictions } =
-  await import("../../../apps/admin/node_modules/payload/dist/uploads/checkFileRestrictions.js");
-const { createImageSizes } =
-  await import("../../../apps/admin/node_modules/payload/dist/uploads/image-resizing/createImageSizes.js");
+// Exercise the installed SDK's complete upload planner with the real product
+// configuration and transformer. This internal planner is not a package export;
+// the public transformFile primitive alone does not generate stored variants.
+const { generateFileData } =
+  await import("../../../apps/admin/node_modules/payload/dist/uploads/generateFileData.js");
 
-type ResizeArgs = Parameters<typeof createImageSizes>[0];
+type UploadArgs = Parameters<typeof generateFileData>[0];
+type PayloadConfig = Awaited<
+  (typeof import("../../../apps/admin/payload.config"))["default"]
+>;
+type UploadData = {
+  variants?: Record<string, { filename: string }>;
+  original?: { filename: string };
+};
+
+let config: PayloadConfig;
+let mediaCollection: PayloadConfig["collections"][number];
+
+beforeAll(async () => {
+  vi.stubEnv("PAYLOAD_DISABLE_SCHEMA_PUSH", "1");
+  vi.stubEnv("BLOB_READ_WRITE_TOKEN", undefined);
+  vi.stubEnv("RESEND_API_KEY", undefined);
+  const { default: configured } =
+    await import("../../../apps/admin/payload.config");
+  config = await configured;
+  const media = config.collections.find((entry) => entry.slug === "media");
+  if (!media || !media.upload) throw new Error("Missing Media upload config");
+  mediaCollection = media;
+}, 30_000);
+
+afterAll(() => vi.unstubAllEnvs());
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
-const adminSharp = createRequire(
-  path.join(repoRoot, "apps/admin/package.json"),
-)("sharp") as typeof sharp;
 const consumers = [
   ["root tools", path.join(repoRoot, "package.json")],
   ["Payload admin", path.join(repoRoot, "apps/admin/package.json")],
@@ -44,39 +62,53 @@ function uploadFile(data: Buffer, format: string) {
   };
 }
 
-function requestBoundary() {
-  // Only logging and in-memory size buffers are used by these SDK helpers.
-  return {
-    payload: { logger: { error() {}, warn() {} } },
-    payloadUploadSizes: {},
-  } as ResizeArgs["req"];
-}
-
 async function resizeMedia(
   data: Buffer,
   format: string,
-  focalPoint?: ResizeArgs["focalPoint"],
+  focalPoint?: { x: number; y: number },
 ) {
   const staticPath = await mkdtemp(path.join(os.tmpdir(), "core-cms-sharp-"));
-  const req = requestBoundary();
-  const file = uploadFile(data, format);
+  const collection = {
+    ...mediaCollection,
+    upload: { ...mediaCollection.upload, staticDir: staticPath },
+  };
+  // Only filename-collision lookup is stubbed. The SDK performs type validation,
+  // planning, decoding, focal cropping and variant generation without a database
+  // connection, HTTP request, storage write or running Payload instance.
+  const req = {
+    context: {},
+    file: uploadFile(data, format),
+    payload: {
+      config,
+      collections: { media: { config: collection } },
+      db: { findOne: async () => null },
+      logger: { error() {}, warn() {} },
+    },
+    payloadUploadSizes: {},
+    query: focalPoint ? { uploadEdits: { focalPoint } } : {},
+    t: (key: string) => key,
+  } as UploadArgs["req"];
   try {
-    await checkFileRestrictions({ collection: Media, file, req });
-    const metadata = await adminSharp(data).metadata();
-    return await createImageSizes({
-      config: Media as ResizeArgs["config"],
-      dimensions: {
-        width: metadata.width!,
-        height: metadata.pageHeight ?? metadata.height!,
-      },
-      file,
-      focalPoint,
-      mimeType: file.mimetype,
+    const result = await generateFileData<UploadData>({
+      collection: { config: collection } as UploadArgs["collection"],
+      config,
+      data: {},
+      operation: "create",
       req,
-      savedFilename: file.name,
-      sharp: adminSharp,
-      staticPath,
     });
+    const variants = result.data.variants;
+    if (!variants) throw new Error("Media upload did not generate variants");
+    const filenames = new Set(
+      Object.values(variants).map((variant) => variant.filename),
+    );
+    return {
+      sizeData: variants,
+      sizesToSave: result.files.filter((file) =>
+        filenames.has(path.basename(file.path)),
+      ),
+      original: result.data.original,
+      files: result.files,
+    };
   } finally {
     await rm(staticPath, { recursive: true, force: true });
   }
@@ -133,6 +165,14 @@ describe("Payload Media native image compatibility", () => {
         mimeType: `image/${format}`,
       });
       expect(result.sizesToSave).toHaveLength(2);
+      expect(Object.keys(result.sizeData).sort()).toEqual([
+        "card",
+        "thumbnail",
+      ]);
+      const original = result.files.find(
+        (file) => path.basename(file.path) === result.original?.filename,
+      );
+      expect(original?.buffer).toEqual(data);
       for (const output of result.sizesToSave) {
         const metadata = await sharp(output.buffer).metadata();
         expect(metadata.format).toBe(format === "avif" ? "heif" : format);
@@ -213,12 +253,8 @@ describe("Payload Media native image compatibility", () => {
     })
       .tiff()
       .toBuffer();
-    await expect(
-      checkFileRestrictions({
-        collection: Media,
-        file: uploadFile(data, "png"),
-        req: requestBoundary(),
-      }),
-    ).rejects.toMatchObject({ status: 400 });
+    await expect(resizeMedia(data, "png")).rejects.toMatchObject({
+      status: 400,
+    });
   });
 });

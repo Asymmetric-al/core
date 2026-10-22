@@ -15,8 +15,8 @@ playwright-cli screenshot --filename=checkout.png # Custom filename
 playwright-cli pdf --filename=report.pdf          # Save page as PDF
 
 # Video
-playwright-cli video-start                        # Start recording
-playwright-cli video-stop demo.webm               # Stop and save
+playwright-cli video-start demo.webm               # Start recording (browser must be open)
+playwright-cli video-stop                         # Stop and save
 
 # Viewport
 playwright-cli resize 1920 1080                   # Desktop
@@ -254,7 +254,7 @@ playwright-cli pdf --filename=output.pdf
 
 Record browser sessions as WebM video files.
 
-For simple "start recording now, stop later" flows, `video-start` and `video-stop` remain fine. For Playwright 1.59+ workflows that need precise start and stop control, action callouts, chapter titles, or richer review videos, prefer `page.screencast`.
+For simple "start recording now, stop later" flows, `video-start` and `video-stop` remain fine; `video-chapter "Title" --description="..." --duration=2000` and `video-show-actions --position=top-right` (undo with `video-hide-actions`) add chapters and action callouts without `run-code`. For Playwright 1.59+ workflows that need precise start and stop control, action callouts, chapter titles, or richer review videos, prefer `page.screencast`.
 
 ### Screencast API (Playwright 1.59+)
 
@@ -287,7 +287,7 @@ playwright-cli run-code "async page => {
   await page.screencast.showActions({
     position: 'top-right',
     duration: 900,
-    fontSize: 20
+    style: { title: 'font-size: 20px' } // 1.64+: replaces the deprecated fontSize option
   });
   await page.screencast.showChapter('Checkout flow', {
     description: 'Verify coupon entry and updated totals',
@@ -308,6 +308,47 @@ playwright-cli run-code "async page => {
 }"
 ```
 
+### Smoother, Styled Recordings (Playwright 1.64+)
+
+1.64 makes recordings good enough to publish as walkthroughs:
+
+- **`fps`** on `screencast.start()`, `recordVideo` and the test `video` option. Use 30 to 60 for demos. Firefox and WebKit currently cap at 25.
+- **`showActions({ style })`** takes CSS declarations for the click `point`, the target `highlight` and the action `title`. It replaces `fontSize`, which is deprecated.
+- The cursor now stays visible at the last action point, survives navigations, and moves along an eased path, so viewers can follow it.
+- Output is VP9 instead of VP8: smaller files, less CPU.
+
+```bash
+playwright-cli run-code "async page => {
+  await page.screencast.start({
+    path: 'recordings/release-demo.webm',
+    size: { width: 1920, height: 1080 },
+    fps: 60
+  });
+  await page.screencast.showActions({
+    style: {
+      point: 'width: 20px; height: 20px; border-radius: 50%; background: red',
+      highlight: 'outline: 2px solid #333; background: rgba(0, 128, 255, .15)',
+      title: 'font-size: 16px'
+    }
+  });
+  return 'Recording at 60fps';
+}"
+```
+
+The same options work in the test runner config, so a demo spec can record itself:
+
+```typescript
+// playwright.config.ts
+use: {
+  video: {
+    mode: 'on',
+    size: { width: 1920, height: 1080 },
+    fps: 60,
+    show: { actions: { style: { title: 'font-size: 16px' } } },
+  },
+},
+```
+
 ### When To Use Screencast vs Video Recording
 
 | Need | Best choice |
@@ -321,30 +362,31 @@ playwright-cli run-code "async page => {
 ### Basic Recording
 
 ```bash
-# Start recording
-playwright-cli video-start
+# Open the browser, then start recording
+playwright-cli open
+playwright-cli video-start demo.webm
 
 # Perform actions (everything is recorded)
-playwright-cli open https://example.com
+playwright-cli goto https://example.com
 playwright-cli snapshot
 playwright-cli click e1
 playwright-cli fill e2 "test input"
 playwright-cli click e5
 
 # Stop and save
-playwright-cli video-stop demo.webm
+playwright-cli video-stop
 ```
 
 ### Recording with Descriptive Names
 
 ```bash
-playwright-cli video-start
+playwright-cli video-start recordings/login-flow-2024-01-15.webm
 # ... login flow ...
-playwright-cli video-stop recordings/login-flow-2024-01-15.webm
+playwright-cli video-stop
 
-playwright-cli video-start
+playwright-cli video-start recordings/checkout-happy-path.webm
 # ... checkout flow ...
-playwright-cli video-stop recordings/checkout-happy-path.webm
+playwright-cli video-stop
 ```
 
 ### Use Cases

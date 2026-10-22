@@ -27,7 +27,7 @@ version: 2.1
 executors:
   playwright:
     docker:
-      - image: mcr.microsoft.com/playwright:v1.52.0-noble
+      - image: mcr.microsoft.com/playwright:v1.64.0-noble
     working_directory: ~/project
 
 jobs:
@@ -101,12 +101,12 @@ export default defineConfig({
 version: 2.1
 
 orbs:
-  node: circleci/node@6.1
+  node: circleci/node@7.2
 
 executors:
   playwright:
     docker:
-      - image: mcr.microsoft.com/playwright:v1.52.0-noble
+      - image: mcr.microsoft.com/playwright:v1.64.0-noble
 
 jobs:
   e2e:
@@ -157,9 +157,9 @@ variables:
   npm_config_cache: $(Pipeline.Workspace)/.npm
 
 steps:
-  - task: NodeTool@0
+  - task: UseNode@1
     inputs:
-      versionSpec: '20.x'
+      version: '24.x'
     displayName: 'Install Node.js'
 
   - task: Cache@2
@@ -248,9 +248,9 @@ stages:
             shard4:
               SHARD: '4/4'
         steps:
-          - task: NodeTool@0
+          - task: UseNode@1
             inputs:
-              versionSpec: '20.x'
+              version: '24.x'
 
           - script: npm ci
             displayName: 'Install dependencies'
@@ -276,9 +276,9 @@ stages:
         pool:
           vmImage: 'ubuntu-latest'
         steps:
-          - task: NodeTool@0
+          - task: UseNode@1
             inputs:
-              versionSpec: '20.x'
+              version: '24.x'
 
           - script: npm ci
             displayName: 'Install dependencies'
@@ -312,7 +312,7 @@ stages:
 pipeline {
     agent {
         docker {
-            image 'mcr.microsoft.com/playwright:v1.52.0-noble'
+            image 'mcr.microsoft.com/playwright:v1.64.0-noble'
             args '-u root'  // Playwright needs root in container
         }
     }
@@ -408,7 +408,7 @@ pipeline {
                 stage('Shard 1') {
                     agent {
                         docker {
-                            image 'mcr.microsoft.com/playwright:v1.52.0-noble'
+                            image 'mcr.microsoft.com/playwright:v1.64.0-noble'
                             args '-u root'
                         }
                     }
@@ -426,7 +426,7 @@ pipeline {
                 stage('Shard 2') {
                     agent {
                         docker {
-                            image 'mcr.microsoft.com/playwright:v1.52.0-noble'
+                            image 'mcr.microsoft.com/playwright:v1.64.0-noble'
                             args '-u root'
                         }
                     }
@@ -444,7 +444,7 @@ pipeline {
                 stage('Shard 3') {
                     agent {
                         docker {
-                            image 'mcr.microsoft.com/playwright:v1.52.0-noble'
+                            image 'mcr.microsoft.com/playwright:v1.64.0-noble'
                             args '-u root'
                         }
                     }
@@ -462,7 +462,7 @@ pipeline {
                 stage('Shard 4') {
                     agent {
                         docker {
-                            image 'mcr.microsoft.com/playwright:v1.52.0-noble'
+                            image 'mcr.microsoft.com/playwright:v1.64.0-noble'
                             args '-u root'
                         }
                     }
@@ -519,7 +519,7 @@ pipeline {
 
 ```yaml
 docker:
-  - image: mcr.microsoft.com/playwright:v1.52.0-noble  # match package.json version
+  - image: mcr.microsoft.com/playwright:v1.64.0-noble  # match package.json version
 ```
 
 ### Azure DevOps: Test results not showing in Tests tab
@@ -550,7 +550,7 @@ reporter: [['junit', { outputFile: 'test-results/junit.xml' }]],
 ```groovy
 agent {
     docker {
-        image 'mcr.microsoft.com/playwright:v1.52.0-noble'
+        image 'mcr.microsoft.com/playwright:v1.64.0-noble'
         args '-u root'
     }
 }

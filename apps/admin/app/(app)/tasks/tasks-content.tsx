@@ -176,7 +176,7 @@ export function TasksPageContent() {
         draft.updated_at = timestamp;
       });
 
-      void tx.isPersisted.promise;
+      void tx.when("settled");
     },
     [tasksCollection],
   );
@@ -191,7 +191,7 @@ export function TasksPageContent() {
         Object.assign(draft, updatedTask);
       });
 
-      void tx.isPersisted.promise;
+      void tx.when("settled");
       dispatchUi({ type: "set-selected-task", task: updatedTask });
     },
     [tasksCollection],
@@ -204,7 +204,7 @@ export function TasksPageContent() {
       }
 
       const tx = tasksCollection.delete(taskId);
-      void tx.isPersisted.promise;
+      void tx.when("settled");
       dispatchUi({ type: "set-selected-task", task: null });
     },
     [tasksCollection],
@@ -223,7 +223,7 @@ export function TasksPageContent() {
           });
         });
 
-        void tx.isPersisted.promise;
+        void tx.when("settled");
       } else {
         const newTask: Task = {
           ...(taskData as Task),
@@ -237,7 +237,7 @@ export function TasksPageContent() {
           updated_at: new Date().toISOString(),
         };
         const tx = tasksCollection.insert(newTask);
-        void tx.isPersisted.promise;
+        void tx.when("settled");
       }
       dispatchUi({ type: "close-modal" });
     },

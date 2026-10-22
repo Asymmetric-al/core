@@ -210,3 +210,91 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.issue?.message).not.toContain("super-secret");
   });
 });
+
+describe("verified Payload database CA configuration", () => {
+  const certificate = "fixture-public-ca";
+  const verifiedUrl = SUPAVISOR_POOLER_URL.replace(
+    "sslmode=no-verify",
+    "sslmode=verify-full",
+  );
+
+  it("verifies the server with the supplied CA and preserves hosted pool bounds", () => {
+    const config = resolvePayloadDatabaseConfig({
+      PAYLOAD_DATABASE_URI: `${verifiedUrl}&application_name=ca-fixture`,
+      PAYLOAD_DATABASE_SSL_CA: certificate,
+      VERCEL_ENV: "production",
+    });
+    expect(config.issue).toBeNull();
+    expect(config.sslMode).toBe("verify-full");
+    expect(config.pool).toEqual({
+      connectionString: verifiedUrl.replace(
+        "?sslmode=verify-full",
+        "?application_name=ca-fixture",
+      ),
+      ssl: { ca: certificate, rejectUnauthorized: true },
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 5000,
+      max: 2,
+    });
+    expect(assertPayloadDatabaseConfiguration(config)).toBe(config);
+  });
+
+  it.each([
+    "no-verify",
+    "disable",
+    "require",
+    "verify-ca",
+    "verify-full&sslmode=disable",
+  ])("fails closed when CA verification conflicts with URI mode %s", (mode) => {
+    expect(() =>
+      resolvePayloadDatabaseConfig({
+        PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL.replace("no-verify", mode),
+        PAYLOAD_DATABASE_SSL_CA: certificate,
+      }),
+    ).toThrow(PayloadDatabaseConfigurationError);
+  });
+
+  it.each([
+    "ssl=false",
+    "sslrootcert=other.crt",
+    "sslcert=client.crt",
+    "sslkey=client.key",
+    "uselibpqcompat=true",
+  ])(
+    "rejects a driver option that could replace the verified CA options: %s",
+    (option) => {
+      expect(() =>
+        resolvePayloadDatabaseConfig({
+          PAYLOAD_DATABASE_URI: `${verifiedUrl}&${option}`,
+          PAYLOAD_DATABASE_SSL_CA: certificate,
+        }),
+      ).toThrow("cannot be combined");
+    },
+  );
+
+  it("rejects whitespace-only CA configuration", () => {
+    expect(() =>
+      resolvePayloadDatabaseConfig({
+        PAYLOAD_DATABASE_URI: verifiedUrl,
+        PAYLOAD_DATABASE_SSL_CA: "   ",
+      }),
+    ).toThrow("non-empty");
+  });
+
+  it("reports an invalid CA connection without echoing the URI or credential", () => {
+    expect(() =>
+      resolvePayloadDatabaseConfig({
+        PAYLOAD_DATABASE_URI: "postgresql://postgres:super-secret@",
+        PAYLOAD_DATABASE_SSL_CA: certificate,
+      }),
+    ).toThrow("valid Postgres URL");
+    try {
+      resolvePayloadDatabaseConfig({
+        PAYLOAD_DATABASE_URI: "postgresql://postgres:super-secret@",
+        PAYLOAD_DATABASE_SSL_CA: certificate,
+      });
+    } catch (error) {
+      expect(String(error)).not.toContain("super-secret");
+    }
+  });
+});

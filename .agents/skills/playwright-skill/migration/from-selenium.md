@@ -18,11 +18,11 @@ Playwright: nothing — auto-waiting is built into every action and assertion
 
 ### 2. No WebDriver Protocol Overhead
 
-Selenium sends every command over the WebDriver (W3C) HTTP protocol -- each click, each find, each assertion is a round-trip HTTP request. Playwright communicates over CDP (Chromium), the DevTools protocol (Firefox), or native WebKit protocol. This is a persistent bidirectional connection, not request-response. Tests are faster by default.
+Selenium sends every command over the WebDriver (W3C) HTTP protocol -- each click, each find, each assertion is a round-trip HTTP request. Playwright communicates over CDP (Chromium) or its own protocol to its patched Firefox and WebKit builds. This is a persistent bidirectional connection, not request-response. Tests are faster by default.
 
 ### 3. No Driver Management
 
-Selenium requires matching browser drivers (`chromedriver`, `geckodriver`) to browser versions. Version mismatches are a constant source of CI failures. Playwright bundles browser binaries. One command installs everything:
+Selenium requires matching browser drivers (`chromedriver`, `geckodriver`) to browser versions. Version mismatches are a constant source of CI failures (Selenium Manager, bundled since Selenium 4.6, automates downloads but still resolves drivers at runtime). Playwright bundles browser binaries. One command installs everything:
 
 ```bash
 npx playwright install
@@ -186,9 +186,9 @@ public class LoginTest {
         emailField.clear();
         emailField.sendKeys("user@example.com");
 
-        WebElement passwordField = driver.findElement(By.id("password")); // pragma: allowlist secret
-        passwordField.clear(); // pragma: allowlist secret
-        passwordField.sendKeys("s3cure!Pass"); // pragma: allowlist secret
+        WebElement passwordField = driver.findElement(By.id("password"));
+        passwordField.clear();
+        passwordField.sendKeys("s3cure!Pass");
 
         WebElement loginButton = wait.until(
             ExpectedConditions.elementToBeClickable(By.cssSelector("button[type='submit']"))
@@ -602,7 +602,7 @@ public class LoginPage {
     private WebDriverWait wait;
 
     private By emailField = By.id("email");
-    private By passwordField = By.id("password"); // pragma: allowlist secret
+    private By passwordField = By.id("password");
     private By loginButton = By.cssSelector("button[type='submit']");
     private By errorMessage = By.cssSelector(".error-message");
 
@@ -611,12 +611,12 @@ public class LoginPage {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
-    public void login(String email, String password) { // pragma: allowlist secret
+    public void login(String email, String password) {
         wait.until(ExpectedConditions.visibilityOfElementLocated(emailField));
         driver.findElement(emailField).clear();
         driver.findElement(emailField).sendKeys(email);
-        driver.findElement(passwordField).clear(); // pragma: allowlist secret
-        driver.findElement(passwordField).sendKeys(password); // pragma: allowlist secret
+        driver.findElement(passwordField).clear();
+        driver.findElement(passwordField).sendKeys(password);
         driver.findElement(loginButton).click();
     }
 
@@ -949,7 +949,7 @@ Step forward and backward through each action, see the DOM state, network reques
 - [core/locators.md](../core/locators.md) -- locator strategy priority and patterns
 - [core/assertions-and-waiting.md](../core/assertions-and-waiting.md) -- auto-waiting and web-first assertions in depth
 - [core/configuration.md](../core/configuration.md) -- setting up `playwright.config`
-- [core/page-object-model.md](../core/page-object-model.md) -- page object patterns for Playwright
+- [pom/page-object-model.md](../pom/page-object-model.md) -- page object patterns for Playwright
 - [core/fixtures-and-hooks.md](../core/fixtures-and-hooks.md) -- fixtures system for test setup and isolation
 - [core/test-organization.md](../core/test-organization.md) -- organizing tests for parallel execution
 - [migration/from-cypress.md](from-cypress.md) -- migrating from Cypress instead

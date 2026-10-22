@@ -35,18 +35,18 @@ Keep behavior in the layer that owns it:
 
 The async feature component owns the initial read and the library's hydration provider. The page remains a synchronous composition surface and owns the feature's Suspense boundary.
 
-- With SWR, seed the exact key read by `useSWR`. Use `preload` with `cacheData` when later `mutate(key)` calls must update the seeded entry itself.
-- With TanStack Query, seed the same query key read by the client query and render the client subtree inside `HydrationBoundary`.
+- With SWR, seed the exact key read by `useSWR`; follow the Next.js [SWR guide](https://nextjs.org/docs/app/guides/client-side-data-fetching/swr) and the library's [Next.js guidance](https://swr.vercel.app/docs/with-nextjs).
+- With TanStack Query, seed the same query key read by the client query; follow the Next.js [TanStack Query guide](https://nextjs.org/docs/app/guides/client-side-data-fetching/tanstack-query) and the library's [Advanced Server Rendering guide](https://tanstack.com/query/latest/docs/framework/react/guides/advanced-ssr).
 
 Do not move the initial read to the browser just because the feature also has a client cache.
 
 ## Coordinate Cache Components
 
-The server cache and browser cache have independent freshness policies. Do not mirror `cacheLife` into `staleTime`, polling intervals, or SWR revalidation settings. Coordinate identities and invalidation, not durations.
+Use the Next.js [TanStack Query guide](https://nextjs.org/docs/app/guides/client-side-data-fetching/tanstack-query) or [SWR guide](https://nextjs.org/docs/app/guides/client-side-data-fetching/swr) as the source of truth for cache boundaries, sharing policy, lifetimes, tags, and hydration behavior. Do not reproduce that framework guidance in this skill.
 
-For tag-driven data, a mutation updates the client cache for immediate feedback and invalidates the same server tag used by the seeded read. For a time-driven server read, choose its `cacheLife` from the server data's freshness requirement.
+The architecture rule here is ownership only: the async feature component owns the initial server seed and hydration provider, while the page owns the feature's Suspense boundary and loading sequence.
 
-TanStack Query hydration adds one coupling: the hydration timestamp must advance whenever the seeded data advances. For tag-driven reads, cache the timestamp with the same tags as the data. For time-driven reads, derive the data and timestamp from the same cached snapshot. Do not cache a `QueryClient` or dehydrated payload.
+For personalized hydration that should be reused across server requests, also follow the trusted-identity boundary in `references/cache-components.md`.
 
 ## Mutate without drift
 

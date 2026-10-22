@@ -22,6 +22,7 @@ type PayloadDatabaseEnv = Partial<
     | PayloadDatabaseEnvKey
     | "NODE_ENV"
     | "PAYLOAD_DATABASE_POOL_MAX"
+    | "PAYLOAD_DATABASE_SSL_CA"
     | "VERCEL"
     | "VERCEL_ENV"
     | "VERCEL_TARGET_ENV",
@@ -59,6 +60,7 @@ type PayloadDatabaseConfig = {
 
 export type PayloadDatabasePoolOptions = {
   connectionString: string;
+  ssl?: { ca: string; rejectUnauthorized: true };
   connectionTimeoutMillis?: number;
   idleTimeoutMillis?: number;
   max?: number;
@@ -175,6 +177,61 @@ function getPayloadDatabasePoolWarning(input: {
   return null;
 }
 
+function resolveVerifiedDatabaseConnection(input: {
+  connectionString: string;
+  ca: string | undefined;
+}): PayloadDatabasePoolOptions {
+  if (input.ca === undefined || input.ca === "") {
+    return { connectionString: input.connectionString };
+  }
+  const fail = (message: string): never => {
+    throw new PayloadDatabaseConfigurationError({
+      code: "supavisor-ssl-mode",
+      message,
+    });
+  };
+  if (!input.ca.trim()) {
+    return fail(
+      "PAYLOAD_DATABASE_SSL_CA must contain a non-empty CA certificate.",
+    );
+  }
+  let url: URL;
+  try {
+    url = new URL(input.connectionString);
+  } catch {
+    return fail("Payload CA verification requires a valid Postgres URL.");
+  }
+  if (!["postgres:", "postgresql:"].includes(url.protocol)) {
+    return fail("Payload CA verification requires a valid Postgres URL.");
+  }
+  const modes = url.searchParams.getAll("sslmode");
+  if (modes.length !== 1 || modes[0] !== "verify-full") {
+    return fail(
+      "PAYLOAD_DATABASE_SSL_CA requires exactly one sslmode=verify-full.",
+    );
+  }
+  for (const option of [
+    "ssl",
+    "sslrootcert",
+    "sslcert",
+    "sslkey",
+    "uselibpqcompat",
+  ]) {
+    if (url.searchParams.has(option)) {
+      return fail(
+        "PAYLOAD_DATABASE_SSL_CA cannot be combined with URI SSL overrides.",
+      );
+    }
+  }
+  // pg's URI SSL parsing replaces the entire ssl object. Remove the verified
+  // mode after validation so it cannot discard the supplied CA.
+  url.searchParams.delete("sslmode");
+  return {
+    connectionString: url.toString(),
+    ssl: { ca: input.ca, rejectUnauthorized: true },
+  };
+}
+
 function resolvePayloadDatabasePoolOptions(input: {
   connectionString: string;
   env: PayloadDatabaseEnv;
@@ -189,14 +246,16 @@ function resolvePayloadDatabasePoolOptions(input: {
     input.isProtectedDeployment ||
     input.isVercelRuntime;
 
+  const connection = resolveVerifiedDatabaseConnection({
+    connectionString: input.connectionString,
+    ca: input.env.PAYLOAD_DATABASE_SSL_CA,
+  });
   if (!shouldBoundPool) {
-    return {
-      connectionString: input.connectionString,
-    };
+    return connection;
   }
 
   return {
-    connectionString: input.connectionString,
+    ...connection,
     connectionTimeoutMillis:
       DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_CONNECTION_TIMEOUT_MS,
     idleTimeoutMillis: DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_IDLE_TIMEOUT_MS,
@@ -224,6 +283,7 @@ function getPayloadDatabaseConfigurationIssue(input: {
   isSupavisorPoolerHost: boolean;
   source: PayloadDatabaseSource;
   sslMode: string | null;
+  hasVerifiedCa: boolean;
 }): PayloadDatabaseConfigIssue | null {
   if (!input.isProtectedDeployment) {
     return null;
@@ -251,11 +311,15 @@ function getPayloadDatabaseConfigurationIssue(input: {
     };
   }
 
-  if (input.isSupavisorPoolerHost && input.sslMode !== "no-verify") {
+  if (
+    input.isSupavisorPoolerHost &&
+    input.sslMode !== "no-verify" &&
+    !input.hasVerifiedCa
+  ) {
     return {
       code: "supavisor-ssl-mode",
       message:
-        "Payload database configuration uses a Supavisor pooler host, but the connection string must include sslmode=no-verify for the current Vercel/Node pg runtime. Otherwise Web Studio fails with SELF_SIGNED_CERT_IN_CHAIN before Payload can render.",
+        "Payload database configuration uses a Supavisor pooler host. Use sslmode=verify-full with PAYLOAD_DATABASE_SSL_CA from Supabase Database settings for server verification. Existing sslmode=no-verify configurations are a legacy transition path awaiting retirement.",
     };
   }
 
@@ -305,6 +369,7 @@ export function resolvePayloadDatabaseConfig(
     isSupavisorPoolerHost: isSupavisorPoolerDatabaseHost,
     source,
     sslMode,
+    hasVerifiedCa: Boolean(env.PAYLOAD_DATABASE_SSL_CA),
   });
   const pool = resolvePayloadDatabasePoolOptions({
     connectionString,

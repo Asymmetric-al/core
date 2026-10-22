@@ -328,13 +328,13 @@ afterEach(async () => {
 });
 
 describe("verify-workspace-contract", () => {
-  it("allows the explicitly vendored native PDF package directories", async () => {
+  it("allows explicitly versioned native PDF package archives", async () => {
     const tempRoot = await createWorkspaceContractRepo();
     await writeJson(path.join(tempRoot, "apps/demo/package.json"), {
       name: "@asym/demo",
       dependencies: {
         "@asym/pdf-editor":
-          "file:../../vendor/react-pdf-packages/asym-pdf-editor",
+          "file:../../vendor/react-pdf-packages/asym-pdf-editor-0.1.0.tgz",
         "@asym/ui": "workspace:*",
       },
     });
@@ -342,7 +342,7 @@ describe("verify-workspace-contract", () => {
       name: "@asym/lib",
       dependencies: {
         "@asym/docraptor-client":
-          "file:../../vendor/react-pdf-packages/asym-docraptor-client",
+          "file:../../vendor/react-pdf-packages/asym-docraptor-client-0.1.0.tgz",
       },
     });
 
@@ -350,6 +350,26 @@ describe("verify-workspace-contract", () => {
       runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
     ).not.toThrow();
   });
+
+  it.each([
+    "file:../../vendor/react-pdf-packages/asym-pdf-editor",
+    "file:../../vendor/react-pdf-packages/asym-pdf-renderer-0.1.0.tgz",
+    "file:../../vendor/react-pdf-packages/asym-pdf-editor-latest.tgz",
+    "file:../../../vendor/react-pdf-packages/asym-pdf-editor-0.1.0.tgz",
+  ])(
+    "rejects unversioned or misdirected PDF artifacts: %s",
+    async (specifier) => {
+      const tempRoot = await createWorkspaceContractRepo();
+      await writeJson(path.join(tempRoot, "apps/demo/package.json"), {
+        name: "@asym/demo",
+        dependencies: { "@asym/pdf-editor": specifier },
+      });
+
+      expect(() =>
+        runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
+      ).toThrow(/approved vendored package/);
+    },
+  );
 
   it("rejects unapproved internal file dependencies", async () => {
     const tempRoot = await createWorkspaceContractRepo();
@@ -362,7 +382,7 @@ describe("verify-workspace-contract", () => {
 
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
-    ).toThrow(/approved vendored package directory/);
+    ).toThrow(/approved vendored package archive/);
   });
 
   it("ignores commented route segment config exports", async () => {
@@ -1880,10 +1900,10 @@ describe("refresh-upstream-skills", () => {
         "---",
         "name: grill-for-unknowns",
         "description: Use when starting or reviewing a complex implementation where the user wants an agent to interrogate the plan against docs/source evidence, surface unknown unknowns, and avoid rushing into build mode. Combines docs-grounded grilling with a map-vs-territory unknowns pass.",
-        "version: 0.1.1",
+        "version: 0.1.3",
         "license: MIT",
         "metadata:",
-        "  version: 0.1.1",
+        "  version: 0.1.3",
         "---",
         "",
         "# Docs + Unknowns Grill",
@@ -1922,10 +1942,10 @@ describe("refresh-upstream-skills", () => {
         "---",
         "name: grill-for-unknowns",
         "description: Use when starting or reviewing a complex implementation where the user wants an agent to interrogate the plan against docs/source evidence, surface unknown unknowns, and avoid rushing into build mode. Combines docs-grounded grilling with a map-vs-territory unknowns pass.",
-        "version: 0.1.1",
+        "version: 0.1.3",
         "license: MIT",
         "metadata:",
-        "  version: 0.1.1",
+        "  version: 0.1.3",
         "---",
         "",
         "# Docs + Unknowns Grill",
