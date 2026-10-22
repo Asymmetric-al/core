@@ -98,10 +98,15 @@ function validateDisplayMetadata(content) {
       );
     }
     const value = JSON.parse(match[2]);
+    // Validate decoded Unicode, including escaped controls and lone surrogates.
+    // ZWNJ/ZWJ remain valid for Persian/Indic spelling and joined emoji; other
+    // format controls can hide or reorder display text and are not metadata.
+    const visibleValue = value.replace(/[\u200c\u200d]/gu, "");
     if (
-      !value.trim() ||
+      !visibleValue.trim() ||
       value.length > 1000 ||
-      /[\u0000-\u001f\u007f]/.test(value)
+      /[\p{Cc}\p{Cs}\p{Zl}\p{Zp}]/u.test(value) ||
+      /\p{Cf}/u.test(visibleValue)
     ) {
       throw new Error("ReUI OpenAI metadata has an invalid display value");
     }

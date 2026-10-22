@@ -76,3 +76,16 @@ upstream catalog.
 - **WHEN** a targeted restore replaces a reviewed ecosystem source
 - **THEN** persistent Core overlays, invocation boundaries and code-example repairs are reapplied
 - **AND** final mirrors retain the verified complete source inventory
+
+#### Scenario: Reviewed browser and chart helpers handle external data
+
+- **WHEN** the explicitly invoked frontend exploration skill inspects a page
+- **THEN** its browser tools require an explicit HTTP(S) dev-server URL and do not serve the checkout
+- **AND** page-provided scene IDs remain text rather than screenshot paths or HTML
+- **AND** chart labels and formatter output render as literal text
+
+#### Scenario: Source evidence describes a hosted bundle or removed path
+
+- **WHEN** reviewed source has a bundle identity rather than a Git revision, or an installed source path is absent
+- **THEN** maintenance records the verified bundle version and hashes or the separate availability check
+- **AND** absence alone does not claim provenance for retained historical bytes

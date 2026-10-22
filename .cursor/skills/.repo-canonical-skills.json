@@ -370,6 +370,7 @@
       "scripts/inspect.mjs",
       "scripts/lib/app-draw.mjs",
       "scripts/lib/cdp.mjs",
+      "scripts/lib/preview-boundary.mjs",
       "scripts/lib/probe.mjs",
       "scripts/lib/rules.mjs",
       "scripts/lint.mjs",

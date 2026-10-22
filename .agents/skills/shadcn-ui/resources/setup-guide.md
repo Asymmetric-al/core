@@ -159,8 +159,8 @@ The init command creates/updates several files:
 
 **src/lib/utils.ts**:
 ```typescript
-export { cn } from "cnfast";
-export type { ClassValue } from "cnfast";
+export { cn } from "cn";
+export type { ClassValue } from "cn";
 ```
 
 **Updated tailwind.config.js**:

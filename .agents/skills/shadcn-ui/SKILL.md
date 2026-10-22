@@ -111,7 +111,7 @@ shadcn/ui components require:
 - **Tailwind CSS** (3.0+)
 - **Primitives**: Radix UI OR Base UI (depending on your choice)
 - **class-variance-authority** (for variant styling)
-- **cnfast** (for class composition; Core consumes the shared `@asym/ui/lib/utils` export)
+- **cn** (for class composition; Core consumes the shared `@asym/ui/lib/utils` export)
 
 ## Component Architecture
 
@@ -136,8 +136,8 @@ src/
 All shadcn components use the `cn()` helper for class merging:
 
 ```typescript
-export { cn } from "cnfast";
-export type { ClassValue } from "cnfast";
+export { cn } from "cn";
+export type { ClassValue } from "cn";
 ```
 
 This allows you to:

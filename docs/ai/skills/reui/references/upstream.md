@@ -48,7 +48,10 @@ They describe upstream bytes **before** Core overlays or formatting.
    every file hash, and the upstream inventory. Read added/changed rule files,
    not just the entrypoint. Validate all file paths before any promotion; never
    write remote absolute paths, traversal paths, duplicate paths, or symlinks
-   into canonical or mirrored directories.
+   into canonical or mirrored directories. Display-only metadata is decoded
+   before validation: reject control/format characters, line/paragraph separators
+   and lone surrogates. Preserve normal multilingual text, combining marks,
+   supplementary characters and language/emoji ZWNJ/ZWJ joiners.
 4. Reconcile `<!-- BEGIN:core-reui-overlay -->` /
    `<!-- END:core-reui-overlay -->` blocks in the applicable upstream files. Preserve
    Core discovery fields in `SKILL.md` and `references/docs.md`. Three explicit

@@ -127,8 +127,9 @@ say how many pictures and words it takes; these hold for all of them:
 ## 6. Checking it
 
 ```bash
-node <skill>/scripts/scenes.mjs <page>        # every scene at 0, 10 … 100%, desktop and phone, and reduced motion
-node <skill>/scripts/inspect.mjs <page>       # the gate; with scenes on the sheet it also films the scroll
+node <skill>/scripts/scenes.mjs <existing-dev-server-url>    # scene sheets
+node <skill>/scripts/inspect.mjs <existing-dev-server-url>   # layout and scroll
+# Use the project's existing server or a reviewed host of public build outputs.
 ```
 
 `scenes.mjs` writes one contact sheet per scene and width to `.taste-skill/scenes/`. Read every one.

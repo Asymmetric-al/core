@@ -51,9 +51,14 @@ The refresh script downloads only the official `SKILL.md` files listed above.
 It also downloads the referenced markdown files needed by those skills so local
 links stay readable and `bun run skills:verify` can catch reference drift. It
 does not vendor Codex plugin evals, examples, assets, or product runtime code.
-It applies one repo overlay to `inngest-agents` so the upstream companion
-example path points at `inngest/inngest-codex-plugin` instead of implying a
-local example directory exists.
+It applies repository workflow and ownership guidance to all twelve installed skills.
+The adapters repair shared expressions links and point the durable-agent example
+at `inngest/inngest-codex-plugin` instead of implying a local example directory
+exists. API and API-CLI routing uses available connected Cloud MCP tools rather
+than requiring an uninstalled `inngest-cloud` skill; explicit terminal and HTTP
+fallback remain available. Local dev-server MCP requirements are separate from
+Cloud OAuth. The API REST reference points Insights queries at the separate
+installed CLI companion.
 
 ## Manual Source Commands
 

@@ -1,0 +1,41 @@
+{
+  "version": 2,
+  "source": "leonxlnx/taste-skill",
+  "reviewedRef": "6010f91a9935f1c167dfc500fb1a475681892e6b",
+  "files": [
+    {
+      "path": "scripts/inspect.mjs",
+      "upstreamHash": "999ea1a4a53893576d1699799073754795f9532c297e52578f3fddf07bcb180d",
+      "coreHash": "b74303a66344a20c752ed2d4f4618015d7d53b0c0abfe3b1629b52871cb07b85",
+      "template": "taste-inspect.mjs"
+    },
+    {
+      "path": "scripts/scenes.mjs",
+      "upstreamHash": "2372caf01e575bb86f49eb6baa3d78f5cdcda20357e01eff0925a7fd8a9f6a2d",
+      "coreHash": "b0fb41436903e352e5cfe6039d4d2c360e83d092c737257b318e0880882f7d3c",
+      "template": "taste-scenes.mjs"
+    }
+  ],
+  "helper": {
+    "path": "scripts/lib/preview-boundary.mjs",
+    "template": "taste-preview-boundary.mjs",
+    "sha256": "83a809f339119f7ea42398a7e007d91b16253e8c2f248fa00e7c750c99c7a303"
+  },
+  "documents": [
+    {
+      "path": "SKILL.md",
+      "upstream": "node <skill>/scripts/lint.mjs <source files or folder>\nnode <skill>/scripts/inspect.mjs <url or path/to/index.html>\nnode <skill>/scripts/scenes.mjs <url or path/to/index.html>     # when the page has scroll scenes",
+      "core": "node <skill>/scripts/lint.mjs <source files or folder>\nnode <skill>/scripts/inspect.mjs <existing-dev-server-url>\nnode <skill>/scripts/scenes.mjs <existing-dev-server-url>     # when the page has scroll scenes\n# Start the existing project dev server or use a reviewed host of public build outputs."
+    },
+    {
+      "path": "SKILL.md",
+      "upstream": "The inspector serves local files over a throwaway local server; if the page must\nalso open straight from the file system, open `index.html` that way once before you finish.",
+      "core": "Browser tools require an explicit HTTP(S) dev-server URL. Follow the existing project\ndevelopment-server workflow, or use a reviewed static host exposing only public build outputs.\nThese tools do not start a filesystem server."
+    },
+    {
+      "path": "references/scenes.md",
+      "upstream": "node <skill>/scripts/scenes.mjs <page>        # every scene at 0, 10 … 100%, desktop and phone, and reduced motion\nnode <skill>/scripts/inspect.mjs <page>       # the gate; with scenes on the sheet it also films the scroll",
+      "core": "node <skill>/scripts/scenes.mjs <existing-dev-server-url>    # scene sheets\nnode <skill>/scripts/inspect.mjs <existing-dev-server-url>   # layout and scroll\n# Use the project's existing server or a reviewed host of public build outputs."
+    }
+  ]
+}

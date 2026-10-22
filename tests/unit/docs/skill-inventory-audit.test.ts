@@ -736,6 +736,61 @@ describe("reviewed installed skill inventory", () => {
     }
   });
 
+  it("distinguishes reviewed ReUI bundle identity from removed-source availability evidence", () => {
+    const audit = JSON.parse(readRepoFile("docs/ai/skill-source-audit.json"));
+    const manifest = JSON.parse(
+      readRepoFile("docs/ai/skills/reui/references/upstream-manifest.json"),
+    );
+    const reui = audit.skills.find(
+      (skill: { name: string }) => skill.name === "reui",
+    );
+    expect(reui.sourceIdentity).toEqual({
+      kind: "hosted-bundle",
+      url: manifest.source,
+      version: manifest.version,
+      bundleSha256: manifest.bundleSha256,
+    });
+    expect(reui.sourcePath).toBe("SKILL.md");
+    expect(reui.rawSkillHash).toBe(manifest.files["SKILL.md"].sha256);
+    expect(reui.rawSkillHash).not.toBe(reui.entrypointHash);
+    const evidence = reui.reviewEvidence.find(
+      (entry: { kind: string }) => entry.kind === "reviewed-hosted-bundle",
+    );
+    expect(evidence.sourceIdentity).toEqual(reui.sourceIdentity);
+    for (const [file, metadata] of Object.entries(manifest.files) as [
+      string,
+      { sha256: string },
+    ][]) {
+      expect(evidence.sourceFileHashes[file]).toBe(metadata.sha256);
+    }
+    for (const name of [
+      "redesign-existing-projects",
+      "resolving-merge-conflicts",
+    ]) {
+      const skill = audit.skills.find(
+        (entry: { name: string }) => entry.name === name,
+      );
+      expect(skill.status).toBe("retained-snapshot");
+      expect(
+        skill.reviewEvidence.some(
+          (entry: { kind: string }) =>
+            entry.kind === "reviewed-source-import-record",
+        ),
+      ).toBe(false);
+      expect(
+        skill.reviewEvidence.find(
+          (entry: { kind: string }) =>
+            entry.kind === "removed-source-availability-check",
+        ).examinedRef,
+      ).toBe(skill.examinedRef);
+      const provenance = readRepoFile(
+        "docs/ai/skills/" + name + "/references/upstream.md",
+      );
+      expect(provenance).toContain("Do not reinstall");
+      expect(provenance).not.toContain("npx skills add");
+    }
+  });
+
   it("leaves every excluded PDF payload byte unchanged in all runtime trees", () => {
     const expectedFiles = Object.keys(pdfBaselineHashes).sort();
     for (const runtimeRoot of runtimeRoots) {

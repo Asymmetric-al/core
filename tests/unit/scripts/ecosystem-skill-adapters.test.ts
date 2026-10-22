@@ -166,6 +166,86 @@ afterEach(async () => {
 });
 
 describe("ecosystem Core adapters through skills:sync", () => {
+  it("restores the installed cn helper and verifies the shared Tailwind v4 workspace after a raw reinstall", async () => {
+    const { root } = await fixture();
+    const synced = run(root);
+    expect(synced.status, synced.stdout + synced.stderr).toBe(0);
+    const project = path.join(root, "setup-project");
+    await put(project, "packages/ui/components.json", "{}\n");
+    await put(
+      project,
+      "packages/ui/styles/globals.css",
+      '@import "tailwindcss";\n:root { --background: white; }\n',
+    );
+    await mkdir(path.join(project, "packages/ui/components/shadcn"), {
+      recursive: true,
+    });
+    await put(
+      project,
+      "packages/ui/package.json",
+      JSON.stringify({
+        dependencies: {
+          react: "19",
+          tailwindcss: "4",
+          cn: "0.4.0",
+          "class-variance-authority": "1",
+          "tw-animate-css": "1",
+        },
+      }),
+    );
+    const script = path.join(
+      root,
+      ".agents/skills/shadcn-ui/scripts/verify-setup.sh",
+    );
+    for (const source of [
+      'export { cn } from "cn";\n',
+      "export { cn } from '@asym/ui/lib/utils';\n",
+    ]) {
+      await put(project, "packages/ui/lib/utils.ts", source);
+      const result = spawnSync("bash", [script], {
+        cwd: project,
+        encoding: "utf8",
+      });
+      expect(result.status, result.stdout + result.stderr).toBe(0);
+      expect(result.stdout).toContain("cn() utility function present");
+      expect(result.stdout).toContain("Tailwind v4 CSS configuration found");
+      expect(result.stdout).not.toContain("cnfast");
+    }
+    const tailwind = await readFile(
+      path.join(
+        root,
+        ".agents/skills/tailwind-design-system/references/details.md",
+      ),
+      "utf8",
+    );
+    expect(tailwind).toContain('import { cn } from "cn";');
+    expect(tailwind).toContain("export { cn };");
+    await put(
+      project,
+      "packages/ui/lib/utils.ts",
+      'export { cn } from "cnfast";\n',
+    );
+    const invalid = spawnSync("bash", [script], {
+      cwd: project,
+      encoding: "utf8",
+    });
+    expect(invalid.status).toBe(1);
+    expect(invalid.stdout).toContain("cn() utility function missing");
+    for (const runtime of [".agents", ".cursor", ".claude"]) {
+      for (const relative of [
+        "shadcn-ui/SKILL.md",
+        "shadcn-ui/resources/setup-guide.md",
+        "tailwind-design-system/references/details.md",
+      ]) {
+        const content = await readFile(
+          path.join(root, runtime, "skills", relative),
+          "utf8",
+        );
+        expect(content).toContain('from "cn"');
+        expect(content).not.toContain("cnfast");
+      }
+    }
+  });
   it("restores all reviewed overlays, aliases, policies, and helper repairs after reinstall without executing vendor code", async () => {
     const { root, skills } = await fixture();
     const result = run(root);

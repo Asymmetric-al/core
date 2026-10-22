@@ -1,6 +1,8 @@
 import { lstat, readdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { applyTasteChartCompatibility } from "./taste-charts-adapter.mjs";
+import { applyTastePreviewCompatibility } from "./taste-preview-adapter.mjs";
 
 // Reviewed source text is data. Never import code from a skill tree.
 const repositoryPackage = fileURLToPath(
@@ -184,6 +186,10 @@ export async function applyManagedSkillCompatibility(skillName, targetRoot) {
     } catch (error) {
       if (error.code !== "ENOENT") throw error;
     }
+  }
+  if (skillName === "design-taste-frontend") {
+    await applyTastePreviewCompatibility(targetRoot);
+    await applyTasteChartCompatibility(targetRoot);
   }
 }
 

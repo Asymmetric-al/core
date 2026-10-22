@@ -385,9 +385,14 @@ The refresh script downloads only the official \`SKILL.md\` files listed above.
 It also downloads the referenced markdown files needed by those skills so local
 links stay readable and \`bun run skills:verify\` can catch reference drift. It
 does not vendor Codex plugin evals, examples, assets, or product runtime code.
-It applies one repo overlay to \`inngest-agents\` so the upstream companion
-example path points at \`inngest/inngest-codex-plugin\` instead of implying a
-local example directory exists.
+It applies repository workflow and ownership guidance to all twelve installed skills.
+The adapters repair shared expressions links and point the durable-agent example
+at \`inngest/inngest-codex-plugin\` instead of implying a local example directory
+exists. API and API-CLI routing uses available connected Cloud MCP tools rather
+than requiring an uninstalled \`inngest-cloud\` skill; explicit terminal and HTTP
+fallback remain available. Local dev-server MCP requirements are separate from
+Cloud OAuth. The API REST reference points Insights queries at the separate
+installed CLI companion.
 
 ## Manual Source Commands
 
@@ -402,6 +407,12 @@ git -C /tmp/inngest-codex-plugin checkout ${INNGEST_CODEX_PLUGIN_REF}
 Copy the files listed in the source table into their matching
 \`docs/ai/skills/<skill-name>/SKILL.md\` paths, then run the sync and verify
 commands above.
+
+## Reviewed refresh 2026-10-22
+
+Advanced immutable source pins after reviewing the complete upstream comparisons. The seven imported core skills and three non-API Codex skills are content-current; only API and API-CLI add Cloud MCP-first routing. Core maps the uninstalled inngest-cloud skill to available connected Cloud MCP tools, keeps explicit terminal/HTTP fallback, and distinguishes local dev-server MCP from Cloud OAuth. No new pack members or runtime packages were installed.
+
+The API REST reference remaps its Insights cross-link to \`../../inngest-api-cli/references/cli-commands.md\`; the pinned source keeps a bare sibling filename that is not valid in the separate installed skill directories. The refresh adapter requires and rewrites that link before publication.
 `;
 }
 

@@ -359,8 +359,9 @@ For advanced animation and dark mode patterns, see [references/advanced-patterns
 
 ```typescript
 // lib/utils.ts
-export { cn } from "cnfast";
-export type { ClassValue } from "cnfast";
+import { cn } from "cn";
+export { cn };
+export type { ClassValue } from "cn";
 
 // Focus ring utility
 export const focusRing = cn(

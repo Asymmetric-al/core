@@ -142,12 +142,12 @@
           "rawSkillHash": "b4aaeb24aeb4d34ccd48cdce0ab7f91a65aed60ced1704922c977d56add4ee93",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "b4aaeb24aeb4d34ccd48cdce0ab7f91a65aed60ced1704922c977d56add4ee93",
+            "SKILL.md": "c6d71054fc076f4b9367a93b1be42914aede180ff55582fde9f7dafde60154b2",
             "references/UPSTREAM-LICENSE": "f71cc2b0a8199ff748415642e1006c760f017d8defbc29237ce43ae1e8fa8197",
-            "references/webhook-setup.md": "ceb90b50107d11082cd4939e5dc3cf74feaa95e0975f3461a4a945e8f5e847b2",
-            "references/security-levels.md": "2b85c2c693bbfa143d7ea813b9ec5ff4c49add3895f37a404a8489f18466a026",
             "references/advanced-patterns.md": "803674a38a91f7f70c53e2f1eb60c5605f81ce86da7ddfa85d0a8cf56863b516",
-            "references/upstream.md": "5027227157cdb3cef285af70f40e5c0b1f8f64ec169a7bdd21c95601c865a38a"
+            "references/security-levels.md": "2b85c2c693bbfa143d7ea813b9ec5ff4c49add3895f37a404a8489f18466a026",
+            "references/upstream.md": "5027227157cdb3cef285af70f40e5c0b1f8f64ec169a7bdd21c95601c865a38a",
+            "references/webhook-setup.md": "ceb90b50107d11082cd4939e5dc3cf74feaa95e0975f3461a4a945e8f5e847b2"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -215,7 +215,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -230,7 +230,12 @@
             "SKILL.md": "b8ede161270458e6ae2e45e8a1985373515d4c63de5568ddb0f9012d7634356c",
             "RECIPES.md": "21ff63d84391db8d96ecdf9170095f55a42c836ccc36fd3269c4772bab031ba2"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "RECIPES.md": "b68058089f94c25db4aed53d97b31d4e7135cc15b8c6c5ce7cda1d682a081089",
+            "SKILL.md": "76521f6f42291f418e9d6dca4c01a06144283a23dda34ddaf344317366f71440",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "e2f0bc7f4fbd5be20e0595cc8f57c1812ab6543ffc2b76299ed1c843eb5eefaf"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -261,7 +266,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -276,7 +281,12 @@
             "SKILL.md": "9a01a91701e6563c67677dde6b66ab30f066a5341d42c21a90ba51d99679274a",
             "RECIPES.md": "1193cb71334da2e2341778dd92bec9ac79d989cb07fd55d661f324ed5871e718"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "RECIPES.md": "ed2ae325062754f06a3b5a47e54a56b26303f8dc43d67c93553a633328ec5397",
+            "SKILL.md": "685ad71bdbf03b723d296cb55b4387a23390aec9331001692ef50310659d08d3",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "2db8e8fc9800804abe5609121df917e39692b48338a5c1d00b682893788a3bef"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -307,7 +317,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -321,7 +331,11 @@
           "sourceFileHashes": {
             "SKILL.md": "40d2b27adfdfeb0570a9f20e7d0255109d9233c50603878bcd0dcd04c923fd94"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "918574878ec11b972bed2b0589aad1d3fd6a9c284f781017a561b8b7ded21057",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "d08197ab6350857c627b3fdffd87f6ed07ecc300d5e9d821154e87d95b735506"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -374,10 +388,10 @@
           "adaptedFileHashes": {
             "SKILL.md": "90d653a8083c4cc65c8d2edee268a249eea0415e7eeaa530cbc5e3d652b62551",
             "assets/api-design-checklist.md": "ef98cb8910cdc555514198df7becc6de8b04e1a98e2291b1440bc62e14cd07e5",
-            "assets/rest-api-template.py": "a04d6243abfd501df75dea88b2bc515c83c6c4e03161b1d9045c90a920b9efce",
+            "assets/rest-api-template.py": "63dc09af2a9f15f3a65ba853d0e6f7e23ff1ab2444ae0ece91716de49233750d",
             "references/LICENSE.md": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",
-            "references/details.md": "e8b19b192ab1e1e99a5d7fed285670c2cfc0f23877338efe68da56eeaeaf1649",
-            "references/graphql-schema-design.md": "0f10cbe2f3d787be9de4ab8dcc88444ac36ab69786973666a229fdbffeb01638",
+            "references/details.md": "63708a64e7e0319cb4c5fdd7de87bea29d0fbb69dd929d46c03be99e849671ee",
+            "references/graphql-schema-design.md": "813272d6201bf8b86d2c09728a699d7e5e7b11164bd0688cf5e55250f3d13534",
             "references/rest-best-practices.md": "675fbafdd5a6d5ac2c17ab97e17c90aa0a10c2a5608860128a8be14764130fae",
             "references/upstream.md": "f54d0e70ea3ea390ae48eac257e7503a72f0f69f578d9e60ac6ebc1027dfe889"
           },
@@ -411,7 +425,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -425,7 +439,11 @@
           "sourceFileHashes": {
             "SKILL.md": "77bb63b7043bb93aca2ff4ab040c249484eef35682bb6ff7163433c31d30adc7"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "9dded777dc3326667800c9e8341a06bbf2c3bcac515fdf6c4f8e33e83833d140",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "9465662a800da7b44ebcf3b8652460766c8e4ecec3f773ceb0b010abd107c3a4"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -508,7 +526,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative",
         "Uninstalled new flow routes omitted; kept writing-great-skills and resolving-merge-conflicts routes retained",
@@ -526,7 +544,13 @@
             "PHASE-BOUNDARIES.md": "a8aa20158609ef39e2b308b6ba0660c91066838d07a867202e63a7744a88a3ed",
             "agents/openai.yaml": "bdffbc5a0a99ed1b6ef3253d251d755fd18162b9845972e380007f844b09b05c"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "PHASE-BOUNDARIES.md": "42092cf5f6ba3e94e20fb9061a1111b0f247a777342f68e5f1511235f50e5e6a",
+            "SKILL.md": "f5c8dee13ae6ed39b29716395b375e5f1640ef1fdf06256b0ce08f612e5864eb",
+            "agents/openai.yaml": "bdffbc5a0a99ed1b6ef3253d251d755fd18162b9845972e380007f844b09b05c",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "c938fc459e0d940b208eb5211f1cd2e74cfee4d9fbc6aa6067df47d141979505"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -557,7 +581,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -572,7 +596,12 @@
             "API.md": "4bb06f482c5757529e3d7a672a30fbeed42d24919a63e2571384a9ce1549aa7f",
             "SKILL.md": "39f3ee185b3aa2cf70a689052ff078953ce7ba5915ed7a9391d232e9d4dcf57f"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "API.md": "011894943ba7c7a2dbd1dfbd57aab0dbea454822619e3e9fbabfec123db93d70",
+            "SKILL.md": "bb7e4bf4449633238b6789dd6216d67af116e9f6e7762ceb852d1b29dfa0f37f",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "e65ab0ee348cd3845af86707a26c12e6d0fe2c13d147181ca0201deefffdf7e0"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -766,7 +795,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed"
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately."
       ],
       "evidence": "docs/ai/skills/better-accessibility/references/upstream.md",
       "reviewEvidence": [
@@ -785,7 +814,18 @@
             "semantics-and-aria.md": "818ad7d45a8b25a3291e52bdc51ec316c4e00e22ed58940f26321e35365b741e",
             "agents/openai.yaml": "98699206d4fb00b72bcaf69bb446f541644cc0cc3d23967e266731e100a55563"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "6507e9a24143a9a480afdfc88e4aceedb47958826943067ed9e6fa367b7d85a4",
+            "agents/openai.yaml": "98699206d4fb00b72bcaf69bb446f541644cc0cc3d23967e266731e100a55563",
+            "focus-and-keyboard.md": "b2467a3b2e058a984960848a5b522ad1ea493736a087bad58fe009965cedf53b",
+            "forms.md": "0577863845b7566679f887ebb96ec19270051b07aed9fdf075a031c13e72c92b",
+            "hit-areas.md": "797e6d73e95c3e8d6cf6f72830c2d2abce2227899e29fa4a11f7a92b743ff2a6",
+            "motion-and-zoom.md": "e6edfad1960f9b8b75dfdd85a4e8e26e25ac17112f5bfe66bad9957931300c35",
+            "references/LICENSE.md": "ed1dfe988fc40511b4845ccd9050a143a2002fee3bedc8064c47fa342b5d8d4f",
+            "references/upstream.md": "057a2711bc9a31c101cc0a858fa54fa7b8452923a698252cf040573f7df46e98",
+            "screen-readers.md": "1d8a45d95f37a7a607b930331dc159d0a4e68c240adf06a3b6a61f0b5297701c",
+            "semantics-and-aria.md": "bd88fa10b102bb5ea89e8138dac8efcd397d0a18a1ee7b9356abc0597f9c9fac"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -816,7 +856,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed"
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately."
       ],
       "evidence": "docs/ai/skills/better-colors/references/upstream.md",
       "reviewEvidence": [
@@ -835,7 +875,18 @@
             "palette-structure.md": "bba9cd296c1e4ee613420b32023b8ce1a1bb45d1340e99e906cee37413d3dd62",
             "agents/openai.yaml": "9568572146c8d7d1dc2e12536c2b8ea63480f83f2f2ebfcf2f9a500a56830d4a"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "093e31831467964e03006bdeddaec9dbed15e936d2a970489f8441bdf7f2584d",
+            "agents/openai.yaml": "9568572146c8d7d1dc2e12536c2b8ea63480f83f2f2ebfcf2f9a500a56830d4a",
+            "color-formats.md": "650637ae74a86794f3c5e97af88421e50c979a3fb3397181434be61e7ed47603",
+            "color-usage.md": "e06466fa5c03f7cef52338ad5fbf866450570fb22c0a061ee5f975e26208d362",
+            "contrast.md": "cfb4020ab4406a2aeb1f95e241690f14f5b989591ab81ac35f2acb13f23ccb8a",
+            "palette-generation.md": "43f77bd36a6ffe1c56b12e9f2c580d86242d695fa74d425feb59006f1cc54991",
+            "palette-structure.md": "83c33abea1bb35ab0389f87c9a3f0e1974f4cebd0f90a28fc38183052229612b",
+            "references/LICENSE.md": "ed1dfe988fc40511b4845ccd9050a143a2002fee3bedc8064c47fa342b5d8d4f",
+            "references/upstream.md": "c5c97564fae59f2078ee7dfc7b651f5f88290687e24689f302ec107894da62a4",
+            "token-naming.md": "f8a09fab2b45d9ddd2d0fadddb64af125ad824ad68ed6b0ce186328760b82a0d"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -895,7 +946,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed"
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately."
       ],
       "evidence": "docs/ai/skills/better-interface/references/upstream.md",
       "reviewEvidence": [
@@ -909,7 +960,13 @@
             "review-format.md": "4bb2715d6cd7c8afbd984cbe71148a214c9d43ffd535ba00789f7709ee743c01",
             "agents/openai.yaml": "541c5d823f474543d4f3a314a9292215f8c90c152249e72411ff3e3632cf55bc"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "e6b42beeade1ac7baed90152fe12b46ad8c225f8f89cac73b446e36684d1064d",
+            "agents/openai.yaml": "541c5d823f474543d4f3a314a9292215f8c90c152249e72411ff3e3632cf55bc",
+            "references/LICENSE.md": "ed1dfe988fc40511b4845ccd9050a143a2002fee3bedc8064c47fa342b5d8d4f",
+            "references/upstream.md": "9d22abee1af08f4b9cbcd83ee56c93903a444f844282bba88c1b215e1e62918c",
+            "review-format.md": "b1b38e4dba34813e05da7676eccf4b898a4c73820c5a9c7accafb78d0a9d6a27"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -940,7 +997,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed"
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately."
       ],
       "evidence": "docs/ai/skills/better-layout/references/upstream.md",
       "reviewEvidence": [
@@ -955,7 +1012,14 @@
             "spacing-and-adaptivity.md": "1b7e015f520b5e34cf9712fbb6586deb57a7c9f9902b54aa465719e9e5678958",
             "agents/openai.yaml": "d51a2ca663c9331f8f23b7a550e5f848f83e81361e21f2280cc384e99cc0ae15"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "b33ea8b1c95b5ec7e6d4839f87f7febc25af4a32952210f90b6fc416d7be8c7f",
+            "agents/openai.yaml": "d51a2ca663c9331f8f23b7a550e5f848f83e81361e21f2280cc384e99cc0ae15",
+            "grouping-and-alignment.md": "b4f4116396c123d208a1bcc3984da75b69a6d782a2f7a62ad792d9ff048d87bc",
+            "references/LICENSE.md": "ed1dfe988fc40511b4845ccd9050a143a2002fee3bedc8064c47fa342b5d8d4f",
+            "references/upstream.md": "ca50273307e9b180a0a284816eb35aad6ca08eaa3a375a222f96d98ff593dbfb",
+            "spacing-and-adaptivity.md": "e125972f4b0570c18a3def9d11ee13dc1b02cc72803a4661888355d07add6950"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -986,7 +1050,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed"
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately."
       ],
       "evidence": "docs/ai/skills/better-typography/references/upstream.md",
       "reviewEvidence": [
@@ -1005,7 +1069,18 @@
             "variable-fonts-and-opentype.md": "3b8bfa85c483d1bd08490203f232c2002b838f89059d341e6b69cde040bf6556",
             "agents/openai.yaml": "01d8b8f835112e97ba0e4d97a07775e919407ebb5aab0cce9b4fa280e66b19b8"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "7f7b31ee538b8d53c94725260a88f394d9dff6d85e30857183fe5e2506bb5b48",
+            "agents/openai.yaml": "01d8b8f835112e97ba0e4d97a07775e919407ebb5aab0cce9b4fa280e66b19b8",
+            "choosing-fonts.md": "17159acc7d1bd5e8bb5fc9bd8cb676d31a3cfecb4823f3b6b0c1d8beec9cf5d6",
+            "css-cheat-sheet.md": "91b8cf5107069cc52e9360c69c0cf24bfc06257b981ec2d433c233fd85e8c241",
+            "details-and-accessibility.md": "c32e0392a7169afcca06dbd82e6fde00a3674cd4e0341e06811717edbfa07c44",
+            "references/LICENSE.md": "ed1dfe988fc40511b4845ccd9050a143a2002fee3bedc8064c47fa342b5d8d4f",
+            "references/upstream.md": "15e2a69c3f6ea5ba16c6892cff8988506807e2b2334135b70a93a8acef3c2f8b",
+            "spacing-and-sizing.md": "1f8627be1135b08e178ae27ae2af4a8b9c5ea2d43e9c6ac419684ca109633524",
+            "variable-fonts-and-opentype.md": "409a8a355680acd596e7a5a969322bc6605f2d33871a6133dcb6d3dfb13079cb",
+            "wrapping-and-punctuation.md": "e3e53d69a5456b81994a130d627f39e6222337b7147e114e80e86cc91bccba88"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -1036,7 +1111,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Generic icon placeholder tokens remapped to existing Core semantic tokens"
       ],
       "evidence": "docs/ai/skills/better-ui/references/upstream.md",
@@ -1056,7 +1131,18 @@
             "animations.md": "0e9ee790191d0761a6adf27fdf1e4279d79ecbe5d0d916fc331a28a8c86f39b3",
             "agents/openai.yaml": "799e0b58bded32edf5c217f97e08c364660ec24234978b2e3f7dee1868bea871"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "9650b6521b2ee75e32656e29e5d099403be162005a97533ba347187b24b8f9e9",
+            "agents/openai.yaml": "799e0b58bded32edf5c217f97e08c364660ec24234978b2e3f7dee1868bea871",
+            "animations.md": "7e066dc951620d4ad499367b4cf05561fa6b308f28a4ff05e07a3874e5c96079",
+            "enter-exit.md": "2dd61646fcc12ff84396d36dad9cc6f8b57435909d54d32695d805581762c835",
+            "icon-transitions.md": "0693a2834fc9f22e4ee482ad56269e0d3ffcf2c5a8f72460bf7224fc4573fd81",
+            "icons.md": "1b737ed274ba87a3c60a21ab041a1956b15f25aeb536600319312942b475eb5b",
+            "performance.md": "308642715c736b37ccbd30f1a0a6d974bb4b926c7410a9acdbed18e3b876377d",
+            "references/LICENSE.md": "ed1dfe988fc40511b4845ccd9050a143a2002fee3bedc8064c47fa342b5d8d4f",
+            "references/upstream.md": "f74bb08e51230945146559b9eb8d90fdaf2895b95379cf2ac4febd3bba9d3151",
+            "surfaces.md": "359d41b1071ce4ebf9fd5cbe50308c28acbb84b2af4ca604c5fd5a1b5ecfa70e"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -1087,7 +1173,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed"
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately."
       ],
       "evidence": "docs/ai/skills/better-writing/references/upstream.md",
       "reviewEvidence": [
@@ -1101,7 +1187,13 @@
             "patterns.md": "93ed5285d2009213b600e6f5af53ae3f7e3ff0114014146779aeda1c1ab42077",
             "agents/openai.yaml": "a5aec7e0cbc87930962f139eff4341dcf87e83fd19b9447e3f614db2bc71de67"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "744aa2be28d087f36032ee3d039eed02501b05beae11d7b2e7e356764ebba350",
+            "agents/openai.yaml": "a5aec7e0cbc87930962f139eff4341dcf87e83fd19b9447e3f614db2bc71de67",
+            "patterns.md": "7ae9952c69ba64e6d7951f60a780c9ae4e4f9dd7f6ba32123c21af7b3a67b672",
+            "references/LICENSE.md": "ed1dfe988fc40511b4845ccd9050a143a2002fee3bedc8064c47fa342b5d8d4f",
+            "references/upstream.md": "9d599237eed35bf9de3eb6fffc03839c4f84489fe185c2bac6dbfa37f6e97065"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -1205,7 +1297,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -1220,7 +1312,12 @@
             "SKILL.md": "79357a18425d66d4c24048bedf83dceb79d3bba356f38014950f764a7fab4026",
             "agents/openai.yaml": "2308a672978864633286fb9f0792b08657e501426b3f7883fc418d5d2eac5eb0"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "4ce733b7289b9fa463c0d4af381e18678a7d1ede42805d6484f61fef9ed149f6",
+            "agents/openai.yaml": "2308a672978864633286fb9f0792b08657e501426b3f7883fc418d5d2eac5eb0",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "4d656fbf079ff3e5b47e9e6efa67cccae232b1ff5c5e7b1eda6b27fc098177b0"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -1320,7 +1417,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -1335,7 +1432,12 @@
             "SKILL.md": "09eb147f793e4647949edd32dbad278f0554dfb56e0d46b699cd4c2c55bf0357",
             "agents/openai.yaml": "8229ca854e11dc8e6aef2131ee03f31fb1561cf905fab9ccc325180cf3331352"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "96d42717b1519bbda17fdc45a42c153d492fa2b2ad974866243caba7c557088c",
+            "agents/openai.yaml": "8229ca854e11dc8e6aef2131ee03f31fb1561cf905fab9ccc325180cf3331352",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "85d3e48cc93b72d8f810ff72509b14f0e347b8b55b134aae154f58712799f86f"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -1384,7 +1486,7 @@
           "adaptedFileHashes": {
             "SKILL.md": "4ae991742d240e7a2165cb8177b846ea5392b506c5ad7555a1ed4f7b6460040d",
             "references/LICENSE.md": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",
-            "references/review-patterns.md": "c3841a3a0e0a21103de5e3ad23d073b565e87b8f54b07b2b56db23c8c94040c6",
+            "references/review-patterns.md": "9906d9b5a777ca803918cd3df1b5d6cbd404b909de5d0eac521ac975b8b83ef9",
             "references/review-techniques.md": "3a6486a255659ec98a4b88299a498a63e4a7d17395327d95d84b74d27b205f5e",
             "references/upstream.md": "bb33f8c72ac33e973e2931121d14c70a51cea4b5597ba1e48eadd9998758cedc"
           },
@@ -1418,7 +1520,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -1435,7 +1537,14 @@
             "DEEPENING.md": "f3dd099ce99289bd213914d8ee3e2429b78309c3957ca4583f7659551b1d53c1",
             "agents/openai.yaml": "edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "DEEPENING.md": "9789f88a446e6508cc899ad16edfe0b193c7ca1fa27f3ad80cfdc054e24539d3",
+            "DESIGN-IT-TWICE.md": "8e740bf98446dbd4dfdc132ac4346d9a7eedaf93de6a495889171cf7f99f16bd",
+            "SKILL.md": "5f0f9a507f74a9c709bd45f9034f64a46bc10395270bcc564b15dbf428bddf35",
+            "agents/openai.yaml": "edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "46e3f16170b691908da45b7b68b77cf41fee4a2d1ce461c169ec30bcf42d4feb"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -1821,7 +1930,7 @@
           "adaptedFileHashes": {
             "SKILL.md": "299453e73fe14dbed89767eb9bce2d16ea70ef4fb3c674d0f225ce0071707abc",
             "references/LICENSE.md": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",
-            "references/advanced-strategies.md": "4f7dd0252f8a0d0c195e729500e4b1ae72c94157358faec5303e78d9b9c13a52",
+            "references/advanced-strategies.md": "43bd3746190340ffaac7e01b59874d0829920d2f10268c081bb7b15f145d4767",
             "references/details.md": "84d7e3a99cd15b553f7ac124f824463a1f0cdfc85154da803bbdd535e925ddaa",
             "references/upstream.md": "e212765f72d553b3199cead89eb9a8921d05ec83e5a548be3c8451b3f0a8fc20"
           },
@@ -1941,8 +2050,8 @@
       "sourcePath": "skills/taste-skill/",
       "rawSkillHash": "d955dae4ba8ab2d994f4bb06b4bf412a1d9875433a8597939c391f4bae91dd7a",
       "lockHash": "d955dae4ba8ab2d994f4bb06b4bf412a1d9875433a8597939c391f4bae91dd7a",
-      "entrypointHash": "6a00b9a04b4d6b4e3bad9cbdc141b1527a65715b9e9096fb138ad542bd4b5299",
-      "treeHash": "f41332bb9965682d89758ee627e5e907356cdd49fc418ea16654dc9f534d43d6",
+      "entrypointHash": "8a9dc39069b9b73749c9da5cf1c55edd28292d9f4415d6136f1b84b04d38004b",
+      "treeHash": "cf4e7fc0b7ae01cb4d2a60eb332eb734b72c0dc2c592eee45847c512e7a1152e",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -1956,8 +2065,10 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
-        "Complete v2 source tree retained as explicit-only marketing exploration; Core product owners override app recipes"
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
+        "Complete v2 source tree retained as explicit-only marketing exploration; Core product owners override app recipes",
+        "Render chart labels and formatter output as text; bound raw/current repairs to reviewed asset hashes.",
+        "Browser tools require explicit HTTP(S) dev-server URLs and do not expose a filesystem server; scene filenames are index/viewport based and captions render as text."
       ],
       "evidence": "docs/ai/skills/design-taste-frontend/references/upstream.md",
       "reviewEvidence": [
@@ -2006,7 +2117,49 @@
             "assets/scenes/stage.js": "3012ade75e01a9c0c81b5835a60e9ade965ed310cd58d85a7ad10e4ed4a1ad16",
             "assets/scenes/stage.css": "b5c587dac45ac6fcc34ae7cb4aa2b3e43797b2ef5d71fd32b48483bda3fca3e0"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "README.md": "5e33fd716b3e1ffaca9340f645d44c193f9b446107fa67f0cce498d33025672c",
+            "SKILL.md": "8a9dc39069b9b73749c9da5cf1c55edd28292d9f4415d6136f1b84b04d38004b",
+            "assets/app.css": "c60c5dd5df06602537a06aa883f3554fd4f8e37311bfeff921c75a741b5c5b5b",
+            "assets/base.css": "d86c839f96c9f95ab931a14b6c50e8cf670758182a37f8ead920c9036ee92340",
+            "assets/base.js": "793fc1f1c5c39f0e1141b22658f90e7d8ecaf7ece42a7ebd4f14767d09403b51",
+            "assets/charts.js": "afcdeba8b7bdc3ad526acae2472b183db146603d09c80158f448df20937ac705",
+            "assets/scenes/stage.css": "ef62067429236e01e1c7e3863f60dd973cd690662049157d3b5f4cf1f85c6050",
+            "assets/scenes/stage.js": "97a305a160bf94299e7ccf9fa6b5d760c6443d8797c1f832289ffba3a54293a7",
+            "evals/evals.json": "df0ee2a248cd5445c0e1600eb095dc0d43dd312f5b4bb4316a78471ae0d22a74",
+            "library/app.json": "57fde4c58cb9f4ed05ee65a18a14e65e5c976211e15f85e1555d7249bab9f10b",
+            "library/directions.json": "7b97a50c28908588fc1f7b522dc662374a76e4e0dd5ea93687b70645dcbb9f62",
+            "library/heroes.json": "80ef699b80caede5f1703e5916852881bb3c4b001a72cebdbf4edc080ba6bc27",
+            "library/motions.json": "4d7366a8977b2b4799116cbf458c685b6baec6548e87fac2ab307be651366e20",
+            "library/palettes.json": "2391d16fefcc812396eb41f13fa297fae7a371e964937c5f7241b80da805cfff",
+            "library/photos.json": "a9b60bb62fef4ffee1a6f744887141139df8ecbfd84f5a6beb6ae1fb92266540",
+            "library/sections.json": "2703a4c69d9edea791570a78db67c750c1dfce834d4606aec5904a24182c87b3",
+            "library/sites.json": "56a8fc5e8ef61d96c1de67846730fdc01b24a5e3c7fc021c1f0ca69552555fad",
+            "library/type.json": "d32e06ce211616d0ef73bab11e56e6cfd11313b0144b1094e9905b4ee23d3ef3",
+            "references/LICENSE.md": "4575a543ab88dad12ccea7d97e563d0bce5b448b06072e65d3264497dad326df",
+            "references/app-screens.md": "d80e45773c039cf222a75e26d273e98467463606fe0a0e3dd1b341e60be1d1ba",
+            "references/colour.md": "60a71e34b4d7dfa32ead3c220c2e39d8aa7f0b60b5b3660a6767b9f0b788c235",
+            "references/copy.md": "116d5d500457e2aaede75b803cbb56b81910bf29fd75d1fda7c274a33e704636",
+            "references/critique.md": "436c318fdd2d10afc7a8ef02d7895d0685785070ad86269223349a4dd8a673c9",
+            "references/imagery.md": "bbee119c9313211814dd1e667ca19efcca8e59090162301d3aa9f42745d02e36",
+            "references/layout.md": "3c2a4cc284643e31c12fbaa20bfa034cc5f1237bc19675a3455a93c7d69bc2eb",
+            "references/motion.md": "93db1b8eb6a645c1b3fcda3dca970775d2432179b82bb4142c2611727bab7853",
+            "references/research.md": "7b82267eea7ace50609c87b9f36e8f67f6a4ed8a32ad8ace7bf1992db013ea3b",
+            "references/scenes.md": "a5d88d8d52efb23c7541037522381443abfa73b9cafdc3eb194370fb1212ef46",
+            "references/tells.md": "07a13844653ba8fee5a6f2d145a0289ff7797e25d88d6f56b5486bd56cc602f0",
+            "references/type.md": "f2999d7cbff004fc94c9924f712be09beca2926f0b7232969d9bab2ce999523f",
+            "references/upstream.md": "f5f1f9f47322f792bc6d574f8566f3a0dd4e12c7b6a91306ecc57c036ac4cede",
+            "scripts/assets.mjs": "028385e396effcfd892e03c3c4e607d771c9a8adb8c8e2754581ac56fc98880d",
+            "scripts/draw.mjs": "13a5bd2a9776c451ffa2595be3edcba0d0893a1694648210757add34fabb728a",
+            "scripts/inspect.mjs": "b74303a66344a20c752ed2d4f4618015d7d53b0c0abfe3b1629b52871cb07b85",
+            "scripts/lib/app-draw.mjs": "9b60be054bbc103cea5ec56f3395ff1fb48bc834a3c45e5a0dbb492a22322888",
+            "scripts/lib/cdp.mjs": "dfbc9f429d2a330238703ea13f3003d31900822fd3c1cda4fa31d036653e6bea",
+            "scripts/lib/preview-boundary.mjs": "83a809f339119f7ea42398a7e007d91b16253e8c2f248fa00e7c750c99c7a303",
+            "scripts/lib/probe.mjs": "2d5e8d9387d866b8b92429285227ad53f30e07f2e86b60ed9bc01ed408a01ee8",
+            "scripts/lib/rules.mjs": "4d2682181d4992cc6c5e3c3d40a65167cdcd5e48c025a0053bb377a5040572c6",
+            "scripts/lint.mjs": "f025e1c349da9b4b55f29988c793750ebe9b59df7a4abf6536dae3ced95809d0",
+            "scripts/scenes.mjs": "b0fb41436903e352e5cfe6039d4d2c360e83d092c737257b318e0880882f7d3c"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -2074,7 +2227,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -2090,7 +2243,13 @@
             "scripts/hitl-loop.template.sh": "35103539fc36873eea36074769ad454f9379d6fc8b2dc0e26ce987fd3bfe5503",
             "agents/openai.yaml": "3e430dbe4334a87597488c060cb3dc3786bb00c9182877d6f5ec41f62490e90b"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "d9fffe20202e4700b40020c616730d4b6f57b3d5f7c6489dc6bc5ecfb74af7da",
+            "agents/openai.yaml": "3e430dbe4334a87597488c060cb3dc3786bb00c9182877d6f5ec41f62490e90b",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "74b51541aea6e4f4e6854bf5ae84986df90f8d2684240d582735447d4046af07",
+            "scripts/hitl-loop.template.sh": "35103539fc36873eea36074769ad454f9379d6fc8b2dc0e26ce987fd3bfe5503"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -2162,7 +2321,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -2179,7 +2338,14 @@
             "ADR-FORMAT.md": "944c92aa790e8fbdc9199640b170979abb8a34ba8d0fe18c2a01a63bce140ca0",
             "agents/openai.yaml": "f6bf2aa996c6e6f53fdd0708e18a0d16a56aed8322cca59fedbe3c0d2c75f06b"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "ADR-FORMAT.md": "8b9cf979d40feabe5f5306e976d4e630e38ce91d0a172a28c7b96076ef5caaa2",
+            "CONTEXT-FORMAT.md": "92becb584bedffae84fb9695f590f04e1cf3add36ab1212f567b5519285031fb",
+            "SKILL.md": "703a801331782dbf388908e08e31f00aedd0126c8f1c800174b3728a316488bf",
+            "agents/openai.yaml": "f6bf2aa996c6e6f53fdd0708e18a0d16a56aed8322cca59fedbe3c0d2c75f06b",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "bd4e01f732fc47294282592b33aa129a5dbfe586075ef0d54aed80ab21333c04"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -2264,20 +2430,20 @@
           "rawSkillHash": "f1b957138619784e2c22f7ae689bde6e903a8134ee52d626d8846809382ef0c8",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "f1b957138619784e2c22f7ae689bde6e903a8134ee52d626d8846809382ef0c8",
-            "references/marketing-emails.md": "6b05077c614f419b51e792638303ecd184c8c2ec7411b5c0667c3e7234869a05",
-            "references/email-types.md": "f73a80274bfab6f356de35703c23e946941bf97f8d261a13f1bf3e2c3e71f3fc",
-            "references/deliverability.md": "f98bc3072c780deccf15fd128dcbd134663811264a3cec5c9fbb9c7d7ab7e503",
+            "SKILL.md": "47441373ace6fc6a63bfdcb94a2dd29ba24220abe663b3ae0b1c22cbe6e754e9",
             "references/UPSTREAM-LICENSE": "f71cc2b0a8199ff748415642e1006c760f017d8defbc29237ce43ae1e8fa8197",
-            "references/transactional-email-catalog.md": "31e8f776dadf2f0cf4a915752fd168b6d7be36b5d1cdc16f2d0efae74e21f9ee",
-            "references/accessibility.md": "bda4563062562f60acaddae95d422e533f894b453eb2d41c5ce370e202e3bc47",
-            "references/sending-reliability.md": "8d05e1082cb89432aef74d898f8d1b3d9f356ad53e549eb322a34e7865821510",
-            "references/upstream.md": "51895dd2033d01492404a46955f090745b95b09922c5c2e8587b40b126080c2a",
+            "references/accessibility.md": "7d064e8e398521348a673f67e30a69ba23fd22eb1ffd9696c828d742a17d4c47",
             "references/compliance.md": "8e4e695118713593c0ddbf4ebeeebae1f5c1362d98e7884ea03930749f17ff42",
+            "references/deliverability.md": "f98bc3072c780deccf15fd128dcbd134663811264a3cec5c9fbb9c7d7ab7e503",
             "references/email-capture.md": "231644ab8e24464aae1455a934b77ecfdffeaad2a17ef4ee1c84b80f118eb9f0",
-            "references/transactional-emails.md": "c9b94a17aac6e11ad4d9209228f911e294abe65906ef35f409ffba5727ee7a47",
-            "references/webhooks-events.md": "fb135c1801dd3fd1b5a13c193ff54b0d4bc147226e3e70cddee779c17ed8086d",
-            "references/list-management.md": "2578129410450a562e9f0ec3f26e69da24e8eb75255f63737b3c251ca58bd77b"
+            "references/email-types.md": "bf655460ea3e378d3e960c482773c8dac06d3f0bb945f22ada0f30121f8ad878",
+            "references/list-management.md": "34ff5e75c460ba4b6dc7f30af72970f8be598323d61309d115356eceaf2bd526",
+            "references/marketing-emails.md": "6b05077c614f419b51e792638303ecd184c8c2ec7411b5c0667c3e7234869a05",
+            "references/sending-reliability.md": "5a1062fa04e2b57f39a92dcfaac3a01d58309a18836d08150889c88523e12d3b",
+            "references/transactional-email-catalog.md": "05f272f2cc92b2193c9c78bab794fa3f8971c69e62a3df79e7a395e1ab27c37c",
+            "references/transactional-emails.md": "d8b798617d92ff62c485fa8bb480fafba727af5a3f379ec4eb5983085343d954",
+            "references/upstream.md": "51895dd2033d01492404a46955f090745b95b09922c5c2e8587b40b126080c2a",
+            "references/webhooks-events.md": "fb135c1801dd3fd1b5a13c193ff54b0d4bc147226e3e70cddee779c17ed8086d"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -2309,7 +2475,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -2323,7 +2489,11 @@
           "sourceFileHashes": {
             "SKILL.md": "ffbe68e6007fb42cb8149f089b400a1ca007d59ba23e8948e2be4476f3175939"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "10a36c47e637b1506f5c6aebeeee1712f189257cbf1de1e27197a346ae2d0653",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "06ed91c5c56c4f7ae58cc3c8fb51d8c8d0e73a2e7e19e586f20891d91db86b6e"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -2385,7 +2555,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -2400,7 +2570,12 @@
             "SKILL.md": "bba39c955eb1871c5a02733976ceec5d0324198e0812e667604756489c89f7b9",
             "PICKER.md": "31a55eec94715cc79942e91e172e539e3031dcd5e2e5ee7c1446cf2caee960a6"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "PICKER.md": "acd9612f1e5ad497d1720e4573c482d3440a0c14bd1861a6b8858956a315a3f2",
+            "SKILL.md": "dde4f8e0f13ec9418cd52594c87841ef3d73fbe6c4f6ce3f2028febc74c789cd",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "30eaaa3d2701ce45df1148166d3139ab782021ac0670be3c536e81eae89f5c62"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -2816,7 +2991,7 @@
             "references/LICENSE.md": "f89abb55d9f073f38f1703e4518f0613c788c6174be7f13b8dfe48a1c076c746"
           },
           "adaptedFileHashes": {
-            "SKILL.md": "9dd52084743da02d19e86e5b83575fb6b70724b07ed6550f4f7ed4646d0d6968",
+            "SKILL.md": "fe551520e035b559ba0bf9ab196345ca627585e6911075ddefc771c4bf174b30",
             "references/LICENSE.md": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",
             "references/upstream.md": "269bb53a44028ecbc194359f264fb4f04e15bde106e1a7980f9b27214935bd5a"
           },
@@ -3063,7 +3238,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -3078,7 +3253,12 @@
             "SKILL.md": "befdff1e27a1dfe2a294d5871169ac1afe16d983911daa4f32627514a48c1e15",
             "agents/openai.yaml": "1411d7df7d99b7e621a1ff8283c8133cc2464be63d064e52d8ce169c6800ee9b"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "befdff1e27a1dfe2a294d5871169ac1afe16d983911daa4f32627514a48c1e15",
+            "agents/openai.yaml": "1411d7df7d99b7e621a1ff8283c8133cc2464be63d064e52d8ce169c6800ee9b",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "8558e3b166d064f76fee0688cc4b8df1a0ac8dc12ba0807e1e8178e78ac6b79f"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -3109,7 +3289,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -3124,7 +3304,12 @@
             "SKILL.md": "4cbb043950dad2ffd3662ff1a5a0b51ae676004b5cae10e3787e8ee7a4ee69d3",
             "agents/openai.yaml": "5c479fd562c691851690e8b18c8501045bef0943c10743d636b2fae26add1d28"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "98e189d9ab308d5a408bcc0d97a4ffaddfb53fb328a45cae55e34d12f430d69a",
+            "agents/openai.yaml": "5c479fd562c691851690e8b18c8501045bef0943c10743d636b2fae26add1d28",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "3e37d4fdd695fbe38a748aa337caf473950baa553bf806422bc92e19959d8197"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -3254,70 +3439,70 @@
           "sourceFileHashes": null,
           "adaptedFileHashes": {
             "SKILL.md": "9f9e86b7bfda7a223f7ba65e599af2374075b8f7c62cb26937ba084154b61e50",
-            "scripts/VERSION": "7470694a0b5af87394b523c1a640e2ad099efbe0e6d9e6d2f7a70703e4d04457",
-            "scripts/live-browser.js": "80805481920e62db9ceb0a34c0d366fb17fcfd242f220d688357356a32eb5c78",
-            "scripts/impeccable.cmd": "e0dcc4cd739c8a6ac9e8ce637c216cf8bd4ddae36a8bac458345bdb5a5d7e252",
-            "scripts/live-browser-dom.js": "cc6c761f70851a369dc9f1b941a30f29850e6818bda85da34860805ff84a2fed",
-            "scripts/command-metadata.json": "e8720f3aa41135211cc58cc299a39eeda86c75651f4279cc1ede8db10dcc0584",
-            "scripts/impeccable": "f5d9fcd37559ed6af782306f71b7688ad1ec5e1a4f8ae1ef4d3168f42523b1b1",
-            "scripts/live-browser-ignores.js": "7a456640898e28b97cc0ddc45006e520dbd0f50e7f9dff6212e493a4ae43c5cb",
-            "scripts/modern-screenshot.umd.js": "71c82a4b6c028569f78ea46e53955a77bdc11d4ae25685d18881e123c999a672",
-            "scripts/live-browser-session.js": "45e60c839a7c4097025e155cf60a81681fe5845e48519b597c99c0fd2ac9d043",
-            "reference/overdrive.md": "4576fcb089fce417895c3dd13740a970c440ac3107a8eb18bd287eb17fd8afcc",
-            "reference/shape.md": "a55f016c046cb6a27c55bd7f346375aeb506a755c4fbca19a5f92dbd42309c23",
-            "reference/new-work.md": "0b20870a604ac9f5de2722d249ab21ae53391992eeeb092b26f07da44039a8ac",
-            "reference/hooks.md": "fce3dcdedd9ab2258d49e9f910f766237091b65e64bac62ee69c4a009bceb751",
-            "reference/critique.md": "72ac9059de18ec6696fabec9765feb1232e6086d17c149399ab89c70c7b22c97",
-            "reference/polish.md": "81666fc7f783b4e3514db6554e713dc0479bd9cdedb06e93d15f8b579aae869a",
-            "reference/adapt.native.md": "739344ccb3864a210240047d5386e4f6f1b08be8824e184b38f5663250cee283",
-            "reference/document.md": "f44010f7e879aba17412d540606a6a42eed415ce9d968145de52161f7d247f00",
-            "reference/mode-persuade.md": "21e78c8a77badb3f83290cd4577ed3b24bd4dd3b57136d7da75733d4f3ee9ac0",
-            "reference/mode-operate.md": "7a52dd7a94ee75f6ae89542c86a1b6e1d306812b16e0d9dbf12d4acad44d148b",
-            "reference/ios.md": "40c87038b5f75147a5952a96237acf312a327bf70c1bcd8e0a5f064625ae9668",
-            "reference/layout.md": "4e1eb3c88d05079cbf6899253d00b7977cbb3149d267a4c38f4e8349af9bba40",
-            "reference/audit.md": "86e7388470f8e1003fb5541cb3816a48316ab94ec56e2996111edb2c6f9d6da2",
-            "reference/clarify.md": "173dd66abe65633910dcb04a51f40d6ff2a793f87088f022a02fc4cad24dd133",
-            "reference/onboard.md": "fa4dfd5b6f911eab1aa5ed83dd66c89eda5838367dfbbc2b14ca4dd8b2442312",
-            "reference/adapt.md": "e610180b5531e77ca4073f2451013ea518ce1d0186aa6af3f027206d4b6419fe",
-            "reference/craft.md": "9205e222bc6565b37fb504ceec93233c2d2a456802b69d16e6b1c44723907c4c",
-            "reference/component-review.md": "27c6a9cdeac91cd82bbdf677ae5d85c0f5fbd61bb45b6c78538a2f6e7d1c3593",
-            "reference/live-setup.md": "8ce6b56a685c22cc14a9a1948939b66f668ce52e217c10b5abc3eef9aacd9b8e",
-            "reference/doctor.md": "3dbef3fe606de4de0f1b5cab5f19902799e05cf566eb8223e9aa1632eeb04698",
-            "reference/operate.md": "a9d2203acd45ca33a13d5c68b02b23ed512425ac15f0e8438318ed124b43729d",
-            "reference/distill.md": "850b5852b9f9bafd0970150f83fe8f29392a417d1cd3af8d3c3a8643ef0e4c5f",
-            "reference/extract.md": "9087d73f7b7f9efa95458f2d7a2e88143cc11c7eb1d85ea8c8e43a8f34cce12b",
-            "reference/optimize.md": "6649d107374d6143cb21d93523a0ed91ecf684666fb3b9029d20736873c80c33",
-            "reference/delight.md": "098a891028ce59c212b747d3c70468dd750aff7053a703d1336045ed31e0da7c",
-            "reference/quieter.md": "80d8a9c83c302195199531368d74b413fbdb2a5ee77723c1dff0f3f17925f293",
-            "reference/region-map.md": "778cedc9199b407d3e23fa1041e38d548b00b1101a33517aa2a2eb299f9d0edc",
-            "reference/visualize.md": "1c81a831f9dd28b908306fa06e2f2944ca4595ff3df6570750c10bf806465f00",
-            "reference/mode-read.md": "a569989e6a3d6453b4c45e9474e162a15cc54e11732ac6baa7990a6e7cccc0b5",
-            "reference/generate.md": "f3f8dedce6f93fbebd50bb17a805738dcfc076a5efeadf1640ad53aca5250dd7",
-            "reference/animate.md": "fd51e77761f81fea2852ffb0fdf83c0ac16caf85bf4c54b31f1620295602555e",
-            "reference/init.md": "a5c8654225925d137f368276dae7cf798670557c2bf9f854a327c55cd7a26451",
-            "reference/typeset.md": "e379a6aca32a44507a363ff52002aed03dbaba90cae5c1f145c4db8f7d8e200a",
-            "reference/audit.native.md": "75308a054c0a2c91d18025af18aca13d8555ef9e3ab4fa00063af48e59a0f352",
-            "reference/android.md": "058f81f256134841875fd3183e06b37a023de0c877fd2b9eecd97011640791fe",
-            "reference/routing.md": "77ae09542fbc10aa4e8b119d6fd19359908a47c13c30068d6a150bfdb50e3e10",
-            "reference/bolder.md": "05b78fb0595e4d5afbf5f17470c84e89cf82f205fea3a6e9b6d8d779b7c4aab1",
-            "reference/live.md": "2a376273de7e3f9389c6cacf513a5b09a8d68bc6e1c2eb4fb92c6a213dbeb96a",
-            "reference/harden.md": "1a735cc77f629f4f9353eec45e0eae63f14b41cfab26e89ba256abc716075b28",
-            "reference/craft-floor.md": "52b523e92b76daff71be2ec8c732c374c670f8d03e1296388738e581479ec1bb",
-            "reference/colorize.md": "36e453a31d442e9e10005f8dd6bc158dff8c6b1ec7f6cd4942ef1156f8d0bfd6",
-            "agents/impeccable_finish_reviewer.toml": "1b80232e22d52b06a7278b9ca1f24f871a181c62cd91f4b18728807e7cf49dbd",
-            "agents/impeccable_manual_edit_applier.toml": "6c9ce3e27ec4520ead001da3aad2a2ebba481c4e5cd22873db8890259ee579fe",
             "agents/impeccable_asset_producer.toml": "4dbdb0cfdc2466961da6b22d200f3ec7bf8bb47c27448a2e6e3c03cdbf589831",
             "agents/impeccable_documenter.toml": "2feb3768125ba6469c92a50d516727e6d42f44579165ddfd33409948e2a3803d",
+            "agents/impeccable_finish_reviewer.toml": "1b80232e22d52b06a7278b9ca1f24f871a181c62cd91f4b18728807e7cf49dbd",
+            "agents/impeccable_manual_edit_applier.toml": "6c9ce3e27ec4520ead001da3aad2a2ebba481c4e5cd22873db8890259ee579fe",
             "agents/openai.yaml": "43b0d0ae26c955c1bc93e89b8b483927552dc380972f0313b1f55516686b4dcc",
+            "reference/adapt.md": "e610180b5531e77ca4073f2451013ea518ce1d0186aa6af3f027206d4b6419fe",
+            "reference/adapt.native.md": "739344ccb3864a210240047d5386e4f6f1b08be8824e184b38f5663250cee283",
+            "reference/android.md": "058f81f256134841875fd3183e06b37a023de0c877fd2b9eecd97011640791fe",
+            "reference/animate.md": "fd51e77761f81fea2852ffb0fdf83c0ac16caf85bf4c54b31f1620295602555e",
+            "reference/audit.md": "86e7388470f8e1003fb5541cb3816a48316ab94ec56e2996111edb2c6f9d6da2",
+            "reference/audit.native.md": "75308a054c0a2c91d18025af18aca13d8555ef9e3ab4fa00063af48e59a0f352",
+            "reference/bolder.md": "05b78fb0595e4d5afbf5f17470c84e89cf82f205fea3a6e9b6d8d779b7c4aab1",
+            "reference/clarify.md": "173dd66abe65633910dcb04a51f40d6ff2a793f87088f022a02fc4cad24dd133",
+            "reference/colorize.md": "36e453a31d442e9e10005f8dd6bc158dff8c6b1ec7f6cd4942ef1156f8d0bfd6",
+            "reference/component-review.md": "27c6a9cdeac91cd82bbdf677ae5d85c0f5fbd61bb45b6c78538a2f6e7d1c3593",
+            "reference/craft-floor.md": "52b523e92b76daff71be2ec8c732c374c670f8d03e1296388738e581479ec1bb",
+            "reference/craft.md": "9205e222bc6565b37fb504ceec93233c2d2a456802b69d16e6b1c44723907c4c",
+            "reference/critique.md": "72ac9059de18ec6696fabec9765feb1232e6086d17c149399ab89c70c7b22c97",
+            "reference/degraded/asset-producer.md": "03631eec20036193521251158d2b6a2c072a2e84e92e7f407be21ffd86d0fe6d",
+            "reference/degraded/documenter.md": "a40ebea0f7a7da571f6ba12eef55d8cdb0f4b284328bd5dfc04133b30e184e47",
+            "reference/degraded/finish-reviewer.md": "a1e4c0ef02140e451b8a474fc57c4831e203588ec76daab5196673ed2dfca49c",
+            "reference/degraded/manual-edit-applier.md": "337031e6d8246276d160eac99e39db2aeaba603ee91cbbf7bd23bbdbe9457800",
+            "reference/delight.md": "098a891028ce59c212b747d3c70468dd750aff7053a703d1336045ed31e0da7c",
+            "reference/distill.md": "850b5852b9f9bafd0970150f83fe8f29392a417d1cd3af8d3c3a8643ef0e4c5f",
+            "reference/doctor.md": "3dbef3fe606de4de0f1b5cab5f19902799e05cf566eb8223e9aa1632eeb04698",
+            "reference/document.md": "f44010f7e879aba17412d540606a6a42eed415ce9d968145de52161f7d247f00",
+            "reference/extract.md": "9087d73f7b7f9efa95458f2d7a2e88143cc11c7eb1d85ea8c8e43a8f34cce12b",
+            "reference/generate.md": "f3f8dedce6f93fbebd50bb17a805738dcfc076a5efeadf1640ad53aca5250dd7",
+            "reference/harden.md": "1a735cc77f629f4f9353eec45e0eae63f14b41cfab26e89ba256abc716075b28",
+            "reference/hooks.md": "fce3dcdedd9ab2258d49e9f910f766237091b65e64bac62ee69c4a009bceb751",
+            "reference/init.md": "a5c8654225925d137f368276dae7cf798670557c2bf9f854a327c55cd7a26451",
+            "reference/ios.md": "40c87038b5f75147a5952a96237acf312a327bf70c1bcd8e0a5f064625ae9668",
+            "reference/layout.md": "4e1eb3c88d05079cbf6899253d00b7977cbb3149d267a4c38f4e8349af9bba40",
+            "reference/live-setup.md": "8ce6b56a685c22cc14a9a1948939b66f668ce52e217c10b5abc3eef9aacd9b8e",
+            "reference/live.md": "2a376273de7e3f9389c6cacf513a5b09a8d68bc6e1c2eb4fb92c6a213dbeb96a",
+            "reference/mode-operate.md": "7a52dd7a94ee75f6ae89542c86a1b6e1d306812b16e0d9dbf12d4acad44d148b",
+            "reference/mode-persuade.md": "21e78c8a77badb3f83290cd4577ed3b24bd4dd3b57136d7da75733d4f3ee9ac0",
+            "reference/mode-read.md": "a569989e6a3d6453b4c45e9474e162a15cc54e11732ac6baa7990a6e7cccc0b5",
+            "reference/new-work.md": "0b20870a604ac9f5de2722d249ab21ae53391992eeeb092b26f07da44039a8ac",
+            "reference/onboard.md": "fa4dfd5b6f911eab1aa5ed83dd66c89eda5838367dfbbc2b14ca4dd8b2442312",
+            "reference/operate.md": "a9d2203acd45ca33a13d5c68b02b23ed512425ac15f0e8438318ed124b43729d",
+            "reference/optimize.md": "6649d107374d6143cb21d93523a0ed91ecf684666fb3b9029d20736873c80c33",
+            "reference/overdrive.md": "4576fcb089fce417895c3dd13740a970c440ac3107a8eb18bd287eb17fd8afcc",
+            "reference/polish.md": "81666fc7f783b4e3514db6554e713dc0479bd9cdedb06e93d15f8b579aae869a",
+            "reference/quieter.md": "80d8a9c83c302195199531368d74b413fbdb2a5ee77723c1dff0f3f17925f293",
+            "reference/region-map.md": "778cedc9199b407d3e23fa1041e38d548b00b1101a33517aa2a2eb299f9d0edc",
+            "reference/routing.md": "77ae09542fbc10aa4e8b119d6fd19359908a47c13c30068d6a150bfdb50e3e10",
+            "reference/shape.md": "a55f016c046cb6a27c55bd7f346375aeb506a755c4fbca19a5f92dbd42309c23",
+            "reference/typeset.md": "e379a6aca32a44507a363ff52002aed03dbaba90cae5c1f145c4db8f7d8e200a",
+            "reference/visualize.md": "1c81a831f9dd28b908306fa06e2f2944ca4595ff3df6570750c10bf806465f00",
             "references/UPSTREAM-LICENSE": "02bb8c3b4e70190e3986c0404ad2fd8d639b4f534252d82379cc1b502b6d1812",
-            "references/upstream.md": "56ffdbe71f19a8fac2091398608b0bf21bd8fc180eb7e18de0a7c30517abdb3a",
             "references/UPSTREAM-NOTICE.md": "c60a093c2845fd9fb82f9c6f742ece31f379f8190b535309d32d66c45ccffdcb",
+            "references/upstream.md": "56ffdbe71f19a8fac2091398608b0bf21bd8fc180eb7e18de0a7c30517abdb3a",
+            "scripts/VERSION": "7470694a0b5af87394b523c1a640e2ad099efbe0e6d9e6d2f7a70703e4d04457",
+            "scripts/command-metadata.json": "e8720f3aa41135211cc58cc299a39eeda86c75651f4279cc1ede8db10dcc0584",
             "scripts/data/font-index-failures.json": "a053431476cb614659045153ba482be453ea8ceebdd781a9132576e25c92bf6d",
             "scripts/data/font-index.json": "5b26232363f569445f200d524f2bbd63fc75a8f8aac18dc68fcd993d2a50a78c",
-            "reference/degraded/documenter.md": "a40ebea0f7a7da571f6ba12eef55d8cdb0f4b284328bd5dfc04133b30e184e47",
-            "reference/degraded/asset-producer.md": "03631eec20036193521251158d2b6a2c072a2e84e92e7f407be21ffd86d0fe6d",
-            "reference/degraded/manual-edit-applier.md": "337031e6d8246276d160eac99e39db2aeaba603ee91cbbf7bd23bbdbe9457800",
-            "reference/degraded/finish-reviewer.md": "a1e4c0ef02140e451b8a474fc57c4831e203588ec76daab5196673ed2dfca49c"
+            "scripts/impeccable": "f5d9fcd37559ed6af782306f71b7688ad1ec5e1a4f8ae1ef4d3168f42523b1b1",
+            "scripts/impeccable.cmd": "e0dcc4cd739c8a6ac9e8ce637c216cf8bd4ddae36a8bac458345bdb5a5d7e252",
+            "scripts/live-browser-dom.js": "cc6c761f70851a369dc9f1b941a30f29850e6818bda85da34860805ff84a2fed",
+            "scripts/live-browser-ignores.js": "7a456640898e28b97cc0ddc45006e520dbd0f50e7f9dff6212e493a4ae43c5cb",
+            "scripts/live-browser-session.js": "45e60c839a7c4097025e155cf60a81681fe5845e48519b597c99c0fd2ac9d043",
+            "scripts/live-browser.js": "80805481920e62db9ceb0a34c0d366fb17fcfd242f220d688357356a32eb5c78",
+            "scripts/modern-screenshot.umd.js": "71c82a4b6c028569f78ea46e53955a77bdc11d4ae25685d18881e123c999a672"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -3349,7 +3534,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -3364,7 +3549,12 @@
             "SKILL.md": "483bdc4ccf4ac31d86ac7beeaa0d0db80313e71e120bb8c59b3196ae5decd53d",
             "agents/openai.yaml": "8970a8596ade0c28ab427f41a4ea242d6bdf6186c59ebf55e1238dbecaab79dc"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "678a423a39efdcbd3e461387bae5ffcca3d04677a7c1d37e7907297fbe13b616",
+            "agents/openai.yaml": "8970a8596ade0c28ab427f41a4ea242d6bdf6186c59ebf55e1238dbecaab79dc",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "355260dde999af3e6a8ea1dbb5880a33743dec2899d544e8ca93c79c59d65d8b"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -3463,7 +3653,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -3479,7 +3669,13 @@
             "SKILL.md": "73962447464433476343e2c12cd08ab39cc99a9e5f3c118c5fb54ed897574ef6",
             "PLAN-TEMPLATE.md": "0a08ac8e23fd2082d7ffb86aeed7b789de77328c3cf874b16f1a755f2ef0a6ad"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "AUDIT.md": "c129a808a78bd654e2da3a9b62b28e88127ec0aee36e59ca8b961d6c93cab4cb",
+            "PLAN-TEMPLATE.md": "7bc3e7340729a2a1b2a14e1650f97783cf48e3d4b365f5860b4e62230ddada37",
+            "SKILL.md": "3fa446aafb3f47848a30b9b07f518e2b0d3619802ee72e3869562c404a8a35bc",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "71ab332e19fa98531926a6dc22cb953fc101e6ba2544bb7da12ad1a6f9b3911f"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -3510,7 +3706,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -3526,7 +3722,13 @@
             "SKILL.md": "552240a5ab5cec6b67c15dd1ad6e9f6962b1bca6ce870059a8c2713760c20392",
             "agents/openai.yaml": "c8cb20f68ebf0edb4e497bc11ae5fcaa196004e661cd189015b04f4109ced7f1"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "HTML-REPORT.md": "ab5bb36d16876ab3dda7a6c4078a25feb4bfb4c9a22b9e8ea32b1e264b10ede4",
+            "SKILL.md": "5f98717652b5ae5752d36d0f86c0010ba9d86df373c459e741c746aa29826048",
+            "agents/openai.yaml": "c8cb20f68ebf0edb4e497bc11ae5fcaa196004e661cd189015b04f4109ced7f1",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "1b00dc5470f2141e969da6a80054362c95671840397c62eedba9abd76e798419"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -3543,7 +3745,7 @@
       "rawSkillHash": null,
       "lockHash": null,
       "entrypointHash": "26d242b77ff34e04e10526c64d91431f3273df47cb980442babeccb6b9c4a363",
-      "treeHash": "8c9cbd42742bb64fa04d85f32b89f86d292eaf037828c00e142226747ef3bee3",
+      "treeHash": "19df2b7043947f46b3722c7bd843e54b881f154ff38d18cdad7de3b728921ee3",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -4037,7 +4239,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed"
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately."
       ],
       "evidence": "docs/ai/skills/interface-review/references/upstream.md",
       "reviewEvidence": [
@@ -4052,7 +4254,14 @@
             "SKILL.md": "8977988d63d7c17b8b0cd334ebd722d4e2dff00af0f152de2bc6f100d13d59ce",
             "agents/openai.yaml": "c8bb068bbd40629f03d7d4c0284924f8df1dfdf7f1a7b0fabb88b265202fa23f"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "56dd905e6a97b22ef93970222817d985992a69529860a0252f136e3bdd8caf6c",
+            "agents/openai.yaml": "c8bb068bbd40629f03d7d4c0284924f8df1dfdf7f1a7b0fabb88b265202fa23f",
+            "references/LICENSE.md": "ed1dfe988fc40511b4845ccd9050a143a2002fee3bedc8064c47fa342b5d8d4f",
+            "references/upstream.md": "62c5a9369724080b75b88665906b2b27a35a04a3388168fd679255a76870ef53",
+            "removed-signals.md": "a312834c0e207c7485be288ffdd038a27f5d7769b530cbcc7ab91c2352c08fa2",
+            "scope-resolution.md": "d70eabe7dcf80f10010e223c1b7a8d5ec8670ae525c79c37ffb750a69c1b462c"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -4312,14 +4521,15 @@
       "rawSkillHash": null,
       "lockHash": null,
       "entrypointHash": "7188477b97ecf9685c96f66170c50bf7e5f531e0a4c06e3bdd4a5bbc5b1fc219",
-      "treeHash": "5dcc8c68d6560ad6ed81c78f583adff86e6614bd487c0c3f0f2f4c64eafeca3e",
+      "treeHash": "e8b237a19751bb368a5cfba6f029dade7091cdbedad89257f7a010b4ec05c7aa",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
         "noticeFiles": []
       },
       "adaptations": [
-        "Retain repository-owned installed-contract guidance; upstream inspiration is lineage and does not imply imported or latest upstream content."
+        "Retain repository-owned installed-contract guidance; upstream inspiration is lineage and does not imply imported or latest upstream content.",
+        "Align the local class-helper guidance with installed cn@0.4.0 and shared @asym/ui ownership; retain historical upstream classification."
       ],
       "evidence": "docs/ai/skills/moai-library-shadcn/SKILL.md",
       "reviewEvidence": [
@@ -4362,7 +4572,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -4376,7 +4586,11 @@
           "sourceFileHashes": {
             "SKILL.md": "888b7651d66d66dbac4e72b7c554638eb19bd971d686d6cbdf030a5ef3788f55"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "0d5240fa68fbb6b01e5f48e50076126c3ad3fad297b5d7bc6f016c2631e48bfa",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "42158122c1797ec187376d1841fc9f62b9ab16d72f9e029a00b540ec6c31b117"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -4745,9 +4959,9 @@
           "sourceFileHashes": null,
           "adaptedFileHashes": {
             "SKILL.md": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
+            "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
             "references/dev-only-validations.md": "57383f4216cf0409041cf0129f97bad0f489246f7c4fa9e7308576b6b843817f",
             "references/per-page-decisions.md": "5064a7efdfe073bb644883edfa00ae919b60b8c76bf12d25b2e1e83b49913c83",
-            "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
             "references/upstream.md": "d80a86e247bafc037f3751862956e099b58675f6349fa1712af1aa5e70babfdb"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
@@ -4790,11 +5004,11 @@
           "sourceFileHashes": null,
           "adaptedFileHashes": {
             "SKILL.md": "3d0e8eb9d922538de71def2e75ebfc1e1d5ec86e5eeaf0b3b51f22cc38a29f99",
-            "rig-template.md": "6128549ae453d0f5169e5c85d0ef11a19a09e9c97de04b64bc59e9851f6f92d7",
-            "test-template.md": "dfdca255b0704d1b904512664cb9a9bb1266ca1eb5df4e75b6d4e72d7ad07b39",
             "reference/red-test-robustness.md": "d1355ef608d8c7319e1f6f2eeca6075f156b21a65a5e36af8242f1270ea59433",
             "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
-            "references/upstream.md": "65c42ca9d85e05c9adc0ecace5befab2fe90eb839de78e72bf80d0c7836d4e0a"
+            "references/upstream.md": "65c42ca9d85e05c9adc0ecace5befab2fe90eb839de78e72bf80d0c7836d4e0a",
+            "rig-template.md": "6128549ae453d0f5169e5c85d0ef11a19a09e9c97de04b64bc59e9851f6f92d7",
+            "test-template.md": "dfdca255b0704d1b904512664cb9a9bb1266ca1eb5df4e75b6d4e72d7ad07b39"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -4878,21 +5092,21 @@
           "rawSkillHash": "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "4a44f8226294d9992a9596e9785633216e85791d4e71a0ee58622c7a8fc8dbec",
-            "README.md": "5a5e868941b28e69f9293492c541469c5c893c7682885ec18031037115802dd8",
-            "metadata.json": "c6074064b7b7793e7a246a5ea5d5bed62adc0276af52769968c9d06c17be527e",
             "LICENSE": "d42cf83743ad90ec916292b1498b5572e1e892ad7924096fd1e6a336db8ed2be",
-            "references/instant-navigation.md": "d692ed2c4b9efe0b23d6612a1a40c3f68651dddb4463d48afa3247436798cd8d",
-            "references/testing.md": "96a1ac54d780da2f61b658b8431afa7755b77b7785fb69af356588287c1a4a94",
+            "README.md": "5a5e868941b28e69f9293492c541469c5c893c7682885ec18031037115802dd8",
+            "SKILL.md": "4a44f8226294d9992a9596e9785633216e85791d4e71a0ee58622c7a8fc8dbec",
+            "metadata.json": "c6074064b7b7793e7a246a5ea5d5bed62adc0276af52769968c9d06c17be527e",
             "references/cache-components.md": "9609fb375c1414fff0f6337630a41824c08b408079690a82ab6506f97f33fe51",
+            "references/components.md": "b647bd9a76cd2346511dc477a003d486da2d61c7f5756861e3c972ce7a8cebaf",
+            "references/example.md": "6ffb1ab6783dc592ceb4be80434afdaeb2ce6c6c9e837413254e5fba38337798",
+            "references/feature-folders.md": "26c9e10e081d4ac62f3dc4680b00e4024df6c1f3164b9053d5778cb2a316286a",
+            "references/instant-navigation.md": "d692ed2c4b9efe0b23d6612a1a40c3f68651dddb4463d48afa3247436798cd8d",
+            "references/pages-suspense.md": "b3220dbfac22be2b242dc352e79b0a80723c86de1ab97a238466ac210e103ac8",
             "references/queries-actions.md": "980c7e7004b49fa8e2d2306da03b564344579e50b8c6b77e8cfd09ea758b9486",
             "references/single-page-applications.md": "4b2a20cd803edcbeeac6f966927458e01d4a21ec8e0fb48902ba207a1b4d042e",
-            "references/components.md": "b647bd9a76cd2346511dc477a003d486da2d61c7f5756861e3c972ce7a8cebaf",
-            "references/ux-patterns.md": "83b8b4a1503c269c9452162348f6f17d81f0228451b1c76063beff13923e553f",
-            "references/example.md": "6ffb1ab6783dc592ceb4be80434afdaeb2ce6c6c9e837413254e5fba38337798",
+            "references/testing.md": "96a1ac54d780da2f61b658b8431afa7755b77b7785fb69af356588287c1a4a94",
             "references/upstream.md": "18c54655a3ef045d2be9f5a20eeb113d6c090cae13b100242b635d19196b163e",
-            "references/pages-suspense.md": "b3220dbfac22be2b242dc352e79b0a80723c86de1ab97a238466ac210e103ac8",
-            "references/feature-folders.md": "26c9e10e081d4ac62f3dc4680b00e4024df6c1f3164b9053d5778cb2a316286a"
+            "references/ux-patterns.md": "83b8b4a1503c269c9452162348f6f17d81f0228451b1c76063beff13923e553f"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -5014,8 +5228,8 @@
           "adaptedFileHashes": {
             "SKILL.md": "4266183f41fcfb895f4303bba598694e0cdf8936782b3ac09e63eb8d97431f1c",
             "references/LICENSE.md": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",
-            "references/advanced-patterns.md": "f5f0036b4990badcd241263298b4f9ef3d358d94e3db5d08307d5b80369ed584",
-            "references/details.md": "d3cf1ec64b36bd3cbaa130430870fe3dcf1b346f5016242719f2f29bb44452b8",
+            "references/advanced-patterns.md": "33aefb8b7191378fc93227e50733c130ab37c20735366479603afdc28e2665b1",
+            "references/details.md": "5291fa988372974d55204c7252674d937c298965affc55061e85c4563fba3b55",
             "references/upstream.md": "8a312ff0be2257feff2c2191c033ce8cbbadfa26791e8d436ceb2bdb96940a54"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
@@ -5506,7 +5720,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -5520,7 +5734,11 @@
           "sourceFileHashes": {
             "SKILL.md": "675fdce308683256ed617351a9b74d23457a5fbd0a562d9831b9c764b8c5e682"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "0023051f7a8346aaf3fa3a11f177035053dee92c63eeea7d6b75a1987f4804e3",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "f417bb26b5b06e7be262988b1531426a06fb87e5979e44e045365153252cb119"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -5944,97 +6162,97 @@
           "rawSkillHash": "2a1041c630dc58963aba6a76cd2b9a7533e49124dff39295f584605c4a2ec461",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "2a1041c630dc58963aba6a76cd2b9a7533e49124dff39295f584605c4a2ec461",
-            "README.md": "d9da9f1805cce818f85d397c888ba7f0da4c53435e90b056d491d22c5b807431",
             "LICENSE": "9b745cd92c3dfb415f5adefb81ff71674dd6a764cba8aa3ab14a920d1ab272ec",
+            "README.md": "d9da9f1805cce818f85d397c888ba7f0da4c53435e90b056d491d22c5b807431",
+            "SKILL.md": "2a1041c630dc58963aba6a76cd2b9a7533e49124dff39295f584605c4a2ec461",
+            "ci/SKILL.md": "e5fed8f9837a00b3bf533b6b5ce38fe3df28de447ed88f170c2f74fff2d42a7e",
+            "ci/ci-github-actions.md": "f916611f024bee5b2c4c3ea85b5bf86cb20c9ecccaab660704a4dfcac75f86a6",
+            "ci/ci-gitlab.md": "0344d85d9ef4eca6a2a81df1d98ae91e99051aa956086cf4538fe9e9180a2904",
+            "ci/ci-other.md": "361958c24feb3b33c1de81d45ab038442db7fd781762adcb3ef6c930d6a0cfc1",
+            "ci/docker-and-containers.md": "a8ccd3251ae33d917cd860ae5e92030f4711139cff93ad993ecb3afa1f2f5cb3",
+            "ci/global-setup-teardown.md": "0d154c0a3837f2cf8a6b7c17498988cbe6630f18fc4dd44325d4325df85e9fb7",
+            "ci/parallel-and-sharding.md": "c65e3de693d5ba037f0bfffdd2812d2a6e957f3b0ebd09a53a0ef3019f619c94",
+            "ci/projects-and-dependencies.md": "16216e4d1df4ecd593621127f8d2ad828b0ddc67f0bde21e7fe94132fb09cf8c",
+            "ci/reporting-and-artifacts.md": "b9ff19d4abc7cb548f0493ecc3e8ef1b2cc6fee5c7998c8ac1500ddcd7d3d518",
+            "ci/test-coverage.md": "9b313296853806342fd390fd227c187e9083c579b5f6cb6749a9bd1ee6d34dfc",
+            "core/SKILL.md": "78c3293974dc0e042d361a9b129440c38baf94161abefc8dbab8a772b2668cfe",
+            "core/accessibility.md": "6c7410d4982a85a69c09b08fb7826a535e168407b117897f9940542a2b040391",
+            "core/angular.md": "df92aa3c2932a4f3fe3a4f43cbd3487e596f8933b48fcac87f14bf467eb1d280",
+            "core/api-testing.md": "80f5e5b8da42adadb77d926f245165adf8e65d87d39dc1fd61dfbbeaa23eb7f7",
+            "core/assertions-and-waiting.md": "6afd95cf08d8be7fb717051ac3c525c051f6cb65615b5b590cf0646660d79ca4",
+            "core/auth-flows.md": "fb780f3f6cabe0128565108af32ca8ba07451db56ee49cf5a115bbcdd3467cdd",
+            "core/authentication.md": "01b2509d37730ac0641ac4134878ea310e8c6d1ef5e7e12c9fd74a4a388a1a1d",
+            "core/browser-apis.md": "39ff6e77fa73e26ccb1f00c17da1ac9013061948dce8aac5595c077df6201b60",
+            "core/browser-extensions.md": "bb99209bc9d32549a78f588336e8786a07bb550cd98439beab2263d9610230d6",
+            "core/canvas-and-webgl.md": "c02a292ce0e0d27ed9f2d4388fd4753537ca67bc3082eec6e1a6d7daf18033b2",
+            "core/clock-and-time-mocking.md": "bf93baa816e63f9122ffdb54cd4fe887592b6252373c9380aba87ddd645c0683",
+            "core/common-pitfalls.md": "94d2deca4ef7fe9f04a98a10f32d1c0158cd459dba8dd6b96c84957c90ebac8b",
+            "core/component-testing.md": "82282530aca661bfb578d2b5228ab8d461a412bb57f85e63e0d280498eef7568",
+            "core/configuration.md": "e508dd3df49d114353c1e5f76cda1da5fc65dc8488f12ae7dfb91064f872d084",
+            "core/crud-testing.md": "6d3f70f4af3f17caf6c7e07e95210a544dec25a08a8a2f750c0ca9dd48d54e1b",
+            "core/debugging.md": "0e023fa8d3a6f1cd9a4bd3834697ceedfa85df722d523cd7dfb9e27dca4d47f5",
+            "core/drag-and-drop.md": "6a20c1ebb4d52107d0675ee3ccedcaa245aed89c0504af5ae97961ff910e1df1",
+            "core/dynamic-test-selection.md": "6a64f502768c239a7ca17d8bfb364e0a74f8944d6174091ee73dfdc613aedbba",
+            "core/electron-testing.md": "39098c51fd7f780e39b57dcd69c2101e204e7fd9dd6eeacf520cd40cbba72f73",
+            "core/error-and-edge-cases.md": "08a20ab127967ecc0f34ac3b9ff7dbc2a0442d4d1e3ea790eb22f0fc34d6d4ff",
+            "core/error-index.md": "f0b786f7ce6a292f63408521bbd5e468245dcf8544fcde12e066b45fe82293b0",
+            "core/file-operations.md": "fca9aa1b361b95eca0cd204805a997fef692f34650048234b8250e8da07a9760",
+            "core/file-upload-download.md": "2cb1f8d2918a48e98ec39746f888076f4e39b0eefad9eb42f0c65b53f33b6e05",
+            "core/fixtures-and-hooks.md": "437c7c91772279161f4dc4d956a6435c9248bcc1ff2df9228042781ca2d3e81e",
+            "core/flaky-tests.md": "bffd0e71b85e8024ab2639cf28263873dc5b12a7bbada316e9d6f5bb92b5e92e",
+            "core/forms-and-validation.md": "85c1204e8903ec698fffc5cf2346cb899cd68da9592bf7a3a8cbfa8dfc7198d3",
+            "core/i18n-and-localization.md": "b308d8e6530cbf8d6b3adef2454c5324a17ac77f6b19189b79ab9fdc44ef1f74",
+            "core/iframes-and-shadow-dom.md": "ef1bbfe8f9646ffb82d40c723646629e8176ae0e0ec9496b3e90b7a7932c2e0b",
+            "core/locator-strategy.md": "2d52c17146b97aa870eb37ed94e7e206e7e81c19b0362251f4e823f60e419f12",
+            "core/locators.md": "c66cc36b1359efe3f714d320e3cd4870116f860e81346e90afa64e714124b2c0",
+            "core/mobile-and-responsive.md": "258bd62e45f3386142439d9d90bddd2fa83569adc84734d9acb52120cc079304",
+            "core/multi-context-and-popups.md": "d35bc76422737a9dce554c9be2f8808014956077adbe92f03075571c0f8513b0",
+            "core/multi-user-and-collaboration.md": "da2a1903faf7142ef4430cbe70cd4870b63f6d1fa1b1c5722b27e52aa9b3fa3a",
+            "core/network-mocking.md": "86291a5cb8970f0d0aa22d1a448ef5b5b71fe0046d5847aad8074b9e046c29b9",
+            "core/nextjs.md": "26c5b5145087b3ff458ce6e3f9ee6cfa4198a0accf4e6e462a10be7344cbcb75",
+            "core/performance-testing.md": "48876ffdd84b07c834f4ea5497e322e1aaa2232808c699c086d1c821a47e9ccb",
+            "core/react.md": "088032fcccb8cf057396dff3df9cbb1324be520a50627e3e2124a4df7115e923",
+            "core/search-and-filter.md": "ef43ab3ee77a0a7d198253623b7efdc07a5abaaf5aa627c3a172eaf1bfa98ebd",
+            "core/security-testing.md": "086264b74298ce9c506f6813505ccdfc5438c7da68d40c20e0ad90fa7368203d",
+            "core/service-workers-and-pwa.md": "153c58c3a7dd4f74a465d2a523bb4b2c1e780ff332b976ed20b46a2d6e82513b",
+            "core/test-agents.md": "2ab8587d11b8064040c0d3b6784c92d82f5da29d3fd3db96816d6bdf2a21cd11",
+            "core/test-architecture.md": "995d6e6ebd813294ac56a3ca44143e20796b4b766ff1fe29350c84a6b44082a5",
+            "core/test-data-management.md": "4251649fb0d3b6c4de24c8912f4c5a6d7774d5cde96113a0a6f50ca02135b557",
+            "core/test-organization.md": "9034b7391491bddafae9b2d9af26898a0d8f9db588c9c323cd1edcdf51321618",
+            "core/third-party-integrations.md": "de1134fdcad478b8273f1e6c808a721d1505daeaf73e49911b62d8a71aaf2907",
+            "core/trace-analysis.md": "886a8bf7413bfcd895165ca9c79b5a4000f62b41eb7608be7a6a1c18d8614e7c",
+            "core/visual-regression.md": "002e89309fd23732b159704a9767b0023ba38b7da387f92bfb3ad2bfff7e6ab3",
+            "core/vue.md": "31cb86f22cd9d9a9e6e7d7a724507a902ad695ba133f3e55f89a2251123a27a7",
+            "core/webmcp-testing.md": "b1fccfcbac90b72ce31b320806822c868239fa960717b7eb825580001af546fb",
+            "core/websockets-and-realtime.md": "2f76ac9a5b92e941fe7bdcf14de86cdb60302b7411adb26e2cc964248fe1450b",
+            "core/when-to-mock.md": "3a18b1bac8045da43cc3aeb4b4898f8a634399b2262372b079b54c2646168a90",
             "frontend/SKILL.md": "c3c4196766d8550b248a15dda5a16000cf21b0f0a938de66f952ddb9549e80f0",
             "frontend/data-testid-conventions.md": "abc84180db1bf27315a2382eb12231b5bcd736f02db330d90b28124b87d58a4d",
-            "frontend/examples.md": "dc505c4ecb1cdfe90b50b9e1fe88aaac4490bb5fe222b01da5ea18e5da5a5132",
-            "core/webmcp-testing.md": "b1fccfcbac90b72ce31b320806822c868239fa960717b7eb825580001af546fb",
-            "core/i18n-and-localization.md": "b308d8e6530cbf8d6b3adef2454c5324a17ac77f6b19189b79ab9fdc44ef1f74",
-            "core/clock-and-time-mocking.md": "bf93baa816e63f9122ffdb54cd4fe887592b6252373c9380aba87ddd645c0683",
-            "core/flaky-tests.md": "bffd0e71b85e8024ab2639cf28263873dc5b12a7bbada316e9d6f5bb92b5e92e",
-            "core/security-testing.md": "eccd23ac9f0e1426f39c141dfe4b045a759223f17cf9c6574c5231ef0176bee3",
-            "core/file-operations.md": "fca9aa1b361b95eca0cd204805a997fef692f34650048234b8250e8da07a9760",
-            "core/test-data-management.md": "2d1b9e2ec3d0e40741e0b26a57d67f71ecd68b05231b6e4d21661b5c93057576",
-            "core/browser-apis.md": "39ff6e77fa73e26ccb1f00c17da1ac9013061948dce8aac5595c077df6201b60",
-            "core/crud-testing.md": "6d3f70f4af3f17caf6c7e07e95210a544dec25a08a8a2f750c0ca9dd48d54e1b",
-            "core/authentication.md": "66d6117d657c62415c5e0f3cf0ab640376e6bb3405ea63bb40dcf7c05989287c",
-            "core/accessibility.md": "4cf2bfa7ce62cb7db005075e41f207aa1763ea7e4451427a8b14c246125d46d9",
-            "core/browser-extensions.md": "bb99209bc9d32549a78f588336e8786a07bb550cd98439beab2263d9610230d6",
-            "core/dynamic-test-selection.md": "6a64f502768c239a7ca17d8bfb364e0a74f8944d6174091ee73dfdc613aedbba",
-            "core/react.md": "b1636b0afbdb16a274d698ada8b5d4d202b1240942f1eb814615bc7dec5e21bc",
-            "core/SKILL.md": "78c3293974dc0e042d361a9b129440c38baf94161abefc8dbab8a772b2668cfe",
-            "core/multi-context-and-popups.md": "03435df567726c17553b1a48c84338096cd18b55dc5963e1e132647ad3060aec",
-            "core/locators.md": "c434a9debae81d2690bb87494c294c63527670734935ca8642cdb0da030e0bef",
-            "core/third-party-integrations.md": "de1134fdcad478b8273f1e6c808a721d1505daeaf73e49911b62d8a71aaf2907",
-            "core/api-testing.md": "24353f1e1338d1720ac2389a837b9ceb919b6b10c7bb2d161b0fbff8948d3f4d",
-            "core/test-agents.md": "2ab8587d11b8064040c0d3b6784c92d82f5da29d3fd3db96816d6bdf2a21cd11",
-            "core/error-index.md": "611790d189fb07c1c846e81902e0b77591e41f89668ee926449f8aec7dd8152f",
-            "core/fixtures-and-hooks.md": "6b587295f67559dea5b4590edb17cc5f2e6201be983160ac75faa004c819a5b8",
-            "core/component-testing.md": "82282530aca661bfb578d2b5228ab8d461a412bb57f85e63e0d280498eef7568",
-            "core/angular.md": "0744b54c2394cb2af9a49b5baf90e1a2ea2e30f18abc3862680db3c800af8d68",
-            "core/common-pitfalls.md": "e7e482fb3848007864df50f4e8e506e0f1b717d2e85f0519cbaba66aecf636a1",
-            "core/iframes-and-shadow-dom.md": "ef1bbfe8f9646ffb82d40c723646629e8176ae0e0ec9496b3e90b7a7932c2e0b",
-            "core/file-upload-download.md": "2cb1f8d2918a48e98ec39746f888076f4e39b0eefad9eb42f0c65b53f33b6e05",
-            "core/vue.md": "2aee2b2a34997875a7f754405c81c3c26cde56659df5723417651e6653b0e0f1",
-            "core/test-organization.md": "60e759356ad5fb498b3be2a489a0adb001434fd13f18aae3cf3aae1fcc944eb0",
-            "core/forms-and-validation.md": "d889a06e388ec5577ee0fa42fa70c869640dff0273510956c37342fb449ef430",
-            "core/configuration.md": "60a0f360be1b8a8da9613522abb8ea00828246e86f184aaab31ea44f4d307f9f",
-            "core/mobile-and-responsive.md": "258bd62e45f3386142439d9d90bddd2fa83569adc84734d9acb52120cc079304",
-            "core/canvas-and-webgl.md": "c02a292ce0e0d27ed9f2d4388fd4753537ca67bc3082eec6e1a6d7daf18033b2",
-            "core/drag-and-drop.md": "6a20c1ebb4d52107d0675ee3ccedcaa245aed89c0504af5ae97961ff910e1df1",
-            "core/trace-analysis.md": "886a8bf7413bfcd895165ca9c79b5a4000f62b41eb7608be7a6a1c18d8614e7c",
-            "core/test-architecture.md": "8c9c4e4fe154fead658806aab3b9e33d572c635d788ad2d454358109d68aad2d",
-            "core/assertions-and-waiting.md": "1f10cb41d9ba80646fea44cea2c5519008a45f2100197c21948b1ab65ed6e107",
-            "core/multi-user-and-collaboration.md": "da2a1903faf7142ef4430cbe70cd4870b63f6d1fa1b1c5722b27e52aa9b3fa3a",
-            "core/locator-strategy.md": "ed3564720eb4ffff71cc0bbb84a0f52dcbb1271a3028029ae9ce46b0efd44408",
-            "core/network-mocking.md": "86291a5cb8970f0d0aa22d1a448ef5b5b71fe0046d5847aad8074b9e046c29b9",
-            "core/when-to-mock.md": "3a18b1bac8045da43cc3aeb4b4898f8a634399b2262372b079b54c2646168a90",
-            "core/nextjs.md": "43e4e961d470fc444c2168942b09b8f36530acf0a7bb90acf915313251036e10",
-            "core/debugging.md": "c587674189d5519d6491e31c5d5314ca14b22c6962e6266d2de71e0634a15cc6",
-            "core/visual-regression.md": "002e89309fd23732b159704a9767b0023ba38b7da387f92bfb3ad2bfff7e6ab3",
-            "core/error-and-edge-cases.md": "08a20ab127967ecc0f34ac3b9ff7dbc2a0442d4d1e3ea790eb22f0fc34d6d4ff",
-            "core/auth-flows.md": "a97a09e95f5c47dde71ae58e43413e954ba5a07250c50153cdf344af1cf55897",
-            "core/websockets-and-realtime.md": "2f76ac9a5b92e941fe7bdcf14de86cdb60302b7411adb26e2cc964248fe1450b",
-            "core/search-and-filter.md": "ef43ab3ee77a0a7d198253623b7efdc07a5abaaf5aa627c3a172eaf1bfa98ebd",
-            "core/performance-testing.md": "48876ffdd84b07c834f4ea5497e322e1aaa2232808c699c086d1c821a47e9ccb",
-            "core/electron-testing.md": "39098c51fd7f780e39b57dcd69c2101e204e7fd9dd6eeacf520cd40cbba72f73",
-            "core/service-workers-and-pwa.md": "153c58c3a7dd4f74a465d2a523bb4b2c1e780ff332b976ed20b46a2d6e82513b",
-            "playwright-cli/test-generation.md": "60811c8d885041d9a7b3e44a8aec158916d540857831ec9cb379f22392a4a714",
-            "playwright-cli/tracing-and-debugging.md": "41ec650b9af01e05de84de4fe36c5c21084bfd8e84e201b30a6ebe89b6e6e870",
-            "playwright-cli/screenshots-and-media.md": "0d3e918d4bdad62e2bbe88d4b273f64e2e777686d8b855bbde1e1c922775469d",
-            "playwright-cli/SKILL.md": "d0ee9b4ddddaa66a96931373b0fd1a429f3029aa71e805c6e3a875f63b4c5217",
-            "playwright-cli/device-emulation.md": "be355e8fa9992a7a9133549136b2a9e7f9398b84d3f6dcb4fc6dbd2694f6c98c",
-            "playwright-cli/running-custom-code.md": "4dc1bfa6ed5143a58d7bfce6380b7ae1cbb790fddfe2f2ef9d8932ef0ee09339",
-            "playwright-cli/session-management.md": "bbbac5582a3ea4fc5cf3cb40deefd5fa92ada1c431ee94b84e6bef5e7b5c3e5a",
-            "playwright-cli/advanced-workflows.md": "b8cc19886e8ba990ebd418e3217bf8eefb3f3d651b73e606eadb95d21f4ac9a8",
-            "playwright-cli/request-mocking.md": "a6d6eddce3ac7472cd85b127e258b8200edf19a2753af2181cca4074b10a88e0",
-            "playwright-cli/storage-and-auth.md": "c68d628c63b80efe7d900170e86868303fb59b4e5f2f5e08e435b38e982d9981",
-            "playwright-cli/core-commands.md": "1c375e257196df600bb0c199b6784a6b9a67ac7b578710780ba45bc81ee88b5a",
-            "references/UPSTREAM-LICENSE": "9b745cd92c3dfb415f5adefb81ff71674dd6a764cba8aa3ab14a920d1ab272ec",
-            "references/upstream.md": "56fdf1fac3ade976ca8b0a144b9d776424800c1e090e88d359ab03274fdd1fff",
-            "qa/bug-reports.md": "a7b62c19942b6bfb5842db8620c22846a30e2ee7cfa9b909e82d28d21c917e5f",
-            "qa/SKILL.md": "e41db42fb3b7d59c3e6f794f6769e42ed0b48c0f781835f41071408b333c9717",
-            "qa/test-review.md": "c33842311816b0dab1c6b3d1ef2fb58f80801b1ed8c7e664eae8b8a8c29943d6",
-            "qa/test-design.md": "1bf309b265b77e23684fdb223dd7390d0898caefc0875a447d1cda938918d9de",
-            "qa/manual-to-automated.md": "9e822835670347906ee269aa72e431e21af5dbbdc5a332da1707cc6a9251d36f",
-            "ci/reporting-and-artifacts.md": "b9ff19d4abc7cb548f0493ecc3e8ef1b2cc6fee5c7998c8ac1500ddcd7d3d518",
-            "ci/parallel-and-sharding.md": "c65e3de693d5ba037f0bfffdd2812d2a6e957f3b0ebd09a53a0ef3019f619c94",
-            "ci/test-coverage.md": "9b313296853806342fd390fd227c187e9083c579b5f6cb6749a9bd1ee6d34dfc",
-            "ci/SKILL.md": "e5fed8f9837a00b3bf533b6b5ce38fe3df28de447ed88f170c2f74fff2d42a7e",
-            "ci/projects-and-dependencies.md": "02a7268e0bd96d8b5dcb267957c86e9819e107cb125a709943ff77cc42910eda",
-            "ci/ci-other.md": "361958c24feb3b33c1de81d45ab038442db7fd781762adcb3ef6c930d6a0cfc1",
-            "ci/ci-github-actions.md": "6bb9a8a06cb78de22a3289be0d752278c8f0dfacfd2625591ba4f23ed332984e",
-            "ci/docker-and-containers.md": "dc58ae07365ac3297c390e89557ac25f755ae3156ae787a77f4c6bbf1fcfd18f",
-            "ci/global-setup-teardown.md": "cb7888896652bcdf4258a61e12666d3801829b7595de0c5f71ba70461c7a5ea1",
-            "ci/ci-gitlab.md": "77353fe0ade9ebcb8b074c5e69c2fecc5dc73c12d993b206867e016c2698b41b",
-            "pom/SKILL.md": "e1147d948841e920674a2ec496290bc30af73101ceb5dc80282dd74019decb69",
-            "pom/pom-vs-fixtures-vs-helpers.md": "f3c36c1a8df46df2525b66c01602ea23a2f46a750eba777dd79fd91b160d90a1",
-            "pom/page-object-model.md": "fa7963743aaab7ef2d794a0383c5d30bf03e0e34a3337ab0acd9150aeebab921",
+            "frontend/examples.md": "53ed2cc58de371a927be62b0ff7429c2b3ca17e65ea2dc5775ae19e658841f09",
             "migration/SKILL.md": "88ec8964a8601cf0980c776e7bd71629948d7df1e3ac02632a265fbd9015c49e",
-            "migration/from-selenium.md": "cd8f2007a46badb599bbdd9df568e4d8e7a8f5f4c4199265c645411dcc74b64e",
-            "migration/from-cypress.md": "69ba517cc56d9a0275331b8ab24895062260b18d897a4b2df7b7033fd38443f9"
+            "migration/from-cypress.md": "d93641afa797d4e042757636e0f9878ba8ebf16c9d2b0bfa87a3f75dd90e474e",
+            "migration/from-selenium.md": "bb6855cbb167fc99e28efffd5fdb850f3173b2bf7b00af788a538e9e25037887",
+            "playwright-cli/SKILL.md": "d0ee9b4ddddaa66a96931373b0fd1a429f3029aa71e805c6e3a875f63b4c5217",
+            "playwright-cli/advanced-workflows.md": "a73b96e33c233826a02ccc3de4c7cc43f0f6f84b4b92f069e20931aeb833c700",
+            "playwright-cli/core-commands.md": "1b069165b3700f63c971a01630574681b7d487029e6a03a1626cab129c0caf94",
+            "playwright-cli/device-emulation.md": "be355e8fa9992a7a9133549136b2a9e7f9398b84d3f6dcb4fc6dbd2694f6c98c",
+            "playwright-cli/request-mocking.md": "a6d6eddce3ac7472cd85b127e258b8200edf19a2753af2181cca4074b10a88e0",
+            "playwright-cli/running-custom-code.md": "4dc1bfa6ed5143a58d7bfce6380b7ae1cbb790fddfe2f2ef9d8932ef0ee09339",
+            "playwright-cli/screenshots-and-media.md": "749831177b7bee2c5b70a7d6ca4864ae2b070431dcf5a24f38d77ae779021750",
+            "playwright-cli/session-management.md": "9f65940280140c6e0826963583ad62e15910146ba2b55b82b19354c4b81a28ef",
+            "playwright-cli/storage-and-auth.md": "660505e6bde98ccfd4377bba145c2aa536912bb9b4f3648232fa67e369c5523b",
+            "playwright-cli/test-generation.md": "d8b58324eba1b0d1e8f9709ef7876905247233c338bdd7024e07cf2b2d50dd22",
+            "playwright-cli/tracing-and-debugging.md": "41ec650b9af01e05de84de4fe36c5c21084bfd8e84e201b30a6ebe89b6e6e870",
+            "pom/SKILL.md": "e1147d948841e920674a2ec496290bc30af73101ceb5dc80282dd74019decb69",
+            "pom/page-object-model.md": "9fc43aed846883e498d43e07347fd57a803c3cab194f45a4e52cd852c80d3b6d",
+            "pom/pom-vs-fixtures-vs-helpers.md": "7c7985c9e480075037ea9ea1148d29fe7b5e9c4684e0b017d436efd837bd1037",
+            "qa/SKILL.md": "e41db42fb3b7d59c3e6f794f6769e42ed0b48c0f781835f41071408b333c9717",
+            "qa/bug-reports.md": "a7b62c19942b6bfb5842db8620c22846a30e2ee7cfa9b909e82d28d21c917e5f",
+            "qa/manual-to-automated.md": "c191632067ff459bfb64dcb404bc470cb657bfebe0d44b2a57bde9ab538cef15",
+            "qa/test-design.md": "4db935e5057034bff86581339249a2a4fb617022aee76a0688f8bd250e8e7551",
+            "qa/test-review.md": "fa35ae67be8ac584491ab6a438eb012a107c3a9ea161e1f6358345bde04677bf",
+            "references/UPSTREAM-LICENSE": "9b745cd92c3dfb415f5adefb81ff71674dd6a764cba8aa3ab14a920d1ab272ec",
+            "references/upstream.md": "56fdf1fac3ade976ca8b0a144b9d776424800c1e090e88d359ab03274fdd1fff"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -6172,7 +6390,7 @@
             "assets/prompt-template-library.md": "c5756b6f9c5558d8ca82d845fd50492b53f1f4d6d02cf27585f411440a4723c2",
             "references/LICENSE.md": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",
             "references/chain-of-thought.md": "155af3b1d240b67970870940cc90396ba9e66580a9487bb0f7bd288ad10622f5",
-            "references/details.md": "406934586a34cd1aa0084d3dbd21e5e77be75de934a791cae962e1e16f55a133",
+            "references/details.md": "71edc4bda2e33b8a6871d49a925a4549c05beb5faa38491b99ad34e555489fbc",
             "references/few-shot-learning.md": "d8784634f7beb4c60c51add45203ef2d9d0e4e3accbb81ba3295f87d893dba10",
             "references/prompt-optimization.md": "5c25ad9b49045ef35c55b531bd227f04628b0018080b0d4f05cb20b01b44ee41",
             "references/prompt-templates.md": "18db56a32be1639072631f0f7256b153acd678fe6092edad23b2a4a44016e3da",
@@ -6542,7 +6760,7 @@
       "rawSkillHash": null,
       "lockHash": "98ad3e5b051bfb71b2795f7e8a6aa0d32b51ee095606c098a4b2822ac07926c9",
       "entrypointHash": "a04e96510c39040574356e812812b86ce4c9bc94d9dee22de43cb3563a8617e4",
-      "treeHash": "3366e772b6548037b69176797465eb7e33783aec6c2abb50aaeaa2b68381187f",
+      "treeHash": "827215293d944f3f2fd7e785482a9a234e4898611b2182d8ee5dee7ed295aee6",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -6555,18 +6773,23 @@
       },
       "adaptations": [
         "Removed upstream; retain explicit-only snapshot.",
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Current upstream absence was checked; preserve historical payload and lock identity without claiming a new import."
       ],
       "evidence": "docs/ai/skills/redesign-existing-projects/references/upstream.md",
       "reviewEvidence": [
         {
-          "kind": "reviewed-source-import-record",
+          "kind": "removed-source-availability-check",
           "source": "leonxlnx/taste-skill",
           "examinedRef": "6010f91a9935f1c167dfc500fb1a475681892e6b",
-          "rawSkillHash": null,
-          "sourceFileHashes": null,
-          "adaptedFileHashes": null,
-          "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
+          "sourcePath": "skills/redesign-skill/",
+          "claim": "The source path is absent at this revision; this check does not establish provenance for retained bytes."
+        },
+        {
+          "kind": "retained-local-payload",
+          "baselineCommit": "c4d36cb029121641b8882237632d0d6da434049e",
+          "historicalAttributedRef": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+          "entrypointHash": "a04e96510c39040574356e812812b86ce4c9bc94d9dee22de43cb3563a8617e4",
+          "claim": "Historical installed snapshot retained; raw upstream bytes were not revalidated in this review. Local provenance maintenance does not imply upstream freshness."
         }
       ]
     },
@@ -6774,30 +6997,30 @@
           "sourceFileHashes": null,
           "adaptedFileHashes": {
             "SKILL.md": "56b5f80dc21a4ef7e7b92586d98af3e00dfdad802fc7be98fd143d95092cdfb3",
-            "references/api-keys.md": "7f350d7e230180677227a6895f1f55e73671cadf86c2f0af2b7ad8ae1a37256d",
-            "references/receiving.md": "78da6c609ece641eec4b8b7e908bc70e29a73d4ce88510f84a1d01b0763c6168",
             "references/UPSTREAM-LICENSE": "f71cc2b0a8199ff748415642e1006c760f017d8defbc29237ce43ae1e8fa8197",
-            "references/domains.md": "4c22db3adfba852ab12360c8c99745f44cdaffa270c0e9814494b6399bc0e114",
-            "references/inboxes.md": "cf3df79923add637a03e7873d6885abd301187ee8aef561f0f7c7068fc3299d3",
-            "references/contact-properties.md": "0d2afba241e98530e023f4f49f038f79d333af591ac6099178a10ef6d8f1e156",
+            "references/api-keys.md": "7f350d7e230180677227a6895f1f55e73671cadf86c2f0af2b7ad8ae1a37256d",
             "references/automations.md": "fc602f33e89a60d446ec4551add802f75b8d6b925ea664718cd559da0e90b1c9",
-            "references/templates.md": "dfea43049abcf2ef19d0b8b3d95dc892ad65c2b4a09852035f0b7e9153935e29",
-            "references/usage.md": "f3575efcf7fe8bde588e2d791c65e20095f366dbe52b51477441d09774438799",
-            "references/logs.md": "46d6c9d74a8c0f0c46bc84b01a88782f497bbb5ac0cd44cea402f029769856fb",
-            "references/segments.md": "34179817db9bb175f398b0ef23e4254eb765678880f55cefc9b82c7c3171812b",
             "references/broadcasts.md": "89a6c9c2fa105d2e2b4b659d3d669cd31faf5ed8362169566c4297e6bf17c766",
+            "references/contact-properties.md": "0d2afba241e98530e023f4f49f038f79d333af591ac6099178a10ef6d8f1e156",
+            "references/contacts.md": "4a68b67dad36e33e6efcaa94c5d778656fd7321e42b5ba94f43ea08664688052",
+            "references/domains.md": "4c22db3adfba852ab12360c8c99745f44cdaffa270c0e9814494b6399bc0e114",
             "references/events.md": "021bfe29a446087d706802b0819c6ac9611dd3df2283f7bfeed082aee8acfb2a",
+            "references/fetch-all-templates.mjs": "6f98543145b4f8e1825c2cd609728f8696f8878b33323af235a241e8c8c2ae2e",
+            "references/inboxes.md": "cf3df79923add637a03e7873d6885abd301187ee8aef561f0f7c7068fc3299d3",
+            "references/installation.md": "41f158fc57a70578c7ccb46e4b226f8c762f69ea534c6266a47546437c70242e",
+            "references/logs.md": "46d6c9d74a8c0f0c46bc84b01a88782f497bbb5ac0cd44cea402f029769856fb",
+            "references/receiving.md": "78da6c609ece641eec4b8b7e908bc70e29a73d4ce88510f84a1d01b0763c6168",
+            "references/segments.md": "34179817db9bb175f398b0ef23e4254eb765678880f55cefc9b82c7c3171812b",
+            "references/sending/batch-email-examples.md": "6d9bc7ceed7ecf656a4eb8e19b3878e15793ede7e57bcb7b9505b1ee095ac250",
+            "references/sending/best-practices.md": "6c6af25576e9f7a067703b201a07361ff153cab34464afceac68ff45547fa601",
+            "references/sending/email-management.md": "16d649da84356fba3cbcc5136c4c5154208ce39b4589843af5c77e8e2bbf9d66",
+            "references/sending/overview.md": "2d3b0f82375fc78de58876fee2c01c366b2bfed7288f02ad936a808a68451875",
+            "references/sending/single-email-examples.md": "9ff0df770d82487596f179e5781c723eb8691bf7f61917f46e090bc3c73834da",
+            "references/templates.md": "dfea43049abcf2ef19d0b8b3d95dc892ad65c2b4a09852035f0b7e9153935e29",
             "references/topics.md": "4258030d53aa883c002b8c143899aaafe43ecb8865835000f411b959938e9eae",
             "references/upstream.md": "f0e07a7269c65688e33265b3d74537709e7f6aa010b8ba07b42a2d1163717e5b",
-            "references/contacts.md": "4a68b67dad36e33e6efcaa94c5d778656fd7321e42b5ba94f43ea08664688052",
-            "references/fetch-all-templates.mjs": "6f98543145b4f8e1825c2cd609728f8696f8878b33323af235a241e8c8c2ae2e",
-            "references/webhooks.md": "abb84ba9c6b126eda416cb79e5b6ecb84cb4cb248e4cb15b1351483ef5c7b5e0",
-            "references/installation.md": "41f158fc57a70578c7ccb46e4b226f8c762f69ea534c6266a47546437c70242e",
-            "references/sending/batch-email-examples.md": "6d9bc7ceed7ecf656a4eb8e19b3878e15793ede7e57bcb7b9505b1ee095ac250",
-            "references/sending/overview.md": "2191c5008d1456f7a076e62419bed93c45a5f48bf3ac23d746a19264d1dd5a5b",
-            "references/sending/email-management.md": "16d649da84356fba3cbcc5136c4c5154208ce39b4589843af5c77e8e2bbf9d66",
-            "references/sending/best-practices.md": "a1b075637f86a649bb5810ad342c44b154164d8a18f2f1163fb1bb12d24a13d8",
-            "references/sending/single-email-examples.md": "9ff0df770d82487596f179e5781c723eb8691bf7f61917f46e090bc3c73834da"
+            "references/usage.md": "f3575efcf7fe8bde588e2d791c65e20095f366dbe52b51477441d09774438799",
+            "references/webhooks.md": "abb84ba9c6b126eda416cb79e5b6ecb84cb4cb248e4cb15b1351483ef5c7b5e0"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -6839,26 +7062,26 @@
           "sourceFileHashes": null,
           "adaptedFileHashes": {
             "SKILL.md": "cec6c9cd7746e889854dbb41c31a3b7f7bf4cff3bf6413cd6115055789fb2595",
-            "references/api-keys.md": "0d28108722e4bb6a5d4d9a0123171af15ca809d222c0ae80db8fc6a1e08967bc",
-            "references/emails.md": "518ba4e9caad6519ebc2e0bb41e5c4834b7f616ece31d84e5fd29782e866b27b",
             "references/UPSTREAM-LICENSE": "1959acb1978684aadd7cee9f1510fd9ea31bedac0bc4223de1fe5d2381f300c8",
-            "references/domains.md": "139c53b239684fc9a33cdbb56d7860a561f273ea64f62c6a4584d546baa3dae4",
-            "references/careers.md": "8c0a9a1ba7927bb48ab8ab9113c3ccbae3df887c6fcbcea98560c923edc97709",
-            "references/inboxes.md": "a29324ab865456bb4404abb741fcd3d9c92a9290d8821ded7af096329154cc0d",
-            "references/contact-properties.md": "a5fbbfa7ae49045eb03f568b0e04ea6acf2465f3831268b8e87d6b54ac94318a",
+            "references/api-keys.md": "0d28108722e4bb6a5d4d9a0123171af15ca809d222c0ae80db8fc6a1e08967bc",
+            "references/auth.md": "eb54bd32ee85e9b66c8ddb714d74a1ac03d4d508836d6ddb2c750204ecb6e5b7",
             "references/automations.md": "81281b26ef5094e87c4c60dfc5c4cfa7b3c33ee137a6b75a414dc4d28afc2626",
-            "references/templates.md": "6ba0dd1d258d90395cd32b03b456c3e56e074121db91efad4acc8c5af662c68a",
+            "references/broadcasts.md": "748ca484bf46225d5585223796317d28e3a4d76f8884788db187ea3955074f31",
+            "references/careers.md": "8c0a9a1ba7927bb48ab8ab9113c3ccbae3df887c6fcbcea98560c923edc97709",
+            "references/contact-properties.md": "a5fbbfa7ae49045eb03f568b0e04ea6acf2465f3831268b8e87d6b54ac94318a",
+            "references/contacts.md": "dd8f32a1c746c73400d10b42996b953f67bc9adc55ccfe728fa0cbbdf7730d7e",
+            "references/domains.md": "139c53b239684fc9a33cdbb56d7860a561f273ea64f62c6a4584d546baa3dae4",
+            "references/emails.md": "518ba4e9caad6519ebc2e0bb41e5c4834b7f616ece31d84e5fd29782e866b27b",
+            "references/error-codes.md": "bb961d65c1928b45844763b3b8997d05f4aa23ad79124f9e708926f975d606a1",
+            "references/inboxes.md": "a29324ab865456bb4404abb741fcd3d9c92a9290d8821ded7af096329154cc0d",
             "references/logs.md": "2ad3cb9c7a2ac0ed2f0fdbef47ca28ed3188b434bae56396044bd63a0556da49",
             "references/segments.md": "91afcebc015b3ec1b0840fda12ab428f11297f3c14ebc07b72c01ec86b096a83",
-            "references/broadcasts.md": "748ca484bf46225d5585223796317d28e3a4d76f8884788db187ea3955074f31",
+            "references/suppressions.md": "8b8e11f26b2fc3090082aea35f335f7fa14cfec3e248d16071ca8d8bffce31d5",
+            "references/templates.md": "6ba0dd1d258d90395cd32b03b456c3e56e074121db91efad4acc8c5af662c68a",
             "references/topics.md": "39b996bb0a1683be4dbdfaba8ef3f3f5de9bc8e5bce874eb78189670dc38769e",
             "references/upstream.md": "efea54dd79eff2f2ae2ab493a0c61f333461a5b59de6b1ad1cde24c5c6d29d17",
-            "references/workflows.md": "0fb03377dd0fa0805e0f1bbf1a8887915ac6fec4ff67a127c39808c144d3016f",
-            "references/auth.md": "eb54bd32ee85e9b66c8ddb714d74a1ac03d4d508836d6ddb2c750204ecb6e5b7",
-            "references/contacts.md": "dd8f32a1c746c73400d10b42996b953f67bc9adc55ccfe728fa0cbbdf7730d7e",
-            "references/error-codes.md": "bb961d65c1928b45844763b3b8997d05f4aa23ad79124f9e708926f975d606a1",
             "references/webhooks.md": "8273517bd749b6e299b1190328259cfefc3fa35856d5e2f75181deef34458c37",
-            "references/suppressions.md": "8b8e11f26b2fc3090082aea35f335f7fa14cfec3e248d16071ca8d8bffce31d5"
+            "references/workflows.md": "0fb03377dd0fa0805e0f1bbf1a8887915ac6fec4ff67a127c39808c144d3016f"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -6876,7 +7099,7 @@
       "rawSkillHash": null,
       "lockHash": "9050aa34dc026b5b28f5b63003a8742d0669daa6b2916c7a0f082ca9bfa50184",
       "entrypointHash": "9d8114f8ef0b31f535a265fc05c364bd8cf2e2895a830040e06c22acb11f54b0",
-      "treeHash": "9ee8694a740d9f00bbcb322dd4cd005ece37dcd79178660b58702f5381bded6b",
+      "treeHash": "6b08d3e9194fb399fcee52de83e3df98af86b47f2339a16b76a66b308796d567",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6889,18 +7112,23 @@
       },
       "adaptations": [
         "Removed upstream; retain standalone workflow.",
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Current upstream absence was checked; preserve historical payload and lock identity without claiming a new import."
       ],
       "evidence": "docs/ai/skills/resolving-merge-conflicts/references/upstream.md",
       "reviewEvidence": [
         {
-          "kind": "reviewed-source-import-record",
+          "kind": "removed-source-availability-check",
           "source": "mattpocock/skills",
           "examinedRef": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "rawSkillHash": null,
-          "sourceFileHashes": null,
-          "adaptedFileHashes": null,
-          "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
+          "sourcePath": "skills/engineering/resolving-merge-conflicts/SKILL.md",
+          "claim": "The source path is absent at this revision; this check does not establish provenance for retained bytes."
+        },
+        {
+          "kind": "retained-local-payload",
+          "baselineCommit": "c4d36cb029121641b8882237632d0d6da434049e",
+          "historicalAttributedRef": null,
+          "entrypointHash": "9d8114f8ef0b31f535a265fc05c364bd8cf2e2895a830040e06c22acb11f54b0",
+          "claim": "Historical installed snapshot retained; raw upstream bytes were not revalidated in this review. Local provenance maintenance does not imply upstream freshness."
         }
       ]
     },
@@ -6912,51 +7140,80 @@
       "source": "https://mcp.reui.io/api/skills/download",
       "importedRef": null,
       "examinedRef": null,
-      "sourcePath": null,
-      "rawSkillHash": null,
+      "sourcePath": "SKILL.md",
+      "rawSkillHash": "baa3be2c5e407e71afdd8d53f4c26a2bbeb3e091e4a468d2acddbe2d104333d5",
       "lockHash": null,
       "entrypointHash": "163cfd5db94c90f0a6328b745590e2da56bdc79a4e71b93dacaddd3b316893b3",
-      "treeHash": "c83d47ee8c1ce29d816a0aac7e5772e02323a5a3625e02a827e40513b6e8ae8f",
+      "treeHash": "6c120d81e26375c9159a24a3cbe98f5af564c9abab97739a51ae6f63e79ae2f9",
       "license": {
         "identifier": "Hosted ReUI terms, no license identifier published",
         "status": "historical-attribution-only",
         "noticeFiles": []
       },
       "adaptations": [
-        "Retain all Core overlays, migrate removed craft/styling overlays to replacement files, preserve Filters/NumberField fixes, staged refresh and shared table ownership"
+        "Retain all Core overlays, migrate removed craft/styling overlays to replacement files, preserve Filters/NumberField fixes, staged refresh and shared table ownership",
+        "Reject unsafe decoded Unicode metadata while preserving valid scalar multilingual text and joiners; record the reviewed hosted bundle identity."
       ],
       "evidence": "docs/ai/skills/reui/references/upstream.md",
       "reviewEvidence": [
         {
-          "kind": "reviewed-source-import-record",
-          "source": "https://mcp.reui.io/api/skills/download",
-          "examinedRef": null,
-          "rawSkillHash": null,
-          "sourceFileHashes": null,
+          "kind": "reviewed-hosted-bundle",
+          "sourceIdentity": {
+            "kind": "hosted-bundle",
+            "url": "https://mcp.reui.io/api/skills/download",
+            "version": "68f0e6fa91",
+            "bundleSha256": "fb9324c5b132e58b91ad73c72d1aa02c072351565db225c44eaed177f14fa191"
+          },
+          "rawSkillHash": "baa3be2c5e407e71afdd8d53f4c26a2bbeb3e091e4a468d2acddbe2d104333d5",
+          "sourceFileHashes": {
+            "SKILL.md": "baa3be2c5e407e71afdd8d53f4c26a2bbeb3e091e4a468d2acddbe2d104333d5",
+            "agents/openai.yaml": "f6e76e511951f9736ba0767fe0b9351355bb51f31c0dadbe05f58be1c9fa40be",
+            "rules/adapting.md": "f597f5847e227792b0320e9a4406fd2fc8f9340aa4ec7c47eb20895150b5b02c",
+            "rules/anti-patterns.md": "f9c49e097c8f142b908cd739a6b21ace5f3838bfd2db605a434df754ecfd20c5",
+            "rules/cli.md": "28939eda9f0b3a86a6b4c9481fc73d1a23c3edeae889ebdaf811bebb498fe3ba",
+            "rules/color.md": "bb0e02828c9405ce0d61fa04ccd419d9b7b78fda3824c0b3dfdab15f5c4651cd",
+            "rules/components.md": "f0f50bb6276bf38b4fdbc54673cceeeeea8bce6feee108068cd3c45001c52145",
+            "rules/compose.md": "605de9f223a0c2ffcb0ebc8bfba4dc90e807bbaabae7de25505c457165e43153",
+            "rules/icons.md": "8edc3a2cefa752e46fd9911527bcc74e702e9ace651cfdd36c1171dbc2996d28",
+            "rules/layout.md": "fc58eec3c98be1d0513ba3c8edf89e466ead9828c037a5372579da44a8148897",
+            "rules/motion.md": "06a1da7861d17bc766fcf54b39f7c4a23476fd28a7a5f5ba130387c2cb922221",
+            "rules/quality.md": "8a62d02d3ab309b3c38f9e51bac1548da134b799024cbf9903258904509011ab",
+            "rules/registry.md": "e6441291bee4e19a904c3f9809bc67c3880c9af621ca1f11a8a4796a026f1994",
+            "rules/theming.md": "889530f947d65709bde1c9dbdd1c75c3af319790cec283beccc280e76f3c09f1",
+            "rules/workflow.md": "a41bfd6f38fbe5692a3c3a23e761cb651878cf5ba1d66f4cba591fd5c3ce28dc",
+            "tools.md": "a0254c67b6118e707a2229c8890fa86333165d0deac7255027d0ab2f9a522ace"
+          },
           "adaptedFileHashes": {
             "SKILL.md": "163cfd5db94c90f0a6328b745590e2da56bdc79a4e71b93dacaddd3b316893b3",
-            "tools.md": "72d81af91680c078d4832d6ec3739de9a7095467d9737ea7c7492621eb5c4428",
-            "rules/motion.md": "8096ed2cdd9b42a8933731022c101a6ed4afd9b77796b939c057709f73b0142d",
-            "rules/compose.md": "605de9f223a0c2ffcb0ebc8bfba4dc90e807bbaabae7de25505c457165e43153",
-            "rules/registry.md": "cd5ddd4d9c0b87a01faf1024fd55c28a1faac442efcd43a3445d01e621f1acd2",
-            "rules/layout.md": "fc58eec3c98be1d0513ba3c8edf89e466ead9828c037a5372579da44a8148897",
-            "rules/components.md": "5845b1934d3a4a5d294410c1a21c724b893ef6d25868a18cf7ed5c9b698b4c4d",
-            "rules/cli.md": "534f23e6b50943bad4e9f08411c1966a65797e16a18d21c46614be758c006b86",
-            "rules/icons.md": "b9053300b66eab6c343585a9ccdc327652101007b22250a8441811d12f468a4a",
-            "rules/theming.md": "76b71cc3df26404a207d61f772226d27457f4e1d6d769fda4f932759bb875ad0",
-            "rules/workflow.md": "b9c3f3098e0dbddaa1c49af915f2a4288543946be44af3d260cc2e656fcb09cc",
-            "rules/adapting.md": "7694dcdd18c206e70e3394232110761a404755ae60e646b565dd6bd32c83746d",
-            "rules/color.md": "47091da42238ceed7e4d349e3123a647552a444ee109f306842f641d1153844c",
-            "rules/anti-patterns.md": "f9c49e097c8f142b908cd739a6b21ace5f3838bfd2db605a434df754ecfd20c5",
-            "rules/quality.md": "6c633c5bc284c7246c78c3dac6ff1651a7e5ec072c0242520adc8f1eee33d2e5",
             "agents/openai.yaml": "f6e76e511951f9736ba0767fe0b9351355bb51f31c0dadbe05f58be1c9fa40be",
             "references/docs.md": "63b98d8d07a480416b604acda4a116adf003ad5964e247c285886ca42493dd31",
             "references/upstream-manifest.json": "15bf6ebeee51254f3c43f60e60537b5fb2410666aeb550bb5c6a1448d0811808",
-            "references/upstream.md": "d7e9c88514df8cb1c95d0c4ebce61e7643422c39e47c3ed80da3adf841b32e22"
+            "references/upstream.md": "4e3a62e558232cc3297fc60a10734170aa6de1c258fdd99d21b68061e59beff4",
+            "rules/adapting.md": "7694dcdd18c206e70e3394232110761a404755ae60e646b565dd6bd32c83746d",
+            "rules/anti-patterns.md": "f9c49e097c8f142b908cd739a6b21ace5f3838bfd2db605a434df754ecfd20c5",
+            "rules/cli.md": "534f23e6b50943bad4e9f08411c1966a65797e16a18d21c46614be758c006b86",
+            "rules/color.md": "47091da42238ceed7e4d349e3123a647552a444ee109f306842f641d1153844c",
+            "rules/components.md": "5845b1934d3a4a5d294410c1a21c724b893ef6d25868a18cf7ed5c9b698b4c4d",
+            "rules/compose.md": "605de9f223a0c2ffcb0ebc8bfba4dc90e807bbaabae7de25505c457165e43153",
+            "rules/icons.md": "b9053300b66eab6c343585a9ccdc327652101007b22250a8441811d12f468a4a",
+            "rules/layout.md": "fc58eec3c98be1d0513ba3c8edf89e466ead9828c037a5372579da44a8148897",
+            "rules/motion.md": "8096ed2cdd9b42a8933731022c101a6ed4afd9b77796b939c057709f73b0142d",
+            "rules/quality.md": "6c633c5bc284c7246c78c3dac6ff1651a7e5ec072c0242520adc8f1eee33d2e5",
+            "rules/registry.md": "cd5ddd4d9c0b87a01faf1024fd55c28a1faac442efcd43a3445d01e621f1acd2",
+            "rules/theming.md": "76b71cc3df26404a207d61f772226d27457f4e1d6d769fda4f932759bb875ad0",
+            "rules/workflow.md": "b9c3f3098e0dbddaa1c49af915f2a4288543946be44af3d260cc2e656fcb09cc",
+            "tools.md": "72d81af91680c078d4832d6ec3739de9a7095467d9737ea7c7492621eb5c4428"
           },
-          "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
+          "manifest": "docs/ai/skills/reui/references/upstream-manifest.json",
+          "claim": "Reviewed hosted bundle identified by published version and verified content hash; no Git revision is asserted."
         }
-      ]
+      ],
+      "sourceIdentity": {
+        "kind": "hosted-bundle",
+        "url": "https://mcp.reui.io/api/skills/download",
+        "version": "68f0e6fa91",
+        "bundleSha256": "fb9324c5b132e58b91ad73c72d1aa02c072351565db225c44eaed177f14fa191"
+      }
     },
     {
       "name": "review-and-ship",
@@ -7021,7 +7278,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -7036,7 +7293,12 @@
             "SKILL.md": "6ff590d29e436766135aa3d137be1fac2a867165c7257fc315b189361f1873af",
             "STANDARDS.md": "e7d3605034acda54ca13e43aec9e64d65b53de20f75b11b8d694e373012fbe07"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "fabb992a2c689f69249d3690ba780ae2489ac867b823ec1f5163c8894c56c96a",
+            "STANDARDS.md": "e26e6cc421f6b3ae534829dc84234efca2419ada59022d802a4c087cbdea6ed4",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "96f27654a7c6af5f3d69f1698bf605ff79ebed78da83216f231ba8fff1ee6bbb"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -7234,7 +7496,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -7254,7 +7516,17 @@
             "issue-tracker-gitlab.md": "591a9e7057382aaccdfbed3f7ea3f2ad07e0cd29f012d18b82ee4e485fd81e24",
             "agents/openai.yaml": "9527de0110541c45712319025155aeab8dc7d77c6ed6e5e83271bab1851ab939"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "e2f382df9d048fbdf703530ff264f7683b680667a3c42cf3fb130e85ffdf93c7",
+            "agents/openai.yaml": "9527de0110541c45712319025155aeab8dc7d77c6ed6e5e83271bab1851ab939",
+            "domain.md": "edc6d6131fdffc4b7135704f5262124fc43355c95f61b7399dc5a4db643e28ca",
+            "issue-tracker-github.md": "f0653fe106dd8ee7b33be27bd7fe3104b40555896cb45f61997aed20467020c3",
+            "issue-tracker-gitlab.md": "591a9e7057382aaccdfbed3f7ea3f2ad07e0cd29f012d18b82ee4e485fd81e24",
+            "issue-tracker-local.md": "7dcda20a2eb4bdc89b95d1143423c0691309921cadae3132e6424f371030506e",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "fec7781be18aa69a3dc5062259c3040b3a769b5585cb5dba2ace3519fddf0e84",
+            "triage-labels.md": "ae512af838c78b8750471c42cd2b20fa32319553e61d84c9a23d171b40ce14aa"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -7352,29 +7624,29 @@
           "rawSkillHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "mcp.md": "8d696b4e45b7d0e337367248513bd9acebe8f3bcfd7b748c775e5a337c8f38c8",
-            "registry.md": "4f239be36bd2b58e17047db1ca80ab7da00e15a8b73242e5e4d50d113c4caa05",
             "SKILL.md": "89860c0a605caa201a1d95e736c49676319999ebac27887e8a2d78a10278c56b",
-            "customization.md": "a19e81c78843df255e85755e52659268d793845add845b34ad8091f62bff3af9",
-            "design-system.md": "9ed11e93e7e80e34c8795d5ba82e5420ca905e8e9949fef79cbe9239184fd06b",
-            "cli.md": "a381e35bf36fe7bb851952c13707e01e82434fd7a4a4e53f6df26c6370838904",
-            "design-system-page.md": "c541d661af159548744be3e27f79e7da710ab83f9afd448a4346f7ff1531d328",
-            "scripts/showcase-coverage.mjs": "fb593e0806414d23b51354a46881f0b2873afc226bda0926a22f83cbd60af2fa",
-            "rules/composition.md": "f48b38a3c1809bd70eb5cfdd10c9bfeef7e5024b073102ffd2f55e5f9b042273",
-            "rules/styling.md": "f88fbd72dff862805b786dc7d7e4c74c83030fc278c5b97c993e4e665001798c",
-            "rules/icons.md": "d4a58266648872d9ee07d0c2368843a1cb88b8253b7f528dd7bda9d68b6c2535",
-            "rules/base-vs-radix.md": "2b2deb47d004285220c1fc6b38bb2edc2d0ccbcdafd031b0b189d5d8ed0d1ba8",
-            "rules/forms.md": "29593e14381e34626f8e0e9c15c59f3394b92a0623af6a6ec94585400123853c",
-            "rules/chat.md": "4b4610d487ddc9751f3cfe0c554a06560ac723fcc2460abad77a1d3c7c9a4b95",
             "agents/openai.yml": "35db91b1eef58b2abe01da9b88577de5a44e233b740cd93d692ddeeadd2afe4d",
-            "references/upstream.md": "600bb96472cdca50f8ce42c33cfc4476bf70e76a69fb435a0b0ea32127495ccd",
-            "references/UPSTREAM-LICENSE.md": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f",
-            "assets/shadcn.png": "7d60ad6fec4d89a0d44ba5a3c9283d2fea0047af5467f9227040e20d927d39b7",
             "assets/shadcn-small.png": "0ecc62d682727f68fc4937eed19960c706714fa084d44f63028d611ae02bf3d7",
-            "evals/evals.json": "e82c747326a5c21e37a1c962274d36b1bfebb3e6602ee368b98e2dba5db18369",
-            "assets/showcase/state-matrix.tsx": "07794119fe05ff735358b3f8ca30a8297617ab64dfb3901dce4d89fe5f443458",
+            "assets/shadcn.png": "7d60ad6fec4d89a0d44ba5a3c9283d2fea0047af5467f9227040e20d927d39b7",
+            "assets/showcase/color-pair.tsx": "6028f0b677912216822fdaf76ae6b8863c429916ed4a9626b73f4de4506f8ee4",
             "assets/showcase/preview-states.css": "8d9e3cec24dd01b11c5ba12196d0376a131797d9ad247ea624e66eb8bbf61b0e",
-            "assets/showcase/color-pair.tsx": "6028f0b677912216822fdaf76ae6b8863c429916ed4a9626b73f4de4506f8ee4"
+            "assets/showcase/state-matrix.tsx": "07794119fe05ff735358b3f8ca30a8297617ab64dfb3901dce4d89fe5f443458",
+            "cli.md": "a381e35bf36fe7bb851952c13707e01e82434fd7a4a4e53f6df26c6370838904",
+            "customization.md": "a19e81c78843df255e85755e52659268d793845add845b34ad8091f62bff3af9",
+            "design-system-page.md": "c541d661af159548744be3e27f79e7da710ab83f9afd448a4346f7ff1531d328",
+            "design-system.md": "9ed11e93e7e80e34c8795d5ba82e5420ca905e8e9949fef79cbe9239184fd06b",
+            "evals/evals.json": "e82c747326a5c21e37a1c962274d36b1bfebb3e6602ee368b98e2dba5db18369",
+            "mcp.md": "8d696b4e45b7d0e337367248513bd9acebe8f3bcfd7b748c775e5a337c8f38c8",
+            "references/UPSTREAM-LICENSE.md": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f",
+            "references/upstream.md": "600bb96472cdca50f8ce42c33cfc4476bf70e76a69fb435a0b0ea32127495ccd",
+            "registry.md": "4f239be36bd2b58e17047db1ca80ab7da00e15a8b73242e5e4d50d113c4caa05",
+            "rules/base-vs-radix.md": "2b2deb47d004285220c1fc6b38bb2edc2d0ccbcdafd031b0b189d5d8ed0d1ba8",
+            "rules/chat.md": "4b4610d487ddc9751f3cfe0c554a06560ac723fcc2460abad77a1d3c7c9a4b95",
+            "rules/composition.md": "f48b38a3c1809bd70eb5cfdd10c9bfeef7e5024b073102ffd2f55e5f9b042273",
+            "rules/forms.md": "29593e14381e34626f8e0e9c15c59f3394b92a0623af6a6ec94585400123853c",
+            "rules/icons.md": "d4a58266648872d9ee07d0c2368843a1cb88b8253b7f528dd7bda9d68b6c2535",
+            "rules/styling.md": "a9024d9e0dce091f5cfa5673b4db077309653188dea98f460960e9c08bbe256e",
+            "scripts/showcase-coverage.mjs": "fb593e0806414d23b51354a46881f0b2873afc226bda0926a22f83cbd60af2fa"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -7391,8 +7663,8 @@
       "sourcePath": "plugins/stitch-build/skills/shadcn-ui",
       "rawSkillHash": "2ddfe599ac2ba631ca019f7b6e37ee5df9cd34f83fc016f6ea9d4ba5bbfa0304",
       "lockHash": "2ddfe599ac2ba631ca019f7b6e37ee5df9cd34f83fc016f6ea9d4ba5bbfa0304",
-      "entrypointHash": "6f302408152c6218b54e42e465c619b80aa85ce14820665e9da517e93a835957",
-      "treeHash": "13ce95877eea3c63356122add28eee28235ffcf39ab644bc31c51b09ff9fb0be",
+      "entrypointHash": "cc1d247d62a4926cef16c2525ed85f5507b2bb0a4eb42f59f32386512e282255",
+      "treeHash": "813ad81b27a2fe9d70b2b66016123e5b5aea6f2f708da71820dad49a8ca8f9a6",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",
@@ -7405,7 +7677,7 @@
       },
       "adaptations": [
         "Preserved reviewed data-table Base UI render/group/type-only/gap fixes via existing sync adapter.",
-        "Preserved cnfast helper/docs/setup detection, while taking upstream node_modules exclusion in find commands.",
+        "Preserved cn helper/docs/setup detection, while taking upstream node_modules exclusion in find commands.",
         "Added marked Core applicability, ecosystem ownership, and non-executing maintenance overlay.",
         "Normalized Markdown trailing whitespace and final newlines; retained hard breaks without trailing spaces.",
         "Pinned README contribution link to upstream and routed its license link to the bundled Apache notice.",
@@ -7540,12 +7812,12 @@
           "adaptedFileHashes": {
             "SKILL.md": "da465eae18ab62f55bbbb5529c11c80751d7d2806d6728cc657ff1bb376f07ab",
             "references/billing.md": "85cf38ea5ca0b43da54d96a2b285abb467679f8e103595b524b801ebc00b7c5d",
+            "references/connect.md": "49e05ae44fefc1d920d8f31f13444af37dbcf7a730c7d95bba8d3ce1cc85315a",
+            "references/payments.md": "f7edac576b72da7b5c11a4d532240bd11dab1f4c8dfe1d4040d16d5a6ec0fee0",
+            "references/security.md": "f1777a36ffd10bb5f5faf6e659f5313c99840cad967e3235f377dee7e971458c",
             "references/tax.md": "405bb573f911cf4db2d88da4c54aecabd983878b940c8f8a2953c0f9a5610aed",
             "references/treasury.md": "ccd38ef29a654b2c59bde4d56e5537af6a89f10a7297ed0b87c3b9e9f2bb8ffa",
-            "references/connect.md": "49e05ae44fefc1d920d8f31f13444af37dbcf7a730c7d95bba8d3ce1cc85315a",
-            "references/security.md": "f1777a36ffd10bb5f5faf6e659f5313c99840cad967e3235f377dee7e971458c",
-            "references/upstream.md": "fa3dfba75d2fa1d483896430c8d88599232edb8ef32fe20fb36de9da685988ae",
-            "references/payments.md": "f7edac576b72da7b5c11a4d532240bd11dab1f4c8dfe1d4040d16d5a6ec0fee0"
+            "references/upstream.md": "fa3dfba75d2fa1d483896430c8d88599232edb8ef32fe20fb36de9da685988ae"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -7673,12 +7945,12 @@
           "rawSkillHash": "697e0e949f97621c6fc1784169eb3ccbf673747d6bb8299a52962d3d84d93dc6",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "7421335407296ee6404972fbe458fe08472e92003e0afed8803d0d64c918a908",
             "CHANGELOG.md": "307ca901f9d5b7306925b418551f9b58e0c8c94fb38c160c4bb1290145f7cb93",
+            "SKILL.md": "f41511df08c3ef8c39e348dbaa4d9eafd691f555219a31a1a9fe1f3632f44c18",
+            "assets/feedback-issue-template.md": "ea211aa174c5a096fe76461f25143b8bc23f3bde3adc9e727cda38218cc8c282",
             "references/UPSTREAM-LICENSE": "b65e575eb4f04a13c187d64e958321298e2ab84d67aa8428819f362056ba292c",
-            "references/upstream.md": "e246339c8e9a849fc31dc6d3fd6a300d87bd65639753b7a2259a6eca449af432",
             "references/skill-feedback.md": "09ad94c0291735dfc04c92557c8734fa259ec39e1d56bf2bd5c6a6529d838717",
-            "assets/feedback-issue-template.md": "ea211aa174c5a096fe76461f25143b8bc23f3bde3adc9e727cda38218cc8c282"
+            "references/upstream.md": "e246339c8e9a849fc31dc6d3fd6a300d87bd65639753b7a2259a6eca449af432"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -7719,44 +7991,44 @@
           "rawSkillHash": "ad65e776f45e761bafc609d3f506c77c1032225aa65e0c4c02f241b8071e5855",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "3c0ac58c0b0af9650ffc96b367d5d24d7629f87f14cbc4c64221067fd86f869f",
             "CHANGELOG.md": "9b86dec4562cb9c609ecf77e0a5c0aaf44ac7d487c474992789572799ad29c62",
-            "references/query-composite-indexes.md": "73e42424e671f0266e74fdb220db3196790f69fb43e2b19c7b9483eb4971b554",
-            "references/schema-constraints.md": "90e8efda3e9e81095e642911ad4aae2809d160f29414338fa997253238f510f8",
-            "references/monitor-explain-analyze.md": "4cb67ffbf8e57f2e5b380b0beb4242528b513723ce314a2c2ffcf083bd4203d7",
-            "references/conn-idle-timeout.md": "630588902c00fcec59a5988cc5d042f76dcf2c923a535abfd8c47dca205eaed5",
-            "references/schema-foreign-key-indexes.md": "7587713d12a65a212365459b3d39e4717d8a79e4073b10bd62f1054d8192c0dd",
+            "SKILL.md": "3c0ac58c0b0af9650ffc96b367d5d24d7629f87f14cbc4c64221067fd86f869f",
             "references/UPSTREAM-LICENSE": "b65e575eb4f04a13c187d64e958321298e2ab84d67aa8428819f362056ba292c",
-            "references/_sections.md": "98ea0d98207db2df30bb7f736123eac8fdb0dc84277097036d728be8cfe342fe",
-            "references/advanced-jsonb-indexing.md": "24cacf6a8bc35901dd566d24502ce8e57f810a5c196b897e61d52726e521d106",
-            "references/conn-pooling.md": "88cf086bf98ba865d2e9d0579974e1366b14157619d6a93e7da77be91084e4a5",
-            "references/security-privileges.md": "095909274a4fb43df785d7144cf674eeb40284d2d45628f14af4108737b93663",
-            "references/monitor-vacuum-analyze.md": "2892272011710eb49b3f185ec12f15ce9ce4c365792c672f6e2a9c90da426a1a",
-            "references/query-partial-indexes.md": "6448982bc8558c6555284958edc331b29239c6a0130e6b4501dd6d4da607a6dd",
-            "references/_template.md": "6299954250f212caabe339d752c3e5313a8e07d1a182a4e4b425baee91df1bd2",
-            "references/query-covering-indexes.md": "daf2a7f0477fb7357b62b5fb5b185b1995a77a186347e45cb780e25e7a7589b6",
-            "references/security-rls-basics.md": "e04dd1a3a382aafdaaa73fe9f7976352acdde6e90c2a2470d281b94d4f44b096",
-            "references/data-upsert.md": "2612af83b20a2701dde30ef1f8d7efd26b7e9eef84717226b8f038a2d2150ff7",
-            "references/conn-prepared-statements.md": "174e9332fe3dda5c99b2b00159fb1915ae36c00bab3a7882c14e73e4344e946e",
-            "references/query-missing-indexes.md": "91ad8b0ff4365704b4830a7f077c6f140f7140fd5d3ce5cd0b92b160cf9e25f1",
-            "references/lock-skip-locked.md": "6c45077f430f29cd9cd8f448c94d578e827e7bd023fcdaf717a756acb116fa4b",
-            "references/monitor-pg-stat-statements.md": "89dca99d4e894fcbdcac136be7ad9fbc03d1342904f065c1b198dc9cf495f098",
-            "references/security-rls-performance.md": "2e1faeca7d5746e246b1c78f9492fe2a9cfa41c4d7fa1e23c402d58fa18ea014",
-            "references/upstream.md": "531d461b80b30707ace58618d0b94e5394f98113c6105f563298850ac2fc5a06",
             "references/_contributing.md": "dc50465c0134e33c5842426eb88ed35b98e89f2a2b0610d0f7a3f2ad0fa520ee",
-            "references/data-pagination.md": "73c9fa10a3d439bedea0e11b640bd25bf30dd50f0d9006cf85baf7c3151543fa",
-            "references/schema-primary-keys.md": "3c8beabef82066f9a0838b926da0885117fd2d9a263aaf84cb5ca9e5f0d400e9",
-            "references/conn-limits.md": "11b2a67a7c7679cbbc5d807bbb17e69c98484a581d0c8b929c03408f412b81b2",
-            "references/schema-partitioning.md": "541e13fbeaf4bb1485c9059d4c9417dbdb766cf16f4237cd63a04ada7ec45b90",
-            "references/query-index-types.md": "472a74f22c2df203bd0154999b3a5a0187cca2ab3d9a3978e305bb7c32f1a282",
-            "references/lock-deadlock-prevention.md": "09aee46f51d7178c8e55fe056cd5a94a64ba2c122fe418e6900cd99f297b2347",
-            "references/data-batch-inserts.md": "531933b82d6a622d0fae29e0ea80be6fe5d78655adf2804c271ea84a1930de37",
-            "references/lock-short-transactions.md": "5aa7f61095916986d39644b446cdbcd2bacca7ef698a3bb50b3f82dd60207602",
-            "references/data-n-plus-one.md": "21a44905e5b16a42741892ec34bb1bfef124d049b140a76934a9acd0f46f5fc2",
-            "references/schema-data-types.md": "e01b58c14c7f3f65d8ead580b9a4fcf70b83baaab0f9a5f83c569c9fd113e8c8",
+            "references/_sections.md": "98ea0d98207db2df30bb7f736123eac8fdb0dc84277097036d728be8cfe342fe",
+            "references/_template.md": "6299954250f212caabe339d752c3e5313a8e07d1a182a4e4b425baee91df1bd2",
             "references/advanced-full-text-search.md": "40c2606bbb4c4dce31308f201b24cc7f58c7df05b1d9c6856fe2b888d3b7cf28",
+            "references/advanced-jsonb-indexing.md": "24cacf6a8bc35901dd566d24502ce8e57f810a5c196b897e61d52726e521d106",
+            "references/conn-idle-timeout.md": "630588902c00fcec59a5988cc5d042f76dcf2c923a535abfd8c47dca205eaed5",
+            "references/conn-limits.md": "11b2a67a7c7679cbbc5d807bbb17e69c98484a581d0c8b929c03408f412b81b2",
+            "references/conn-pooling.md": "88cf086bf98ba865d2e9d0579974e1366b14157619d6a93e7da77be91084e4a5",
+            "references/conn-prepared-statements.md": "174e9332fe3dda5c99b2b00159fb1915ae36c00bab3a7882c14e73e4344e946e",
+            "references/data-batch-inserts.md": "531933b82d6a622d0fae29e0ea80be6fe5d78655adf2804c271ea84a1930de37",
+            "references/data-n-plus-one.md": "21a44905e5b16a42741892ec34bb1bfef124d049b140a76934a9acd0f46f5fc2",
+            "references/data-pagination.md": "73c9fa10a3d439bedea0e11b640bd25bf30dd50f0d9006cf85baf7c3151543fa",
+            "references/data-upsert.md": "2612af83b20a2701dde30ef1f8d7efd26b7e9eef84717226b8f038a2d2150ff7",
             "references/lock-advisory.md": "c88d259dbf81c3771438f59a165f7eab8acd09999dd370bdf807521c73f35aab",
-            "references/schema-lowercase-identifiers.md": "4bc80f70865f2390872591f326c8a6be6456a0aeb5a7e5a2475d7cd9d43059ab"
+            "references/lock-deadlock-prevention.md": "09aee46f51d7178c8e55fe056cd5a94a64ba2c122fe418e6900cd99f297b2347",
+            "references/lock-short-transactions.md": "5aa7f61095916986d39644b446cdbcd2bacca7ef698a3bb50b3f82dd60207602",
+            "references/lock-skip-locked.md": "6c45077f430f29cd9cd8f448c94d578e827e7bd023fcdaf717a756acb116fa4b",
+            "references/monitor-explain-analyze.md": "4cb67ffbf8e57f2e5b380b0beb4242528b513723ce314a2c2ffcf083bd4203d7",
+            "references/monitor-pg-stat-statements.md": "89dca99d4e894fcbdcac136be7ad9fbc03d1342904f065c1b198dc9cf495f098",
+            "references/monitor-vacuum-analyze.md": "2892272011710eb49b3f185ec12f15ce9ce4c365792c672f6e2a9c90da426a1a",
+            "references/query-composite-indexes.md": "73e42424e671f0266e74fdb220db3196790f69fb43e2b19c7b9483eb4971b554",
+            "references/query-covering-indexes.md": "daf2a7f0477fb7357b62b5fb5b185b1995a77a186347e45cb780e25e7a7589b6",
+            "references/query-index-types.md": "472a74f22c2df203bd0154999b3a5a0187cca2ab3d9a3978e305bb7c32f1a282",
+            "references/query-missing-indexes.md": "91ad8b0ff4365704b4830a7f077c6f140f7140fd5d3ce5cd0b92b160cf9e25f1",
+            "references/query-partial-indexes.md": "6448982bc8558c6555284958edc331b29239c6a0130e6b4501dd6d4da607a6dd",
+            "references/schema-constraints.md": "90e8efda3e9e81095e642911ad4aae2809d160f29414338fa997253238f510f8",
+            "references/schema-data-types.md": "e01b58c14c7f3f65d8ead580b9a4fcf70b83baaab0f9a5f83c569c9fd113e8c8",
+            "references/schema-foreign-key-indexes.md": "7587713d12a65a212365459b3d39e4717d8a79e4073b10bd62f1054d8192c0dd",
+            "references/schema-lowercase-identifiers.md": "4bc80f70865f2390872591f326c8a6be6456a0aeb5a7e5a2475d7cd9d43059ab",
+            "references/schema-partitioning.md": "541e13fbeaf4bb1485c9059d4c9417dbdb766cf16f4237cd63a04ada7ec45b90",
+            "references/schema-primary-keys.md": "3c8beabef82066f9a0838b926da0885117fd2d9a263aaf84cb5ca9e5f0d400e9",
+            "references/security-privileges.md": "4ab96859116d29c582368f70f7c545f1558a1c422f6e3849e2103fec64497cba",
+            "references/security-rls-basics.md": "e04dd1a3a382aafdaaa73fe9f7976352acdde6e90c2a2470d281b94d4f44b096",
+            "references/security-rls-performance.md": "2e1faeca7d5746e246b1c78f9492fe2a9cfa41c4d7fa1e23c402d58fa18ea014",
+            "references/upstream.md": "531d461b80b30707ace58618d0b94e5394f98113c6105f563298850ac2fc5a06"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -7842,7 +8114,7 @@
       "rawSkillHash": "b6577edb7b7f71a6954f68b80c7eea1748ccdf31862759f864bce558fb2bcf83",
       "lockHash": "b6577edb7b7f71a6954f68b80c7eea1748ccdf31862759f864bce558fb2bcf83",
       "entrypointHash": "fda7deffec359dffae55e9938a8c877484ea6079c231aec58d1b33e1f080fb8a",
-      "treeHash": "dfeb7fbbbcf62033579881e9f1454258c5d5981acbe4311e6950938a4d310139",
+      "treeHash": "f23d50399d135fbf7b7158787b806adcb9ece5c02e3f8ab0eb8624ec0c475136",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -7854,7 +8126,7 @@
         ]
       },
       "adaptations": [
-        "Preserved Core cnfast helper in the new upstream reference location.",
+        "Preserved Core cn helper in the new upstream reference location.",
         "Added marked Core applicability, ecosystem ownership, and non-executing maintenance overlay.",
         "Normalized Markdown trailing whitespace and final newlines; retained hard breaks without trailing spaces.",
         "Registered the reviewed compatibility adapter in sync's committed ecosystem overlay/replacement configs."
@@ -7876,8 +8148,8 @@
             "SKILL.md": "fda7deffec359dffae55e9938a8c877484ea6079c231aec58d1b33e1f080fb8a",
             "references/LICENSE.md": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",
             "references/advanced-patterns.md": "a2751d7315842eeba87edcebbd83861cc19b5d96c315cb9831e675221a8c1bff",
-            "references/details.md": "3873cfe56a6103dd6d17a6b4fa98c987f096bd1adc021c83ff2587cca1e45ab8",
-            "references/upstream.md": "ffe947971580ad874d2991f53918265f079c0a39f4ff9a41cfcc79f84a933f09"
+            "references/details.md": "4e4585d5c86df65916e0ac68415688cf98e9b5b3bee2e3e04ba398df8e4b86fa",
+            "references/upstream.md": "fba907c439c0b2b0be9bfe2062dcbaf43e6875541542c1125659a5c08f34aa46"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -7895,7 +8167,7 @@
       "rawSkillHash": null,
       "lockHash": null,
       "entrypointHash": "ff5d5d802dd4ed5e24d1d1ce89fb040137a9228016dcdf03ce13a5c5d4b9e562",
-      "treeHash": "07d35807c1ccb9257c365f97ec491f03882f6e19e5d4731cc496a0b54a9970a0",
+      "treeHash": "428d57afc3eb8e9ddcd79ba8319c5fab02f9b5086a89bed3c6e54f5c96c16e25",
       "license": {
         "identifier": "MIT",
         "status": "historical-attribution-only",
@@ -7903,7 +8175,8 @@
       },
       "adaptations": [
         "Verified discontinued snapshot; no fork substituted.",
-        "Verified discontinued upstream snapshot retained; no unrelated fork substituted."
+        "Verified discontinued upstream snapshot retained; no unrelated fork substituted.",
+        "Align the local class-helper guidance with installed cn@0.4.0 and shared @asym/ui ownership; retain historical upstream classification."
       ],
       "evidence": ".agents/skills/tailwind-v4-shadcn/SKILL.md",
       "reviewEvidence": [
@@ -7940,7 +8213,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -7957,7 +8230,14 @@
             "tests.md": "859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a",
             "agents/openai.yaml": "ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "51efbe6bfca6fbe56c913953a3f404cd87983e1b40607cb91bb69f3c9b3cb382",
+            "agents/openai.yaml": "ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b",
+            "mocking.md": "0f9cd5617fbd475f6fefd516699af282e46ab04107548df1baa97a93d0ae35d0",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "c392656f6040384c74425ed78d1c3ad587a78bed5d1d1659fc5a2deab0226538",
+            "tests.md": "859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -8005,7 +8285,16 @@
             "LEARNING-RECORD-FORMAT.md": "701fa34b6748aa89e6c960ffb815257f481a7d77fb2900f9028f7edf3fdd6052",
             "agents/openai.yaml": "5856f3ae8aec742f1499c640aecdd5f1d6af5fa210a7c6ec794de8263a6f733f"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "GLOSSARY-FORMAT.md": "9b99859ec28437668130d8f2ce5a342938970f8a1ed4fd38c3eab4f4b5fff210",
+            "LEARNING-RECORD-FORMAT.md": "701fa34b6748aa89e6c960ffb815257f481a7d77fb2900f9028f7edf3fdd6052",
+            "MISSION-FORMAT.md": "274ddfd63b9aa79162b66f64bd2034ba56e259a3df9c707cab02a561e0d14f6f",
+            "RESOURCES-FORMAT.md": "e9cacf34026e11a8d1c8f9de88abe5bcbf654f4ebdb25cae8c0de0d5f48f44ec",
+            "SKILL.md": "550482c2d674b085c9043b87bfdc14a8f2ec453c736119e7fcbb1e9332bffeba",
+            "agents/openai.yaml": "5856f3ae8aec742f1499c640aecdd5f1d6af5fa210a7c6ec794de8263a6f733f",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "03e65ab15c01c8e7e564b1908d95fba3628ba1a9fe09bb2cbde2bf767ac66373"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -8036,7 +8325,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed"
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately."
       ],
       "evidence": "docs/ai/skills/test-driven-development/references/upstream.md",
       "reviewEvidence": [
@@ -8049,7 +8338,12 @@
             "SKILL.md": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d",
             "writing-good-tests.md": "51471c853306ff92ca8bb41dcaea05f31c0e46b03651f8f3c99754b7172f4ae1"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "cf687c807dee63c4879a5c8e49b370a3e5b5d71b863ae717949aeee7fb6cbd22",
+            "references/LICENSE.md": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+            "references/upstream.md": "82adb3a103f88142502e822dceeb273dc5cc47fdfe7dd5c750ba45299379953d",
+            "writing-good-tests.md": "99f314ceff0dc588f70fd406105caa999271f809fdf23e7b306431da718172aa"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -8127,12 +8421,12 @@
           "sourceFileHashes": null,
           "adaptedFileHashes": {
             "SKILL.md": "587ade3804d51c282099bf1b0844d116588d8aaf7b217d2dc6e385cbb083867a",
-            "references/collaboration.md": "60cba7f0f18bb8a774cec5abc42ba318000c02031b51740360c9a8f0777ea0bc",
-            "references/setup.md": "618061236f57fb59fa7e269c699eb970be3e661bc1a1540e965f618761883e49",
-            "references/ai.md": "1a2ee7c578188c9176c07c9f4acf2fc559e797f9911821943fbe4e8c8faea056",
-            "references/upstream.md": "8b2c3c7bfa51e80afe36d451341e2ce3b479993d7eee540881b331be6dd1fa53",
             "references/UPSTREAM-LICENSE.md": "c96e5ecb55ac593157ad1d21d1f44a611187f494a0f04c235a1ae692c88d6ba9",
-            "references/document-features.md": "bf4d78d47ef4ea14989da640e6d02cad96c1aaa825ffc407c674f38df8872558"
+            "references/ai.md": "1a2ee7c578188c9176c07c9f4acf2fc559e797f9911821943fbe4e8c8faea056",
+            "references/collaboration.md": "60cba7f0f18bb8a774cec5abc42ba318000c02031b51740360c9a8f0777ea0bc",
+            "references/document-features.md": "bf4d78d47ef4ea14989da640e6d02cad96c1aaa825ffc407c674f38df8872558",
+            "references/setup.md": "618061236f57fb59fa7e269c699eb970be3e661bc1a1540e965f618761883e49",
+            "references/upstream.md": "8b2c3c7bfa51e80afe36d451341e2ce3b479993d7eee540881b331be6dd1fa53"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -8222,7 +8516,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -8237,7 +8531,12 @@
             "SKILL.md": "56ec23c5b2782785d4e65bff9e315b6d3aeb4ef977c174a219e99489fada1995",
             "agents/openai.yaml": "21bc6215fffcd7614e9f772bb1760e87cc5fc7dcc707e7d282bc9414267a6090"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "56ec23c5b2782785d4e65bff9e315b6d3aeb4ef977c174a219e99489fada1995",
+            "agents/openai.yaml": "21bc6215fffcd7614e9f772bb1760e87cc5fc7dcc707e7d282bc9414267a6090",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "d92d251c6365261ef3064a94fb01558e34fe81b010f7a47c75e1d29e9658aedf"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -8268,7 +8567,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -8285,7 +8584,14 @@
             "OUT-OF-SCOPE.md": "1fbf9b432130c6380aa65813b55553cfda150309b27c595e183f8e335b8a190d",
             "agents/openai.yaml": "2e683717720cf456d165d0bb1a68bb600d0b6a8ccb61841c172e50d26f95351c"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "AGENT-BRIEF.md": "c2dc48d28eee86bc59e299ddc6f4a9c9eeeeecafb4781038bc27f9ea69dc2838",
+            "OUT-OF-SCOPE.md": "3e86b374668545e3129be1e41d842d2714615b718c45e7f1657ee81c5136187b",
+            "SKILL.md": "e210dbd969a69453ed14f28b003c0fc26f5b46120fc4e1fad4759e2b85a2c3b2",
+            "agents/openai.yaml": "2e683717720cf456d165d0bb1a68bb600d0b6a8ccb61841c172e50d26f95351c",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "89e6628faef7280023044d46024d3185dc8c2ad810f07ffc65b27bfa0a46a37b"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -8374,9 +8680,9 @@
             "references/details.md": "036a1dd41283384f086ac0eeb4f63c899b042ad68815a8ce00afebf606b55c44"
           },
           "adaptedFileHashes": {
-            "SKILL.md": "5478e24d9a26e93fffcb068e217add0548660e949a469f7da47f552a381a9b1e",
+            "SKILL.md": "28875bb3baf7dc8d0942413f57cacb8285b37760e29d8db72c3bc59f394f90f7",
             "references/LICENSE.md": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",
-            "references/details.md": "036a1dd41283384f086ac0eeb4f63c899b042ad68815a8ce00afebf606b55c44",
+            "references/details.md": "c58d9ef46e4ddedfeb02d2c552a77628b6eaf0239d09248b4a328fa60358e78c",
             "references/upstream.md": "f0f776a598211ddfffba72726c33cf493f5c2cfd8e005081e61a1261b109ff97"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
@@ -8521,7 +8827,7 @@
           "rawSkillHash": "30e6f0dd9bc353768b35d1a768ae58e31219ffa992d39bae347d8950c29b563b",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "15c8889227567919a99ff6fb7761cb0dbe7062fde83242df957fcaa5b7904627",
+            "SKILL.md": "25b7a6c4ef304c8f6ef47abccd3cc3fb226297559a9f8e6211b98e196af0844e",
             "references/upstream.md": "fd7ca806e74e17b12fdad65dc29e1a2f61f73f8da9dfa3508e778660fc65f75f"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
@@ -8916,7 +9222,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative"
       ],
@@ -8931,7 +9237,12 @@
             "SKILL.md": "9be7b478c389605a24517d27752f278933588da97a1b5921b165f455edf4c5b7",
             "agents/openai.yaml": "88bc81a11a6d52ac67aeaa76b8b619e387020d47c5133a4dd4927fd15c4ad073"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "9be7b478c389605a24517d27752f278933588da97a1b5921b165f455edf4c5b7",
+            "agents/openai.yaml": "88bc81a11a6d52ac67aeaa76b8b619e387020d47c5133a4dd4927fd15c4ad073",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "31d8566bae9fe60edd1b43a81f4f314ba52ce159a68f15dc9ea2a07a5f87ef94"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -9143,7 +9454,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "GLOSSARY filenames and references remapped to Core CONTEXT conventions",
         "Core TDD exceptions, established seams and authorization remain authoritative",
         "Codex native metadata policy.allow_implicit_invocation=false enforces the existing explicit-only boundary"
@@ -9160,7 +9471,13 @@
             "template.sh": "6566f147299bc6f1d941e64591ed04385416d543e11f96f564c7228f5018d0ed",
             "agents/openai.yaml": "98f44d682d58e262f160dc59a8befc365e0aa65820dd0261864af26aa8e59d83"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "3362f0129e8c22dc044b2de8fcace34045319461a6065bc8886205e82f96f930",
+            "agents/openai.yaml": "7098d2c3ae10814d07d0fa90668e00b7842ec8308d0f4470e8fd358aebabe166",
+            "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+            "references/upstream.md": "6ce47ed25d9bd0fb5af542135640de2e2c18e892a58382765cfdb0b64364ce8d",
+            "template.sh": "6566f147299bc6f1d941e64591ed04385416d543e11f96f564c7228f5018d0ed"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]
@@ -9228,7 +9545,7 @@
       "adaptations": [
         "Existing discovery metadata and explicit-only flags preserved",
         "Existing marked Core overlays and compatibility corrections retained",
-        "Pinned upstream scripts and assets were not executed",
+        "Refresh does not execute imported scripts/assets; explicit synthetic tests validate reviewed helpers separately.",
         "Only new readiness sections rebased onto existing Core-corrected complete trees; concrete requests continue immediately",
         "Duplicate legacy greeting remnants removed; one task-aware readiness instruction remains"
       ],
@@ -9242,7 +9559,11 @@
           "sourceFileHashes": {
             "SKILL.md": "16a4b6adb74e338e55e704ce5753ad54d825438b8a63930eeaede9f3c04c9447"
           },
-          "adaptedFileHashes": null,
+          "adaptedFileHashes": {
+            "SKILL.md": "9b2c7aa330aa22b68e798ede3e13edf8b4979063ad88697aa9c07c527dfe733f",
+            "references/LICENSE.md": "4ff5bdb7887ec1435c9cab0e8d1a7caee704d894d65c2a008ccc68b1cc2f260b",
+            "references/upstream.md": "e4ef8483e6017553d2039f20672083d614c6731e41ad196c768db225451d9ad2"
+          },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
       ]

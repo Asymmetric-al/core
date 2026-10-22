@@ -55,6 +55,13 @@
     svg("title", {}, parent).textContent = str;
     return parent;
   };
+  // Supplied labels and formatter results are text, never HTML.
+  const html = (tag, value = "", style = "") => {
+    const node = document.createElement(tag);
+    node.textContent = String(value);
+    node.style.cssText = style;
+    return node;
+  };
   // numbers follow the page's language (<html lang>), so separators match the rest of the screen
   const nf = (o) =>
     new Intl.NumberFormat(document.documentElement.lang || "en", o);
@@ -1015,14 +1022,21 @@
           );
           dots[k].setAttribute("opacity", v == null ? 0 : 1);
         });
-        tip.innerHTML =
-          `<div style="opacity:.7">${labels[i]}</div>` +
-          series
-            .map(
-              (sr) =>
-                `<div><b style="font-weight:600">${sr.values[i] == null ? "–" : format(sr.values[i])}</b> ${series.length > 1 ? sr.name : ""}</div>`,
-            )
-            .join("");
+        tip.replaceChildren(
+          html("div", labels[i], "opacity:.7"),
+          ...series.map((sr) => {
+            const row = document.createElement("div");
+            row.append(
+              html(
+                "b",
+                sr.values[i] == null ? "–" : format(sr.values[i]),
+                "font-weight:600",
+              ),
+              document.createTextNode(` ${series.length > 1 ? sr.name : ""}`),
+            );
+            return row;
+          }),
+        );
         const left = Math.min(
           (x(i) / w) * r.width + 12,
           r.width - tip.offsetWidth - 4,
@@ -1376,7 +1390,17 @@
     const t = document.createElement("div");
     t.style.cssText =
       "position:absolute;inset:0;display:grid;place-content:center;text-align:center;font-variant-numeric:tabular-nums";
-    t.innerHTML = `<div style="font-size:${Math.round(size / 5.5)}px;font-weight:600;line-height:1">${label}</div>${sub ? `<div style="font-size:12px;opacity:.7;margin-top:4px">${sub}</div>` : ""}`;
+    t.appendChild(
+      html(
+        "div",
+        label,
+        `font-size:${Math.round(size / 5.5)}px;font-weight:600;line-height:1`,
+      ),
+    );
+    if (sub)
+      t.appendChild(
+        html("div", sub, "font-size:12px;opacity:.7;margin-top:4px"),
+      );
     wrap.appendChild(t);
     el.appendChild(wrap);
   }
@@ -1447,7 +1471,22 @@
       const top = document.createElement("div");
       top.style.cssText =
         "display:flex;justify-content:space-between;gap:12px;margin-bottom:6px";
-      top.innerHTML = `<span>${r.label}</span><span><b style="font-weight:500">${format(r.spent)}</b> <span style="color:var(--muted,#5f6368)">of ${format(r.planned)} · </span><span style="color:${over ? "var(--negative,#c4242a)" : "var(--muted,#5f6368)"}">${note(r)}</span></span>`;
+      const figures = document.createElement("span");
+      figures.append(
+        html("b", format(r.spent), "font-weight:500"),
+        document.createTextNode(" "),
+        html(
+          "span",
+          `of ${format(r.planned)} · `,
+          "color:var(--muted,#5f6368)",
+        ),
+        html(
+          "span",
+          note(r),
+          `color:${over ? "var(--negative,#c4242a)" : "var(--muted,#5f6368)"}`,
+        ),
+      );
+      top.append(html("span", r.label), figures);
       // scale 'row': each track is full width and shows the share used (rows in a grid compare); 'plan': as long as its plan
       const room = over
         ? 100 / (1 + Math.max(0.06, (r.spent - r.planned) / r.planned))
@@ -1459,14 +1498,34 @@
         "%";
       const pct = (v) => (v / r.planned) * 100;
       const spent = Math.min(r.spent, r.planned);
-      track.innerHTML =
-        `<span style="position:absolute;inset:0 auto 0 0;width:${pct(spent)}%;border-radius:999px;background:var(--chart-1,#2f6fdf)"></span>` +
-        (r.committed
-          ? `<span style="position:absolute;top:0;bottom:0;left:${pct(spent)}%;width:${Math.min(pct(r.committed), 100 - pct(spent))}%;background:var(--chart-1,#2f6fdf);opacity:.35"></span>`
-          : "") +
-        (over
-          ? `<span style="position:absolute;top:-3px;bottom:-3px;left:100%;width:1px;background:var(--text,#111)"></span><span style="position:absolute;top:0;bottom:0;left:calc(100% + 2px);width:max(12px, ${pct(r.spent - r.planned)}%);border-radius:0 999px 999px 0;background:var(--negative,#c4242a)"></span>`
-          : "");
+      track.appendChild(
+        html(
+          "span",
+          "",
+          `position:absolute;inset:0 auto 0 0;width:${pct(spent)}%;border-radius:999px;background:var(--chart-1,#2f6fdf)`,
+        ),
+      );
+      if (r.committed)
+        track.appendChild(
+          html(
+            "span",
+            "",
+            `position:absolute;top:0;bottom:0;left:${pct(spent)}%;width:${Math.min(pct(r.committed), 100 - pct(spent))}%;background:var(--chart-1,#2f6fdf);opacity:.35`,
+          ),
+        );
+      if (over)
+        track.append(
+          html(
+            "span",
+            "",
+            "position:absolute;top:-3px;bottom:-3px;left:100%;width:1px;background:var(--text,#111)",
+          ),
+          html(
+            "span",
+            "",
+            `position:absolute;top:0;bottom:0;left:calc(100% + 2px);width:max(12px, ${pct(r.spent - r.planned)}%);border-radius:0 999px 999px 0;background:var(--negative,#c4242a)`,
+          ),
+        );
       track.setAttribute("role", "img");
       track.setAttribute(
         "aria-label",
@@ -1496,7 +1555,34 @@
       const li = document.createElement("li");
       li.style.cssText =
         "display:grid;grid-template-columns:minmax(90px,30%) 1fr auto;align-items:center;gap:12px";
-      li.innerHTML = `<span>${r.label}</span><span style="position:relative;height:10px;background:var(--rule,#eceeef);border-radius:2px"><span style="position:absolute;inset:0 auto 0 0;width:${(r.value / max) * 100}%;background:var(--chart-1,#2f6fdf);border-radius:2px"></span><span style="position:absolute;top:-4px;bottom:-4px;left:${(r.target / max) * 100}%;width:2px;margin-left:-1px;background:var(--text,#111)"></span></span><span><b style="font-weight:500">${format(r.value)}</b> <span style="color:${Math.abs(drift) >= (r.tolerance ?? 0.02) ? "var(--negative,#c4242a)" : "var(--muted,#5f6368)"}">${drift >= 0 ? "+" : "−"}${format(Math.abs(drift))} vs ${format(r.target)}</span></span>`;
+      const track = html(
+        "span",
+        "",
+        "position:relative;height:10px;background:var(--rule,#eceeef);border-radius:2px",
+      );
+      track.append(
+        html(
+          "span",
+          "",
+          `position:absolute;inset:0 auto 0 0;width:${(r.value / max) * 100}%;background:var(--chart-1,#2f6fdf);border-radius:2px`,
+        ),
+        html(
+          "span",
+          "",
+          `position:absolute;top:-4px;bottom:-4px;left:${(r.target / max) * 100}%;width:2px;margin-left:-1px;background:var(--text,#111)`,
+        ),
+      );
+      const figures = document.createElement("span");
+      figures.append(
+        html("b", format(r.value), "font-weight:500"),
+        document.createTextNode(" "),
+        html(
+          "span",
+          `${drift >= 0 ? "+" : "−"}${format(Math.abs(drift))} vs ${format(r.target)}`,
+          `color:${Math.abs(drift) >= (r.tolerance ?? 0.02) ? "var(--negative,#c4242a)" : "var(--muted,#5f6368)"}`,
+        ),
+      );
+      li.append(html("span", r.label), track, figures);
       li.setAttribute(
         "aria-label",
         `${r.label}: ${format(r.value)}, target ${format(r.target)}`,

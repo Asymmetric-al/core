@@ -19,7 +19,7 @@ This complete skill tree is vendored from [google-labs-code/stitch-skills](https
 - Preserved reviewed data-table Base UI render/group/type-only/gap fixes via existing sync adapter.
 - Preserved all authentication example flex/gap layouts, including both card contents, six field groups and both footers.
 - Reinstall recovery restores type-only table imports and horizontal gap utilities as well as the existing Base UI menu fixes; the approved data-table bytes remain identical to the baseline.
-- Preserved cnfast helper/docs/setup detection, while taking upstream node_modules exclusion in find commands.
+- Preserved cn helper/docs/setup detection, while taking upstream node_modules exclusion in find commands.
 - Added marked Core applicability, ecosystem ownership, and non-executing maintenance overlay.
 
 - Pinned README contribution link to upstream and routed its license link to the bundled Apache notice.

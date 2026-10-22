@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // tasteskill / inspect — render the page in a real browser, measure it, and photograph it.
 //
-//   node inspect.mjs <url | path/to/file.html> [--out DIR] [--widths 1440,768,390] [--allow rule,rule] [--app] [--film] [--json]
+//   node inspect.mjs <http(s)://url> [--out DIR] [--widths 1440,768,390] [--allow rule,rule] [--app] [--film] [--json]
 //
 // --film also photographs the scroll as a visitor sees it (a frame every third of a screen, real wheel
 // input) into desktop-film-NN.jpg, so a scroll scene is judged by its in-between states. A direction
@@ -17,13 +17,11 @@ import {
   mkdirSync,
   readFileSync,
   writeFileSync,
-  statSync,
-  createReadStream,
   readdirSync,
   unlinkSync,
 } from "node:fs";
-import { resolve, join, relative, dirname, extname, sep } from "node:path";
-import { createServer } from "node:http";
+import { resolve, join, relative } from "node:path";
+import { requirePreviewUrl } from "./lib/preview-boundary.mjs";
 import { Browser, sleep } from "./lib/cdp.mjs";
 import { probe, frame, layout, app, colourShare } from "./lib/probe.mjs";
 import { judge, judgeLayout, judgeApp, APP_SKIP } from "./lib/rules.mjs";
@@ -55,8 +53,16 @@ let dealtFonts = []; // the faces the saved sheet dealt, to catch a build that q
 const target = args[0];
 if (!target || target === "-h" || target.startsWith("--")) {
   console.error(
-    "usage: node inspect.mjs <url | file.html> [--out DIR] [--widths 1440,768,390] [--allow rule,rule] [--app] [--film] [--json]",
+    "usage: node inspect.mjs <http(s)://url> [--out DIR] [--widths 1440,768,390] [--allow rule,rule] [--app] [--film] [--json]",
   );
+  process.exit(2);
+}
+// Core uses the project's explicit dev-server boundary for local work.
+let url;
+try {
+  url = requirePreviewUrl(target);
+} catch (error) {
+  console.error(error.message);
   process.exit(2);
 }
 // Allowances granted by the drawn direction (written by draw.mjs) apply automatically.
@@ -78,69 +84,6 @@ for (const p of [
     } catch {}
     break;
   }
-}
-// A local file is served over http from a throwaway server on 127.0.0.1, so the browser never has to
-// open a file path (some sandboxes show Node and the browser different views of the disk) and relative
-// assets, fetch() and module scripts behave as they will when the page is hosted.
-let url = target;
-let server = null;
-if (!/^https?:\/\//.test(target)) {
-  const file = resolve(target);
-  if (!existsSync(file)) {
-    console.error("No such file: " + file);
-    process.exit(2);
-  }
-  const cwd = resolve(".");
-  const root = file.startsWith(cwd + sep) ? cwd : dirname(file);
-  const MIME = {
-    ".html": "text/html; charset=utf-8",
-    ".htm": "text/html; charset=utf-8",
-    ".css": "text/css; charset=utf-8",
-    ".js": "text/javascript; charset=utf-8",
-    ".mjs": "text/javascript; charset=utf-8",
-    ".json": "application/json",
-    ".svg": "image/svg+xml",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".webp": "image/webp",
-    ".avif": "image/avif",
-    ".gif": "image/gif",
-    ".ico": "image/x-icon",
-    ".woff": "font/woff",
-    ".woff2": "font/woff2",
-    ".ttf": "font/ttf",
-    ".otf": "font/otf",
-    ".mp4": "video/mp4",
-    ".webm": "video/webm",
-    ".txt": "text/plain; charset=utf-8",
-    ".xml": "application/xml",
-    ".webmanifest": "application/manifest+json",
-  };
-  server = createServer((req, res) => {
-    try {
-      let f = resolve(
-        join(root, decodeURIComponent(new URL(req.url, "http://x").pathname)),
-      );
-      if (f !== root && !f.startsWith(root + sep)) {
-        res.writeHead(403);
-        return res.end();
-      }
-      if (statSync(f).isDirectory()) f = join(f, "index.html");
-      res.writeHead(200, {
-        "content-type":
-          MIME[extname(f).toLowerCase()] || "application/octet-stream",
-        "content-length": statSync(f).size,
-        "cache-control": "no-store",
-      });
-      createReadStream(f).pipe(res);
-    } catch {
-      res.writeHead(404);
-      res.end("not found");
-    }
-  });
-  await new Promise((r) => server.listen(0, "127.0.0.1", r));
-  url = `http://127.0.0.1:${server.address().port}/${relative(root, file).split(sep).map(encodeURIComponent).join("/")}`;
 }
 const HEIGHT = {
   1440: 900,
@@ -639,7 +582,6 @@ try {
   }
 } finally {
   await browser.close();
-  if (server) server.close();
 }
 
 // de-duplicate findings that repeat across viewports (keep the widest occurrence, note the others)

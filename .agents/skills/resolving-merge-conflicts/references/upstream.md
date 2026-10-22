@@ -16,16 +16,19 @@ Canonical copy in this repo: `docs/ai/skills/resolving-merge-conflicts/` (mirror
 
 - **Repository:** https://github.com/mattpocock/skills
 - **Upstream path:** `skills/engineering/resolving-merge-conflicts/SKILL.md`
-- **Install via Skills CLI:** `npx skills add mattpocock/skills -y`
 
-## Refresh from ecosystem
+## Retained snapshot maintenance
 
-1. `npx skills add mattpocock/skills -y` updates `.agents/skills/*` and `skills-lock.json`.
-2. Reconcile the freshly installed upstream copy from `.agents/skills/resolving-merge-conflicts/` into canonical `docs/ai/skills/resolving-merge-conflicts/` if this canonical copy needs updating. Treat `.agents/skills/resolving-merge-conflicts/` as a temporary Skills CLI import at this point; after `bun run skills:sync`, it is generated mirror output again.
-3. Preserve or regenerate this `references/upstream.md` file with the current lock hash.
-4. Run `bun run skills:sync` and `bun run skills:verify`.
+The installed upstream source path no longer exists. Do not reinstall this skill
+from a floating pack, run a blanket Skills CLI add, replace it with a successor,
+or change its lock identity as part of routine refresh.
 
-This skill is **not** updated by `bun run skills:refresh-upstream`.
+Preserve the retained skill body, support files, license, discovery metadata and
+marked Core policies. The checked upstream revision records absence only; it is
+not provenance for the historical payload. A future replacement requires its own
+source, permission and compatibility review. After an intentional local policy
+edit, update the local adapted hashes, then run `bun run skills:sync` and
+`bun run skills:verify`.
 
 ## Kept snapshot, 2026-10-22
 

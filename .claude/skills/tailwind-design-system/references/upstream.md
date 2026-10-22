@@ -16,7 +16,7 @@ This complete skill tree is vendored from [wshobson/agents](https://github.com/w
 
 ## Core adaptations
 
-- Preserved Core cnfast helper in the new upstream reference location.
+- Preserved Core cn helper in the new upstream reference location.
 - Added marked Core applicability, ecosystem ownership, and non-executing maintenance overlay.
 
 ## Imported file inventory

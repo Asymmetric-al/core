@@ -28,6 +28,7 @@ before running `bun run skills:sync`.
 2. Keep frontend.md, Base UI, and Zinc tokens if the request touches this
    monorepo's apps.
 3. Prefer `impeccable` and Core frontend skills for in-repo UI critique.
+4. Browser inspection requires an explicit HTTP(S) URL from the project dev server. Local files are not served by these tools. Scene IDs stay report text; screenshot names come from indices and viewport names.
 
 ### Checklist
 
@@ -327,8 +328,9 @@ behind a decision; the laws below are the short form.
 
 ```bash
 node <skill>/scripts/lint.mjs <source files or folder>
-node <skill>/scripts/inspect.mjs <url or path/to/index.html>
-node <skill>/scripts/scenes.mjs <url or path/to/index.html>     # when the page has scroll scenes
+node <skill>/scripts/inspect.mjs <existing-dev-server-url>
+node <skill>/scripts/scenes.mjs <existing-dev-server-url>     # when the page has scroll scenes
+# Start the existing project dev server or use a reviewed host of public build outputs.
 ```
 
 `scenes.mjs` photographs every scroll scene at 0, 10 … 100% of its hold, on desktop and on a phone,
@@ -341,8 +343,9 @@ loaded, colours, rules, shadows, gradients, contrast, overflow, and the frame: e
 huddled on one side, blank stretches, the title, untitled sections, text against the screen edge) and
 saves screenshots to `.taste-skill/inspect/`. Fix every `FAIL`. Treat each `WARN` as wrong unless you can defend it to a
 designer in one sentence. Re-run until there are no `FAIL`s. Do not argue with the meter and do not
-hide things from it. The inspector serves local files over a throwaway local server; if the page must
-also open straight from the file system, open `index.html` that way once before you finish.
+hide things from it. Browser tools require an explicit HTTP(S) dev-server URL. Follow the existing project
+development-server workflow, or use a reviewed static host exposing only public build outputs.
+These tools do not start a filesystem server.
 
 ### 8. Look
 
