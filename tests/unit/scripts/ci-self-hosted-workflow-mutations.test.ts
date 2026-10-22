@@ -2716,6 +2716,47 @@ describe("repair 9: the migrate 'Verify document-cutover reader role (real stack
     },
   );
 
+  it.each([
+    [
+      "success() || failure()",
+      "success() || failure()",
+      "success() || failure()",
+    ],
+    [
+      "${{ success() || failure() }}",
+      "${{ success() || failure() }}",
+      "${{ success() || failure() }}",
+    ],
+    // Bare (no ${{ }}); YAML requires quoting a value that starts with "!".
+    ['"!cancelled()" (bare)', '"!cancelled()"', "!cancelled()"],
+  ])(
+    "weakening the step's fork guard with if: %s fails closed (pinned absent)",
+    (_label, yaml, parsed) => {
+      const job = editStep(
+        STEP_TEXT.replace("        env:", `        if: ${yaml}\n        env:`),
+      );
+      expect(job.steps![14]!.if).toBe(parsed);
+      expect(pinnedIfProblems(job)).toEqual([
+        `Job 'migrate' step 14 if ${JSON.stringify(parsed)} is not allowed: pinned to "absent"`,
+      ]);
+      expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+    },
+  );
+
+  it("an unquoted if: !cancelled() (a YAML tag, parsed as null) still fails closed on the if key", () => {
+    const job = editStep(
+      STEP_TEXT.replace(
+        "        env:",
+        "        if: !cancelled()\n        env:",
+      ),
+    );
+    expect(job.steps![14]!.if).toBeNull();
+    expect(modelledKeyProblems(job, "reject").join("\n")).toContain(
+      "Step 14 (reject) key 'if' is not modelled",
+    );
+    expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+  });
+
   it("the step gets exactly the fork protection of its DATABASE_URL siblings", () => {
     const job = migrateOf(source(CI_INTEGRATION));
     const siblings = job
