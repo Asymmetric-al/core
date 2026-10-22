@@ -44,7 +44,7 @@ describe("hosted Git-source preview delivery", () => {
     ).resolves.toBe("https://admin-fixture.vercel.app");
     const [url, options] = fx.request.mock.calls[0];
     expect(url).toBe(
-      "https://api.vercel.com/v13/deployments?teamId=team_YrLB8jJARcRH0jnF1HPpPGTB",
+      "https://api.vercel.com/v13/deployments?teamId=team_YrLB8jJARcRH0jnF1HPpPGTB&forceNew=1",
     );
     expect(options.redirect).toBe("error");
     const body = JSON.parse(options.body);

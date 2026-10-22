@@ -100,9 +100,9 @@ export async function deployHostedPreview({
       );
     }
   }
-  // Allow provider SHA deduplication; reused deployments still require identity readback.
+  // Bypass SHA deduplication so a prior ignored same-SHA Preview cannot hide the marker.
   const created = await json(
-    await call(`/v13/deployments?teamId=${TEAM}`, "POST", {
+    await call(`/v13/deployments?teamId=${TEAM}&forceNew=1`, "POST", {
       name: app,
       project: project.projectId,
       gitSource: { type: "github", repoId: REPOSITORY_ID, ref: branch, sha },
