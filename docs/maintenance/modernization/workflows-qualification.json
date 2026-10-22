@@ -722,12 +722,12 @@
       "logSha256": "6419d0bf73b1f9781afca34b2d453938eddc26572fbc22402ff554e4a299018c",
       "lockBeforeSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
       "lockAfterSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
-      "status": "",
       "opaqueDatabaseAbsent": true,
       "environmentFileAbsent": true,
       "packagesInstalled": 1946,
       "firstAttemptPassed": true,
-      "existingPostinstallRepairRetainedForPdfOwner": true
+      "existingPostinstallRepairRetainedForPdfOwner": true,
+      "workingTreeClean": true
     },
     "cleanUnit": {
       "startedAt": "2026-10-22T00:57:38.198072+00:00",

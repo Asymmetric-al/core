@@ -43,9 +43,17 @@ scope and `docs/guides/features/inngest-workflows/*.md` for workflow designs.
    and discovers only the explicit Mission Control endpoint. The first run
    downloads the versioned upstream binary. Requalify this launcher and the
    local MCP endpoint together when changing the workflow cohort.
+   This launcher is qualified on Linux amd64 in approved WSL. Windows and
+   macOS require separate platform qualification; Windows ZIP extraction
+   remains under advisory review.
 
    The script uses `npm exec` because Bun rewrites `npx` inside package scripts
    to `bunx`, which skips the CLI's required native-binary install script.
+   `npm exec` resolves transitive dependencies outside `bun.lock` and enables
+   that installer explicitly. The captured installer graph and open Windows
+   advisory in the [qualification record](../../../maintenance/modernization/workflows.md)
+   require rechecking before a release; this checkpoint does not accept that
+   remaining risk.
 
 4. Open the dev server UI at `http://127.0.0.1:8288`. The
    `asym-core-workflows` app should appear under Apps with the
