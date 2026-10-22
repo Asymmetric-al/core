@@ -107,12 +107,18 @@ product build. Older successful previews therefore do not qualify that head.
 A dashboard retry with the ignored step disabled reached compilation and
 confirmed an 8 GiB memory failure; hosted admin QA must retain Turbo.
 
-The follow-up keeps provider SHA deduplication with mandatory identity readback
-and adds a SHA-bound, nonsecret build marker for explicit QA Previews. The
-ignored-build helper requires the known app, Preview target, matching provider
-commit and actual Git HEAD. Normal automatic build decisions are preserved.
-All 132 related local tests pass, including production and mismatch denial,
-same-head reuse checks and rejection of CANCELED builds. Hosted visibility of
-the marker, exact-head READY deployments and all three QA projects still
-require live qualification after publication. See the corrected
-[Preview QA runbook](../../qa/pr-preview-smoke.md).
+The follow-up adds a SHA-bound, nonsecret build marker for explicit QA
+Previews. The ignored-build helper requires the known app, Preview target,
+matching provider commit and actual Git HEAD. Normal automatic build decisions
+are preserved. At `cd445c9f`, all three hosted ignored-build logs confirm the
+marker matched, all three exact-head deployments reached READY, and all three
+QA projects passed in run 39821034649.
+
+Review then identified a retry case: allowing deployment deduplication could
+reuse an earlier canceled same-SHA build before the marker executes. Explicit
+QA requests therefore retain `forceNew=1`, plus mandatory identity readback and
+bounded owned cleanup. The strengthened request assertion failed before this
+fix; all 132 related cases pass afterward, including production/mismatch denial,
+immediate READY identity checks and CANCELED rejection. Current-head CI and
+hosted QA must rerun after this correction; the successful earlier head remains
+dated evidence. See the corrected [Preview QA runbook](../../qa/pr-preview-smoke.md).
