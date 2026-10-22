@@ -37,13 +37,28 @@ test("the real map renders worker-parsed GeoJSON and retains keyboard controls a
   await expect
     .poll(async () => JSON.parse((await observation.textContent())!).zoom)
     .toBeGreaterThan(zoom);
+  const expectedColors: Record<string, string> = {
+    "Core offline light": "#2563eb",
+    "Core offline dark": "#f97316",
+  };
   const style = JSON.parse((await observation.textContent())!).style;
+  await expect
+    .poll(
+      async () => JSON.parse((await observation.textContent())!).circleColor,
+    )
+    .toBe(expectedColors[style]);
   await page
     .getByRole("button", { name: "Toggle map theme", exact: true })
     .click();
   await expect
     .poll(async () => JSON.parse((await observation.textContent())!).style)
     .not.toBe(style);
+  const toggledStyle = JSON.parse((await observation.textContent())!).style;
+  await expect
+    .poll(
+      async () => JSON.parse((await observation.textContent())!).circleColor,
+    )
+    .toBe(expectedColors[toggledStyle]);
   await expect
     .poll(async () => JSON.parse((await observation.textContent())!).features)
     .toBeGreaterThan(0);

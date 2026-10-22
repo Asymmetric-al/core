@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-10-22T14:29:43.563991+00:00",
+  "recordedAt": "2026-10-22T15:27:01.701485+00:00",
   "status": "local-qualified-awaiting-ci-review-previews",
   "baseCommit": "3a8f77043f0fbcff692be14ad99ec6fdd55e7f99",
   "baselineSourceCommit": "f05cdc7fb15c19c26b986693077b591d2647ee17",
@@ -96,6 +96,17 @@
       "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
       "exit": 0,
       "logSha256": "3ee7322d0742cc61ac4d28fd5c799b6f9101e4fb70cfd7f615baaa659e6c803a"
+    },
+    {
+      "kind": "full-browser-after-map-paint-review-fix",
+      "proof": "/tmp/core-modernization-ui-utilities-map-paint-full-browser.json",
+      "sha256": "3008ca3f81e426d7f92edd7b3a685953a6fdd0b176b31e546cd2b749c11fdcde",
+      "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+      "exit": 0,
+      "logSha256": "b4ca65c2aacb025cf4d6314d2bcf0410c9fa2488e9dc0b3e5c73da0bfc196568",
+      "fixtureCompiler": "Product TypeScript 7 invoked by test:e2e:base-ui",
+      "browserPassed": 259,
+      "browserExistingSkips": 5
     }
   ],
   "independentReviews": [
@@ -114,6 +125,10 @@
     {
       "path": "/tmp/core-modernization-ui-utilities-docs-review.json",
       "sha256": "8e09eca9ab8591f7aac854cb2a63551644bb847190387fdb3d912bae4c6a058a"
+    },
+    {
+      "path": "/tmp/core-modernization-ui-utilities-map-paint-source-review.json",
+      "sha256": "77da2bf07a6db6566e8789f8e1c1108e93c7a9f4e9f1aed8d056da065cc0e9a2"
     }
   ],
   "qualityEvidence": {
@@ -173,5 +188,17 @@
     "browserExistingSkips": 5,
     "newSeamBrowserCases": 20,
     "focusedUnitCases": 37
+  },
+  "reviewFix": {
+    "pullRequest": 2190,
+    "reviewComment": 4349942547,
+    "scope": "Four test fixture/spec files; no product implementation, dependency, lock, quality reason or floor changes",
+    "behavior": "Distinct background/circle palettes; observe actual MapLibre circle-color and independently assert expected light/dark values before and after toggle",
+    "redProof": "/tmp/core-modernization-ui-utilities-map-paint-red.json",
+    "redProofSha256": "a45899ed0f847f91096bb508a92bcfe43c9d2d9ba0b7a6177c3f120f0403a553",
+    "redFailures": 4,
+    "redTraceManifest": "/tmp/core-modernization-ui-utilities-map-paint-red-traces/manifest.json",
+    "redTraceManifestSha256": "5a5bc11e5fd93e163c3b6168c4559eb696e9db96ef2a26be026b082ec27cc3b7",
+    "green": "Full matrix and fixture compiler passed; current-head CI/previews will rerun after publication"
   }
 }

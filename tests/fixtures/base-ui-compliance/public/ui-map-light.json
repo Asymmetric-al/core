@@ -23,11 +23,19 @@
   },
   "layers": [
     {
+      "id": "offline-background",
+      "type": "background",
+      "paint": {
+        "background-color": "#fafafa"
+      }
+    },
+    {
       "id": "offline-points",
       "type": "circle",
       "source": "offline",
       "paint": {
-        "circle-radius": 8
+        "circle-radius": 8,
+        "circle-color": "#2563eb"
       }
     }
   ]

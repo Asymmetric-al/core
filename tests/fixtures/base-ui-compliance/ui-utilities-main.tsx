@@ -31,7 +31,12 @@ const initialMapView = { longitude: 0, latitude: 20, zoom: 2 };
 
 function MapObservation() {
   const { map, isLoaded } = useMap();
-  const [view, setView] = useState({ zoom: 0, style: "", features: 0 });
+  const [view, setView] = useState({
+    zoom: 0,
+    style: "",
+    features: 0,
+    circleColor: "",
+  });
   useEffect(() => {
     if (!map || !isLoaded) return;
     const update = () => {
@@ -39,6 +44,9 @@ function MapObservation() {
       setView({
         zoom: map.getZoom(),
         style: map.getStyle().name ?? "",
+        circleColor: String(
+          map.getPaintProperty("offline-points", "circle-color") ?? "",
+        ),
         features: map.queryRenderedFeatures({ layers: ["offline-points"] })
           .length,
       });

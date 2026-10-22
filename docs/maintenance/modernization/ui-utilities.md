@@ -34,7 +34,9 @@ hook, theme provider, Motion preset and controls. It uses real MapLibre WebGL2,
 its same-origin worker/shared modules and worker-parsed local GeoJSON; no map
 stub is used in this checkpoint. The existing map's unrelated older fixture
 stub retains its narrower original role. Keyboard zoom, marker rendering and
-light/dark style changes pass without external requests. Headless Chromium uses
+light/dark style and explicit paint changes pass without external requests.
+The fixtures use distinct background/circle palettes; the test observes actual
+MapLibre paint values and independently checks both sides of the theme toggle. Headless Chromium uses
 explicit SwiftShader for this trusted offline fixture; device-GPU performance
 is a separate measurement.
 
