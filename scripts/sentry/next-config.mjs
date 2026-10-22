@@ -24,6 +24,7 @@ function readGitSha() {
   }
 }
 
+/** @param {Record<string, string | undefined>} [env] */
 export function resolveSentryReleaseName(env = process.env) {
   return firstNonEmpty(
     env.SENTRY_RELEASE,
@@ -35,10 +36,12 @@ export function resolveSentryReleaseName(env = process.env) {
   );
 }
 
+/** @param {Record<string, string | undefined>} [env] */
 export function resolveSentryDeployEnvironment(env = process.env) {
   return firstNonEmpty(env.VERCEL_TARGET_ENV, env.VERCEL_ENV, env.NODE_ENV);
 }
 
+/** @param {Record<string, string | undefined>} [env] */
 export function buildSentryNextConfigOptions(env = process.env) {
   const authToken = firstNonEmpty(env.SENTRY_AUTH_TOKEN);
   const releaseName = resolveSentryReleaseName(env);
@@ -51,7 +54,6 @@ export function buildSentryNextConfigOptions(env = process.env) {
     project: firstNonEmpty(env.SENTRY_PROJECT, DEFAULT_SENTRY_PROJECT),
     release: {
       name: releaseName || undefined,
-      inject: Boolean(releaseName),
       create: sourcemapUploadEnabled ? true : undefined,
       finalize: sourcemapUploadEnabled ? true : undefined,
       deploy:
@@ -59,15 +61,15 @@ export function buildSentryNextConfigOptions(env = process.env) {
           ? { env: deployEnvironment }
           : undefined,
     },
+    // Build diagnostics are separate from application monitoring and uploads.
+    telemetry: false,
     silent: env.CI !== "true" && env.CI !== "1",
     sourcemaps: {
       disable: !sourcemapUploadEnabled,
     },
     widenClientFileUpload: sourcemapUploadEnabled,
-    webpack: {
-      treeshake: {
-        removeDebugLogging: true,
-      },
+    bundleSizeOptimizations: {
+      excludeDebugStatements: true,
     },
   };
 }

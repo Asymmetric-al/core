@@ -23,7 +23,7 @@
     "@asym/missionary": "workspace:*",
     "@asym/ui": "workspace:*",
     "@next/env": "16.4.2",
-    "@sentry/nextjs": "11.5.0",
+    "@sentry/nextjs": "11.8.0",
     "@tanstack/react-query": "5.104.5",
     "boneyard-js": "1.10.0",
     "date-fns": "4.4.0",

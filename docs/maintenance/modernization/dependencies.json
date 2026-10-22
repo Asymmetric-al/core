@@ -1579,37 +1579,42 @@
           "target": "11.8.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "disposition": "upgraded",
+      "verification": [
+        "observability-content-sdks.md",
+        "observability-content-sdks-integration-qualification.json",
+        "observability-content-sdks-releases.json",
+        "observability-content-sdks-qualification.json"
+      ],
+      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@sentry/nextjs",
-          "declared": "11.5.0",
+          "declared": "11.8.0",
           "target": "11.8.0"
         },
         {
           "path": "apps/donor/package.json",
           "section": "dependencies",
           "declaredAs": "@sentry/nextjs",
-          "declared": "11.5.0",
+          "declared": "11.8.0",
           "target": "11.8.0"
         },
         {
           "path": "apps/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "@sentry/nextjs",
-          "declared": "11.5.0",
+          "declared": "11.8.0",
           "target": "11.8.0"
         },
         {
           "path": "packages/lib/package.json",
           "section": "dependencies",
           "declaredAs": "@sentry/nextjs",
-          "declared": "11.5.0",
+          "declared": "11.8.0",
           "target": "11.8.0"
         }
       ]
@@ -1714,10 +1719,15 @@
           "target": "7.0.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "disposition": "maintained-current",
+      "verification": [
+        "observability-content-sdks.md",
+        "observability-content-sdks-integration-qualification.json",
+        "observability-content-sdks-releases.json",
+        "observability-content-sdks-qualification.json"
+      ],
+      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open. React Stripe 7.0.0 remains maintained current with Stripe.js 10.1.0 and React 19.3.1.",
       "currentUses": [
         {
           "path": "apps/donor/package.json",
@@ -1755,23 +1765,28 @@
           "target": "10.1.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "disposition": "upgraded",
+      "verification": [
+        "observability-content-sdks.md",
+        "observability-content-sdks-integration-qualification.json",
+        "observability-content-sdks-releases.json",
+        "observability-content-sdks-qualification.json"
+      ],
+      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open.",
       "currentUses": [
         {
           "path": "apps/donor/package.json",
           "section": "dependencies",
           "declaredAs": "@stripe/stripe-js",
-          "declared": "10.0.0",
+          "declared": "10.1.0",
           "target": "10.1.0"
         },
         {
           "path": "packages/lib/package.json",
           "section": "dependencies",
           "declaredAs": "@stripe/stripe-js",
-          "declared": "10.0.0",
+          "declared": "10.1.0",
           "target": "10.1.0"
         }
       ]
@@ -4952,16 +4967,21 @@
           "target": "6.1.9"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "disposition": "upgraded",
+      "verification": [
+        "observability-content-sdks.md",
+        "observability-content-sdks-integration-qualification.json",
+        "observability-content-sdks-releases.json",
+        "observability-content-sdks-qualification.json"
+      ],
+      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open.",
       "currentUses": [
         {
           "path": "packages/lib/package.json",
           "section": "dependencies",
           "declaredAs": "html-react-parser",
-          "declared": "6.1.8",
+          "declared": "6.1.9",
           "target": "6.1.9"
         }
       ]
@@ -5069,16 +5089,21 @@
           "target": "4.6.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "disposition": "upgraded",
+      "verification": [
+        "observability-content-sdks.md",
+        "observability-content-sdks-integration-qualification.json",
+        "observability-content-sdks-releases.json",
+        "observability-content-sdks-qualification.json"
+      ],
+      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open.",
       "currentUses": [
         {
           "path": "packages/lib/package.json",
           "section": "dependencies",
           "declaredAs": "isomorphic-dompurify",
-          "declared": "4.5.0",
+          "declared": "4.6.0",
           "target": "4.6.0"
         }
       ]
@@ -6587,16 +6612,21 @@
           "target": "6.34.1"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "disposition": "upgraded",
+      "verification": [
+        "observability-content-sdks.md",
+        "observability-content-sdks-integration-qualification.json",
+        "observability-content-sdks-releases.json",
+        "observability-content-sdks-qualification.json"
+      ],
+      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open.",
       "currentUses": [
         {
           "path": "packages/email/package.json",
           "section": "dependencies",
           "declaredAs": "resend",
-          "declared": "6.32.1",
+          "declared": "6.34.1",
           "target": "6.34.1"
         }
       ]

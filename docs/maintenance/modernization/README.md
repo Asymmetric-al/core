@@ -91,3 +91,14 @@ PR/current-head CI/review, hosted previews
 and merge remain open. The Payload beta.3 checkpoint remains
 dated qualified evidence; newly published beta.4 requires coherent owner
 requalification before the combined release freeze.
+
+The [observability and content SDK checkpoint](observability-content-sdks.md)
+updates Sentry, sanitization, Resend and browser Stripe.js, while retaining
+current React Stripe. Local evidence and remaining publication/provider checks
+are bounded in its qualification record; the wider task 7.2 remains open.
+
+The [current qualification of the SDK stack](observability-content-sdks-integration-qualification.json)
+records fresh focused tests/types/lint/wiring and strict Doctor/Shadscan checks
+on the intended Dnd/Skill50/SDK candidate. The active SDK guide routes to that
+successor while retaining the original a45 proofs. Actual develop integration,
+full gates, CI, previews, publication and provider and release qualification remain open.

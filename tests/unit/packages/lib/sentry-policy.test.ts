@@ -97,7 +97,9 @@ describe("Sentry collection and compatibility policy", () => {
         databaseQueryData: false,
         graphQL: { document: false, variables: false },
       });
-      expect(options?.dataCollection.httpHeaders.request.deny).toContain("-ip");
+      expect(options?.dataCollection.httpHeaders.request.deny).toEqual(
+        expect.arrayContaining(["-ip", "referer", "referrer"]),
+      );
       expect(options?.dataCollection.httpHeaders.response.deny).toContain(
         "-user",
       );

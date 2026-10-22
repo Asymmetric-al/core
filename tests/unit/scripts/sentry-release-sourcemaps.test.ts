@@ -18,10 +18,15 @@ describe("Sentry release and sourcemap verifier", () => {
     });
 
     expect(options.release.name).toBe("abc123");
-    expect(options.release.inject).toBe(true);
+    expect(options.release).not.toHaveProperty("inject");
     expect(options.release.create).toBeUndefined();
     expect(options.sourcemaps.disable).toBe(true);
     expect(options.widenClientFileUpload).toBe(false);
+    expect(options.telemetry).toBe(false);
+    expect(options.bundleSizeOptimizations).toEqual({
+      excludeDebugStatements: true,
+    });
+    expect(options).not.toHaveProperty("webpack.treeshake");
   });
 
   it("enables upload and deploy metadata when SENTRY_AUTH_TOKEN exists", () => {
@@ -39,6 +44,8 @@ describe("Sentry release and sourcemap verifier", () => {
     expect(options.release.deploy).toEqual({ env: "development" });
     expect(options.sourcemaps.disable).toBe(false);
     expect(options.widenClientFileUpload).toBe(true);
+    expect(options.telemetry).toBe(false);
+    expect(options.release).not.toHaveProperty("inject");
   });
 
   it("prefers explicit release names before provider commit variables", () => {

@@ -68,14 +68,27 @@ export function buildSentryReleaseSourcemapProof({
     noTokenOptions.sourcemaps.disable === true &&
       noTokenOptions.widenClientFileUpload === false &&
       noTokenOptions.release.name === "phase11commit" &&
-      noTokenOptions.release.inject === true &&
+      !Object.hasOwn(noTokenOptions.release, "inject") &&
       noTokenOptions.release.create === undefined
       ? pass(
-          "sourcemaps are disabled without SENTRY_AUTH_TOKEN while release injection remains enabled",
+          "sourcemaps are disabled without SENTRY_AUTH_TOKEN while the release name remains available",
         )
       : fail(
-          "sourcemaps are disabled without SENTRY_AUTH_TOKEN while release injection remains enabled",
-          "expected disabled sourcemaps, release injection, and no explicit release creation flag",
+          "sourcemaps are disabled without SENTRY_AUTH_TOKEN while the release name remains available",
+          "expected disabled sourcemaps, release.name without unsupported release.inject, and no explicit release creation flag",
+        ),
+  );
+
+  checks.push(
+    noTokenOptions.telemetry === false &&
+      noTokenOptions.bundleSizeOptimizations.excludeDebugStatements === true &&
+      !Object.hasOwn(noTokenOptions, "webpack")
+      ? pass(
+          "build telemetry is disabled and debug exclusion uses the supported bundler API",
+        )
+      : fail(
+          "build telemetry is disabled and debug exclusion uses the supported bundler API",
+          "expected telemetry false and bundleSizeOptimizations.excludeDebugStatements without webpack.treeshake",
         ),
   );
 
@@ -91,7 +104,9 @@ export function buildSentryReleaseSourcemapProof({
       tokenOptions.release.name === "manual-release" &&
       tokenOptions.release.create === true &&
       tokenOptions.release.finalize === true &&
-      tokenOptions.release.deploy?.env === "development"
+      tokenOptions.release.deploy?.env === "development" &&
+      tokenOptions.telemetry === false &&
+      !Object.hasOwn(tokenOptions.release, "inject")
       ? pass(
           "sourcemaps and release creation are enabled when token is present",
         )
@@ -150,7 +165,7 @@ export function formatSentryReleaseSourcemapProof(proof) {
   lines.push("");
   lines.push("Secret values printed: no");
   lines.push(
-    "SENTRY_AUTH_TOKEN behavior: build-only; when absent, source map upload is disabled and release injection stays enabled.",
+    "SENTRY_AUTH_TOKEN behavior: build-only; when absent, source map upload is disabled. The SDK injects release.name; build diagnostics telemetry is disabled.",
   );
   lines.push("");
 
