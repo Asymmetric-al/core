@@ -1,6 +1,6 @@
 /**
  * Mutation coverage for the #2158 self-hosted CI workflow harness
- * (PR #2160 review MAJOR-1..4). Each reviewer mutation is applied to an
+ * (PR #2160 review MAJOR-1..6, MINOR-7). Each reviewer mutation is applied to an
  * in-memory copy of the real workflow YAML; the harness must accept the real
  * workflow and reject every mutated copy.
  */
@@ -15,6 +15,7 @@ import {
   FORK_ONLY_STEP_GUARD,
   MODELED_TRIGGER_EVENTS,
   analyzeSelfHostedForkSafety,
+  effectiveStepEnv,
   evaluateIfCondition,
   executeCiGateResultsStep,
   forkRejectStepIndex,
@@ -398,6 +399,272 @@ describe("MAJOR-3: fork-reject steps are matched by executing them", () => {
       const job = jobsOf(mutated(), "M3")[jobId]!;
       expect(forkRejectStepIndex(job)).toBe(-1);
       expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+    });
+  }
+});
+
+const REVIEW_GUARD = 'if [ "$REVIEW_ALLOW" = yes ]; then exit 0; fi';
+const REVIEW_ALLOW = 'REVIEW_ALLOW: "yes"';
+
+/** Add a key line to the workflow-level `env:` map. */
+function addWorkflowEnv(text: string, keyLine: string): string {
+  return mutate(text, "\nenv:\n", `\nenv:\n  ${keyLine}\n`, 1);
+}
+
+/** Apply `fn` to one job's block only (its `  <id>:` header up to the next job header). */
+function mutateJob(
+  text: string,
+  jobId: string,
+  fn: (block: string) => string,
+): string {
+  const header = `\n  ${jobId}:\n`;
+  const start = text.indexOf(header);
+  expect(start, `job ${jobId}`).toBeGreaterThanOrEqual(0);
+  expect(text.indexOf(header, start + 1), `job ${jobId} is unique`).toBe(-1);
+  const bodyStart = start + header.length;
+  const next = text.slice(bodyStart).search(/\n  [A-Za-z0-9_-]+:\n/);
+  const end = next === -1 ? text.length : bodyStart + next;
+  return (
+    text.slice(0, bodyStart) + fn(text.slice(bodyStart, end)) + text.slice(end)
+  );
+}
+
+/** Add a key line to a job's existing job-level `env:` map. */
+const addToJobEnv = (keyLine: string) => (block: string) =>
+  mutate(block, "\n    env:\n", `\n    env:\n      ${keyLine}\n`, 1);
+
+/** Add a step-level `env:` map with one key right after the step's `- name:` line. */
+function addStepEnv(
+  text: string,
+  stepName: string,
+  keyLine: string,
+  expectedCount: number,
+): string {
+  const nameLine = `      - name: ${stepName}\n`;
+  return mutate(
+    text,
+    nameLine,
+    `${nameLine}        env:\n          ${keyLine}\n`,
+    expectedCount,
+  );
+}
+
+describe("MAJOR-5: fork-reject steps run with the runner's workflow -> job -> step env", () => {
+  // Prepend an env-controlled early `exit 0` to both reject bodies.
+  const guarded = () =>
+    mutate(
+      source(CI_INTEGRATION),
+      `          echo "${FORK_FAIL_MESSAGE}"\n`,
+      `          ${REVIEW_GUARD}\n          echo "${FORK_FAIL_MESSAGE}"\n`,
+      2,
+    );
+
+  it("control: the guard alone (REVIEW_ALLOW unset) still rejects forks at step 0", () => {
+    const jobs = jobsOf(guarded(), "guard only");
+    for (const jobId of ["migrate", "smoke"] as const) {
+      expect(forkRejectStepIndex(jobs[jobId]!), jobId).toBe(0);
+      expect(requiredJobFailsClosedOnFork(jobs[jobId]!), jobId).toBe(true);
+    }
+  });
+
+  it.each([
+    ["workflow env", () => addWorkflowEnv(guarded(), REVIEW_ALLOW)],
+    [
+      "job env",
+      () =>
+        mutateJob(
+          mutateJob(guarded(), "migrate", addToJobEnv(REVIEW_ALLOW)),
+          "smoke",
+          addToJobEnv(REVIEW_ALLOW),
+        ),
+    ],
+    [
+      "step env",
+      () => addStepEnv(guarded(), "Reject fork pull requests", REVIEW_ALLOW, 2),
+    ],
+  ])(
+    "%s REVIEW_ALLOW=yes lets the reject body exit 0, so it is no longer a reject step",
+    (_level, mutated) => {
+      const jobs = jobsOf(mutated(), "env mutation");
+      for (const jobId of ["migrate", "smoke"] as const) {
+        const job = jobs[jobId]!;
+        expect(forkRejectStepIndex(job), jobId).toBe(-1);
+        expect(requiredJobFailsClosedOnFork(job), jobId).toBe(false);
+        expect(
+          analyzeSelfHostedForkSafety(job).problems.join("\n"),
+          jobId,
+        ).toMatch(/no fork-reject step/);
+      }
+    },
+  );
+
+  it("a step loaded from a workflow sees that workflow's env when checked directly", () => {
+    const jobs = jobsOf(addWorkflowEnv(guarded(), REVIEW_ALLOW), "direct");
+    expect(isForkRejectStep(jobs.migrate!.steps![0]!)).toBe(false);
+  });
+
+  it("an explicit env context is honored for fixture steps", () => {
+    const step: WorkflowStep = {
+      if: FORK_ONLY_STEP_GUARD,
+      run: `${REVIEW_GUARD}\necho "${FORK_FAIL_MESSAGE}"\nexit 1\n`,
+    };
+    expect(isForkRejectStep(step)).toBe(true);
+    expect(
+      isForkRejectStep(step, { workflowEnv: { REVIEW_ALLOW: "yes" } }),
+    ).toBe(false);
+    expect(isForkRejectStep(step, { jobEnv: { REVIEW_ALLOW: "yes" } })).toBe(
+      false,
+    );
+    // Step env wins over job and workflow env.
+    expect(
+      isForkRejectStep(
+        { ...step, env: { REVIEW_ALLOW: "no" } },
+        {
+          workflowEnv: { REVIEW_ALLOW: "yes" },
+          jobEnv: { REVIEW_ALLOW: "yes" },
+        },
+      ),
+    ).toBe(true);
+  });
+
+  it.each([
+    [
+      "workflow",
+      () =>
+        addWorkflowEnv(source(CI_INTEGRATION), "ACTOR: ${{ github.actor }}"),
+    ],
+    [
+      "job",
+      () =>
+        mutateJob(
+          source(CI_INTEGRATION),
+          "migrate",
+          addToJobEnv("ACTOR: ${{ github.actor }}"),
+        ),
+    ],
+  ])(
+    "fails closed when a %s env value is an unrendered expression",
+    (_level, mutated) => {
+      const jobs = jobsOf(mutated(), "expr env");
+      expect(forkRejectStepIndex(jobs.migrate!)).toBe(-1);
+    },
+  );
+});
+
+describe("MAJOR-6: gate jobs run with the runner's workflow -> job -> step env", () => {
+  const gate = ENFORCING_STEPS.find((entry) => entry.job === "e2e-smoke-gate")!;
+  const echoLine =
+    "          echo \"test-e2e-smoke: ${{ needs['test-e2e-smoke'].result }}\"\n";
+  // Prepend an env-controlled early `exit 0` to "Fail if E2E smoke failed".
+  const guarded = () =>
+    mutate(
+      source(CI_INTEGRATION),
+      echoLine,
+      `          ${REVIEW_GUARD}\n${echoLine}`,
+      1,
+    );
+  const gateJob = (text: string) => jobsOf(text, "gate")["e2e-smoke-gate"]!;
+
+  it("control: the guard alone (REVIEW_ALLOW unset) still fails closed", () => {
+    expect(enforcementProblems(guarded(), gate)).toEqual([]);
+    expect(
+      hostedGateFailsClosedWhenHeavyNeedsSkipped(gateJob(guarded()), [
+        "test-e2e-smoke",
+      ]),
+    ).toBe(true);
+  });
+
+  it.each([
+    ["workflow env", () => addWorkflowEnv(guarded(), REVIEW_ALLOW)],
+    [
+      "job env",
+      () =>
+        mutateJob(guarded(), "e2e-smoke-gate", (block) =>
+          mutate(
+            block,
+            "    runs-on: ubuntu-slim\n",
+            `    runs-on: ubuntu-slim\n    env:\n      ${REVIEW_ALLOW}\n`,
+            1,
+          ),
+        ),
+    ],
+    [
+      "step env",
+      () => addStepEnv(guarded(), "Fail if E2E smoke failed", REVIEW_ALLOW, 1),
+    ],
+  ])(
+    "%s REVIEW_ALLOW=yes makes the gate pass on a skipped or failed smoke run",
+    (_level, mutated) => {
+      const text = mutated();
+      expect(enforcementProblems(text, gate).join("\n")).toMatch(
+        /gate passes when test-e2e-smoke (skipped|failure)/,
+      );
+      expect(
+        hostedGateFailsClosedWhenHeavyNeedsSkipped(gateJob(text), [
+          "test-e2e-smoke",
+        ]),
+      ).toBe(false);
+    },
+  );
+
+  it("step env overrides a workflow env that would open the gate", () => {
+    const text = addStepEnv(
+      addWorkflowEnv(guarded(), REVIEW_ALLOW),
+      "Fail if E2E smoke failed",
+      'REVIEW_ALLOW: "no"',
+      1,
+    );
+    expect(enforcementProblems(text, gate)).toEqual([]);
+  });
+});
+
+describe("effectiveStepEnv follows the runner's precedence", () => {
+  it("step overrides job overrides workflow", () => {
+    expect(
+      effectiveStepEnv(
+        { A: "workflow", B: "workflow", C: "workflow" },
+        { B: "job", C: "job" },
+        { C: "step" },
+      ),
+    ).toEqual({ A: "workflow", B: "job", C: "step" });
+  });
+
+  it("stringifies scalars and treats missing levels as empty", () => {
+    expect(
+      effectiveStepEnv(undefined, { N: 1, T: true, Z: null }, undefined),
+    ).toEqual({ N: "1", T: "true", Z: "" });
+  });
+
+  it("throws on a non-map level or a non-scalar value", () => {
+    expect(() => effectiveStepEnv("${{ fromJSON('{}') }}", {}, {})).toThrow(
+      /not a map/,
+    );
+    expect(() => effectiveStepEnv({}, { X: { y: 1 } }, {})).toThrow(
+      /not a scalar/,
+    );
+  });
+});
+
+describe("MINOR-7: non-ASCII literals cannot fake a fork-aware runs-on", () => {
+  const condition =
+    "${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest'";
+
+  for (const literal of ["('ı' == 'I')", "('ſ' == 'S')"]) {
+    it(`rejects ${literal} && in the fork branch of migrate/smoke runs-on`, () => {
+      const mutated = mutate(
+        source(CI_INTEGRATION),
+        condition,
+        condition.replace("${{ ", `\${{ ${literal} && `),
+        2,
+      );
+      const jobs = jobsOf(mutated, "MINOR-7");
+      for (const jobId of ["migrate", "smoke"] as const) {
+        expect(
+          isForkAwareRunsOnExpression(jobs[jobId]!["runs-on"]),
+          jobId,
+        ).toBe(false);
+        expect(requiredJobFailsClosedOnFork(jobs[jobId]!), jobId).toBe(false);
+      }
     });
   }
 });

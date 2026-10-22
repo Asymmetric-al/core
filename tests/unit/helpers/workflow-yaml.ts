@@ -108,6 +108,11 @@ export function loadWorkflowDocument(relativePath: string): WorkflowDocument {
   return parseWorkflowSource(readFileSync(path.resolve(relativePath), "utf8"));
 }
 
+/** Owning workflow-level `env` of each job handed out by {@link workflowJobs}. */
+const workflowEnvByJob = new WeakMap<WorkflowJob, unknown>();
+/** Owning job of each step handed out by {@link workflowJobs}. */
+const jobByStep = new WeakMap<WorkflowStep, WorkflowJob>();
+
 export function workflowJobs(
   doc: WorkflowDocument,
   label = "workflow",
@@ -115,7 +120,66 @@ export function workflowJobs(
   if (!doc?.jobs || typeof doc.jobs !== "object") {
     throw new Error(`Missing jobs map in ${label}`);
   }
+  for (const job of Object.values(doc.jobs)) {
+    if (!job || typeof job !== "object") continue;
+    workflowEnvByJob.set(job, doc.env);
+    for (const step of job.steps ?? []) {
+      if (step && typeof step === "object") jobByStep.set(step, job);
+    }
+  }
   return doc.jobs;
+}
+
+/** The workflow-level `env` of the document a job was loaded from (undefined for fixtures). */
+export function workflowEnvOf(job: WorkflowJob): unknown {
+  return workflowEnvByJob.get(job);
+}
+
+/** Env levels outside the step itself: workflow `env` and job `env`. */
+export type StepEnvContext = { workflowEnv?: unknown; jobEnv?: unknown };
+
+export function stepEnvContextOf(job: WorkflowJob): StepEnvContext {
+  return { workflowEnv: workflowEnvOf(job), jobEnv: job.env };
+}
+
+function envLevel(level: unknown, label: string): Record<string, unknown> {
+  if (level === undefined || level === null) return {};
+  if (typeof level !== "object" || Array.isArray(level)) {
+    throw new Error(`${label} env is not a map: ${JSON.stringify(level)}`);
+  }
+  return level as Record<string, unknown>;
+}
+
+function envValueText(key: string, value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  throw new Error(`env.${key} is not a scalar: ${JSON.stringify(value)}`);
+}
+
+/**
+ * The env a `run:` step sees, as the Actions runner builds it: workflow `env`,
+ * then job `env`, then step `env`, later levels winning; scalar values are
+ * stringified (`null` -> ""). A non-map level or a non-scalar value throws.
+ */
+export function effectiveStepEnv(
+  workflowEnv: unknown,
+  jobEnv: unknown,
+  stepEnv: unknown,
+): Record<string, string> {
+  const merged: Record<string, string> = {};
+  for (const [label, level] of [
+    ["workflow", workflowEnv],
+    ["job", jobEnv],
+    ["step", stepEnv],
+  ] as const) {
+    for (const [key, value] of Object.entries(envLevel(level, label))) {
+      merged[key] = envValueText(key, value);
+    }
+  }
+  return merged;
 }
 
 export function loadWorkflowJobs(relativePath: string): WorkflowJobs {
@@ -519,21 +583,31 @@ export function firstSecretStepIndex(job: WorkflowJob): number {
  * Structural fork-reject check: a `run:` step (no `uses:`) whose `if` is the
  * fork-only guard, that cannot be neutralized by `continue-on-error` on any
  * fork event, and whose body — executed under the step's real shell
- * (`bash -e` by default) — exits non-zero and prints {@link FORK_FAIL_MESSAGE}.
+ * (`bash -e` by default) with the runner's effective env (workflow, then job,
+ * then step `env`) — exits non-zero and prints {@link FORK_FAIL_MESSAGE}.
  * A substring match is not enough: `exit 0` before `exit 1` must fail this.
+ * `ctx` defaults to the workflow/job the step was loaded from; any env value
+ * containing `${{` (or an env that cannot be built statically) fails closed.
  */
-export function isForkRejectStep(step: WorkflowStep): boolean {
+export function isForkRejectStep(
+  step: WorkflowStep,
+  ctx?: StepEnvContext,
+): boolean {
   const run = step.run;
   if (typeof run !== "string" || step.uses !== undefined) return false;
   if (!isForkOnlyStepGuard(step.if)) return false;
-  const env = Object.values(step.env ?? {}).map(String);
-  if ([run, ...env].some((text) => text.includes("${{"))) return false;
+  const owner = jobByStep.get(step);
+  const envCtx = ctx ?? (owner ? stepEnvContextOf(owner) : {});
   try {
+    const env = effectiveStepEnv(envCtx.workflowEnv, envCtx.jobEnv, step.env);
+    if ([run, ...Object.values(env)].some((text) => text.includes("${{"))) {
+      return false;
+    }
     const neutralized = EVENT_SCENARIOS.filter((s) => s.fork).some((scenario) =>
       evaluateFlag(step["continue-on-error"], scenarioContext(scenario, {})),
     );
     if (neutralized) return false;
-    const result = executeRunScript(step, run, {});
+    const result = executeRunScript(step, run, env);
     return (
       result.status !== 0 &&
       `${result.stdout}\n${result.stderr}`.includes(FORK_FAIL_MESSAGE)
@@ -544,7 +618,8 @@ export function isForkRejectStep(step: WorkflowStep): boolean {
 }
 
 export function forkRejectStepIndex(job: WorkflowJob): number {
-  return allSteps(job).findIndex((step) => isForkRejectStep(step));
+  const ctx = stepEnvContextOf(job);
+  return allSteps(job).findIndex((step) => isForkRejectStep(step, ctx));
 }
 
 /**
@@ -560,8 +635,13 @@ export function forkRejectProblems(job: WorkflowJob): string[] {
   const steps = allSteps(job);
   const rejectIndex = forkRejectStepIndex(job);
   if (rejectIndex === -1) {
+    // A job-level `${{ }}` env value also makes the reject step unprovable,
+    // so report the job-level secret use alongside the missing reject step.
     return [
       "no fork-reject step (fork-only if; body exits non-zero printing the message; no continue-on-error)",
+      ...(jobLevelReferencesSecrets(job)
+        ? ["job-level keys reference secrets in a fork-reachable job"]
+        : []),
     ];
   }
   if (rejectIndex !== 0) {
@@ -972,7 +1052,8 @@ export type GateJobExecution = GateExecution & {
  * Model one run of a gate job for an event and needs results: the job `if`
  * (skipped job -> status 0), each step's `if` (with `success()`/`failure()`
  * reflecting earlier steps), each `run:` body executed under its real shell
- * with `env:` and body rendered from the needs context, step-level and
+ * with the effective workflow -> job -> step `env` (see
+ * {@link effectiveStepEnv}) and body rendered from the needs context, step-level and
  * job-level `continue-on-error`, and `uses:` steps modeled as succeeding.
  * `status` is the job's effect on the workflow: non-zero only when the job
  * actually fails it.
@@ -1017,10 +1098,9 @@ export function executeGateJob(
     let result: GateExecution = { status: 0, stdout: "", stderr: "" };
     if (typeof step.run === "string") {
       const env = Object.fromEntries(
-        Object.entries(step.env ?? {}).map(([key, value]) => [
-          key,
-          renderStepText(String(value), context),
-        ]),
+        Object.entries(
+          effectiveStepEnv(workflowEnvOf(job), job.env, step.env),
+        ).map(([key, value]) => [key, renderStepText(value, context)]),
       );
       result = executeRunScript(step, renderStepText(step.run, context), env);
     }

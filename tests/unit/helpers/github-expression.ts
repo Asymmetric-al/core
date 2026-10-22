@@ -394,14 +394,25 @@ function coerceTypes(
 }
 
 /**
- * .NET `OrdinalIgnoreCase`: compare UTF-16 code units after simple per-unit
- * upper-casing (no multi-character mappings such as `ß` -> `SS`).
+ * .NET `OrdinalIgnoreCase`, ASCII only: compare UTF-16 code units after
+ * folding `a`-`z` to `A`-`Z`. Outside ASCII, JS case mapping differs from
+ * .NET's invariant ordinal casing (JS maps `ı` U+0131 to `I` and `ſ` U+017F
+ * to `S`; .NET keeps them distinct), so any non-ASCII code unit throws and
+ * callers that prove safety treat the expression as unproven (fail closed).
  */
 function foldOrdinalIgnoreCase(value: string): string {
   let folded = "";
-  for (const unit of value.split("")) {
-    const upper = unit.toUpperCase();
-    folded += upper.length === 1 ? upper : unit;
+  for (let i = 0; i < value.length; i += 1) {
+    const code = value.charCodeAt(i);
+    if (code > 0x7f) {
+      throw new Error(
+        `Non-ASCII string comparison is not modeled (U+${code.toString(16).toUpperCase().padStart(4, "0")} in ${JSON.stringify(value)})`,
+      );
+    }
+    folded +=
+      code >= 0x61 && code <= 0x7a
+        ? String.fromCharCode(code - 0x20)
+        : value[i];
   }
   return folded;
 }
@@ -480,17 +491,17 @@ const FUNCTIONS: Record<
   contains: ([haystack, needle]) =>
     Array.isArray(haystack)
       ? haystack.some((item) => looseEquals(item, needle ?? null))
-      : stringify(haystack ?? null)
-          .toLowerCase()
-          .includes(stringify(needle ?? null).toLowerCase()),
+      : foldOrdinalIgnoreCase(stringify(haystack ?? null)).includes(
+          foldOrdinalIgnoreCase(stringify(needle ?? null)),
+        ),
   startswith: ([s, p]) =>
-    stringify(s ?? null)
-      .toLowerCase()
-      .startsWith(stringify(p ?? null).toLowerCase()),
+    foldOrdinalIgnoreCase(stringify(s ?? null)).startsWith(
+      foldOrdinalIgnoreCase(stringify(p ?? null)),
+    ),
   endswith: ([s, p]) =>
-    stringify(s ?? null)
-      .toLowerCase()
-      .endsWith(stringify(p ?? null).toLowerCase()),
+    foldOrdinalIgnoreCase(stringify(s ?? null)).endsWith(
+      foldOrdinalIgnoreCase(stringify(p ?? null)),
+    ),
 };
 
 export function evaluateExpression(

@@ -118,6 +118,32 @@ describe("github-expression parser/evaluator", () => {
     expect(evalIn("'abc' != 1", {})).toBe(true);
   });
 
+  it.each([
+    ["'ı' == 'I'"],
+    ["'ı' == 'i'"],
+    ["'ſ' == 'S'"],
+    ["'ſ' == 's'"],
+    ["'ı' != 'I'"],
+    ["'ı' < 'J'"],
+    ["'é' == 'é'"],
+    ["contains('ı', 'I')"],
+    ["startsWith('ſx', 'S')"],
+    ["endsWith('xı', 'I')"],
+  ])(
+    "non-ASCII string comparison fails closed (throws, never true): %s",
+    (expr) => {
+      expect(() => evalIn(expr, {})).toThrow(/Non-ASCII/);
+    },
+  );
+
+  it("ASCII case-insensitive comparison still works next to the non-ASCII guard", () => {
+    expect(evalIn("'ubuntu-LATEST' == 'Ubuntu-latest'", {})).toBe(true);
+    expect(evalIn("'a' < 'B' && 'Z' > 'y'", {})).toBe(true);
+    expect(evalIn("contains('Refs/Heads/X', 'heads')", {})).toBe(true);
+    // A non-ASCII literal that is never compared is just a value.
+    expect(evalIn("'ı'", {})).toBe("ı");
+  });
+
   it("supports index access and contains/startsWith", () => {
     expect(evalIn("github['ref']", { ref: "refs/heads/x" })).toBe(
       "refs/heads/x",
