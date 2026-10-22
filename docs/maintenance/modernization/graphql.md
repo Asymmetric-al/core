@@ -46,8 +46,17 @@ The branch now integrates merged `develop` at `a47024f8`, including the complete
 reviewed Auth, tenant/fund cleanup and build-selection fixes. All 115 selected
 data/GraphQL contracts pass in nine files. The application/package source, root
 package and lock, Turbo and shared TypeScript inputs match the existing compiled
-proofs exactly. Full release gates, current-head CI and previews remain required
-on this merged base.
+proofs exactly. Published `e8884ab8` passed full pre-push on this base:
+901 test files passed, 2 existing files skipped; 7,397 tests passed, 1 expected
+failure and 4 existing tests skipped.
+
+Review then strengthened the unknown-input-field case with a valid idempotency
+header, HTTP 400 and denial before either query or mutation transport. A controlled
+schema mutation admitted the injected field: the old test still passed while the
+strengthened test failed. The exact product source was restored; all 18 HTTP cases
+pass on the pre-upgrade stack and all 36 focused cases pass on the upgraded stack.
+This changes only test/evidence files. Final release gates, current-head CI/review
+and exact-head previews must cover this final test change.
 
 Nine compiled product HTTP cases match the previous GraphQL 16 stack in exact
 status and complete public response, including production error masking and

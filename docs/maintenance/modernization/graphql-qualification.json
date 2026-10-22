@@ -3,7 +3,7 @@
   "checkpoint": "product-graphql",
   "status": "implemented-awaiting-full-qualification-and-merge",
   "owner": "Core API and CMS maintainers",
-  "capturedAt": "2026-10-21T22:26:47.378259+00:00",
+  "capturedAt": "2026-10-22T00:18:11.048636+00:00",
   "temporaryStackBase": "a47024f8d646341ccaba0a0c852a2453473516bf",
   "mustRequalifyOnMergedDevelop": true,
   "releaseMetadataRefreshedAt": "2026-10-21T20:31:23.330472+00:00",
@@ -106,12 +106,12 @@
     "beforeDependencyUpgrade": true
   },
   "currentHttpAndBoundaryTests": {
-    "startedAt": "2026-10-21T20:48:34.758134+00:00",
-    "completedAt": "2026-10-21T20:48:39.485441+00:00",
+    "startedAt": "2026-10-22T00:16:37.912573+00:00",
+    "completedAt": "2026-10-22T00:16:39.631986+00:00",
     "exitCode": 0,
-    "logSha256": "7cf4743f55a24ae3c205054dbd4db774eee1312928be42e1ebae99ebd8a77d6a",
+    "logSha256": "dcafcefe7048ccceb598ee64b6923c784fd096cf1a4f18a1de1d2ccbe7f8ddd5",
     "sources": {
-      "tests/unit/graphql-http-contract.test.ts": "b91e19c81879f1088fb941c913ed8bf98206becfc025b228d829db484d7fa283",
+      "tests/unit/graphql-http-contract.test.ts": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3",
       "tests/unit/graphql-runtime-boundary.test.ts": "91843880bc261ea8fecdabdfae0be5c7de568d84b23db59a398fbca566f66b40"
     },
     "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
@@ -121,7 +121,7 @@
     "physicalRuntimeCases": 2,
     "existingAdapterCases": 16,
     "providerSeams": "Actual Yoga/GraphQL and authorization rules; mocked auth context resolution and Supabase transport.",
-    "testSourceChangesSinceBaseline": "Only lint import grouping and type-only namespace syntax changed after the recorded baseline/RED; all cases and assertions are preserved."
+    "testSourceChangesSinceBaseline": "Lint import/type syntax changes plus the reviewed unknown-input case strengthened with a valid idempotency header, HTTP 400 and no query transport. All 18 original cases and assertions remain; all strengthened HTTP cases pass on the pre-upgrade and current runtime. A controlled schema mutation proves this case detects accepted unknown input."
   },
   "installation": {
     "incremental": {
@@ -143,7 +143,7 @@
       "freshCheckout": false,
       "priorIncrementalInstallFailedOnExistingPdfLink": true
     },
-    "remaining": "Clean installation and focused contract tests are complete. Original full gates and compiled product/CMS checks passed. Requalify full gates after the inherited data fixes, then require current-head CI/review, previews and merged-develop readback.",
+    "remaining": "Clean installation and focused contracts passed. Full gates passed through the merged-data parent e8884ab8. Installation inputs are unchanged; final release gates and current-head CI/review/previews must cover the reviewed test strengthening.",
     "freshCheckout": {
       "startedAt": "2026-10-21T21:25:04.094523+00:00",
       "completedAt": "2026-10-21T21:25:07.604712+00:00",
@@ -173,7 +173,7 @@
     }
   },
   "limitations": [
-    "Requalified full repository gates after inherited data fixes, current-head CI/review, browser previews and merged-develop readback remain required. The recorded compiled product/CMS checks already passed.",
+    "Final release gates, current-head CI/review, exact-head previews and merged-develop readback must cover the reviewed input-coercion test strengthening. Historical full gates and compiled product/CMS checks passed.",
     "No hosted Supabase or payment provider behavior is inferred from mocked GraphQL transport tests.",
     "No production operation or database migration was executed.",
     "Full nested-advisory reconciliation remains owned by the security checkpoint."
@@ -206,12 +206,12 @@
     "cacheHits": 0
   },
   "currentTestLint": {
-    "startedAt": "2026-10-21T20:48:33.724953+00:00",
-    "completedAt": "2026-10-21T20:48:34.756070+00:00",
+    "startedAt": "2026-10-22T00:16:39.632183+00:00",
+    "completedAt": "2026-10-22T00:16:40.606000+00:00",
     "exitCode": 0,
     "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "sources": {
-      "tests/unit/graphql-http-contract.test.ts": "b91e19c81879f1088fb941c913ed8bf98206becfc025b228d829db484d7fa283",
+      "tests/unit/graphql-http-contract.test.ts": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3",
       "tests/unit/graphql-runtime-boundary.test.ts": "91843880bc261ea8fecdabdfae0be5c7de568d84b23db59a398fbca566f66b40"
     },
     "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
@@ -609,5 +609,162 @@
     "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
     "rootManifestSha256": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
     "scope": "All tracked application/package source plus root package/lock/Turbo and shared TypeScript configuration match the previously compiled product/CMS evidence. New data fixture/test/qualification changes are outside these compiled inputs."
+  },
+  "beforeInputCoercionReviewFix": {
+    "httpAndBoundaryTests": {
+      "startedAt": "2026-10-21T20:48:34.758134+00:00",
+      "completedAt": "2026-10-21T20:48:39.485441+00:00",
+      "exitCode": 0,
+      "logSha256": "7cf4743f55a24ae3c205054dbd4db774eee1312928be42e1ebae99ebd8a77d6a",
+      "sources": {
+        "tests/unit/graphql-http-contract.test.ts": "b91e19c81879f1088fb941c913ed8bf98206becfc025b228d829db484d7fa283",
+        "tests/unit/graphql-runtime-boundary.test.ts": "91843880bc261ea8fecdabdfae0be5c7de568d84b23db59a398fbca566f66b40"
+      },
+      "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "files": 3,
+      "tests": 36,
+      "newHttpCases": 18,
+      "physicalRuntimeCases": 2,
+      "existingAdapterCases": 16,
+      "providerSeams": "Actual Yoga/GraphQL and authorization rules; mocked auth context resolution and Supabase transport.",
+      "testSourceChangesSinceBaseline": "Only lint import grouping and type-only namespace syntax changed after the recorded baseline/RED; all cases and assertions are preserved."
+    },
+    "testLint": {
+      "startedAt": "2026-10-21T20:48:33.724953+00:00",
+      "completedAt": "2026-10-21T20:48:34.756070+00:00",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sources": {
+        "tests/unit/graphql-http-contract.test.ts": "b91e19c81879f1088fb941c913ed8bf98206becfc025b228d829db484d7fa283",
+        "tests/unit/graphql-runtime-boundary.test.ts": "91843880bc261ea8fecdabdfae0be5c7de568d84b23db59a398fbca566f66b40"
+      },
+      "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "warnings": 0
+    }
+  },
+  "inputCoercionReviewFix": {
+    "reviewComment": "https://github.com/Asymmetric-al/core/pull/2182#discussion_r4343256329",
+    "headBefore": "e8884ab8c8c919cbb836bc7ae95561f283082885",
+    "counterfactual": "Temporarily admit tenantId as an optional CreateDonationInput field while auth/provider transports remain mocked. The old test passes because missing idempotency is a second rejection; the strengthened test fails. Restore exact handler bytes before normal tests.",
+    "runs": [
+      {
+        "label": "old-test-mutant",
+        "startedAt": "2026-10-22T00:16:34.858903+00:00",
+        "completedAt": "2026-10-22T00:16:36.424103+00:00",
+        "command": [
+          "bun",
+          "run",
+          "vitest",
+          "run",
+          "tests/unit/graphql-http-contract.test.ts",
+          "-t",
+          "rejects unknown input fields before mutation transport"
+        ],
+        "exitCode": 0,
+        "logSha256": "16e4e3b10f99f1aa2109611ce130ac1b24de5a7b21065446c07a5dad309952a7",
+        "handlerSha256": "09dd9ea9cef8a132da306bde7b6532632cbf95016857943f5afa534840de1037",
+        "testSha256": "b91e19c81879f1088fb941c913ed8bf98206becfc025b228d829db484d7fa283"
+      },
+      {
+        "label": "strengthened-test-mutant",
+        "startedAt": "2026-10-22T00:16:36.424452+00:00",
+        "completedAt": "2026-10-22T00:16:37.912196+00:00",
+        "command": [
+          "bun",
+          "run",
+          "vitest",
+          "run",
+          "tests/unit/graphql-http-contract.test.ts",
+          "-t",
+          "rejects unknown input fields before mutation transport"
+        ],
+        "exitCode": 1,
+        "logSha256": "2fb15c4d3943fb668615885cab6c42036ef24eee92aeff5ee66626cffde19632",
+        "handlerSha256": "09dd9ea9cef8a132da306bde7b6532632cbf95016857943f5afa534840de1037",
+        "testSha256": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3"
+      },
+      {
+        "label": "restored-schema-contracts",
+        "startedAt": "2026-10-22T00:16:37.912573+00:00",
+        "completedAt": "2026-10-22T00:16:39.631986+00:00",
+        "command": [
+          "bun",
+          "run",
+          "vitest",
+          "run",
+          "tests/unit/graphql-http-contract.test.ts",
+          "tests/unit/graphql-runtime-boundary.test.ts",
+          "tests/unit/graphql-gift-engagement-adapters.test.ts"
+        ],
+        "exitCode": 0,
+        "logSha256": "dcafcefe7048ccceb598ee64b6923c784fd096cf1a4f18a1de1d2ccbe7f8ddd5",
+        "handlerSha256": "f725c3fefd9445a92c625926b6bae39a81a9b2c9b76746b931f8d8b303e9e293",
+        "testSha256": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3"
+      },
+      {
+        "label": "lint",
+        "startedAt": "2026-10-22T00:16:39.632183+00:00",
+        "completedAt": "2026-10-22T00:16:40.606000+00:00",
+        "command": [
+          "bun",
+          "run",
+          "eslint",
+          "tests/unit/graphql-http-contract.test.ts",
+          "--max-warnings=0"
+        ],
+        "exitCode": 0,
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "handlerSha256": "f725c3fefd9445a92c625926b6bae39a81a9b2c9b76746b931f8d8b303e9e293",
+        "testSha256": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3"
+      }
+    ],
+    "productHandlerRestoredByteForByte": true,
+    "handlerSha256": "f725c3fefd9445a92c625926b6bae39a81a9b2c9b76746b931f8d8b303e9e293",
+    "testSha256": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3",
+    "allOriginal18HttpCasesPreserved": true,
+    "casesAddedOrRemoved": 0,
+    "preUpgradeHttpVerification": {
+      "startedAt": "2026-10-22T00:17:09.783634+00:00",
+      "completedAt": "2026-10-22T00:17:11.579030+00:00",
+      "baseHead": "1e5b7f55e783bf016892d2d54dcd317271ca877b",
+      "command": [
+        "bun",
+        "run",
+        "vitest",
+        "run",
+        "tests/unit/graphql-http-contract.test.ts"
+      ],
+      "exitCode": 0,
+      "testSha256": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3",
+      "logSha256": "ce611e79b7316867e0aeb9c72b261d0a518b72947b04207708217a0261fdeb71",
+      "scope": "Strengthened 18-case HTTP suite against the unchanged pre-GraphQL data checkpoint; auth and provider transports mocked",
+      "temporaryTestRemoved": true
+    },
+    "remaining": "Final commit full gates, current-head CI/review and exact-head previews are required. Product, installation and compiled inputs are unchanged."
+  },
+  "previousPublishedE888Qualification": {
+    "capturedAt": "2026-10-22T00:05:36.108131+00:00",
+    "head": "e8884ab8c8c919cbb836bc7ae95561f283082885",
+    "base": "develop",
+    "isDraft": false,
+    "labels": ["qa:smoke"],
+    "bodySha256": "19a25eb3d1e204b5facbcd2ed9086d7968fdadcd857f99de14db422e5e29f17a",
+    "normalPrepush": {
+      "filesPassed": 901,
+      "filesSkipped": 2,
+      "testsPassed": 7397,
+      "expectedFailure": 1,
+      "testsSkipped": 4
+    },
+    "qaPreviewDispatch": "ready_for_review trigger; read back exact-head run before any manual dispatch",
+    "prePushProof": {
+      "startedAt": "2026-10-21T23:53:33.966575+00:00",
+      "completedAt": "2026-10-22T00:02:40.194435+00:00",
+      "head": "e8884ab8c8c919cbb836bc7ae95561f283082885",
+      "exitCode": 0,
+      "normalHooks": true,
+      "logSha256": "ba00d45a056101eb25bb4564fb1c3b982dcfab1aeb8dff877cb39bed52b12fed"
+    },
+    "remaining": "Historical parent qualification; the strengthened-test commit must receive its own full release gates, current-head CI/review and previews."
   }
 }
