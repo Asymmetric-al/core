@@ -1,6 +1,7 @@
 /**
  * Mutation coverage for the #2158 self-hosted CI workflow harness
- * (PR #2160 review MAJOR-1..6, MINOR-7). Each reviewer mutation is applied to an
+ * (PR #2160 review MAJOR-1..6, MINOR-7, and the N1/N2 runner-variable follow-up).
+ * Each reviewer mutation is applied to an
  * in-memory copy of the real workflow YAML; the harness must accept the real
  * workflow and reject every mutated copy.
  */
@@ -15,9 +16,12 @@ import {
   FORK_ONLY_STEP_GUARD,
   MODELED_TRIGGER_EVENTS,
   analyzeSelfHostedForkSafety,
+  assertScriptVariablesModelled,
   effectiveStepEnv,
   evaluateIfCondition,
   executeCiGateResultsStep,
+  executeGateJob,
+  executeRunScript,
   forkRejectStepIndex,
   gateEnforcementProblems,
   hostedGateFailsClosedWhenHeavyNeedsSkipped,
@@ -27,8 +31,11 @@ import {
   isSelfHostedJob,
   needsList,
   parseWorkflowSource,
+  renderStepText,
   requiredJobFailsClosedOnFork,
+  scanScriptVariables,
   scenarioContext,
+  scriptSpawnEnv,
   unmodeledTriggerEvents,
   workflowJobs,
   workflowTriggerEvents,
@@ -459,11 +466,21 @@ describe("MAJOR-5: fork-reject steps run with the runner's workflow -> job -> st
       2,
     );
 
-  it("control: the guard alone (REVIEW_ALLOW unset) still rejects forks at step 0", () => {
-    const jobs = jobsOf(guarded(), "guard only");
+  it("control: the guard with workflow env REVIEW_ALLOW=no still rejects forks at step 0", () => {
+    const jobs = jobsOf(
+      addWorkflowEnv(guarded(), 'REVIEW_ALLOW: "no"'),
+      "guard, allow=no",
+    );
     for (const jobId of ["migrate", "smoke"] as const) {
       expect(forkRejectStepIndex(jobs[jobId]!), jobId).toBe(0);
       expect(requiredJobFailsClosedOnFork(jobs[jobId]!), jobId).toBe(true);
+    }
+  });
+
+  it("the guard with REVIEW_ALLOW defined nowhere is not modelled, so it fails closed", () => {
+    const jobs = jobsOf(guarded(), "guard only");
+    for (const jobId of ["migrate", "smoke"] as const) {
+      expect(forkRejectStepIndex(jobs[jobId]!), jobId).toBe(-1);
     }
   });
 
@@ -508,7 +525,11 @@ describe("MAJOR-5: fork-reject steps run with the runner's workflow -> job -> st
       if: FORK_ONLY_STEP_GUARD,
       run: `${REVIEW_GUARD}\necho "${FORK_FAIL_MESSAGE}"\nexit 1\n`,
     };
-    expect(isForkRejectStep(step)).toBe(true);
+    // REVIEW_ALLOW defined nowhere: the reference is not modelled (fail closed).
+    expect(isForkRejectStep(step)).toBe(false);
+    expect(
+      isForkRejectStep(step, { workflowEnv: { REVIEW_ALLOW: "no" } }),
+    ).toBe(true);
     expect(
       isForkRejectStep(step, { workflowEnv: { REVIEW_ALLOW: "yes" } }),
     ).toBe(false);
@@ -565,13 +586,20 @@ describe("MAJOR-6: gate jobs run with the runner's workflow -> job -> step env",
     );
   const gateJob = (text: string) => jobsOf(text, "gate")["e2e-smoke-gate"]!;
 
-  it("control: the guard alone (REVIEW_ALLOW unset) still fails closed", () => {
-    expect(enforcementProblems(guarded(), gate)).toEqual([]);
+  it("control: the guard with workflow env REVIEW_ALLOW=no still fails closed", () => {
+    const text = addWorkflowEnv(guarded(), 'REVIEW_ALLOW: "no"');
+    expect(enforcementProblems(text, gate)).toEqual([]);
     expect(
-      hostedGateFailsClosedWhenHeavyNeedsSkipped(gateJob(guarded()), [
+      hostedGateFailsClosedWhenHeavyNeedsSkipped(gateJob(text), [
         "test-e2e-smoke",
       ]),
     ).toBe(true);
+  });
+
+  it("the guard with REVIEW_ALLOW defined nowhere is reported as not modelled", () => {
+    expect(enforcementProblems(guarded(), gate).join("\n")).toMatch(
+      /not modelled/,
+    );
   });
 
   it.each([
@@ -667,4 +695,216 @@ describe("MINOR-7: non-ASCII literals cannot fake a fork-aware runs-on", () => {
       }
     });
   }
+});
+
+/** Run `fn` with `process.env` overrides, restoring the previous values after. */
+function withProcessEnv<T>(overrides: Record<string, string>, fn: () => T): T {
+  const previous = Object.fromEntries(
+    Object.keys(overrides).map((key) => [key, process.env[key]]),
+  );
+  Object.assign(process.env, overrides);
+  try {
+    return fn();
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+}
+
+describe("runner variables do not leak: scrubbed script env, fail-closed references (N1/N2)", () => {
+  const N1 =
+    'if [ "$GITHUB_JOB" = migrate ] || [ "$GITHUB_JOB" = smoke ]; then exit 0; fi';
+  const N2 = 'if [ "$GITHUB_JOB" = e2e-smoke-gate ]; then exit 0; fi';
+  const n1 = () =>
+    mutate(
+      source(CI_INTEGRATION),
+      `          echo "${FORK_FAIL_MESSAGE}"\n`,
+      `          ${N1}\n          echo "${FORK_FAIL_MESSAGE}"\n`,
+      2,
+    );
+  const gateEcho =
+    "          echo \"test-e2e-smoke: ${{ needs['test-e2e-smoke'].result }}\"\n";
+  const n2 = () =>
+    mutate(source(CI_INTEGRATION), gateEcho, `          ${N2}\n${gateEcho}`, 1);
+  const smokeGate = ENFORCING_STEPS.find(
+    (entry) => entry.job === "e2e-smoke-gate",
+  )!;
+  // As on a GitHub-hosted runner, where the unit tests themselves run in a job.
+  const runnerEnv = {
+    GITHUB_JOB: "migrate",
+    GITHUB_EVENT_NAME: "pull_request",
+  };
+
+  it("N1: $GITHUB_JOB early exit in both reject steps is not a reject step (mutation N1)", () => {
+    for (const env of [{}, runnerEnv]) {
+      withProcessEnv(env, () => {
+        const jobs = jobsOf(n1(), "N1");
+        for (const jobId of ["migrate", "smoke"] as const) {
+          const job = jobs[jobId]!;
+          expect(forkRejectStepIndex(job), jobId).toBe(-1);
+          expect(requiredJobFailsClosedOnFork(job), jobId).toBe(false);
+          expect(
+            analyzeSelfHostedForkSafety(job).problems.join("\n"),
+            jobId,
+          ).toMatch(/no fork-reject step/);
+          expect(() =>
+            executeRunScript(job.steps![0]!, job.steps![0]!.run!, {}),
+          ).toThrow(/\$GITHUB_JOB.*not modelled/);
+        }
+      });
+    }
+  });
+
+  it("N2: $GITHUB_JOB early exit in the e2e-smoke-gate step is reported, not fail-closed (mutation N2)", () => {
+    for (const env of [{}, runnerEnv]) {
+      withProcessEnv(env, () => {
+        const text = n2();
+        const problems = enforcementProblems(text, smokeGate);
+        expect(problems).not.toEqual([]);
+        expect(problems.join("\n")).toMatch(/\$GITHUB_JOB.*not modelled/);
+        const job = jobsOf(text, "N2")["e2e-smoke-gate"]!;
+        expect(
+          hostedGateFailsClosedWhenHeavyNeedsSkipped(job, ["test-e2e-smoke"]),
+        ).toBe(false);
+        expect(() =>
+          executeGateJob(
+            job,
+            { results: { "test-e2e-smoke": "skipped" } },
+            EVENT_SCENARIOS[0]!,
+          ),
+        ).toThrow(/not modelled/);
+      });
+    }
+  });
+
+  it.each([
+    ['echo "$UNSET_X"'],
+    ["echo $UNSET_X"],
+    ["echo ${UNSET_X}"],
+    ['echo "${UNSET_X:-default}"'],
+    ["echo ${#UNSET_X}"],
+    ['echo "${OK:-$UNSET_X}"'],
+    ["export UNSET_X; echo $UNSET_X"],
+  ])("throws 'not modelled' for an unmodelled reference: %s", (script) => {
+    expect(() => assertScriptVariablesModelled(script, { OK: "1" })).toThrow(
+      /\$UNSET_X .*not modelled/,
+    );
+    expect(() => executeRunScript({}, script, { OK: "1" })).toThrow(
+      /not modelled/,
+    );
+  });
+
+  it.each([
+    ["$( ) substitution", 'echo "$(printenv X)"'],
+    ["backticks", "echo `id`"],
+    ["arithmetic", "echo $((1 + 1))"],
+    ["eval", 'eval "echo hi"'],
+    ["printenv", "printenv GITHUB_JOB | grep -q migrate && exit 0"],
+    ["env", "env | grep -q GITHUB_JOB=migrate && exit 0"],
+    ["source", "source ./x.sh"],
+    ["dot", ". ./x.sh"],
+    ["indirection", "echo ${!X}"],
+    ["/proc", "grep -q GITHUB_JOB=migrate /proc/self/environ && exit 0"],
+    ["heredoc", "cat <<EOF\n$X\nEOF"],
+    ["bare set", "set | grep -q GITHUB_JOB"],
+    ["declare -p", "declare -p GITHUB_JOB"],
+    ["unterminated quote", "echo 'x"],
+  ])("throws 'not modelled' for %s", (_label, script) => {
+    expect(() => assertScriptVariablesModelled(script, {})).toThrow(
+      /not modelled/,
+    );
+  });
+
+  it.each([
+    [
+      "special parameters",
+      'echo "$? $# $$ $! $- $@ $* $0 $1 ${10} ${#}"; set -e',
+    ],
+    ["single quotes", "echo '$X ${Y} $(id)'"],
+    ["escaped dollar", 'echo \\$X "\\$Y"'],
+    ["comments", "echo ok # uses $X\n# and ${Y}"],
+    ["assigned locals", 'failed=0; if [ "$failed" -ne 0 ]; then exit 1; fi'],
+    ["prefix assignments", "A=1 B=2 true; echo $A $B"],
+    ["declarations", 'export C=1; readonly D=2; echo "$C $D"'],
+    ["loop variables", 'for result in a b; do echo "$result"; done'],
+    ["read targets", 'read -r line other; echo "$line $other"'],
+    ["effective-env names", 'echo "$CI_RESULTS ${CI_BUILD_REQUESTED:-true}"'],
+  ])("accepts %s", (_label, script) => {
+    expect(() =>
+      assertScriptVariablesModelled(script, {
+        CI_RESULTS: "{}",
+        CI_BUILD_REQUESTED: "true",
+      }),
+    ).not.toThrow();
+  });
+
+  it("the real integration-gate script only reads its own locals", () => {
+    const job = jobsOf(source(CI_INTEGRATION), CI_INTEGRATION)[
+      "integration-gate"
+    ]!;
+    const script = renderStepText(job.steps![0]!.run!, {
+      results: {
+        migrate: "success",
+        smoke: "success",
+        "e2e-smoke-gate": "success",
+      },
+    });
+    const scanned = scanScriptVariables(script);
+    expect(scanned.references).toEqual(["failed", "result"]);
+    expect(scanned.locals).toEqual(
+      expect.arrayContaining(["failed", "result"]),
+    );
+  });
+
+  it("the real reject and gate scripts reference no environment variables", () => {
+    const integration = jobsOf(source(CI_INTEGRATION), CI_INTEGRATION);
+    const results = {
+      "test-e2e-smoke": "success",
+      "test-e2e": "success",
+      "instant-nav": "success",
+    };
+    for (const [jobId, index] of [
+      ["migrate", 0],
+      ["smoke", 0],
+      ["e2e-smoke-gate", 0],
+      ["e2e-gate", 0],
+    ] as const) {
+      const script = renderStepText(integration[jobId]!.steps![index]!.run!, {
+        results,
+      });
+      expect(scanScriptVariables(script).references, jobId).toEqual([]);
+    }
+    const ciGate = jobsOf(source(CI), CI)["ci-gate"]!.steps!.find(
+      (step) => step.env?.CI_RESULTS !== undefined,
+    )!;
+    expect(scanScriptVariables(ciGate.run!).references).toEqual([]);
+  });
+
+  it("scriptSpawnEnv is exactly PATH plus the given env", () => {
+    withProcessEnv({ REVIEW_LEAK: "yes", GITHUB_JOB: "migrate" }, () => {
+      expect(Object.keys(scriptSpawnEnv({ STEP_ONLY: "1" })).sort()).toEqual([
+        "PATH",
+        "STEP_ONLY",
+      ]);
+    });
+  });
+
+  it("variables set in the test process are not visible to the spawned script", () => {
+    const listEnv = `node -e 'console.log(JSON.stringify(Object.keys(process.env)))'`;
+    const keys = withProcessEnv(
+      { REVIEW_LEAK: "yes", GITHUB_JOB: "migrate", CI: "true" },
+      () => {
+        const result = executeRunScript({}, listEnv, { STEP_ONLY: "1" });
+        expect(result.status, result.stderr).toBe(0);
+        return JSON.parse(result.stdout) as string[];
+      },
+    );
+    expect(keys).toEqual(expect.arrayContaining(["PATH", "STEP_ONLY"]));
+    expect(keys).not.toContain("REVIEW_LEAK");
+    expect(keys).not.toContain("HOME");
+    expect(keys).not.toContain("CI");
+    expect(keys.filter((key) => key.startsWith("GITHUB_"))).toEqual([]);
+  });
 });

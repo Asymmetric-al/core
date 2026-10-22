@@ -975,20 +975,265 @@ export function runStepShellArgv(step: WorkflowStep): [string, string[]] {
 
 const scriptExecutionCache = new Map<string, GateExecution>();
 
-/** Run one rendered `run:` body (from the repo root) under the step's shell; memoized. */
+/**
+ * Env for a spawned `run:` script: `PATH` from the test process (so the shell
+ * can find `bash`, `node`, ...) plus the given env — the effective workflow ->
+ * job -> step env. Nothing else from the test process leaks in (no `HOME`,
+ * `CI`, `GITHUB_*`). No runner variables are modelled: the real reject and gate
+ * scripts read none. A child program's own env reads (for example
+ * `node scripts/verify/ci-build-policy.mjs --gate` reading `CI_RESULTS`) cannot
+ * be text-checked; they see only this scrubbed env.
+ */
+export function scriptSpawnEnv(
+  env: Record<string, string>,
+): Record<string, string> {
+  return { PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin", ...env };
+}
+
+function notModelled(what: string): never {
+  throw new Error(`Script ${what} is not modelled`);
+}
+
+/** Commands that read the environment or run code the scanner cannot see. */
+const ENV_READING_COMMANDS = new Set([
+  "eval",
+  "source",
+  ".",
+  "printenv",
+  "env",
+  "compgen",
+]);
+const SEGMENT_PREFIX_WORDS = new Set([
+  "then",
+  "do",
+  "else",
+  "elif",
+  "if",
+  "while",
+  "until",
+  "!",
+  "time",
+]);
+const DECLARATION_COMMANDS = new Set([
+  "local",
+  "export",
+  "readonly",
+  "declare",
+  "typeset",
+]);
+const NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+/** Stands in for quoted text and expansions in the unquoted command text. */
+const PLACEHOLDER = "\u0000";
+
+export type ScriptVariables = {
+  /** Environment-style names the script expands (`$NAME`, `${NAME...}`). */
+  references: string[];
+  /** Names the script itself assigns (`name=`, `local name=`, `for name`, `read name`). */
+  locals: string[];
+};
+
+/** Index just past `$...` starting at `start`; records referenced names. */
+function scanDollar(script: string, start: number, refs: Set<string>): number {
+  const next = script[start + 1];
+  if (next === "(") notModelled("with $( ) command or arithmetic substitution");
+  if (next === "{") {
+    const close = script.indexOf("}", start + 2);
+    if (close === -1) notModelled("with an unterminated ${");
+    const body = script.slice(start + 2, close);
+    if (/[{`]|\$\(/.test(body))
+      notModelled(`with a nested expansion \${${body}}`);
+    if (body.startsWith("!")) notModelled(`with \${!...} indirection`);
+    const name = /^#?([A-Za-z_][A-Za-z0-9_]*)/.exec(body);
+    const special = /^#?(?:[0-9]+|[?#$!@*-])/.exec(body);
+    const match = name ?? special;
+    if (!match) notModelled(`with \${${body}}`);
+    if (name) refs.add(name[1]!);
+    const rest = body.slice(match[0].length);
+    if (rest.includes("$")) {
+      for (const ref of scanScriptVariables(rest).references) refs.add(ref);
+    }
+    return close + 1;
+  }
+  if (next === "'") {
+    // ANSI-C `$'...'`: literal text, `\'` does not end it.
+    let end = start + 2;
+    while (end < script.length && script[end] !== "'") {
+      end += script[end] === "\\" ? 2 : 1;
+    }
+    if (end >= script.length) notModelled("with an unterminated $'");
+    return end + 1;
+  }
+  const name = /^[A-Za-z_][A-Za-z0-9_]*/.exec(script.slice(start + 1));
+  if (name) {
+    refs.add(name[0]);
+    return start + 1 + name[0].length;
+  }
+  if (next !== undefined && /[0-9?#$!@*-]/.test(next)) return start + 2;
+  return start + 1; // A lone `$` (or `$"..."`) is literal.
+}
+
+/** Assignments, loop variables and `read` targets in one simple command. */
+function collectLocals(tokens: string[], locals: Set<string>): void {
+  let i = 0;
+  while (i < tokens.length && SEGMENT_PREFIX_WORDS.has(tokens[i]!)) i += 1;
+  const first = tokens[i];
+  if (first === undefined) return;
+  if (first === "for" || first === "select") {
+    const name = tokens[i + 1] ?? "";
+    if (NAME.test(name)) locals.add(name);
+    return;
+  }
+  if (first === "read") {
+    for (const token of tokens.slice(i + 1)) {
+      if (NAME.test(token)) locals.add(token);
+    }
+    return;
+  }
+  if (DECLARATION_COMMANDS.has(first)) {
+    for (const token of tokens.slice(i + 1)) {
+      if (/^-\w*p/.test(token)) notModelled(`listing variables (${first} -p)`);
+      const assigned = /^([A-Za-z_][A-Za-z0-9_]*)\+?=/.exec(token);
+      if (assigned) locals.add(assigned[1]!);
+    }
+    return;
+  }
+  while (i < tokens.length) {
+    const assigned = /^([A-Za-z_][A-Za-z0-9_]*)\+?=/.exec(tokens[i]!);
+    if (!assigned) break;
+    locals.add(assigned[1]!);
+    i += 1;
+  }
+  const command = tokens[i];
+  if (command !== undefined) {
+    if (ENV_READING_COMMANDS.has(command)) {
+      notModelled(`running \`${command}\``);
+    }
+    if (command === "set" && tokens.length === i + 1) {
+      notModelled("listing variables (bare `set`)");
+    }
+  }
+}
+
+/**
+ * Variable-reference rule for `run:` scripts executed by this harness.
+ *
+ * - Expansions are `$NAME` and `${NAME...}` (including `${#NAME}`,
+ *   `${NAME:-word}`; names inside `word` count too) outside single quotes.
+ *   `'...'` and `$'...'` are literal; a backslash escapes the next character
+ *   (so `\$X` is literal). `#` starting a word outside quotes is a comment.
+ * - Shell special parameters (`$?`, `$#`, `$$`, `$!`, `$-`, `$@`, `$*`,
+ *   `$0`-`$9`, `${10}`) are not environment and are always allowed.
+ * - Script-local names are allowed anywhere in the script if the script assigns
+ *   them anywhere (simple rule; a read before the assignment is not
+ *   distinguished): `name=` / `name+=` at the start of a simple command
+ *   (after newline, `;`, `&&`, `||`, `|`, `(`, `{`, `then`, `do`, ...),
+ *   `local`/`export`/`readonly`/`declare`/`typeset name=`, `for`/`select name`
+ *   and `read name` targets. `export NAME` without `=` is not an assignment.
+ * - Fail closed (throw "... not modelled"): `$(...)`, `$((...))`, backticks,
+ *   heredocs/here-strings (`<<`), `${!name}` indirection, nested `${...}`,
+ *   unterminated quotes, and the env-reading or code-loading commands `eval`,
+ *   `source`, `.`, `printenv`, `env`, `compgen`, bare `set`, `<decl> -p`, and
+ *   any mention of `/proc/` (e.g. `/proc/self/environ`).
+ */
+export function scanScriptVariables(script: string): ScriptVariables {
+  if (script.includes("/proc/")) notModelled("reading /proc");
+  const refs = new Set<string>();
+  let bare = "";
+  let inDouble = false;
+  let i = 0;
+  while (i < script.length) {
+    const c = script[i]!;
+    if (!inDouble) {
+      if (c === "'") {
+        const end = script.indexOf("'", i + 1);
+        if (end === -1) notModelled("with an unterminated single quote");
+        bare += PLACEHOLDER;
+        i = end + 1;
+        continue;
+      }
+      if (c === '"') {
+        inDouble = true;
+        bare += PLACEHOLDER;
+        i += 1;
+        continue;
+      }
+      if (c === "#" && (bare === "" || /[\s;&|(){}]$/.test(bare))) {
+        const end = script.indexOf("\n", i);
+        i = end === -1 ? script.length : end;
+        continue;
+      }
+      if (c === "<" && script[i + 1] === "<") {
+        notModelled("with a heredoc or here-string");
+      }
+    } else if (c === '"') {
+      inDouble = false;
+      i += 1;
+      continue;
+    }
+    if (c === "\\") {
+      if (!inDouble) bare += PLACEHOLDER;
+      i += 2;
+      continue;
+    }
+    if (c === "`") notModelled("with backtick command substitution");
+    if (c === "$") {
+      i = scanDollar(script, i, refs);
+      if (!inDouble) bare += PLACEHOLDER;
+      continue;
+    }
+    if (!inDouble) bare += c;
+    i += 1;
+  }
+  if (inDouble) notModelled("with an unterminated double quote");
+
+  const locals = new Set<string>();
+  for (const segment of bare.split(/\n|;|&&|\|\||\||&|\(|\)|\{|\}/)) {
+    collectLocals(segment.trim().split(/\s+/).filter(Boolean), locals);
+  }
+  return { references: [...refs].sort(), locals: [...locals].sort() };
+}
+
+/**
+ * Throw "... not modelled" unless every name the script expands is in the
+ * spawned env (the effective env; `PATH` is deliberately not counted, since its
+ * value differs from the runner's) or assigned by the script itself.
+ */
+export function assertScriptVariablesModelled(
+  script: string,
+  env: Record<string, string>,
+): void {
+  const { references, locals } = scanScriptVariables(script);
+  const missing = references.filter(
+    (name) => !Object.hasOwn(env, name) && !locals.includes(name),
+  );
+  if (missing.length > 0) {
+    notModelled(
+      `reading ${missing.map((name) => `$${name}`).join(", ")} (not in the effective env, not a special parameter, not script-local)`,
+    );
+  }
+}
+
+/**
+ * Run one rendered `run:` body (from the repo root) under the step's shell with
+ * the scrubbed {@link scriptSpawnEnv}; memoized on the full spawned env. Throws
+ * (see {@link scanScriptVariables}) before running a script whose variable
+ * references are not modelled, so callers fail closed.
+ */
 export function executeRunScript(
   step: WorkflowStep,
   script: string,
   env: Record<string, string>,
 ): GateExecution {
+  assertScriptVariablesModelled(script, env);
   const [command, args] = runStepShellArgv(step);
-  const key = JSON.stringify([command, args, script, env, process.cwd()]);
+  const spawnEnv = scriptSpawnEnv(env);
+  const key = JSON.stringify([command, args, script, spawnEnv, process.cwd()]);
   const cached = scriptExecutionCache.get(key);
   if (cached) return cached;
   const proc = spawnSync(command, [...args, script], {
     encoding: "utf8",
     cwd: process.cwd(),
-    env: { ...process.env, ...env },
+    env: spawnEnv,
   });
   const result = {
     status: proc.status ?? 1,
