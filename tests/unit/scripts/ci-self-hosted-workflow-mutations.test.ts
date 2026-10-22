@@ -5,7 +5,7 @@
  * MAJOR-10 defaults.run shells plus the workflow key allowlist, and the
  * repair-6 if: pins, whole-object functions and second value set, and the
  * repair-7 per-job/per-step key allowlists, and the repair-8 env key names and
- * runner-faithful script execution).
+ * runner-faithful script execution, and the repair-9 document-cutover step).
  * Each reviewer mutation is applied to an
  * in-memory copy of the real workflow YAML; the harness must accept the real
  * workflow and reject every mutated copy.
@@ -30,6 +30,7 @@ import {
   MODELLED_STEP_KEYS,
   MODELLED_WORKFLOW_KEYS,
   PINNED_JOB_IFS,
+  PINNED_STEP_BODIES,
   PULL_REQUEST_VALUE_SETS,
   PINNED_CI_GATE_BODY,
   analyzeSelfHostedForkSafety,
@@ -1603,7 +1604,22 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
       ci["ci-gate"]!,
     ]);
     expect([...MODELLED_JOB_KEYS.reject].sort()).toEqual(reject.job);
-    expect([...MODELLED_STEP_KEYS.reject].sort()).toEqual(reject.step);
+    // The role lists are only the fallback for unpinned (fixture) jobs. Real
+    // reject-job steps use the exact per-step tables; the one real reject-job
+    // step env (migrate "Verify document-cutover reader role (real stack)",
+    // pinned per step) is deliberately not in the fallback.
+    expect([...MODELLED_STEP_KEYS.reject].sort()).toEqual(
+      reject.step.filter((key) => key !== "env"),
+    );
+    expect(
+      REJECT_JOBS.flatMap((jobId) =>
+        (integration[jobId]!.steps ?? [])
+          .filter((step) => step.env !== undefined)
+          .map((step) => `${jobId} ${stepIdentity(step)}`),
+      ),
+    ).toEqual([
+      "migrate name:Verify document-cutover reader role (real stack)",
+    ]);
     expect([...MODELLED_JOB_KEYS.gate].sort()).toEqual(gate.job);
     expect([...MODELLED_STEP_KEYS.gate].sort()).toEqual(gate.step);
   });
@@ -2121,6 +2137,7 @@ describe("repair 7: per-job and per-step key allowlists (no union per role)", ()
           .map(([id]) => `${jobId} ${id}`),
     );
     expect(envSteps).toEqual([
+      "migrate name:Verify document-cutover reader role (real stack)",
       "ci-gate name:Validate correctness checks and requested compilation",
     ]);
   });
@@ -2546,5 +2563,183 @@ describe("repair 8 (MAJOR-11): env key names and runner-faithful execution", () 
       CI_BUILD_REQUESTED: "true",
     });
     expect(passed.status, passed.stdout + passed.stderr).toBe(0);
+  });
+});
+
+describe("repair 9: the migrate 'Verify document-cutover reader role (real stack)' step", () => {
+  const NAME = "Verify document-cutover reader role (real stack)";
+  const ID = `name:${NAME}`;
+  const KEY = "DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL";
+  const RUN =
+    "bun x vitest run tests/unit/acceptance/issue-2067/reader-role.integration.acceptance.test.ts";
+  const STEP_TEXT = `      - name: ${NAME}\n        env:\n          ${KEY}: \${{ env.DATABASE_URL }}\n        run: ${RUN}\n`;
+  const migrateOf = (text: string) => jobsOf(text, "repair 9").migrate!;
+  const editMigrate = (fn: (block: string) => string) =>
+    migrateOf(mutateJob(source(CI_INTEGRATION), "migrate", fn));
+  const editStep = (replacement: string) =>
+    editMigrate((block) => mutate(block, STEP_TEXT, replacement, 1));
+  const level = (index: number) => `step ${index} env of job 'migrate'`;
+
+  it("the real step is pinned exactly: name, position 14, run, env, no if", () => {
+    const job = migrateOf(source(CI_INTEGRATION));
+    const index = job.steps!.findIndex((step) => step.name === NAME);
+    expect(index).toBe(14);
+    const step = job.steps![index]!;
+    expect(PINNED_STEP_BODIES.migrate![ID]).toEqual({
+      index,
+      run: step.run!.trim(),
+      env: step.env,
+    });
+    expect(step.env).toEqual({ [KEY]: "${{ env.DATABASE_URL }}" });
+    expect(step.if).toBeUndefined();
+    expect(MODELLED_ENV_KEYS_BY_JOB.migrate!.steps[ID]).toEqual([KEY]);
+  });
+
+  it("the real migrate job passes every check with the step modelled", () => {
+    const job = migrateOf(source(CI_INTEGRATION));
+    expect(modelledKeyProblems(job, "reject")).toEqual([]);
+    expect(envKeyProblems(job)).toEqual([]);
+    expect(pinnedIfProblems(job)).toEqual([]);
+    expect(forkRejectProblems(job)).toEqual([]);
+    expect(requiredJobFailsClosedOnFork(job)).toBe(true);
+  });
+
+  it("another env key on the step is not allowed", () => {
+    const job = editStep(
+      STEP_TEXT.replace("        run:", "          OTHER: x\n        run:"),
+    );
+    expect(envKeyProblems(job)).toEqual([
+      `env key not allowed: OTHER at ${level(14)} (not in the pinned set)`,
+    ]);
+    expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+  });
+
+  it.each([
+    ["another env reference", "${{ env.PAYLOAD_DATABASE_URI }}"],
+    ["a literal URL", "postgresql://postgres:postgres@evil:5432/x"],
+    ["a secret", "${{ secrets.ADMIN_DATABASE_URL }}"],
+  ])("another value (%s) for the key is not allowed", (_label, value) => {
+    const job = editStep(STEP_TEXT.replace("${{ env.DATABASE_URL }}", value));
+    expect(envKeyProblems(job)).toEqual([
+      `env value not allowed: ${KEY} at ${level(14)} (pinned to "\${{ env.DATABASE_URL }}")`,
+    ]);
+    expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+  });
+
+  it.each([
+    ["migrate", "Verify seed counts", 13],
+    ["smoke", "Assert health response shape", 8],
+  ] as const)(
+    "the key on another step (%s step %s) is not allowed",
+    (jobId, stepName, index) => {
+      const line = `      - name: ${stepName}\n`;
+      const job = jobsOf(
+        mutateJob(source(CI_INTEGRATION), jobId, (block) =>
+          mutate(
+            block,
+            line,
+            `${line}        env:\n          ${KEY}: \${{ env.DATABASE_URL }}\n`,
+            1,
+          ),
+        ),
+        "key elsewhere",
+      )[jobId]!;
+      const problems = modelledKeyProblems(job, "reject").join("\n");
+      expect(problems).toContain(
+        `Step ${index} (reject) key 'env' is not modelled`,
+      );
+      expect(problems).toContain(
+        `env key not allowed: ${KEY} at step ${index} env of job '${jobId}' (not in the pinned set)`,
+      );
+      expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+    },
+  );
+
+  it("a changed run body is not modelled", () => {
+    const job = editStep(
+      STEP_TEXT.replace(RUN, "bun x vitest run tests/unit/"),
+    );
+    expect(modelledKeyProblems(job, "reject").join("\n")).toContain(
+      `Step 14 (reject) "${ID}" of job 'migrate' is not modelled (run differs from the pinned body`,
+    );
+  });
+
+  it("a moved step (right after the reject step) is not modelled", () => {
+    const job = editMigrate((block) => {
+      const without = mutate(block, STEP_TEXT, "", 1);
+      const reject = `          echo "${FORK_FAIL_MESSAGE}"\n          exit 1\n`;
+      return mutate(without, reject, `${reject}${STEP_TEXT}`, 1);
+    });
+    expect(modelledKeyProblems(job, "reject").join("\n")).toContain(
+      `Step 1 (reject) "${ID}" of job 'migrate' is not modelled (pinned to position 14)`,
+    );
+    expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+  });
+
+  it("moving the step ahead of the fork reject removes its guard and fails closed", () => {
+    const job = editMigrate((block) => {
+      const without = mutate(block, STEP_TEXT, "", 1);
+      return mutate(
+        without,
+        "      - name: Reject fork pull requests\n",
+        `${STEP_TEXT}      - name: Reject fork pull requests\n`,
+        1,
+      );
+    });
+    const problems = forkRejectProblems(job).join("\n");
+    // The job is no longer the modelled job, so the reject step is not recognised.
+    expect(problems).toContain("no fork-reject step");
+    expect(problems).toContain(
+      `Step 0 (reject) "${ID}" of job 'migrate' is not modelled (pinned to position 14)`,
+    );
+    expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+  });
+
+  it.each([
+    ["always()", "always()"],
+    ["${{ always() }}", "${{ always() }}"],
+    ["failure()", "failure()"],
+    ["!cancelled()", "${{ !cancelled() }}"],
+  ])(
+    "weakening the step's fork guard with if: %s fails closed (pinned absent)",
+    (_label, condition) => {
+      const job = editStep(
+        STEP_TEXT.replace(
+          "        env:",
+          `        if: ${condition}\n        env:`,
+        ),
+      );
+      expect(pinnedIfProblems(job)).toEqual([
+        `Job 'migrate' step 14 if ${JSON.stringify(condition)} is not allowed: pinned to "absent"`,
+      ]);
+      expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+    },
+  );
+
+  it("the step gets exactly the fork protection of its DATABASE_URL siblings", () => {
+    const job = migrateOf(source(CI_INTEGRATION));
+    const siblings = job
+      .steps!.map((step, index) => ({ step, index }))
+      .filter(({ step }) =>
+        /\$DATABASE_URL|env\.DATABASE_URL/.test(
+          `${step.run ?? ""} ${JSON.stringify(step.env ?? {})}`,
+        ),
+      )
+      .map(({ index }) => index);
+    expect(siblings).toEqual([8, 11, 12, 13, 14]);
+    expect(job.if).toBeUndefined();
+    for (const index of siblings) {
+      expect(job.steps![index]!.if, `step ${index}`).toBeUndefined();
+    }
+    for (const index of siblings) {
+      const name = job.steps![index]!.name!;
+      const line = `      - name: ${name}\n`;
+      const edited = editMigrate((block) =>
+        mutate(block, line, `${line}        if: always()\n`, 1),
+      );
+      expect(pinnedIfProblems(edited), name).toEqual([
+        `Job 'migrate' step ${index} if "always()" is not allowed: pinned to "absent"`,
+      ]);
+    }
   });
 });

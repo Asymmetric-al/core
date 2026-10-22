@@ -135,6 +135,10 @@ export function pinnedIfProblems(job: WorkflowJob): string[] {
     }
   };
   check(`Job '${jobId}'`, job.if, pin.jobIf);
+  // Reject jobs: every step after the reject step — including the migrate
+  // DATABASE_URL steps (8, 11, 12, 13) and "Verify document-cutover reader
+  // role (real stack)" (14) — is pinned to no `if:`, so none can run after the
+  // fork reject at step 0 has failed the job.
   allSteps(job).forEach((step, index) =>
     check(
       `Job '${jobId}' step ${index}`,
@@ -309,6 +313,11 @@ export const MODELLED_KEYS_BY_JOB: Record<
       "name:Apply demo seed": ["name", "run"],
       "name:Verify donation fee replay": ["name", "run"],
       "name:Verify seed counts": ["name", "run"],
+      "name:Verify document-cutover reader role (real stack)": [
+        "name",
+        "env",
+        "run",
+      ],
     },
   },
   smoke: {
@@ -361,6 +370,30 @@ export const MODELLED_KEYS_BY_JOB: Record<
         "env",
         "run",
       ],
+    },
+  },
+};
+
+/**
+ * Steps pinned beyond their keys: exact position in the job, exact `run:` body
+ * (trimmed) and exact step `env` values. The migrate "Verify document-cutover
+ * reader role (real stack)" step (from develop #2169) is the only one; its
+ * DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL must be exactly `${{ env.DATABASE_URL }}`.
+ */
+export const PINNED_STEP_BODIES: Record<
+  string,
+  Record<
+    string,
+    { index: number; run: string; env: Readonly<Record<string, string>> }
+  >
+> = {
+  migrate: {
+    "name:Verify document-cutover reader role (real stack)": {
+      index: 14,
+      run: "bun x vitest run tests/unit/acceptance/issue-2067/reader-role.integration.acceptance.test.ts",
+      env: {
+        DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}",
+      },
     },
   },
 };
@@ -441,6 +474,20 @@ export function modelledKeyProblems(
       }
       seen.add(identity);
       assertKeysModelled(step, allowed, `Step ${index} (${role})`);
+      const body = PINNED_STEP_BODIES[jobId!]?.[identity];
+      if (body && body.index !== index) {
+        throw new Error(
+          `Step ${index} (${role}) ${JSON.stringify(identity)} of job '${jobId}' is not modelled (pinned to position ${body.index})`,
+        );
+      }
+      if (
+        body &&
+        (typeof step.run !== "string" || step.run.trim() !== body.run)
+      ) {
+        throw new Error(
+          `Step ${index} (${role}) ${JSON.stringify(identity)} of job '${jobId}' is not modelled (run differs from the pinned body ${JSON.stringify(body.run)})`,
+        );
+      }
     }),
   );
   problems.push(...envKeyProblems(job));
@@ -599,7 +646,11 @@ export const MODELLED_ENV_KEYS_BY_JOB: Record<
       "NEXT_PUBLIC_SUPABASE_URL",
       "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     ],
-    steps: {},
+    steps: {
+      "name:Verify document-cutover reader role (real stack)": [
+        "DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL",
+      ],
+    },
   },
   smoke: {
     job: [
@@ -634,15 +685,24 @@ export function envKeyProblems(job: WorkflowJob): string[] {
   const problems: string[] = [];
   const jobId = jobIdByJob.get(job);
   const pin = jobId === undefined ? undefined : MODELLED_ENV_KEYS_BY_JOB[jobId];
-  const check = (env: unknown, level: string, allowed?: readonly string[]) => {
+  const check = (
+    env: unknown,
+    level: string,
+    allowed?: readonly string[],
+    values?: Readonly<Record<string, string>>,
+  ) => {
     if (!env || typeof env !== "object" || Array.isArray(env)) return;
-    for (const key of Object.keys(env)) {
+    for (const [key, value] of Object.entries(env)) {
       if (DENIED_ENV_KEY_PATTERNS.some((pattern) => pattern.test(key))) {
         problems.push(
           envKeyNotAllowed(key, level, "denied process-level name"),
         );
       } else if (allowed && !allowed.includes(key)) {
         problems.push(envKeyNotAllowed(key, level, "not in the pinned set"));
+      } else if (values && key in values && value !== values[key]) {
+        problems.push(
+          `env value not allowed: ${key} at ${level} (pinned to ${JSON.stringify(values[key])})`,
+        );
       }
     }
   };
@@ -657,6 +717,9 @@ export function envKeyProblems(job: WorkflowJob): string[] {
       step.env,
       pin ? `step ${index} env of job '${jobId}'` : `step ${index} env`,
       pin ? (pin.steps[stepIdentity(step)] ?? []) : undefined,
+      jobId === undefined
+        ? undefined
+        : PINNED_STEP_BODIES[jobId]?.[stepIdentity(step)]?.env,
     ),
   );
   return problems;
