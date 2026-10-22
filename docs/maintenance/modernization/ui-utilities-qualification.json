@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-10-22T16:59:58.040832+00:00",
+  "recordedAt": "2026-10-22T17:26:23.732764+00:00",
   "status": "local-qualified-awaiting-ci-review-previews",
   "baseCommit": "3a8f77043f0fbcff692be14ad99ec6fdd55e7f99",
   "baselineSourceCommit": "f05cdc7fb15c19c26b986693077b591d2647ee17",
@@ -107,6 +107,20 @@
       "fixtureCompiler": "Product TypeScript 7 invoked by test:e2e:base-ui",
       "browserPassed": 259,
       "browserExistingSkips": 5
+    },
+    {
+      "kind": "full-preflight-normal-push-after-current-develop-before-force-new-review-fix",
+      "head": "cd445c9f5cf81c14a0caa51a81034f5145946e65",
+      "proof": "/tmp/core-modernization-ui-utilities-preview-canary-current-develop-push.json",
+      "sha256": "30ef76d0096420e04e3a11d6b6c74bc3521dcf192f9a26cd0223568599c20aba",
+      "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+      "exit": 0,
+      "logSha256": "b67206a136779214d9c4984794cbdec04da08beb7d30438b3c6d96c322e02994",
+      "unitFilesPassed": 922,
+      "unitTestsPassed": 7743,
+      "expectedFailures": 1,
+      "skippedTests": 4,
+      "skippedFiles": 2
     }
   ],
   "independentReviews": [
@@ -202,21 +216,21 @@
     "green": "Full matrix and fixture compiler passed; current-head CI/previews will rerun after publication"
   },
   "previewPipelineFollowup": {
-    "status": "local-tested-awaiting-published-hosted-visibility-and-exact-head-qa",
+    "status": "hosted-guard-proven-at-cd445c-awaiting-force-new-review-fix-publication-and-current-head-qa",
     "precedingHead": "61b709ac244678605d926d415f0ff8d52204a44d",
     "priorQaRun": 39807571943,
     "priorResult": "Admin CANCELED by ordinary diff ignore; old0af previews cannot qualify61. Dashboard ignore-disabled retry reached compilation then exhausted standard8GiB; adminTurbo retained.",
     "canaryProof": "/tmp/core-modernization-ui-preview-canary-review.json",
     "canaryProofSha256": "91bb957a3c9a324a06a75bc664dbbeea839507d9b9c592ece8ee0347be40e931",
     "sourceFileSha256": {
-      "scripts/qa/deploy-hosted-preview.mjs": "c8bce14ade5c468ba747abbfede029e87af899ffc81453291b6a6a5c69b7ac13",
-      "tests/unit/scripts/deploy-hosted-preview.test.ts": "66cccb3955d78e0a3d098e761a340c88a7a2d78cd824ff46f5a9ffbe25f02327",
+      "scripts/qa/deploy-hosted-preview.mjs": "5bcbbcea7a933c3ed8cde88f1cfbccd17246b7df42e7f9f0248c58c8f432698a",
+      "tests/unit/scripts/deploy-hosted-preview.test.ts": "ce6e76b232e7c1ae75292b3d3f2ee9490a6a3364a19d40a3725893a76c3fe658",
       "scripts/vercel/should-ignore-build.mjs": "b2334c0b42e2e383f8db96f1bf5952257e3a898427d1f0f30f9fb6db529870ff",
       "tests/unit/scripts/vercel-ignore-build.test.ts": "2bc7fdbd66d74f13591d1b661b3017d892e6f838fc4a5c9bcf925ecf9901f553"
     },
     "relatedTestsPassed": 132,
-    "localScope": "Known app, Preview, valid SHA equal to provider SHA and actualGitHEAD; missing/rejected markers preserve normal ignore; explicit request build.env only. Dedup retains complete identityGET, boundedpoll/cleanup and adminTurbo.",
-    "hostedIgnoredStepVisibility": "UNVERIFIED",
+    "localScope": "Known app, Preview, valid SHA equal to provider SHA and actualGitHEAD; missing/rejected markers preserve normal ignore; explicit request build.env only. Fresh forceNew1 creation retains complete identityGET, boundedpoll/cleanup and adminTurbo.",
+    "hostedIgnoredStepVisibility": "MATCHED on allthree hosted apps at cd445c9f5cf81c14a0caa51a81034f5145946e65; corrected currenthead must be requalified",
     "requires": [
       "Real fixed marker-matched build log for each app",
       "Three exact-published-head READY provider identity readbacks",
@@ -224,6 +238,29 @@
       "Current-head CI/review reconciliation, merge and final readback"
     ],
     "supersededProposalProof": "/tmp/core-modernization-ui-utilities-hosted-ignore-proposal-superseded.json",
-    "supersededProposalSha256": "66200f485b81fabc801e0e4c2c98d1d686780422f2f93c55a00089fbb8e6b24b"
+    "supersededProposalSha256": "66200f485b81fabc801e0e4c2c98d1d686780422f2f93c55a00089fbb8e6b24b",
+    "historicalCanarySourceFileSha256": {
+      "scripts/qa/deploy-hosted-preview.mjs": "c8bce14ade5c468ba747abbfede029e87af899ffc81453291b6a6a5c69b7ac13",
+      "tests/unit/scripts/deploy-hosted-preview.test.ts": "66cccb3955d78e0a3d098e761a340c88a7a2d78cd824ff46f5a9ffbe25f02327",
+      "scripts/vercel/should-ignore-build.mjs": "b2334c0b42e2e383f8db96f1bf5952257e3a898427d1f0f30f9fb6db529870ff",
+      "tests/unit/scripts/vercel-ignore-build.test.ts": "2bc7fdbd66d74f13591d1b661b3017d892e6f838fc4a5c9bcf925ecf9901f553"
+    },
+    "historicalHostedQualification": {
+      "head": "cd445c9f5cf81c14a0caa51a81034f5145946e65",
+      "runId": 39821034649,
+      "proof": "/tmp/core-modernization-ui-utilities-cd445c-hosted-qualified.json",
+      "proofSha256": "80f60b3448b4d7dbaabd73aafe6b9a08e3cdec0e857d18adfc8542adb5389e9c",
+      "result": "Three exacthead READY Preview deployments, three real ignoredbuild marker matches, three QA projectsPASS"
+    },
+    "forceNewReviewFix": {
+      "reviewComment": 4351346313,
+      "behavior": "Retain forceNew1 to prevent an earlier canceled same-SHA deployment from suppressing the build marker. No product/lock/guard/resource/secret changes.",
+      "red": "/tmp/core-modernization-ui-utilities-force-new-review-red.json",
+      "green": "/tmp/core-modernization-ui-utilities-force-new-review-related-six-files.json",
+      "greenCases": 132,
+      "publication": "Pending",
+      "redSha256": "55331376c098db06d75b8b2be09092227dfafe8c4d0ec3d0f9e5da8f7b804cf9",
+      "greenSha256": "243aaddc2019f20fbd22bb7f99789f2a9114dbfb2d8c01a8c57c539bcdd4310f"
+    }
   }
 }

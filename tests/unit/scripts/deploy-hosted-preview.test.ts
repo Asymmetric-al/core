@@ -44,7 +44,7 @@ describe("hosted Git-source preview delivery", () => {
     ).resolves.toBe("https://admin-fixture.vercel.app");
     const [url, options] = fx.request.mock.calls[0];
     expect(url).toBe(
-      "https://api.vercel.com/v13/deployments?teamId=team_YrLB8jJARcRH0jnF1HPpPGTB",
+      "https://api.vercel.com/v13/deployments?teamId=team_YrLB8jJARcRH0jnF1HPpPGTB&forceNew=1",
     );
     expect(options.redirect).toBe("error");
     const body = JSON.parse(options.body);
@@ -67,7 +67,7 @@ describe("hosted Git-source preview delivery", () => {
     expect(JSON.stringify(body)).not.toContain(env.VERCEL_TOKEN);
     expect(fx.request.mock.calls).toHaveLength(2);
   });
-  it("reuses an already READY same-head Preview only after a complete identity readback", async () => {
+  it("validates an immediate READY Preview with a complete identity readback", async () => {
     const fx = fixture([deployment("READY"), deployment("READY")]);
     await expect(
       deployHostedPreview({ app: "admin", env, ...fx }),
@@ -94,7 +94,7 @@ describe("hosted Git-source preview delivery", () => {
     ],
     ["production readback", { target: "production" }, false],
   ])(
-    "rejects a READY deduplication candidate with %s",
+    "rejects an immediate READY response with %s",
     async (_label, patch, mismatchedPost) => {
       const fx = fixture([
         deployment("READY", mismatchedPost ? patch : {}),

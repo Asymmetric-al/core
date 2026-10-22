@@ -47,8 +47,9 @@ Production.
    skipped and exits successfully.
 5. For affected surfaces, `scripts/qa/deploy-hosted-preview.mjs` requests a
    hosted Git-source Preview for the approved project, PR branch and exact head
-   SHA. Application secrets stay with Vercel. Every deployment, including a
-   provider-reused deployment, requires a readback of the approved project,
+   SHA. Each request asks for a fresh deployment so an earlier canceled
+   same-SHA build cannot be reused. Application secrets stay with Vercel. Every
+   returned deployment requires a readback of the approved project,
    repository, branch, SHA and Preview target before a READY URL is accepted.
    ERROR, CANCELED and timeout outcomes fail qualification; unfinished owned
    deployments receive bounded cleanup. Admin uses the qualified Turbo build
