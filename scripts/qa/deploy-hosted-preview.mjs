@@ -100,11 +100,14 @@ export async function deployHostedPreview({
       );
     }
   }
+  // Fresh QA builds must not reuse an earlier CANCELED ignored deployment.
   const created = await json(
     await call(`/v13/deployments?teamId=${TEAM}&forceNew=1`, "POST", {
       name: app,
       project: project.projectId,
       gitSource: { type: "github", repoId: REPOSITORY_ID, ref: branch, sha },
+      // Nonsecret deployment-only build input for the SHA-bound Preview override.
+      build: { env: { CORE_QA_FORCE_BUILD_SHA: sha } },
       gitMetadata: {
         commitRef: branch,
         commitSha: sha,

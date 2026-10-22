@@ -1,0 +1,42 @@
+{
+  "version": 8,
+  "name": "Core offline dark",
+  "sources": {
+    "offline": {
+      "type": "geojson",
+      "data": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [0, 20]
+            },
+            "properties": {
+              "contract": "offline"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "layers": [
+    {
+      "id": "offline-background",
+      "type": "background",
+      "paint": {
+        "background-color": "#18181b"
+      }
+    },
+    {
+      "id": "offline-points",
+      "type": "circle",
+      "source": "offline",
+      "paint": {
+        "circle-radius": 8,
+        "circle-color": "#f97316"
+      }
+    }
+  ]
+}
