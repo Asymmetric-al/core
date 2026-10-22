@@ -112,6 +112,7 @@
     "productionExecution": false
   },
   "remaining": [
-    "Whole-Core security/SBOM and combined production-release package"
+    "Whole-Core security/SBOM and combined production-release package",
+    "Live DocRaptor fidelity for representative document output remains unqualified; see pdf-packages.md. Required for final combined document and release qualification."
   ]
 }
