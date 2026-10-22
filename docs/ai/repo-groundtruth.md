@@ -248,7 +248,8 @@ Asymmetric-al/feature/AL-265-shared-refund-workflow`. Corroborated by the
 - **`AL-###` ticket references in branch names.** `AL-787`, `AL-265` — matches
   the `docs/ai/rules/general.md` AL-### workflow referenced by root `AGENTS.md`.
 - **Automated PR-loop sync + OpenSpec-driven change proposals.** Repeated
-  `chore(pr-loop): sync PR with develop`, and a large cluster of
+  `chore(pr-loop): sync PR with develop` (historical; PR-loop retired Oct 2026),
+  and a large cluster of
   `openspec(eve): add-eve-*` commits (governance/agent change proposals under
   `openspec/changes/`).
 
