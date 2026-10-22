@@ -7881,5 +7881,359 @@
     "auditSucceeded": false,
     "cleanAuditEstablished": false,
     "lockSha256": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
+  },
+  "publicBlockReferenceCorrection": {
+    "observedAt": "2026-10-22T03:49:51.260723+00:00",
+    "discoveredOnHead": "11d7f936a9b8bda796680027941a4e457ac15c9f",
+    "failedCiRun": 39717320604,
+    "failedPreviewRun": 39717321388,
+    "cause": "Public BlocksField permits Block|string references; generated Config augmentation narrowed the local full-program type and masked an unsafe property access in the isolated clean CI type context.",
+    "fix": "Preserve string references explicitly before reading block.slug/fields or spreading the block object.",
+    "regression": "The ordinary unit gate now compiles this collection in an isolated app context without implicit generated augmentation. The generated file remains present and unchanged when available.",
+    "migrationSnapshotsUnchanged": true,
+    "previousPassingGatesAreHistorical": true,
+    "newHeadFullGatesCiPreviewsPending": true,
+    "proofs": {
+      "isolatedCompilerRed": {
+        "proofSha256": "73230312335d91223154317ec0e742b941d9fe386cde1ba5bcefc1b3a51b98b9",
+        "record": {
+          "startedAt": "2026-10-22T03:43:35.727000+00:00",
+          "completedAt": "2026-10-22T03:43:36.056934+00:00",
+          "head": "11d7f936a9b8bda796680027941a4e457ac15c9f",
+          "command": [
+            "bun",
+            "run",
+            "--cwd",
+            "apps/admin",
+            "tsc",
+            "--noEmit",
+            "--project",
+            "/tmp/core-modernization-payload-reference-types-tsconfig.json"
+          ],
+          "exitCode": 1,
+          "logSha256": "8872f69bee9b13509e9c7066e647edbbeb48e41407b2508212101eb5ddfec030",
+          "generatedTypesPresent": true,
+          "generatedTypesSha256": "34abe9109052319f7fc5455dba730b1ca36296f143a5f1a28f35a3c8d13278ff"
+        }
+      },
+      "regressionRed": {
+        "proofSha256": "b084c0a2ca7c7d785fdec0e075159cb495cc7bc4600be7324b2a138249cc0615",
+        "record": {
+          "startedAt": "2026-10-22T03:44:52.768843+00:00",
+          "completedAt": "2026-10-22T03:44:54.022825+00:00",
+          "command": [
+            "bun",
+            "run",
+            "vitest",
+            "run",
+            "tests/unit/cms/payload-collection-type-boundary.test.ts"
+          ],
+          "exitCode": 1,
+          "logSha256": "8e25ca34ff9f5cd9208842344204e5ef7c717c6806a38dad0b38672cdc379b89",
+          "expectedFailure": "Payload Block|string unsupported before narrowing"
+        }
+      },
+      "regressionAndSchemaGreen": {
+        "proofSha256": "18092e75b01f0e75111b444049f7df9d600deda2b16e27ac5ab0ab64278e0ae2",
+        "record": {
+          "startedAt": "2026-10-22T03:44:54.023953+00:00",
+          "completedAt": "2026-10-22T03:44:56.427628+00:00",
+          "command": [
+            "bun",
+            "run",
+            "vitest",
+            "run",
+            "tests/unit/cms/payload-collection-type-boundary.test.ts",
+            "tests/unit/cms/payload-schema-identifiers.test.ts"
+          ],
+          "exitCode": 0,
+          "logSha256": "9c1503d6d86d2634500865fc793b5b683a2ae979ab47705dd42c6f335f9f0b12",
+          "sourceSha256": "76e38ec55afbb7e434516d76089b9cdbf2aa2477690ece02bcfaffb38f341d83",
+          "testSha256": "b15e668426208054a60bbbdb617670a32e7b363f5cb7f65b2bc44bb0a334ae75",
+          "generatedTypesPresent": true,
+          "generatedTypesSha256": "34abe9109052319f7fc5455dba730b1ca36296f143a5f1a28f35a3c8d13278ff"
+        }
+      },
+      "allRetainedFocusedGreen": {
+        "proofSha256": "c447229bee3bc57a4eb71e1402d3e81c6b499811d4663560a4afbd36a433d56e",
+        "record": {
+          "startedAt": "2026-10-22T03:46:10.823939+00:00",
+          "completedAt": "2026-10-22T03:46:35.739239+00:00",
+          "headBeforeFixCommit": "11d7f936a9b8bda796680027941a4e457ac15c9f",
+          "command": [
+            "bun",
+            "run",
+            "vitest",
+            "run",
+            "tests/unit/admin/eve-preview-build.test.ts",
+            "tests/unit/apps/admin/cms-create-feedback.test.tsx",
+            "tests/unit/apps/admin/cms-flow-loading.test.tsx",
+            "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
+            "tests/unit/apps/react-doctor-complexity-admin-contracts.test.ts",
+            "tests/unit/cms/collection-contracts.test.ts",
+            "tests/unit/cms/create-from-template-endpoint.test.ts",
+            "tests/unit/cms/local-cms-scripts.test.ts",
+            "tests/unit/cms/media-variants-serialization.test.ts",
+            "tests/unit/cms/payload-configuration-contract.test.ts",
+            "tests/unit/cms/payload-database-config.test.ts",
+            "tests/unit/cms/payload-import-map.test.ts",
+            "tests/unit/cms/payload-runtime-integrations.test.ts",
+            "tests/unit/cms/payload-semantic-theme.test.ts",
+            "tests/unit/cms/phase3-collections.test.ts",
+            "tests/unit/cms/public-content.test.ts",
+            "tests/unit/cms/public-media.test.ts",
+            "tests/unit/cms/public-missionary-project-pages-route.test.ts",
+            "tests/unit/cms/public-navigation-route.test.ts",
+            "tests/unit/cms/public-page-media.test.tsx",
+            "tests/unit/cms/public-pages-route.test.ts",
+            "tests/unit/cms/public-read-access.test.ts",
+            "tests/unit/cms/public-updates-route.test.ts",
+            "tests/unit/cms/published-content-reader.test.ts",
+            "tests/unit/cms/serialize-published-page.test.ts",
+            "tests/unit/cms/sharp-native-media.test.ts",
+            "tests/unit/cms/supabase-strategy.test.ts",
+            "tests/unit/cms/tenant-access.test.ts",
+            "tests/unit/cms/tenant-context.test.ts",
+            "tests/unit/cms/transformer-sharp-native-dependencies.test.ts",
+            "tests/unit/cms/web-studio-authenticated-preview.test.ts",
+            "tests/unit/cms/web-studio-create-api-url.test.ts",
+            "tests/unit/cms/web-studio-editor-state.test.ts",
+            "tests/unit/cms/web-studio-feature-flags.test.ts",
+            "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx",
+            "tests/unit/cms/web-studio-preview-url.test.ts",
+            "tests/unit/graphql-runtime-boundary.test.ts",
+            "tests/unit/packages/api/eve-sandbox-guardrails.test.ts",
+            "tests/unit/script-verifiers.test.ts",
+            "tests/unit/scripts/cms-media-remote-pattern.test.ts",
+            "tests/unit/scripts/cms-migration-target.test.ts",
+            "tests/unit/scripts/cms-payload-command.test.ts",
+            "tests/unit/scripts/cms-postgres.test.ts",
+            "tests/unit/scripts/cms-public-sole-entry.test.ts",
+            "tests/unit/scripts/data-boundary-tanstack-db.test.ts",
+            "tests/unit/scripts/design-system-exceptions.test.ts",
+            "tests/unit/scripts/phase24-authority-manifest.test.ts",
+            "tests/unit/scripts/phase24-authority-provenance.test.ts",
+            "tests/unit/cms/payload-rich-text-compatibility.test.ts",
+            "tests/unit/cms/payload-schema-identifiers.test.ts",
+            "tests/unit/cms/payload-jwt-version-compatibility.test.ts",
+            "tests/unit/cms/payload-collection-type-boundary.test.ts"
+          ],
+          "exitCode": 0,
+          "logSha256": "291fef27d33aae0d418ddfdafebe13f4c034f6e2464e3addfb1622ae1a2af229",
+          "selectedFileCount": 52,
+          "schemaSnapshotUnchanged": true,
+          "generatedTypesSha256": "34abe9109052319f7fc5455dba730b1ca36296f143a5f1a28f35a3c8d13278ff"
+        }
+      },
+      "independentReview": {
+        "proofSha256": "d95ab509268a3dc8eeb4af080ad835185de1af0d6c20265556a34e729f7528d8",
+        "record": {
+          "schemaVersion": 1,
+          "checkedAt": "2026-10-22T03:48:54.490975+00:00",
+          "reviewer": "/root/security_dep_audit",
+          "root": "/home/conrad/code/core-worktrees/payload-modernization-2026-10-22",
+          "publishedFailingHead": "11d7f936a9b8bda796680027941a4e457ac15c9f",
+          "observedCurrentHead": "11d7f936a9b8bda796680027941a4e457ac15c9f",
+          "status": "approved-narrow-ci-correction-pending-new-head-gates",
+          "importantFindings": [],
+          "concreteBlockers": [],
+          "reviewedFiles": [
+            {
+              "path": "apps/admin/src/cms/collections/missionary-giving-pages.ts",
+              "sha256": "76e38ec55afbb7e434516d76089b9cdbf2aa2477690ece02bcfaffb38f341d83",
+              "coverage": "Every changed line and complete current file read"
+            },
+            {
+              "path": "tests/unit/cms/payload-collection-type-boundary.test.ts",
+              "sha256": "b15e668426208054a60bbbdb617670a32e7b363f5cb7f65b2bc44bb0a334ae75",
+              "coverage": "Every changed line and complete current file read"
+            }
+          ],
+          "exactRuntimeDelta": {
+            "oldSourceSha256": "7f055603407578daaae8771f2a8782986a3063c3a21c6b8b9e15765c14bd60c9",
+            "newSourceSha256": "76e38ec55afbb7e434516d76089b9cdbf2aa2477690ece02bcfaffb38f341d83",
+            "onlyStringNarrowingGuard": true,
+            "description": "Return string block references unchanged before slug access/spread/fields mapping. Object branches, impact-stat dbName override, collection DTO/auth/hooks/version/draft configuration remain byte-identical."
+          },
+          "upstreamTypeEvidence": {
+            "path": "/home/conrad/code/core-worktrees/payload-modernization-2026-10-22/node_modules/.bun/payload@4.0.0-beta.3+d10bfd12d1874c81/node_modules/payload/dist/fields/config/types.d.ts",
+            "sha256": "3505d4228c626d2735aea10de822d4f677790679e9db60a2982ca4f4ba13d517",
+            "location": "BlocksField blocks at line1219 is (Block | BlockSlug)[]; SDK comment explicitly permits inline objects and string slugs.",
+            "version": "4.0.0-beta.3"
+          },
+          "stableRegression": {
+            "testSha256": "b15e668426208054a60bbbdb617670a32e7b363f5cb7f65b2bc44bb0a334ae75",
+            "compiler": "Actual app tsc command resolves the pinned native TypeScript7.0.2 product compiler; no alternate dependency or mocked compiler",
+            "configuration": "Temporary tsconfig extends the real admin config, limits root includes to next-env and the actual collection source, excludes the ambient generated Payload types file, disables incremental cache and uses --noEmit.",
+            "preservesSourceAndGeneratedFiles": true,
+            "generatedTypesPath": "apps/admin/payload-types.ts",
+            "generatedTypesSha256": "34abe9109052319f7fc5455dba730b1ca36296f143a5f1a28f35a3c8d13278ff",
+            "generatedTypesRemainPresent": true,
+            "executionSafety": "Test creates/removes only its private mkdtemp config, spawns argument-array shell:false with bounded timeout, verifies source unchanged, and does not initialize Payload or providers.",
+            "redEvidence": "Direct isolated native compilation and the new actual unit test both fail on slug/fields/spread/implicit-any errors from Block|string before narrowing. Generated types remained present and hash-bound.",
+            "greenEvidence": "Current exact source/test hashes are bound in the green proof;2files/3tests pass, including the actual SDK schema/identifier checks.",
+            "schemaContract": "The seven unaffected impact-stat item table identities and _mgp_impact_items_v remain asserted by the unchanged SDK schema test. Current builder still supplies inline Block objects, so the new string guard does not change the sanitized current schema."
+          },
+          "protectedInputsReadback": [
+            {
+              "path": "apps/admin/payload.config.ts",
+              "sha256": "c440122b69bc205531810a007d50a753f545d1ee00db086e39fcc53f92bbda39",
+              "matchesPublishedBase": true
+            },
+            {
+              "path": "apps/admin/src/cms/collections/page-builders.ts",
+              "sha256": "54a6b5beef2c5adeb2ae3c7b2ade7608193c03b92b1f74532cb10a8f1d5d5069",
+              "matchesPublishedBase": true
+            },
+            {
+              "path": "apps/admin/src/cms/collections/media.ts",
+              "sha256": "922487f4802e6b669701094b116fa18f70c795e1bef2c25d822be69cf7682260",
+              "matchesPublishedBase": true
+            },
+            {
+              "path": "apps/admin/src/migrations/20261022_002409_payload_v4_sizes_to_variants.ts",
+              "sha256": "ff2cef8da12eddb735b28d5e120185e5ec966d4b1a2e4ffc3d7cc3423936877a",
+              "matchesPublishedBase": true
+            },
+            {
+              "path": "apps/admin/src/migrations/20261022_002412_payload_v4_public_beta_metadata.ts",
+              "sha256": "94a8123cad5579f0604f2e9ef7033905f42fe15d196f29f0b21e1fcff57fde08",
+              "matchesPublishedBase": true
+            },
+            {
+              "path": "apps/admin/src/migrations/20261022_002412_payload_v4_public_beta_metadata.json",
+              "sha256": "2f2d69451b25474ec6db5bd2c86e3550e0842457b5d18210c138a0f0d6f47fe8",
+              "matchesPublishedBase": true
+            },
+            {
+              "path": "tests/unit/cms/payload-schema-identifiers.test.ts",
+              "sha256": "4331043daed1014e7db1b166415d8b1b86e93009102c7da12594132478b346d1",
+              "matchesPublishedBase": true
+            },
+            {
+              "path": "package.json",
+              "sha256": "7c947b0eb9543d6643a9a0cbcc283e5f55f93933ce889def4c09f147b4d34898",
+              "matchesPublishedBase": true
+            },
+            {
+              "path": "apps/admin/package.json",
+              "sha256": "9d4fd34945b677ab89394a724625191bdafd6535c5a3456122820f80bfec9ed1",
+              "matchesPublishedBase": true
+            },
+            {
+              "path": "bun.lock",
+              "sha256": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793",
+              "matchesPublishedBase": true
+            }
+          ],
+          "proofs": [
+            {
+              "path": "/tmp/core-modernization-payload-block-reference-types-red-proof.json",
+              "sha256": "73230312335d91223154317ec0e742b941d9fe386cde1ba5bcefc1b3a51b98b9",
+              "record": {
+                "startedAt": "2026-10-22T03:43:35.727000+00:00",
+                "completedAt": "2026-10-22T03:43:36.056934+00:00",
+                "head": "11d7f936a9b8bda796680027941a4e457ac15c9f",
+                "command": [
+                  "bun",
+                  "run",
+                  "--cwd",
+                  "apps/admin",
+                  "tsc",
+                  "--noEmit",
+                  "--project",
+                  "/tmp/core-modernization-payload-reference-types-tsconfig.json"
+                ],
+                "exitCode": 1,
+                "logSha256": "8872f69bee9b13509e9c7066e647edbbeb48e41407b2508212101eb5ddfec030",
+                "generatedTypesPresent": true,
+                "generatedTypesSha256": "34abe9109052319f7fc5455dba730b1ca36296f143a5f1a28f35a3c8d13278ff"
+              }
+            },
+            {
+              "path": "/tmp/core-modernization-payload-type-boundary-unit-red-proof.json",
+              "sha256": "b084c0a2ca7c7d785fdec0e075159cb495cc7bc4600be7324b2a138249cc0615",
+              "record": {
+                "startedAt": "2026-10-22T03:44:52.768843+00:00",
+                "completedAt": "2026-10-22T03:44:54.022825+00:00",
+                "command": [
+                  "bun",
+                  "run",
+                  "vitest",
+                  "run",
+                  "tests/unit/cms/payload-collection-type-boundary.test.ts"
+                ],
+                "exitCode": 1,
+                "logSha256": "8e25ca34ff9f5cd9208842344204e5ef7c717c6806a38dad0b38672cdc379b89",
+                "expectedFailure": "Payload Block|string unsupported before narrowing"
+              }
+            },
+            {
+              "path": "/tmp/core-modernization-payload-type-boundary-unit-green-proof.json",
+              "sha256": "18092e75b01f0e75111b444049f7df9d600deda2b16e27ac5ab0ab64278e0ae2",
+              "record": {
+                "startedAt": "2026-10-22T03:44:54.023953+00:00",
+                "completedAt": "2026-10-22T03:44:56.427628+00:00",
+                "command": [
+                  "bun",
+                  "run",
+                  "vitest",
+                  "run",
+                  "tests/unit/cms/payload-collection-type-boundary.test.ts",
+                  "tests/unit/cms/payload-schema-identifiers.test.ts"
+                ],
+                "exitCode": 0,
+                "logSha256": "9c1503d6d86d2634500865fc793b5b683a2ae979ab47705dd42c6f335f9f0b12",
+                "sourceSha256": "76e38ec55afbb7e434516d76089b9cdbf2aa2477690ece02bcfaffb38f341d83",
+                "testSha256": "b15e668426208054a60bbbdb617670a32e7b363f5cb7f65b2bc44bb0a334ae75",
+                "generatedTypesPresent": true,
+                "generatedTypesSha256": "34abe9109052319f7fc5455dba730b1ca36296f143a5f1a28f35a3c8d13278ff"
+              }
+            }
+          ],
+          "logReadback": [
+            {
+              "path": "/tmp/core-modernization-payload-block-reference-types-red.log",
+              "sha256": "8872f69bee9b13509e9c7066e647edbbeb48e41407b2508212101eb5ddfec030",
+              "matchesRecorded": true,
+              "diagnosticsAndTotals": [
+                "src/cms/collections/missionary-giving-pages.ts(29,17): error TS2339: Property 'slug' does not exist on type 'string | Block'.",
+                "src/cms/collections/missionary-giving-pages.ts(32,9): error TS2698: Spread types may only be created from object types.",
+                "src/cms/collections/missionary-giving-pages.ts(33,23): error TS2339: Property 'fields' does not exist on type 'string | Block'.",
+                "src/cms/collections/missionary-giving-pages.ts(33,35): error TS7006: Parameter 'item' implicitly has an 'any' type."
+              ]
+            },
+            {
+              "path": "/tmp/core-modernization-payload-type-boundary-unit-red.log",
+              "sha256": "8e25ca34ff9f5cd9208842344204e5ef7c717c6806a38dad0b38672cdc379b89",
+              "matchesRecorded": true,
+              "diagnosticsAndTotals": [
+                " Test Files  1 failed (1)",
+                "      Tests  1 failed (1)",
+                "AssertionError: src/cms/collections/missionary-giving-pages.ts(29,17): error TS2339: Property 'slug' does not exist on type 'string | Block'.",
+                "src/cms/collections/missionary-giving-pages.ts(32,9): error TS2698: Spread types may only be created from object types.",
+                "src/cms/collections/missionary-giving-pages.ts(33,23): error TS2339: Property 'fields' does not exist on type 'string | Block'.",
+                "src/cms/collections/missionary-giving-pages.ts(33,35): error TS7006: Parameter 'item' implicitly has an 'any' type."
+              ]
+            },
+            {
+              "path": "/tmp/core-modernization-payload-type-boundary-unit-green.log",
+              "sha256": "9c1503d6d86d2634500865fc793b5b683a2ae979ab47705dd42c6f335f9f0b12",
+              "matchesRecorded": true,
+              "diagnosticsAndTotals": [
+                " Test Files  2 passed (2)",
+                "      Tests  3 passed (3)"
+              ]
+            }
+          ],
+          "authDtoDataDisposition": "No schema, migration, DTO, access policy, authentication, tenant ownership, financial behavior, dependency or generated-file change is introduced by these two paths.",
+          "limitations": [
+            "This is independent source/proof review only; no tests, generators, installs, provider operations, Git writes or credentials were accessed by reviewer. Only this /tmp JSON was written.",
+            "The published11d7 head had real CI type/build failures. Its earlier local passes are not current CI evidence. Full gates and CI must qualify the eventual fix commit.",
+            "The isolated test intentionally checks the generic SDK boundary without implicit generated Config augmentation; full application compilation and actual SDK schema checks remain separate complementary checks."
+          ]
+        }
+      }
+    }
   }
 }

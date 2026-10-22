@@ -26,7 +26,12 @@ const missionaryGivingFields = buildPageBuilderCollectionFields(
   return {
     ...field,
     blocks: field.blocks.map((block) => {
-      if (block.slug !== PAGE_LAYOUT_BLOCK_SLUGS.impactStats) return block;
+      if (
+        typeof block === "string" ||
+        block.slug !== PAGE_LAYOUT_BLOCK_SLUGS.impactStats
+      ) {
+        return block;
+      }
 
       return {
         ...block,

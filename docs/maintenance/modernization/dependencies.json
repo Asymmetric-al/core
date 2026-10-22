@@ -1065,7 +1065,7 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
         "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
@@ -1109,7 +1109,7 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
         "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
@@ -1153,7 +1153,7 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
         "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
@@ -1197,7 +1197,7 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
         "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
@@ -1241,7 +1241,7 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
         "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
@@ -1291,7 +1291,7 @@
       "qualification": "payload-qualification.json",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
         "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
@@ -1322,7 +1322,7 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
         "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],
@@ -5645,7 +5645,7 @@
       "disposition": "upgraded",
       "verification": [
         "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
-        "Fresh frozen checkout against merged develop: all51 retained CMS files/520 cases, deterministic generated types/import map and all15 forced typecheck tasks pass without lock drift.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
         "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
         "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
       ],

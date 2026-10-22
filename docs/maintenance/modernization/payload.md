@@ -55,8 +55,9 @@ and reapplication. A migrated backup restored to a second database with all
 hashes. These are synthetic local fixture results, not hosted/provider or
 production qualification.
 
-All 51 selected existing/focused CMS files and 520 cases pass in a fresh frozen
-installation against merged develop. The four actual SDK JWT cases verify signed legacy/wrong-version denial, a valid current
+All 52 selected existing/focused CMS files and 521 cases pass. A compiler
+regression also checks public string block references without implicit generated
+augmentation; the generated file stays intact. The four actual SDK JWT cases verify signed legacy/wrong-version denial, a valid current
 token and the disabled-local-strategy boundary. Generated types remain present
 during typechecking. All three applications build against the owned local Auth
 service with bypass disabled. The real-session browser probe verifies password
