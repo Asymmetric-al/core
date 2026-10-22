@@ -4264,13 +4264,14 @@
           "target": "0.5.0"
         }
       ],
-      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "state": "merged-post-merge-ci-passed",
       "disposition": "upgraded",
       "verification": [
         "docs/maintenance/modernization/ui-utilities.md",
-        "docs/maintenance/modernization/ui-utilities-qualification.json"
+        "docs/maintenance/modernization/ui-utilities-qualification.json",
+        "docs/maintenance/modernization/ui-utilities-release-readback.json"
       ],
-      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
+      "note": "UI PR #2190 merged from qualified 3e33a371 as e29b7c4f after exact-head review/CI and all three hosted Preview smoke projects passed. Both Main and CI Integration post-merge workflows passed at the exact UI merge commit; the release readback binds the independent live provider receipt. Final combined release qualification remains separate. Product UI uses 0.5.0; upstream-internal @shadcn/lint cn 0.4.0 remains a separately owned compatibility dependency, invalidated by parent/usage changes.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -5254,13 +5255,14 @@
           "target": "1.61.0"
         }
       ],
-      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "state": "merged-post-merge-ci-passed",
       "disposition": "upgraded",
       "verification": [
         "docs/maintenance/modernization/ui-utilities.md",
-        "docs/maintenance/modernization/ui-utilities-qualification.json"
+        "docs/maintenance/modernization/ui-utilities-qualification.json",
+        "docs/maintenance/modernization/ui-utilities-release-readback.json"
       ],
-      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
+      "note": "UI PR #2190 merged from qualified 3e33a371 as e29b7c4f after exact-head review/CI and all three hosted Preview smoke projects passed. Both Main and CI Integration post-merge workflows passed at the exact UI merge commit; the release readback binds the independent live provider receipt. Final combined release qualification remains separate.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -5336,13 +5338,14 @@
           "target": "6.15.0"
         }
       ],
-      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "state": "merged-post-merge-ci-passed",
       "disposition": "upgraded",
       "verification": [
         "docs/maintenance/modernization/ui-utilities.md",
-        "docs/maintenance/modernization/ui-utilities-qualification.json"
+        "docs/maintenance/modernization/ui-utilities-qualification.json",
+        "docs/maintenance/modernization/ui-utilities-release-readback.json"
       ],
-      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
+      "note": "UI PR #2190 merged from qualified 3e33a371 as e29b7c4f after exact-head review/CI and all three hosted Preview smoke projects passed. Both Main and CI Integration post-merge workflows passed at the exact UI merge commit; the release readback binds the independent live provider receipt. Final combined release qualification remains separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
@@ -5411,13 +5414,14 @@
           "target": "14.5.0"
         }
       ],
-      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "state": "merged-post-merge-ci-passed",
       "disposition": "upgraded",
       "verification": [
         "docs/maintenance/modernization/ui-utilities.md",
-        "docs/maintenance/modernization/ui-utilities-qualification.json"
+        "docs/maintenance/modernization/ui-utilities-qualification.json",
+        "docs/maintenance/modernization/ui-utilities-release-readback.json"
       ],
-      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
+      "note": "UI PR #2190 merged from qualified 3e33a371 as e29b7c4f after exact-head review/CI and all three hosted Preview smoke projects passed. Both Main and CI Integration post-merge workflows passed at the exact UI merge commit; the release readback binds the independent live provider receipt. Final combined release qualification remains separate.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -5748,13 +5752,14 @@
           "target": "2.10.2"
         }
       ],
-      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "state": "merged-post-merge-ci-passed",
       "disposition": "upgraded",
       "verification": [
         "docs/maintenance/modernization/ui-utilities.md",
-        "docs/maintenance/modernization/ui-utilities-qualification.json"
+        "docs/maintenance/modernization/ui-utilities-qualification.json",
+        "docs/maintenance/modernization/ui-utilities-release-readback.json"
       ],
-      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
+      "note": "UI PR #2190 merged from qualified 3e33a371 as e29b7c4f after exact-head review/CI and all three hosted Preview smoke projects passed. Both Main and CI Integration post-merge workflows passed at the exact UI merge commit; the release readback binds the independent live provider receipt. Final combined release qualification remains separate.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
@@ -6417,13 +6422,14 @@
           "target": "4.14.8"
         }
       ],
-      "state": "implemented-awaiting-current-head-ci-previews-and-merge",
+      "state": "merged-post-merge-ci-passed",
       "disposition": "upgraded",
       "verification": [
         "docs/maintenance/modernization/ui-utilities.md",
-        "docs/maintenance/modernization/ui-utilities-qualification.json"
+        "docs/maintenance/modernization/ui-utilities-qualification.json",
+        "docs/maintenance/modernization/ui-utilities-release-readback.json"
       ],
-      "note": "Current official stable release, exact manifest/lock pins. Baseline and upgraded real-browser/unit contracts pass; final combined gates and current-head release qualification remain separate.",
+      "note": "UI PR #2190 merged from qualified 3e33a371 as e29b7c4f after exact-head review/CI and all three hosted Preview smoke projects passed. Both Main and CI Integration post-merge workflows passed at the exact UI merge commit; the release readback binds the independent live provider receipt. Final combined release qualification remains separate.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",

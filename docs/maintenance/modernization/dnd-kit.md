@@ -1,8 +1,12 @@
 # Current dnd-kit API checkpoint
 
 Tracking: [AL-1965](https://github.com/Asymmetric-al/core/issues/1965).
-Local frozen-install, strict quality, complete browser and full preflight gates
-pass. Current-head review/CI, hosted previews and merge qualification remain open in
+The recorded local frozen-install, strict quality, browser and full preflight
+results remain dated evidence. UI PR #2190 is merged; this branch normally
+incorporates it at `043fc189d6cd36d355582476aae16796d24dd186`. The new-base full
+browser run passed 299 cases with 5 existing skips. Pre-push, PR/current-head CI
+and review, hosted
+previews and merge qualification remain open in
 [qualification](dnd-kit-qualification.json). Production execution is outside this
 checkpoint.
 
@@ -55,7 +59,7 @@ The offline fixture imports the actual board and shared controls. The recorded
 motion: pointer movement into an empty column, keyboard ordering/index/focus,
 Escape, declined/thrown save recovery and retry, pending-save admission, no-op,
 axe and actual Chromium touch input. Mobile pointer auto-scroll additionally
-passes ten repeated cases. The final cold full browser suite passes299 cases with five existing skips,
+passes ten repeated cases. The recorded pre-hook cold full browser suite passed 299 cases with five existing skips,
 including all40 task-board contracts across the four projects; this also covers
 the subsequently added activation-distance/outside-drop case.
 This is Chromium input qualification, not a physical-device performance claim.
@@ -69,13 +73,14 @@ keeps the exact lock unchanged and preserves opaque environment inputs.
 
 The old React Doctor exception for hook-provided attribute spreading no longer
 applies to the ref-based integration. It must be removed, rather than retargeted
-to new presentation callbacks. Independent requalification removes that one exception and updates26 support
-hashes in21 retained records. Fresh strict Doctor passes all eight targets with
+to new presentation callbacks. Recorded requalification removed that one exception and updated26 support
+hashes in21 retained records. Recorded strict Doctor passed all eight targets with
 zero actionable findings and293 exact exceptions. Shadscan retains118 existing
 classifications and every score floor, updating11 existing proof hashes plus
-current actual-board verification. Full preflight also passes, including all app builds, typechecks and unit
-coverage gates. Hosted qualification and merged current-develop requalification
-remain mandatory. The qualification record owns dated outcomes.
+current actual-board verification. The recorded pre-hook full preflight passed,
+including all app builds, typechecks and unit coverage gates. Fresh full-browser
+qualification on the merged UI base passed 299 cases with 5 existing skips;
+pre-push and hosted/current-head qualification remain required. The qualification record owns dated outcomes.
 
 ## Required upstream compatibility and security
 
