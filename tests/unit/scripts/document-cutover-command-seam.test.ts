@@ -11,6 +11,15 @@
  */
 
 import { spawnSync } from "node:child_process";
+import { randomBytes } from "node:crypto";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,6 +33,30 @@ import {
 } from "../packages/api/document-cutover-test-fixture";
 
 const createClientCalls = vi.hoisted(() => ({ count: 0 }));
+const approvalCalls = vi.hoisted(() => ({
+  authorizations: [] as unknown[],
+}));
+
+// Transparent wrapper: records the authorization the command passes to the
+// library approval, then runs the real implementation.
+vi.mock(
+  "../../../packages/api/src/document-cutover",
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import("../../../packages/api/src/document-cutover")
+      >();
+    return {
+      ...actual,
+      recordDocumentCutoverApproval: (
+        input: Parameters<typeof actual.recordDocumentCutoverApproval>[0],
+      ) => {
+        approvalCalls.authorizations.push(input.authorization);
+        return actual.recordDocumentCutoverApproval(input);
+      },
+    };
+  },
+);
 
 vi.mock("@supabase/supabase-js", async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -46,6 +79,8 @@ const SCRIPT_PATH = path.join(
 );
 
 const LOOPBACK_URL = "http://127.0.0.1:54321";
+/** Obviously fake, built at runtime; never a real credential. */
+const FAKE_DB_PASSWORD = ["seam", "2067", "not", "a", "password"].join("-");
 const HOSTED_URL = "https://seam2066hostedproject.supabase.co";
 
 let output: string[];
@@ -123,9 +158,101 @@ describe("#2066 command seam — injected detectors", () => {
       store: new InMemoryDocumentCutoverProofStore(),
     });
 
+    const stdout = output.join("\n");
     expect(exitCode).not.toBe(0);
     expect(createClientCalls.count).toBe(0);
-    expect(output.join("\n")).toMatch(/^CLEAN\b/m);
+    // #2067: the target schema version is read only through the real client,
+    // so the clean injected evidence stops on that blocker alone.
+    expect(stdout).toMatch(/^Status: complete$/m);
+    expect(stdout.match(/^ {4}- /gm)).toHaveLength(1);
+    expect(stdout).toContain("schema version unreadable");
+  });
+});
+
+describe("#2067 approval path — owners from allowlist.json, never allowedOwnerIds", () => {
+  it("passes authorization { owners: [{ id, role }] } from the committed allowlist and no allowedOwnerIds", async () => {
+    const allowlist = JSON.parse(
+      readFileSync(
+        path.join(REPO_ROOT, "docs/ops/document-cutover/allowlist.json"),
+        "utf8",
+      ),
+    ) as { owners: Array<{ id: string; role: string }> };
+    const [owner] = allowlist.owners;
+    if (!owner) throw new Error("allowlist.json lists no owner");
+    approvalCalls.authorizations = [];
+    const store = new InMemoryDocumentCutoverProofStore();
+
+    const exitCode = await runDocumentCutoverCommand({
+      argv: [
+        "--decision",
+        "no_go",
+        "--owner",
+        owner.id,
+        "--owner-role",
+        owner.role,
+        "--statement",
+        "Seam #2067: owners-only authorization.",
+      ],
+      env: { SUPABASE_URL: LOOPBACK_URL },
+      detectors: cleanDetectors(),
+      store,
+    });
+
+    expect(exitCode).not.toBe(0);
+    expect(await store.list()).toHaveLength(1);
+    expect(approvalCalls.authorizations).toEqual([
+      { owners: allowlist.owners },
+    ]);
+    expect(approvalCalls.authorizations[0]).not.toHaveProperty(
+      "allowedOwnerIds",
+    );
+  });
+});
+
+describe("#2067 --verify on a malformed proof", () => {
+  it("exits 1 without contacting the target when the proof JSON lacks required fields", async () => {
+    // --verify only reads proofs inside docs/ops/document-cutover/proofs/.
+    const dir = path.join(REPO_ROOT, "docs/ops/document-cutover/proofs");
+    mkdirSync(dir, { recursive: true });
+    const file = path.join(
+      dir,
+      `seam-2067-malformed-${randomBytes(6).toString("hex")}.json`,
+    );
+    writeFileSync(file, JSON.stringify({ proofSchemaVersion: "2" }), {
+      flag: "wx",
+    });
+    try {
+      const exitCode = await runDocumentCutoverCommand({
+        argv: ["--verify", file],
+        env: {
+          SUPABASE_URL: LOOPBACK_URL,
+          DOCUMENT_CUTOVER_DATABASE_URL: `postgresql://document_cutover_reader:${FAKE_DB_PASSWORD}@127.0.0.1:9/postgres`,
+        },
+      });
+
+      expect(exitCode).toBe(1);
+      expect(createClientCalls.count).toBe(0);
+      expect(output.join("\n")).toMatch(/^INVALID proof/m);
+    } finally {
+      rmSync(file, { force: true });
+    }
+  });
+
+  it("rejects a proof path outside docs/ops/document-cutover/proofs/ before reading it", async () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "seam-2067-proof-"));
+    const file = path.join(dir, "proof.json");
+    writeFileSync(file, JSON.stringify({ proofSchemaVersion: "2" }));
+    try {
+      const exitCode = await runDocumentCutoverCommand({
+        argv: ["--verify", file],
+        env: { SUPABASE_URL: LOOPBACK_URL },
+      });
+
+      expect(exitCode).toBe(1);
+      expect(output.join("\n")).toMatch(/^INVALID proof location/m);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 

@@ -1,2 +1,8 @@
 # Default owners for all paths.
 * @II-ricky-bobby-II @cobmojo
+
+# Document-cutover gate (#2067). Path-specific entries come after the default
+# because the last matching pattern wins. Only Blake approves committed proofs;
+# Blake or Conrad approve allowlist changes.
+/docs/ops/document-cutover/allowlist.json @II-ricky-bobby-II @cobmojo
+/docs/ops/document-cutover/proofs/ @II-ricky-bobby-II
