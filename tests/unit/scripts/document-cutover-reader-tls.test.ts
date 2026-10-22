@@ -99,6 +99,7 @@ describe("#2067 review 3 — the pg client config for a non-loopback reader", ()
         application_name: "document-cutover-gate",
         connectionTimeoutMillis: 10_000,
         statement_timeout: 30_000,
+        query_timeout: 35_000,
         ssl: { rejectUnauthorized: true },
       });
       expect(new ConnectionParameters(config).ssl).toEqual({

@@ -80,13 +80,15 @@
 
 import { execFileSync } from "node:child_process";
 import {
+  constants as fsConstants,
   existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   readdirSync,
   realpathSync,
 } from "node:fs";
-import { writeFile } from "node:fs/promises";
+import { open } from "node:fs/promises";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
@@ -503,6 +505,20 @@ const NETWORK_HOST =
 
 const GATE_APPLICATION_NAME = "document-cutover-gate";
 
+/**
+ * Client-side bound on every reader query (pg's query_timeout), past the
+ * server-side statement_timeout, so a server that stops replying can't hold a
+ * read open even where the gate's own deadlines don't reach.
+ */
+const READER_QUERY_TIMEOUT_MS = DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS + 5_000;
+
+/**
+ * Supabase's shared session/transaction pooler hosts,
+ * aws-<n>-<region>.pooler.supabase.com. The pooler login must carry the
+ * target's ref (document_cutover_reader.<ref>).
+ */
+const SUPABASE_POOLER_HOST = /^aws-[0-9]+-[a-z0-9-]+\.pooler\.supabase\.com$/;
+
 /** TLS settings handed to pg: off (loopback only) or certificate-verified. */
 type PgTlsConfig = false | { rejectUnauthorized: boolean };
 
@@ -515,6 +531,7 @@ export type PgClientConfig = {
   application_name: string;
   connectionTimeoutMillis: number;
   statement_timeout: number;
+  query_timeout: number;
   ssl: PgTlsConfig;
 };
 
@@ -712,7 +729,9 @@ export function checkDatabaseUrl(
 
   const target = targetScope(env);
   const userRef = refParts.length > 0 ? refParts.join(".") : null;
-  const hostRef = /^db\.([a-z0-9]+)\.supabase\.co$/.exec(host)?.[1] ?? null;
+  // DNS names are case-insensitive; pg connects to the name as written.
+  const hostName = host.toLowerCase();
+  const hostRef = /^db\.([a-z0-9]+)\.supabase\.co$/.exec(hostName)?.[1] ?? null;
   const databaseIsLocal = LOOPBACK_HOSTS.has(host);
   const mismatch = (detail: string) => ({
     blocker: `STOP THE LINE — DOCUMENT_CUTOVER_DATABASE_URL does not match the SUPABASE_URL project: ${detail}`,
@@ -746,6 +765,20 @@ export function checkDatabaseUrl(
   if (refs.some((ref) => ref !== target.ref)) {
     return mismatch(
       `the database URL's project ref (${refs.join(", ")}) is not ${target.ref}.`,
+    );
+  }
+  // A matching ref is not enough: the host itself must be the target's
+  // Supabase database or a Supabase pooler that the login's ref routes to.
+  const directHost = hostName === `db.${target.ref}.supabase.co`;
+  const poolerHost = SUPABASE_POOLER_HOST.test(hostName);
+  if (!directHost && !poolerHost) {
+    return mismatch(
+      `the host ${host} is not db.${target.ref}.supabase.co or a Supabase pooler host (aws-<n>-<region>.pooler.supabase.com); any other host is refused.`,
+    );
+  }
+  if (poolerHost && userRef !== target.ref) {
+    return mismatch(
+      `the pooler host ${host} needs the login ${READER_ROLE}.${target.ref}.`,
     );
   }
   return resolvedConfig(parsed, {
@@ -798,6 +831,7 @@ function resolvedConfig(
     application_name: GATE_APPLICATION_NAME,
     connectionTimeoutMillis: 10_000,
     statement_timeout: DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS,
+    query_timeout: READER_QUERY_TIMEOUT_MS,
     ssl: expected.tls,
   };
   const effective = effectivePgConnection(config);
@@ -815,6 +849,7 @@ function resolvedConfig(
     Boolean(effective.binary) && "binary",
     Boolean(effective.client_encoding) && "client_encoding",
     effective.application_name !== GATE_APPLICATION_NAME && "application_name",
+    effective.query_timeout !== READER_QUERY_TIMEOUT_MS && "query_timeout",
     JSON.stringify(effective.ssl) !== JSON.stringify(expected.tls) && "ssl",
   ].filter((field): field is string => typeof field === "string");
   if (mismatches.length > 0) {
@@ -865,18 +900,20 @@ async function readerIdentityBlocker(
 
 /**
  * Serializes queries on the single reader connection (pg's own queueing of
- * concurrent queries is deprecated). A query that never settles releases the
- * queue at the detector deadline, so one hung read can't hold the others
+ * concurrent queries is deprecated). Every query is bounded by the detector
+ * deadline: a query that never settles rejects for its caller at the deadline
+ * and releases the queue, so one hung read can't hold the gate or the others
  * past it.
  */
 function serialReader(client: PgClient): ReaderClient {
   let tail: Promise<unknown> = Promise.resolve();
   return {
     query(text, values = []) {
-      const run = tail.then(() => client.query(text, [...values]));
-      tail = withDeadline(run, "a document_cutover read").catch(
-        () => undefined,
+      const run = withDeadline(
+        tail.then(() => client.query(text, [...values])),
+        "a document_cutover read",
       );
+      tail = run.catch(() => undefined);
       return run;
     },
     end: () => client.end(),
@@ -920,7 +957,10 @@ async function openReaderConnection(
       await closeReader(client);
       return { blocker };
     }
-    await client.query("set default_transaction_read_only = on");
+    await withDeadline(
+      client.query("set default_transaction_read_only = on"),
+      "making the reader session read-only",
+    );
     return { client };
   } catch (error) {
     await closeReader(client);
@@ -1241,13 +1281,65 @@ function proofDirectoryFor(out: string): string | null {
   if (out.trim() === "") return null;
   const absolute = path.resolve(repoRoot, out);
   if (!isInside(PROOFS_ROOT, absolute)) return null;
+  if (proofDirectoryEscape(absolute, { create: false }) !== null) return null;
   return path.relative(repoRoot, absolute).split(path.sep).join("/");
 }
 
 /**
- * Writes each new proof to its `proofPath` for commit through a PR. The `wx`
- * flag makes writing over an existing proof path throw, so a rerun never
- * changes an earlier proof, and a path outside the proofs directory is refused.
+ * Lexical containment is not enough: a symlinked directory would carry a
+ * write out of the proofs directory. Walks every directory from the
+ * repository root down to `directory` (absolute, lexically inside
+ * PROOFS_ROOT): each one that exists must be a real directory, not a symlink,
+ * whose real path is exactly the repository's real path plus the same
+ * segments. With `create`, a missing directory at or below PROOFS_ROOT is made
+ * one level at a time and checked the same way. Returns why the directory is
+ * refused, or null when it is contained.
+ */
+function proofDirectoryEscape(
+  directory: string,
+  { create }: { create: boolean },
+): string | null {
+  try {
+    let current = repoRoot;
+    let expected = realpathSync(repoRoot);
+    for (const segment of path.relative(repoRoot, directory).split(path.sep)) {
+      current = path.join(current, segment);
+      expected = path.join(expected, segment);
+      const shown = path.relative(repoRoot, current).split(path.sep).join("/");
+      let stat = lstatSync(current, { throwIfNoEntry: false });
+      if (!stat) {
+        // Nothing below a missing directory exists to escape through.
+        if (!create) return null;
+        if (!isInside(PROOFS_ROOT, current)) return `${shown} does not exist`;
+        mkdirSync(current);
+        stat = lstatSync(current);
+      }
+      if (stat.isSymbolicLink() || !stat.isDirectory()) {
+        return `${shown} is a symlink or not a directory (symlink escape refused)`;
+      }
+      if (realpathSync(current) !== expected) {
+        return `${shown} resolves outside ${DOCUMENT_CUTOVER_PROOFS_DIR}/ (symlink escape refused)`;
+      }
+    }
+    return null;
+  } catch (error) {
+    return `its real path could not be checked (${error instanceof Error ? error.message : String(error)})`;
+  }
+}
+
+/** Create a new file only; never follow a symlink at the final component. */
+const NEW_PROOF_FILE_FLAGS =
+  fsConstants.O_WRONLY |
+  fsConstants.O_CREAT |
+  fsConstants.O_EXCL |
+  (fsConstants.O_NOFOLLOW ?? 0);
+
+/**
+ * Writes each new proof to its `proofPath` for commit through a PR. The file
+ * is created exclusively (O_EXCL, O_NOFOLLOW), so writing over an existing
+ * proof path throws and a rerun never changes an earlier proof. A path outside
+ * the proofs directory, lexically or through a symlinked directory, is refused
+ * before anything is written, and the command then exits nonzero.
  */
 const committedProofFileWriter: DocumentCutoverProofStore = {
   async append(proof) {
@@ -1257,10 +1349,18 @@ const committedProofFileWriter: DocumentCutoverProofStore = {
         `Proof path ${proof.proofPath} is outside ${DOCUMENT_CUTOVER_PROOFS_DIR}/; nothing written.`,
       );
     }
-    mkdirSync(path.dirname(target), { recursive: true });
-    await writeFile(target, `${JSON.stringify(proof, null, 2)}\n`, {
-      flag: "wx",
-    });
+    const escape = proofDirectoryEscape(path.dirname(target), { create: true });
+    if (escape !== null) {
+      throw new Error(
+        `Proof path ${proof.proofPath} is refused: ${escape}; nothing written.`,
+      );
+    }
+    const file = await open(target, NEW_PROOF_FILE_FLAGS, 0o666);
+    try {
+      await file.writeFile(`${JSON.stringify(proof, null, 2)}\n`);
+    } finally {
+      await file.close();
+    }
   },
 };
 
