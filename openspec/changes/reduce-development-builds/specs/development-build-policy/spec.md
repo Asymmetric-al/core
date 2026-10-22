@@ -21,15 +21,7 @@ The repository SHALL retain required correctness feedback on development PRs whi
 
 ### Requirement: Deployment is an explicit development checkpoint
 
-Vercel Git deployments SHALL be disabled for develop and enabled for production.
-Explicit preview QA SHALL retain the same-repository, non-draft, label, app,
-team and Preview-target safeguards. Builds SHALL run on the provider from the
-exact API-selected PR SHA and branch so application Secrets remain with the
-provider. READY qualification MUST verify project, repository, SHA, branch and
-Preview target. Automatic development deployment policy SHALL remain unchanged.
-
-This modernization amendment explicitly supersedes the earlier GitHub
-compilation/prebuilt-upload clause so application Secrets remain provider-owned.
+Vercel Git deployments SHALL remain disabled for develop and enabled for production. Explicit preview QA SHALL preserve same-repository, non-draft, label, app, team and Preview-target safeguards; build the API-selected PR SHA and branch on the provider; and keep application Secrets there. READY qualification SHALL verify project, repository, SHA, branch and Preview target. This amendment supersedes the earlier GitHub prebuilt-upload clause.
 
 #### Scenario: A PR merges into develop
 
