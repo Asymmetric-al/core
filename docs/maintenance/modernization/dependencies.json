@@ -574,31 +574,33 @@
           "target": "6.3.1"
         }
       ],
-      "state": "replacement-required",
-      "disposition": null,
-      "verification": [],
-      "note": "The official current documentation labels this API family legacy and recommends @dnd-kit/react. Latest-version metadata for the old package does not close this finding. Product migration to the new supported public API remains required; current upstream-internal users need an individually owned compatibility assessment.",
-      "currentUses": [
-        {
-          "path": "apps/admin/package.json",
-          "section": "dependencies",
-          "declaredAs": "@dnd-kit/core",
-          "declared": "^6.3.1",
-          "target": "6.3.1"
-        },
-        {
-          "path": "packages/missionary/package.json",
-          "section": "dependencies",
-          "declaredAs": "@dnd-kit/core",
-          "declared": "^6.3.1",
-          "target": "6.3.1"
-        }
-      ],
+      "state": "first-party-replaced-awaiting-checkpoint",
+      "disposition": "replaced-in-first-party",
+      "verification": ["dnd-kit-qualification.json"],
+      "note": "Core first-party consumers now use the supported0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta4 owner refresh and final checkpoint qualification remain open.",
+      "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
         "migrationGuide": "https://dndkit.com/react/guides/migration/",
         "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
-        "candidateStatus": "researched, not installed or qualified"
+        "candidateStatus": "Installed; all local strict/full/browser gates passed. Current-head CI/review, owner compatibility, hosted previews and merge qualification pending."
+      },
+      "requiredCompatibility": {
+        "owner": "Core CMS maintainers / official Payload Next and UI",
+        "installedParentVersion": "4.0.0-beta.3",
+        "legacyPackages": {
+          "@dnd-kit/core": "6.3.1",
+          "@dnd-kit/sortable": "10.0.0",
+          "@dnd-kit/modifiers": "9.0.0",
+          "@dnd-kit/utilities": "3.2.2"
+        },
+        "restriction": "Only upstream CMS-owned internals retain these APIs; no first-party source import or direct declaration remains.",
+        "state": "Owner release requalification OPEN: Payload4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
+        "recheckWhen": "Every Payload owner release, legacy consumer/import change, dependency constraint or advisory change invalidates prior compatibility evidence.",
+        "newReleaseEvidence": {
+          "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
+          "sha256": "8d2438c248e8e32100652d1a20bc21a732e9bbb4a767122b70ff566a6a0613e8"
+        }
       }
     },
     {
@@ -622,24 +624,33 @@
           "target": "9.0.0"
         }
       ],
-      "state": "replacement-required",
-      "disposition": null,
-      "verification": [],
-      "note": "The official current documentation labels this API family legacy and recommends @dnd-kit/react. Latest-version metadata for the old package does not close this finding. Product migration to the new supported public API remains required; current upstream-internal users need an individually owned compatibility assessment.",
-      "currentUses": [
-        {
-          "path": "apps/admin/package.json",
-          "section": "dependencies",
-          "declaredAs": "@dnd-kit/modifiers",
-          "declared": "^9.0.0",
-          "target": "9.0.0"
-        }
-      ],
+      "state": "first-party-replaced-awaiting-checkpoint",
+      "disposition": "replaced-in-first-party",
+      "verification": ["dnd-kit-qualification.json"],
+      "note": "Core first-party consumers now use the supported0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta4 owner refresh and final checkpoint qualification remain open.",
+      "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
         "migrationGuide": "https://dndkit.com/react/guides/migration/",
         "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
-        "candidateStatus": "researched, not installed or qualified"
+        "candidateStatus": "Installed; all local strict/full/browser gates passed. Current-head CI/review, owner compatibility, hosted previews and merge qualification pending."
+      },
+      "requiredCompatibility": {
+        "owner": "Core CMS maintainers / official Payload Next and UI",
+        "installedParentVersion": "4.0.0-beta.3",
+        "legacyPackages": {
+          "@dnd-kit/core": "6.3.1",
+          "@dnd-kit/sortable": "10.0.0",
+          "@dnd-kit/modifiers": "9.0.0",
+          "@dnd-kit/utilities": "3.2.2"
+        },
+        "restriction": "Only upstream CMS-owned internals retain these APIs; no first-party source import or direct declaration remains.",
+        "state": "Owner release requalification OPEN: Payload4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
+        "recheckWhen": "Every Payload owner release, legacy consumer/import change, dependency constraint or advisory change invalidates prior compatibility evidence.",
+        "newReleaseEvidence": {
+          "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
+          "sha256": "8d2438c248e8e32100652d1a20bc21a732e9bbb4a767122b70ff566a6a0613e8"
+        }
       }
     },
     {
@@ -670,31 +681,33 @@
           "target": "10.0.0"
         }
       ],
-      "state": "replacement-required",
-      "disposition": null,
-      "verification": [],
-      "note": "The official current documentation labels this API family legacy and recommends @dnd-kit/react. Latest-version metadata for the old package does not close this finding. Product migration to the new supported public API remains required; current upstream-internal users need an individually owned compatibility assessment.",
-      "currentUses": [
-        {
-          "path": "apps/admin/package.json",
-          "section": "dependencies",
-          "declaredAs": "@dnd-kit/sortable",
-          "declared": "^10.0.0",
-          "target": "10.0.0"
-        },
-        {
-          "path": "packages/missionary/package.json",
-          "section": "dependencies",
-          "declaredAs": "@dnd-kit/sortable",
-          "declared": "^10.0.0",
-          "target": "10.0.0"
-        }
-      ],
+      "state": "first-party-replaced-awaiting-checkpoint",
+      "disposition": "replaced-in-first-party",
+      "verification": ["dnd-kit-qualification.json"],
+      "note": "Core first-party consumers now use the supported0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta4 owner refresh and final checkpoint qualification remain open.",
+      "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
         "migrationGuide": "https://dndkit.com/react/guides/migration/",
         "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
-        "candidateStatus": "researched, not installed or qualified"
+        "candidateStatus": "Installed; all local strict/full/browser gates passed. Current-head CI/review, owner compatibility, hosted previews and merge qualification pending."
+      },
+      "requiredCompatibility": {
+        "owner": "Core CMS maintainers / official Payload Next and UI",
+        "installedParentVersion": "4.0.0-beta.3",
+        "legacyPackages": {
+          "@dnd-kit/core": "6.3.1",
+          "@dnd-kit/sortable": "10.0.0",
+          "@dnd-kit/modifiers": "9.0.0",
+          "@dnd-kit/utilities": "3.2.2"
+        },
+        "restriction": "Only upstream CMS-owned internals retain these APIs; no first-party source import or direct declaration remains.",
+        "state": "Owner release requalification OPEN: Payload4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
+        "recheckWhen": "Every Payload owner release, legacy consumer/import change, dependency constraint or advisory change invalidates prior compatibility evidence.",
+        "newReleaseEvidence": {
+          "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
+          "sha256": "8d2438c248e8e32100652d1a20bc21a732e9bbb4a767122b70ff566a6a0613e8"
+        }
       }
     },
     {
@@ -725,31 +738,33 @@
           "target": "3.2.2"
         }
       ],
-      "state": "replacement-required",
-      "disposition": null,
-      "verification": [],
-      "note": "The official current documentation labels this API family legacy and recommends @dnd-kit/react. Latest-version metadata for the old package does not close this finding. Product migration to the new supported public API remains required; current upstream-internal users need an individually owned compatibility assessment.",
-      "currentUses": [
-        {
-          "path": "apps/admin/package.json",
-          "section": "dependencies",
-          "declaredAs": "@dnd-kit/utilities",
-          "declared": "^3.2.2",
-          "target": "3.2.2"
-        },
-        {
-          "path": "packages/missionary/package.json",
-          "section": "dependencies",
-          "declaredAs": "@dnd-kit/utilities",
-          "declared": "^3.2.2",
-          "target": "3.2.2"
-        }
-      ],
+      "state": "first-party-replaced-awaiting-checkpoint",
+      "disposition": "replaced-in-first-party",
+      "verification": ["dnd-kit-qualification.json"],
+      "note": "Core first-party consumers now use the supported0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta4 owner refresh and final checkpoint qualification remain open.",
+      "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
         "migrationGuide": "https://dndkit.com/react/guides/migration/",
         "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
-        "candidateStatus": "researched, not installed or qualified"
+        "candidateStatus": "Installed; all local strict/full/browser gates passed. Current-head CI/review, owner compatibility, hosted previews and merge qualification pending."
+      },
+      "requiredCompatibility": {
+        "owner": "Core CMS maintainers / official Payload Next and UI",
+        "installedParentVersion": "4.0.0-beta.3",
+        "legacyPackages": {
+          "@dnd-kit/core": "6.3.1",
+          "@dnd-kit/sortable": "10.0.0",
+          "@dnd-kit/modifiers": "9.0.0",
+          "@dnd-kit/utilities": "3.2.2"
+        },
+        "restriction": "Only upstream CMS-owned internals retain these APIs; no first-party source import or direct declaration remains.",
+        "state": "Owner release requalification OPEN: Payload4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
+        "recheckWhen": "Every Payload owner release, legacy consumer/import change, dependency constraint or advisory change invalidates prior compatibility evidence.",
+        "newReleaseEvidence": {
+          "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
+          "sha256": "8d2438c248e8e32100652d1a20bc21a732e9bbb4a767122b70ff566a6a0613e8"
+        }
       }
     },
     {
@@ -7570,10 +7585,114 @@
       "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
       "qualification": "data-access-qualification.json",
       "remainingScope": "Product/workspace qualification is retained; refreshed PDF 0.1.0 uses Zod 4.6.7 without the historical npm alias. The PDF checkpoint is merged after full gates/review/CI/previews and both post-merge workflows passed. Combined release/security remain open."
+    },
+    {
+      "name": "@dnd-kit/react",
+      "cohort": "dnd-kit",
+      "owner": "Core missionary UI maintainers",
+      "upstream": {
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@dnd-kit%2freact",
+      "auditedAt": "2026-10-22T14:40:04.580409+00:00",
+      "initialTarget": "0.5.1",
+      "uses": [],
+      "currentUses": [
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declaredAs": "@dnd-kit/react",
+          "declared": "0.5.1",
+          "target": "0.5.1"
+        }
+      ],
+      "state": "local-functional-candidate",
+      "disposition": "replacement-for-legacy-dnd-api",
+      "verification": ["dnd-kit-qualification.json"],
+      "note": "Exact coordinated current API pin; final current-head gates and merged checkpoint remain required."
+    },
+    {
+      "name": "@dnd-kit/dom",
+      "cohort": "dnd-kit",
+      "owner": "Core missionary UI maintainers",
+      "upstream": {
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@dnd-kit%2fdom",
+      "auditedAt": "2026-10-22T14:40:04.419866+00:00",
+      "initialTarget": "0.5.1",
+      "uses": [],
+      "currentUses": [
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declaredAs": "@dnd-kit/dom",
+          "declared": "0.5.1",
+          "target": "0.5.1"
+        }
+      ],
+      "state": "local-functional-candidate",
+      "disposition": "replacement-for-legacy-dnd-api",
+      "verification": ["dnd-kit-qualification.json"],
+      "note": "Exact coordinated current API pin; final current-head gates and merged checkpoint remain required."
+    },
+    {
+      "name": "@dnd-kit/helpers",
+      "cohort": "dnd-kit",
+      "owner": "Core missionary UI maintainers",
+      "upstream": {
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@dnd-kit%2fhelpers",
+      "auditedAt": "2026-10-22T14:40:04.162848+00:00",
+      "initialTarget": "0.5.1",
+      "uses": [],
+      "currentUses": [
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declaredAs": "@dnd-kit/helpers",
+          "declared": "0.5.1",
+          "target": "0.5.1"
+        }
+      ],
+      "state": "local-functional-candidate",
+      "disposition": "replacement-for-legacy-dnd-api",
+      "verification": ["dnd-kit-qualification.json"],
+      "note": "Exact coordinated current API pin; final current-head gates and merged checkpoint remain required."
+    },
+    {
+      "name": "@dnd-kit/abstract",
+      "cohort": "dnd-kit",
+      "owner": "Core missionary UI maintainers",
+      "upstream": {
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "type": "git"
+      },
+      "registrySource": "https://registry.npmjs.org/@dnd-kit%2fabstract",
+      "auditedAt": "2026-10-22T14:40:04.506997+00:00",
+      "initialTarget": "0.5.1",
+      "uses": [],
+      "currentUses": [
+        {
+          "path": "packages/missionary/package.json",
+          "section": "dependencies",
+          "declaredAs": "@dnd-kit/abstract",
+          "declared": "0.5.1",
+          "target": "0.5.1"
+        }
+      ],
+      "state": "local-functional-candidate",
+      "disposition": "replacement-for-legacy-dnd-api",
+      "verification": ["dnd-kit-qualification.json"],
+      "note": "Exact coordinated current API pin; final current-head gates and merged checkpoint remain required."
     }
   ],
   "manifestCoverage": {
-    "capturedAt": "2026-10-22T11:29:32.889626+00:00",
+    "capturedAt": "2026-10-22T16:19:30.511211+00:00",
     "baselineCommit": "800213405e2c51e07180e86ee8322355e0fdb4eb",
     "activeManifests": [
       "package.json",
@@ -7602,7 +7721,7 @@
     ],
     "manifestCount": 23,
     "canonicalExternalAndImportedIdentities": 130,
-    "currentDeclarationCount": 301,
+    "currentDeclarationCount": 298,
     "internalWorkspaceLinks": [
       {
         "path": "package.json",
@@ -8133,8 +8252,8 @@
         "declared": "workspace:*"
       }
     ],
-    "normalization": "npm aliases retain declaredAs and exact declarations under their canonical upstream identity; imported PDF workspace/file declarations retain all consumers.",
-    "currentSourceBase": "7df55820eee8a1e0076dea489f3836e8d15d7c69",
+    "normalization": "npm aliases retain declaredAs and exact declarations under their canonical upstream identity; imported PDF workspace/file declarations retain all consumers. Replaced baseline Dnd identities remain inventoried with empty currentUses; their CMS-owned nested compatibility is tracked separately.",
+    "currentSourceBase": "61b709ac244678605d926d415f0ff8d52204a44d",
     "importedOwnerBuildMetadata": {
       "ownerRepository": "Asymmetric-al/react-PDF",
       "sourceCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
@@ -8364,6 +8483,7 @@
           "declared": "6.0.3"
         }
       ]
-    }
+    },
+    "inventoriedIdentitiesIncludingHistorical": 134
   }
 }

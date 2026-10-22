@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-22T16:19:30.511211+00:00",
+  "status": "Exact candidate pins; release qualification remains open",
+  "upstreamRefresh": {
+    "path": "/tmp/core-modernization-dnd-upstream-final-refresh-2026-10-22.json",
+    "sha256": "3fd7027b8013db5b77b38f80b06e901ca93c737cca367e5be9a658b78d0e4b77"
+  },
+  "cohort": [
+    {
+      "name": "@dnd-kit/react",
+      "version": "0.5.1",
+      "publishedAt": "2026-10-15T12:09:58.516Z",
+      "registry": "https://registry.npmjs.org/@dnd-kit%2freact",
+      "integrity": "sha512-WL8LvALUL9PqUUVun4xu4e8HO3x6rPwTxnnNwovj/VOUVyWpTmIaAK5Yj8jkzqNK01W74sQbwtffpLep1Ckj/Q==",
+      "repository": {
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "type": "git"
+      },
+      "dependencies": {
+        "tslib": "^2.6.2",
+        "@dnd-kit/dom": "^0.5.1",
+        "@dnd-kit/state": "^0.5.1",
+        "@dnd-kit/abstract": "^0.5.1"
+      },
+      "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0",
+        "react-dom": "^18.0.0 || ^19.0.0"
+      },
+      "engines": {},
+      "deprecated": null
+    },
+    {
+      "name": "@dnd-kit/dom",
+      "version": "0.5.1",
+      "publishedAt": "2026-10-15T12:10:27.283Z",
+      "registry": "https://registry.npmjs.org/@dnd-kit%2fdom",
+      "integrity": "sha512-r7/l4D+nsH1mFXWkplXCkZC9JlY7UjxsVuTu4yCqzC00XgX+SXiK3Oazp42KKG3mshfBNVtm15BI9rKNlkw2fA==",
+      "repository": {
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "type": "git"
+      },
+      "dependencies": {
+        "tslib": "^2.6.2",
+        "@dnd-kit/state": "^0.5.1",
+        "@dnd-kit/abstract": "^0.5.1",
+        "@dnd-kit/geometry": "^0.5.1",
+        "@dnd-kit/collision": "^0.5.1"
+      },
+      "peerDependencies": {},
+      "engines": {},
+      "deprecated": null
+    },
+    {
+      "name": "@dnd-kit/helpers",
+      "version": "0.5.1",
+      "publishedAt": "2026-10-15T12:10:07.898Z",
+      "registry": "https://registry.npmjs.org/@dnd-kit%2fhelpers",
+      "integrity": "sha512-/nH5fpWuQmmc2FlwNAlxgZVQfAiMHeh+riGUZS69vj1Oq/MPc98APHgvjsVy7rN9MFd1XCgGYVcmb2pKvfYzNA==",
+      "repository": {
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "type": "git"
+      },
+      "dependencies": {
+        "tslib": "^2.6.2",
+        "@dnd-kit/abstract": "^0.5.1"
+      },
+      "peerDependencies": {},
+      "engines": {},
+      "deprecated": null
+    },
+    {
+      "name": "@dnd-kit/abstract",
+      "version": "0.5.1",
+      "publishedAt": "2026-10-15T12:10:07.245Z",
+      "registry": "https://registry.npmjs.org/@dnd-kit%2fabstract",
+      "integrity": "sha512-XI13sUYRvRgggMocjHlQhLRgENm/2GF94KF7mk+c0uxse7sbn75r0BgxoNPDlzLTDPWx6PkS0YHoeXN9JWhnOA==",
+      "repository": {
+        "url": "git+https://github.com/clauderic/dnd-kit.git",
+        "type": "git"
+      },
+      "dependencies": {
+        "tslib": "^2.6.2",
+        "@dnd-kit/state": "^0.5.1",
+        "@dnd-kit/geometry": "^0.5.1"
+      },
+      "peerDependencies": {},
+      "engines": {},
+      "deprecated": null
+    }
+  ],
+  "publicGuides": [
+    "https://dndkit.com/legacy/introduction/installation/",
+    "https://dndkit.com/react/guides/migration/",
+    "https://dndkit.com/react/guides/multiple-sortable-lists/",
+    "https://dndkit.com/react/guides/sortable-state-management/"
+  ],
+  "graphReview": {
+    "path": "/tmp/core-modernization-dnd-graph-security-review.json",
+    "sha256": "b0e3488432cd44a8bbf4befb2b1bb6971aad811b1e3b04428e7f0c933e8d3a3f"
+  },
+  "finalOfficialRefresh": {
+    "path": "/tmp/core-modernization-dnd-prepublication-upstream-refresh.json",
+    "sha256": "0b251bd661a0dd7ef32e5df0cc590ca9d16e9ff013c00932ab5ad1a39f0feb84",
+    "coherentCurrentPackages": 7
+  }
+}

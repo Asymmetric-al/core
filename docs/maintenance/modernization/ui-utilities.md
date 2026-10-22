@@ -83,12 +83,15 @@ finds 56 affected entries. This checkpoint does not close whole-Core security.
 ## Remaining UI work
 
 Official [dnd-kit legacy installation guidance](https://dndkit.com/legacy/introduction/installation/)
-classifies the currently installed Core API family as legacy and recommends the
-new API. The [official migration guide](https://dndkit.com/react/guides/migration/)
+classifies the six-library checkpoint's baseline Dnd API as legacy and
+recommends the new API. Current first-party replacement and the retained
+upstream CMS internals are tracked separately. The [official migration guide](https://dndkit.com/react/guides/migration/)
 requires a coordinated provider, sensor, sortable and event migration.
-Current 0.5.1 replacement packages are researched; installation, keyboard/pointer
-behavior, cancellation, mutation/rollback and nested-consumer assessments remain
-required. The old package's latest dist-tag does not close this finding.
+The [Dnd API migration](dnd-kit.md) now tracks the installed coordinated0.5.1
+first-party replacement and its passed local strict/full gates and behavioral
+preservation evidence. Owner compatibility, current-head CI/review, hosted
+previews and merge qualification remain required;
+the old package's latest dist-tag does not close this finding.
 
 Current Lighthouse CI 0.15.1 still selects Lighthouse 12.6.1 and affected nested
 software. Its owning chain requires replacement or removal of obsolete tooling

@@ -438,7 +438,7 @@
         },
         {
           "path": "apps/admin/package.json",
-          "sha256": "9d975fa792831ae7ac5fd61f8c97501d27eeedc8a6a38c3684e77ff18485a245"
+          "sha256": "c3574c0ddf18d6bd51ec06aab78bc0b9141ebe9028d67eb8d94de4d072aa2700"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
@@ -2058,7 +2058,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc"
+          "sha256": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439"
         }
       ]
     },
@@ -2075,7 +2075,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc"
+          "sha256": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439"
         }
       ]
     },
@@ -2136,7 +2136,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc"
+          "sha256": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439"
         }
       ]
     },
@@ -2153,7 +2153,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc"
+          "sha256": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439"
         }
       ]
     },
@@ -2161,17 +2161,18 @@
       "project": "packages/missionary",
       "rule": "icon-buttons-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "TaskRowMenu trigger has aria-label=\"Open actions\" propagated to render Button by Base UI. Initial real Kanban add/edit/drag names are repaired and independently verified in actual TaskKanbanBoard test. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action.",
+      "rationale": "TaskRowMenu trigger has aria-label=\"Open actions\" propagated to render Button by Base UI. Initial real Kanban add/edit/drag names are repaired and independently verified in actual TaskKanbanBoard test. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action. Dnd0.5.1 requalification2026-10-22 preserves real Add/Move/Edit names and ref-based sensor ownership. The actual-board browser fixture additionally exercises keyboard/pointer/touch, focus restoration, save failure/retry/pending, and axe across four display projects; see dnd-kit-qualification.json for exact dated coverage and its limits.",
       "verificationTests": [
         "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
         "tests/unit/packages/ui/shadscan-readiness.test.tsx",
-        "tests/unit/packages/ui/shadscan-trigger-name.test.tsx"
+        "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/kanban.spec.ts"
       ],
       "evidenceFingerprint": "c076e225ee0e33bb3da8affd9bf7804d5aebdb6e0d2f2288924a3a88d9bb3453",
       "proof": [
         {
           "path": "packages/missionary/components/task-kanban-board.tsx",
-          "sha256": "4a788a329cde31fc22e52a328a9bf784b5f42226eb22068ec1655cd6ed6ae672"
+          "sha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba"
         },
         {
           "path": "packages/missionary/components/task-row.tsx",
@@ -2200,6 +2201,14 @@
         {
           "path": "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
           "sha256": "bce90ed32231f6c566edba5481edf2d1862c2bfabe5a8c97b7e99fd717a3519b"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/kanban.spec.ts",
+          "sha256": "05d3c1e3e8b1cc0e6e4006a37810261fadcfdc23f1f1dc703c1b54572d964f7e"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/kanban-main.tsx",
+          "sha256": "a0eafed1ed269c614ecd9fd3421c97bbdeb8f3c99604fd37240de6432a121e2f"
         }
       ]
     },
@@ -2240,7 +2249,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc"
+          "sha256": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439"
         }
       ]
     },
@@ -2277,7 +2286,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc"
+          "sha256": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439"
         }
       ]
     },
@@ -2294,7 +2303,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc"
+          "sha256": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439"
         }
       ]
     },
@@ -2311,7 +2320,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc"
+          "sha256": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439"
         }
       ]
     },
@@ -2328,7 +2337,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc"
+          "sha256": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439"
         }
       ]
     },

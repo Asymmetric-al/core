@@ -14,11 +14,12 @@ maintained compatibility dependency with a current upstream reason and owner.
 
 ## Coverage
 
-- [Dependency inventory](dependencies.json): all 130 current canonical external
-  and imported identities across 23 active manifests (18 workspace/root manifests
+- [Dependency inventory](dependencies.json): 134 inventoried external/imported identities, including 130 current
+  canonical identities across 23 active manifests (18 workspace/root manifests
   plus five imported PDF packages). Baseline and current declarations retain
   alias names and every imported-package consumer. Internal workspace links are
-  recorded separately. The supported V8 provider and public Payload Sharp
+  recorded separately. Four baseline legacy Dnd identities remain as replacement history and
+  separately owned CMS compatibility records. The supported V8 provider and public Payload Sharp
   transformer were introduced after baseline;
   all five private PDF identities point to their owner source and artifact
   manifests rather than a public-registry lookup.
@@ -73,3 +74,8 @@ The [PDF checkpoint](pdf-packages.md) supersedes historical PDF alias and
 installation-repair workarounds in dated data-access evidence. Inventory `uses`
 retain the baseline; `currentUses` reflects checked-out consuming declarations.
 Owner-only build metadata is inventoried separately from Core-installed software.
+
+The [Dnd API migration](dnd-kit.md) tracks the first-party replacement and its
+passed local gates and remaining preview/merge work. The Payload beta.3 checkpoint remains
+dated qualified evidence; newly published beta.4 requires coherent owner
+requalification before the combined release freeze.

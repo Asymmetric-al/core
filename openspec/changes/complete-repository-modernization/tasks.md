@@ -36,6 +36,8 @@
 - [ ] 5.4 Rehearse committed migrations and rollback against isolated representative backups, counts, relationships, assets and tenant checks.
 - [ ] 5.5 Qualify, review, deploy CMS previews and merge the migration checkpoint.
 
+- [ ] 5.6 Requalify the complete public Payload4.0.0-beta.4 cohort published during UI/Dnd qualification; retain beta.3 checkpoint evidence and recheck required legacy internals.
+
 ## 6. Imported PDF provenance and modernization
 
 - [x] 6.1 Recover shipped runtime and missing type sources in the owning react-PDF repository; record provenance and hashes without replacing Phase 47 behavior with Phase 22.
