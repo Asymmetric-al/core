@@ -71,6 +71,23 @@ export const PHASE_18_EXTERNAL_REFERENCE_SURFACES = [
   "pdf_template_artifacts.external_urls",
 ] as const;
 
+/**
+ * Auth user accounts on the target. The cutover leaves them alone, but any
+ * user present means a person may rely on prototype documents, so (with
+ * strict demo-data handling, #2067 Q3a) a non-zero count stops the line.
+ */
+export const PHASE_18_USER_SURFACES = ["auth.users"] as const;
+
+/** Prototype Unlayer/native migration reports held on `pdf_templates`. */
+export const PHASE_18_REPORT_SURFACES = [
+  "pdf_templates.migration_report",
+] as const;
+
+/** The prototype DocRaptor renderer integration recorded on renders. */
+export const PHASE_18_INTEGRATION_SURFACES = [
+  "pdf_template_renders.docraptor_renderer",
+] as const;
+
 function tableSurface(surfaceId: string): DestructiveCutoverPlanSurface {
   return {
     surfaceKind: "database_table",
@@ -136,6 +153,33 @@ export const PHASE_18_DESTRUCTIVE_CUTOVER_PLAN: DestructiveCutoverPlan = {
         action: "sever_external_reference",
         description:
           "Prove no externally shared artifact URL still relies on prototype storage.",
+      }),
+    ),
+    ...PHASE_18_USER_SURFACES.map(
+      (surfaceId): DestructiveCutoverPlanSurface => ({
+        surfaceKind: "user_account",
+        surfaceId,
+        action: "assert_no_reliance",
+        description:
+          "Prove no auth user account exists that could rely on prototype documents; user accounts are not changed.",
+      }),
+    ),
+    ...PHASE_18_REPORT_SURFACES.map(
+      (surfaceId): DestructiveCutoverPlanSurface => ({
+        surfaceKind: "report",
+        surfaceId,
+        action: "remove_reports",
+        description:
+          "Remove prototype Unlayer/native migration reports after proving none is recorded.",
+      }),
+    ),
+    ...PHASE_18_INTEGRATION_SURFACES.map(
+      (surfaceId): DestructiveCutoverPlanSurface => ({
+        surfaceKind: "integration",
+        surfaceId,
+        action: "sever_integration",
+        description:
+          "Sever the prototype DocRaptor renderer integration after proving no render used it.",
       }),
     ),
   ],

@@ -43,12 +43,12 @@ commit names. Git's identity sanitizer removes a trailing apostrophe, so
 Conrad's canonical commit name is `Conrad O`. Forbidden legacy emails and logins
 are evaluated before any trusted path.
 
-Verified automation records preserve Eve's exact bot tuple, Cursor Agent's
-signed `cursoragent` tuple, and PR-loop's actor-bound direct tuple. Cursor's
-`cursor[bot]` event actor is not its signer. PR-loop's bot-name alias is accepted
-only beneath a verified GitHub platform envelope. FastPR's historical
-unassociated `pr-fast` direct envelope remains baseline-only and is not
-registered without a separately proven replacement.
+Verified automation records preserve Eve's exact bot tuple and Cursor Agent's
+signed `cursoragent` tuple. Cursor's `cursor[bot]` event actor is not its
+signer. PR-loop was retired (Oct 2026); its actor-bound direct tuple and
+platform-only bot-name alias are no longer a supported path. FastPR was also
+retired (Oct 2026); its historical unassociated `pr-fast` direct envelope
+remains baseline-only and is never registered.
 
 This replaces independent allowlists, which permit confused combinations of a
 trusted name, another identity's email, and a third login. A data registry also
@@ -226,8 +226,8 @@ rewritten.
   Exclude only gitignored `.eve`, `.nitro`, and `.output` segments and keep a
   regression test proving live source is still scanned.
 - **Installed FastPR direct mode is not attributable** -> Preserve its historical
-  `pr-fast` commits only through the baseline and track migration or retirement
-  separately before direct repairs resume.
+  `pr-fast` commits only through the baseline; FastPR direct mode is
+  retired (Oct 2026); #1427 closed as retired (not planned), 2026-10-21.
 
 ## Migration Plan
 

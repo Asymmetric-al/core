@@ -15,7 +15,7 @@
  * (except #2067 flipping `it.fails` to `it`, as its spec requires).
  */
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   ACCEPTANCE_OWNER,
@@ -25,6 +25,7 @@ import {
   runCommand,
   serializeProof,
   serverResolvedLocalIdentity,
+  cleanupWrittenProofFiles,
   writeTempProofFile,
 } from "./command-harness";
 import {
@@ -41,6 +42,10 @@ import {
 
 const OPERATOR_PROJECT = "operatorsubstitutedproject";
 const OPERATOR_ENV = "production";
+
+afterEach(() => {
+  cleanupWrittenProofFiles();
+});
 
 describe("issue #2066 — DC5 tenant safety: caller-supplied identity cannot override server-resolved identity", () => {
   it.each([
@@ -137,21 +142,18 @@ describe("issue #2066 — DC5 tenant safety: caller-supplied identity cannot ove
     ).rejects.toThrow();
   });
 
-  // Expected-fail, linked to #2067 (which implements the --verify environment
-  // comparison in verifyStoredProof). Not skipped. #2067 flips this to `it`.
-  it.fails(
-    "#2067 verify-env-mismatch: --verify rejects (exit non-zero) an otherwise valid clean proof recorded for a different environment than the target",
-    async () => {
-      const proof = await buildCleanProof(OTHER_TARGET_IDENTITY);
-      const file = writeTempProofFile(serializeProof(proof));
+  // Linked to #2067 (which implements the --verify environment comparison in
+  // verifyStoredProof). Flipped from `it.fails` to `it` by #2067.
+  it("#2067 verify-env-mismatch: --verify rejects (exit non-zero) an otherwise valid clean proof recorded for a different environment than the target", async () => {
+    const proof = await buildCleanProof(OTHER_TARGET_IDENTITY);
+    const file = writeTempProofFile(serializeProof(proof));
 
-      const result = await runCommand({
-        argv: ["--verify", file],
-        env: LOCAL_TARGET_ENV,
-        store: new InMemoryDocumentCutoverProofStore(),
-      });
+    const result = await runCommand({
+      argv: ["--verify", file],
+      env: LOCAL_TARGET_ENV,
+      store: new InMemoryDocumentCutoverProofStore(),
+    });
 
-      expect(result.exitCode).not.toBe(0);
-    },
-  );
+    expect(result.exitCode).not.toBe(0);
+  });
 });

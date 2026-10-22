@@ -31,8 +31,8 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readdirSync, writeFileSync } from "node:fs";
-import os from "node:os";
+import { randomBytes } from "node:crypto";
+import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -102,6 +102,16 @@ export const LOCAL_TARGET_ENV: Record<string, string> = {
   SUPABASE_URL: LOCAL_TARGET_URL,
   NEXT_PUBLIC_SUPABASE_URL: LOCAL_TARGET_URL,
   DOCUMENT_CUTOVER_SUPABASE_READ_KEY: "acceptance-2066-fake-read-key",
+  // #2067 addendum 4 replaces the read key with a pg connection as
+  // document_cutover_reader. Unroutable loopback port, obviously fake
+  // password built at runtime; tests that need a target mock `pg`.
+  DOCUMENT_CUTOVER_DATABASE_URL: `postgresql://document_cutover_reader:${[
+    "acceptance",
+    "2066",
+    "not",
+    "a",
+    "password",
+  ].join("-")}@127.0.0.1:9/postgres`,
 };
 
 /** Env keys that could steer the command; cleared before every run. */
@@ -387,11 +397,37 @@ export function tamperOneByte(serialized: string): string {
 }
 
 /** Write a proof file to a fresh temp dir (outside the repo) and return its absolute path. */
+const writtenProofFiles = new Set<string>();
+
+/**
+ * Write a proof file for `--verify`. #2067 addendum 4 m3 makes `--verify`
+ * reject any path outside docs/ops/document-cutover/proofs/, so the file is
+ * written there, named after the proof's own `proofPath` when the contents
+ * parse (otherwise a unique `acceptance-2066-*.json`). Call
+ * `cleanupWrittenProofFiles()` in `afterEach`.
+ */
 export function writeTempProofFile(contents: string): string {
-  const dir = mkdtempSync(path.join(os.tmpdir(), "acceptance-2066-proof-"));
-  const file = path.join(dir, "proof.json");
-  writeFileSync(file, contents, "utf8");
+  const dir = path.join(REPO_ROOT, "docs", "ops", "document-cutover", "proofs");
+  mkdirSync(dir, { recursive: true });
+  let name = `acceptance-2066-${randomBytes(8).toString("hex")}.json`;
+  try {
+    const proofPath = (JSON.parse(contents) as { proofPath?: unknown })
+      .proofPath;
+    if (typeof proofPath === "string" && proofPath.endsWith(".json")) {
+      name = path.basename(proofPath);
+    }
+  } catch {
+    // tampered bytes may not parse; keep the unique name
+  }
+  const file = path.join(dir, name);
+  writeFileSync(file, contents, { encoding: "utf8", flag: "wx" });
+  writtenProofFiles.add(file);
   return file;
+}
+
+export function cleanupWrittenProofFiles(): void {
+  for (const file of writtenProofFiles) rmSync(file, { force: true });
+  writtenProofFiles.clear();
 }
 
 /** Destructive verbs that must never appear as a suggested command (DC4). */

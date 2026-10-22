@@ -28,7 +28,12 @@ import type {
   DocumentCutoverSurfaceInspection,
 } from "./types";
 
-const DEFAULT_DETECTOR_TIMEOUT_MS = 30_000;
+/**
+ * Deadline for every read of the target: each detector inspection and the
+ * environment resolution (which reads the target's schema version) must
+ * settle within it, or the read becomes a timeout blocker.
+ */
+export const DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS = 30_000;
 
 const RELIANCE_REASON_BY_KEY: Record<
   DocumentCutoverRelianceCountKey,
@@ -41,6 +46,8 @@ const RELIANCE_REASON_BY_KEY: Record<
   externalReferences: "external_reference_present",
   retainedHistory: "retained_history_present",
   activeJobs: "active_job_present",
+  reports: "report_present",
+  integrations: "integration_present",
 };
 
 export interface DocumentCutoverProcedureInput {
@@ -56,7 +63,11 @@ export interface DocumentCutoverProcedureInput {
 
 export interface AssessDocumentCutoverEnvironmentInput {
   plan: DestructiveCutoverPlan;
-  /** Server-side resolver for the actual target environment. */
+  /**
+   * Server-side resolver for the actual target environment. It runs under
+   * the same deadline as the detectors; a resolver that does not settle in
+   * time stops the line.
+   */
   resolveEnvironment: () => Promise<DocumentCutoverEnvironmentIdentity>;
   detectors: readonly DocumentCutoverDetector[];
   procedures: {
@@ -66,17 +77,41 @@ export interface AssessDocumentCutoverEnvironmentInput {
   /** Read-only loader for procedure documents; null means missing. */
   readProcedure: (reference: string) => Promise<string | null>;
   /**
-   * Operator-declared expectation of the target. Any mismatch with the
-   * server-resolved identity stops the line; an operator cannot substitute a
-   * different environment by pointing the tool somewhere else.
+   * Expectations of the target. Any mismatch with the server-resolved
+   * identity stops the line; an operator cannot substitute a different
+   * environment by pointing the tool somewhere else. `schemaVersion` is the
+   * checkout's latest migration, compared with the version the target
+   * database reports (an unreadable target version never matches).
    */
   expectedEnvironment?: {
     databaseProjectId?: string;
     environmentLabel?: string;
+    schemaVersion?: string;
   };
   detectorTimeoutMs?: number;
   now?: () => Date;
   generateId?: () => string;
+}
+
+async function resolveWithTimeout(
+  resolveEnvironment: () => Promise<DocumentCutoverEnvironmentIdentity>,
+  timeoutMs: number,
+): Promise<DocumentCutoverEnvironmentIdentity> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        reject(
+          new Error(
+            `Reading the target environment timed out after ${timeoutMs}ms (detector deadline exceeded).`,
+          ),
+        );
+      }, timeoutMs);
+    });
+    return await Promise.race([resolveEnvironment(), timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 async function inspectWithTimeout(
@@ -259,6 +294,15 @@ function environmentReasons(
         "The server-resolved environment label does not match the operator-declared target.",
     });
   }
+  if (
+    expected?.schemaVersion &&
+    expected.schemaVersion !== environment.schemaVersion
+  ) {
+    reasons.push({
+      code: "environment_identity_mismatch",
+      explanation: `The target database reports schema version ${environment.schemaVersion}, but the checkout's latest migration is ${expected.schemaVersion}; a mismatched or unreadable target schema version stops the line.`,
+    });
+  }
 
   return reasons;
 }
@@ -313,7 +357,8 @@ export async function assessDocumentCutoverEnvironment(
 ): Promise<DocumentCutoverAssessment> {
   const now = input.now ?? (() => new Date());
   const generateId = input.generateId ?? (() => crypto.randomUUID());
-  const timeoutMs = input.detectorTimeoutMs ?? DEFAULT_DETECTOR_TIMEOUT_MS;
+  const timeoutMs =
+    input.detectorTimeoutMs ?? DOCUMENT_CUTOVER_DETECTOR_TIMEOUT_MS;
   const startedAt = now().toISOString();
 
   const blockingReasons: DocumentCutoverBlockingReason[] = [];
@@ -326,7 +371,7 @@ export async function assessDocumentCutoverEnvironment(
   let environment: DocumentCutoverEnvironmentIdentity | null = null;
   let environmentResolutionDetail: string | undefined;
   try {
-    environment = await input.resolveEnvironment();
+    environment = await resolveWithTimeout(input.resolveEnvironment, timeoutMs);
   } catch (error) {
     environment = null;
     environmentResolutionDetail = redactDiagnosticText(

@@ -193,6 +193,36 @@ describe("assessDocumentCutoverEnvironment", () => {
     );
   });
 
+  it("stops the line when the target's schema version differs from the checkout's (#2067)", async () => {
+    const matching = await assessDocumentCutoverEnvironment(
+      buildAssessmentInput(new DocumentEnvironmentFixture(), {
+        expectedEnvironment: {
+          schemaVersion: CLEAN_ENVIRONMENT.schemaVersion,
+        },
+      }),
+    );
+    expect(matching.proposedOutcome).toBe("clean_preproduction_proof");
+
+    for (const targetVersion of ["19990101000000", "unreadable"]) {
+      const assessment = await assessDocumentCutoverEnvironment(
+        buildAssessmentInput(new DocumentEnvironmentFixture(), {
+          resolveEnvironment: async () => ({
+            ...CLEAN_ENVIRONMENT,
+            schemaVersion: targetVersion,
+          }),
+          expectedEnvironment: {
+            schemaVersion: CLEAN_ENVIRONMENT.schemaVersion,
+          },
+        }),
+      );
+
+      expect(assessment.proposedOutcome).toBe("stop_the_line");
+      expect(reasonCodes(assessment.blockingReasons)).toEqual([
+        "environment_identity_mismatch",
+      ]);
+    }
+  });
+
   it("treats environment resolution failure as stop-the-line evidence", async () => {
     const fixture = new DocumentEnvironmentFixture();
     const assessment = await assessDocumentCutoverEnvironment(
