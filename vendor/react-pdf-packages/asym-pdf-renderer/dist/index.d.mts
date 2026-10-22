@@ -1,7 +1,5 @@
-import { A as PdfDocumentMarkRenderer, B as PreflightPdfDocumentAssetsInput, C as PdfDocumentAssetDiagnosticSeverity, D as PdfDocumentCssMedia, E as PdfDocumentAssetRenderMode, F as PdfDocumentRenderWarningCode, H as composePdfDocumentHtml, I as PdfDocumentRenderWarningSeverity, L as PdfDocumentRenderWarningSource, M as PdfDocumentNodeRenderer, N as PdfDocumentNodeRendererContext, O as PdfDocumentCssRequirement, P as PdfDocumentRenderWarning, R as PdfDocumentVariableScope, S as PdfDocumentAssetDiagnosticCode, T as PdfDocumentAssetReference, U as preflightPdfDocumentAssets, V as PreflightPdfDocumentAssetsResult, _ as PdfPreviewStatus, a as PdfPreviewDiagnostic, b as ComposePdfDocumentHtmlResult, c as PdfPreviewDiagnosticSource, d as PdfPreviewPreflightHook, f as PdfPreviewPreflightInput, g as PdfPreviewSnapshots, h as PdfPreviewResult, i as PdfPreviewArtifactKind, j as PdfDocumentMarkRendererContext, k as PdfDocumentMark, l as PdfPreviewMetadata, m as PdfPreviewRequestMetadata, n as CreateBrowserPdfPreviewRequest, o as PdfPreviewDiagnosticInput, p as PdfPreviewRenderer, r as PdfPreviewArtifact, s as PdfPreviewDiagnosticSeverity, t as BasePdfPreviewRequest, u as PdfPreviewMode, v as createBrowserPdfPreview, w as PdfDocumentAssetLookupReference, x as PdfDocumentAssetDiagnostic, y as ComposePdfDocumentHtmlInput, z as PdfDocumentVariableUsage } from "./preview-BNR9SGDr.mjs";
+import { A as PdfDocumentMarkRenderer, B as PreflightPdfDocumentAssetsInput, C as PdfDocumentAssetDiagnosticSeverity, D as PdfDocumentCssMedia, E as PdfDocumentAssetRenderMode, F as PdfDocumentRenderWarningCode, H as composePdfDocumentHtml, I as PdfDocumentRenderWarningSeverity, L as PdfDocumentRenderWarningSource, M as PdfDocumentNodeRenderer, N as PdfDocumentNodeRendererContext, O as PdfDocumentCssRequirement, P as PdfDocumentRenderWarning, R as PdfDocumentVariableScope, S as PdfDocumentAssetDiagnosticCode, T as PdfDocumentAssetReference, U as preflightPdfDocumentAssets, V as PreflightPdfDocumentAssetsResult, _ as PdfPreviewStatus, a as PdfPreviewDiagnostic, b as ComposePdfDocumentHtmlResult, c as PdfPreviewDiagnosticSource, d as PdfPreviewPreflightHook, f as PdfPreviewPreflightInput, g as PdfPreviewSnapshots, h as PdfPreviewResult, i as PdfPreviewArtifactKind, j as PdfDocumentMarkRendererContext, k as PdfDocumentMark, l as PdfPreviewMetadata, m as PdfPreviewRequestMetadata, n as CreateBrowserPdfPreviewRequest, o as PdfPreviewDiagnosticInput, p as PdfPreviewRenderer, r as PdfPreviewArtifact, s as PdfPreviewDiagnosticSeverity, t as BasePdfPreviewRequest, u as PdfPreviewMode, v as createBrowserPdfPreview, w as PdfDocumentAssetLookupReference, x as PdfDocumentAssetDiagnostic, y as ComposePdfDocumentHtmlInput, z as PdfDocumentVariableUsage } from "./preview-3MYc_rMK.mjs";
 import { ConditionalRule, DocumentAssetReference, DocumentContentNode, DocumentPageSettings, DocumentPageSettingsInput, DocumentThemeInput, PdfDocumentMetadataInput, PdfTemplateSchemaBoundary, RepeaterBindingInput, ResolveTableRowsInput, ResolvedRepeaterItem, ResolvedTableRow, ResolvedVariableValue, TableBinding, VariableDataContext, VariableResolutionDiagnostic, VariableResolverOptions } from "@asym/pdf-template-schema";
-
-//#region src/conditions.d.ts
 interface EvaluatePdfDocumentConditionInput {
   readonly rule: ConditionalRule;
   readonly context?: VariableDataContext;
@@ -12,9 +10,7 @@ interface PdfDocumentConditionEvaluation {
   readonly visible: boolean;
   readonly warnings: readonly PdfDocumentRenderWarning[];
 }
-declare function evaluatePdfDocumentCondition(input: EvaluatePdfDocumentConditionInput): PdfDocumentConditionEvaluation;
-//#endregion
-//#region src/data-table.d.ts
+export declare function evaluatePdfDocumentCondition(input: EvaluatePdfDocumentConditionInput): PdfDocumentConditionEvaluation;
 interface ResolvePdfDocumentTableRowsInput extends ResolveTableRowsInput {
   readonly path: readonly string[];
   readonly nodeType?: string;
@@ -24,9 +20,7 @@ interface ResolvePdfDocumentTableRowsResult {
   readonly rows: readonly ResolvedTableRow[];
   readonly warnings: readonly PdfDocumentRenderWarning[];
 }
-declare function resolvePdfDocumentTableRows(input: ResolvePdfDocumentTableRowsInput): ResolvePdfDocumentTableRowsResult;
-//#endregion
-//#region src/preflight.d.ts
+export declare function resolvePdfDocumentTableRows(input: ResolvePdfDocumentTableRowsInput): ResolvePdfDocumentTableRowsResult;
 type PdfTemplatePreflightMode = 'authoring' | 'publish' | 'production_render' | 'batch';
 type PdfTemplatePreflightStatus = 'success' | 'warning' | 'error';
 type PdfTemplatePreflightSeverity = 'info' | 'warning' | 'error';
@@ -86,10 +80,8 @@ interface PreflightPdfDocumentAccessibilityResult {
   readonly guaranteesPdfUaCompliance: false;
 }
 type PdfTemplatePreflightResult = PreflightPdfTemplateResult;
-declare function preflightPdfTemplate(input: PreflightPdfTemplateInput): PreflightPdfTemplateResult;
-declare function preflightPdfDocumentAccessibility(input: PreflightPdfDocumentAccessibilityInput): PreflightPdfDocumentAccessibilityResult;
-//#endregion
-//#region src/print-shell.d.ts
+export declare function preflightPdfTemplate(input: PreflightPdfTemplateInput): PreflightPdfTemplateResult;
+export declare function preflightPdfDocumentAccessibility(input: PreflightPdfDocumentAccessibilityInput): PreflightPdfDocumentAccessibilityResult;
 interface PrintDocumentPageBox {
   readonly pageSize: DocumentPageSettings['pageSize'];
   readonly orientation: DocumentPageSettings['orientation'];
@@ -113,9 +105,7 @@ interface ComposePrintDocumentHtmlResult {
   readonly variables: readonly PdfDocumentVariableUsage[];
   readonly page?: PrintDocumentPageBox;
 }
-declare function composePrintDocumentHtml(input: ComposePrintDocumentHtmlInput): ComposePrintDocumentHtmlResult;
-//#endregion
-//#region src/repeaters.d.ts
+export declare function composePrintDocumentHtml(input: ComposePrintDocumentHtmlInput): ComposePrintDocumentHtmlResult;
 interface ResolvePdfDocumentRepeaterItemsInput {
   readonly binding: RepeaterBindingInput;
   readonly context: VariableDataContext;
@@ -126,9 +116,7 @@ interface ResolvePdfDocumentRepeaterItemsResult {
   readonly items: readonly ResolvedRepeaterItem[];
   readonly warnings: readonly PdfDocumentRenderWarning[];
 }
-declare function resolvePdfDocumentRepeaterItems(input: ResolvePdfDocumentRepeaterItemsInput): ResolvePdfDocumentRepeaterItemsResult;
-//#endregion
-//#region src/variables.d.ts
+export declare function resolvePdfDocumentRepeaterItems(input: ResolvePdfDocumentRepeaterItemsInput): ResolvePdfDocumentRepeaterItemsResult;
 interface ResolvePdfDocumentVariablesInput extends VariableResolverOptions {
   readonly variables: readonly PdfDocumentVariableUsage[];
   readonly context: VariableDataContext;
@@ -137,21 +125,18 @@ interface ResolvePdfDocumentVariablesResult {
   readonly values: readonly ResolvedVariableValue[];
   readonly diagnostics: readonly VariableResolutionDiagnostic[];
 }
-declare function resolvePdfDocumentVariables(input: ResolvePdfDocumentVariablesInput): ResolvePdfDocumentVariablesResult;
-//#endregion
-//#region src/index.d.ts
-type PdfRendererPackageName = '@asym/pdf-renderer';
-type PdfRendererMaturity = 'phase-37-security-tenant-contracts';
-type PdfRendererRuntime = 'browser-safe-root-with-server-subpath';
-type PdfRendererOwnership = 'print-renderer';
-interface PdfRendererBoundary {
+export declare function resolvePdfDocumentVariables(input: ResolvePdfDocumentVariablesInput): ResolvePdfDocumentVariablesResult;
+export type PdfRendererPackageName = '@asym/pdf-renderer';
+export type PdfRendererMaturity = 'phase-37-security-tenant-contracts';
+export type PdfRendererRuntime = 'browser-safe-root-with-server-subpath';
+export type PdfRendererOwnership = 'print-renderer';
+export interface PdfRendererBoundary {
   readonly packageName: PdfRendererPackageName;
   readonly maturity: PdfRendererMaturity;
   readonly owns: PdfRendererOwnership;
   readonly runtime: PdfRendererRuntime;
   readonly consumes: readonly [PdfTemplateSchemaBoundary['packageName']];
 }
-declare const pdfRendererBoundary: PdfRendererBoundary;
-//#endregion
-export { type BasePdfPreviewRequest, type ComposePdfDocumentHtmlInput, type ComposePdfDocumentHtmlResult, type ComposePrintDocumentHtmlInput, type ComposePrintDocumentHtmlResult, type CreateBrowserPdfPreviewRequest, type EvaluatePdfDocumentConditionInput, type PdfDocumentAssetDiagnostic, type PdfDocumentAssetDiagnosticCode, type PdfDocumentAssetDiagnosticSeverity, type PdfDocumentAssetLookupReference, type PdfDocumentAssetReference, type PdfDocumentAssetRenderMode, type PdfDocumentConditionEvaluation, type PdfDocumentCssMedia, type PdfDocumentCssRequirement, type PdfDocumentMark, type PdfDocumentMarkRenderer, type PdfDocumentMarkRendererContext, type PdfDocumentNodeRenderer, type PdfDocumentNodeRendererContext, type PdfDocumentRenderWarning, type PdfDocumentRenderWarningCode, type PdfDocumentRenderWarningSeverity, type PdfDocumentRenderWarningSource, type PdfDocumentVariableScope, type PdfDocumentVariableUsage, type PdfPreviewArtifact, type PdfPreviewArtifactKind, type PdfPreviewDiagnostic, type PdfPreviewDiagnosticInput, type PdfPreviewDiagnosticSeverity, type PdfPreviewDiagnosticSource, type PdfPreviewMetadata, type PdfPreviewMode, type PdfPreviewPreflightHook, type PdfPreviewPreflightInput, type PdfPreviewRenderer, type PdfPreviewRequestMetadata, type PdfPreviewResult, type PdfPreviewSnapshots, type PdfPreviewStatus, PdfRendererBoundary, PdfRendererMaturity, PdfRendererOwnership, PdfRendererPackageName, PdfRendererRuntime, type PdfTemplatePreflightDiagnostic, type PdfTemplatePreflightDiagnosticCode, type PdfTemplatePreflightMode, type PdfTemplatePreflightResult, type PdfTemplatePreflightSeverity, type PdfTemplatePreflightSource, type PdfTemplatePreflightStatus, type PdfTemplatePreflightSummary, type PdfTemplateRequiredSection, type PreflightPdfDocumentAccessibilityInput, type PreflightPdfDocumentAccessibilityResult, type PreflightPdfDocumentAssetsInput, type PreflightPdfDocumentAssetsResult, type PreflightPdfTemplateInput, type PreflightPdfTemplateResult, type PrintDocumentPageBox, type ResolvePdfDocumentRepeaterItemsInput, type ResolvePdfDocumentRepeaterItemsResult, type ResolvePdfDocumentTableRowsInput, type ResolvePdfDocumentTableRowsResult, type ResolvePdfDocumentVariablesInput, type ResolvePdfDocumentVariablesResult, composePdfDocumentHtml, composePrintDocumentHtml, createBrowserPdfPreview, evaluatePdfDocumentCondition, pdfRendererBoundary, preflightPdfDocumentAccessibility, preflightPdfDocumentAssets, preflightPdfTemplate, resolvePdfDocumentRepeaterItems, resolvePdfDocumentTableRows, resolvePdfDocumentVariables };
+export declare const pdfRendererBoundary: PdfRendererBoundary;
+export { type BasePdfPreviewRequest, type ComposePdfDocumentHtmlInput, type ComposePdfDocumentHtmlResult, type ComposePrintDocumentHtmlInput, type ComposePrintDocumentHtmlResult, type CreateBrowserPdfPreviewRequest, type EvaluatePdfDocumentConditionInput, type PdfDocumentAssetDiagnostic, type PdfDocumentAssetDiagnosticCode, type PdfDocumentAssetDiagnosticSeverity, type PdfDocumentAssetLookupReference, type PdfDocumentAssetReference, type PdfDocumentAssetRenderMode, type PdfDocumentConditionEvaluation, type PdfDocumentCssMedia, type PdfDocumentCssRequirement, type PdfDocumentMark, type PdfDocumentMarkRenderer, type PdfDocumentMarkRendererContext, type PdfDocumentNodeRenderer, type PdfDocumentNodeRendererContext, type PdfDocumentRenderWarning, type PdfDocumentRenderWarningCode, type PdfDocumentRenderWarningSeverity, type PdfDocumentRenderWarningSource, type PdfDocumentVariableScope, type PdfDocumentVariableUsage, type PdfPreviewArtifact, type PdfPreviewArtifactKind, type PdfPreviewDiagnostic, type PdfPreviewDiagnosticInput, type PdfPreviewDiagnosticSeverity, type PdfPreviewDiagnosticSource, type PdfPreviewMetadata, type PdfPreviewMode, type PdfPreviewPreflightHook, type PdfPreviewPreflightInput, type PdfPreviewRenderer, type PdfPreviewRequestMetadata, type PdfPreviewResult, type PdfPreviewSnapshots, type PdfPreviewStatus, type PdfTemplatePreflightDiagnostic, type PdfTemplatePreflightDiagnosticCode, type PdfTemplatePreflightMode, type PdfTemplatePreflightResult, type PdfTemplatePreflightSeverity, type PdfTemplatePreflightSource, type PdfTemplatePreflightStatus, type PdfTemplatePreflightSummary, type PdfTemplateRequiredSection, type PreflightPdfDocumentAccessibilityInput, type PreflightPdfDocumentAccessibilityResult, type PreflightPdfDocumentAssetsInput, type PreflightPdfDocumentAssetsResult, type PreflightPdfTemplateInput, type PreflightPdfTemplateResult, type PrintDocumentPageBox, type ResolvePdfDocumentRepeaterItemsInput, type ResolvePdfDocumentRepeaterItemsResult, type ResolvePdfDocumentTableRowsInput, type ResolvePdfDocumentTableRowsResult, type ResolvePdfDocumentVariablesInput, type ResolvePdfDocumentVariablesResult, composePdfDocumentHtml, createBrowserPdfPreview, preflightPdfDocumentAssets };
 //# sourceMappingURL=index.d.mts.map

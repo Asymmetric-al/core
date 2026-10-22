@@ -41,47 +41,57 @@
           "target": null
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Recover Core-consumed Phase47 implementation and type-only source before changing these imports; retain existing rollout until source baseline, rebuilt artifacts and document behavior are qualified.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "source": {
         "kind": "imported-artifact",
         "manifest": "vendor/react-pdf-packages/asym-docraptor-client/package.json",
         "shippedVersion": "0.0.0",
         "ownerRepository": "Asymmetric-al/react-PDF",
-        "sourceReconstructionRequired": true
+        "sourceReconstructionRequired": false,
+        "currentVersion": "0.1.0",
+        "buildCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+        "provenance": "pdf-package-provenance.json"
       },
       "currentUses": [
         {
           "path": "package.json",
           "section": "dependencies",
           "declaredAs": "@asym/docraptor-client",
-          "declared": "file:vendor/react-pdf-packages/asym-docraptor-client",
-          "target": null
+          "declared": "file:vendor/react-pdf-packages/asym-docraptor-client-0.1.0.tgz",
+          "target": "0.1.0"
         },
         {
           "path": "packages/api/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/docraptor-client",
-          "declared": "file:../../vendor/react-pdf-packages/asym-docraptor-client",
-          "target": null
+          "declared": "file:../../vendor/react-pdf-packages/asym-docraptor-client-0.1.0.tgz",
+          "target": "0.1.0"
         },
         {
           "path": "vendor/react-pdf-packages/asym-pdf-renderer/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/docraptor-client",
-          "declared": "0.0.0",
-          "target": null
+          "declared": "0.1.0",
+          "target": "0.1.0"
         },
         {
           "path": "vendor/react-pdf-packages/asym-pdf-studio-adapter/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/docraptor-client",
-          "declared": "0.0.0",
-          "target": null
+          "declared": "0.1.0",
+          "target": "0.1.0"
         }
-      ]
+      ],
+      "selectedTarget": "0.1.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@asym/pdf-editor",
@@ -114,40 +124,50 @@
           "target": null
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Recover Core-consumed Phase47 implementation and type-only source before changing these imports; retain existing rollout until source baseline, rebuilt artifacts and document behavior are qualified.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "source": {
         "kind": "imported-artifact",
         "manifest": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
         "shippedVersion": "0.0.0",
         "ownerRepository": "Asymmetric-al/react-PDF",
-        "sourceReconstructionRequired": true
+        "sourceReconstructionRequired": false,
+        "currentVersion": "0.1.0",
+        "buildCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+        "provenance": "pdf-package-provenance.json"
       },
       "currentUses": [
         {
           "path": "package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-editor",
-          "declared": "file:vendor/react-pdf-packages/asym-pdf-editor",
-          "target": null
+          "declared": "file:vendor/react-pdf-packages/asym-pdf-editor-0.1.0.tgz",
+          "target": "0.1.0"
         },
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-editor",
-          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-editor",
-          "target": null
+          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-editor-0.1.0.tgz",
+          "target": "0.1.0"
         },
         {
           "path": "vendor/react-pdf-packages/asym-pdf-studio-adapter/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-editor",
-          "declared": "0.0.0",
-          "target": null
+          "declared": "0.1.0",
+          "target": "0.1.0"
         }
-      ]
+      ],
+      "selectedTarget": "0.1.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@asym/pdf-renderer",
@@ -187,47 +207,57 @@
           "target": null
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Recover Core-consumed Phase47 implementation and type-only source before changing these imports; retain existing rollout until source baseline, rebuilt artifacts and document behavior are qualified.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "source": {
         "kind": "imported-artifact",
         "manifest": "vendor/react-pdf-packages/asym-pdf-renderer/package.json",
         "shippedVersion": "0.0.0",
         "ownerRepository": "Asymmetric-al/react-PDF",
-        "sourceReconstructionRequired": true
+        "sourceReconstructionRequired": false,
+        "currentVersion": "0.1.0",
+        "buildCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+        "provenance": "pdf-package-provenance.json"
       },
       "currentUses": [
         {
           "path": "package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-renderer",
-          "declared": "file:vendor/react-pdf-packages/asym-pdf-renderer",
-          "target": null
+          "declared": "file:vendor/react-pdf-packages/asym-pdf-renderer-0.1.0.tgz",
+          "target": "0.1.0"
         },
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-renderer",
-          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-renderer",
-          "target": null
+          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-renderer-0.1.0.tgz",
+          "target": "0.1.0"
         },
         {
           "path": "packages/api/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-renderer",
-          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-renderer",
-          "target": null
+          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-renderer-0.1.0.tgz",
+          "target": "0.1.0"
         },
         {
           "path": "vendor/react-pdf-packages/asym-pdf-studio-adapter/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-renderer",
-          "declared": "0.0.0",
-          "target": null
+          "declared": "0.1.0",
+          "target": "0.1.0"
         }
-      ]
+      ],
+      "selectedTarget": "0.1.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@asym/pdf-studio-adapter",
@@ -235,9 +265,13 @@
       "owner": "Asymmetric-al/react-PDF and Core maintainers",
       "auditedAt": "2026-10-21T15:23:39.393107+00:00",
       "initialTarget": null,
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
       "upstream": "https://github.com/Asymmetric-al/react-PDF",
       "registrySource": null,
       "source": {
@@ -245,9 +279,12 @@
         "manifest": "vendor/react-pdf-packages/asym-pdf-studio-adapter/package.json",
         "shippedVersion": "0.0.0",
         "ownerRepository": "Asymmetric-al/react-PDF",
-        "sourceReconstructionRequired": true
+        "sourceReconstructionRequired": false,
+        "currentVersion": "0.1.0",
+        "buildCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+        "provenance": "pdf-package-provenance.json"
       },
-      "note": "Recover Core-consumed Phase47 implementation and type-only source before changing these imports; retain existing rollout until source baseline, rebuilt artifacts and document behavior are qualified.",
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "uses": [
         {
           "path": "package.json",
@@ -269,17 +306,20 @@
           "path": "package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-studio-adapter",
-          "declared": "file:vendor/react-pdf-packages/asym-pdf-studio-adapter",
-          "target": null
+          "declared": "file:vendor/react-pdf-packages/asym-pdf-studio-adapter-0.1.0.tgz",
+          "target": "0.1.0"
         },
         {
           "path": "packages/api/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-studio-adapter",
-          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-studio-adapter",
-          "target": null
+          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-studio-adapter-0.1.0.tgz",
+          "target": "0.1.0"
         }
-      ]
+      ],
+      "selectedTarget": "0.1.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@asym/pdf-template-schema",
@@ -340,68 +380,78 @@
           "target": null
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Recover Core-consumed Phase47 implementation and type-only source before changing these imports; retain existing rollout until source baseline, rebuilt artifacts and document behavior are qualified.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "source": {
         "kind": "imported-artifact",
         "manifest": "vendor/react-pdf-packages/asym-pdf-template-schema/package.json",
         "shippedVersion": "0.0.0",
         "ownerRepository": "Asymmetric-al/react-PDF",
-        "sourceReconstructionRequired": true
+        "sourceReconstructionRequired": false,
+        "currentVersion": "0.1.0",
+        "buildCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+        "provenance": "pdf-package-provenance.json"
       },
       "currentUses": [
         {
           "path": "package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-template-schema",
-          "declared": "file:vendor/react-pdf-packages/asym-pdf-template-schema",
-          "target": null
+          "declared": "file:vendor/react-pdf-packages/asym-pdf-template-schema-0.1.0.tgz",
+          "target": "0.1.0"
         },
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-template-schema",
-          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-template-schema",
-          "target": null
+          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-template-schema-0.1.0.tgz",
+          "target": "0.1.0"
         },
         {
           "path": "packages/api/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-template-schema",
-          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-template-schema",
-          "target": null
+          "declared": "file:../../vendor/react-pdf-packages/asym-pdf-template-schema-0.1.0.tgz",
+          "target": "0.1.0"
         },
         {
           "path": "vendor/react-pdf-packages/asym-docraptor-client/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-template-schema",
-          "declared": "0.0.0",
-          "target": null
+          "declared": "0.1.0",
+          "target": "0.1.0"
         },
         {
           "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-template-schema",
-          "declared": "0.0.0",
-          "target": null
+          "declared": "0.1.0",
+          "target": "0.1.0"
         },
         {
           "path": "vendor/react-pdf-packages/asym-pdf-renderer/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-template-schema",
-          "declared": "0.0.0",
-          "target": null
+          "declared": "0.1.0",
+          "target": "0.1.0"
         },
         {
           "path": "vendor/react-pdf-packages/asym-pdf-studio-adapter/package.json",
           "section": "dependencies",
           "declaredAs": "@asym/pdf-template-schema",
-          "declared": "0.0.0",
-          "target": null
+          "declared": "0.1.0",
+          "target": "0.1.0"
         }
-      ]
+      ],
+      "selectedTarget": "0.1.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@axe-core/playwright",
@@ -1415,33 +1465,33 @@
           "target": "1.7.14"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "currentUses": [
-        {
-          "path": "package.json",
-          "section": "dependencies",
-          "declaredAs": "held-pdf-email-editor-compat",
-          "declared": "npm:@react-email/editor@1.1.1",
-          "target": "1.7.14"
-        },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@react-email/editor",
-          "declared": "1.7.12",
+          "declared": "1.7.14",
           "target": "1.7.14"
         },
         {
           "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
           "section": "dependencies",
           "declaredAs": "@react-email/editor",
-          "declared": "1.1.1",
+          "declared": "1.7.14",
           "target": "1.7.14"
         }
-      ]
+      ],
+      "selectedTarget": "1.7.14",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@sentry/nextjs",
@@ -1717,8 +1767,7 @@
           "section": "dependencies",
           "declaredAs": "@supabase-labs/tanstack-db",
           "declared": "0.1.0",
-          "target": "0.1.0",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.1.0"
         }
       ],
       "selectedTarget": "0.1.0",
@@ -1783,32 +1832,28 @@
           "section": "dependencies",
           "declaredAs": "@supabase/ssr",
           "declared": "0.12.7",
-          "target": "0.12.7",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.12.7"
         },
         {
           "path": "packages/api/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/ssr",
           "declared": "0.12.7",
-          "target": "0.12.7",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.12.7"
         },
         {
           "path": "packages/auth/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/ssr",
           "declared": "0.12.7",
-          "target": "0.12.7",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.12.7"
         },
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/ssr",
           "declared": "0.12.7",
-          "target": "0.12.7",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.12.7"
         }
       ],
       "selectedTarget": "0.12.7",
@@ -1895,56 +1940,49 @@
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
           "declared": "2.118.0",
-          "target": "2.118.0",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "2.118.0"
         },
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
           "declared": "2.118.0",
-          "target": "2.118.0",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "2.118.0"
         },
         {
           "path": "packages/auth/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
           "declared": "2.118.0",
-          "target": "2.118.0",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "2.118.0"
         },
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
           "declared": "2.118.0",
-          "target": "2.118.0",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "2.118.0"
         },
         {
           "path": "packages/graphql/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
           "declared": "2.118.0",
-          "target": "2.118.0",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "2.118.0"
         },
         {
           "path": "packages/lib/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
           "declared": "2.118.0",
-          "target": "2.118.0",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "2.118.0"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
           "declared": "2.118.0",
-          "target": "2.118.0",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "2.118.0"
         }
       ],
       "selectedTarget": "2.118.0",
@@ -2093,8 +2131,7 @@
           "section": "devDependencies",
           "declaredAs": "@tanstack/cli",
           "declared": "0.72.0",
-          "target": "0.72.0",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.72.0"
         }
       ],
       "selectedTarget": "0.72.0",
@@ -2146,16 +2183,14 @@
           "section": "dependencies",
           "declaredAs": "@tanstack/db",
           "declared": "0.15.2",
-          "target": "0.15.2",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.15.1"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/db",
           "declared": "0.15.2",
-          "target": "0.15.2",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.15.1"
         }
       ],
       "selectedTarget": "0.15.2",
@@ -2200,8 +2235,7 @@
           "section": "dependencies",
           "declaredAs": "@tanstack/query-db-collection",
           "declared": "1.4.8",
-          "target": "1.4.8",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "1.4.7"
         }
       ],
       "selectedTarget": "1.4.8",
@@ -2253,16 +2287,14 @@
           "section": "dependencies",
           "declaredAs": "@tanstack/react-db",
           "declared": "0.5.12",
-          "target": "0.5.12",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.5.11"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-db",
           "declared": "0.5.12",
-          "target": "0.5.12",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.5.11"
         }
       ],
       "selectedTarget": "0.5.12",
@@ -2307,8 +2339,7 @@
           "section": "dependencies",
           "declaredAs": "@tanstack/react-devtools",
           "declared": "0.10.13",
-          "target": "0.10.13",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.10.13"
         }
       ],
       "selectedTarget": "0.10.13",
@@ -2360,16 +2391,14 @@
           "section": "dependencies",
           "declaredAs": "@tanstack/react-form",
           "declared": "1.33.5",
-          "target": "1.33.5",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "1.33.5"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-form",
           "declared": "1.33.5",
-          "target": "1.33.5",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "1.33.5"
         }
       ],
       "selectedTarget": "1.33.5",
@@ -2442,40 +2471,35 @@
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query",
           "declared": "5.104.5",
-          "target": "5.104.5",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "5.104.5"
         },
         {
           "path": "apps/donor/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query",
           "declared": "5.104.5",
-          "target": "5.104.5",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "5.104.5"
         },
         {
           "path": "apps/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query",
           "declared": "5.104.5",
-          "target": "5.104.5",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "5.104.5"
         },
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query",
           "declared": "5.104.5",
-          "target": "5.104.5",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "5.104.5"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query",
           "declared": "5.104.5",
-          "target": "5.104.5",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "5.104.5"
         }
       ],
       "selectedTarget": "5.104.5",
@@ -2520,8 +2544,7 @@
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query-devtools",
           "declared": "5.104.5",
-          "target": "5.104.5",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "5.104.5"
         }
       ],
       "selectedTarget": "5.104.5",
@@ -2566,8 +2589,7 @@
           "section": "dependencies",
           "declaredAs": "@tanstack/react-store",
           "declared": "0.11.2",
-          "target": "0.11.2",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "0.11.2"
         }
       ],
       "selectedTarget": "0.11.2",
@@ -2633,32 +2655,28 @@
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table",
           "declared": "9.3.1",
-          "target": "9.3.1",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "9.3.1"
         },
         {
           "path": "apps/donor/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table",
           "declared": "9.3.1",
-          "target": "9.3.1",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "9.3.1"
         },
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table",
           "declared": "9.3.1",
-          "target": "9.3.1",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "9.3.1"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table",
           "declared": "9.3.1",
-          "target": "9.3.1",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "9.3.1"
         }
       ],
       "selectedTarget": "9.3.1",
@@ -2710,16 +2728,14 @@
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table-devtools",
           "declared": "9.3.1",
-          "target": "9.3.1",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "9.3.1"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table-devtools",
           "declared": "9.3.1",
-          "target": "9.3.1",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "9.3.1"
         }
       ],
       "selectedTarget": "9.3.1",
@@ -2764,8 +2780,7 @@
           "section": "dependencies",
           "declaredAs": "@tanstack/react-virtual",
           "declared": "3.14.21",
-          "target": "3.14.21",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "3.14.21"
         }
       ],
       "selectedTarget": "3.14.21",
@@ -2879,26 +2894,33 @@
           "target": "3.32.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tiptap/core",
-          "declared": "3.31.4",
+          "declared": "3.32.0",
           "target": "3.32.0"
         },
         {
           "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
           "section": "dependencies",
           "declaredAs": "@tiptap/core",
-          "declared": "^3.17.1",
+          "declared": "3.32.0",
           "target": "3.32.0"
         }
-      ]
+      ],
+      "selectedTarget": "3.32.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@tiptap/extension-image",
@@ -2921,19 +2943,26 @@
           "target": "3.32.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tiptap/extension-image",
-          "declared": "3.31.4",
+          "declared": "3.32.0",
           "target": "3.32.0"
         }
-      ]
+      ],
+      "selectedTarget": "3.32.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@tiptap/extension-mention",
@@ -2956,19 +2985,26 @@
           "target": "3.32.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tiptap/extension-mention",
-          "declared": "3.31.4",
+          "declared": "3.32.0",
           "target": "3.32.0"
         }
-      ]
+      ],
+      "selectedTarget": "3.32.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@tiptap/extension-placeholder",
@@ -2991,19 +3027,26 @@
           "target": "3.32.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tiptap/extension-placeholder",
-          "declared": "3.31.4",
+          "declared": "3.32.0",
           "target": "3.32.0"
         }
-      ]
+      ],
+      "selectedTarget": "3.32.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@tiptap/pm",
@@ -3026,19 +3069,33 @@
           "target": "3.32.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tiptap/pm",
-          "declared": "3.31.4",
+          "declared": "3.32.0",
+          "target": "3.32.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "dependencies",
+          "declaredAs": "@tiptap/pm",
+          "declared": "3.32.0",
           "target": "3.32.0"
         }
-      ]
+      ],
+      "selectedTarget": "3.32.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@tiptap/react",
@@ -3068,26 +3125,33 @@
           "target": "3.32.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "currentUses": [
         {
           "path": "package.json",
           "section": "devDependencies",
           "declaredAs": "@tiptap/react",
-          "declared": "3.31.4",
+          "declared": "3.32.0",
           "target": "3.32.0"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tiptap/react",
-          "declared": "3.31.4",
+          "declared": "3.32.0",
           "target": "3.32.0"
         }
-      ]
+      ],
+      "selectedTarget": "3.32.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@tiptap/starter-kit",
@@ -3110,19 +3174,26 @@
           "target": "3.32.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tiptap/starter-kit",
-          "declared": "3.31.4",
+          "declared": "3.32.0",
           "target": "3.32.0"
         }
-      ]
+      ],
+      "selectedTarget": "3.32.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@tiptap/static-renderer",
@@ -3145,19 +3216,26 @@
           "target": "3.32.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tiptap/static-renderer",
-          "declared": "3.31.4",
+          "declared": "3.32.0",
           "target": "3.32.0"
         }
-      ]
+      ],
+      "selectedTarget": "3.32.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@tiptap/suggestion",
@@ -3180,19 +3258,26 @@
           "target": "3.32.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-core-pdf-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "pdf-packages.md",
+        "pdf-package-provenance.json",
+        "pdf-owner-release.json"
+      ],
+      "note": "Owner PR #25 merged. Frozen source artifacts are imported and cold-install/runtime/byte-integrity checks pass; Core full gates, review, CI and deployed-preview qualification remain required.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tiptap/suggestion",
-          "declared": "3.31.4",
+          "declared": "3.32.0",
           "target": "3.32.0"
         }
-      ]
+      ],
+      "selectedTarget": "3.32.0",
+      "qualification": "pdf-packages.md",
+      "refreshedAt": "2026-10-22T11:05:47.467124+00:00"
     },
     {
       "name": "@types/node",
@@ -3258,35 +3343,35 @@
           "section": "devDependencies",
           "declaredAs": "@types/node",
           "declared": "24.19.2",
-          "target": "24.19.2"
+          "target": "26.6.5"
         },
         {
           "path": "apps/admin/package.json",
           "section": "devDependencies",
           "declaredAs": "@types/node",
           "declared": "24.19.2",
-          "target": "24.19.2"
+          "target": "26.6.5"
         },
         {
           "path": "apps/donor/package.json",
           "section": "devDependencies",
           "declaredAs": "@types/node",
           "declared": "24.19.2",
-          "target": "24.19.2"
+          "target": "26.6.5"
         },
         {
           "path": "apps/missionary/package.json",
           "section": "devDependencies",
           "declaredAs": "@types/node",
           "declared": "24.19.2",
-          "target": "24.19.2"
+          "target": "26.6.5"
         },
         {
           "path": "packages/eve-runtime/package.json",
           "section": "devDependencies",
           "declaredAs": "@types/node",
           "declared": "24.19.2",
-          "target": "24.19.2"
+          "target": "26.6.5"
         }
       ],
       "selectedTarget": "24.19.2",
@@ -3792,7 +3877,7 @@
           "section": "devDependencies",
           "declaredAs": "@vitest/coverage-v8",
           "declared": "5.0.5",
-          "target": null
+          "target": "5.0.5"
         }
       ],
       "baselineAbsent": true
@@ -7024,7 +7109,7 @@
           "section": "devDependencies",
           "declaredAs": "typescript",
           "declared": "6.0.3",
-          "target": "6.0.3"
+          "target": "7.0.2"
         },
         {
           "path": "apps/admin/package.json",
@@ -7349,89 +7434,71 @@
       "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
-          "path": "package.json",
-          "section": "dependencies",
-          "declaredAs": "held-pdf-zod-compat",
-          "declared": "npm:zod@4.3.6",
-          "target": null,
-          "state": "open-pdf-source-provenance",
-          "disposition": "remove-after-qualified-pdf-rebuild"
-        },
-        {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
           "declared": "4.6.7",
-          "target": "4.6.7",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "4.6.7"
         },
         {
           "path": "apps/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
           "declared": "4.6.7",
-          "target": "4.6.7",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "4.6.7"
         },
         {
           "path": "packages/api/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
           "declared": "4.6.7",
-          "target": "4.6.7",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "4.6.7"
         },
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
           "declared": "4.6.7",
-          "target": "4.6.7",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "4.6.7"
         },
         {
           "path": "packages/env/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
           "declared": "4.6.7",
-          "target": "4.6.7",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "4.6.7"
         },
         {
           "path": "packages/eve-runtime/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
           "declared": "4.6.7",
-          "target": "4.6.7",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "4.6.7"
         },
         {
           "path": "packages/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
           "declared": "4.6.7",
-          "target": "4.6.7",
-          "state": "implemented-awaiting-data-access-checkpoint-qualification"
+          "target": "4.6.7"
         },
         {
           "path": "vendor/react-pdf-packages/asym-pdf-template-schema/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
-          "declared": "4.3.6",
-          "target": "4.6.7",
-          "state": "open-pdf-source-provenance",
-          "note": "Imported artifact declaration remains unchanged; source reconstruction and rebuilt package qualification own its final disposition."
+          "declared": "4.6.7",
+          "target": "4.6.7"
         }
       ],
       "selectedTarget": "4.6.7",
       "selectedTargetSource": "https://registry.npmjs.org/zod",
       "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
       "qualification": "data-access-qualification.json",
-      "remainingScope": "Imported PDF declarations/compatibility aliases remain open under source recovery; this checkpoint qualifies product/workspace usage only."
+      "remainingScope": "Product/workspace qualification is retained; refreshed PDF0.1.0 uses Zod4.6.7 without the historical npm alias. Core PDF checkpoint qualification remains required."
     }
   ],
   "manifestCoverage": {
-    "capturedAt": "2026-10-22T02:47:03.384393+00:00",
+    "capturedAt": "2026-10-22T11:29:32.889626+00:00",
     "baselineCommit": "800213405e2c51e07180e86ee8322355e0fdb4eb",
     "activeManifests": [
       "package.json",
@@ -7460,7 +7527,7 @@
     ],
     "manifestCount": 23,
     "canonicalExternalAndImportedIdentities": 130,
-    "currentDeclarationCount": 302,
+    "currentDeclarationCount": 301,
     "internalWorkspaceLinks": [
       {
         "path": "package.json",
@@ -7992,6 +8059,236 @@
       }
     ],
     "normalization": "npm aliases retain declaredAs and exact declarations under their canonical upstream identity; imported PDF workspace/file declarations retain all consumers.",
-    "currentSourceBase": "7df55820eee8a1e0076dea489f3836e8d15d7c69"
+    "currentSourceBase": "7df55820eee8a1e0076dea489f3836e8d15d7c69",
+    "importedOwnerBuildMetadata": {
+      "ownerRepository": "Asymmetric-al/react-PDF",
+      "sourceCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+      "qualification": "pdf-owner-release.json",
+      "scope": "Dev declarations retained by pnpm pack in dependency manifests; not installed by Core. Rebuild in the owner workspace. tsconfig0.0.0 is the owner private workspace configuration, not the public npm package.",
+      "declarations": [
+        {
+          "path": "vendor/react-pdf-packages/asym-docraptor-client/package.json",
+          "section": "devDependencies",
+          "declaredAs": "tsconfig",
+          "declared": "0.0.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-docraptor-client/package.json",
+          "section": "devDependencies",
+          "declaredAs": "tsdown",
+          "declared": "0.23.1"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-docraptor-client/package.json",
+          "section": "devDependencies",
+          "declaredAs": "vitest",
+          "declared": "5.0.5"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-docraptor-client/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@typescript/native",
+          "declared": "npm:typescript@7.0.2"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-docraptor-client/package.json",
+          "section": "devDependencies",
+          "declaredAs": "typescript",
+          "declared": "6.0.3"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@testing-library/react",
+          "declared": "16.3.3"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@tiptap/extension-document",
+          "declared": "3.32.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@tiptap/extension-paragraph",
+          "declared": "3.32.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@tiptap/extension-text",
+          "declared": "3.32.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@types/react",
+          "declared": "19.3.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@types/react-dom",
+          "declared": "19.3.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@vitejs/plugin-react",
+          "declared": "6.1.2"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "react",
+          "declared": "19.3.1"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "react-dom",
+          "declared": "19.3.1"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "tsconfig",
+          "declared": "0.0.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "tsdown",
+          "declared": "0.23.1"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "vitest",
+          "declared": "5.0.5"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@typescript/native",
+          "declared": "npm:typescript@7.0.2"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "typescript",
+          "declared": "6.0.3"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@vitest/browser-playwright",
+          "declared": "5.0.5"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "vitest-browser-react",
+          "declared": "2.3.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+          "section": "devDependencies",
+          "declaredAs": "playwright",
+          "declared": "1.64.1"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-renderer/package.json",
+          "section": "devDependencies",
+          "declaredAs": "tsconfig",
+          "declared": "0.0.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-renderer/package.json",
+          "section": "devDependencies",
+          "declaredAs": "tsdown",
+          "declared": "0.23.1"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-renderer/package.json",
+          "section": "devDependencies",
+          "declaredAs": "vitest",
+          "declared": "5.0.5"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-renderer/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@typescript/native",
+          "declared": "npm:typescript@7.0.2"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-renderer/package.json",
+          "section": "devDependencies",
+          "declaredAs": "typescript",
+          "declared": "6.0.3"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-studio-adapter/package.json",
+          "section": "devDependencies",
+          "declaredAs": "tsconfig",
+          "declared": "0.0.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-studio-adapter/package.json",
+          "section": "devDependencies",
+          "declaredAs": "tsdown",
+          "declared": "0.23.1"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-studio-adapter/package.json",
+          "section": "devDependencies",
+          "declaredAs": "vitest",
+          "declared": "5.0.5"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-studio-adapter/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@typescript/native",
+          "declared": "npm:typescript@7.0.2"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-studio-adapter/package.json",
+          "section": "devDependencies",
+          "declaredAs": "typescript",
+          "declared": "6.0.3"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-template-schema/package.json",
+          "section": "devDependencies",
+          "declaredAs": "tsconfig",
+          "declared": "0.0.0"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-template-schema/package.json",
+          "section": "devDependencies",
+          "declaredAs": "tsdown",
+          "declared": "0.23.1"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-template-schema/package.json",
+          "section": "devDependencies",
+          "declaredAs": "vitest",
+          "declared": "5.0.5"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-template-schema/package.json",
+          "section": "devDependencies",
+          "declaredAs": "@typescript/native",
+          "declared": "npm:typescript@7.0.2"
+        },
+        {
+          "path": "vendor/react-pdf-packages/asym-pdf-template-schema/package.json",
+          "section": "devDependencies",
+          "declaredAs": "typescript",
+          "declared": "6.0.3"
+        }
+      ]
+    }
   }
 }

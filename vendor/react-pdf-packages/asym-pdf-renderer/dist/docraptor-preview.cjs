@@ -1,7 +1,7 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const require_preview = require("./preview-DfRauC4f.cjs");
+const require_preview = require("./preview-BttFQvLY.cjs");
 let _asym_docraptor_client = require("@asym/docraptor-client");
-//#region src/docraptor-preview.ts
+// src/docraptor-preview.ts
 const docraptorPreviewBoundary = {
 	packageName: "@asym/pdf-renderer/docraptor-preview",
 	maturity: "phase-28-branding",
@@ -39,9 +39,10 @@ async function createDocRaptorTestPdfPreview(request) {
 			snapshots: prepared.snapshots
 		});
 	} catch (error) {
+		const diagnostics = [...prepared.diagnostics, normalizeDocRaptorError(error)];
 		return require_preview.createPdfPreviewResult({
 			artifacts: [],
-			diagnostics: [...prepared.diagnostics, normalizeDocRaptorError(error)],
+			diagnostics,
 			durationMs: measureDuration(prepared.startedAt, prepared.now),
 			metadata: require_preview.createDocRaptorTestPreviewMetadata(),
 			mode: "docraptor-test",
@@ -89,6 +90,5 @@ function normalizeDocRaptorError(error) {
 function measureDuration(startedAt, now) {
 	return Math.max(0, now() - startedAt);
 }
-//#endregion
 exports.createDocRaptorTestPdfPreview = createDocRaptorTestPdfPreview;
 exports.docraptorPreviewBoundary = docraptorPreviewBoundary;

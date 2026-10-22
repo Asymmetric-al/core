@@ -563,3 +563,5 @@ all-app builds and relevant E2E still apply.
 ### Development build checkpoints
 
 Core does not automatically deploy merges into `develop`. Use an explicit `qa:smoke` preview when a feature is ready to review; the preview compiles on GitHub and uploads prebuilt output to Vercel. Routine PRs keep correctness checks without compiling all three apps. Full compilation remains required for production releases. Existing development URLs serve the last successful deployment until explicitly refreshed. See [CI policy](docs/ci.md#development-deployment-checkpoints-al-1921).
+
+Imported PDF updates follow the [source and artifact refresh workflow](docs/maintenance/modernization/pdf-packages.md). `bun run verify:pdf-package-provenance` checks the frozen archives and extracted files offline and runs in normal preflight.

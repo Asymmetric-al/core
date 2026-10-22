@@ -1,14 +1,13 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 let node_buffer = require("node:buffer");
 let _asym_pdf_template_schema = require("@asym/pdf-template-schema");
-//#region src/server-only.ts
+// src/server-only.ts
 const serverOnlyMessage = "@asym/docraptor-client is server-only and must not be imported in browser bundles.";
 function assertDocRaptorServerRuntime() {
 	const runtime = globalThis;
 	if (runtime.window !== void 0 && runtime.document !== void 0) throw new Error(serverOnlyMessage);
 }
-//#endregion
-//#region src/errors.ts
+// src/errors.ts
 var DocRaptorClientError = class extends Error {
 	code;
 	retryable;
@@ -32,8 +31,7 @@ var DocRaptorClientError = class extends Error {
 function isRetryableHttpStatus(status) {
 	return status === 429 || status >= 500;
 }
-//#endregion
-//#region src/async-render.ts
+// src/async-render.ts
 const defaultRetryPolicy = {
 	initialDelayMs: 1e3,
 	maxAttempts: 1,
@@ -412,14 +410,13 @@ function isSecretLikeKey(key) {
 function isRecord$1(value) {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-//#endregion
-//#region src/client.ts
+// src/client.ts
 const defaultApiBaseUrl = "https://api.docraptor.com";
 const defaultStatusBaseUrl = "https://docraptor.com";
 const defaultTimeoutMs = 6e4;
 const defaultPollIntervalMs = 1e3;
 const defaultMaxPollAttempts = 60;
-const completedStatuses = new Set(["completed", "failed"]);
+const completedStatuses = /* @__PURE__ */ new Set(["completed", "failed"]);
 function createDocRaptorClient(config) {
 	assertDocRaptorServerRuntime();
 	const normalizedConfig = normalizeConfig(config);
@@ -850,8 +847,7 @@ function isRecord(value) {
 function decodeXmlEntities(value) {
 	return value.replaceAll("&quot;", "\"").replaceAll("&apos;", "'").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
 }
-//#endregion
-//#region src/index.ts
+// src/index.ts
 assertDocRaptorServerRuntime();
 const docraptorClientBoundary = {
 	packageName: "@asym/docraptor-client",
@@ -860,7 +856,6 @@ const docraptorClientBoundary = {
 	runtime: "server-only",
 	secretPolicy: "credentials-stay-server-side"
 };
-//#endregion
 exports.DocRaptorClientError = DocRaptorClientError;
 exports.calculateDocRaptorRetryDelay = calculateDocRaptorRetryDelay;
 exports.classifyDocRaptorRenderError = classifyDocRaptorRenderError;

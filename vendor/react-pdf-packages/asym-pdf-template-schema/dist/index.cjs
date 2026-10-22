@@ -1,6 +1,6 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 let zod = require("zod");
-//#region src/primitives.ts
+// src/primitives.ts
 const NonEmptyStringSchema = zod.z.string().trim().min(1);
 const IdentifierSchema = NonEmptyStringSchema.regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/, "Expected a stable identifier.");
 const VariableKeySchema = NonEmptyStringSchema.regex(/^[a-z][a-z0-9]*(?:[._][a-z0-9]+)*$/, "Expected a lower-case dotted variable key.");
@@ -20,8 +20,7 @@ const NonNegativeIntegerSchema = zod.z.number().int().nonnegative();
 const NonNegativeNumberSchema = zod.z.number().finite().nonnegative();
 const UrlSchema = zod.z.string().url();
 const UnitLengthSchema = NonEmptyStringSchema.regex(/^\d+(?:\.\d+)?(?:in|cm|mm|pt|px)$/, "Expected a CSS length using in, cm, mm, pt, or px.");
-//#endregion
-//#region src/assets.ts
+// src/assets.ts
 const DocumentAssetRoleSchema = zod.z.enum([
 	"logo",
 	"image",
@@ -208,8 +207,7 @@ function isPrivateAssetHostname(hostname) {
 function redactSensitiveAssetUrl(url) {
 	return url.replace(redactedAssetUrlParamPattern, "$1[redacted]");
 }
-//#endregion
-//#region src/categories.ts
+// src/categories.ts
 const TemplateCategorySchema = zod.z.enum([
 	"donation_receipt",
 	"tax_receipt",
@@ -221,8 +219,7 @@ const TemplateCategorySchema = zod.z.enum([
 	"certificate",
 	"custom"
 ]);
-//#endregion
-//#region src/variables.ts
+// src/variables.ts
 const VariableGroupSchema = zod.z.enum([
 	"organization",
 	"recipient",
@@ -1259,8 +1256,7 @@ const coreVariableRegistry = createVariableRegistry([
 	}
 ]);
 const coreVariableDefinitions = coreVariableRegistry.definitions;
-//#endregion
-//#region src/bindings.ts
+// src/bindings.ts
 const DataBindingSchema = zod.z.object({
 	id: IdentifierSchema,
 	variableKey: VariableKeySchema,
@@ -1283,13 +1279,13 @@ const ConditionalOperatorSchema = zod.z.enum([
 	"in",
 	"not_in"
 ]);
-const operatorsWithoutValue = new Set([
+const operatorsWithoutValue = /* @__PURE__ */ new Set([
 	"exists",
 	"not_exists",
 	"is_empty",
 	"is_not_empty"
 ]);
-const operatorsWithArrayValue = new Set(["in", "not_in"]);
+const operatorsWithArrayValue = /* @__PURE__ */ new Set(["in", "not_in"]);
 const ConditionalRuleSchema = zod.z.object({
 	id: IdentifierSchema.optional(),
 	fieldPath: DataPathSchema,
@@ -1367,8 +1363,7 @@ const TableBindingSchema = zod.z.object({
 		path: ["totals"]
 	});
 });
-//#endregion
-//#region src/header-footer.ts
+// src/header-footer.ts
 const HeaderFooterPlacementSchema = zod.z.enum(["header", "footer"]);
 const HeaderFooterScopeSchema = zod.z.enum(["first_page", "repeating"]);
 const HeaderFooterAlignmentSchema = zod.z.enum([
@@ -1422,8 +1417,7 @@ const DocumentHeaderFooterSettingsSchema = zod.z.object({ regions: zod.z.array(H
 		seenRegions.add(regionKey);
 	}
 });
-//#endregion
-//#region src/pdf-metadata.ts
+// src/pdf-metadata.ts
 const PdfDocumentLanguageSchema = NonEmptyStringSchema.regex(/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/, "Expected a BCP 47-style language tag.");
 const defaultPdfDocumentMetadata = {
 	keywords: [],
@@ -1457,8 +1451,7 @@ const PdfDocumentOutputSettingsSchema = zod.z.object({
 	metadata: defaultPdfDocumentMetadata,
 	profile: {}
 });
-//#endregion
-//#region src/placeholders.ts
+// src/placeholders.ts
 const DocumentPlaceholderKindSchema = zod.z.enum([
 	"text_field",
 	"checkbox",
@@ -1558,8 +1551,7 @@ function containsControlCharacter(value) {
 	}
 	return false;
 }
-//#endregion
-//#region src/summary-blocks.ts
+// src/summary-blocks.ts
 const SummaryCalculationPrecisionSchema = zod.z.object({
 	scale: zod.z.number().int().nonnegative().optional(),
 	roundingMode: zod.z.literal("half_away_from_zero").optional()
@@ -1648,8 +1640,7 @@ const SummaryBlockBindingSchema = zod.z.object({
 	precision: SummaryCalculationPrecisionSchema.optional(),
 	calculation: SummaryCalculationReferenceSchema
 }).strict();
-//#endregion
-//#region src/themes.ts
+// src/themes.ts
 const defaultThemeColors = {
 	primary: "#1f2937",
 	accent: "#2563eb",
@@ -1772,8 +1763,7 @@ function withoutUndefinedValues(value) {
 function isPlainObject(value) {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-//#endregion
-//#region src/template.ts
+// src/template.ts
 const defaultPageMargins = {
 	top: "0.5in",
 	right: "0.5in",
@@ -1875,8 +1865,7 @@ const DocumentTemplateV1Schema = zod.z.object({
 		updatedAt: IsoDateTimeSchema.optional()
 	}).strict().default({ tags: [] })
 }).strict();
-//#endregion
-//#region src/lifecycle.ts
+// src/lifecycle.ts
 const TemplateLifecycleStatusSchema = zod.z.enum([
 	"draft",
 	"published",
@@ -2266,8 +2255,7 @@ function deepFreeze(value) {
 	}
 	return Object.freeze(value);
 }
-//#endregion
-//#region src/rendering.ts
+// src/rendering.ts
 const RenderModeSchema = zod.z.enum([
 	"preview",
 	"production",
@@ -2526,8 +2514,7 @@ function hashFnv1a32(value) {
 	}
 	return hash.toString(16).padStart(8, "0");
 }
-//#endregion
-//#region src/batch.ts
+// src/batch.ts
 const BatchGenerationStatusSchema = zod.z.enum([
 	"draft",
 	"queued",
@@ -2889,9 +2876,7 @@ function summarizeBatchProgress(jobs) {
 		case "failed":
 			counts.failed += 1;
 			break;
-		case "canceled":
-			counts.canceled += 1;
-			break;
+		case "canceled": counts.canceled += 1;
 	}
 	const completed = counts.succeeded + counts.failed + counts.canceled;
 	const completionRatio = counts.total === 0 ? 0 : roundToFourDecimals(completed / counts.total);
@@ -2977,8 +2962,7 @@ function isTerminalBatchDocumentJob(job) {
 function roundToFourDecimals(value) {
 	return Math.round(value * 1e4) / 1e4;
 }
-//#endregion
-//#region src/formatters.ts
+// src/formatters.ts
 const defaultFormatterOptions = {
 	currency: "USD",
 	locale: "en-US",
@@ -3278,8 +3262,7 @@ function isRecord$6(value) {
 function isNonEmptyString(value) {
 	return typeof value === "string" && value.trim().length > 0;
 }
-//#endregion
-//#region src/variable-resolution.ts
+// src/variable-resolution.ts
 function createVariableResolver(options = {}) {
 	const registry = options.registry ?? coreVariableRegistry;
 	const formatters = options.formatters ?? defaultVariableFormatters;
@@ -3432,8 +3415,7 @@ function isRecord$5(value) {
 function hasOwn(value, key) {
 	return Object.hasOwn(value, key);
 }
-//#endregion
-//#region src/tables.ts
+// src/tables.ts
 function resolveTableRows(input) {
 	const parseResult = TableBindingSchema.safeParse(input.binding);
 	if (!parseResult.success) return {
@@ -3638,8 +3620,7 @@ function readDiagnosticString$1(value) {
 function isRecord$4(value) {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-//#endregion
-//#region src/calculations.ts
+// src/calculations.ts
 const defaultPrecision = {
 	roundingMode: "half_away_from_zero",
 	scale: 2
@@ -3773,10 +3754,11 @@ function calculateGroupedTableTotals(input) {
 	});
 	const calculatedGroups = groupOrder.map((groupKey) => {
 		const group = groups.get(groupKey);
+		const rows = group?.rows ?? [];
 		const aggregate = calculateRowsAggregate({
 			operation: "sum",
 			precision,
-			rows: group?.rows ?? [],
+			rows,
 			sourcePath: input.sourcePath,
 			sourceIndexes: group?.sourceIndexes,
 			valuePath: input.valuePath
@@ -4269,8 +4251,7 @@ function createFieldDiagnostic(input) {
 function isRecord$3(value) {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-//#endregion
-//#region src/dates.ts
+// src/dates.ts
 const isoDatePattern = /^(\d{4})-(\d{2})-(\d{2})$/;
 const isoDateTimeWithZonePattern = /^(\d{4})-(\d{2})-(\d{2})T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,9})?)?(?:Z|[+-](?:0\d|1[0-4]):[0-5]\d)$/;
 function parseDeterministicIsoDate(value) {
@@ -4296,8 +4277,7 @@ function isValidDateParts(match) {
 	const date = new Date(timestamp);
 	return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
-//#endregion
-//#region src/conditions.ts
+// src/conditions.ts
 const predicateByOperator = {
 	contains: evaluateContains,
 	equals: evaluateEquals,
@@ -4528,8 +4508,7 @@ function createDiagnostic$1(input) {
 function isRecord$2(value) {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-//#endregion
-//#region src/migration.ts
+// src/migration.ts
 const LegacyPdfTemplateArtifactSchema = zod.z.object({
 	artifactId: IdentifierSchema,
 	location: DocumentArtifactLocationSchema.optional(),
@@ -4705,8 +4684,7 @@ const UnlayerSideBySideComparisonResultSchema = zod.z.object({
 	differences: zod.z.array(UnlayerComparisonDifferenceSchema).default([]),
 	metadata: JsonObjectSchema.default({})
 }).strict();
-//#endregion
-//#region src/page-flow.ts
+// src/page-flow.ts
 const DocumentPageBreakAttributesSchema = zod.z.object({
 	id: IdentifierSchema.optional(),
 	label: NonEmptyStringSchema.optional()
@@ -4721,8 +4699,7 @@ const PageFlowControlAttributesSchema = zod.z.object({
 	avoidBreakAfter: zod.z.boolean().optional(),
 	avoidRowSplit: zod.z.boolean().optional()
 }).strict();
-//#endregion
-//#region src/repeaters.ts
+// src/repeaters.ts
 function resolveRepeaterItems(input) {
 	const parseResult = RepeaterBindingSchema.safeParse(input.binding);
 	if (!parseResult.success) return {
@@ -4922,8 +4899,7 @@ function readDiagnosticString(value) {
 function isRecord$1(value) {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-//#endregion
-//#region src/security.ts
+// src/security.ts
 const PdfSecurityActorSchema = zod.z.object({
 	type: zod.z.enum(["user", "system"]),
 	id: IdentifierSchema.optional()
@@ -5224,8 +5200,7 @@ function redactString(value, redactValues) {
 function isRecord(value) {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-//#endregion
-//#region src/starter-templates.ts
+// src/starter-templates.ts
 const createdAt = "2026-05-15T00:00:00.000Z";
 const tenantId = "tenant-starter";
 const starterPdfTemplateCategories = [
@@ -6512,15 +6487,13 @@ function repeater(bindingId, content) {
 		content: [...content]
 	};
 }
-//#endregion
-//#region src/index.ts
+// src/index.ts
 const pdfTemplateSchemaBoundary = {
 	packageName: "@asym/pdf-template-schema",
 	maturity: "phase-38-unlayer-migration",
 	owns: "template-schema",
 	runtime: "shared"
 };
-//#endregion
 exports.AssetReferenceSchema = AssetReferenceSchema;
 exports.AssetRoleSchema = AssetRoleSchema;
 exports.AuditEventSchema = AuditEventSchema;

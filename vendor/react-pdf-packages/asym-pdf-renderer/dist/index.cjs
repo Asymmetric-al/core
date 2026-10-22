@@ -1,7 +1,7 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const require_preview = require("./preview-DfRauC4f.cjs");
+const require_preview = require("./preview-BttFQvLY.cjs");
 let _asym_pdf_template_schema = require("@asym/pdf-template-schema");
-//#region src/variables.ts
+// src/variables.ts
 function resolvePdfDocumentVariables(input) {
 	const resolver = (0, _asym_pdf_template_schema.createVariableResolver)(input);
 	const values = input.variables.map((variable) => resolver.resolve({
@@ -31,14 +31,13 @@ function createScopedContextForVariable(context, variable) {
 	}
 	return scopedContext;
 }
-//#endregion
-//#region src/preflight.ts
-const blockingModes = new Set([
+// src/preflight.ts
+const blockingModes = /* @__PURE__ */ new Set([
 	"batch",
 	"production_render",
 	"publish"
 ]);
-const knownNodeTypes = new Set([
+const knownNodeTypes = /* @__PURE__ */ new Set([
 	"assetImage",
 	"blockquote",
 	"bulletList",
@@ -647,7 +646,7 @@ function resolveRenderWarningSource(warning) {
 function normalizeRenderSeverity(warning, mode) {
 	if (warning.severity === "error") return "error";
 	if (!blockingModes.has(mode)) return warning.severity;
-	return new Set([
+	return (/* @__PURE__ */ new Set([
 		"condition_evaluation_error",
 		"condition_evaluation_warning",
 		"invalid_calculation_reference",
@@ -664,7 +663,7 @@ function normalizeRenderSeverity(warning, mode) {
 		"non_array_table_source",
 		"unsupported_table_column_value",
 		"unsupported_node"
-	]).has(warning.code) ? "error" : warning.severity;
+	])).has(warning.code) ? "error" : warning.severity;
 }
 function normalizeBindingSeverity(severity, mode) {
 	if (severity === "error" || blockingModes.has(mode)) return "error";
@@ -759,13 +758,13 @@ function hasLinkMark(node) {
 function isDescriptiveLinkText(value) {
 	const normalizedValue = value.trim().toLowerCase();
 	if (!normalizedValue) return false;
-	return !new Set([
+	return !(/* @__PURE__ */ new Set([
 		"click here",
 		"here",
 		"learn more",
 		"more",
 		"read more"
-	]).has(normalizedValue);
+	])).has(normalizedValue);
 }
 function hasNonEmptyString(value) {
 	return typeof value === "string" && value.trim().length > 0;
@@ -798,8 +797,7 @@ function suggestFixForCode(code) {
 function isMissingValue(value) {
 	return value === void 0 || value === null || value === "";
 }
-//#endregion
-//#region src/index.ts
+// src/index.ts
 const pdfRendererBoundary = {
 	packageName: "@asym/pdf-renderer",
 	maturity: "phase-37-security-tenant-contracts",
@@ -807,7 +805,6 @@ const pdfRendererBoundary = {
 	runtime: "browser-safe-root-with-server-subpath",
 	consumes: ["@asym/pdf-template-schema"]
 };
-//#endregion
 exports.composePdfDocumentHtml = require_preview.composePdfDocumentHtml;
 exports.composePrintDocumentHtml = require_preview.composePrintDocumentHtml;
 exports.createBrowserPdfPreview = require_preview.createBrowserPdfPreview;

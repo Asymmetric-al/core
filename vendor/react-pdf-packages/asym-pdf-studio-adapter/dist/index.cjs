@@ -1,6 +1,6 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 let _asym_pdf_template_schema = require("@asym/pdf-template-schema");
-//#region src/index.ts
+// src/index.ts
 const pdfStudioAdapterBoundary = {
 	consumes: [
 		"@asym/pdf-template-schema",
@@ -194,7 +194,6 @@ function throwMissingAdapter(adapterName) {
 		message: `PDF Studio adapter dependency is missing: ${adapterName}.`
 	});
 }
-//#endregion
 exports.PdfStudioAdapterError = PdfStudioAdapterError;
 Object.defineProperty(exports, "createFakePdfPermissionAdapter", {
 	enumerable: true,

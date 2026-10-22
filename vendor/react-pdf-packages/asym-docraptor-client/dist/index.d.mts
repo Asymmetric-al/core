@@ -1,6 +1,4 @@
 import { PdfDocumentMetadata, PdfDocumentMetadataInput, PdfDocumentProfileOptions, PdfDocumentProfileOptionsInput } from "@asym/pdf-template-schema";
-
-//#region src/types.d.ts
 type DocRaptorClientPackageName = '@asym/docraptor-client';
 type DocRaptorClientMaturity = 'phase-36-accessibility-metadata';
 type DocRaptorClientRuntime = 'server-only';
@@ -94,8 +92,6 @@ interface DocRaptorClient {
   getAsyncRenderStatus(statusId: string, options?: DocRaptorRequestOptions): Promise<DocRaptorAsyncRenderStatus>;
   pollAsyncRenderStatus(statusId: string, options?: DocRaptorPollAsyncRenderStatusOptions): Promise<DocRaptorAsyncRenderStatus>;
 }
-//#endregion
-//#region src/async-render.d.ts
 type DocRaptorAsyncRenderExecutionStatus = 'succeeded' | 'failed' | 'canceled';
 type DocRaptorRetryClassification = 'transient' | 'permanent' | 'canceled';
 type DocRaptorStructuredLogLevel = 'info' | 'warning' | 'error';
@@ -180,16 +176,12 @@ interface DocRaptorRenderErrorClassification {
   readonly status?: number;
   readonly details?: Readonly<Record<string, unknown>>;
 }
-declare function executeDocRaptorAsyncRender(input: ExecuteDocRaptorAsyncRenderInput): Promise<DocRaptorAsyncRenderExecutionResult>;
-declare function classifyDocRaptorRenderError(error: unknown): DocRaptorRenderErrorClassification;
-declare function calculateDocRaptorRetryDelay(attemptNumber: number, policy?: DocRaptorAsyncRetryPolicy): number;
-declare function summarizeDocRaptorAsyncRenderExecutions(results: readonly DocRaptorAsyncRenderExecutionResult[]): DocRaptorAsyncRenderSummary;
-declare function normalizeDocRaptorAsyncCallbackPayload(payload: unknown, receivedAt?: string): DocRaptorAsyncCallbackPayload;
-//#endregion
-//#region src/client.d.ts
-declare function createDocRaptorClient(config: DocRaptorClientConfig): DocRaptorClient;
-//#endregion
-//#region src/errors.d.ts
+export declare function executeDocRaptorAsyncRender(input: ExecuteDocRaptorAsyncRenderInput): Promise<DocRaptorAsyncRenderExecutionResult>;
+export declare function classifyDocRaptorRenderError(error: unknown): DocRaptorRenderErrorClassification;
+export declare function calculateDocRaptorRetryDelay(attemptNumber: number, policy?: DocRaptorAsyncRetryPolicy): number;
+export declare function summarizeDocRaptorAsyncRenderExecutions(results: readonly DocRaptorAsyncRenderExecutionResult[]): DocRaptorAsyncRenderSummary;
+export declare function normalizeDocRaptorAsyncCallbackPayload(payload: unknown, receivedAt?: string): DocRaptorAsyncCallbackPayload;
+export declare function createDocRaptorClient(config: DocRaptorClientConfig): DocRaptorClient;
 type DocRaptorClientErrorCode = 'missing_api_key' | 'http_error' | 'docraptor_error' | 'invalid_request' | 'network_error' | 'timeout' | 'aborted' | 'invalid_response';
 interface DocRaptorClientErrorOptions {
   readonly code: DocRaptorClientErrorCode;
@@ -199,22 +191,19 @@ interface DocRaptorClientErrorOptions {
   readonly details?: Readonly<Record<string, unknown>>;
   readonly cause?: unknown;
 }
-declare class DocRaptorClientError extends Error {
+export declare class DocRaptorClientError extends Error {
   readonly code: DocRaptorClientErrorCode;
   readonly retryable: boolean;
   readonly status?: number;
   readonly details?: Readonly<Record<string, unknown>>;
   constructor(options: DocRaptorClientErrorOptions);
 }
-//#endregion
-//#region src/index.d.ts
-declare const docraptorClientBoundary: {
+export declare const docraptorClientBoundary: {
   readonly packageName: "@asym/docraptor-client";
   readonly maturity: "phase-36-accessibility-metadata";
   readonly owns: "docraptor-client";
   readonly runtime: "server-only";
   readonly secretPolicy: "credentials-stay-server-side";
 };
-//#endregion
-export { type DocRaptorAsyncCallbackPayload, type DocRaptorAsyncPollPolicy, type DocRaptorAsyncRenderAttempt, type DocRaptorAsyncRenderExecutionResult, type DocRaptorAsyncRenderExecutionStatus, type DocRaptorAsyncRenderJob, type DocRaptorAsyncRenderStatus, type DocRaptorAsyncRenderStatusValue, type DocRaptorAsyncRenderSummary, type DocRaptorAsyncRetryPolicy, type DocRaptorClient, type DocRaptorClientBoundary, type DocRaptorClientConfig, DocRaptorClientError, type DocRaptorClientErrorCode, type DocRaptorClientMaturity, type DocRaptorClientOwnership, type DocRaptorClientPackageName, type DocRaptorClientRuntime, type DocRaptorFetch, type DocRaptorIdempotencyMetadata, type DocRaptorMedia, type DocRaptorMode, type DocRaptorPollAsyncRenderStatusOptions, type DocRaptorRenderErrorClassification, type DocRaptorRenderRequest, type DocRaptorRequestMetadata, type DocRaptorRequestOptions, type DocRaptorRetryClassification, type DocRaptorSecretPolicy, type DocRaptorStructuredLogEntry, type DocRaptorStructuredLogLevel, type DocRaptorSyncRenderResult, type ExecuteDocRaptorAsyncRenderInput, calculateDocRaptorRetryDelay, classifyDocRaptorRenderError, createDocRaptorClient, docraptorClientBoundary, executeDocRaptorAsyncRender, normalizeDocRaptorAsyncCallbackPayload, summarizeDocRaptorAsyncRenderExecutions };
+export type { DocRaptorAsyncCallbackPayload, DocRaptorAsyncPollPolicy, DocRaptorAsyncRenderAttempt, DocRaptorAsyncRenderExecutionResult, DocRaptorAsyncRenderExecutionStatus, DocRaptorAsyncRenderJob, DocRaptorAsyncRenderStatus, DocRaptorAsyncRenderStatusValue, DocRaptorAsyncRenderSummary, DocRaptorAsyncRetryPolicy, DocRaptorClient, DocRaptorClientBoundary, DocRaptorClientConfig, DocRaptorClientErrorCode, DocRaptorClientMaturity, DocRaptorClientOwnership, DocRaptorClientPackageName, DocRaptorClientRuntime, DocRaptorFetch, DocRaptorIdempotencyMetadata, DocRaptorMedia, DocRaptorMode, DocRaptorPollAsyncRenderStatusOptions, DocRaptorRenderErrorClassification, DocRaptorRenderRequest, DocRaptorRequestMetadata, DocRaptorRequestOptions, DocRaptorRetryClassification, DocRaptorSecretPolicy, DocRaptorStructuredLogEntry, DocRaptorStructuredLogLevel, DocRaptorSyncRenderResult, ExecuteDocRaptorAsyncRenderInput };
 //# sourceMappingURL=index.d.mts.map
