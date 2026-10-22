@@ -90,6 +90,7 @@ export function useAuth() {
 export function useTasks() {
   const current = useTaskDeleteFixtureState();
   return {
+    tasks: current.tasks,
     loading: current.loading,
     error: null,
     filteredTasks: current.tasks,

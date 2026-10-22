@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-22T18:59:43.462101+00:00",
+  "status": "merged-post-merge-ci-passed",
+  "pullRequest": "https://github.com/Asymmetric-al/core/pull/2190",
+  "qualifiedHead": "3e33a371356bea237d16eaa52209ed57f6a8d23f",
+  "qualifiedBase": "2aace16818abda8b1cc45c557aff0784379864e0",
+  "mergeCommit": "e29b7c4f4f2e30cab456f7a047944c2998477dca",
+  "qualifiedLockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+  "scope": {
+    "directLibraries": {
+      "cn": "0.5.0",
+      "lucide-react": "1.61.0",
+      "maplibre-gl": "6.15.0",
+      "motion": "14.6.0",
+      "nuqs": "2.10.2",
+      "react-resizable-panels": "4.14.8"
+    },
+    "directDeclarations": 20,
+    "workspaces": 7,
+    "compatibleLeaves": {
+      "baseline-browser-mapping": "2.11.30",
+      "immutable": "4.3.9",
+      "caniuse-lite": "1.0.30001819",
+      "nanoid": "3.3.20"
+    },
+    "compatibilityDependency": {
+      "name": "cn",
+      "version": "0.4.0",
+      "owner": "@shadcn/lint tooling runtime; Core tooling maintainers",
+      "reason": "The current parent requires this exact version. Core product UI uses 0.5.0; no cross-version override.",
+      "recheckWhen": "Owning-parent version/constraint or class-merging usage changes."
+    },
+    "qualificationBoundary": "This receipt qualifies the exact UI PR head and identical develop merge tree. Later Dnd or combined-lock qualification is separate.",
+    "currentIntegrationBoundary": "The Dnd checkout has combined lock SHA256 7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d. Its source/lock differs from the qualified UI tree; the 31 UI path bindings and 41d600 lock are historical release evidence, not a current-checkout parity claim. Dnd requalification and all publication gates remain separate."
+  },
+  "releaseMetadata": {
+    "path": "ui-utilities-releases.json",
+    "sha256": "3b8625277c15d6c120769eb8afbc22326a10b9759df89467522c3fc7f2d4052a"
+  },
+  "historicalPrepublicationQualification": {
+    "path": "ui-utilities-qualification.json",
+    "sha256": "f05c5134d72e994ed70d9134a4f397f6253dcb8972129b1c6de6e556712fc586",
+    "preservedUnchanged": true,
+    "limit": "Its awaiting-CI/review/previews/merge statuses describe its dated capture; this later receipt records completed UI release gates."
+  },
+  "prQualification": {
+    "source": {
+      "path": "/tmp/core-modernization-ui-utilities-3e-final-qualification.json",
+      "sha256": "ddedaf416c29d33c14b380ff33b0af2aeec04cd1f628e9c56e13a2f3b38baf0d"
+    },
+    "completeChangedPaths": 31,
+    "exactRemoteBlobAndIndependentReviewBindings": 31,
+    "requiredChecksPassed": 4,
+    "checksPassed": 22,
+    "policySkippedChecks": ["e2e-gate", "instant-nav"],
+    "ci": [
+      {
+        "run": 39830755738,
+        "workflow": "CI",
+        "status": "success"
+      },
+      {
+        "run": 39830755517,
+        "workflow": "CI Integration",
+        "status": "success"
+      }
+    ],
+    "allReviewThreadsResolved": true,
+    "reviewDecision": null,
+    "approvalBoundary": "Resolved discussions, completed checks and independent reviews are recorded separately; a null review decision is not described as human approval.",
+    "reviewFixes": {
+      "mapPaint": {
+        "comment": 4349942547,
+        "fix": "61b709ac244678605d926d415f0ff8d52204a44d",
+        "resolved": true
+      },
+      "forceNew": {
+        "comment": 4351346313,
+        "fix": "d1a4638a59f2310b038cae76014701f0ea0d4748",
+        "reply": 4351791196,
+        "resolved": true
+      },
+      "outsideDiffDocRaptor": {
+        "review": 5617025252,
+        "fix": "3e33a371356bea237d16eaa52209ed57f6a8d23f",
+        "evidence": "/tmp/core-modernization-ui-docs-pdf-remaining-final-readback-20261023.json"
+      }
+    }
+  },
+  "previews": [
+    {
+      "app": "admin",
+      "id": "dpl_3RBoHCNddP3QsMeAazLZGZNukUuk",
+      "projectId": "prj_SB9DucsrJOT0wF1v43SWMFsSNdn8",
+      "state": "READY",
+      "target": null,
+      "sha": "3e33a371356bea237d16eaa52209ed57f6a8d23f",
+      "ref": "chore/AL-1965-ui-utilities-modernization",
+      "url": "https://admin-kon3nt48d-asymmetric-al.vercel.app",
+      "logs": [
+        "Build machine configuration: 30 cores, 60 GB (Turbo Build Machine, overridden for this deployment)",
+        "Cloning github.com/Asymmetric-al/core (Branch: chore/AL-1965-ui-utilities-modernization, Commit: 3e33a37)",
+        "[vercel-ignore] QA Preview marker matched"
+      ],
+      "fixedMarkerMatched": true
+    },
+    {
+      "app": "donor",
+      "id": "dpl_5nLUVhB3Zo1aSLnEjkcwHM69uYa4",
+      "projectId": "prj_dZG3XkklLVZyqm85FW5Vvv7ph3kL",
+      "state": "READY",
+      "target": null,
+      "sha": "3e33a371356bea237d16eaa52209ed57f6a8d23f",
+      "ref": "chore/AL-1965-ui-utilities-modernization",
+      "url": "https://donor-gas17ku37-asymmetric-al.vercel.app",
+      "logs": [
+        "Build machine configuration: 4 cores, 8 GB",
+        "Cloning github.com/Asymmetric-al/core (Branch: chore/AL-1965-ui-utilities-modernization, Commit: 3e33a37)",
+        "[vercel-ignore] QA Preview marker matched"
+      ],
+      "fixedMarkerMatched": true
+    },
+    {
+      "app": "missionary",
+      "id": "dpl_CjphEX4eXm5LoA8qZZqyrAaWtNzr",
+      "projectId": "prj_6tXSJKsdv2JpK70GKkg9HIg5hiYN",
+      "state": "READY",
+      "target": null,
+      "sha": "3e33a371356bea237d16eaa52209ed57f6a8d23f",
+      "ref": "chore/AL-1965-ui-utilities-modernization",
+      "url": "https://missionary-baani4nlr-asymmetric-al.vercel.app",
+      "logs": [
+        "Build machine configuration: 4 cores, 8 GB",
+        "Cloning github.com/Asymmetric-al/core (Branch: chore/AL-1965-ui-utilities-modernization, Commit: 3e33a37)",
+        "[vercel-ignore] QA Preview marker matched"
+      ],
+      "fixedMarkerMatched": true
+    }
+  ],
+  "hostedSmoke": {
+    "run": 39830825499,
+    "status": "success",
+    "qualifiedHead": "3e33a371356bea237d16eaa52209ed57f6a8d23f",
+    "projects": {
+      "development-admin": "PASS",
+      "development-donor": "PASS",
+      "development-missionary": "PASS"
+    },
+    "qaComment": 6344007843,
+    "qaCommentUpdatedAt": "2026-10-22T18:31:57Z",
+    "workflowHeadBoundary": "The manually dispatched workflow itself ran from the recorded develop base; its deployments and smoke results bind the exact UI PR head."
+  },
+  "mergeReadback": {
+    "source": {
+      "path": "/tmp/core-modernization-ui-utilities-merge-readback.json",
+      "sha256": "da83f11ffafe0b91ceefc523244c555ab9ea6137c7d1d775c63dd3b65c541f10"
+    },
+    "qualifiedTreeIdenticalToDevelopMerge": true,
+    "qualifiedHeadAndBaseAreAncestors": true,
+    "historicalPostMergeStatus": "Both workflows were pending when this merge receipt was captured."
+  },
+  "postMergeReadback": {
+    "recordedAt": "2026-10-22 19:10:31 UTC",
+    "source": {
+      "path": "/tmp/core-modernization-ui-utilities-postmerge-final-readback-20261022T1910.json",
+      "sha256": "733e0504ee3c262c460c14787e6b9bea5142ad18bf4751231b4127fd97d6b125",
+      "method": "Live GitHub REST workflow readback via approved connector"
+    },
+    "allPostMergeWorkflowsSuccessful": true,
+    "qualificationBoundary": "Both runs bind the exact UI merge commit; remaining campaign and production qualification stay open.",
+    "ci": {
+      "run": 39833013365,
+      "workflow": "CI",
+      "status": "success",
+      "runStatus": "completed",
+      "headSha": "e29b7c4f4f2e30cab456f7a047944c2998477dca",
+      "updatedAt": "2026-10-22T18:45:54Z",
+      "url": "https://github.com/Asymmetric-al/core/actions/runs/39833013365"
+    },
+    "integration": {
+      "run": 39833013031,
+      "workflow": "CI Integration",
+      "status": "success",
+      "runStatus": "completed",
+      "headSha": "e29b7c4f4f2e30cab456f7a047944c2998477dca",
+      "updatedAt": "2026-10-22T18:52:11Z",
+      "url": "https://github.com/Asymmetric-al/core/actions/runs/39833013031"
+    }
+  },
+  "preserved": {
+    "designSystem": "Exact base-maia/Base UI/shared ownership and semantic tokens",
+    "nativeBuilderActivation": "unchanged",
+    "productionExecution": false
+  },
+  "remaining": [
+    "Dnd merged-UI-base full browser passed 299 cases with 5 existing skips; its prepush, PR/current-head CI/review, hosted previews and merge remain open.",
+    "Remaining UI/editor, telemetry, sanitization, email, browser payments and AI cohorts remain open; the six-library merge does not close campaign task 7.1.",
+    "Lighthouse owning-chain replacement, Braces reachability, whole-Core security/SBOM and final combined release qualification remain open.",
+    "Live DocRaptor document fidelity remains separately unqualified as tracked by pdf-release-readback.json."
+  ],
+  "postMergeReadbackHistory": [
+    {
+      "recordedAt": "2026-10-22T18:59:43.462101+00:00",
+      "source": "Parent agent latest live GitHub readback conveyed during this documentation update; no new provider call was made by the document author.",
+      "timestampBoundary": "recordedAt is this local documentation capture, not a provider completion timestamp. Pending status must be refreshed from later actual run evidence.",
+      "ci": {
+        "run": 39833013365,
+        "workflow": "CI",
+        "status": "success"
+      },
+      "integration": {
+        "run": 39833013031,
+        "workflow": "CI Integration",
+        "status": "pending",
+        "detail": "CMS E2E still running at the parent readback; success is not yet claimed."
+      }
+    }
+  ]
+}

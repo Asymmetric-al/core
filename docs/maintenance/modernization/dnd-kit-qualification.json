@@ -1,0 +1,506 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-22T17:01:20.176360+00:00",
+  "status": "merged-ui-base-browser-qualified-awaiting-prepush-ci-review-previews-and-merge",
+  "baseCommit": "61b709ac244678605d926d415f0ff8d52204a44d",
+  "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+  "cohort": {
+    "@dnd-kit/react": "0.5.1",
+    "@dnd-kit/dom": "0.5.1",
+    "@dnd-kit/helpers": "0.5.1",
+    "@dnd-kit/abstract": "0.5.1"
+  },
+  "firstPartyLegacyDeclarationsRemoved": 7,
+  "unusedAdminDeclarationsRemoved": 4,
+  "firstPartyConsumer": "packages/missionary/components/task-kanban-board.tsx",
+  "passed": [
+    {
+      "kind": "baseline-install",
+      "proof": "/tmp/core-modernization-dnd-baseline-install.json",
+      "sha256": "2ac6bb7387e0a1afb38b47395651d7c69f1e0b255d5907bfcf967f4d8619bd26",
+      "logSha256": "c4e7d4478d2b7bd27167a9475bec8b5f263a7aea421099acf5b943b27a4c2a1a",
+      "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+      "sourceState": "original-baseline"
+    },
+    {
+      "kind": "baseline-controls",
+      "proof": "/tmp/core-modernization-dnd-baseline-controls.json",
+      "sha256": "75b12464ee9e3c9a08fefed7f12055ea9f7a22803a9d04442a1afba123ea36a4",
+      "logSha256": "bc5960750600535601b99995099425e9e58966cf9abe9f5b1dc555da55f185cc",
+      "lockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+      "sourceState": "original-baseline"
+    },
+    {
+      "kind": "upgrade-install",
+      "proof": "/tmp/core-modernization-dnd-upgrade-install.json",
+      "sha256": "9c3d59009269dbe36bc2c93429d35602a338a5fd919341f1fa3fa8fadf57458c",
+      "logSha256": "f54ada5850f32e1642b9d4410bc948a2dc6a25dea13dad1beaeccfa64e269856",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "cold-install",
+      "proof": "/tmp/core-modernization-dnd-cold-install.json",
+      "sha256": "de34badac3899e419345ba6498aef4c1d3d697ff789de981a31fdcae410787c5",
+      "logSha256": "6600aff4e64b48eb148e9d797fd48e2536985dcfdb874f470dcce1de52c42db6",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "keyboard-overlay-motion-green",
+      "proof": "/tmp/core-modernization-dnd-keyboard-overlay-motion-green.json",
+      "sha256": "0328382c063f1564eff09d20d7e1ecaac36074f191041d80a8e4855098a00801",
+      "logSha256": "7d1cd7f6000a0a7d98a4b3913de901903d86379c204fa43af0125e66ab3479cf",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "kanban-final-candidate-matrix",
+      "proof": "/tmp/core-modernization-dnd-kanban-final-candidate-matrix.json",
+      "sha256": "4d2500ed41c77d334579b3e791acdba70d046de01989e8a1ecb67904a0a3cbe2",
+      "logSha256": "1c8c0c071f7fd0f5115b9e31ae3573dd5df7dad5dd492df4f3c8ab31016c93e2",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "mobile-pointer-repeat",
+      "proof": "/tmp/core-modernization-dnd-mobile-pointer-repeat.json",
+      "sha256": "f3e726f2b729f60338ededfb3ede99ca75adf333621a08dfae4fd49fabc0bbe0",
+      "logSha256": "09bf9a5896a9afaaafcf35034619e7a2d6a983d3c990de836919a412a4f518cf",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "task-http-characterization",
+      "proof": "/tmp/core-modernization-dnd-task-http-characterization.json",
+      "sha256": "8b3ef6bfea52f6c48926eb4931c61529f71169f3ea62da6c0602e5f0184def3b",
+      "logSha256": "714e8bebe0d7b186d0d8a291a0bbb7a9ace59d80ebb6acf46365ac3ef2b94c93",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "focused-unit-and-lint",
+      "proof": "/tmp/core-modernization-dnd-focused-unit-and-lint.json",
+      "sha256": "2cd7b07644e70c72e01757ad1ec591bd72510e4b22c2fd635a4ba3e04f0db405",
+      "logSha256": "fb0cdda29055ec8be1860f3545122ab8025800a1a5741b4feba80627490b3d6b",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "board-current-eslint",
+      "proof": "/tmp/core-modernization-dnd-board-current-eslint.json",
+      "sha256": "15b1ecab1f6dfe0d7edb66bc61efbd8a000295099eb2d7bafad65b599731bfba",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "outside-drop-current",
+      "proof": "/tmp/core-modernization-dnd-outside-drop-current.json",
+      "sha256": "5125ff2c3641f0005b480ad9c627f0c9b2a9b937437e37faf4a58c7390f7912b",
+      "logSha256": "913c8100042b80ed6474647cbc8a143e7165b9f19af1609100f2f3a3504392bf",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "cold-full-browser",
+      "proof": "/tmp/core-modernization-dnd-cold-full-browser.json",
+      "sha256": "bc33e915060e1dc7aee7f08c2025f30c401d781b2a95470fbae33a54a8c16d88",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "logSha256": "1dc60af42d40d4f297495041892200649f3a60420b4c84cf49d8995153437e8f",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "current-strict-doctor",
+      "proof": "/tmp/core-modernization-dnd-current-strict-doctor.json",
+      "sha256": "395f643d1404aa6df2b5468076baa6138db651a6efb7733a53787dbd926e4812",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "logSha256": "b964a17a3419b241ac9f18a49e4d4ff15b9796f4ebf685e844aac6303073a95c",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "current-strict-shadscan-test-paths",
+      "proof": "/tmp/core-modernization-dnd-current-strict-shadscan-test-paths.json",
+      "sha256": "0c53be5a60c34c3808ebf1634072fb40d2c4cfb2b5ef944da1dcb7882ae6bc18",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "logSha256": "39f6e37552088d6e08ab1cb2a8b02c3a5072e56a82fdf4f243c48ef50397c51d",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "cold-full-preflight",
+      "proof": "/tmp/core-modernization-dnd-cold-full-preflight.json",
+      "sha256": "3bf83046c1291ac44d58edfda567ad0197034e525d6c365d88513ad7ae05f95e",
+      "logSha256": "bc92aa6d2a6a6086e415de0339bb7a529c3defb5b7e930291027121c2e654da3",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "pre-hook-import-normalization"
+    },
+    {
+      "kind": "hook-normalized-kanban-browser",
+      "proof": "/tmp/core-modernization-dnd-hook-normalized-kanban-browser.json",
+      "sha256": "c32dcd4d4ac52818cc0aeabde8da3f7d11f45e9a38f7af65291621887a6b7590",
+      "logSha256": "c39d1b2dab857fbcada960ac65c218600f33d45c2bfaa2f29d2c80fef7a53324",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "post-hook-import-normalization",
+      "taskBoardSha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba"
+    },
+    {
+      "kind": "hook-normalized-doctor",
+      "proof": "/tmp/core-modernization-dnd-hook-normalized-doctor.json",
+      "sha256": "f140b0f53c56712e7b498981ae39b569c50f74414308dbe8b852bfdeb70130c6",
+      "logSha256": "25ab3e4c6aaca7f39ad471a91b65e1084518271962ea7170dc2144318688e892",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "post-hook-import-normalization",
+      "taskBoardSha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba"
+    },
+    {
+      "kind": "hook-normalized-shadscan",
+      "proof": "/tmp/core-modernization-dnd-hook-normalized-shadscan.json",
+      "sha256": "ddf377cfa04f39fb9370aab0f7b25cd7947402fc553fba775adaf2c432f42ad9",
+      "logSha256": "9b6070f4a93326279b497555b7ee7200b8cea1607bcebac5282d3248afdc9b52",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "post-hook-import-normalization",
+      "taskBoardSha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba"
+    },
+    {
+      "kind": "hook-normalized-workspace-lint",
+      "proof": "/tmp/core-modernization-dnd-hook-normalized-workspace-lint.json",
+      "sha256": "156c2a18a15a4e3067ac930e4e062a2c606f013db0218c7ec5ec20d08b7430b8",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceState": "post-hook-import-normalization",
+      "taskBoardSha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba"
+    }
+  ],
+  "coverageLimits": [
+    "The earlier 36-case selection and the pre-hook cold full matrix (299 passed, five existing skips, including 40 task-board cases) remain dated evidence for the pre-normalization source. After import ordering, all 40 task-board cases pass again across four projects; the full browser matrix and full preflight were not rerun after this import-only change.",
+    "The real useTasks HTTP hook has6new preservation tests and14 focused lifecycle/realtime/API tests overall. Offline controlled responses do not substitute for hosted authenticated provider checks.",
+    "Pointer Escape, pointercancel and active-provider-unmount cleanup are confirmed in inspected installed source but have no new focused runtime test in this checkpoint.",
+    "The original independent source review and quality-ledger review retain their original byte hashes. The current task-board and Shadscan ledger hashes are qualified through the explicit import-only and one-proof-hash bridges below; prior full-preflight and source-review artifacts are not relabeled as current whole-file evidence.",
+    "The normal merge of qualified UI2190 into this Dnd branch is recorded in currentBaseRequalification. Its fresh full-browser run passed 299 cases with 5 existing skips; prior15 baseline/pre-hook and4 post-hook receipts remain unchanged dated evidence. New-base pre-push, PR/current-head CI/review, hosted-preview and merge qualification remain open."
+  ],
+  "graph": {
+    "newFamilyPackages": 7,
+    "peerExpandedClosure": 12,
+    "missingRequiredOrPeerEdges": 0,
+    "integrityMismatches": 0,
+    "introducedOrWorsenedAdvisoryPairs": 0,
+    "review": {
+      "path": "/tmp/core-modernization-dnd-graph-security-review.json",
+      "sha256": "b0e3488432cd44a8bbf4befb2b1bb6971aad811b1e3b04428e7f0c933e8d3a3f"
+    }
+  },
+  "remainingCompatibility": {
+    "owner": "Core CMS maintainers / official Payload Next and UI",
+    "installedParentVersion": "4.0.0-beta.3",
+    "legacyPackages": {
+      "@dnd-kit/core": "6.3.1",
+      "@dnd-kit/sortable": "10.0.0",
+      "@dnd-kit/modifiers": "9.0.0",
+      "@dnd-kit/utilities": "3.2.2"
+    },
+    "restriction": "Only upstream CMS-owned internals retain these APIs; no first-party source import or direct declaration remains.",
+    "state": "Owner release requalification OPEN: Payload4.0.0-beta.4 published during this checkpoint, and must be qualified coherently.",
+    "recheckWhen": "Every Payload owner release, legacy consumer/import change, dependency constraint or advisory change invalidates prior compatibility evidence.",
+    "newReleaseEvidence": {
+      "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
+      "sha256": "8d2438c248e8e32100652d1a20bc21a732e9bbb4a767122b70ff566a6a0613e8"
+    }
+  },
+  "openSecurity": "Whole-Core70 unique advisories including Braces3.0.3 remain open. This cohort introduces no advisory pair and grants no unreachability exception.",
+  "releasePending": [
+    "Complete merged-UI/current-develop pre-push qualification at 043fc189d6cd36d355582476aae16796d24dd186",
+    "Reviewable PR, current-head CI/review, three deployed previews, merge and post-merge readback"
+  ],
+  "browser": {
+    "allCasesPassed": 299,
+    "existingSkips": 5,
+    "newTaskBoardCases": 40,
+    "projects": 4,
+    "fixtureCompiler": "Product TypeScript7 invoked by root test:e2e:base-ui command",
+    "externalOrApiRequests": 0,
+    "runtimeErrors": 0,
+    "sourceState": "Pre-hook cold full-matrix counts; post-hook focused task-board results are recorded separately.",
+    "postHookTaskBoardCases": 40,
+    "postHookTaskBoardProjects": 4,
+    "postHookFullMatrixRerun": false
+  },
+  "quality": {
+    "reactDoctor": {
+      "targets": 8,
+      "actionable": 0,
+      "exceptionsBefore": 294,
+      "exceptionsAfter": 293,
+      "obsoleteLegacySpreadExceptionsRemoved": 1,
+      "retainedSupportHashUpdates": 26,
+      "retainedRecordsRefreshed": 21,
+      "postHookProofKind": "hook-normalized-doctor"
+    },
+    "shadscan": {
+      "pooledScore": 48,
+      "classifications": 118,
+      "errors": 0,
+      "existingProofHashUpdates": 11,
+      "floorsUnchanged": true,
+      "currentTaskBoardVerificationAdded": true,
+      "postHookProofKind": "hook-normalized-shadscan",
+      "postHookBoardProofHashUpdates": 1,
+      "postHookUpdateScope": "The same existing board proof slot is requalified from the reviewed pre-hook hash to the import-normalized current hash. No additional classification, identity, exception or floor change."
+    }
+  },
+  "independentReviews": [
+    {
+      "path": "/tmp/core-modernization-dnd-source-independent-review.json",
+      "sha256": "d6aeb935b93001da3f538ef83e11b53e75012b9709113a0f0580c268793f3608",
+      "sourceState": "Historical pre-hook whole-file hashes; current board is bridged by hookImportNormalization."
+    },
+    {
+      "path": "/tmp/core-modernization-dnd-quality-evidence-independent-review.json",
+      "sha256": "552aaea1e9f93d82e3fc165dfc1d4c43aa815a2940e28d073aafc9dd266e441d",
+      "sourceState": "Historical approved ledger hashes; the later single board-proof hash update is bridged by hookImportNormalization."
+    },
+    {
+      "path": "/tmp/core-modernization-dnd-graph-security-review.json",
+      "sha256": "b0e3488432cd44a8bbf4befb2b1bb6971aad811b1e3b04428e7f0c933e8d3a3f",
+      "sourceState": "Current unchanged dependency lock and graph; no dependency mutation during hook normalization."
+    }
+  ],
+  "regressionEvidence": [
+    {
+      "kind": "legacy-empty-column-wrong-status",
+      "receipt": "/tmp/core-modernization-dnd-empty-column-red.json",
+      "sha256": "772cd73c168d1584b87d743a8b377363ee911a86050f07f91603c07786850274"
+    },
+    {
+      "kind": "default-optimistic-plugin-react-reparent-conflict",
+      "receipt": "/tmp/core-modernization-dnd-empty-column-first-green.json",
+      "sha256": "31fd52aa83ab78b1fffc06044b98cbdf410b06cc4e1ddf1d9056c949b36a0c55"
+    },
+    {
+      "kind": "keyboard-cancel-focus-restoration",
+      "receipt": "/tmp/core-modernization-dnd-keyboard-cancel-first.json",
+      "sha256": "1262d8ae7609ecbeefdaab57b0b4aac02c2d26c71589beb6f8743c501d7d7744"
+    },
+    {
+      "kind": "thrown-save-unhandled-rejection",
+      "receipt": "/tmp/core-modernization-dnd-thrown-save-red.json",
+      "sha256": "ab215b75efb28bd745b38de412d2ded3e40a36ac07387045e255215fe9911e9d"
+    },
+    {
+      "kind": "actual-keyboard-overlay250ms-motion",
+      "receipt": "/tmp/core-modernization-dnd-keyboard-overlay-motion-red.json",
+      "sha256": "4f0c9fc5e59e328f4ceeefbb0f8f6e480c5931b1adeff8dd690441f46004d679"
+    }
+  ],
+  "historicalSourceReviewReadback": {
+    "recordedAt": "2026-10-22T16:37:06.930397+00:00",
+    "sourceState": "pre-hook-import-normalization",
+    "hashes": {
+      "apps/admin/package.json": "c3574c0ddf18d6bd51ec06aab78bc0b9141ebe9028d67eb8d94de4d072aa2700",
+      "bun.lock": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "packages/missionary/components/task-kanban-board.tsx": "3094729e87704617d91479b3e4ffc323573c2bcdf562009903746d0c393955a4",
+      "packages/missionary/package.json": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439",
+      "tests/fixtures/base-ui-compliance/server.mjs": "66006a1d5f431f5649046def07b5feb16b4cfe841bae6992d0ed4096295daa2c",
+      "tests/fixtures/base-ui-compliance/tsconfig.json": "1840b91a9aeeca91789e808303e9411856bbacd32e466458c4a49f771ea9ea50",
+      "tests/fixtures/base-ui-compliance/kanban-main.tsx": "a0eafed1ed269c614ecd9fd3421c97bbdeb8f3c99604fd37240de6432a121e2f",
+      "tests/fixtures/base-ui-compliance/kanban.html": "cbc5cd6cc4959e2c368693eb96f6d82a1801d615dc3020dc17af1920dcb4d9f1",
+      "tests/fixtures/base-ui-compliance/specs/kanban.spec.ts": "05d3c1e3e8b1cc0e6e4006a37810261fadcfdc23f1f1dc703c1b54572d964f7e",
+      "tests/unit/packages/lib/use-tasks-move-contract.test.tsx": "92435c56223ed283de2fbc0a8cc399452654de8fde282c8d267ccd24decc0236"
+    }
+  },
+  "currentSourceReadback": {
+    "apps/admin/package.json": "c3574c0ddf18d6bd51ec06aab78bc0b9141ebe9028d67eb8d94de4d072aa2700",
+    "bun.lock": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+    "packages/missionary/components/task-kanban-board.tsx": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba",
+    "packages/missionary/package.json": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439",
+    "tests/fixtures/base-ui-compliance/server.mjs": "66006a1d5f431f5649046def07b5feb16b4cfe841bae6992d0ed4096295daa2c",
+    "tests/fixtures/base-ui-compliance/tsconfig.json": "1840b91a9aeeca91789e808303e9411856bbacd32e466458c4a49f771ea9ea50",
+    "tests/fixtures/base-ui-compliance/kanban-main.tsx": "a0eafed1ed269c614ecd9fd3421c97bbdeb8f3c99604fd37240de6432a121e2f",
+    "tests/fixtures/base-ui-compliance/kanban.html": "cbc5cd6cc4959e2c368693eb96f6d82a1801d615dc3020dc17af1920dcb4d9f1",
+    "tests/fixtures/base-ui-compliance/specs/kanban.spec.ts": "05d3c1e3e8b1cc0e6e4006a37810261fadcfdc23f1f1dc703c1b54572d964f7e",
+    "tests/unit/packages/lib/use-tasks-move-contract.test.tsx": "92435c56223ed283de2fbc0a8cc399452654de8fde282c8d267ccd24decc0236"
+  },
+  "hookImportNormalization": {
+    "recordedAt": "2026-10-22T17:01:20.176360+00:00",
+    "kind": "normal-commit-hook-import-ordering",
+    "sourceState": "post-hook-import-normalization",
+    "originalQualificationRecordedAt": "2026-10-22T16:37:06.930397+00:00",
+    "proof": {
+      "path": "/tmp/core-modernization-dnd-hook-import-normalization-review.json",
+      "sha256": "2be2b0675aa3fec602d75c67411da84fe895480d197b60ad9db39f61c051e709"
+    },
+    "taskBoard": {
+      "path": "packages/missionary/components/task-kanban-board.tsx",
+      "beforeSha256": "3094729e87704617d91479b3e4ffc323573c2bcdf562009903746d0c393955a4",
+      "afterSha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba",
+      "importCount": 20,
+      "importMultisetIdentical": true,
+      "entirePostImportBodyByteIdentical": true,
+      "bodySha256": "0c638091b9be107bde4922698bcb60d32cebbfcf25d5ba0a3e39e5a1f0fde142",
+      "rawPostImportBodySha256": "722a97c0469b945e0f12660f6340e6ba99c9c7116cb4fec6606ba91aaa9c7bd5",
+      "scope": "Import declaration ordering only. No binding, module specifier or non-import statement changed; all nine other originally reviewed source paths retain their exact hashes."
+    },
+    "shadscanLedger": {
+      "path": "tooling/shadscan/findings.json",
+      "beforeSha256": "45ff16e08948721b658fc893d515020e1535a1f6e8d39d03ebdfaebd54f9a9d3",
+      "afterSha256": "80498ebee0e1c2fe3a5a4d5e4ac4b8dab80d98f81061c67aec9c991d38e3e68f",
+      "changedProofPath": "packages/missionary/components/task-kanban-board.tsx",
+      "proofBeforeSha256": "3094729e87704617d91479b3e4ffc323573c2bcdf562009903746d0c393955a4",
+      "proofAfterSha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba",
+      "proofSlotsUpdated": 1,
+      "entries": 118,
+      "allOtherStructuralValuesUnchanged": true,
+      "policyFloorsUnchanged": true
+    },
+    "freshProofKinds": [
+      "hook-normalized-kanban-browser",
+      "hook-normalized-doctor",
+      "hook-normalized-shadscan",
+      "hook-normalized-workspace-lint"
+    ],
+    "postHookResults": {
+      "taskBoardBrowserPassed": 40,
+      "taskBoardBrowserProjects": 4,
+      "reactDoctorTargets": 8,
+      "reactDoctorActionable": 0,
+      "reactDoctorExactExceptions": 293,
+      "shadscanPassed": true,
+      "shadscanClassifications": 118,
+      "shadscanErrors": 0,
+      "shadscanPooledScore": 48,
+      "workspaceLintPassed": true
+    },
+    "historicalFullGates": {
+      "fullPreflightProof": "/tmp/core-modernization-dnd-cold-full-preflight.json",
+      "fullPreflightProofSha256": "3bf83046c1291ac44d58edfda567ad0197034e525d6c365d88513ad7ae05f95e",
+      "fullPreflightLogSha256": "bc92aa6d2a6a6086e415de0339bb7a529c3defb5b7e930291027121c2e654da3",
+      "taskBoardSha256": "3094729e87704617d91479b3e4ffc323573c2bcdf562009903746d0c393955a4",
+      "interpretation": "This full preflight passed before the import-only normalization. Its receipt, source review and complete browser run remain historical evidence at their original hashes; the focused board browser, strict Doctor/Shadscan and workspace lint checks were rerun on the normalized source. No post-hook full-preflight rerun is claimed."
+    },
+    "releaseBoundary": "Existing current-head CI/review, UI-base/current-develop requalification, three hosted previews, merge and post-merge readback remain open; no hook bypass, security waiver or production qualification is granted."
+  },
+  "currentBaseRequalification": {
+    "recordedAt": "2026-10-22T18:59:00.773047+00:00",
+    "candidateBaseCommit": "043fc189d6cd36d355582476aae16796d24dd186",
+    "normalMergeParents": [
+      "8b31d2cc8bbd8189e03936cf1f355967ced538d3",
+      "e29b7c4f4f2e30cab456f7a047944c2998477dca"
+    ],
+    "mergedUi": {
+      "pullRequest": "https://github.com/Asymmetric-al/core/pull/2190",
+      "reviewedHead": "3e33a371356bea237d16eaa52209ed57f6a8d23f",
+      "mergeCommit": "e29b7c4f4f2e30cab456f7a047944c2998477dca",
+      "releaseReadback": "ui-utilities-release-readback.json"
+    },
+    "historicalQualification": {
+      "recordedAt": "2026-10-22T17:01:20.176360+00:00",
+      "baseCommit": "61b709ac244678605d926d415f0ff8d52204a44d",
+      "status": "local-qualified-awaiting-ui-base-ci-review-previews-and-merge",
+      "releasePending": [
+        "Requalification against merged UI checkpoint/current develop",
+        "Reviewable PR, current-head CI/review, three deployed previews, merge and post-merge readback"
+      ],
+      "passedReceipts": 19,
+      "preHookAndBaselineReceipts": 15,
+      "postHookReceipts": 4,
+      "interpretation": "All original receipt contents, source hashes, dates and hook bridges remain unchanged; they do not claim fresh combined-base gates."
+    },
+    "sourceAndLockReadback": {
+      "comparedTo": "currentSourceReadback recorded after hook import normalization",
+      "paths": [
+        {
+          "path": "apps/admin/package.json",
+          "sha256": "c3574c0ddf18d6bd51ec06aab78bc0b9141ebe9028d67eb8d94de4d072aa2700"
+        },
+        {
+          "path": "bun.lock",
+          "sha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d"
+        },
+        {
+          "path": "packages/missionary/components/task-kanban-board.tsx",
+          "sha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "sha256": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/server.mjs",
+          "sha256": "66006a1d5f431f5649046def07b5feb16b4cfe841bae6992d0ed4096295daa2c"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/tsconfig.json",
+          "sha256": "1840b91a9aeeca91789e808303e9411856bbacd32e466458c4a49f771ea9ea50"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/kanban-main.tsx",
+          "sha256": "a0eafed1ed269c614ecd9fd3421c97bbdeb8f3c99604fd37240de6432a121e2f"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/kanban.html",
+          "sha256": "cbc5cd6cc4959e2c368693eb96f6d82a1801d615dc3020dc17af1920dcb4d9f1"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/kanban.spec.ts",
+          "sha256": "05d3c1e3e8b1cc0e6e4006a37810261fadcfdc23f1f1dc703c1b54572d964f7e"
+        },
+        {
+          "path": "tests/unit/packages/lib/use-tasks-move-contract.test.tsx",
+          "sha256": "92435c56223ed283de2fbc0a8cc399452654de8fde282c8d267ccd24decc0236"
+        }
+      ],
+      "allTenPathsAndLockUnchanged": true,
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d"
+    },
+    "officialSelectedReleaseRefresh": {
+      "path": "/tmp/core-modernization-dnd-official-release-refresh-after-ui-merge.json",
+      "sha256": "0f17ee59dfe8982332c28af11a5063136348355f3bffb83eaca216a007ae2a86",
+      "selectedDeclarations": 4,
+      "selectedVersion": "0.5.1",
+      "allSelectedCurrent": true,
+      "selectedIntegritiesVerified": true
+    },
+    "currentBaseGates": {
+      "fullBrowser": {
+        "status": "passed",
+        "acceptedReceipt": {
+          "path": "/tmp/core-modernization-dnd-current-develop-full-browser.json",
+          "sha256": "73f30d30485a63b8998076e5506e3b0713aa42aed2fcb71c7e289570919e84cb"
+        },
+        "command": ["bun", "run", "test:e2e:base-ui"],
+        "startedAt": "2026-10-22T18:49:07.074941+00:00",
+        "endedAt": "2026-10-22T18:54:12.926787+00:00",
+        "exitCode": 0,
+        "casesPassed": 299,
+        "existingSkips": 5,
+        "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+        "log": "/tmp/core-modernization-dnd-current-develop-full-browser.log",
+        "logSha256": "5f999a10980f80d52b9284cdcea3f1a859497f256be6519805a20dff96aa0296",
+        "qualification": "Accepted full browser matrix on the normally merged UI base; product/source and lock hashes remain unchanged."
+      },
+      "prepush": "open",
+      "pullRequest": "open",
+      "currentHeadCiAndReview": "open",
+      "hostedPreviews": "open",
+      "merge": "open",
+      "postMergeReadback": "open"
+    },
+    "remainingBoundary": "Required upstream CMS beta.4 owner requalification, whole-Core advisories including Braces, and production-release evidence remain open.",
+    "latestReadbackAt": "2026-10-22T19:12:31.570203+00:00",
+    "historicalGateReadbacks": [
+      {
+        "recordedAt": "2026-10-22T18:59:00.773047+00:00",
+        "status": "merged-ui-base-requalification-in-progress-awaiting-prepush-ci-review-previews-and-merge",
+        "fullBrowser": {
+          "status": "running",
+          "acceptedReceipt": null,
+          "qualification": "The parent is running the new-base full browser suite; no completed count or pass is recorded here."
+        },
+        "releasePending": [
+          "Complete merged-UI/current-develop browser and pre-push requalification at 043fc189d6cd36d355582476aae16796d24dd186",
+          "Reviewable PR, current-head CI/review, three deployed previews, merge and post-merge readback"
+        ]
+      }
+    ],
+    "historicalBrowserLimitSupersession": "The original post-hook no-full-browser-rerun statement in coverageLimits describes its dated capture. This accepted merged-base run supersedes that browser limit only; no new-base full-preflight or publication result is inferred."
+  }
+}
