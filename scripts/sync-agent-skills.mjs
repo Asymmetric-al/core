@@ -21,6 +21,7 @@ import {
 import { restoreReviewedEcosystemSkills } from "./lib/ecosystem-skill-adapters.mjs";
 import { restoreStripeCoreGuidance } from "./lib/stripe-skill-adapters.mjs";
 import { applyManagedSkillCompatibility } from "./lib/managed-skill-compatibility.mjs";
+import { assertReviewedSkillFileModes } from "./lib/skill-file-modes.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1049,6 +1050,13 @@ async function main() {
   }
 
   const canonicalSkills = await listCanonicalSkillsForSync();
+  // Validate reviewed source permissions before pruning or publishing mirrors.
+  // Directory copies retain each source file's existing executable mode.
+  for (const skillName of canonicalSkills)
+    await assertReviewedSkillFileModes(
+      skillName,
+      path.join(sourceRoot, skillName),
+    );
   const canonicalSkillFiles = await buildCanonicalSkillFiles(canonicalSkills);
   const previousManifests = new Map();
 

@@ -30,6 +30,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertReviewedSkillFileModes } from "./lib/skill-file-modes.mjs";
 import {
   annotateSecretScannerMentions,
   SECRET_SCANNER_SKIP_SUFFIXES,
@@ -2684,6 +2685,7 @@ async function prepareGithubSkillRefresh({
       commitSha,
     });
     const treeHash = await computeVendoredTreeHash(staging);
+    await assertReviewedSkillFileModes(skillName, staging);
 
     return {
       refresh: { skillName, from: upstreamSkillDir, to, staging },
@@ -3020,6 +3022,7 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
     await applyPostRefreshReplacements(skillName, staging);
     await formatManagedSkillOutput(skillName, staging);
     await assertPostRefreshCompatibility(skillName, staging);
+    await assertReviewedSkillFileModes(skillName, staging);
   } catch (error) {
     await rm(staging, { recursive: true, force: true });
     throw error;

@@ -221,7 +221,9 @@ Outcomes: 80 updated, 89 current, 12 retained-snapshot, 8 unresolved, 1 excluded
 Review the exact source, companions, applicable license and Core adaptations before publishing.
 Source-group failures restore directories and lock/companion files together; retain recovery copies after incomplete rollback. Ecosystem refreshes replace only reviewed .agents source directories, then sync every client. Never run blanket installers or paid activation to manufacture a freshness claim. Check native invocation policy as well as SKILL frontmatter.
 
-### Verification and delivery
+<!-- AL-2186-AUDIT-END -->
+
+## Verification and delivery - AL-2186
 
 - Full repository preflight passed before PR publication: 915 test files and
   7,621 tests passed, with one expected failure and four skipped tests.
@@ -238,6 +240,10 @@ Source-group failures restore directories and lock/companion files together; ret
   generated mirrors were verified from those sources. Shadscan remained 48/100.
   Only eight root-manifest proof hashes changed after adding the refresh script;
   findings, classifications and thresholds were preserved.
+- PR review identified an Impeccable launcher permission regression. Restored
+  its reviewed executable mode and added permission-aware refresh, sync and
+  non-mutating mirror checks. A complete upstream mode audit found no other
+  executable losses in the updated support trees.
 - [PR #2187](https://github.com/Asymmetric-al/core/pull/2187) tracks exact-head
   hosted CI and review state. Optional provider availability is reported there
   separately from repository checks and independent source review.
@@ -247,8 +253,6 @@ in skill-source-audit.json together with provenance and mirrors. Its dated
 imported/examined revisions are evidence, not fields to infer from another skill.
 Use the documented hash algorithm; do not relabel an unreviewed source current
 merely to make an integrity assertion pass.
-
-<!-- AL-2186-AUDIT-END -->
 
 ## Scope
 

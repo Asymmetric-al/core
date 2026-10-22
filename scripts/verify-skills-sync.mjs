@@ -2,7 +2,15 @@
 
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
-import { cp, mkdtemp, mkdir, readdir, readFile, rm } from "node:fs/promises";
+import {
+  cp,
+  mkdtemp,
+  mkdir,
+  readdir,
+  readFile,
+  rm,
+  stat,
+} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -196,7 +204,13 @@ async function collectRelativeFiles(root) {
         continue;
       }
       if (entry.isFile() || entry.isSymbolicLink()) {
-        files.set(posixRelative(root, fullPath), await readFile(fullPath));
+        files.set(posixRelative(root, fullPath), {
+          content: await readFile(fullPath),
+          executableMode:
+            process.platform === "win32"
+              ? null
+              : (await stat(fullPath)).mode & 0o111,
+        });
       }
     }
   }
@@ -237,9 +251,13 @@ async function compareTrees(liveRoot, expectedRoot) {
         continue;
       }
       if (
-        normalizeNewlines(liveContent) !== normalizeNewlines(expectedContent)
+        normalizeNewlines(liveContent.content) !==
+        normalizeNewlines(expectedContent.content)
       ) {
         drifted.push({ tree, relativePath, reason: "changed" });
+      }
+      if (liveContent.executableMode !== expectedContent.executableMode) {
+        drifted.push({ tree, relativePath, reason: "executable mode changed" });
       }
     }
   }

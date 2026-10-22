@@ -8,7 +8,9 @@ import {
   readFile,
   readdir,
   readlink,
+  rename,
   rm,
+  stat,
   symlink,
   writeFile,
 } from "node:fs/promises";
@@ -282,7 +284,7 @@ function run(
         TEMP: root,
         TMP: root,
         TEST_FAULT: fault,
-        ...(fault === "partial-backup"
+        ...(["partial-backup", "mode-exdev"].includes(fault)
           ? { CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1" }
           : {}),
       },
@@ -298,6 +300,119 @@ afterEach(async () => {
 });
 
 describe("skill refresh transaction", () => {
+  it.skipIf(process.platform === "win32")(
+    "rejects a non-executable reviewed launcher before publishing a refreshed tree",
+    async () => {
+      const root = await createGithubFixture();
+      const upstream = path.join(root, "upstream");
+      const source = path.join(upstream, "cursor-team-kit/skills/impeccable");
+      await rename(
+        path.join(upstream, "cursor-team-kit/skills/weekly-review"),
+        source,
+      );
+      await writeFile(
+        path.join(source, "SKILL.md"),
+        "---\nname: impeccable\ndescription: Fixture\n---\n",
+      );
+      await mkdir(path.join(source, "scripts"));
+      await writeFile(
+        path.join(source, "scripts/impeccable"),
+        "#!/bin/sh\nexit 0\n",
+      );
+      await chmod(path.join(source, "scripts/impeccable"), 0o644);
+      expect(fixtureGit(upstream, ["add", "."]).status).toBe(0);
+      const saved = fixtureGit(upstream, [
+        "commit",
+        "-m",
+        "Reviewed launcher fixture",
+      ]);
+      expect(saved.status, saved.stderr).toBe(0);
+      const scriptPath = path.join(root, "scripts/refresh-upstream-skills.mjs");
+      const script = await readFile(scriptPath, "utf8");
+      expect(script).toContain('  "weekly-review",');
+      await writeFile(
+        scriptPath,
+        script.replace('  "weekly-review",', '  "impeccable",'),
+      );
+      const canonical = path.join(root, "docs/ai/skills/impeccable");
+      await mkdir(path.join(canonical, "scripts"), { recursive: true });
+      await writeFile(
+        path.join(canonical, "SKILL.md"),
+        "# Existing reviewed tree\n",
+      );
+      await writeFile(
+        path.join(canonical, "scripts/impeccable"),
+        "#!/bin/sh\n# Existing launcher\n",
+      );
+      await chmod(path.join(canonical, "scripts/impeccable"), 0o755);
+      const lockBefore = await readFile(path.join(root, "skills-lock.json"));
+      const result = run(root, "", "cursor/plugins");
+      expect(result.status).not.toBe(0);
+      expect(result.output).toContain(
+        "Reviewed support file must remain executable",
+      );
+      expect(await readFile(path.join(canonical, "SKILL.md"), "utf8")).toBe(
+        "# Existing reviewed tree\n",
+      );
+      expect(
+        (await stat(path.join(canonical, "scripts/impeccable"))).mode & 0o777,
+      ).toBe(0o755);
+      expect(await readFile(path.join(root, "skills-lock.json"))).toEqual(
+        lockBefore,
+      );
+    },
+  );
+  it.skipIf(process.platform === "win32").each(["mode-exdev", "partial-lock"])(
+    "preserves source executable modes through refresh publication and rollback (%s)",
+    async (fault) => {
+      const root = await createGithubFixture();
+      const upstream = path.join(root, "upstream");
+      const source = path.join(
+        upstream,
+        "cursor-team-kit/skills/weekly-review",
+      );
+      await writeFile(
+        path.join(source, "launcher.sh"),
+        "#!/bin/sh\n# Refreshed executable\n",
+      );
+      await chmod(path.join(source, "launcher.sh"), 0o755);
+      await writeFile(
+        path.join(source, "ordinary.sh"),
+        "#!/bin/sh\n# Ordinary asset\n",
+      );
+      await chmod(path.join(source, "ordinary.sh"), 0o644);
+      expect(fixtureGit(upstream, ["add", "."]).status).toBe(0);
+      const saved = fixtureGit(upstream, [
+        "commit",
+        "-m",
+        "Source executable modes",
+      ]);
+      expect(saved.status, saved.stderr).toBe(0);
+      const canonical = path.join(root, "docs/ai/skills/weekly-review");
+      await writeFile(
+        path.join(canonical, "launcher.sh"),
+        "#!/bin/sh\n# Original executable\n",
+      );
+      await chmod(path.join(canonical, "launcher.sh"), 0o751);
+      if (fault === "partial-lock") await injectFault(root, fault);
+      const result = run(root, fault, "cursor/plugins");
+      expect(result.status, result.output).toBe(
+        fault === "partial-lock" ? 1 : 0,
+      );
+      expect(
+        (await stat(path.join(canonical, "launcher.sh"))).mode & 0o777,
+      ).toBe(fault === "partial-lock" ? 0o751 : 0o755);
+      if (fault === "partial-lock") {
+        expect(result.output).toContain("REACHED_PARTIAL_LOCK_WRITE");
+        expect(
+          await readFile(path.join(canonical, "launcher.sh"), "utf8"),
+        ).toBe("#!/bin/sh\n# Original executable\n");
+      } else
+        expect(
+          (await stat(path.join(canonical, "ordinary.sh"))).mode & 0o777,
+        ).toBe(0o644);
+    },
+  );
   it("isolates fixture Git directory, worktree and index from inherited hook state", async () => {
     const root = await createFixture();
     const parent = path.join(root, "sentinel-repository");
