@@ -24,8 +24,14 @@ npx playwright test --retries=3 --trace=on
 # Run in fully parallel mode to expose isolation issues
 npx playwright test --fully-parallel --workers=4
 
-# Run all retries at the end in one worker to rule out concurrency (1.62+)
-npx playwright test --retries=2 --retry-strategy=isolated
+# Run tests in a random order to expose order dependencies (1.64+)
+npx playwright test --shuffle
+# Reproduce a failing order with the seed printed at the start of the run
+npx playwright test --shuffle 271828182
+
+# Run all retries at the end in one worker to rule out concurrency (1.62+):
+# config-only, set retryStrategy: 'isolated' in playwright.config (no CLI flag)
+npx playwright test --retries=2
 
 # List flaky tests (tests that failed then passed on retry)
 npx playwright test --retries=2 --reporter=json | jq '.suites[].specs[] | select(.ok == true and (.tests[].results | length > 1))'
@@ -266,6 +272,8 @@ test('good: retry entire assertion block', async ({ page }) => {
 
 Isolation issues come from shared state: module-level variables, database rows, localStorage, cookies, or file system artifacts.
 
+When the shared state cannot be made per-test (one external account, a global setting), declare a test `lock` (1.63+) so only the tests that contend for it serialize. See [Serializing Tests on a Shared Resource](../ci/parallel-and-sharding.md#pattern-6-serializing-tests-on-a-shared-resource-lock-playwright-163).
+
 **TypeScript**
 ```typescript
 import { test as base, expect } from '@playwright/test';
@@ -300,7 +308,7 @@ export const test = base.extend<{}, WorkerFixtures>({
   workerAccount: [async ({ request }, use) => {
     const email = `worker-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
     const response = await request.post('/api/users', {
-      data: { email, password: 'TestP@ss123!' }, // pragma: allowlist secret
+      data: { email, password: 'TestP@ss123!' },
     });
     const account = await response.json();
 
@@ -366,7 +374,7 @@ const test = base.extend({
   workerAccount: [async ({ request }, use) => {
     const email = `worker-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
     const response = await request.post('/api/users', {
-      data: { email, password: 'TestP@ss123!' }, // pragma: allowlist secret
+      data: { email, password: 'TestP@ss123!' },
     });
     const account = await response.json();
 
@@ -378,6 +386,22 @@ const test = base.extend({
 
 module.exports = { test, expect };
 ```
+
+#### Expose Hidden Order Dependencies With `--shuffle` (Playwright 1.64+)
+
+**Before 1.64**, order dependencies hid behind the fixed scheduling order: test B only passed because test A always ran first in the same worker and left a row, a cookie, or a module-level variable behind. You found out when someone added a test, sharding changed, or a file was renamed.
+
+**1.64** adds `--shuffle`, which schedules tests in a random order and prints the seed:
+
+```bash
+npx playwright test --shuffle
+# Running 42 tests using 4 workers, shuffle seed 271828182
+
+# Same seed, same order: reproduce the failure deterministically
+npx playwright test --shuffle 271828182
+```
+
+**Practical use**: run a nightly CI job with `--shuffle` and keep the seed in the job log. A test that fails under shuffle but passes in the default order has an isolation bug; fix it with the patterns above rather than pinning the order. Do not put `--shuffle` on the PR pipeline until the suite is clean, or every PR inherits unrelated random failures.
 
 ### Fix: Environment Issues
 
@@ -721,7 +745,7 @@ Driving this from an external flakiness API, matching on full title paths, and t
 
 #### Isolated Retries (`retryStrategy: 'isolated'`, Playwright 1.62+)
 
-The default retry runs immediately in the same worker, inheriting whatever state may have caused the failure. `'isolated'` defers every retry to the end of the run and executes them in a single worker.
+The default `'immediate'` strategy retries as soon as a worker is free, while the rest of the suite is still running and can interfere again. `'isolated'` defers every retry to the end of the run and executes them in a single worker.
 
 ```typescript
 // playwright.config.ts

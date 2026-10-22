@@ -1,403 +1,250 @@
+/* Payload v4 semantic tokens adapt to the existing base-maia design system.
+   The shared UI package owns colors, typography and geometry. */
 :root,
 html[data-theme="light"],
 html[data-theme="dark"] {
-  --theme-elevation-0: var(--background);
-  --theme-elevation-50: color-mix(
+  --color-drawer-backdrop: color-mix(
     in oklch,
-    var(--background) 98%,
-    var(--foreground) 2%
+    var(--foreground) 10%,
+    transparent
   );
-  --theme-elevation-100: color-mix(
+  --color-modalbackdrop: color-mix(
     in oklch,
-    var(--background) 96%,
-    var(--foreground) 4%
+    var(--foreground) 50%,
+    transparent
   );
-  --theme-elevation-150: color-mix(
+  --color-focal-point-backdrop: color-mix(
     in oklch,
-    var(--background) 93%,
-    var(--foreground) 7%
+    var(--foreground) 50%,
+    transparent
   );
-  --theme-elevation-200: color-mix(
+  --color-bg-assistive: var(--accent);
+  --color-bg-assistive-hover: var(--accent);
+  --color-bg-assistive-pressed: var(--accent);
+  --color-bg-assistive-secondary: var(--accent);
+  --color-bg-assistive-tertiary: var(--accent);
+  --color-bg-brand: var(--primary);
+  --color-bg-brand-hover: color-mix(in oklch, var(--primary) 90%, transparent);
+  --color-bg-brand-pressed: color-mix(
     in oklch,
-    var(--background) 89%,
-    var(--foreground) 11%
+    var(--primary) 80%,
+    transparent
   );
-  --theme-elevation-250: color-mix(
+  --color-bg-brand-secondary: var(--primary);
+  --color-bg-brand-tertiary: var(--accent);
+  --color-bg-brand-tertiary-hover: var(--accent);
+  --color-bg-component: var(--accent);
+  --color-bg-component-tertiary: var(--accent);
+  --color-bg-component-tertiary-hover: var(--accent);
+  --color-bg-danger: var(--destructive);
+  --color-bg-danger-hover: color-mix(
     in oklch,
-    var(--background) 84%,
-    var(--foreground) 16%
+    var(--destructive) 90%,
+    transparent
   );
-  --theme-elevation-300: color-mix(
+  --color-bg-danger-pressed: color-mix(
     in oklch,
-    var(--background) 78%,
-    var(--foreground) 22%
+    var(--destructive) 80%,
+    transparent
   );
-  --theme-elevation-350: color-mix(
+  --color-bg-danger-tertiary: color-mix(
     in oklch,
-    var(--background) 72%,
-    var(--foreground) 28%
+    var(--destructive) 12%,
+    var(--background)
   );
-  --theme-elevation-400: color-mix(
+  --color-bg-danger-tertiary-hover: color-mix(
     in oklch,
-    var(--background) 65%,
-    var(--foreground) 35%
+    var(--destructive) 20%,
+    var(--background)
   );
-  --theme-elevation-450: color-mix(
+  --color-bg-danger-tertiary-pressed: color-mix(
     in oklch,
-    var(--background) 58%,
-    var(--foreground) 42%
+    var(--destructive) 28%,
+    var(--background)
   );
-  --theme-elevation-500: color-mix(
+  --color-bg: var(--background);
+  --color-bg-hover: var(--accent);
+  --color-bg-pressed: var(--muted);
+  --color-bg-secondary: var(--muted);
+  --color-bg-secondary-hover: var(--accent);
+  --color-bg-secondary-pressed: var(--accent);
+  --color-bg-tertiary: var(--accent);
+  --color-bg-disabled: var(--muted);
+  --color-bg-elevated: var(--card);
+  --color-bg-info: color-mix(in oklch, var(--info) 12%, var(--background));
+  --color-bg-inverse: var(--foreground);
+  --color-bg-inverse-hover: var(--foreground);
+  --color-bg-inverse-pressed: var(--foreground);
+  --color-bg-menu: var(--popover);
+  --color-bg-tooltip: var(--popover);
+  --color-bg-selected: var(--accent);
+  --color-bg-selected-hover: var(--accent);
+  --color-bg-selected-pressed: var(--accent);
+  --color-bg-selected-strong: var(--primary);
+  --color-bg-selected-strong-hover: color-mix(
     in oklch,
-    var(--background) 50%,
-    var(--foreground) 50%
+    var(--primary) 90%,
+    transparent
   );
-  --theme-elevation-550: color-mix(
+  --color-bg-selected-strong-pressed: color-mix(
     in oklch,
-    var(--background) 42%,
-    var(--foreground) 58%
+    var(--primary) 80%,
+    transparent
   );
-  --theme-elevation-600: color-mix(
+  --color-bg-success: var(--success);
+  --color-bg-success-hover: color-mix(
     in oklch,
-    var(--background) 35%,
-    var(--foreground) 65%
+    var(--success) 90%,
+    transparent
   );
-  --theme-elevation-650: color-mix(
+  --color-bg-success-pressed: color-mix(
     in oklch,
-    var(--background) 28%,
-    var(--foreground) 72%
+    var(--success) 80%,
+    transparent
   );
-  --theme-elevation-700: color-mix(
+  --color-bg-success-tertiary: color-mix(
     in oklch,
-    var(--background) 22%,
-    var(--foreground) 78%
+    var(--success) 12%,
+    var(--background)
   );
-  --theme-elevation-750: color-mix(
+  --color-bg-success-tertiary-hover: color-mix(
     in oklch,
-    var(--background) 16%,
-    var(--foreground) 84%
+    var(--success) 20%,
+    var(--background)
   );
-  --theme-elevation-800: color-mix(
+  --color-bg-transparent-hover: color-mix(
     in oklch,
-    var(--background) 11%,
-    var(--foreground) 89%
+    var(--foreground) 5%,
+    transparent
   );
-  --theme-elevation-850: color-mix(
+  --color-bg-transparent-pressed: color-mix(
     in oklch,
-    var(--background) 7%,
-    var(--foreground) 93%
+    var(--foreground) 10%,
+    transparent
   );
-  --theme-elevation-900: color-mix(
+  --color-bg-warning: var(--warning);
+  --color-bg-warning-tertiary: color-mix(
     in oklch,
-    var(--background) 4%,
-    var(--foreground) 96%
+    var(--warning) 12%,
+    var(--background)
   );
-  --theme-elevation-950: color-mix(
+  --color-bg-warning-tertiary-hover: color-mix(
     in oklch,
-    var(--background) 2%,
-    var(--foreground) 98%
+    var(--warning) 20%,
+    var(--background)
   );
-  --theme-elevation-1000: color-mix(
-    in oklch,
-    var(--background) 1%,
-    var(--foreground) 99%
-  );
+  --color-border-assistive: var(--border);
+  --color-border-assistive-strong: var(--border);
+  --color-border-onassistive: var(--border);
+  --color-border-onassistive-strong: var(--border);
+  --color-border-brand: var(--ring);
+  --color-border-brand-strong: var(--ring);
+  --color-border-onbrand-strong: var(--primary-foreground);
+  --color-border-component: var(--border);
+  --color-border-component-strong: var(--border);
+  --color-border-danger: var(--destructive);
+  --color-border-danger-strong: var(--destructive);
+  --color-border: var(--border);
+  --color-border-strong: var(--foreground);
+  --color-border-disabled: var(--border);
+  --color-border-selected: var(--ring);
+  --color-border-selected-strong: var(--ring);
+  --color-border-success: var(--success);
+  --color-border-success-strong: var(--success);
+  --color-border-warning: var(--warning);
+  --color-border-warning-strong: var(--warning);
+  --color-icon-assistive: var(--accent-foreground);
+  --color-icon-assistive-pressed: var(--accent-foreground);
+  --color-icon-onassistive: var(--accent-foreground);
+  --color-icon-onassistive-secondary: var(--accent-foreground);
+  --color-icon-onassistive-tertiary: var(--accent-foreground);
+  --color-icon-brand: var(--primary);
+  --color-icon-onbrand: var(--primary-foreground);
+  --color-icon-onbrand-secondary: var(--primary-foreground);
+  --color-icon-component: var(--accent-foreground);
+  --color-icon-component-pressed: var(--accent-foreground);
+  --color-icon-component-secondary: var(--accent-foreground);
+  --color-icon-component-tertiary: var(--accent-foreground);
+  --color-icon-oncomponent: var(--accent-foreground);
+  --color-icon-danger: var(--destructive);
+  --color-icon-ondanger: var(--destructive-foreground);
+  --color-icon-ondanger-secondary: var(--destructive-foreground);
+  --color-icon: var(--foreground);
+  --color-icon-hover: var(--foreground);
+  --color-icon-secondary: var(--muted-foreground);
+  --color-icon-secondary-hover: var(--muted-foreground);
+  --color-icon-tertiary: var(--muted-foreground);
+  --color-icon-disabled: var(--muted-foreground);
+  --color-icon-ondisabled: var(--muted-foreground);
+  --color-icon-oninverse: var(--background);
+  --color-icon-onselected-strong: var(--primary-foreground);
+  --color-icon-selected: var(--primary);
+  --color-icon-onsuccess: var(--success-foreground);
+  --color-icon-onsuccess-secondary: var(--success-foreground);
+  --color-icon-success: var(--success);
+  --color-icon-warning: var(--warning);
+  --color-icon-warning-pressed: var(--warning);
+  --color-text-assistive: var(--accent-foreground);
+  --color-text-assistive-pressed: var(--accent-foreground);
+  --color-text-onassistive: var(--accent-foreground);
+  --color-text-onassistive-secondary: var(--accent-foreground);
+  --color-text-onassistive-tertiary: var(--accent-foreground);
+  --color-text-brand: var(--primary);
+  --color-text-brand-secondary: var(--primary);
+  --color-text-onbrand: var(--primary-foreground);
+  --color-text-onbrand-secondary: var(--primary-foreground);
+  --color-text-component: var(--accent-foreground);
+  --color-text-component-pressed: var(--accent-foreground);
+  --color-text-component-secondary: var(--accent-foreground);
+  --color-text-component-tertiary: var(--accent-foreground);
+  --color-text-oncomponent: var(--accent-foreground);
+  --color-text-danger: var(--destructive);
+  --color-text-danger-secondary: var(--destructive);
+  --color-text-ondanger: var(--destructive-foreground);
+  --color-text-ondanger-secondary: var(--destructive-foreground);
+  --color-text: var(--foreground);
+  --color-text-secondary: var(--muted-foreground);
+  --color-text-tertiary: var(--muted-foreground);
+  --color-text-disabled: var(--muted-foreground);
+  --color-text-ondisabled: var(--muted-foreground);
+  --color-text-oninverse: var(--background);
+  --color-text-oninverse-secondary: var(--background);
+  --color-text-ontooltip: var(--popover-foreground);
+  --color-text-onselected-strong: var(--primary-foreground);
+  --color-text-selected: var(--primary);
+  --color-text-onsuccess: var(--success-foreground);
+  --color-text-onsuccess-secondary: var(--success-foreground);
+  --color-text-success: var(--success);
+  --color-text-onwarning: var(--warning-foreground);
+  --color-text-warning: var(--warning);
 
-  --payload-success: var(--chart-2);
-  --payload-warning: var(--chart-4);
-  --payload-error: var(--destructive);
-
-  --theme-success-50: color-mix(
-    in oklch,
-    var(--background) 92%,
-    var(--payload-success) 8%
-  );
-  --theme-success-100: color-mix(
-    in oklch,
-    var(--background) 84%,
-    var(--payload-success) 16%
-  );
-  --theme-success-150: color-mix(
-    in oklch,
-    var(--background) 76%,
-    var(--payload-success) 24%
-  );
-  --theme-success-200: color-mix(
-    in oklch,
-    var(--background) 68%,
-    var(--payload-success) 32%
-  );
-  --theme-success-250: color-mix(
-    in oklch,
-    var(--background) 60%,
-    var(--payload-success) 40%
-  );
-  --theme-success-300: color-mix(
-    in oklch,
-    var(--background) 52%,
-    var(--payload-success) 48%
-  );
-  --theme-success-350: color-mix(
-    in oklch,
-    var(--background) 44%,
-    var(--payload-success) 56%
-  );
-  --theme-success-400: color-mix(
-    in oklch,
-    var(--background) 36%,
-    var(--payload-success) 64%
-  );
-  --theme-success-450: color-mix(
-    in oklch,
-    var(--background) 28%,
-    var(--payload-success) 72%
-  );
-  --theme-success-500: var(--payload-success);
-  --theme-success-550: color-mix(
-    in oklch,
-    var(--payload-success) 72%,
-    var(--foreground) 28%
-  );
-  --theme-success-600: color-mix(
-    in oklch,
-    var(--payload-success) 64%,
-    var(--foreground) 36%
-  );
-  --theme-success-650: color-mix(
-    in oklch,
-    var(--payload-success) 56%,
-    var(--foreground) 44%
-  );
-  --theme-success-700: color-mix(
-    in oklch,
-    var(--payload-success) 48%,
-    var(--foreground) 52%
-  );
-  --theme-success-750: color-mix(
-    in oklch,
-    var(--payload-success) 40%,
-    var(--foreground) 60%
-  );
-  --theme-success-800: color-mix(
-    in oklch,
-    var(--payload-success) 32%,
-    var(--foreground) 68%
-  );
-  --theme-success-850: color-mix(
-    in oklch,
-    var(--payload-success) 24%,
-    var(--foreground) 76%
-  );
-  --theme-success-900: color-mix(
-    in oklch,
-    var(--payload-success) 16%,
-    var(--foreground) 84%
-  );
-  --theme-success-950: color-mix(
-    in oklch,
-    var(--payload-success) 8%,
-    var(--foreground) 92%
-  );
-
-  --theme-warning-50: color-mix(
-    in oklch,
-    var(--background) 92%,
-    var(--payload-warning) 8%
-  );
-  --theme-warning-100: color-mix(
-    in oklch,
-    var(--background) 84%,
-    var(--payload-warning) 16%
-  );
-  --theme-warning-150: color-mix(
-    in oklch,
-    var(--background) 76%,
-    var(--payload-warning) 24%
-  );
-  --theme-warning-200: color-mix(
-    in oklch,
-    var(--background) 68%,
-    var(--payload-warning) 32%
-  );
-  --theme-warning-250: color-mix(
-    in oklch,
-    var(--background) 60%,
-    var(--payload-warning) 40%
-  );
-  --theme-warning-300: color-mix(
-    in oklch,
-    var(--background) 52%,
-    var(--payload-warning) 48%
-  );
-  --theme-warning-350: color-mix(
-    in oklch,
-    var(--background) 44%,
-    var(--payload-warning) 56%
-  );
-  --theme-warning-400: color-mix(
-    in oklch,
-    var(--background) 36%,
-    var(--payload-warning) 64%
-  );
-  --theme-warning-450: color-mix(
-    in oklch,
-    var(--background) 28%,
-    var(--payload-warning) 72%
-  );
-  --theme-warning-500: var(--payload-warning);
-  --theme-warning-550: color-mix(
-    in oklch,
-    var(--payload-warning) 72%,
-    var(--foreground) 28%
-  );
-  --theme-warning-600: color-mix(
-    in oklch,
-    var(--payload-warning) 64%,
-    var(--foreground) 36%
-  );
-  --theme-warning-650: color-mix(
-    in oklch,
-    var(--payload-warning) 56%,
-    var(--foreground) 44%
-  );
-  --theme-warning-700: color-mix(
-    in oklch,
-    var(--payload-warning) 48%,
-    var(--foreground) 52%
-  );
-  --theme-warning-750: color-mix(
-    in oklch,
-    var(--payload-warning) 40%,
-    var(--foreground) 60%
-  );
-  --theme-warning-800: color-mix(
-    in oklch,
-    var(--payload-warning) 32%,
-    var(--foreground) 68%
-  );
-  --theme-warning-850: color-mix(
-    in oklch,
-    var(--payload-warning) 24%,
-    var(--foreground) 76%
-  );
-  --theme-warning-900: color-mix(
-    in oklch,
-    var(--payload-warning) 16%,
-    var(--foreground) 84%
-  );
-  --theme-warning-950: color-mix(
-    in oklch,
-    var(--payload-warning) 8%,
-    var(--foreground) 92%
-  );
-
-  --theme-error-50: color-mix(
-    in oklch,
-    var(--background) 92%,
-    var(--payload-error) 8%
-  );
-  --theme-error-100: color-mix(
-    in oklch,
-    var(--background) 84%,
-    var(--payload-error) 16%
-  );
-  --theme-error-150: color-mix(
-    in oklch,
-    var(--background) 76%,
-    var(--payload-error) 24%
-  );
-  --theme-error-200: color-mix(
-    in oklch,
-    var(--background) 68%,
-    var(--payload-error) 32%
-  );
-  --theme-error-250: color-mix(
-    in oklch,
-    var(--background) 60%,
-    var(--payload-error) 40%
-  );
-  --theme-error-300: color-mix(
-    in oklch,
-    var(--background) 52%,
-    var(--payload-error) 48%
-  );
-  --theme-error-350: color-mix(
-    in oklch,
-    var(--background) 44%,
-    var(--payload-error) 56%
-  );
-  --theme-error-400: color-mix(
-    in oklch,
-    var(--background) 36%,
-    var(--payload-error) 64%
-  );
-  --theme-error-450: color-mix(
-    in oklch,
-    var(--background) 28%,
-    var(--payload-error) 72%
-  );
-  --theme-error-500: var(--payload-error);
-  --theme-error-550: color-mix(
-    in oklch,
-    var(--payload-error) 72%,
-    var(--foreground) 28%
-  );
-  --theme-error-600: color-mix(
-    in oklch,
-    var(--payload-error) 64%,
-    var(--foreground) 36%
-  );
-  --theme-error-650: color-mix(
-    in oklch,
-    var(--payload-error) 56%,
-    var(--foreground) 44%
-  );
-  --theme-error-700: color-mix(
-    in oklch,
-    var(--payload-error) 48%,
-    var(--foreground) 52%
-  );
-  --theme-error-750: color-mix(
-    in oklch,
-    var(--payload-error) 40%,
-    var(--foreground) 60%
-  );
-  --theme-error-800: color-mix(
-    in oklch,
-    var(--payload-error) 32%,
-    var(--foreground) 68%
-  );
-  --theme-error-850: color-mix(
-    in oklch,
-    var(--payload-error) 24%,
-    var(--foreground) 76%
-  );
-  --theme-error-900: color-mix(
-    in oklch,
-    var(--payload-error) 16%,
-    var(--foreground) 84%
-  );
-  --theme-error-950: color-mix(
-    in oklch,
-    var(--payload-error) 8%,
-    var(--foreground) 92%
-  );
-
-  --theme-bg: var(--theme-elevation-0);
-  --theme-input-bg: var(--card);
-  --theme-text: var(--theme-elevation-900);
-  --theme-overlay: color-mix(in oklch, var(--foreground) 35%, transparent 65%);
-  --theme-border-color: var(--theme-elevation-150);
+  --field-color-bg: var(--card);
+  --field-color-border: var(--input);
+  --field-color-border-hover: var(--border);
+  --field-color-border-focus: var(--ring);
+  --field-color-text: var(--foreground);
+  --field-color-placeholder: var(--muted-foreground);
+  --field-color-bg-disabled: var(--muted);
+  --field-color-border-disabled: var(--border);
+  --field-color-text-disabled: var(--muted-foreground);
+  --field-color-bg-readonly: var(--card);
+  --field-color-border-readonly: var(--border);
+  --field-color-text-readonly: var(--muted-foreground);
+  --field-color-error-bg: var(--destructive);
+  --field-color-error-text: var(--destructive-foreground);
+  --accessibility-focus-color: var(--ring);
+  --font-family-sans: var(--font-sans);
+  --font-family-mono: var(--font-geist-mono), ui-monospace, monospace;
   --font-body: var(--font-sans);
-  --font-mono: var(--font-mono);
-  --style-radius-s: calc(var(--radius) - 4px);
-  --style-radius-m: calc(var(--radius) - 2px);
-  --style-radius-l: var(--radius);
+  --radius-small: calc(var(--radius) - 4px);
+  --radius-chip: calc(var(--radius) - 4px);
+  --radius-medium: calc(var(--radius) - 2px);
+  --radius-large: var(--radius);
 }
 
 .payload-admin-wrapper {
-  background: var(--theme-bg);
-  color: var(--theme-text);
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .payload-admin-wrapper,

@@ -13,7 +13,7 @@ created.
 - Replace independent name, email, and actor allowlists with one canonical
   registry of exact human, automation, and platform identity records.
 - Recognize Conrad (`cobmojo`) as a first-class internal developer while
-  preserving the verified Blake, Eve, Cursor Agent, and PR-loop paths. Installed
+  preserving the verified Blake, Eve, and Cursor Agent paths. Installed
   or historical automation is not declared supported until its current commit
   envelope is proven.
 - Validate the complete outgoing commit set during pre-push instead of treating

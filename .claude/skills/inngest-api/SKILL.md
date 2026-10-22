@@ -11,6 +11,10 @@ description: >-
 
 # Inngest REST API v2
 
+For Cloud operations, prefer available connected Inngest Cloud MCP tools. This repository does not install the upstream inngest-cloud skill.
+Keep this skill for explicit terminal/HTTP work or a capability missing from
+MCP. Do not ask for an API key when OAuth MCP can complete the task.
+
 Use this skill for raw REST API v2 work and API reference lookup. If the task
 can be completed through `npx inngest-cli@latest api`, use `inngest-api-cli`
 instead; the CLI is safer for agents because it handles target/auth flags and
@@ -156,7 +160,7 @@ right skill is unclear, start with `docs/ai/skills/inngest/SKILL.md`.
       or dependencies.
 - [ ] Existing workflows were audited before introducing or changing durable
       workflow behavior.
-- [ ] Any MCP usage is backed by a running Inngest dev server on the configured
+- [ ] Local dev-server MCP usage is backed by a running Inngest dev server on the configured
       port.
 - [ ] Upstream source and license attribution remain documented in
       `docs/ai/skills/inngest/references/upstream.md`.

@@ -1,13 +1,12 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 let _asym_pdf_template_schema = require("@asym/pdf-template-schema");
-//#region src/migration/unlayer/index.ts
+// src/migration/unlayer/index.ts
 const unlayerMigrationBoundary = {
 	packageName: "@asym/pdf-editor",
 	sourceEngine: "unlayer",
 	strategy: "manual_rebuild_with_report",
 	targetEngine: "asym_pdf_document_builder"
 };
-//#endregion
 Object.defineProperty(exports, "LegacyPdfTemplateArtifactSchema", {
 	enumerable: true,
 	get: function() {

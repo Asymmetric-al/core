@@ -287,7 +287,7 @@ playwright-cli run-code "async page => {
 
 ## Color Scheme
 
-Test dark mode, light mode, and high contrast:
+Test dark mode, light mode, and high contrast. The CLI also has built-in commands: `set-color-scheme dark`, `set-reduced-motion reduce`, `set-forced-colors active`, `set-contrast more`, `set-media print`, each with a matching `clear-*` command.
 
 ```bash
 # Dark mode
@@ -369,7 +369,7 @@ Available permissions: `geolocation`, `notifications`, `camera`, `microphone`, `
 
 ## Network Condition Emulation
 
-Simulate slow networks to test loading states and performance:
+Simulate slow networks to test loading states and performance. For plain offline mode, `playwright-cli network-state-set offline` (and `online`) is simpler:
 
 ```bash
 # Simulate slow 3G

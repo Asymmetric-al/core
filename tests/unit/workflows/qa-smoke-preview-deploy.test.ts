@@ -34,21 +34,53 @@ describe("qa smoke preview deployment workflow", () => {
     expect(workflow).toContain("ref: ${{ steps.gate.outputs.head_sha }}");
     expect(workflow).toContain("persist-credentials: false");
     expect(workflow).toContain(
-      "node scripts/qa/deploy-prebuilt-preview.mjs admin",
+      "node scripts/qa/deploy-hosted-preview.mjs admin",
     );
     expect(workflow).toContain(
-      "node scripts/qa/deploy-prebuilt-preview.mjs donor",
+      "node scripts/qa/deploy-hosted-preview.mjs donor",
     );
     expect(workflow).toContain(
-      "node scripts/qa/deploy-prebuilt-preview.mjs missionary",
+      "node scripts/qa/deploy-hosted-preview.mjs missionary",
     );
     expect(workflow).not.toContain("--prod");
     expect(workflow).not.toContain("--target=production");
   });
 
-  it("uses the prebuilt delivery helper once per requested surface", () => {
+  it("binds the exact checked-out commit and preview settings to the API-selected PR branch", () => {
+    expect(workflow).toContain("head_ref=\"$(jq -r '.head.ref'");
+    expect(workflow).toContain('echo "head_ref=${head_ref}"');
+    expect(workflow).toContain(
+      "PR_HEAD_REF: ${{ steps.gate.outputs.head_ref }}",
+    );
+    expect(workflow).toContain(
+      "PR_HEAD_SHA: ${{ steps.gate.outputs.head_sha }}",
+    );
+    expect(workflow).toContain(
+      'git check-ref-format --branch "${PR_HEAD_REF}"',
+    );
+    expect(workflow).toContain(
+      'test "$(git rev-parse HEAD)" = "${PR_HEAD_SHA}"',
+    );
+    expect(workflow).toContain(
+      'git switch --create "${PR_HEAD_REF}" "${PR_HEAD_SHA}"',
+    );
     expect(
-      workflow.match(/node scripts\/qa\/deploy-prebuilt-preview\.mjs /g),
+      workflow.match(
+        /CORE_PREVIEW_GIT_BRANCH: \$\{\{ steps\.gate\.outputs\.head_ref \}\}/g,
+      ),
+    ).toHaveLength(3);
+  });
+
+  it("uses the hosted delivery helper once per requested surface", () => {
+    expect(
+      workflow.match(
+        /CORE_PREVIEW_GIT_SHA: \$\{\{ steps\.gate\.outputs\.head_sha \}\}/g,
+      ),
+    ).toHaveLength(3);
+    expect(workflow).not.toContain("Install local preview build dependencies");
+    expect(workflow).not.toContain("vercel pull");
+    expect(
+      workflow.match(/node scripts\/qa\/deploy-hosted-preview\.mjs /g),
     ).toHaveLength(3);
     for (const app of ["admin", "donor", "missionary"]) {
       expect(workflow).not.toContain(`--cwd apps/${app} deploy`);

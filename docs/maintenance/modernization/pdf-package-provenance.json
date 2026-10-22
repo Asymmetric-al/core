@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "importedAt": "2026-10-22T11:10:26.628381+00:00",
+  "sourceRepository": "https://github.com/Asymmetric-al/react-PDF",
+  "sourceCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+  "sourceLockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+  "releaseRecord": {
+    "url": "https://github.com/Asymmetric-al/react-PDF/blob/7f5e5900f0455ac088c01ba60326be745c733aac/docs/maintenance/core-pdf-modernization/artifact-release.json",
+    "sha256": "18903e239c7da83facfcf4a0efe1338e4f9b62611670d41de217c8ea57ca8576",
+    "path": "docs/maintenance/modernization/pdf-owner-release.json"
+  },
+  "ownerPullRequest": "https://github.com/Asymmetric-al/react-PDF/pull/25",
+  "ownerMergeCommit": "1a224e14dea72cd8539c3547bb5c55ffc0bf39d2",
+  "runtime": {
+    "node": "24.22.1",
+    "pnpm": "12.14.0"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "name": "@asym/docraptor-client",
+      "version": "0.1.0",
+      "directory": "vendor/react-pdf-packages/asym-docraptor-client",
+      "sha256": "9c54d6cbdee785eb4faf59e28f71377c261da6f042712b5cf828aaeed4a9f6f4",
+      "bytes": 33385,
+      "archive": "vendor/react-pdf-packages/asym-docraptor-client-0.1.0.tgz"
+    },
+    {
+      "name": "@asym/pdf-template-schema",
+      "version": "0.1.0",
+      "directory": "vendor/react-pdf-packages/asym-pdf-template-schema",
+      "sha256": "852d80398c7f87a895acffd19ac5254d0566925165068cc657bdb38ed3019ff9",
+      "bytes": 221982,
+      "archive": "vendor/react-pdf-packages/asym-pdf-template-schema-0.1.0.tgz"
+    },
+    {
+      "name": "@asym/pdf-renderer",
+      "version": "0.1.0",
+      "directory": "vendor/react-pdf-packages/asym-pdf-renderer",
+      "sha256": "7497b38399d8af660209a161a35d0a33b425c6124340e73b67da9fa14e2ee785",
+      "bytes": 137441,
+      "archive": "vendor/react-pdf-packages/asym-pdf-renderer-0.1.0.tgz"
+    },
+    {
+      "name": "@asym/pdf-editor",
+      "version": "0.1.0",
+      "directory": "vendor/react-pdf-packages/asym-pdf-editor",
+      "sha256": "c14bb06ae724a5a1de232a04fb08044051dda4d3f3a163dd7d675c8828ade2c2",
+      "bytes": 40428,
+      "archive": "vendor/react-pdf-packages/asym-pdf-editor-0.1.0.tgz"
+    },
+    {
+      "name": "@asym/pdf-studio-adapter",
+      "version": "0.1.0",
+      "directory": "vendor/react-pdf-packages/asym-pdf-studio-adapter",
+      "sha256": "b47e215f22a539a539e004f1f36c0bc300015b4912f0f96ac501603b735dccb7",
+      "bytes": 12373,
+      "archive": "vendor/react-pdf-packages/asym-pdf-studio-adapter-0.1.0.tgz"
+    }
+  ],
+  "reviewedReleaseCommit": "7f5e5900f0455ac088c01ba60326be745c733aac",
+  "license": "MIT"
+}

@@ -98,7 +98,7 @@ const PUBLISHED_PAGE_DOC = {
         id: 9,
         alt: "Alt",
         url: "/media/hero.jpg",
-        sizes: {
+        variants: {
           thumbnail: { url: "/media/t.jpg" },
           card: { url: "/media/c.jpg" },
         },

@@ -2,155 +2,153 @@ import { BatchDocumentJobV1, BatchGenerationRunV1, BatchQueueEnqueueResult, Docu
 import { DocRaptorClient } from "@asym/docraptor-client";
 import { PdfEditorPackageName } from "@asym/pdf-editor";
 import { PdfPreviewResult, PreflightPdfTemplateInput, PreflightPdfTemplateResult } from "@asym/pdf-renderer";
-
-//#region src/index.d.ts
-type PdfStudioAdapterPackageName = '@asym/pdf-studio-adapter';
-type PdfStudioAdapterMaturity = 'phase-39-core-adapter-contract';
-type PdfStudioAdapterRuntime = 'shared-adapter-contract';
-type PdfStudioAdapterOwnership = 'core-integration-adapter';
-interface PdfStudioAdapterBoundary {
+export type PdfStudioAdapterPackageName = '@asym/pdf-studio-adapter';
+export type PdfStudioAdapterMaturity = 'phase-39-core-adapter-contract';
+export type PdfStudioAdapterRuntime = 'shared-adapter-contract';
+export type PdfStudioAdapterOwnership = 'core-integration-adapter';
+export interface PdfStudioAdapterBoundary {
   readonly packageName: PdfStudioAdapterPackageName;
   readonly maturity: PdfStudioAdapterMaturity;
   readonly owns: PdfStudioAdapterOwnership;
   readonly runtime: PdfStudioAdapterRuntime;
   readonly consumes: readonly ['@asym/pdf-template-schema', PdfEditorPackageName, '@asym/pdf-renderer', '@asym/docraptor-client'];
 }
-declare const pdfStudioAdapterBoundary: PdfStudioAdapterBoundary;
-type PdfStudioTemplateEngine = 'asym_pdf_document_builder' | 'unlayer';
-interface PdfStudioNativeTemplateRecord {
+export declare const pdfStudioAdapterBoundary: PdfStudioAdapterBoundary;
+export type PdfStudioTemplateEngine = 'asym_pdf_document_builder' | 'unlayer';
+export interface PdfStudioNativeTemplateRecord {
   readonly engine: 'asym_pdf_document_builder';
   readonly template: DocumentTemplateV1;
   readonly lifecycle?: TemplateLifecycleRecordV1;
   readonly publishedSnapshot?: PublishedTemplateSnapshotV1;
 }
-interface PdfStudioLegacyTemplateRecord {
+export interface PdfStudioLegacyTemplateRecord {
   readonly engine: 'unlayer';
   readonly legacyTemplate: LegacyPdfTemplateReference;
 }
-type PdfStudioTemplateRecord = PdfStudioNativeTemplateRecord | PdfStudioLegacyTemplateRecord;
-interface PdfStudioLoadTemplateInput {
+export type PdfStudioTemplateRecord = PdfStudioNativeTemplateRecord | PdfStudioLegacyTemplateRecord;
+export interface PdfStudioLoadTemplateInput {
   readonly templateId: string;
   readonly tenantId: string;
 }
-interface PdfStudioLoadedTemplate {
+export interface PdfStudioLoadedTemplate {
   readonly record: PdfStudioTemplateRecord;
   readonly featureFlag: PdfBuilderFeatureFlagContract;
   readonly engineSelection: ReturnType<typeof selectPdfTemplateEngine>;
 }
-interface PdfStudioSaveTemplateInput {
+export interface PdfStudioSaveTemplateInput {
   readonly template: DocumentTemplateV1;
   readonly lifecycle?: TemplateLifecycleRecordV1;
 }
-interface PdfStudioTemplateRepository {
+export interface PdfStudioTemplateRepository {
   loadTemplate(input: PdfStudioLoadTemplateInput): PdfStudioTemplateRecord | Promise<PdfStudioTemplateRecord>;
   saveTemplate(input: PdfStudioSaveTemplateInput): PdfStudioTemplateRecord | Promise<PdfStudioTemplateRecord>;
   loadPublishedSnapshot?(input: PdfStudioLoadTemplateInput): PublishedTemplateSnapshotV1 | undefined | Promise<PublishedTemplateSnapshotV1 | undefined>;
   savePublishedSnapshot?(input: PdfStudioSavePublishedSnapshotInput): PublishedTemplateSnapshotV1 | Promise<PublishedTemplateSnapshotV1>;
 }
-interface PdfStudioSavePublishedSnapshotInput {
+export interface PdfStudioSavePublishedSnapshotInput {
   readonly snapshot: PublishedTemplateSnapshotV1;
 }
-interface PdfStudioLifecycleLoadInput {
+export interface PdfStudioLifecycleLoadInput {
   readonly templateId: string;
   readonly tenantId: string;
 }
-interface PdfStudioLifecycleSaveInput {
+export interface PdfStudioLifecycleSaveInput {
   readonly lifecycle: TemplateLifecycleRecordV1;
 }
-interface PdfStudioLifecycleAdapter {
+export interface PdfStudioLifecycleAdapter {
   loadLifecycle(input: PdfStudioLifecycleLoadInput): TemplateLifecycleRecordV1 | undefined | Promise<TemplateLifecycleRecordV1 | undefined>;
   saveLifecycle(input: PdfStudioLifecycleSaveInput): TemplateLifecycleRecordV1 | Promise<TemplateLifecycleRecordV1>;
 }
-interface PdfStudioFeatureFlagInput {
+export interface PdfStudioFeatureFlagInput {
   readonly tenantId: string;
   readonly templateId?: string;
   readonly engine?: PdfStudioTemplateEngine;
 }
-interface PdfStudioFeatureFlagAdapter {
+export interface PdfStudioFeatureFlagAdapter {
   resolveNativeBuilderFlag(input: PdfStudioFeatureFlagInput): PdfBuilderFeatureFlagContract | Promise<PdfBuilderFeatureFlagContract>;
 }
-interface PdfStudioEditorInput {
+export interface PdfStudioEditorInput {
   readonly engine: PdfStudioTemplateEngine;
   readonly mountId?: string;
   readonly template?: DocumentTemplateV1;
   readonly legacyTemplate?: LegacyPdfTemplateReference;
   readonly variableRegistry?: VariableRegistry;
 }
-interface PdfStudioEditorHandle {
+export interface PdfStudioEditorHandle {
   readonly engine: PdfStudioTemplateEngine;
   readonly mountId?: string;
 }
-interface PdfStudioEditorAdapter {
+export interface PdfStudioEditorAdapter {
   createEditor(input: PdfStudioEditorInput): PdfStudioEditorHandle;
 }
-interface PdfStudioPreflightAdapter {
+export interface PdfStudioPreflightAdapter {
   run(input: PreflightPdfTemplateInput): PreflightPdfTemplateResult | Promise<PreflightPdfTemplateResult>;
 }
-interface PdfStudioPreviewInput {
+export interface PdfStudioPreviewInput {
   readonly template: DocumentTemplateV1;
   readonly dataContext?: VariableDataContext;
   readonly previewId?: string;
 }
-interface PdfStudioPreviewAdapter {
+export interface PdfStudioPreviewAdapter {
   createPreview(input: PdfStudioPreviewInput): PdfPreviewResult | Promise<PdfPreviewResult>;
 }
-type PdfStudioRenderResult = RenderResult;
-interface PdfStudioRenderInput {
+export type PdfStudioRenderResult = RenderResult;
+export interface PdfStudioRenderInput {
   readonly template: DocumentTemplateV1;
   readonly dataContext?: VariableDataContext;
   readonly renderId: string;
   readonly renderer: 'docraptor';
   readonly docraptorClient?: DocRaptorClient;
 }
-interface PdfStudioRenderAdapter {
+export interface PdfStudioRenderAdapter {
   render(input: PdfStudioRenderInput): PdfStudioRenderResult | Promise<PdfStudioRenderResult>;
 }
-interface PdfStudioBatchStartInput {
+export interface PdfStudioBatchStartInput {
   readonly run: BatchGenerationRunV1;
   readonly jobs: readonly BatchDocumentJobV1[];
 }
-interface PdfStudioBatchStartResult extends BatchQueueEnqueueResult {
+export interface PdfStudioBatchStartResult extends BatchQueueEnqueueResult {
   readonly run: BatchGenerationRunV1;
 }
-interface PdfStudioBatchAdapter {
+export interface PdfStudioBatchAdapter {
   startBatch(input: PdfStudioBatchStartInput): PdfStudioBatchStartResult | Promise<PdfStudioBatchStartResult>;
 }
-interface PdfStudioAssetAdapter extends PdfAssetAccessAdapter {}
-interface PdfStudioPreviewTemplateInput {
+export interface PdfStudioAssetAdapter extends PdfAssetAccessAdapter {}
+export interface PdfStudioPreviewTemplateInput {
   readonly context: PdfSecurityContextInput;
   readonly template: DocumentTemplateV1;
   readonly dataContext?: VariableDataContext;
   readonly previewId?: string;
 }
-interface PdfStudioPreviewTemplateResult {
+export interface PdfStudioPreviewTemplateResult {
   readonly authorization: PdfAuthorizationDecision;
   readonly preflight: PreflightPdfTemplateResult;
   readonly preview: PdfPreviewResult;
 }
-interface PdfStudioRenderTemplateInput {
+export interface PdfStudioRenderTemplateInput {
   readonly context: PdfSecurityContextInput;
   readonly template: DocumentTemplateV1;
   readonly dataContext?: VariableDataContext;
   readonly renderId: string;
 }
-interface PdfStudioRenderTemplateResult {
+export interface PdfStudioRenderTemplateResult {
   readonly authorization: PdfAuthorizationDecision;
   readonly preflight: PreflightPdfTemplateResult;
   readonly render: PdfStudioRenderResult;
 }
-interface PdfStudioCreateSignedAssetUrlInput {
+export interface PdfStudioCreateSignedAssetUrlInput {
   readonly request: PdfSignedRenderUrlRequestInput;
 }
-interface PdfStudioStartBatchInput {
+export interface PdfStudioStartBatchInput {
   readonly context: PdfSecurityContextInput;
   readonly run: BatchGenerationRunV1;
   readonly jobs: readonly BatchDocumentJobV1[];
 }
-interface PdfStudioStartBatchResult {
+export interface PdfStudioStartBatchResult {
   readonly authorization: PdfAuthorizationDecision;
   readonly result: PdfStudioBatchStartResult;
 }
-interface PdfStudioAdapterDependencies {
+export interface PdfStudioAdapterDependencies {
   readonly editor: PdfStudioEditorAdapter;
   readonly templates: PdfStudioTemplateRepository;
   readonly lifecycle: PdfStudioLifecycleAdapter;
@@ -164,7 +162,7 @@ interface PdfStudioAdapterDependencies {
   readonly variableRegistry?: VariableRegistry;
   readonly docraptorClient?: DocRaptorClient;
 }
-interface PdfStudioAdapter {
+export interface PdfStudioAdapter {
   readonly boundary: PdfStudioAdapterBoundary;
   createEditor(input: Omit<PdfStudioEditorInput, 'variableRegistry'>): PdfStudioEditorHandle;
   loadTemplate(input: PdfStudioLoadTemplateInput): Promise<PdfStudioLoadedTemplate>;
@@ -180,8 +178,8 @@ interface PdfStudioAdapter {
     readonly featureFlag: PdfBuilderFeatureFlagContract;
   }): ReturnType<typeof selectPdfTemplateEngine>;
 }
-type PdfStudioAdapterErrorCode = 'missing_adapter' | 'preflight_failed' | 'unauthorized';
-declare class PdfStudioAdapterError extends Error {
+export type PdfStudioAdapterErrorCode = 'missing_adapter' | 'preflight_failed' | 'unauthorized';
+export declare class PdfStudioAdapterError extends Error {
   readonly code: PdfStudioAdapterErrorCode;
   readonly decision?: PdfAuthorizationDecision;
   constructor(input: {
@@ -190,7 +188,6 @@ declare class PdfStudioAdapterError extends Error {
     readonly decision?: PdfAuthorizationDecision;
   });
 }
-declare function createPdfStudioAdapter(dependencies: PdfStudioAdapterDependencies): PdfStudioAdapter;
-//#endregion
-export { PdfStudioAdapter, PdfStudioAdapterBoundary, PdfStudioAdapterDependencies, PdfStudioAdapterError, PdfStudioAdapterErrorCode, PdfStudioAdapterMaturity, PdfStudioAdapterOwnership, PdfStudioAdapterPackageName, PdfStudioAdapterRuntime, PdfStudioAssetAdapter, PdfStudioBatchAdapter, PdfStudioBatchStartInput, PdfStudioBatchStartResult, PdfStudioCreateSignedAssetUrlInput, PdfStudioEditorAdapter, PdfStudioEditorHandle, PdfStudioEditorInput, PdfStudioFeatureFlagAdapter, PdfStudioFeatureFlagInput, PdfStudioLegacyTemplateRecord, PdfStudioLifecycleAdapter, PdfStudioLifecycleLoadInput, PdfStudioLifecycleSaveInput, PdfStudioLoadTemplateInput, PdfStudioLoadedTemplate, PdfStudioNativeTemplateRecord, PdfStudioPreflightAdapter, PdfStudioPreviewAdapter, PdfStudioPreviewInput, PdfStudioPreviewTemplateInput, PdfStudioPreviewTemplateResult, PdfStudioRenderAdapter, PdfStudioRenderInput, PdfStudioRenderResult, PdfStudioRenderTemplateInput, PdfStudioRenderTemplateResult, PdfStudioSavePublishedSnapshotInput, PdfStudioSaveTemplateInput, PdfStudioStartBatchInput, PdfStudioStartBatchResult, PdfStudioTemplateEngine, PdfStudioTemplateRecord, PdfStudioTemplateRepository, createFakePdfPermissionAdapter, createPdfStudioAdapter, pdfStudioAdapterBoundary, starterPdfTemplateFixtureByCategory };
+export declare function createPdfStudioAdapter(dependencies: PdfStudioAdapterDependencies): PdfStudioAdapter;
+export { createFakePdfPermissionAdapter, starterPdfTemplateFixtureByCategory };
 //# sourceMappingURL=index.d.mts.map

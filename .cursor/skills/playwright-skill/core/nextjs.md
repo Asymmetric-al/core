@@ -543,6 +543,8 @@ test.describe('API routes -- indirect through UI', () => {
 **Use when**: Testing Next.js middleware that handles redirects, rewrites, authentication guards, geolocation-based routing, or header manipulation.
 **Avoid when**: The middleware logic is trivial -- a redirect from `/old` to `/new` can be verified with a simple navigation test.
 
+> **Next.js 16+**: the `middleware` file convention is deprecated and renamed to `proxy` (`proxy.ts`, exported `proxy` function). Playwright sees the same redirects, rewrites, and headers either way, so the tests below apply unchanged.
+
 **TypeScript**
 ```typescript
 import { test, expect } from '@playwright/test';
@@ -957,7 +959,7 @@ Next.js redirects (configured in `next.config.js`, middleware, or `redirect()` i
 
 ### Turbopack Compatibility
 
-If using Turbopack (`next dev --turbopack`), update your `webServer.command`:
+Next.js 16+ uses Turbopack by default for `next dev` and `next build`, so no flag is needed. On Next.js 15, opt in with `--turbopack` in your `webServer.command`:
 
 ```typescript
 webServer: {

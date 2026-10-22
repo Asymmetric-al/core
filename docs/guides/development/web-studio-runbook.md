@@ -10,8 +10,8 @@
 
 - Bun (see root `packageManager` in `package.json`)
 - Docker (for local Supabase) — see root `AGENTS.md` Supabase section
-- Node.js `24.15.0+` for Payload 4 CMS CLI commands (`cms:migrate`,
-  `cms:migrate:status`, `cms:importmap`)
+- Approved Node 24 release enforced by the root setup checks (currently `24.22.1`);
+  Payload public v4 itself requires at least `24.15.0` for CMS CLI commands
 - Node-compatible environment for Playwright when running E2E
 
 ---
@@ -54,11 +54,58 @@ For an existing hosted database, explicitly select the intended Supabase project
 with `CMS_HOSTED_MIGRATION_REF=<project-ref> bun run cms:migrate`. The CLI checks
 that the database host and user match `NEXT_PUBLIC_SUPABASE_URL`, requires an
 encrypted connection, and rejects routing overrides before any migration. Status
-checks do not require this opt-in. The CMS psql helper translates
-Node pg's `sslmode=no-verify` to libpq's encrypted `require` mode without changing
-the environment file, and passes connection credentials through the child
-process environment rather than command arguments. Keep schema push disabled;
-do not use a local reset or demo seed to initialize a hosted database.
+checks do not require this opt-in. The default migration role is `postgres`.
+For an approved scoped role, also set `CMS_HOSTED_MIGRATION_ROLE=<role>`; the
+exact direct username or `<role>.<project-ref>` pooler username must match.
+Use `sslmode=verify-full` with the project's trusted root certificate. The CLI
+accepts a local certificate file via URI `sslrootcert`, which the psql helper
+passes through `PGSSLROOTCERT`; credentials also use the child environment,
+not arguments. Serverless runtime certificate setup is described below. Keep
+schema push disabled; do not use a local reset or demo seed to initialize a
+hosted database. Legacy `no-verify` translation remains for staged environment
+migration only and must be retired before final security qualification.
+
+### Public-v4 migration and rollback boundary
+
+The selected cohort is public `4.0.0-beta.3`. Check `apps/admin/package.json`,
+`bun.lock` and [the checkpoint](../../maintenance/modernization/payload.md)
+before a release; do not mix internal/public package versions.
+
+1. Verify the actual database/project and migration status using the committed
+   runner. Preserve a pre-cutover database backup and media assets; restore the
+   backup into an isolated database and compare counts and relationships. Inspect
+   custom `sizes`/`variants` field collisions, additional media metadata and the
+   existing long missionary-giving version-table/index/constraint names.
+2. Pause CMS writes and uploads. Keep public readers available only through the
+   existing authorized serializer boundary. Drain in-flight CMS writes before
+   capturing the final pre-cutover preservation checks.
+3. Run the committed migration runner. A fresh database first applies
+   `20260515_173042_init_payload_cms`; an existing database must already record it.
+   Then apply `20261022_002409_payload_v4_sizes_to_variants` (the official
+   predefined rename) followed by
+   `20261022_002412_payload_v4_public_beta_metadata` (nullable media metadata and
+   in-place shortening of the one versioned impact-stat items table). Do not use
+   schema push, a fresh/reset command, or regenerate the baseline migration.
+4. Confirm the migration ledger, records, relationships, original/variant asset
+   hashes, both public serializers, tenant denials and authenticated editor,
+   upload, draft/publish and preview behavior. Resume writes only after the
+   selected application revision and migrated schema pass these checks.
+
+Before new media/storage metadata has been written, the guarded down migration
+can reverse the qualified batch while writes remain paused. It locks media
+before checking compatibility and refuses rollback if new metadata would be
+lost. Inspect the migration batch before `migrate:down`; it reverses that batch.
+Do not clear legitimate metadata to force the guard to pass. After the boundary
+is crossed, use a reviewed forward fix or the verified pre-cutover restore with
+an explicit reconciliation of writes after that backup. Changing a UI feature
+flag does not roll back this schema. No production application is part of the
+modernization rehearsal.
+
+Core authenticates the CMS through Supabase cookie sessions with Payload's local
+strategy disabled. Those sessions need no reauthentication solely for the token
+header change. Old internal Payload JWTs lack public v4's protected `authVersion`
+header and are rejected; reissue any such tokens through the approved auth flow,
+without a legacy-token bypass. Verify sign-in, refresh and sign-out separately.
 
 For the one-command local path, use:
 
@@ -204,8 +251,8 @@ import map is stale for the current `payload.config.ts` or plugin set. Run
 **Fix:**
 
 1. In the Supabase production project, open **Connect** and copy the **Session pooler** Postgres URL. The host should look like `aws-0-<region>.pooler.supabase.com`; do not use the direct `db.<ref>.supabase.co` URL.
-2. For the admin Payload runtime on Vercel, set the pooler query string to `sslmode=no-verify`. `sslmode=require` can fail in Node `pg` with `SELF_SIGNED_CERT_IN_CHAIN` before Payload renders.
-3. In the **admin** Vercel project, update production `PAYLOAD_DATABASE_URI` to the session-pooler URL. If `SUPABASE_DB_URL` is also used by admin runtime or hosted scripts, update it to the same pooler URL.
+2. Prepare the verified runtime pair: the session-pooler URI with exactly one `sslmode=verify-full`, and server-only `PAYLOAD_DATABASE_SSL_CA` containing the trusted PEM downloaded from that project's Database settings. Remove `sslrootcert`, `sslcert`, `sslkey`, `ssl`, and `uselibpqcompat` URI options when using the PEM variable; the runtime rejects conflicting TLS settings. The CA is public, but database credentials remain opaque. A certificate failure requires checking the project's current CA and hostname.
+3. Qualify this pair in an isolated preview first. The production release package must schedule the same approved environment update and redeployment; production execution is outside the modernization delivery. If `SUPABASE_DB_URL` is also used by hosted CLI scripts, supply its trusted local `sslrootcert` file separately rather than assuming the product PEM variable configures psql.
 4. Keep `PAYLOAD_DATABASE_POOL_MAX` unset unless the Supabase pool size is deliberately raised. The runtime defaults to `2` on Vercel/protected deployments because Payload keeps one startup Postgres client checked out and needs one query slot left open.
 5. Connect a Vercel Blob store to the admin project so production receives `BLOB_READ_WRITE_TOKEN`; Web Studio media uploads use Payload's official Vercel Blob adapter in hosted deployments.
 6. Keep `RESEND_API_KEY` configured in production. Payload auth email uses Payload's official Resend adapter and defaults to `Mission Control <noreply@asymmetric.al>` unless `PAYLOAD_EMAIL_FROM_ADDRESS` / `PAYLOAD_EMAIL_FROM_NAME` override it.
@@ -215,17 +262,18 @@ import map is stale for the current `payload.config.ts` or plugin set. Run
 
 ### Admin dev: Contributions live query + stderr noise
 
-- **`QueryBuilderError: … alias "donation"`** was caused by **two physical copies** of `@tanstack/db` in `node_modules` (different `CollectionImpl` classes). The repo runs **`node scripts/dedupe-tanstack-db.mjs` on `postinstall`** to symlink nested copies to the workspace root package. Re-run `bun install` if the error returns after a bad install.
+- **`QueryBuilderError: … alias "donation"`** can indicate multiple physical DB runtimes. The qualified TanStack DB, React and Query bindings now resolve one runtime through their aligned dependencies. Run `bun run test:unit tests/unit/packages/database/tanstack-runtime-identity.test.ts` to verify the actual installation, then restore the frozen install if needed. The former DB override and install-time symlink repair were removed after fresh-install mutation, rollback, join and realtime tests passed.
 - `useDataTableWithLiveQuery` must pass a **callback** `(q) => …` into `useLiveQuery` (see `packages/ui/components/shadcn/data-table/hooks/use-data-table-live-query.ts`).
 - **`TypeError: controller[kState].transformAlgorithm is not a function`** still appears in **Next dev / Turbopack** stderr in some runs; **admin E2E passed** with it present. Treat as **dev noise** unless it reproduces on `next start` / production builds.
 
 ---
 
-## 9. Rollback
+## 9. Collection UI fallback
 
 1. Set `CMS_WEB_STUDIO_NATIVE_*=false` for affected collections; redeploy.
 2. Emergency: remove `endpoints: [webStudioCreateFromTemplateEndpoint]` from `payload.config.ts` disables template instantiation only.
-3. Do not drop `cms` data without backup + approval.
+3. This changes UI routing only. For schema rollback, follow the public-v4
+   migration boundary in section 3; do not drop `cms` data.
 
 ---
 
@@ -237,15 +285,15 @@ Route files under `apps/admin/app/api/**/*.ts` must be **thin re-exports** to `@
 
 ## 11. Common failures
 
-| Symptom                                                   | Likely cause                                                                                                          |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `PAYLOAD_SECRET must be configured`                       | Set secret or `NODE_ENV=test` for importmap                                                                           |
-| `.env.local` still points at hosted DB during local setup | Run `bun run cms:local:reset -- --force-env` to rewrite local CMS values                                              |
-| Import map wrong paths                                    | Re-run `cms:importmap` + check postprocess script                                                                     |
-| 404 on public CMS                                         | Tenant not resolved or no published doc                                                                               |
-| Wizard POST 403                                           | Not staff / wrong session                                                                                             |
-| `verify:data-boundary` fails                              | Direct `@asym/database` import in `app/api`                                                                           |
-| Nested `<html>` / hydration warning                       | `(payload)/layout.tsx` must embed Payload `RootProvider`; do not use Payload `RootLayout` under the admin root layout |
+| Symptom                                                   | Likely cause                                                                                                                                   |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PAYLOAD_SECRET must be configured`                       | Set secret or `NODE_ENV=test` for importmap                                                                                                    |
+| `.env.local` still points at hosted DB during local setup | Run `bun run cms:local:reset -- --force-env` to rewrite local CMS values                                                                       |
+| Import map wrong paths                                    | Re-run `cms:importmap` + check postprocess script                                                                                              |
+| 404 on public CMS                                         | Tenant not resolved or no published doc                                                                                                        |
+| Wizard POST 403                                           | Not staff / wrong session                                                                                                                      |
+| `verify:data-boundary` fails                              | Direct `@asym/database` import in `app/api`                                                                                                    |
+| Nested `<html>` / hydration warning                       | `(payload)/layout.tsx` must embed public `RootProviders` with `getRootLayoutData`; do not use Payload `RootLayout` under the admin root layout |
 
 ### Phase 22 D17 certification note
 

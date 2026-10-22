@@ -141,32 +141,73 @@ export function resolveBuildDecision({ app, changedFiles }) {
 }
 
 function listChangedFiles() {
+  const previous = process.env.VERCEL_GIT_PREVIOUS_SHA;
+  if (!/^[a-f0-9]{40}$/.test(previous ?? "")) return [];
+
   const repoRoot = execFileSync("git", ["rev-parse", "--show-toplevel"], {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   }).trim();
 
+  execFileSync(
+    "git",
+    ["-C", repoRoot, "merge-base", "--is-ancestor", previous, "HEAD"],
+    {
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
   const diffOutput = execFileSync(
     "git",
-    ["-C", repoRoot, "diff", "--name-only", "HEAD^", "HEAD", "--"],
+    ["-C", repoRoot, "diff", "--name-only", "-z", previous, "HEAD", "--"],
     {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     },
   );
 
-  return diffOutput.split(/\r?\n/).filter(Boolean);
+  return diffOutput.split("\0").filter(Boolean);
+}
+
+function isRequestedQaPreviewBuild(app) {
+  const marker = process.env.CORE_QA_FORCE_BUILD_SHA;
+  if (marker === undefined) return false;
+
+  let matched = false;
+  if (
+    Object.hasOwn(APPS, app) &&
+    process.env.VERCEL_ENV === "preview" &&
+    /^[a-f0-9]{40}$/.test(marker) &&
+    marker === process.env.VERCEL_GIT_COMMIT_SHA
+  ) {
+    try {
+      const head = execFileSync("git", ["rev-parse", "HEAD"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      }).trim();
+      matched = marker === head;
+    } catch {
+      // Missing Git context retains the ordinary ignored-build decision.
+    }
+  }
+  console.log(
+    matched
+      ? "[vercel-ignore] QA Preview marker matched"
+      : "[vercel-ignore] QA Preview marker not matched",
+  );
+  return matched;
 }
 
 function runCli(argv) {
   const [app] = argv;
+  if (isRequestedQaPreviewBuild(app)) return 1;
   let changedFiles;
 
   try {
     changedFiles = listChangedFiles();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.log(`[vercel-ignore] building ${app ?? "<missing>"}: ${message}`);
+  } catch {
+    console.log(
+      `[vercel-ignore] building ${app ?? "<missing>"}: previous deployment diff unavailable`,
+    );
     return 1;
   }
 

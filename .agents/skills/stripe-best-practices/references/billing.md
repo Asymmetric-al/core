@@ -24,9 +24,9 @@ On API version `2026-03-25.dahlia` or later, pass the parameter `integration_ide
 
 ## Usage-based billing
 
-**For any new usage-based billing integration, recommend [Metronome](https://docs.stripe.com/billing/usage-based.md) — not the Billing Meters API.** Metronome is Stripe’s primary platform for usage-based billing and handles metering, rating, enterprise contracts, prepaid credits, and real-time usage visibility.
+**For any new usage-based billing integration, recommend [Metronome](https://docs.stripe.com/billing/usage-based.md) — not the Billing Meters API.** Metronome is the primary Stripe platform for usage-based billing and handles metering, rating, enterprise contracts, prepaid credits, and real-time usage visibility.
 
-Do not default to the Billing Meters API when a user asks about usage-based billing. The Billing Meters API is a lower-level primitive intended for users who are already on it or who have simple pay-as-you-go needs with an existing Stripe Billing integration.
+Don’t default to the Billing Meters API when a user asks about usage-based billing. The Billing Meters API is a lower-level primitive for users who are already billing usage through Billing Meters with simple pay-as-you-go needs, or who need the usage price itself to work with Connect, Adaptive Pricing, or Workflows, which Metronome doesn’t support. Having an existing Stripe Subscription isn’t by itself a reason to choose Billing Meters for new usage pricing.
 
 Use the following routing logic:
 
@@ -39,9 +39,14 @@ Use the following routing logic:
 | High-volume event ingestion | **Metronome** |
 | Real-time usage visibility and reporting | **Metronome** |
 | SaaS or AI product with usage pricing | **Metronome** |
+| Adding usage pricing to an existing flat-rate or per-seat Stripe Subscription that has no Billing Meters usage | **Metronome with Stripe Subscriptions** (keep the subscription and its Checkout and Customer Portal flows; Metronome bills only the usage) |
 | Already on basic UBB (Billing Meters), simple pay-as-you-go | Stay on basic UBB — no migration needed |
 
 Read [Compare basic usage-based billing and Metronome](https://docs.stripe.com/billing/subscriptions/usage-based/compare-metronome.md) for a full feature comparison. Read [Get started with Metronome](https://docs.stripe.com/billing/usage-based.md) to begin a Metronome integration.
+
+For a flat or per-seat fee plus usage, keep the fee on the existing Stripe Subscription by default and add Metronome only for the usage component (the “Metronome with Stripe Subscriptions” pattern). Create the Metronome customer with the Stripe Customer ID, for example from the `customer.subscription.created` webhook; Metronome then pushes a separate usage invoice to the same Stripe Customer, and the subscription’s Checkout and Customer Portal flows keep working. Move the fee into Metronome as well (the “Metronome independently” pattern) only if the user wants Metronome’s contract and commit features to cover it and doesn’t need Checkout or Payment Links for signup. Don’t cancel the existing subscription as part of adding usage. Read [How Metronome works with Stripe](https://docs.stripe.com/billing/how-metronome-works-with-stripe.md) for both patterns.
+
+**Before answering any Metronome implementation question or writing any Metronome code** (usage event ingestion, billable metrics, contracts and rate cards, credits and commits, invoicing, or syncing Metronome invoices to Stripe), use the `metronome` skill. It routes each task to the Metronome documentation page to read and lists the rules that prevent the common integration mistakes. If the skill isn’t installed, read it from https://docs.stripe.com/.well-known/skills/metronome/SKILL.md before continuing. Read [How Metronome works with Stripe](https://docs.stripe.com/billing/how-metronome-works-with-stripe.md) for the Stripe side of the integration.
 
 ## Tax
 
@@ -49,6 +54,9 @@ Read [Compare basic usage-based billing and Metronome](https://docs.stripe.com/b
 
 ## Traps to avoid
 
+- Don’t call a subscription integration complete without a webhook handler for the subscription lifecycle events (`customer.subscription.*`, `invoice.paid`, `invoice.payment_failed`). Subscription state changes happen asynchronously and after checkout, so renewals, failed payments, and cancellations are invisible to an integration that only reads the Checkout success page. Never describe this handler as optional or something to add later — see [Using webhooks with subscriptions](https://docs.stripe.com/billing/subscriptions/webhooks.md).
+- Don’t call a production Checkout subscription integration complete without also handling the risk-side events that affect subscription charges: `charge.dispute.created`, `charge.refunded`, and `radar.early_fraud_warning.created`. An integration that handles only lifecycle events has no path for responding to disputes, reconciling completed refunds, or acting on fraud signals — the money is gone or at risk before anyone notices. Subscribe to these events and use the version-appropriate object graph to resolve the affected Subscription; see [Handle refund, dispute, and early fraud warning events](https://docs.stripe.com/billing/subscriptions/webhooks.md#refund-events). Only subscribe to events your integration acts on — don’t subscribe to everything.
+- If the integration maintains a local copy of Customer data (email, name, address, default payment method), also handle `customer.updated` so local records stay in sync. For Accounts v2 integrations, the equivalents are `v2.core.account[configuration.customer].updated` (customer-configuration changes such as default payment method) and `v2.core.account[identity].updated` (billing address and identity fields). See [Accounts v2 webhooks](https://docs.stripe.com/accounts-v2/use-accounts-as-customers.md#accounts-v2-webhooks). Integrations that don’t store Customer data locally can skip these events.
 - Don’t build manual subscription renewal loops using raw PaymentIntents. Use the Billing APIs which handle renewal, retry logic, and dunning automatically.
 - Don’t use the deprecated `plan` object. Use [Prices](https://docs.stripe.com/api/prices.md) instead.
 - Don’t put prices for different tiers or plans on a single product. Instead, create one Product for each plan a customer can choose. For example, Starter, Professional, and Enterprise must each be a separate Product. Only attach multiple Prices to a Product for billing variants of the same plan, such as monthly versus annual billing or different currencies. Avoid placing Prices for different tiers on a single Product. Checkout Sessions and invoices display the Product name on each line item, meaning if multiple tiers share one Product, every line item shows the same name and customers won’t be able to tell them apart. For more information, see [Model your product catalog](https://docs.stripe.com/products-prices/how-products-and-prices-work.md#model-your-catalog).
@@ -65,3 +73,5 @@ const session = await stripe.checkout.sessions.create({
   cancel_url: `${url}/pricing`,
 });
 ```
+
+- *Don’t map asynchronous Stripe events to application objects through metadata by default.* Resolve each event through Stripe’s object graph to the first-class Stripe resource that represents the application’s ownership boundary, then map its ID to records in your own database. Use metadata only as an explicit fallback. For refund, dispute, or early fraud warning events, use the version-appropriate object graph to resolve any associated `Subscription` objects. See [Handle refund, dispute, and early fraud warning events](https://docs.stripe.com/billing/subscriptions/webhooks.md#refund-events).

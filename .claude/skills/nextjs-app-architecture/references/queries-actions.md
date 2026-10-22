@@ -25,7 +25,7 @@ export { GET, POST } from "@asym/api/posts";
 
 ## Cache keys are the arguments
 
-A `'use cache'` function's arguments are its cache key, so shape them deliberately.
+A `'use cache'` function's arguments and captured values participate in its cache key (installed: `node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache.md`), so shape them deliberately.
 
 Take normalized primitives, not the params object:
 
@@ -70,6 +70,24 @@ export { POST, DELETE } from "@asym/api/posts/like";
 The client calls `/api/posts/<postId>/like` through its approved mutation hook or fetcher. When this example uses `fetch` directly, inspect `response.ok` before treating the write as applied. The API handler resolves current actor, Tenant and post scope, applies the owning RPC and invalidates API-owned tags after an applied write. Do not import `POST` or `DELETE` into a Client Component. API subpaths publish different contracts: inspect the actual export rather than inventing a `posts.create` namespace.
 
 `refresh()` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/refresh.md`) re-renders the current route for the current user. Use it when the affected read is deliberately dynamic and has no tag. With Cache Components enabled, reusable reads should have matching `cacheTag()` calls, so server actions normally call `updateTag()` for read-your-own-writes. See `references/cache-components.md`.
+
+### Shared and seeded records
+
+Records every account can see but nobody owns (demo defaults, system templates) use a nullable owner: `userId: null`. Reads include them alongside the caller's own rows (`where: { OR: [{ userId }, { userId: null }] }`), the detail read allows them, and every mutation refuses them with `{ ok: false, error }` rather than trusting the UI to hide the button.
+
+### Tags live once
+
+When a tag string is used by a query (`cacheTag`) and an action (`updateTag`), define it once in `<domain>-cache.ts` and import it from both sides:
+
+```ts
+// features/post/post-cache.ts
+export const postTags = {
+  all: "posts",
+  detail: (id: string) => `post:${id}`,
+};
+```
+
+A read belongs in the folder whose data it tags. A query over `event` rows that happens to power a venue page still lives in `features/event/`, tagged with the event tags — the page that shows the data doesn't decide where the query lives.
 
 ### Action file naming
 
@@ -159,6 +177,8 @@ export type ActionResult<T = void> =
 ```
 
 Toast on `ok: false` from the client. Skip success toasts when an optimistic UI already shows the result.
+
+`redirect()` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/redirect.md`) is fine inside a `<form action>` / `useActionState` action. For actions called from a click or a dialog, this skill returns `{ ok: true }` and navigates on the client so the caller can finish its local feedback — see `references/ux-patterns.md`.
 
 A shared `ActionResult<T>` is optional — a per-action inline union is just as good, and often clearer when the payload has a natural name: `return { ok: true as const, playlist }` reads better than a generic `data`. What matters is that fallible actions return a discriminated union the client can narrow on, not that every action shares one type.
 

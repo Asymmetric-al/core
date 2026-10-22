@@ -81,3 +81,10 @@ docs/features/missionary-workspace-depth/grill/** -text -eol whitespace=-blank-a
 
 # Published owner-diff snapshot: blank context lines contain a required space.
 docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/owner-amendments.patch whitespace=-blank-at-eol,-space-before-tab
+
+
+# Reviewed upstream fixtures are immutable byte evidence, not working text.
+tests/fixtures/managed-skill-refresh/**/*.raw -text -eol
+tests/fixtures/stripe-skill-refresh/**/*.raw -text -eol
+# The pinned Swift source intentionally ends with one empty line.
+tests/fixtures/managed-skill-refresh/write-swift/SKILL.md.raw whitespace=-blank-at-eof

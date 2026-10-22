@@ -1,6 +1,6 @@
 import { ConditionalRuleSchema, DocumentAssetImageAttributesSchema, DocumentAssetReferenceSchema, DocumentHeaderFooterSettingsSchema, DocumentPageBreakAttributesSchema, DocumentPageBreakNodeSchema, DocumentPlaceholderSchema, RepeaterBindingSchema, TableBindingSchema, coreVariableRegistry, createVariableResolver, evaluateConditionalRule, resolveRepeaterItems, resolveTableRows } from "@asym/pdf-template-schema";
 import { Node, mergeAttributes } from "@tiptap/core";
-//#region src/extensions/asset-image/index.ts
+// src/extensions/asset-image/index.ts
 const assetImageAttribute = "data-asym-asset-image";
 function createAssetImageExtension() {
 	return Node.create({
@@ -230,8 +230,7 @@ function requiresAltText(role) {
 function resolveAssetImageClassName(preview) {
 	return `asym-asset-image ${preview.status === "valid" ? "asym-asset-image--valid" : "asym-asset-image--warning"}`;
 }
-//#endregion
-//#region src/extensions/conditional-section/index.ts
+// src/extensions/conditional-section/index.ts
 const conditionalSectionDataAttribute = "data-asym-conditional-section";
 function createConditionalSectionExtension(options = {}) {
 	return Node.create({
@@ -364,8 +363,7 @@ function stableStringify$3(value) {
 function isRecord$3(value) {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-//#endregion
-//#region src/extensions/data-table/index.ts
+// src/extensions/data-table/index.ts
 const dataTableAttribute = "data-asym-data-table";
 function createDataTableExtension(options = {}) {
 	return Node.create({
@@ -546,8 +544,7 @@ function readOptionalString$3(value) {
 function isRecord$2(value) {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-//#endregion
-//#region src/extensions/header-footer/index.ts
+// src/extensions/header-footer/index.ts
 function getHeaderFooterPreview(input = {}) {
 	const result = DocumentHeaderFooterSettingsSchema.safeParse(input);
 	if (!result.success) return {
@@ -568,8 +565,7 @@ function getHeaderFooterPreview(input = {}) {
 function isValidDocumentHeaderFooterSettings(value) {
 	return DocumentHeaderFooterSettingsSchema.safeParse(value).success;
 }
-//#endregion
-//#region src/extensions/page-flow/index.ts
+// src/extensions/page-flow/index.ts
 const pageBreakAttribute = "data-asym-page-break";
 function createPageBreakExtension() {
 	return Node.create({
@@ -592,7 +588,10 @@ function createPageBreakExtension() {
 			};
 		},
 		parseHTML() {
-			return [{ tag: `hr[${pageBreakAttribute}]` }];
+			return [{
+				tag: `hr[${pageBreakAttribute}]`,
+				priority: 100
+			}];
 		},
 		renderHTML({ HTMLAttributes }) {
 			const attrs = normalizePageBreakAttributes(HTMLAttributes) ?? {};
@@ -656,8 +655,7 @@ function readOptionalString$2(value) {
 function isRecord$1(value) {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-//#endregion
-//#region src/extensions/placeholder/index.ts
+// src/extensions/placeholder/index.ts
 const placeholderAttribute = "data-asym-document-placeholder";
 function createDocumentPlaceholderExtension() {
 	return Node.create({
@@ -835,8 +833,7 @@ function stableStringify$1(value) {
 		return serializedValue === void 0 ? void 0 : `${JSON.stringify(key)}:${serializedValue}`;
 	}).filter((entry) => entry !== void 0).sort().join(",")}}`;
 }
-//#endregion
-//#region src/extensions/repeater/index.ts
+// src/extensions/repeater/index.ts
 const repeaterDataAttribute = "data-asym-repeater";
 function createRepeaterSectionExtension(options = {}) {
 	return Node.create({
@@ -974,8 +971,7 @@ function stableStringify(value) {
 function isRecord(value) {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-//#endregion
-//#region src/extensions/variable/index.ts
+// src/extensions/variable/index.ts
 const variableChipDataAttribute = "data-asym-variable-chip";
 function createVariableChipExtension(options = {}) {
 	return Node.create({
@@ -1111,7 +1107,6 @@ function parseFallbackBehavior(value) {
 function isFallbackBehavior(value) {
 	return typeof value === "object" && value !== null && "mode" in value && typeof value.mode === "string";
 }
-//#endregion
 export { AssetImageNode, ConditionalSection, DataTableBlock, DocumentPlaceholderNode, PageBreakNode, RepeaterSection, VariableChip, createAssetImageExtension, createConditionalSectionExtension, createDataTableExtension, createDocumentPlaceholderExtension, createPageBreakExtension, createRepeaterSectionExtension, createVariableChipExtension, getAssetImagePreview, getConditionalSectionPreview, getDataTablePreview, getDocumentPlaceholderPreview, getHeaderFooterPreview, getPageBreakPreview, getRepeaterSectionPreview, getVariableChipPreview, isKnownVariableChipKey, isValidConditionalRule, isValidDocumentAssetImage, isValidDocumentHeaderFooterSettings, isValidDocumentPageBreakNode, isValidDocumentPlaceholder, isValidRepeaterBinding, isValidTableBinding };
 
 //# sourceMappingURL=extensions.mjs.map

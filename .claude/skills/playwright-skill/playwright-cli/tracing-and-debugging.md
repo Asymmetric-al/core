@@ -22,7 +22,7 @@ playwright-cli --session=my-session step-over
 npx playwright trace open traces/trace.zip
 npx playwright trace actions
 npx playwright trace action 9
-npx playwright trace snapshot 9 --name after
+npx playwright trace snapshot 9 --phase after
 npx playwright trace close
 
 # View console messages
@@ -31,7 +31,7 @@ playwright-cli console error          # Errors only
 playwright-cli console warning        # Warnings only
 
 # View network activity
-playwright-cli network
+playwright-cli requests
 ```
 
 ## Tracing
@@ -122,8 +122,8 @@ npx playwright trace actions --grep="expect"
 npx playwright trace action 9
 
 # Render the before/after snapshot for a specific action
-npx playwright trace snapshot 9 --name before
-npx playwright trace snapshot 9 --name after
+npx playwright trace snapshot 9 --phase before
+npx playwright trace snapshot 9 --phase after
 
 # Close the current trace session
 npx playwright trace close
@@ -211,7 +211,7 @@ playwright-cli run-code "async page => {
 View all network requests made by the page:
 
 ```bash
-playwright-cli network
+playwright-cli requests
 ```
 
 ### Watch Network in Real-Time
@@ -261,8 +261,7 @@ When you want a HAR file for just one portion of a flow — not the whole sessio
 ```bash
 # Start scoped HAR recording for the API calls in the next step
 playwright-cli run-code "async page => {
-  await page.context().tracing.startHar({
-    path: 'traces/checkout.har',
+  await page.context().tracing.startHar('traces/checkout.har', {
     urlFilter: '**/api/**',
     content: 'embed',
   });
@@ -494,7 +493,7 @@ The most effective debugging combines multiple approaches:
 ```bash
 playwright-cli tracing-start           # Capture everything
 playwright-cli console error           # Watch for JS errors
-playwright-cli network                 # Watch for failed requests
+playwright-cli requests                # Watch for failed requests
 playwright-cli snapshot                # See current state
 # ... interact and debug ...
 playwright-cli tracing-stop            # Save trace for detailed analysis

@@ -1,10 +1,13 @@
 ---
-source_name: mattpocock/skills (setup-matt-pocock-skills)
+source_name: mattpocock/skills
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/engineering/setup-matt-pocock-skills/SKILL.md
-skills_lock_hash: 7c4f945086d19c8b0f8f8adcf1a705767d894efb2afac129707816fded507a64
-last_reviewed: 2026-07-09
+skills_lock_hash: f148858ffb7f63c03c06fca06e6fdb1d91a35c6b293244b8fdfacd5f4cc028c4
+last_reviewed: 2026-10-22
+source_path: skills/engineering/setup-matt-pocock-skills/
+reviewed_commit: 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+license: MIT
 ---
 
 # Upstream: setup-matt-pocock-skills
@@ -23,3 +26,11 @@ Canonical copy in this repo: `docs/ai/skills/setup-matt-pocock-skills/` (mirrore
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 
 This skill is **not** updated by `bun run skills:refresh-upstream`.
+
+## Reviewed refresh, 2026-10-22
+
+- Source: `mattpocock/skills` at `5beb35b040e3de97e54fa9e386d7e42d15c295c2`.
+- Complete upstream skill tree: `skills/engineering/setup-matt-pocock-skills/`; MIT notice: [LICENSE.md](LICENSE.md).
+- Raw upstream `SKILL.md` SHA-256: `f148858ffb7f63c03c06fca06e6fdb1d91a35c6b293244b8fdfacd5f4cc028c4`.
+- Preserve Core discovery metadata, explicit-only invocation, existing overlays and compatibility corrections. Raw upstream scripts are vendored data; none were executed during this refresh.
+- Core keeps CONTEXT.md, CONTEXT-MAP.md and CONTEXT-FORMAT.md; upstream glossary filenames are remapped without renaming repository documents. Core TDD and authorization rules override generic seam, refactor and commit instructions.

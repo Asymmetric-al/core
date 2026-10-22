@@ -10,6 +10,94 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const TEAM = "team_YrLB8jJARcRH0jnF1HPpPGTB";
 export const VERCEL_CLI_VERSION = "65.0.0";
 
+function describeFailure(result) {
+  const status =
+    Number.isInteger(result.status) &&
+    result.status >= 0 &&
+    result.status <= 255
+      ? result.status
+      : "unknown";
+  const signals = [
+    "SIGABRT",
+    "SIGBUS",
+    "SIGINT",
+    "SIGKILL",
+    "SIGSEGV",
+    "SIGTERM",
+  ];
+  const codes = [
+    "EACCES",
+    "EAGAIN",
+    "ENOBUFS",
+    "ENOENT",
+    "ENOMEM",
+    "ETIMEDOUT",
+  ];
+  const signal = result.signal
+    ? (signals.find((value) => value === result.signal) ?? "unknown")
+    : "none";
+  const spawn = result.error
+    ? (codes.find((value) => value === result.error.code) ?? "unknown")
+    : "none";
+  const output = [result.stdout, result.stderr]
+    .filter((value) => typeof value === "string")
+    .join("\n");
+  const categories = [];
+  if (status === 137 || signal === "SIGKILL") categories.push("process-killed");
+  if (spawn === "ENOBUFS") categories.push("output-limit");
+  if (
+    /Invalid environment variables|Missing required environment variable/i.test(
+      output,
+    )
+  )
+    categories.push("environment-validation");
+  if (
+    /PAYLOAD_DATABASE_SSL_CA (?:requires exactly one sslmode=verify-full|must contain a non-empty CA certificate|cannot be combined with URI SSL overrides)/.test(
+      output,
+    )
+  )
+    categories.push("tls-configuration");
+  const markers = [
+    ["invalid-url", /(?:TypeError: )?Invalid URL|ERR_INVALID_URL/],
+    [
+      "connection-failure",
+      /ECONNREFUSED|ENOTFOUND|ETIMEDOUT|connection terminated unexpectedly/,
+    ],
+    [
+      "tls-runtime",
+      /self-signed certificate|unable to verify the first certificate|ERR_TLS_CERT_ALTNAME_INVALID|UNABLE_TO_VERIFY_LEAF_SIGNATURE/i,
+    ],
+    [
+      "memory-limit",
+      /heap (?:limit|out of memory)|Allocation failed|out_of_memory/i,
+    ],
+    [
+      "nested-process-killed",
+      /(?:exited with(?: code)?|exit code)[: ]+137|Killed[^\r\n]{0,200}(?:build|process)/i,
+    ],
+    ["typescript", /Type error:|error TS[0-9]{4,5}/],
+    [
+      "module-resolution",
+      /Module not found|Cannot find module|Could not resolve/,
+    ],
+    [
+      "prerender",
+      /Error occurred prerendering|prerender-error|blocking-prerender/,
+    ],
+    ["framework-build", /Build error occurred|Failed to compile/],
+    [
+      "installation",
+      /lockfile[^\r\n]{0,200}frozen|ERR_PNPM_|error: install[^\r\n]{0,200}failed/i,
+    ],
+  ];
+  for (const [category, pattern] of markers) {
+    if (pattern.test(output)) categories.push(category);
+  }
+  // Only bounded numbers and fixed labels leave this boundary. Never include
+  // child messages, environment values or arbitrary signal/error-code strings.
+  return `status=${status}; signal=${signal}; spawn=${spawn}; categories=${categories.join(",") || "unclassified"}`;
+}
+
 export function deployPrebuiltPreview({
   app,
   env = process.env,
@@ -29,6 +117,16 @@ export function deployPrebuiltPreview({
       "Preview deployment requires GitHub Actions and the configured Core app/team credentials",
     );
   }
+  const branch = env.CORE_PREVIEW_GIT_BRANCH;
+  if (
+    typeof branch !== "string" ||
+    branch.length === 0 ||
+    branch !== branch.trim() ||
+    branch === "HEAD" ||
+    /[\r\n\0]/.test(branch)
+  ) {
+    throw new Error("Preview deployment requires an explicit PR head branch");
+  }
   const options = {
     cwd: root,
     env: {
@@ -42,7 +140,13 @@ export function deployPrebuiltPreview({
   };
   const credentials = ["--project", project.projectId, "--scope", TEAM];
   const steps = [
-    ["pull", "--yes", "--environment=preview", ...credentials],
+    [
+      "pull",
+      "--yes",
+      "--environment=preview",
+      `--git-branch=${branch}`,
+      ...credentials,
+    ],
     ["build", "--yes", "--target=preview", ...credentials],
     [
       "deploy",
@@ -67,7 +171,7 @@ export function deployPrebuiltPreview({
       );
       if (result.error || result.status !== 0)
         throw new Error(
-          `Preview ${args[0]} failed for ${app}; raw CLI output is withheld because it may contain environment values`,
+          `Preview ${args[0]} failed for ${app} (${describeFailure(result)}); raw CLI output is withheld because it may contain environment values`,
         );
       output = result.stdout?.trim();
     }

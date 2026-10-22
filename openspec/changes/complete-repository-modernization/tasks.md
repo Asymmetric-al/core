@@ -38,14 +38,15 @@
 
 ## 6. Imported PDF provenance and modernization
 
-- [ ] 6.1 Recover shipped runtime and missing type sources in the owning react-PDF repository; record provenance and hashes without replacing Phase 47 behavior with Phase 22.
-- [ ] 6.2 Prove baseline exports/schemas/document round trips/rendering, then upgrade the consumed editor/email/Zod/renderer/client dependencies using pnpm.
-- [ ] 6.3 Rebuild/import versioned artifacts, prove clean install identities, remove obsolete compatibility repairs and preserve rollout settings.
-- [ ] 6.4 Qualify, review, deploy editor/document previews and merge owner/Core checkpoints.
+- [x] 6.1 Recover shipped runtime and missing type sources in the owning react-PDF repository; record provenance and hashes without replacing Phase 47 behavior with Phase 22.
+- [x] 6.2 Prove baseline exports/schemas/document round trips/rendering, then upgrade the consumed editor/email/Zod/renderer/client dependencies using pnpm.
+- [x] 6.3 Rebuild/import versioned artifacts, prove clean install identities, remove obsolete compatibility repairs and preserve rollout settings.
+- [x] 6.4 Qualify, review, deploy editor/document previews and merge owner/Core checkpoints.
 
 ## 7. UI, editors, telemetry and AI
 
 - [ ] 7.1 Upgrade remaining UI/editor families while preserving exact base-maia/Base UI/tokens/ownership, keyboard/focus and reduced motion.
+- [ ] 7.1a Replace the officially legacy dnd-kit public API with its current coordinated React/DOM/helper family, preserving keyboard/pointer sorting, cancellation and mutation rollback; assess required upstream-internal consumers separately.
 - [ ] 7.2 Upgrade Sentry, HTML parser/sanitizer, Resend and browser Stripe; test runtime contracts.
 - [ ] 7.3 Upgrade Eve/Connect/AI SDK together and enforce tenant/session/policy/budget admission before every provider call including children.
 - [ ] 7.4 Prove stable model-attempt identity and exactly-once settlement through streaming, failures, cancellation, restart, replay and concurrency; keep Eve disabled and Guardian read-only.
@@ -62,6 +63,7 @@
 ## 9. Nested dependencies and security
 
 - [ ] 9.1 Recompute the full graph after each parent migration; replace/remove remaining obsolete or affected chains and unused software.
+- [ ] 9.1a Resolve the old Lighthouse CI owning chain while preserving performance budgets.
 - [ ] 9.2 Validate advisory reachability at concrete inputs/entrypoints/package boundaries and record exact, owned, invalidatable exceptions for any unreachable residual.
 - [ ] 9.3 Produce final SBOM and fresh automated/manual upstream security reconciliation with no reachable vulnerabilities.
 

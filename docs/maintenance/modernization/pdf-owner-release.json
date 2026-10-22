@@ -1,0 +1,1314 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-22T10:05:31.332263+00:00",
+  "sourceRepository": "https://github.com/Asymmetric-al/react-PDF",
+  "sourceCommit": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+  "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+  "runtime": {
+    "node": "24.22.1",
+    "pnpm": "12.14.0"
+  },
+  "version": "0.1.0",
+  "independentCleanReproduction": {
+    "roots": [
+      "/home/conrad/code/react-pdf-release-cold-a-2026-10-22",
+      "/home/conrad/code/react-pdf-release-cold-b-2026-10-22"
+    ],
+    "roundsPerRoot": 3,
+    "allArtifactHashesMatch": true
+  },
+  "packages": [
+    {
+      "name": "@asym/docraptor-client",
+      "version": "0.1.0",
+      "artifact": "asym-docraptor-client-0.1.0.tgz",
+      "sha256": "9c54d6cbdee785eb4faf59e28f71377c261da6f042712b5cf828aaeed4a9f6f4",
+      "bytes": 33385,
+      "files": [
+        {
+          "path": "package/dist/index.cjs",
+          "sha256": "8f9ec629b129bd92eae9373362588f1899bee005ddc5bf6d1fa8ee666276f540",
+          "bytes": 29390
+        },
+        {
+          "path": "package/dist/index.d.cts",
+          "sha256": "d613a8faffd8a32a2cbf887df019a3c7425714ef0f69b4b6f40566236824af7f",
+          "bytes": 9561
+        },
+        {
+          "path": "package/package.json",
+          "sha256": "ea57f9b7d32a68fd2944cfee75195298d1b3d22398e7716e203fe244b425d291",
+          "bytes": 1266
+        },
+        {
+          "path": "package/dist/index.d.cts.map",
+          "sha256": "db0833132745ae2be493d569bb70697722a2606b471e781ceaebd2b80343ce22",
+          "bytes": 1682
+        },
+        {
+          "path": "package/dist/index.d.mts.map",
+          "sha256": "49ae4b110e0a1dea965a9862c8f1842081ed3db3d833679105a07f26239ead70",
+          "bytes": 1682
+        },
+        {
+          "path": "package/dist/index.mjs.map",
+          "sha256": "4bcb5c7a6a3d202664a868fe85c64e31475d94c69b27678804933d746f19e1bb",
+          "bytes": 64010
+        },
+        {
+          "path": "package/LICENSE.md",
+          "sha256": "824a5acd4cf751b349d2f37513b94c682bceddbf6ead1d0225ff0aaa9b7eb2e4",
+          "bytes": 1059
+        },
+        {
+          "path": "package/readme.md",
+          "sha256": "03bd9bb2f6ef7b2b76a62251214b0448a1909cf42e9885e8c4684e8080f0e654",
+          "bytes": 4066
+        },
+        {
+          "path": "package/dist/index.mjs",
+          "sha256": "17766ec51cb94a744fa45838046f5b20969616b9c64ac1dc5a86ea799ca86679",
+          "bytes": 29017
+        },
+        {
+          "path": "package/dist/index.d.mts",
+          "sha256": "90d155a32a0fa98ecc329b6af18cb1c2ab02a407a8230363820cf719cb8fb871",
+          "bytes": 9561
+        }
+      ]
+    },
+    {
+      "name": "@asym/pdf-template-schema",
+      "version": "0.1.0",
+      "artifact": "asym-pdf-template-schema-0.1.0.tgz",
+      "sha256": "852d80398c7f87a895acffd19ac5254d0566925165068cc657bdb38ed3019ff9",
+      "bytes": 221982,
+      "files": [
+        {
+          "path": "package/dist/index.cjs",
+          "sha256": "5d039f8e0ac24414a6a57f701113b4df0c14475156ff39c5bf6239be4a874e53",
+          "bytes": 218971
+        },
+        {
+          "path": "package/dist/index.d.cts",
+          "sha256": "f099edcabe58d0ae37b3996db4d2ad48e13933d052e9b43465337ee4c8f1644a",
+          "bytes": 245448
+        },
+        {
+          "path": "package/package.json",
+          "sha256": "721c8b006f349fa419bd684988538b73bd34b87320eb89fae4d2e7b49325f2fc",
+          "bytes": 1281
+        },
+        {
+          "path": "package/dist/index.d.cts.map",
+          "sha256": "a60792dfc99427cb0902af654c3dd6107a57677bc29e0a067b249d50c9916c67",
+          "bytes": 20048
+        },
+        {
+          "path": "package/dist/index.d.mts.map",
+          "sha256": "6b91dba48f94fee6322d96b0c1d8300ea06b6ea4af7041e151092635de6db8d1",
+          "bytes": 20048
+        },
+        {
+          "path": "package/dist/index.mjs.map",
+          "sha256": "ed004b528b94e8e4fa52745527c67d387023a6acd348b89c420d3fc4a92449a7",
+          "bytes": 433575
+        },
+        {
+          "path": "package/LICENSE.md",
+          "sha256": "824a5acd4cf751b349d2f37513b94c682bceddbf6ead1d0225ff0aaa9b7eb2e4",
+          "bytes": 1059
+        },
+        {
+          "path": "package/readme.md",
+          "sha256": "c0e54d73aeddd3fdeef8e0323599d20c9dd166661707f9e0b18c0d8b6fa202ee",
+          "bytes": 9101
+        },
+        {
+          "path": "package/dist/index.mjs",
+          "sha256": "8ed4995d8ca5b3e10729512d9190cf8579dff6c6ca71c3add42f1f357df398e8",
+          "bytes": 209605
+        },
+        {
+          "path": "package/dist/index.d.mts",
+          "sha256": "9884176d2dd4e7a590c12d2f163f684abd75b786019c2153d7936e2d865de466",
+          "bytes": 245448
+        }
+      ]
+    },
+    {
+      "name": "@asym/pdf-renderer",
+      "version": "0.1.0",
+      "artifact": "asym-pdf-renderer-0.1.0.tgz",
+      "sha256": "7497b38399d8af660209a161a35d0a33b425c6124340e73b67da9fa14e2ee785",
+      "bytes": 137441,
+      "files": [
+        {
+          "path": "package/dist/docraptor-preview.cjs",
+          "sha256": "b24d13ad1d773bbe8340d996dc3c4a1eb1545717eddb052853e0440920a80be6",
+          "bytes": 3283
+        },
+        {
+          "path": "package/dist/index.cjs",
+          "sha256": "af1442daf2ad2d9951d40dd09d40d62dbe7a087f250de1d04860884b2dcb2e37",
+          "bytes": 30236
+        },
+        {
+          "path": "package/dist/local-renderer.cjs",
+          "sha256": "ec94341b2f8539c25a5eb6d949fb8fd36cfa9c9881157cf39db7698c072b3a04",
+          "bytes": 6874
+        },
+        {
+          "path": "package/dist/preview-BttFQvLY.cjs",
+          "sha256": "5d781d6a38115b78c5c662026c253f2d7af9aaeb87fda45f4c6b305f16308b33",
+          "bytes": 107862
+        },
+        {
+          "path": "package/dist/docraptor-preview.d.cts",
+          "sha256": "f3ca50294017c869bad29982886f2780e0b236cc64093fef3054d1c5dbadf104",
+          "bytes": 1381
+        },
+        {
+          "path": "package/dist/index.d.cts",
+          "sha256": "5fe7cb6c9bd81877ee43ae6449070282f1ac703486b223840d49bd7a9fb4823c",
+          "bytes": 11109
+        },
+        {
+          "path": "package/dist/local-renderer.d.cts",
+          "sha256": "425bc438dc216ed3bc192866195df766d068f9ed4446e0d479e471c00770e427",
+          "bytes": 4536
+        },
+        {
+          "path": "package/dist/preview-3MYc_rMK.d.cts",
+          "sha256": "578f973700134f9b43b65efb444f8038c6e136ba63a02c8a5d95161049154fc5",
+          "bytes": 11198
+        },
+        {
+          "path": "package/package.json",
+          "sha256": "3076f7272c3c8f59755f4901bc9837bc261af6e428346eb737e941536b9d5d8f",
+          "bytes": 1893
+        },
+        {
+          "path": "package/dist/docraptor-preview.d.cts.map",
+          "sha256": "0d95c6424556a86453b0ea95805af14e8b913b59e6c4c85e343e98bc1fa25951",
+          "bytes": 303
+        },
+        {
+          "path": "package/dist/docraptor-preview.d.mts.map",
+          "sha256": "d944d2855da99d09ce2854c9027457a7695d9c23615dba487f7384f48ba2516d",
+          "bytes": 303
+        },
+        {
+          "path": "package/dist/docraptor-preview.mjs.map",
+          "sha256": "09c6b2027c40f428900bac1955980d27fc899226153f16874dd61c287fba3f49",
+          "bytes": 6753
+        },
+        {
+          "path": "package/dist/index.d.cts.map",
+          "sha256": "ccd736f98d88b8f6d75009bca9068dc5882012a3ba75c1b2c784b50fcb32c343",
+          "bytes": 1326
+        },
+        {
+          "path": "package/dist/index.d.mts.map",
+          "sha256": "78ab4b97f906abcf16f59b56b9d1c5154b36f16bd03a4ea31dc3f3d02dc051c3",
+          "bytes": 1326
+        },
+        {
+          "path": "package/dist/index.mjs.map",
+          "sha256": "e672264a72f2a2aedfedaef4a63135447e3a7a32992eb92a1f8859cb20179efa",
+          "bytes": 63272
+        },
+        {
+          "path": "package/dist/local-renderer.d.cts.map",
+          "sha256": "30327657abab7ca09137487fd608cac18e9e0e9619a234230f2d7f96b1520c68",
+          "bytes": 879
+        },
+        {
+          "path": "package/dist/local-renderer.d.mts.map",
+          "sha256": "170b7326f243add41bae2adc42fc2fabd38d6ab0e4eda665e80282d4147ccd26",
+          "bytes": 879
+        },
+        {
+          "path": "package/dist/local-renderer.mjs.map",
+          "sha256": "f07808b94755369f7135fbd8fc2664aedecf43e78186c580d4a4f91bb694e076",
+          "bytes": 17069
+        },
+        {
+          "path": "package/dist/preview-3MYc_rMK.d.cts.map",
+          "sha256": "07be55fead3f5b42ba2091eddcb303d219a685308afda364b060dc844eaaeea6",
+          "bytes": 1656
+        },
+        {
+          "path": "package/dist/preview-3MYc_rMK.d.mts.map",
+          "sha256": "3d9969b807fc4362a2fb99ba534cbabc0497c3d7c3d835b06dac69794d0cf323",
+          "bytes": 1656
+        },
+        {
+          "path": "package/dist/preview-D2Cbd3Bc.mjs.map",
+          "sha256": "d0b457511304822a94405575e63660399e64cd750f786d254045a6c3f26e0fcf",
+          "bytes": 223417
+        },
+        {
+          "path": "package/LICENSE.md",
+          "sha256": "824a5acd4cf751b349d2f37513b94c682bceddbf6ead1d0225ff0aaa9b7eb2e4",
+          "bytes": 1059
+        },
+        {
+          "path": "package/readme.md",
+          "sha256": "8ad774d5d6acaf1d90941a8b7389a7f89de05cdf4c0a1b2017460575c1029dab",
+          "bytes": 11342
+        },
+        {
+          "path": "package/dist/docraptor-preview.mjs",
+          "sha256": "41cb6788494a3f7919e2e4dffcc1217ab52452418adf00517e9dae9628a5893c",
+          "bytes": 3167
+        },
+        {
+          "path": "package/dist/index.mjs",
+          "sha256": "bf0f54bae8165619c761528667b44c2ba05ab5617ea02e8f3a7622c535fb1246",
+          "bytes": 29699
+        },
+        {
+          "path": "package/dist/local-renderer.mjs",
+          "sha256": "c0558fe018d74dd2dd0f16c3879e7cff7d2bdd258443e153c1495ee80b2cba0c",
+          "bytes": 6698
+        },
+        {
+          "path": "package/dist/preview-D2Cbd3Bc.mjs",
+          "sha256": "086c1a62549a1a099ceff3151a1b4c2b3dc19e0098f366a7c519b2cb94eaf22b",
+          "bytes": 106292
+        },
+        {
+          "path": "package/dist/docraptor-preview.d.mts",
+          "sha256": "48ad41aed76e66b7559e4344d6782f0e1fe91f992a9d0180e6312cc2fe321b9a",
+          "bytes": 1381
+        },
+        {
+          "path": "package/dist/index.d.mts",
+          "sha256": "5385ded068e7d2398155ef0266527a9a59a43a70ccc729151330b5d06bb5c15e",
+          "bytes": 11109
+        },
+        {
+          "path": "package/dist/local-renderer.d.mts",
+          "sha256": "c4d87345837cd2ae6c7edb829f0015397873b9ad383311bb1ec810e68ef79058",
+          "bytes": 4536
+        },
+        {
+          "path": "package/dist/preview-3MYc_rMK.d.mts",
+          "sha256": "a88bce2e3b1e037ee0e5e2c71fc52df463fd4b48bb61fcb24d9b101ecf3181fa",
+          "bytes": 11198
+        }
+      ]
+    },
+    {
+      "name": "@asym/pdf-editor",
+      "version": "0.1.0",
+      "artifact": "asym-pdf-editor-0.1.0.tgz",
+      "sha256": "c14bb06ae724a5a1de232a04fb08044051dda4d3f3a163dd7d675c8828ade2c2",
+      "bytes": 40428,
+      "files": [
+        {
+          "path": "package/dist/extensions.cjs",
+          "sha256": "452e193821a2667f5a6158c6fc92f5eca08bf92638fd38875e009b9edf6a2ccc",
+          "bytes": 40069
+        },
+        {
+          "path": "package/dist/index.cjs",
+          "sha256": "91107ed661d484a4e59e6949f8f1a4c76bca29255a6da7a38e040b05e45797ff",
+          "bytes": 2721
+        },
+        {
+          "path": "package/dist/react-email-compat.cjs",
+          "sha256": "429e343f3ee4e3fca68ce6ffd44d4b9bf1aa7763505cf1a44071069c8e0c895e",
+          "bytes": 1816
+        },
+        {
+          "path": "package/dist/migration/unlayer.cjs",
+          "sha256": "c57191488efbf8e4b4f8ff047ff65950d122dd0d51ef95cea668f3be2db651fb",
+          "bytes": 2628
+        },
+        {
+          "path": "package/dist/extensions.d.cts",
+          "sha256": "db7e5dc16db5f214edbc2aed776fa81ed16bda23ca2dfc29e30fa2d82648797f",
+          "bytes": 13856
+        },
+        {
+          "path": "package/dist/index.d.cts",
+          "sha256": "bc4cf342f4c3a75ac8092bee2c56804e348bb4f635541ae19dd689a85d70cd2b",
+          "bytes": 2035
+        },
+        {
+          "path": "package/dist/react-email-compat-CyF5yqyg.d.cts",
+          "sha256": "ed2e8c09d4cc017a1c29a3268212b73ad7b844cb3d43f1009f4c2caf90eb5bac",
+          "bytes": 1095
+        },
+        {
+          "path": "package/dist/react-email-compat.d.cts",
+          "sha256": "7eb66d63dcd639be6e2cd9b4684afd81d82a6abae533215fdd78e68ba3051fe9",
+          "bytes": 767
+        },
+        {
+          "path": "package/dist/migration/unlayer.d.cts",
+          "sha256": "f126ea92a10bd739920bad6ad93252d1b57cfab23a6de88ee2d26e05db9686ba",
+          "bytes": 2080
+        },
+        {
+          "path": "package/package.json",
+          "sha256": "398b655a80813fe7a5e7c76dc856a34a89e3eec303be746539a019c41e615315",
+          "bytes": 2849
+        },
+        {
+          "path": "package/dist/extensions.d.cts.map",
+          "sha256": "7e462e823e84d20489743360e18faedae5173d47d12a0687dabae5684200bed9",
+          "bytes": 2781
+        },
+        {
+          "path": "package/dist/extensions.d.mts.map",
+          "sha256": "f4d9d56a1d069b8f3410f8682fc2ae4d3389a89799ab863644c3beca23bd6036",
+          "bytes": 2781
+        },
+        {
+          "path": "package/dist/extensions.mjs.map",
+          "sha256": "02a7aa5ca9c7577e65b73690f71270656d424af50c9040879b9ab9f46f3fc7b2",
+          "bytes": 87394
+        },
+        {
+          "path": "package/dist/index.d.cts.map",
+          "sha256": "5e305b2a62c04c9b9949f75627ab97912b01336b346ef97629738c8dff975161",
+          "bytes": 198
+        },
+        {
+          "path": "package/dist/index.d.mts.map",
+          "sha256": "05af5b93865b599df1637db9ba18bacff76dfc38625a83857bc0eee7da11bc52",
+          "bytes": 198
+        },
+        {
+          "path": "package/dist/index.mjs.map",
+          "sha256": "5f7abac56f182c4fec5ce7705d63328ea4fa5b84e39c8d594c6e46cc2e5847e9",
+          "bytes": 2038
+        },
+        {
+          "path": "package/dist/migration/unlayer.d.cts.map",
+          "sha256": "13ee73643754e7ba5cc214cd18fe75724ee441a5c66e02eecae96f062a9bafec",
+          "bytes": 159
+        },
+        {
+          "path": "package/dist/migration/unlayer.d.mts.map",
+          "sha256": "e0232d04b43665148e6817cc33b35c9b654ed2ccc54e631d4b850700a1a98c7c",
+          "bytes": 159
+        },
+        {
+          "path": "package/dist/migration/unlayer.mjs.map",
+          "sha256": "606d605c81871a5276737603a4d57de65d459f55f7686438757d19a86d1740c6",
+          "bytes": 1689
+        },
+        {
+          "path": "package/LICENSE.md",
+          "sha256": "824a5acd4cf751b349d2f37513b94c682bceddbf6ead1d0225ff0aaa9b7eb2e4",
+          "bytes": 1059
+        },
+        {
+          "path": "package/readme.md",
+          "sha256": "7b8ff7c1d4f96758383f0bae71de1ee0726b74c4e53d610cd993a4a21abfb1aa",
+          "bytes": 5410
+        },
+        {
+          "path": "package/dist/extensions.mjs",
+          "sha256": "43b5bf04fe4fe429645c1595acf4e58938a5b60601c90c7acfaea1c12006ec5b",
+          "bytes": 38464
+        },
+        {
+          "path": "package/dist/index.mjs",
+          "sha256": "4f3c6ad634f4df6e10aea887ae0dedd540a1a3e6927380f713d5c917a8d0c798",
+          "bytes": 1143
+        },
+        {
+          "path": "package/dist/react-email-compat.mjs",
+          "sha256": "c33bcddb68592143d48dc7e6e4fdbfea77387214870a8020bb28f89688df18f6",
+          "bytes": 879
+        },
+        {
+          "path": "package/dist/migration/unlayer.mjs",
+          "sha256": "a1b165cca4308bf69be973ad4cc183bd3e2549f0ace60b890f4a3f76d62cf839",
+          "bytes": 1162
+        },
+        {
+          "path": "package/dist/extensions.d.mts",
+          "sha256": "bae41036a562e26ec413b6b43e077170050473834050209e9918b78a150308e3",
+          "bytes": 13856
+        },
+        {
+          "path": "package/dist/index.d.mts",
+          "sha256": "1af2984f5e0416d1b5b23d6be1d7ebb7a32dddbca158bbad3970f0771cc81465",
+          "bytes": 2035
+        },
+        {
+          "path": "package/dist/react-email-compat-CyF5yqyg.d.mts",
+          "sha256": "ed2e8c09d4cc017a1c29a3268212b73ad7b844cb3d43f1009f4c2caf90eb5bac",
+          "bytes": 1095
+        },
+        {
+          "path": "package/dist/react-email-compat.d.mts",
+          "sha256": "548a74dd7587b927fdd1a6135b1b61237617b0f8fc9cb5c463484db732bb1da0",
+          "bytes": 767
+        },
+        {
+          "path": "package/dist/migration/unlayer.d.mts",
+          "sha256": "2973d1bbfac202b960454de8ec80697dba00d94e016bd4d7e4d742108a656e92",
+          "bytes": 2080
+        }
+      ]
+    },
+    {
+      "name": "@asym/pdf-studio-adapter",
+      "version": "0.1.0",
+      "artifact": "asym-pdf-studio-adapter-0.1.0.tgz",
+      "sha256": "b47e215f22a539a539e004f1f36c0bc300015b4912f0f96ac501603b735dccb7",
+      "bytes": 12373,
+      "files": [
+        {
+          "path": "package/dist/index.cjs",
+          "sha256": "70e8acff9377c119c4037a08a1b2da90b63086cf2454f51a624af9790ffd9126",
+          "bytes": 6936
+        },
+        {
+          "path": "package/dist/index.d.cts",
+          "sha256": "d19802610d22cd9f0e077539a38aff60d09bf9e7208a534e408152973c615d01",
+          "bytes": 9474
+        },
+        {
+          "path": "package/package.json",
+          "sha256": "7a3060d3d3b9a888bcd701fa92a21faaf1aaf8278dd36aa510b36d0f1d6e1fd5",
+          "bytes": 1407
+        },
+        {
+          "path": "package/dist/index.d.cts.map",
+          "sha256": "a7e17b87b94002bcfeb3ebb0110abfb0f4afc1f7b28538c7c396a193770612c4",
+          "bytes": 1907
+        },
+        {
+          "path": "package/dist/index.d.mts.map",
+          "sha256": "198ce04a6f6d9715b1ac30eb693c9d8344b5a5ee403be4c6d532937eb5ac43d3",
+          "bytes": 1907
+        },
+        {
+          "path": "package/dist/index.mjs.map",
+          "sha256": "93afd3f9ab74638a29e5ce6272d3ddf854f2f6cc0f4c98b63a390c477a63ff1d",
+          "bytes": 21226
+        },
+        {
+          "path": "package/LICENSE.md",
+          "sha256": "824a5acd4cf751b349d2f37513b94c682bceddbf6ead1d0225ff0aaa9b7eb2e4",
+          "bytes": 1059
+        },
+        {
+          "path": "package/readme.md",
+          "sha256": "7a72ed935d78c51d4d26b96f8be4ddec23762f301e99acb7afbf0b225cc649ec",
+          "bytes": 3210
+        },
+        {
+          "path": "package/dist/index.mjs",
+          "sha256": "a5b578b0572ebe6d074d4088afd8970df29bd135dfb759a8e77ebb45f230b224",
+          "bytes": 6463
+        },
+        {
+          "path": "package/dist/index.d.mts",
+          "sha256": "0bf2df7138b7d2b2bf8a782275815357e075330d77228446f8c7f6f6c67022e9",
+          "bytes": 9474
+        }
+      ]
+    }
+  ],
+  "qualification": {
+    "coldCheckouts": {
+      "a": {
+        "frozen": {
+          "path": "/tmp/core-modernization-pdf-committed-cold-a-frozen-proof.json",
+          "sha256": "d74d91851924a99e010c0c7049d515449c8487a1c968a59c8afc1d54121912ed",
+          "startedAt": "2026-10-22T09:52:54.374697+00:00",
+          "completedAt": "2026-10-22T09:52:55.645087+00:00",
+          "exitCode": 0,
+          "head": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+          "root": "/home/conrad/code/react-pdf-release-cold-a-2026-10-22",
+          "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+          "logSha256": "5d499e8dc08b36300b8c9a6d2845cf83251a3d1cf136085356e30a5302c059de",
+          "gitStatus": ""
+        },
+        "gates": {
+          "path": "/tmp/core-modernization-pdf-committed-cold-a-gates-proof.json",
+          "sha256": "b029cae33ebddf9379125e6aa3d20b2aafafc386c3cc152a3e02a7284cd672aa",
+          "startedAt": "2026-10-22T09:52:56.077899+00:00",
+          "completedAt": "2026-10-22T09:53:07.880296+00:00",
+          "exitCode": 0,
+          "head": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+          "root": "/home/conrad/code/react-pdf-release-cold-a-2026-10-22",
+          "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+          "logSha256": "d024123f523b54cc0856c9b84749901e0b2ace8cfdbc18e98c76ed6fcf02384e",
+          "gitStatus": ""
+        },
+        "reproduce": {
+          "path": "/tmp/core-modernization-pdf-committed-cold-a-reproduce-proof.json",
+          "sha256": "f5baa934ae25261c4e9b1ad07bf2dc9bab11ae6eff57a9c419493b3089ef3293",
+          "startedAt": "2026-10-22T09:53:07.895218+00:00",
+          "completedAt": "2026-10-22T09:53:45.923901+00:00",
+          "exitCode": 0,
+          "head": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+          "root": "/home/conrad/code/react-pdf-release-cold-a-2026-10-22",
+          "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+          "logSha256": "ef14e2c7ba82d7e782a2469b0524c4be3a41a4b3ddad410b8e0b5ffd62f6aaaa",
+          "gitStatus": "",
+          "result": {
+            "passed": true,
+            "head": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+            "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+            "rounds": [
+              {
+                "@asym/docraptor-client": "9c54d6cbdee785eb4faf59e28f71377c261da6f042712b5cf828aaeed4a9f6f4",
+                "@asym/pdf-template-schema": "852d80398c7f87a895acffd19ac5254d0566925165068cc657bdb38ed3019ff9",
+                "@asym/pdf-renderer": "7497b38399d8af660209a161a35d0a33b425c6124340e73b67da9fa14e2ee785",
+                "@asym/pdf-editor": "c14bb06ae724a5a1de232a04fb08044051dda4d3f3a163dd7d675c8828ade2c2",
+                "@asym/pdf-studio-adapter": "b47e215f22a539a539e004f1f36c0bc300015b4912f0f96ac501603b735dccb7"
+              },
+              {
+                "@asym/docraptor-client": "9c54d6cbdee785eb4faf59e28f71377c261da6f042712b5cf828aaeed4a9f6f4",
+                "@asym/pdf-template-schema": "852d80398c7f87a895acffd19ac5254d0566925165068cc657bdb38ed3019ff9",
+                "@asym/pdf-renderer": "7497b38399d8af660209a161a35d0a33b425c6124340e73b67da9fa14e2ee785",
+                "@asym/pdf-editor": "c14bb06ae724a5a1de232a04fb08044051dda4d3f3a163dd7d675c8828ade2c2",
+                "@asym/pdf-studio-adapter": "b47e215f22a539a539e004f1f36c0bc300015b4912f0f96ac501603b735dccb7"
+              },
+              {
+                "@asym/docraptor-client": "9c54d6cbdee785eb4faf59e28f71377c261da6f042712b5cf828aaeed4a9f6f4",
+                "@asym/pdf-template-schema": "852d80398c7f87a895acffd19ac5254d0566925165068cc657bdb38ed3019ff9",
+                "@asym/pdf-renderer": "7497b38399d8af660209a161a35d0a33b425c6124340e73b67da9fa14e2ee785",
+                "@asym/pdf-editor": "c14bb06ae724a5a1de232a04fb08044051dda4d3f3a163dd7d675c8828ade2c2",
+                "@asym/pdf-studio-adapter": "b47e215f22a539a539e004f1f36c0bc300015b4912f0f96ac501603b735dccb7"
+              }
+            ]
+          }
+        },
+        "browser": {
+          "path": "/tmp/core-modernization-pdf-committed-cold-a-browser-proof.json",
+          "sha256": "dfa26c92258f74e8dca31dacb5ffaccf5865c02f5b25bfb5bd3ae8abdcadd3ca",
+          "startedAt": "2026-10-22T09:53:45.934932+00:00",
+          "completedAt": "2026-10-22T09:53:52.241128+00:00",
+          "exitCode": 0,
+          "head": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+          "root": "/home/conrad/code/react-pdf-release-cold-a-2026-10-22",
+          "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+          "logSha256": "0e8b4d117461ee7707d0d0bf75f1d5905149fca310e5a5d2d98cc5cf582446c5",
+          "gitStatus": ""
+        },
+        "render": {
+          "path": "/tmp/core-modernization-pdf-committed-cold-a-render-proof.json",
+          "sha256": "7945b34c46392be497a2498efe83155acf1a229088edd7e743c6653f1affa332",
+          "startedAt": "2026-10-22T09:53:52.254378+00:00",
+          "completedAt": "2026-10-22T09:53:59.652170+00:00",
+          "exitCode": 0,
+          "head": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+          "root": "/home/conrad/code/react-pdf-release-cold-a-2026-10-22",
+          "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+          "logSha256": "77754686b307fdc396c6d61f2ce7f05937fb8ef8418062dfa2d5c94021242410",
+          "gitStatus": "",
+          "result": {
+            "passed": true,
+            "documents": 8,
+            "outputDirectory": "/home/conrad/code/react-pdf-release-cold-a-2026-10-22/tmp/pdfs/core-modernization"
+          }
+        }
+      },
+      "b": {
+        "frozen": {
+          "path": "/tmp/core-modernization-pdf-committed-cold-b-frozen-proof.json",
+          "sha256": "cceca8b178cd568c4ff41a9e372d247209f830c420aab41ba2c0f65805209eba",
+          "startedAt": "2026-10-22T09:53:59.672302+00:00",
+          "completedAt": "2026-10-22T09:54:01.345808+00:00",
+          "exitCode": 0,
+          "head": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+          "root": "/home/conrad/code/react-pdf-release-cold-b-2026-10-22",
+          "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+          "logSha256": "102dd30934e964f584d10f6fd9942b74d60e5e94e3a1fa798697dfe4e84e03b4",
+          "gitStatus": ""
+        },
+        "gates": {
+          "path": "/tmp/core-modernization-pdf-committed-cold-b-gates-proof.json",
+          "sha256": "c52185389285360dd4cf3745916f910caa1af8662a04ea703300d8978556427f",
+          "startedAt": "2026-10-22T09:54:01.667591+00:00",
+          "completedAt": "2026-10-22T09:54:20.358946+00:00",
+          "exitCode": 0,
+          "head": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+          "root": "/home/conrad/code/react-pdf-release-cold-b-2026-10-22",
+          "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+          "logSha256": "1160de5ee79f0df0b076493e61c1f623b1dbea7d6f41a49840bf879e87ba8625",
+          "gitStatus": ""
+        },
+        "reproduce": {
+          "path": "/tmp/core-modernization-pdf-committed-cold-b-reproduce-proof.json",
+          "sha256": "d2ebb498e946193d4396ac507820612da7d896b9a52790094183f60f6359408b",
+          "startedAt": "2026-10-22T09:54:20.374360+00:00",
+          "completedAt": "2026-10-22T09:55:52.214132+00:00",
+          "exitCode": 0,
+          "head": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+          "root": "/home/conrad/code/react-pdf-release-cold-b-2026-10-22",
+          "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+          "logSha256": "c22a41e720480ad414a2c3ee17a9f48a0c98b667f785c87fcad6574e2cd8b687",
+          "gitStatus": "",
+          "result": {
+            "passed": true,
+            "head": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+            "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+            "rounds": [
+              {
+                "@asym/docraptor-client": "9c54d6cbdee785eb4faf59e28f71377c261da6f042712b5cf828aaeed4a9f6f4",
+                "@asym/pdf-template-schema": "852d80398c7f87a895acffd19ac5254d0566925165068cc657bdb38ed3019ff9",
+                "@asym/pdf-renderer": "7497b38399d8af660209a161a35d0a33b425c6124340e73b67da9fa14e2ee785",
+                "@asym/pdf-editor": "c14bb06ae724a5a1de232a04fb08044051dda4d3f3a163dd7d675c8828ade2c2",
+                "@asym/pdf-studio-adapter": "b47e215f22a539a539e004f1f36c0bc300015b4912f0f96ac501603b735dccb7"
+              },
+              {
+                "@asym/docraptor-client": "9c54d6cbdee785eb4faf59e28f71377c261da6f042712b5cf828aaeed4a9f6f4",
+                "@asym/pdf-template-schema": "852d80398c7f87a895acffd19ac5254d0566925165068cc657bdb38ed3019ff9",
+                "@asym/pdf-renderer": "7497b38399d8af660209a161a35d0a33b425c6124340e73b67da9fa14e2ee785",
+                "@asym/pdf-editor": "c14bb06ae724a5a1de232a04fb08044051dda4d3f3a163dd7d675c8828ade2c2",
+                "@asym/pdf-studio-adapter": "b47e215f22a539a539e004f1f36c0bc300015b4912f0f96ac501603b735dccb7"
+              },
+              {
+                "@asym/docraptor-client": "9c54d6cbdee785eb4faf59e28f71377c261da6f042712b5cf828aaeed4a9f6f4",
+                "@asym/pdf-template-schema": "852d80398c7f87a895acffd19ac5254d0566925165068cc657bdb38ed3019ff9",
+                "@asym/pdf-renderer": "7497b38399d8af660209a161a35d0a33b425c6124340e73b67da9fa14e2ee785",
+                "@asym/pdf-editor": "c14bb06ae724a5a1de232a04fb08044051dda4d3f3a163dd7d675c8828ade2c2",
+                "@asym/pdf-studio-adapter": "b47e215f22a539a539e004f1f36c0bc300015b4912f0f96ac501603b735dccb7"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "sourceCi": {
+      "path": "/tmp/core-modernization-pdf-pr25-cc171a-qualified-ci.json",
+      "sha256": "20895b7ba8e2fc26b33da50e53c5c5930b2e8fa1e2e5d4eb64bb7938d9319ccb",
+      "headRefOid": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-22T09:59:16Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Asymmetric-al/react-PDF/actions/runs/39759586960/job/119760148247",
+          "name": "lint",
+          "startedAt": "2026-10-22T09:58:54Z",
+          "status": "COMPLETED",
+          "workflowName": "Lint"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-22T09:59:08Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Asymmetric-al/react-PDF/actions/runs/39759586865/job/119760147553",
+          "name": "e2e",
+          "startedAt": "2026-10-22T09:58:54Z",
+          "status": "COMPLETED",
+          "workflowName": "OpenSpec Validation"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-22T09:59:22Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Asymmetric-al/react-PDF/actions/runs/39759587102/job/119760149196",
+          "name": "pin-dependencies-check",
+          "startedAt": "2026-10-22T09:58:54Z",
+          "status": "COMPLETED",
+          "workflowName": "Pin Dependencies Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-22T09:58:58Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Asymmetric-al/react-PDF/actions/runs/39759586941/job/119760147826",
+          "name": "preview-release",
+          "startedAt": "2026-10-22T09:58:54Z",
+          "status": "COMPLETED",
+          "workflowName": "Preview Release"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-22T09:59:11Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Asymmetric-al/react-PDF/actions/runs/39759586882/job/119760147396",
+          "name": "pull-request-title-check",
+          "startedAt": "2026-10-22T09:58:54Z",
+          "status": "COMPLETED",
+          "workflowName": "Pull Request Title Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-22T09:58:59Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Asymmetric-al/react-PDF/actions/runs/39759586871/job/119760146949",
+          "name": "check",
+          "startedAt": "2026-10-22T09:58:54Z",
+          "status": "COMPLETED",
+          "workflowName": "Skills Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-22T10:01:44Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Asymmetric-al/react-PDF/actions/runs/39759587189/job/119760150158",
+          "name": "tests",
+          "startedAt": "2026-10-22T09:58:54Z",
+          "status": "COMPLETED",
+          "workflowName": "Tests"
+        }
+      ],
+      "url": "https://github.com/Asymmetric-al/react-PDF/pull/25"
+    },
+    "builderReview": {
+      "path": "/tmp/core-modernization-pdf-final-builder-refresh-review.json",
+      "sha256": "c5c0f73155a034fd75420d30f8cea96098d848210ee78ec438d1f1a81a491c04",
+      "schemaVersion": 1,
+      "reviewedAt": "2026-10-22T09:52:40.851Z",
+      "reviewer": "/root/runtime_infra_audit",
+      "mode": "read-only independent source and supplied-evidence review",
+      "repository": "/home/conrad/code/react-pdf-modernization-2026-10-22",
+      "baselineHead": "cc171a147b8deef364bac8b5b70bb70410766f4f",
+      "result": "approved within stated source/audit/local-test scope; no remaining important finding in this delta",
+      "findings": [],
+      "files": [
+        {
+          "path": "pnpm-workspace.yaml",
+          "sha256": "8ce375a9171d2292dd67c3de79cee5baa9345964e7b981d6380d5920271adfe4",
+          "coverage": "complete changed-line and semantic readback"
+        },
+        {
+          "path": "pnpm-lock.yaml",
+          "sha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+          "coverage": "complete changed-line and semantic readback"
+        },
+        {
+          "path": "packages/editor/package.json",
+          "sha256": "d7af48379b968d3bdffe75a8872542f30fbd44cfa9f53855cecc6a3ed1c7636f",
+          "coverage": "complete changed-line and semantic readback"
+        },
+        {
+          "path": "docs/maintenance/core-pdf-modernization/bundler-release-refresh.json",
+          "sha256": "9282c639f1b1295c8b76656bedcdf95006dec99c1ca0a50b3eda2d64fec0aac1",
+          "coverage": "complete changed-line and semantic readback"
+        }
+      ],
+      "trackedPatchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": {
+        "completeChangedPaths": [
+          "pnpm-workspace.yaml",
+          "pnpm-lock.yaml",
+          "packages/editor/package.json",
+          "docs/maintenance/core-pdf-modernization/bundler-release-refresh.json"
+        ],
+        "additionalDocsRefreshedAfterPriorRead": [
+          {
+            "path": "docs/maintenance/core-pdf-modernization/README.md",
+            "sha256": "ad95c82b4adbe4b38205e88cd13a531907aa65b1f95e9b9b812377ccb8895c12",
+            "coverage": "hash observed only; not included in this four-path full-delta approval"
+          },
+          {
+            "path": "docs/maintenance/core-pdf-modernization/dependency-qualification.json",
+            "sha256": "6ebc5010c155c17275be16cf288a952486230a5dacbe364aa184857ab110d81b",
+            "coverage": "hash observed only; not included in this four-path full-delta approval"
+          }
+        ],
+        "noSourceEditsInstallsBuildsTestsProvidersSecretsByReviewer": true
+      },
+      "agePolicy": {
+        "newExactExceptions": [],
+        "exceptionListMatchesReleaseRecord": false,
+        "strictReleaseAgeUnchanged": true,
+        "allowBuildsUnchanged": true,
+        "strictDepBuildsUnchanged": true,
+        "workspaceChanges": [],
+        "qualification": "All17 new exceptions are exact package@version strings. No wildcard, new lifecycle-script permission, override, or arbitrary Rolldown major admitted. Default numeric age setting outside the repository was not inspected."
+      },
+      "lock": {
+        "sha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+        "yamlDocumentCount": 2,
+        "firstDocumentByteIdentical": true,
+        "perDocumentDiffCount": [0, 0],
+        "delta": {
+          "importers": {
+            "added": [],
+            "removed": [],
+            "changed": []
+          },
+          "packages": {
+            "added": [],
+            "removed": [],
+            "changed": []
+          },
+          "snapshots": {
+            "added": [],
+            "removed": [],
+            "changed": []
+          }
+        },
+        "importerLeafChanges": [],
+        "settingsChanges": [],
+        "overridesChanges": [],
+        "oldPostcss8510References": 0,
+        "editorManifestChanges": [],
+        "consumedManifestsUnchanged": [
+          {
+            "path": "packages/docraptor-client/package.json",
+            "sha256": "05676ef3f26b13a9a26146edffeb4219093366e384d8648d277fe49e690d7b7e",
+            "unchangedFromHead": true
+          },
+          {
+            "path": "packages/pdf-template-schema/package.json",
+            "sha256": "2adf725334c85694562b6e7b89f7469ce0433a367fb4bcaed1f183734e7b3c14",
+            "unchangedFromHead": true
+          },
+          {
+            "path": "packages/pdf-renderer/package.json",
+            "sha256": "c0412f5fbd91be7ddc4ea622829b277eced7622c2a391c508973e34993efedf7",
+            "unchangedFromHead": true
+          },
+          {
+            "path": "packages/pdf-editor/package.json",
+            "sha256": "684abab8bb1edf11623eb62dee5c82155ab40e4d89bec3529e8ecb458d1351be",
+            "unchangedFromHead": true
+          },
+          {
+            "path": "packages/pdf-studio-adapter/package.json",
+            "sha256": "0b3aaa90eedcc88a2cbe5b84b999ae42d77c9548b8dc08a24e1646895414c452",
+            "unchangedFromHead": true
+          }
+        ]
+      },
+      "compatibility": {
+        "node": "v24.22.1",
+        "rolldownRanges": [
+          {
+            "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/tsdown@0.23.1_@tsdown+css@0.23.1_tsx@4.23.15_typescript@6.0.3_unrun@0.2.36/node_modules/tsdown/package.json",
+            "name": "tsdown",
+            "version": "0.23.1",
+            "sha256": "e2f876525a3ad157ac64247f1ad3d6d017dbceec2d8fe3e40594d8eb88a6bf5f",
+            "engines": {
+              "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
+            },
+            "rolldownRange": "~1.2.13",
+            "resolvedRolldown": "1.2.15"
+          },
+          {
+            "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/@tsdown+css@0.23.1_jiti@2.6.1_postcss-import@16.1.1_postcss@8.5.31__postcss@8.5.31_tsdown@0.23.1_tsx@4.23.15_yaml@2.8.3/node_modules/@tsdown/css/package.json",
+            "name": "@tsdown/css",
+            "version": "0.23.1",
+            "sha256": "6fa60785ec6431a672b697d2f992a30715281457e625f63fc350831710072243",
+            "engines": {
+              "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
+            },
+            "rolldownRange": "~1.2.13",
+            "resolvedRolldown": "1.2.15"
+          },
+          {
+            "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/rolldown-plugin-dts@0.28.8_rolldown@1.2.15_typescript@6.0.3/node_modules/rolldown-plugin-dts/package.json",
+            "name": "rolldown-plugin-dts",
+            "version": "0.28.8",
+            "sha256": "1d98270ddcaf5a74572242d08c35b9ac76957debf1814f5f35ab65526a553d64",
+            "engines": {
+              "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
+            },
+            "rolldownRange": "^1.2.0",
+            "resolvedRolldown": "1.2.15"
+          },
+          {
+            "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/vite@8.3.5_@types+node@24.19.2_esbuild@0.28.2_jiti@2.6.1_terser@5.37.0_tsx@4.23.15_yaml@2.8.3/node_modules/vite/package.json",
+            "name": "vite",
+            "version": "8.3.5",
+            "sha256": "c9586ac07b42763a8a7f6aac6b4a805d70f057bd8c67c43da81c0cc4e5da8293",
+            "engines": {
+              "node": "^20.19.0 || >=22.12.0"
+            },
+            "rolldownRange": "~1.2.14",
+            "resolvedRolldown": "1.2.15"
+          }
+        ],
+        "postcssPeerRange": "^8.4.0",
+        "postcssImportPeerRange": "^16.0.0 || ^17.0.0",
+        "installed": [
+          {
+            "package": "docraptor-client",
+            "tsdown": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/tsdown@0.23.1_@tsdown+css@0.23.1_tsx@4.23.15_typescript@6.0.3_unrun@0.2.36/node_modules/tsdown/package.json",
+              "version": "0.23.1",
+              "sha256": "e2f876525a3ad157ac64247f1ad3d6d017dbceec2d8fe3e40594d8eb88a6bf5f"
+            },
+            "css": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/@tsdown+css@0.23.1_jiti@2.6.1_postcss-import@16.1.1_postcss@8.5.31__postcss@8.5.31_tsdown@0.23.1_tsx@4.23.15_yaml@2.8.3/node_modules/@tsdown/css/package.json",
+              "version": "0.23.1",
+              "sha256": "6fa60785ec6431a672b697d2f992a30715281457e625f63fc350831710072243"
+            },
+            "postcss": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/postcss@8.5.31/node_modules/postcss/package.json",
+              "version": "8.5.31",
+              "sha256": "2bc68f53bee43580a7229a351c94ba72ebdea65a885746d481586313c5426da9"
+            },
+            "postcssImport": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/postcss-import@16.1.1_postcss@8.5.31/node_modules/postcss-import/package.json",
+              "version": "16.1.1",
+              "sha256": "c73a445aa712347de2c452ccfb6250cfe35af41e7cefbe7328005caa04530e78",
+              "resolvedPostcssVersion": "8.5.31"
+            }
+          },
+          {
+            "package": "pdf-template-schema",
+            "tsdown": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/tsdown@0.23.1_@tsdown+css@0.23.1_tsx@4.23.15_typescript@6.0.3_unrun@0.2.36/node_modules/tsdown/package.json",
+              "version": "0.23.1",
+              "sha256": "e2f876525a3ad157ac64247f1ad3d6d017dbceec2d8fe3e40594d8eb88a6bf5f"
+            },
+            "css": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/@tsdown+css@0.23.1_jiti@2.6.1_postcss-import@16.1.1_postcss@8.5.31__postcss@8.5.31_tsdown@0.23.1_tsx@4.23.15_yaml@2.8.3/node_modules/@tsdown/css/package.json",
+              "version": "0.23.1",
+              "sha256": "6fa60785ec6431a672b697d2f992a30715281457e625f63fc350831710072243"
+            },
+            "postcss": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/postcss@8.5.31/node_modules/postcss/package.json",
+              "version": "8.5.31",
+              "sha256": "2bc68f53bee43580a7229a351c94ba72ebdea65a885746d481586313c5426da9"
+            },
+            "postcssImport": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/postcss-import@16.1.1_postcss@8.5.31/node_modules/postcss-import/package.json",
+              "version": "16.1.1",
+              "sha256": "c73a445aa712347de2c452ccfb6250cfe35af41e7cefbe7328005caa04530e78",
+              "resolvedPostcssVersion": "8.5.31"
+            }
+          },
+          {
+            "package": "pdf-renderer",
+            "tsdown": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/tsdown@0.23.1_@tsdown+css@0.23.1_tsx@4.23.15_typescript@6.0.3_unrun@0.2.36/node_modules/tsdown/package.json",
+              "version": "0.23.1",
+              "sha256": "e2f876525a3ad157ac64247f1ad3d6d017dbceec2d8fe3e40594d8eb88a6bf5f"
+            },
+            "css": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/@tsdown+css@0.23.1_jiti@2.6.1_postcss-import@16.1.1_postcss@8.5.31__postcss@8.5.31_tsdown@0.23.1_tsx@4.23.15_yaml@2.8.3/node_modules/@tsdown/css/package.json",
+              "version": "0.23.1",
+              "sha256": "6fa60785ec6431a672b697d2f992a30715281457e625f63fc350831710072243"
+            },
+            "postcss": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/postcss@8.5.31/node_modules/postcss/package.json",
+              "version": "8.5.31",
+              "sha256": "2bc68f53bee43580a7229a351c94ba72ebdea65a885746d481586313c5426da9"
+            },
+            "postcssImport": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/postcss-import@16.1.1_postcss@8.5.31/node_modules/postcss-import/package.json",
+              "version": "16.1.1",
+              "sha256": "c73a445aa712347de2c452ccfb6250cfe35af41e7cefbe7328005caa04530e78",
+              "resolvedPostcssVersion": "8.5.31"
+            }
+          },
+          {
+            "package": "pdf-editor",
+            "tsdown": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/tsdown@0.23.1_@tsdown+css@0.23.1_tsx@4.23.15_typescript@6.0.3_unrun@0.2.36/node_modules/tsdown/package.json",
+              "version": "0.23.1",
+              "sha256": "e2f876525a3ad157ac64247f1ad3d6d017dbceec2d8fe3e40594d8eb88a6bf5f"
+            },
+            "css": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/@tsdown+css@0.23.1_jiti@2.6.1_postcss-import@16.1.1_postcss@8.5.31__postcss@8.5.31_tsdown@0.23.1_tsx@4.23.15_yaml@2.8.3/node_modules/@tsdown/css/package.json",
+              "version": "0.23.1",
+              "sha256": "6fa60785ec6431a672b697d2f992a30715281457e625f63fc350831710072243"
+            },
+            "postcss": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/postcss@8.5.31/node_modules/postcss/package.json",
+              "version": "8.5.31",
+              "sha256": "2bc68f53bee43580a7229a351c94ba72ebdea65a885746d481586313c5426da9"
+            },
+            "postcssImport": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/postcss-import@16.1.1_postcss@8.5.31/node_modules/postcss-import/package.json",
+              "version": "16.1.1",
+              "sha256": "c73a445aa712347de2c452ccfb6250cfe35af41e7cefbe7328005caa04530e78",
+              "resolvedPostcssVersion": "8.5.31"
+            }
+          },
+          {
+            "package": "pdf-studio-adapter",
+            "tsdown": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/tsdown@0.23.1_@tsdown+css@0.23.1_tsx@4.23.15_typescript@6.0.3_unrun@0.2.36/node_modules/tsdown/package.json",
+              "version": "0.23.1",
+              "sha256": "e2f876525a3ad157ac64247f1ad3d6d017dbceec2d8fe3e40594d8eb88a6bf5f"
+            },
+            "css": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/@tsdown+css@0.23.1_jiti@2.6.1_postcss-import@16.1.1_postcss@8.5.31__postcss@8.5.31_tsdown@0.23.1_tsx@4.23.15_yaml@2.8.3/node_modules/@tsdown/css/package.json",
+              "version": "0.23.1",
+              "sha256": "6fa60785ec6431a672b697d2f992a30715281457e625f63fc350831710072243"
+            },
+            "postcss": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/postcss@8.5.31/node_modules/postcss/package.json",
+              "version": "8.5.31",
+              "sha256": "2bc68f53bee43580a7229a351c94ba72ebdea65a885746d481586313c5426da9"
+            },
+            "postcssImport": {
+              "path": "/home/conrad/code/react-pdf-modernization-2026-10-22/node_modules/.pnpm/postcss-import@16.1.1_postcss@8.5.31/node_modules/postcss-import/package.json",
+              "version": "16.1.1",
+              "sha256": "c73a445aa712347de2c452ccfb6250cfe35af41e7cefbe7328005caa04530e78",
+              "resolvedPostcssVersion": "8.5.31"
+            }
+          }
+        ]
+      },
+      "suppliedAuditEvidence": {
+        "proof": {
+          "path": "/tmp/core-modernization-pdf-css-peer-fixed-qualification.json",
+          "sha256": "368d40ab42863d6475b34406fdb8b77df5e520ca18a74762aad4d8f3b83d6dc4"
+        },
+        "method": "Independently hashed and parsed every advisory finding/path in both supplied raw reports. Classified exact first path segment against every importer from both YAML documents; no unknown roots silently discarded.",
+        "audits": [
+          {
+            "kind": "full",
+            "path": "/tmp/core-modernization-pdf-css-peer-fixed-full-audit.json",
+            "sha256": "98569b9ba5a029ac45a674e11e7d34480398fe0eaa2c7db54622a2591d9af7bd",
+            "reportedExitCode": 1,
+            "uniqueAdvisories": 156,
+            "pathCount": 3079,
+            "roots": {
+              "apps__docs": 2443,
+              "apps__web": 182,
+              "packages__ui": 98,
+              "apps__demo": 42,
+              "packages__react-email": 62,
+              ".": 252
+            },
+            "unmappedRoots": [],
+            "consumedPaths": [],
+            "metadata": {
+              "vulnerabilities": {
+                "info": 0,
+                "low": 12,
+                "moderate": 65,
+                "high": 74,
+                "critical": 5
+              },
+              "dependencies": 1148,
+              "devDependencies": 506,
+              "optionalDependencies": 268,
+              "totalDependencies": 1776
+            }
+          },
+          {
+            "kind": "production",
+            "path": "/tmp/core-modernization-pdf-css-peer-fixed-production-audit.json",
+            "sha256": "cd94b8059bf845c820bcfd48a4994cc749219d006ade9e392def9f036c2273c5",
+            "reportedExitCode": 1,
+            "uniqueAdvisories": 144,
+            "pathCount": 2622,
+            "roots": {
+              "apps__docs": 2443,
+              "apps__web": 137,
+              "packages__ui": 42
+            },
+            "unmappedRoots": [],
+            "consumedPaths": [],
+            "metadata": {
+              "vulnerabilities": {
+                "info": 0,
+                "low": 9,
+                "moderate": 59,
+                "high": 71,
+                "critical": 5
+              },
+              "dependencies": 1143,
+              "devDependencies": 0,
+              "optionalDependencies": 127,
+              "totalDependencies": 1270
+            }
+          }
+        ],
+        "conclusion": "Zero advisory paths under the five consumed package labels in full and production reports. Overall audit commands still fail and whole-workspace audit closure is not claimed. Remaining reported roots are upstream workspaces and root release/Actions tooling."
+      },
+      "closedEarlierFinding": {
+        "snapshotLockSha256": "a6288b574c41eb1afe883d03779886498cb2fd594ea332bd283da3f5460029c6",
+        "finding": "Catalog-only update left actual tsdown CSS peer paths onPostCSS8.5.10:45 full development audit path records across five consumed importers. Production had no consumed advisory paths.",
+        "historicalFullAudit": {
+          "path": "/tmp/core-modernization-pdf-patched-builder-full-audit.json",
+          "sha256": "3410578a2b9b5a2c34671dd3b197fdefb953509a3b10c3d5e727690e6afee472"
+        },
+        "resolution": "One explicit editor development seed now uses the shared PostCSS8.5.31 catalog; normal resolver/dedupe rebinding removes all8.5.10 records. Independently verified both physical CSS/PostCSS and postcss-import/PostCSS edges for every consumed package plus new raw audits."
+      },
+      "localQualification": {
+        "checks": [
+          {
+            "kind": "gates",
+            "path": "/tmp/core-modernization-pdf-final-source-cohort-gates-proof.json",
+            "sha256": "2a34f32e827748f7f1ea9f1d0fc6e62385c2476eb1a5ea0a11d390e2c581ced5",
+            "command": ["pnpm", "core-pdf:check"],
+            "head": "8b297c4e1ceb279ca62233705837f84a3f0fb915",
+            "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+            "startedAt": "2026-10-22T09:45:08.517858+00:00",
+            "completedAt": "2026-10-22T09:45:23.524169+00:00",
+            "exitCode": 0,
+            "log": {
+              "path": "/tmp/core-modernization-pdf-final-source-cohort-gates.log",
+              "sha256": "d7bbe5d8baeed336f11527f8bf15c1e384f2e914f770e8f0ca9211689f397708"
+            }
+          },
+          {
+            "kind": "upstream-editor",
+            "path": "/tmp/core-modernization-pdf-final-source-cohort-upstream-editor-proof.json",
+            "sha256": "a74f96dd964202146a6661c974f4ecd5c23deaec2fbc3a091f188c59d2500fd3",
+            "command": ["pnpm", "--filter", "@react-email/editor", "test:unit"],
+            "head": "8b297c4e1ceb279ca62233705837f84a3f0fb915",
+            "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+            "startedAt": "2026-10-22T09:45:23.527391+00:00",
+            "completedAt": "2026-10-22T09:45:31.693251+00:00",
+            "exitCode": 0,
+            "log": {
+              "path": "/tmp/core-modernization-pdf-final-source-cohort-upstream-editor.log",
+              "sha256": "c69ab9cdde450d7f6088c7311340498fa4581ace642bf95588679ec0b086f19a"
+            }
+          },
+          {
+            "kind": "browser",
+            "path": "/tmp/core-modernization-pdf-final-source-cohort-browser-proof.json",
+            "sha256": "f54c124ad442b8c0762e625fcfb6dafb343dc514365e36d85e344cbd13f13071",
+            "command": ["pnpm", "core-pdf:browser"],
+            "head": "8b297c4e1ceb279ca62233705837f84a3f0fb915",
+            "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+            "startedAt": "2026-10-22T09:45:31.698779+00:00",
+            "completedAt": "2026-10-22T09:45:36.480596+00:00",
+            "exitCode": 0,
+            "log": {
+              "path": "/tmp/core-modernization-pdf-final-source-cohort-browser.log",
+              "sha256": "d2835750b0268d33caa704bfe9f029fc8dae5637a49368ff14a5b3b357280135"
+            }
+          },
+          {
+            "kind": "render",
+            "path": "/tmp/core-modernization-pdf-final-source-cohort-render-proof.json",
+            "sha256": "fc7910bc236e1e30be1f5616d817d2f0c1afbadf6ebb5394c3f8bd402d66cd92",
+            "command": ["pnpm", "core-pdf:render"],
+            "head": "8b297c4e1ceb279ca62233705837f84a3f0fb915",
+            "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+            "startedAt": "2026-10-22T09:45:36.483560+00:00",
+            "completedAt": "2026-10-22T09:45:43.525106+00:00",
+            "exitCode": 0,
+            "log": {
+              "path": "/tmp/core-modernization-pdf-final-source-cohort-render.log",
+              "sha256": "c99acad5f0c6ff2e9589c40cb050abf23080c4d3f784fc5022b090eb5af61a89"
+            },
+            "result": {
+              "passed": true,
+              "documents": 8,
+              "outputDirectory": "/home/conrad/code/react-pdf-modernization-2026-10-22/tmp/pdfs/core-modernization"
+            }
+          },
+          {
+            "kind": "reproduce",
+            "path": "/tmp/core-modernization-pdf-final-source-cohort-reproduce-proof.json",
+            "sha256": "4e700cd500cb947a4fa6ad89225571d39f1b9544d07caec3096a5ab92069b352",
+            "command": ["pnpm", "core-pdf:reproduce"],
+            "head": "8b297c4e1ceb279ca62233705837f84a3f0fb915",
+            "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+            "startedAt": "2026-10-22T09:45:43.530212+00:00",
+            "completedAt": "2026-10-22T09:46:09.974397+00:00",
+            "exitCode": 0,
+            "log": {
+              "path": "/tmp/core-modernization-pdf-final-source-cohort-reproduce.log",
+              "sha256": "093f765183ae25ba3d6a16818aa7ef1dfc677b1c27a4129dd00280c183562f3c"
+            },
+            "result": {
+              "passed": true,
+              "head": "8b297c4e1ceb279ca62233705837f84a3f0fb915",
+              "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+              "rounds": [
+                {
+                  "@asym/docraptor-client": "9c54d6cbdee785eb4faf59e28f71377c261da6f042712b5cf828aaeed4a9f6f4",
+                  "@asym/pdf-template-schema": "852d80398c7f87a895acffd19ac5254d0566925165068cc657bdb38ed3019ff9",
+                  "@asym/pdf-renderer": "7497b38399d8af660209a161a35d0a33b425c6124340e73b67da9fa14e2ee785",
+                  "@asym/pdf-editor": "c14bb06ae724a5a1de232a04fb08044051dda4d3f3a163dd7d675c8828ade2c2",
+                  "@asym/pdf-studio-adapter": "b47e215f22a539a539e004f1f36c0bc300015b4912f0f96ac501603b735dccb7"
+                },
+                {
+                  "@asym/docraptor-client": "9c54d6cbdee785eb4faf59e28f71377c261da6f042712b5cf828aaeed4a9f6f4",
+                  "@asym/pdf-template-schema": "852d80398c7f87a895acffd19ac5254d0566925165068cc657bdb38ed3019ff9",
+                  "@asym/pdf-renderer": "7497b38399d8af660209a161a35d0a33b425c6124340e73b67da9fa14e2ee785",
+                  "@asym/pdf-editor": "c14bb06ae724a5a1de232a04fb08044051dda4d3f3a163dd7d675c8828ade2c2",
+                  "@asym/pdf-studio-adapter": "b47e215f22a539a539e004f1f36c0bc300015b4912f0f96ac501603b735dccb7"
+                },
+                {
+                  "@asym/docraptor-client": "9c54d6cbdee785eb4faf59e28f71377c261da6f042712b5cf828aaeed4a9f6f4",
+                  "@asym/pdf-template-schema": "852d80398c7f87a895acffd19ac5254d0566925165068cc657bdb38ed3019ff9",
+                  "@asym/pdf-renderer": "7497b38399d8af660209a161a35d0a33b425c6124340e73b67da9fa14e2ee785",
+                  "@asym/pdf-editor": "c14bb06ae724a5a1de232a04fb08044051dda4d3f3a163dd7d675c8828ade2c2",
+                  "@asym/pdf-studio-adapter": "b47e215f22a539a539e004f1f36c0bc300015b4912f0f96ac501603b735dccb7"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "pins",
+            "path": "/tmp/core-modernization-pdf-final-source-cohort-pins-proof.json",
+            "sha256": "14a958a9e27053b75215a1d7721e8404315d741edc428df1b18534d0e531dd88",
+            "command": [
+              "pnpm",
+              "exec",
+              "tsx",
+              "scripts/check-dependency-versions.ts"
+            ],
+            "head": "8b297c4e1ceb279ca62233705837f84a3f0fb915",
+            "lockSha256": "ac608b85d7647d4368b7756cb56a7035f82ad74488846e12b2918d8d62d5b6bb",
+            "startedAt": "2026-10-22T09:46:09.977248+00:00",
+            "completedAt": "2026-10-22T09:46:10.292268+00:00",
+            "exitCode": 0,
+            "log": {
+              "path": "/tmp/core-modernization-pdf-final-source-cohort-pins.log",
+              "sha256": "acf6bfb6d54e7a3ece75890a1f3e43fd854a32622eee287bbe80edaea82a9a2b"
+            }
+          }
+        ],
+        "observedCounts": {
+          "consumedUnitFiles": 38,
+          "consumedUnitCases": 224,
+          "consumedTurboTasksPassed": 20,
+          "consumedTurboTasksCached": 0,
+          "upstreamEditorFiles": 47,
+          "upstreamEditorCasesPassed": 447,
+          "upstreamEditorCasesSkipped": 1,
+          "browserFiles": 1,
+          "browserCases": 3,
+          "renderedDocuments": 8,
+          "reproductionRounds": 3,
+          "reproducedPackages": 5
+        },
+        "reproductionScope": "Current verifier rebuilds/packs three times in the existing installation; it asserts Git-visible source stays unchanged. Its successful repeated tarballs are not a new independent committed-source cold-install reproduction.",
+        "frozenInstallScope": "Parent reports successful normal frozen installation after resolver rebinding; reviewer independently checked installed resolution. Historical patched-builder-frozen proof is bound to priora628 lock and is not reused as exact current-lock command evidence."
+      },
+      "officialSources": [
+        {
+          "url": "https://github.com/rolldown/rolldown/releases/tag/v1.2.15",
+          "observation": "Versioned immutable release1.2.15 dated2026-10-21, displayed commit89d821c; registry integrity matches current lock release entry."
+        },
+        {
+          "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
+          "observation": "PostCSS<=8.5.11 affected; fixed8.5.12."
+        },
+        {
+          "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
+          "observation": "PostCSS<=8.5.22 affected; fixed8.5.23."
+        },
+        {
+          "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849",
+          "observation": "PostCSS<=8.5.17 affected; fixed8.5.18."
+        }
+      ],
+      "limits": [
+        "No tests, installations, cold worktrees, native platforms other than current Linux installed resolution, provider calls, or secret access performed by reviewer.",
+        "Owner committed-source independent cold qualification, current-head CI/reviews/merge and Core ingestion remain separate required work.",
+        "Zero consumed audit paths is bounded to the supplied advisory database/raw-report timestamp; it does not establish absence of all vulnerabilities.",
+        "The two additional maintenance docs refreshed after the prior read are hash-observed, not approved here as full changed-file coverage."
+      ]
+    }
+  },
+  "limits": [
+    "Core ingestion and deployed qualification remain required.",
+    "Live DocRaptor and production final-PDF fidelity remain separate.",
+    "Native-builder activation is unchanged and disabled.",
+    "Final owner PR head requires passing CI and review reconciliation before merge."
+  ]
+}

@@ -77,16 +77,15 @@ describe("agent instruction routing fixtures", () => {
   const tanstackGuide = readRepoFile(
     "docs/guides/development/tanstack-integration.md",
   );
-  const packageManifests = [
+  const packageManifestPaths = [
     "package.json",
     "apps/admin/package.json",
     "apps/donor/package.json",
     "apps/missionary/package.json",
     "packages/database/package.json",
     "packages/ui/package.json",
-  ]
-    .map(readRepoFile)
-    .join("\n");
+  ];
+  const packageManifests = packageManifestPaths.map(readRepoFile).join("\n");
   const tddSkill = readRepoFile("docs/ai/skills/tdd/SKILL.md");
   const moaiSkill = readRepoFile("docs/ai/skills/moai-library-shadcn/SKILL.md");
   const copilotRoot = readRepoFile(".github/copilot-instructions.md");
@@ -314,7 +313,36 @@ describe("agent instruction routing fixtures", () => {
     expect(packageManifests).toContain("@tanstack/react-query");
     expect(packageManifests).toContain("@tanstack/db");
     expect(packageManifests).toContain("@tanstack/react-form");
-    expect(packageManifests).toContain("9.2.6");
+    expect(packageManifests).toContain("@tanstack/react-table");
+    const uiManifest: { dependencies: Record<string, string> } = JSON.parse(
+      readRepoFile("packages/ui/package.json"),
+    );
+    const tableVersion = uiManifest.dependencies["@tanstack/react-table"];
+    expect(tableVersion).toMatch(/^\d+\.\d+\.\d+$/);
+    for (const packageName of [
+      "@tanstack/react-table",
+      "@tanstack/react-table-devtools",
+    ]) {
+      const documentedRow = tanstackGuide
+        .split("\n")
+        .find((line) => line.startsWith(`| \`${packageName}\``));
+      const documentedVersion = documentedRow
+        ?.split("|")[2]
+        ?.trim()
+        .match(/^`([^`]+)`(?: \(exact\))?$/)?.[1];
+      expect(documentedVersion).toBe(tableVersion);
+      for (const manifestPath of packageManifestPaths) {
+        const manifest: {
+          dependencies?: Record<string, string>;
+          devDependencies?: Record<string, string>;
+        } = JSON.parse(readRepoFile(manifestPath));
+        const declared =
+          manifest.dependencies?.[packageName] ??
+          manifest.devDependencies?.[packageName];
+        if (declared) expect(declared).toBe(tableVersion);
+      }
+    }
+    expect(tanstackGuide).toContain(`@tanstack/react-table@${tableVersion}`);
     expect(packageManifests).toContain("@tanstack/react-virtual");
     expect(packageManifests).not.toContain("@tanstack/react-charts");
     expect(packageManifests).not.toContain("@tanstack/react-hotkeys");
@@ -326,8 +354,11 @@ describe("agent instruction routing fixtures", () => {
 
   it("routes Supabase, Payload, Stripe, Resend, Eve, and OpenSpec work without bloating root catalogs", () => {
     expect(skillRouting).toContain("docs/ai/skills/supabase/SKILL.md");
-    expect(skillRouting).toContain(
-      "docs/ai/skills/payloadcms-payload/SKILL.md",
+    expect(skillRouting).toContain("docs/ai/skills/payload/SKILL.md");
+    expect(skillRouting).toContain("docs/ai/skills/cms-migration/SKILL.md");
+    expect(skillRouting).not.toContain("docs/ai/skills/payloadcms-payload/");
+    expect(skillRouting).not.toContain(
+      "docs/ai/skills/payloadcms-cms-migration/",
     );
     expect(skillRouting).toContain(
       "docs/ai/skills/idempotency-handling/SKILL.md",

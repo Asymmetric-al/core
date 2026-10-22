@@ -225,7 +225,7 @@ describe("serializePublicPage", () => {
             width: 1200,
             height: 800,
             mimeType: "image/jpeg",
-            sizes: {
+            variants: {
               thumbnail: { url: "/media/team-thumb.jpg", filesize: 999 },
               card: { url: "/media/team-card.jpg" },
             },

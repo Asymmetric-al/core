@@ -32,6 +32,8 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
+When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.
+
 A construction skill for React Native. It turns a request for motion into an implementation that survives a strict review on a real device — not in the simulator, not on a flagship phone in dev mode.
 
 Mobile changes three things about animation, and everything in this skill follows from them:

@@ -1,0 +1,770 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "product-graphql",
+  "status": "implemented-awaiting-full-qualification-and-merge",
+  "owner": "Core API and CMS maintainers",
+  "capturedAt": "2026-10-22T00:18:11.048636+00:00",
+  "temporaryStackBase": "a47024f8d646341ccaba0a0c852a2453473516bf",
+  "mustRequalifyOnMergedDevelop": true,
+  "releaseMetadataRefreshedAt": "2026-10-21T20:31:23.330472+00:00",
+  "targets": [
+    {
+      "name": "graphql",
+      "version": "17.0.2",
+      "publishedAt": "2026-07-03T06:28:49.985Z",
+      "dependencies": {},
+      "peers": {},
+      "engines": {
+        "node": "^22.0.0 || ^24.0.0 || ^25.0.0 || >=26.0.0"
+      },
+      "integrity": "sha512-FRWbddMxfkjiB7z+aQDWIR+E34xo9I8c9mtK2RPv8PmMzKRvrdsreHL/Ui/TmwHJfhHChEtsFPyMHKI+xuarQQ==",
+      "tarball": "https://registry.npmjs.org/graphql/-/graphql-17.0.2.tgz",
+      "upstream": "https://registry.npmjs.org/graphql",
+      "deprecated": null
+    },
+    {
+      "name": "graphql-yoga",
+      "version": "5.24.6",
+      "publishedAt": "2026-10-15T18:48:24.702Z",
+      "dependencies": {
+        "tslib": "^2.8.1",
+        "lru-cache": "^10.0.0",
+        "@envelop/core": "^5.6.1",
+        "@whatwg-node/fetch": "^0.10.6",
+        "@whatwg-node/server": "^0.11.0",
+        "@graphql-tools/utils": "^12.0.3",
+        "@graphql-yoga/logger": "^2.0.2",
+        "@graphql-tools/schema": "^10.1.3",
+        "@graphql-tools/executor": "^2.0.3",
+        "@envelop/instrumentation": "^1.0.1",
+        "@graphql-yoga/subscription": "^5.1.1",
+        "@whatwg-node/promise-helpers": "^1.3.2"
+      },
+      "peers": {
+        "graphql": "^15.2.0 || ^16.0.0 || ^17.0.0"
+      },
+      "engines": {
+        "node": ">=18.0.0"
+      },
+      "integrity": "sha512-IpRSnLfxbv1oiNTghzYjb0QPCn4p1y+8uoXJ0MkC5aNJAko2PSba89ByJXHIxoQAILZ3PKZaVcaEtlDJw4YQxw==",
+      "tarball": "https://registry.npmjs.org/graphql-yoga/-/graphql-yoga-5.24.6.tgz",
+      "upstream": "https://registry.npmjs.org/graphql-yoga",
+      "deprecated": null
+    }
+  ],
+  "removedRootDeclarations": ["graphql", "graphql-yoga"],
+  "rootRemovalEvidence": "Owned apps/packages/scripts/tests/tooling imports use only packages/graphql/handler.ts for Yoga; the workspace owns both dependencies. Root retains @asym/graphql as its public workspace boundary.",
+  "retainedCompatibility": {
+    "name": "graphql",
+    "version": "16.14.2",
+    "publishedAt": "2026-06-09T09:08:23.122Z",
+    "integrity": "sha512-Chq1s4CY7jmh8gO2qvLIJyfCDIN+EHLFW/9iShnp1z8FjBQMoodWP1kDC36VAMXXIvAjj4ARa7ntfAV2BrjsbA==",
+    "upstream": "https://registry.npmjs.org/graphql",
+    "requiredBy": [
+      "payload@4.0.0-internal.1f9ae9a",
+      "@payloadcms/next@4.0.0-internal.1f9ae9a"
+    ],
+    "upstreamRequirement": "^16.8.1",
+    "owner": "Core CMS maintainers",
+    "verification": "Actual physical dependency tests prove product Yoga uses 17, CMS uses 16, constructors differ, each validates its own schema and crossing runtime objects is rejected. The public product package exports only a handler factory.",
+    "recheck": "The public Payload v4 migration or any product/CMS GraphQL dependency change invalidates this compatibility proof."
+  },
+  "migrationReview": {
+    "guide": "https://github.com/graphql/graphql-js/blob/v17.0.2/website/pages/upgrade-guides/v16-v17.mdx",
+    "yogaRelease": "https://github.com/graphql-hive/graphql-yoga/releases/tag/graphql-yoga@5.24.6",
+    "yogaGraphqlPeer": "^15.2.0 || ^16.0.0 || ^17.0.0",
+    "boundary": "SDL/resolvers and schema construction remain private to @asym/graphql. No GraphQL17 schema, AST or class instance is passed to CMS code.",
+    "applicableChanges": [
+      "Node 24 satisfies GraphQL 17 runtime requirements.",
+      "Variable coercion preserves missing versus explicit null update fields.",
+      "HTTP validation rejects fractional, oversized and string Int inputs before mutation transport.",
+      "Existing DateTime scalar responses, integer money amounts and idempotency inputs remain stable."
+    ],
+    "notUsed": [
+      "Direct execute/subscribe result handling",
+      "Legacy variableValues internals",
+      "Removed AST/utility exports",
+      "Incremental delivery opt-in"
+    ]
+  },
+  "baselineHttp": {
+    "startedAt": "2026-10-21T20:38:08.822598+00:00",
+    "completedAt": "2026-10-21T20:38:11.239972+00:00",
+    "exitCode": 0,
+    "test": "tests/unit/graphql-http-contract.test.ts",
+    "sourceSha256": "5c3c074b94613e110256d6dec66fda230c96593c746b77f5d1461f98315667ce",
+    "logSha256": "6416032693e9a19142abae8e269a42b595c60ea525e2cc16ff4f19279a5f6fc6",
+    "beforeDependencyUpgrade": true
+  },
+  "runtimeBoundaryRed": {
+    "startedAt": "2026-10-21T20:38:45.097031+00:00",
+    "completedAt": "2026-10-21T20:38:46.180334+00:00",
+    "exitCode": 1,
+    "test": "tests/unit/graphql-runtime-boundary.test.ts",
+    "sourceSha256": "a4036f2940de321d4a095c9e6a53fcfa17282c70763d5d912ee378c04ecdd36d",
+    "logSha256": "dd432ed94896b563918dd6f776286db4178e4d24dfa6e46fe0c096016d135d47",
+    "beforeDependencyUpgrade": true
+  },
+  "currentHttpAndBoundaryTests": {
+    "startedAt": "2026-10-22T00:16:37.912573+00:00",
+    "completedAt": "2026-10-22T00:16:39.631986+00:00",
+    "exitCode": 0,
+    "logSha256": "dcafcefe7048ccceb598ee64b6923c784fd096cf1a4f18a1de1d2ccbe7f8ddd5",
+    "sources": {
+      "tests/unit/graphql-http-contract.test.ts": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3",
+      "tests/unit/graphql-runtime-boundary.test.ts": "91843880bc261ea8fecdabdfae0be5c7de568d84b23db59a398fbca566f66b40"
+    },
+    "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+    "files": 3,
+    "tests": 36,
+    "newHttpCases": 18,
+    "physicalRuntimeCases": 2,
+    "existingAdapterCases": 16,
+    "providerSeams": "Actual Yoga/GraphQL and authorization rules; mocked auth context resolution and Supabase transport.",
+    "testSourceChangesSinceBaseline": "Lint import/type syntax changes plus the reviewed unknown-input case strengthened with a valid idempotency header, HTTP 400 and no query transport. All 18 original cases and assertions remain; all strengthened HTTP cases pass on the pre-upgrade and current runtime. A controlled schema mutation proves this case detects accepted unknown input."
+  },
+  "installation": {
+    "incremental": {
+      "startedAt": "2026-10-21T20:39:34.512015+00:00",
+      "completedAt": "2026-10-21T20:39:37.164462+00:00",
+      "exitCode": 1,
+      "logSha256": "648f22bf585351ae134e2f13c19ea47da10e145d25da27f79b2cf8e6ac186baa",
+      "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "noGraphqlOverrideAdded": true,
+      "noEnvLocal": true
+    },
+    "frozenRetry": {
+      "startedAt": "2026-10-21T20:40:16.510815+00:00",
+      "completedAt": "2026-10-21T20:40:16.714146+00:00",
+      "exitCode": 0,
+      "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "noLockDrift": true,
+      "logSha256": "ece917d23d601d2a95a231f19bf15f46e314c7b3b17c844e1bf0fc4d65af8a51",
+      "freshCheckout": false,
+      "priorIncrementalInstallFailedOnExistingPdfLink": true
+    },
+    "remaining": "Clean installation and focused contracts passed. Full gates passed through the merged-data parent e8884ab8. Installation inputs are unchanged; final release gates and current-head CI/review/previews must cover the reviewed test strengthening.",
+    "freshCheckout": {
+      "startedAt": "2026-10-21T21:25:04.094523+00:00",
+      "completedAt": "2026-10-21T21:25:07.604712+00:00",
+      "head": "3b01e6793c84dc07bcda588683652c33bee4d676",
+      "path": "/home/conrad/code/core-worktrees/graphql-clean-install-2026-10-22",
+      "exitCode": 0,
+      "logSha256": "75d42968cf24c5f845ec2c1d841b8204f05621424d7dc7e7148cb1d8175316ac",
+      "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "opaqueDatabaseAbsent": true,
+      "environmentAbsent": true,
+      "trackedClean": true,
+      "packages": 1946,
+      "frozen": true,
+      "backend": "copyfile",
+      "noCache": true,
+      "opaqueDatabaseNeverMaterialized": true
+    },
+    "freshCheckoutContractTests": {
+      "startedAt": "2026-10-21T21:25:44.724958+00:00",
+      "completedAt": "2026-10-21T21:25:46.287830+00:00",
+      "exitCode": 0,
+      "head": "3b01e6793c84dc07bcda588683652c33bee4d676",
+      "logSha256": "5231b4e042a7946fbbddca942c8c6dae0fdad0338d9bbe0143115a5a2f3eac5b",
+      "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "files": 3,
+      "tests": 36
+    }
+  },
+  "limitations": [
+    "Final release gates, current-head CI/review, exact-head previews and merged-develop readback must cover the reviewed input-coercion test strengthening. Historical full gates and compiled product/CMS checks passed.",
+    "No hosted Supabase or payment provider behavior is inferred from mocked GraphQL transport tests.",
+    "No production operation or database migration was executed.",
+    "Full nested-advisory reconciliation remains owned by the security checkpoint."
+  ],
+  "initialUpgradedTests": {
+    "startedAt": "2026-10-21T20:40:26.264588+00:00",
+    "completedAt": "2026-10-21T20:40:31.015395+00:00",
+    "exitCode": 0,
+    "logSha256": "54c83769913b98a9e5c4c544cabd5f8a38fecdad1182047b6bae44039fde454b",
+    "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+    "sources": {
+      "tests/unit/graphql-http-contract.test.ts": "5c3c074b94613e110256d6dec66fda230c96593c746b77f5d1461f98315667ce",
+      "tests/unit/graphql-runtime-boundary.test.ts": "a4036f2940de321d4a095c9e6a53fcfa17282c70763d5d912ee378c04ecdd36d",
+      "tests/unit/graphql-gift-engagement-adapters.test.ts": "fe28e5e4e229fc90904730ffb716cb334ae04061f99d801a8d3635c5bb288af5"
+    },
+    "files": 3,
+    "tests": 36,
+    "newHttpCases": 18,
+    "physicalRuntimeCases": 2,
+    "existingAdapterCases": 16,
+    "providerSeams": "Actual Yoga/GraphQL and authorization rules; mocked auth context resolution and Supabase transport."
+  },
+  "currentProductTypecheck": {
+    "startedAt": "2026-10-21T20:46:44.942644+00:00",
+    "completedAt": "2026-10-21T20:46:57.535261+00:00",
+    "exitCode": 0,
+    "logSha256": "2268d0ea4e8f8549ccf3d3d7af39bb46e177b84fdc97bd231991e86322f93aae",
+    "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+    "successfulWorkspaces": 15,
+    "cacheHits": 0
+  },
+  "currentTestLint": {
+    "startedAt": "2026-10-22T00:16:39.632183+00:00",
+    "completedAt": "2026-10-22T00:16:40.606000+00:00",
+    "exitCode": 0,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sources": {
+      "tests/unit/graphql-http-contract.test.ts": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3",
+      "tests/unit/graphql-runtime-boundary.test.ts": "91843880bc261ea8fecdabdfae0be5c7de568d84b23db59a398fbca566f66b40"
+    },
+    "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+    "warnings": 0
+  },
+  "manifestCoverage": {
+    "capturedAt": "2026-10-21T21:04:36.264623+00:00",
+    "activeManifests": 23,
+    "canonicalIdentities": 129,
+    "externalAndImportedDeclarations": 301,
+    "previousDeclarations": 303,
+    "allCurrentUsesMatchActualDeclarations": true
+  },
+  "securityGraphSnapshot": {
+    "startedAt": "2026-10-21T20:59:14.570345+00:00",
+    "completedAt": "2026-10-21T20:59:14.952298+00:00",
+    "exitCode": 1,
+    "reportSha256": "57b98f4ab30f8b5f26e0c86b9a158d50005bbc1c7ab85eb13888364c0393a04e",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+    "limitations": "Full reachability analysis and official advisory reconciliation remain required.",
+    "reportedPackageNames": 41,
+    "uniqueAdvisories": 102,
+    "removedComparedWithDataCheckpoint": ["@graphql-tools/utils"],
+    "fullReachabilityAndManualUpstreamReconciliation": "pending; this is not security closure"
+  },
+  "independentImplementationReview": {
+    "coveredPaths": 5,
+    "frozenPatchSha256": "d9303fb9dd66e19007d4dda8617051f2c945fb1a716ad77bb49e9fc8f95767dc",
+    "importantFindings": 0,
+    "dependencyPeerEdgesVerified": 29,
+    "changedOrRepositionedRegistryIdentitiesVerified": 9,
+    "remaining": "Original complete implementation, documentation/quality and clean-install delta reviews passed. The new compiled-runtime evidence delta, full-gate requalification, current-head CI/review, previews and merged-develop readback remain required."
+  },
+  "currentDesignSystemQualification": {
+    "shadscan": {
+      "capturedAt": "2026-10-21T20:56:35.879331+00:00",
+      "rawFindingsUnchanged": 528,
+      "classificationsUnchanged": 118,
+      "rawSha256": "c919d4c8a5468f3ed54138f2576a746d4076cba97bab1a9b79bba97cb756a312",
+      "updates": [
+        {
+          "entry": 0,
+          "proof": 1,
+          "path": "package.json",
+          "before": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb",
+          "after": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5"
+        },
+        {
+          "entry": 1,
+          "proof": 1,
+          "path": "package.json",
+          "before": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb",
+          "after": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5"
+        },
+        {
+          "entry": 2,
+          "proof": 1,
+          "path": "package.json",
+          "before": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb",
+          "after": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5"
+        },
+        {
+          "entry": 3,
+          "proof": 1,
+          "path": "package.json",
+          "before": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb",
+          "after": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5"
+        },
+        {
+          "entry": 4,
+          "proof": 1,
+          "path": "package.json",
+          "before": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb",
+          "after": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5"
+        },
+        {
+          "entry": 5,
+          "proof": 1,
+          "path": "package.json",
+          "before": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb",
+          "after": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5"
+        },
+        {
+          "entry": 6,
+          "proof": 1,
+          "path": "package.json",
+          "before": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb",
+          "after": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5"
+        },
+        {
+          "entry": 7,
+          "proof": 1,
+          "path": "package.json",
+          "before": "73b4bf631e4050542d2693f11e1d839d0453726d475c7b1b09a0890c766c16fb",
+          "after": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5"
+        }
+      ],
+      "rootManifestDelta": "Only unused root graphql/graphql-yoga declarations removed; workspace-root identity and application ownership unchanged.",
+      "ledgerSha256": "46559e4f4610d86a7569de4f6a216621af7c4f4c555386c340d2e62da9e92a92",
+      "strictAssessmentPassed": true,
+      "pooledScore": 48,
+      "appScores": {
+        "admin": 43,
+        "donor": 61,
+        "missionary": 47
+      },
+      "floorsUnchanged": true
+    },
+    "reactDoctor": {
+      "startedAt": "2026-10-21T21:05:42.940229+00:00",
+      "completedAt": "2026-10-21T21:07:20.671796+00:00",
+      "exitCode": 0,
+      "output": "/tmp/core-modernization-graphql-react-doctor-final",
+      "logSha256": "3ecdf767ca6b266eb74bbfdbf682f8fbc3ec4cfb8f0b7a3ae668f7b3dc084b74",
+      "targets": 8,
+      "allComplete": true,
+      "skippedChecks": 0,
+      "actionable": 0,
+      "excepted": 294,
+      "allDiagnosticIdentitiesAndReasonsUnchanged": true,
+      "supportHashUpdateCount": 22,
+      "ledgerSha256": "8b0f35b113d1d2c3f154ca40f2095112da88fb3ad084d6ecdc095a7ab1ac6bbe",
+      "integritySha256": "29f65e45116259e9ad3d3bf2ef678aa572ae9bd9710cb357a71345f4c5ec3dd5",
+      "firstScanEvidenceGuard": {
+        "startedAt": "2026-10-21T20:57:06.146588+00:00",
+        "completedAt": "2026-10-21T20:58:57.963794+00:00",
+        "exitCode": 1,
+        "output": "/tmp/core-modernization-graphql-react-doctor",
+        "logSha256": "db1488d721774c54767e9395952a81df892358621770ea4f9606cde01cddc2ce",
+        "phase": "actual full scan before changed support-file evidence requalification"
+      },
+      "strictSourceIntegrityPassed": true
+    }
+  },
+  "initialTemporaryStackBase": "c48420906f78760b39f2de877b31a736fd0c474f",
+  "infrastructureStackBase": "2e1ebf397af60eb1b0613561f2535b96770ec6ca",
+  "previousTemporaryStackBase": "b350a6880d95c39631cdd9e5bf5747909db63974",
+  "initialFullPrePush": {
+    "startedAt": "2026-10-21T21:28:20.473070+00:00",
+    "completedAt": "2026-10-21T21:40:34.642377+00:00",
+    "exitCode": 0,
+    "head": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+    "logSha256": "c73eb09d6b46563ccd89023c894b34e0dd4365ba404f736a764b3a4267dcacf8",
+    "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+    "sourceHead": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+    "passedTestFiles": 900,
+    "skippedTestFiles": 2,
+    "passedTests": 7364,
+    "expectedFailedTests": 1,
+    "skippedTests": 4,
+    "applicationBuilds": 3,
+    "productTypechecks": 15,
+    "mustRequalifyAfterInheritedDataReviewFixes": true
+  },
+  "compiledProductHttpComparison": {
+    "capturedAt": "2026-10-21T21:43:16.620834+00:00",
+    "baselineHead": "1dcdade63e012898f237663a634eca28c8275193",
+    "currentHead": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+    "cases": 9,
+    "exactStatusesAndPublicResponsesPreserved": true,
+    "productionMaskingPreserved": true,
+    "legacyAndModernAcceptSemanticsPreserved": true,
+    "canonicalPerAppStart": true,
+    "providerCredentialsUsed": false,
+    "sourceSha256": "3a16c227af622d069a5fe23d4b8e434942abb372a4be9d3a109aa1c1c177543b"
+  },
+  "compiledCmsRuntime": {
+    "startedAt": "2026-10-21T22:24:19.983792+00:00",
+    "root": "/home/conrad/code/core-worktrees/graphql-modernization-2026-10-22",
+    "head": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+    "scope": "actual compiled Next admin CMS GraphQL16 route against preserved synthetic local database; temporary CMS-select-only role, no environment files",
+    "productionTouched": false,
+    "checks": [
+      "compiled-payload16-root-query",
+      "cms-production-introspection-remains-disabled",
+      "anonymous-cms-users-denied",
+      "compiled-cms-options-mounted",
+      "compiled-cms-mount-preserves-anonymous-redirect"
+    ],
+    "preservationBefore": {
+      "tables": 266,
+      "rows": 1577,
+      "sha256": "74c393fcfa803c978b588d6f626cee22775c59b42d945c5eb77318482a8a49dc"
+    },
+    "rootQuery": {
+      "status": 200,
+      "response": {
+        "data": {
+          "__typename": "Query"
+        }
+      }
+    },
+    "productionIntrospection": {
+      "status": 200,
+      "response": {
+        "errors": [
+          {
+            "message": "GraphQL introspection is not allowed, but the query contained __schema or __type",
+            "locations": [
+              {
+                "line": 1,
+                "column": 3
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "anonymousCmsUsers": {
+      "status": 200,
+      "response": {
+        "errors": [
+          {
+            "extensions": {
+              "name": "T",
+              "statusCode": 403
+            },
+            "locations": [
+              {
+                "line": 1,
+                "column": 3
+              }
+            ],
+            "message": "You are not allowed to perform this action.",
+            "path": ["CmsUsers"]
+          }
+        ],
+        "data": {
+          "CmsUsers": null
+        }
+      }
+    },
+    "options": {
+      "status": 200
+    },
+    "loginMount": {
+      "status": 307,
+      "htmlBytes": 33,
+      "location": "/login?next=%2Fweb-studio%2Flogin",
+      "hasLoginMarkup": true,
+      "hasHtml": false
+    },
+    "passed": true,
+    "redactedLogSha256": "fd8dc5f1103abdc14aa8889fa96d94bc714f28651215a034b6296ebd1b628938",
+    "temporaryRoleRemoved": true,
+    "preservationAfter": {
+      "tables": 266,
+      "rows": 1577,
+      "sha256": "74c393fcfa803c978b588d6f626cee22775c59b42d945c5eb77318482a8a49dc"
+    },
+    "tableDataUnchanged": true,
+    "completedAt": "2026-10-21T22:25:17.482249+00:00",
+    "runnerSha256": "80ce5851bb2f5a61d9463f3c2913c3b2d6f9b0fdcd575eee442644467f42df29",
+    "runnerSourceUnchangedDuringExecution": true,
+    "limits": "Read-only CMS protocol/mount checks with a temporary CMS-select-only database role and no provider credentials. Authenticated editor and hosted preview flows remain separate qualification. The temporary role was removed and all table data stayed unchanged."
+  },
+  "inheritedDataReviewFixes": {
+    "mergedDevelop": "a47024f8d646341ccaba0a0c852a2453473516bf",
+    "qualifiedDataHead": "1e5b7f55e783bf016892d2d54dcd317271ca877b",
+    "integration": {
+      "capturedAt": "2026-10-21T23:43:41.187888+00:00",
+      "headBefore": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+      "incomingMergedDevelop": "a47024f8d646341ccaba0a0c852a2453473516bf",
+      "paths": [
+        "docs/maintenance/modernization/data-access-qualification.json",
+        "docs/maintenance/modernization/data-access.md",
+        "docs/maintenance/modernization/dependencies.json",
+        "tests/integration/supabase/client-runtime-checks.mjs",
+        "tests/integration/supabase/client-runtime-verification.mjs",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts"
+      ],
+      "lockUnchanged": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "rootManifestUnchanged": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+      "owned2LedgerRowsPreserved": true,
+      "other127RowsEqualMergedDevelop": true,
+      "allOtherTopFieldsPreserved": true,
+      "status": "uncommitted merge for qualification docs update"
+    },
+    "dataQualificationArtifact": "core-modernization-data-final-merge-qualification-1e5b7f55.json",
+    "dataQualificationSha256": "37ee23bd9ff2e48592a28ce6e4a42183364f51fb248b604f34e613d7a25d3347",
+    "dataMergedReadback": {
+      "capturedAt": "2026-10-21T23:41:25.740504+00:00",
+      "pr": {
+        "baseRefName": "develop",
+        "headRefOid": "1e5b7f55e783bf016892d2d54dcd317271ca877b",
+        "mergeCommit": {
+          "oid": "a47024f8d646341ccaba0a0c852a2453473516bf"
+        },
+        "mergedAt": "2026-10-21T23:41:21Z",
+        "state": "MERGED",
+        "url": "https://github.com/Asymmetric-al/core/pull/2181"
+      },
+      "mergedTreeMatchesQualifiedHead": true,
+      "qualifiedHeadIsAncestorOfDevelop": true,
+      "develop": "a47024f8d646341ccaba0a0c852a2453473516bf",
+      "postMergeCi": "pending readback"
+    },
+    "sourceReview": "All six inherited data paths match the reviewed merged checkpoint, except the shared dependency ledger intentionally preserves the two separately reviewed GraphQL rows. No inherited implementation was modified."
+  },
+  "historicalPreviousTemporaryStackBase": "1dcdade63e012898f237663a634eca28c8275193",
+  "releaseMetadataRefreshOnMergedDevelop": {
+    "capturedAt": "2026-10-21T23:50:23.613331+00:00",
+    "targets": {
+      "graphql": "17.0.2",
+      "graphql-yoga": "5.24.6",
+      "cmsGraphql": "16.14.2"
+    },
+    "allSelectedTargetsCurrent": true,
+    "graphqlSource": "https://registry.npmjs.org/graphql",
+    "yogaSource": "https://registry.npmjs.org/graphql-yoga/latest",
+    "cmsSelection": "Highest stable maintained major-16 release required by current Payload; product latest is major17.",
+    "integrities": {
+      "graphql": "sha512-FRWbddMxfkjiB7z+aQDWIR+E34xo9I8c9mtK2RPv8PmMzKRvrdsreHL/Ui/TmwHJfhHChEtsFPyMHKI+xuarQQ==",
+      "graphql-yoga": "sha512-IpRSnLfxbv1oiNTghzYjb0QPCn4p1y+8uoXJ0MkC5aNJAko2PSba89ByJXHIxoQAILZ3PKZaVcaEtlDJw4YQxw==",
+      "cmsGraphql": "sha512-Chq1s4CY7jmh8gO2qvLIJyfCDIN+EHLFW/9iShnp1z8FjBQMoodWP1kDC36VAMXXIvAjj4ARa7ntfAV2BrjsbA=="
+    }
+  },
+  "previousPublished020Qualification": {
+    "head": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+    "fullPrePush": {
+      "startedAt": "2026-10-21T22:31:27.873117+00:00",
+      "completedAt": "2026-10-21T22:39:16.191811+00:00",
+      "head": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+      "exitCode": 0,
+      "logSha256": "4c90d964c6714172470bcb6d3675aec41df403ce1fa61fd6224d2128f157e487"
+    },
+    "filesPassed": 901,
+    "filesSkipped": 2,
+    "testsPassed": 7384,
+    "testsExpectedFail": 1,
+    "testsSkipped": 4,
+    "ci": {
+      "capturedAt": "2026-10-21T23:50:22.780585+00:00",
+      "head": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+      "runs": [
+        {
+          "conclusion": "success",
+          "databaseId": 39688047870,
+          "headSha": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+          "status": "completed",
+          "url": "https://github.com/Asymmetric-al/core/actions/runs/39688047870"
+        },
+        {
+          "conclusion": "success",
+          "databaseId": 39688047864,
+          "headSha": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+          "status": "completed",
+          "url": "https://github.com/Asymmetric-al/core/actions/runs/39688047864"
+        }
+      ]
+    },
+    "scope": "Historical exact published020 qualification before integrating the final data checkpoint; current merged-base release gates remain pending."
+  },
+  "historicalInheritedDataReviewFixes": {
+    "head": "b350a6880d95c39631cdd9e5bf5747909db63974",
+    "sourceReview": "The independently approved data fixture ownership, lost-Auth-response cleanup and build-selection fixes are inherited without modification. Only the shared dependency ledger merges the separately reviewed data and product GraphQL rows.",
+    "graphqlInstallationInputsUnchanged": true,
+    "productImplementationUnchanged": true,
+    "compiledProofSourceHead": "f915c7de74411ccb748ce81e741edc378ecc37b3"
+  },
+  "currentMergedBaseContractTests": {
+    "startedAt": "2026-10-21T23:47:04.733924+00:00",
+    "completedAt": "2026-10-21T23:47:06.907541+00:00",
+    "headBeforeMerge": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+    "incomingDevelop": "a47024f8d646341ccaba0a0c852a2453473516bf",
+    "exitCode": 0,
+    "logSha256": "fafcfced3fc42862f0dd427396e6760cf1f857e0134a3fde5925f9f90897a8f1",
+    "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+    "files": [
+      "tests/unit/packages/database/supabase-adapter-compatibility.test.ts",
+      "tests/unit/packages/database/tanstack-runtime-identity.test.ts",
+      "tests/unit/scripts/supabase-client-runtime-checks.test.ts",
+      "tests/unit/scripts/supabase-client-runtime-verification.test.ts",
+      "tests/unit/scripts/supabase-client-runtime-safety.test.ts",
+      "tests/unit/scripts/ci-build-policy.test.ts",
+      "tests/unit/graphql-gift-engagement-adapters.test.ts",
+      "tests/unit/graphql-http-contract.test.ts",
+      "tests/unit/graphql-runtime-boundary.test.ts"
+    ],
+    "totals": [" Test Files  9 passed (9)", "      Tests  115 passed (115)"]
+  },
+  "compiledEvidenceInputEquivalence": {
+    "sourceHead": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+    "currentMergeBase": "a47024f8d646341ccaba0a0c852a2453473516bf",
+    "checkedPaths": [
+      "apps",
+      "packages",
+      "package.json",
+      "bun.lock",
+      "turbo.json",
+      "tooling/typescript-config"
+    ],
+    "changedPaths": [],
+    "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+    "rootManifestSha256": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+    "scope": "All tracked application/package source plus root package/lock/Turbo and shared TypeScript configuration match the previously compiled product/CMS evidence. New data fixture/test/qualification changes are outside these compiled inputs."
+  },
+  "beforeInputCoercionReviewFix": {
+    "httpAndBoundaryTests": {
+      "startedAt": "2026-10-21T20:48:34.758134+00:00",
+      "completedAt": "2026-10-21T20:48:39.485441+00:00",
+      "exitCode": 0,
+      "logSha256": "7cf4743f55a24ae3c205054dbd4db774eee1312928be42e1ebae99ebd8a77d6a",
+      "sources": {
+        "tests/unit/graphql-http-contract.test.ts": "b91e19c81879f1088fb941c913ed8bf98206becfc025b228d829db484d7fa283",
+        "tests/unit/graphql-runtime-boundary.test.ts": "91843880bc261ea8fecdabdfae0be5c7de568d84b23db59a398fbca566f66b40"
+      },
+      "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "files": 3,
+      "tests": 36,
+      "newHttpCases": 18,
+      "physicalRuntimeCases": 2,
+      "existingAdapterCases": 16,
+      "providerSeams": "Actual Yoga/GraphQL and authorization rules; mocked auth context resolution and Supabase transport.",
+      "testSourceChangesSinceBaseline": "Only lint import grouping and type-only namespace syntax changed after the recorded baseline/RED; all cases and assertions are preserved."
+    },
+    "testLint": {
+      "startedAt": "2026-10-21T20:48:33.724953+00:00",
+      "completedAt": "2026-10-21T20:48:34.756070+00:00",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sources": {
+        "tests/unit/graphql-http-contract.test.ts": "b91e19c81879f1088fb941c913ed8bf98206becfc025b228d829db484d7fa283",
+        "tests/unit/graphql-runtime-boundary.test.ts": "91843880bc261ea8fecdabdfae0be5c7de568d84b23db59a398fbca566f66b40"
+      },
+      "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "warnings": 0
+    }
+  },
+  "inputCoercionReviewFix": {
+    "reviewComment": "https://github.com/Asymmetric-al/core/pull/2182#discussion_r4343256329",
+    "headBefore": "e8884ab8c8c919cbb836bc7ae95561f283082885",
+    "counterfactual": "Temporarily admit tenantId as an optional CreateDonationInput field while auth/provider transports remain mocked. The old test passes because missing idempotency is a second rejection; the strengthened test fails. Restore exact handler bytes before normal tests.",
+    "runs": [
+      {
+        "label": "old-test-mutant",
+        "startedAt": "2026-10-22T00:16:34.858903+00:00",
+        "completedAt": "2026-10-22T00:16:36.424103+00:00",
+        "command": [
+          "bun",
+          "run",
+          "vitest",
+          "run",
+          "tests/unit/graphql-http-contract.test.ts",
+          "-t",
+          "rejects unknown input fields before mutation transport"
+        ],
+        "exitCode": 0,
+        "logSha256": "16e4e3b10f99f1aa2109611ce130ac1b24de5a7b21065446c07a5dad309952a7",
+        "handlerSha256": "09dd9ea9cef8a132da306bde7b6532632cbf95016857943f5afa534840de1037",
+        "testSha256": "b91e19c81879f1088fb941c913ed8bf98206becfc025b228d829db484d7fa283"
+      },
+      {
+        "label": "strengthened-test-mutant",
+        "startedAt": "2026-10-22T00:16:36.424452+00:00",
+        "completedAt": "2026-10-22T00:16:37.912196+00:00",
+        "command": [
+          "bun",
+          "run",
+          "vitest",
+          "run",
+          "tests/unit/graphql-http-contract.test.ts",
+          "-t",
+          "rejects unknown input fields before mutation transport"
+        ],
+        "exitCode": 1,
+        "logSha256": "2fb15c4d3943fb668615885cab6c42036ef24eee92aeff5ee66626cffde19632",
+        "handlerSha256": "09dd9ea9cef8a132da306bde7b6532632cbf95016857943f5afa534840de1037",
+        "testSha256": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3"
+      },
+      {
+        "label": "restored-schema-contracts",
+        "startedAt": "2026-10-22T00:16:37.912573+00:00",
+        "completedAt": "2026-10-22T00:16:39.631986+00:00",
+        "command": [
+          "bun",
+          "run",
+          "vitest",
+          "run",
+          "tests/unit/graphql-http-contract.test.ts",
+          "tests/unit/graphql-runtime-boundary.test.ts",
+          "tests/unit/graphql-gift-engagement-adapters.test.ts"
+        ],
+        "exitCode": 0,
+        "logSha256": "dcafcefe7048ccceb598ee64b6923c784fd096cf1a4f18a1de1d2ccbe7f8ddd5",
+        "handlerSha256": "f725c3fefd9445a92c625926b6bae39a81a9b2c9b76746b931f8d8b303e9e293",
+        "testSha256": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3"
+      },
+      {
+        "label": "lint",
+        "startedAt": "2026-10-22T00:16:39.632183+00:00",
+        "completedAt": "2026-10-22T00:16:40.606000+00:00",
+        "command": [
+          "bun",
+          "run",
+          "eslint",
+          "tests/unit/graphql-http-contract.test.ts",
+          "--max-warnings=0"
+        ],
+        "exitCode": 0,
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "handlerSha256": "f725c3fefd9445a92c625926b6bae39a81a9b2c9b76746b931f8d8b303e9e293",
+        "testSha256": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3"
+      }
+    ],
+    "productHandlerRestoredByteForByte": true,
+    "handlerSha256": "f725c3fefd9445a92c625926b6bae39a81a9b2c9b76746b931f8d8b303e9e293",
+    "testSha256": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3",
+    "allOriginal18HttpCasesPreserved": true,
+    "casesAddedOrRemoved": 0,
+    "preUpgradeHttpVerification": {
+      "startedAt": "2026-10-22T00:17:09.783634+00:00",
+      "completedAt": "2026-10-22T00:17:11.579030+00:00",
+      "baseHead": "1e5b7f55e783bf016892d2d54dcd317271ca877b",
+      "command": [
+        "bun",
+        "run",
+        "vitest",
+        "run",
+        "tests/unit/graphql-http-contract.test.ts"
+      ],
+      "exitCode": 0,
+      "testSha256": "b0b5fb9af77d826173ff025c4656f472307f313368eda365fe10a8422a1ddae3",
+      "logSha256": "ce611e79b7316867e0aeb9c72b261d0a518b72947b04207708217a0261fdeb71",
+      "scope": "Strengthened 18-case HTTP suite against the unchanged pre-GraphQL data checkpoint; auth and provider transports mocked",
+      "temporaryTestRemoved": true
+    },
+    "remaining": "Final commit full gates, current-head CI/review and exact-head previews are required. Product, installation and compiled inputs are unchanged."
+  },
+  "previousPublishedE888Qualification": {
+    "capturedAt": "2026-10-22T00:05:36.108131+00:00",
+    "head": "e8884ab8c8c919cbb836bc7ae95561f283082885",
+    "base": "develop",
+    "isDraft": false,
+    "labels": ["qa:smoke"],
+    "bodySha256": "19a25eb3d1e204b5facbcd2ed9086d7968fdadcd857f99de14db422e5e29f17a",
+    "normalPrepush": {
+      "filesPassed": 901,
+      "filesSkipped": 2,
+      "testsPassed": 7397,
+      "expectedFailure": 1,
+      "testsSkipped": 4
+    },
+    "qaPreviewDispatch": "ready_for_review trigger; read back exact-head run before any manual dispatch",
+    "prePushProof": {
+      "startedAt": "2026-10-21T23:53:33.966575+00:00",
+      "completedAt": "2026-10-22T00:02:40.194435+00:00",
+      "head": "e8884ab8c8c919cbb836bc7ae95561f283082885",
+      "exitCode": 0,
+      "normalHooks": true,
+      "logSha256": "ba00d45a056101eb25bb4564fb1c3b982dcfab1aeb8dff877cb39bed52b12fed"
+    },
+    "remaining": "Historical parent qualification; the strengthened-test commit must receive its own full release gates, current-head CI/review and previews."
+  }
+}

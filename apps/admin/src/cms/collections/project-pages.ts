@@ -41,6 +41,7 @@ const nativeProjectPagesAdmin = isNativeCollectionWebStudioEnabled(
 
 export const ProjectPages: CollectionConfig = {
   slug: PROJECT_PAGES_SLUG,
+  authorship: false,
   admin: {
     defaultColumns: ["title", "fundId", "tenant", "updatedAt"],
     preview: createWebStudioAuthenticatedPreviewURL("project-pages"),

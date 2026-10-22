@@ -7,6 +7,8 @@
  * change produces a different digest.
  */
 
+import { createHash } from "node:crypto";
+
 export const DOCUMENT_CUTOVER_SERIALIZER_VERSION = "1";
 
 /** Locale-independent ordinal comparison; digests must never depend on ICU. */
@@ -46,15 +48,13 @@ export function canonicalStringify(value: unknown): string {
   return JSON.stringify(canonicalize(value));
 }
 
-function toHex(digest: ArrayBuffer): string {
-  return Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, "0"),
-  ).join("");
-}
-
+/**
+ * SHA-256 of the UTF-8 text, as lowercase hex. Computed synchronously with
+ * node:crypto so a digest never waits on the event loop: once a deadline-bound
+ * read times out, the rest of the run settles without extra I/O turns.
+ */
 export async function sha256HexOfText(text: string): Promise<string> {
-  const encoded = new TextEncoder().encode(text);
-  return toHex(await crypto.subtle.digest("SHA-256", encoded));
+  return createHash("sha256").update(text, "utf8").digest("hex");
 }
 
 export async function digestCanonicalValue(value: unknown): Promise<string> {

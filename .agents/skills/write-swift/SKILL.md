@@ -32,6 +32,8 @@ use Swift. Reconcile this overlay after upstream refreshes before running
 
 <!-- CORE-OVERLAY-END -->
 
+When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.
+
 How to write Swift the way the language wants to be written, current through Swift 6.4.
 
 **Toolchain baseline: Swift 6.4** (current public release). Rows and notes marked ⚠ require Swift 6.4; keep the older form when the project toolchain is Swift 6.3 or earlier. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.

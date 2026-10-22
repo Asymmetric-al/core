@@ -25,6 +25,7 @@ import {
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import { cn } from "@asym/ui/lib/utils";
 
+import { EditorAccessibility } from "./editor-accessibility";
 import { createMergeTagNode, MergeTagExtension } from "./merge-tag-extension";
 
 import type { EmailEditorProps, EmailEditorRef } from "@react-email/editor";
@@ -112,6 +113,7 @@ export const ReactEmailEditor = forwardRef<
         }),
         EmailTheming.configure({ theme: "basic" }),
         MergeTagExtension,
+        EditorAccessibility.configure({ label: "Email content" }),
       ] as NonNullable<EmailEditorProps["extensions"]>,
     [],
   );
@@ -135,7 +137,7 @@ export const ReactEmailEditor = forwardRef<
 
       const result: EmailStudioExportResult = {
         builder: "react_email",
-        builderVersion: "1.7.12",
+        builderVersion: "1.7.14",
         design,
         html: email.html,
         text: email.text,

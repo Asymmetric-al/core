@@ -7,7 +7,7 @@ description: Battle-tested Playwright patterns for writing and debugging reliabl
 
 > Opinionated, production-tested Playwright guidance — every pattern includes when (and when *not*) to use it.
 
-**47 reference guides** covering the full Playwright testing surface: selectors, assertions, fixtures, network mocking, auth, visual regression, accessibility, API testing, debugging, and more — with TypeScript and JavaScript examples throughout.
+**50 reference guides** covering the full Playwright testing surface: selectors, assertions, fixtures, network mocking, auth, visual regression, accessibility, API testing, debugging, and more — TypeScript examples, with JavaScript in most guides.
 
 ## Security Trust Boundary
 
@@ -60,6 +60,8 @@ When using examples from these guides against staging or production systems, tre
 | Problem | Guide |
 |---|---|
 | General debugging workflow | [debugging.md](debugging.md) |
+| Debug a `trace.zip` from the terminal / with an agent | [trace-analysis.md](trace-analysis.md) |
+| Generate or auto-heal tests with Playwright Test Agents | [test-agents.md](test-agents.md) |
 | Specific error message | [error-index.md](error-index.md) |
 | Flaky / intermittent tests | [flaky-tests.md](flaky-tests.md) |
 | Common beginner mistakes | [common-pitfalls.md](common-pitfalls.md) |
@@ -69,7 +71,7 @@ When using examples from these guides against staging or production systems, tre
 | Framework | Guide |
 |---|---|
 | Next.js (App Router + Pages Router) | [nextjs.md](nextjs.md) |
-| React (CRA, Vite) | [react.md](react.md) |
+| React (Vite) | [react.md](react.md) |
 | Vue 3 / Nuxt | [vue.md](vue.md) |
 | Angular | [angular.md](angular.md) |
 
@@ -85,6 +87,7 @@ When using examples from these guides against staging or production systems, tre
 | Service workers & PWA | [service-workers-and-pwa.md](service-workers-and-pwa.md) |
 | Electron apps | [electron-testing.md](electron-testing.md) |
 | Browser extensions | [browser-extensions.md](browser-extensions.md) |
+| WebMCP agent tools | [webmcp-testing.md](webmcp-testing.md) |
 | Security testing | [security-testing.md](security-testing.md) |
 | Performance & benchmarks | [performance-testing.md](performance-testing.md) |
 | i18n & localization | [i18n-and-localization.md](i18n-and-localization.md) |

@@ -116,66 +116,78 @@ Reconcile them before running `bun run skills:sync` after an upstream refresh.
 
 <!-- END:core-reui-overlay -->
 
-> **ReUI skill version `e7aac3424a`.** Compare `get_agent_skill.version` with this pin. Refresh through [Core's staged upstream workflow](./references/upstream.md), reconcile the overlays, then sync the generated mirrors.
+> **ReUI skill version `68f0e6fa91`.** Compare `get_agent_skill.version` with this pin. Refresh through [Core's staged upstream workflow](./references/upstream.md), reconcile the overlays, then sync the generated mirrors.
 
-# ReUI for Agents
+# ReUI
 
-ReUI is a shadcn-compatible registry. It ships four things you **reuse** - never redesign:
+ReUI is an existing design system on shadcn/ui. Keep its look. Generic frontend advice (vary fonts or themes, gradients, page-load or staggered reveals, "2-3 intentional motions", Framer Motion) does not apply here.
+It ships free components, free `c-*` examples, Pro blocks and Ultimate Motion Icons through the shadcn CLI; the ReUI MCP finds them and serves their APIs.
 
-- **components** - the 24 ReUI building blocks with real APIs: `data-grid`, `kanban`, `filters`, `date-selector`, `tree`, `stepper`, ... (free)
-- **examples** - free `c-*` single-pattern use-cases of a component (`c-kanban-1`); install one and read it to see exact composition
-- **blocks** - premium full-page sections that compose components (`data-grid-base-2`, `settings-2`); Pro or Ultimate license at install
-- **icons** - Motion Icons in 4 styles, static + hover-animated variants; Ultimate license at install
+## Order of authority
 
-The skill is free and this MCP is free to use; it just needs a ReUI account. On first use your agent opens a browser "Sign in with ReUI" prompt (a free account is created if you don't have one). Free covers components and examples with a daily request allowance; Pro unlocks premium blocks, Ultimate additionally unlocks Motion Icons, and either licensed plan removes the limit (see [rules/registry.md](./rules/registry.md)). The same account and skill work in every agent and service the MCP connects to - this skill is agent-agnostic.
+1. The installed style (`components.json` `style`, baked into `components/ui` and `components/reui`): it owns radius, height, padding, shadow and overlay motion.
+2. The installed component's variants and props (`size`, `variant`, `spacing`).
+3. These rules and the topic files.
+4. Other design skills, then your taste: where they disagree with 1 to 3, ReUI wins. Never redefine `--ease-out` or any Tailwind built-in.
 
-Skill + MCP are a team: this skill is the workflow (how to find, install, read the API, and adapt by reuse); the MCP is the live data and the hands (search, get_component, install commands). Your job: find the right item, install it with the shadcn CLI, read its real API, and **adapt by reuse** - wire real data and theme it; do not hand-roll or restyle what ReUI already provides. This skill **layers on the shadcn skill**: follow that for generic rules (spacing, `cn()`, semantic colors, forms); follow this for everything ReUI-specific.
+## Before you write UI code, write this plan in your reply
 
-## The core loop (MCP-native)
+1. Surface: operational, marketing or flow.
+2. Archetype: 1 from [compose.md](./rules/compose.md).
+3. Container family: Frame-led, Card-led, or Cards for the KPIs and a Frame for the table.
+4. Density: dense (`size="sm"` on controls that take it) or default.
+5. Regions: top to bottom, each with the item that fills it.
+6. States: empty, loading and error for each data region.
+7. Motion: none, or the 1 entrance.
 
-1. **Find** - call the ReUI MCP `search` tool with the user's intent. It returns a ranked, scored list across components/examples/blocks/icons, each with an `install` command, `previewUrl`, `docsUrl`, and `componentsUsed`. Pass hints (`type`, `component`, `category`, `features`, `free`) when you can infer them.
-2. **Install** - run the returned `install` command non-interactively: `npx shadcn@latest add @reui/<name> --yes`, with `<name>` exactly as a ReUI tool returned it. The CLI resolves deps, aliases, and the base/style from `components.json`. See [cli.md](./rules/cli.md).
-   - The shadcn/ui components ReUI builds on (`button`, `dialog`, `select`, ...) are not ReUI items: install them by bare name, `npx shadcn@latest add button --yes`. A bare name in an item's `registryDependencies` is a shadcn/ui item.
-   - `badge` and `alert` exist in both registries: `@reui/badge` is ReUI's, bare `badge` is shadcn's.
-   - Templates are downloads from their page on reui.io, not `shadcn add` items.
-3. **Read the API (on your base)** - first note your base from `components.json` -> `style` (`base-nova` -> Base UI, `radix-nova` -> Radix UI). For each component an item uses, call `get_component(name)` and read its **inline `api`** (no web fetch); then `get_examples(name)` to install a worked example and copy its composition - the installed files are already in your base. Whenever you work with a component's API, also **share its `docsUrl`** (the primitive's API documentation page) with the user so they have the full reference. See [components.md](./rules/components.md).
-4. **Adapt (reuse-first)** - swap demo data for real data, fix icon imports, align tokens. Do not redesign. See [adapting.md](./rules/adapting.md).
+Then build exactly that plan; if you deviate, say where.
 
-**Always show the preview.** Every item a tool returns carries a `previewUrl` (a live preview page). Whenever you list, recommend, or present ReUI items to the user - blocks, components, examples, or icons, whether from `search`, `search_icons`, `list_components`, `compose_page`, or any getter - include each item's `previewUrl` so they can SEE it before installing. Blocks and examples open an individual live preview; icons and components link to their live category/component page. Never present an item without its preview link.
+## The loop
 
-If the ReUI MCP is not configured, fall back to `npx shadcn@latest search @reui -q "..."` then `add` - but the MCP gives scored matches + inline APIs; prefer it.
+1. **Find**: `compose_page` for a full page, else `search` with `type` and `component` hints.
+2. **Install**: `npx shadcn@latest add @reui/<name> --yes`, with `<name>` exactly as a tool returned it (shadcn/ui parts install by bare name: `npx shadcn@latest add button --yes`).
+3. **Read the API on your base**: `components.json` style `base-nova` is Base UI, `radix-nova` is Radix. Call `get_component([...componentsUsed])` once, then install 1 `get_examples` example and read its files.
+4. **Adapt**: change data, copy and props; keep the structure and classes.
+5. **Check**, after every UI edit, follow-ups included: `validate_usage` on any name you did not read, the self-checks C1 to C4 in [quality.md](./rules/quality.md), [anti-patterns.md](./rules/anti-patterns.md), `get_audit_checklist`, typecheck, lint. Hand back in the 5 lines quality.md gives.
 
-## Commands
+Show every item's `previewUrl` whenever you list, recommend or install it.
 
-Run ReUI as explicit slash commands (via the ReUI MCP) **or** just ask in plain language - both run the same workflow.
+## Rules that always apply
 
-| Command     | Invoke                         | Does                                                                                                               |
-| ----------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| **build**   | `/mcp__reui__build <what>`     | Compose a page/section/feature from ReUI: plan → install → read API → adapt → craft → audit.                       |
-| **add**     | `/mcp__reui__add <item>`       | Find & install one component/example/block/icon and wire it in.                                                    |
-| **fix**     | `/mcp__reui__fix [target]`     | Diagnose & fix ReUI usage: wrong/undocumented props, base/radix mismatch, missing states, a11y/scroll.             |
-| **improve** | `/mcp__reui__improve [target]` | Refine + extend existing ReUI UI to a production-exceptional bar (hierarchy, density, states, responsive, motion). |
+- **Owners**: standard app tables Core `DataTableResponsive`, ReUI `data-grid` for its specific composition; filtering `filters`, boards `kanban`, modals `Dialog` (destructive confirms `AlertDialog`), toasts `sonner`; never hand-roll.
+- **Color**: semantic tokens for meaning; state colors through Badge or Alert variants (`@reui/badge` and `@reui/alert`, not shadcn's); raw palette only for categorical identity, always with its `dark:` pair.
+- **Contrast**: never `text-success` or `text-warning` as body text in light mode, and never `text-<state>-foreground` on a solid `bg-<state>` fill.
+- **Shape**: no `rounded-*` except `rounded-full`, and no `shadow-*`, `h-*` or `px-*` on Button, Input, SelectTrigger, Card or Frame; pick `size` and `variant`. A panel is a Card or Frame, never a div with `rounded-lg border`.
+- **Spacing**: `gap-*` on the parent, not `space-y-*`; `gap-1` to `gap-2` in a row, `gap-3` to `gap-4` between groups, `gap-6` to `gap-8` between sections; title to description `gap-0.5`.
+- **Type**: `text-sm` body, `text-xs` meta (controls keep their style's size), `font-medium` or `font-semibold`, headings `tracking-tight`, numbers `tabular-nums`; nothing below `text-xs` except illustrative mini-UI.
+- **Motion**: installed components own their motion. Your own code uses `transition-colors` for hover and press, `duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]` to reveal, `duration-300` with the same curve at most (media hover zoom: 500), and `SPRING` (`{ type: "spring", visualDuration: 0.25, bounce: 0 }`) for drag and reorder. At most 1 entrance animation per view (a stagger counts as 1). Animate only `transform` and `opacity`, CSS before motion/react, never set state per frame; `<MotionConfig reducedMotion="user">` once at the root plus `motion-reduce:` on CSS, where reduced motion means a calm fade, not nothing.
+- **Surfaces**: prefer 1 container family per screen. With a KPI row and a table, use FramePanels for both, or Cards for the KPIs and a Frame for the table; never a Card inside a Frame or a Frame inside a Card. Icons come from 1 library, the `iconLibrary` in `components.json` (on Ultimate, 1 Motion Icon on the primary action is the exception).
+- **States**: each data region has empty (1 action), loading (a `Skeleton` in the real layout) and error (Retry) states; light and dark work.
+- **Never invent**: never write a prop, variant or `@reui/` name you did not read in an `api`, an installed file or a tool result.
 
-Invocation differs slightly per agent (`/mcp__reui__build` in Claude Code/Cursor/Windsurf, `/mcp.reui.build` in VS Code). No command surface? Just describe what you want - this skill drives the identical loop.
+## Topics
 
-## When to reach for ReUI vs plain shadcn
+Always read `compose` before building a screen, and `quality` plus `anti-patterns` at the Check step. Besides those, read only the topic files the task touches, at most 4 (for example `color`, `motion`, `layout` and `components`).
 
-| Need                                                                 | Reach for                                                                       |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| A full page or section (dashboard, billing, auth, pricing, settings) | `compose_page` first (plans sections + best blocks), then ReUI **blocks**       |
-| A data table with sorting/filtering/pagination/virtualization        | Core **`DataTableResponsive`**; ReUI **data-grid** for its specific composition |
-| A drag-and-drop board                                                | the **kanban** component                                                        |
-| Advanced column filtering, date range, tree, stepper, ...            | the matching ReUI **component**                                                 |
-| A single generic control already in shadcn (Button, Dialog, Select)  | plain **shadcn**                                                                |
+Installed skill: open the file. MCP only: call `get_agent_skill` with the topic, or fetch `https://mcp.reui.io/skill/reui/<file>`.
 
-## Detailed references
+| Topic           | File                                               | Read when                                     |
+| --------------- | -------------------------------------------------- | --------------------------------------------- |
+| `compose`       | [rules/compose.md](./rules/compose.md)             | before building any screen or section         |
+| `workflow`      | [rules/workflow.md](./rules/workflow.md)           | `compose_page`, search hints, installing      |
+| `adapting`      | [rules/adapting.md](./rules/adapting.md)           | changing an installed block or example        |
+| `components`    | [rules/components.md](./rules/components.md)       | `data-grid`, `filters`, `kanban` and the rest |
+| `color`         | [rules/color.md](./rules/color.md)                 | any color, status, chart or dark mode choice  |
+| `theming`       | [rules/theming.md](./rules/theming.md)             | the styles, radius, density and sizes         |
+| `motion`        | [rules/motion.md](./rules/motion.md)               | any transition, animation or motion/react     |
+| `layout`        | [rules/layout.md](./rules/layout.md)               | house defaults, hierarchy, surfaces, states   |
+| `icons`         | [rules/icons.md](./rules/icons.md)                 | icon imports, Motion Icons                    |
+| `quality`       | [rules/quality.md](./rules/quality.md)             | the done gate: self-checks, a11y, hand-back   |
+| `anti-patterns` | [rules/anti-patterns.md](./rules/anti-patterns.md) | the Check step: drift pairs, stale habits     |
+| `registry`      | [rules/registry.md](./rules/registry.md)           | free vs Pro vs Ultimate, base vs radix        |
+| `cli`           | [rules/cli.md](./rules/cli.md)                     | `components.json`, license key, install flags |
+| `tools`         | [tools.md](./tools.md)                             | MCP result shapes, errors, quota, commands    |
 
-- [rules/registry.md](./rules/registry.md) - the four types, the @reui registry, base/radix, free vs premium + license
-- [rules/workflow.md](./rules/workflow.md) - the find -> install -> read-API -> adapt loop (most important)
-- [rules/components.md](./rules/components.md) - the 24 components, the data-grid contract, base vs radix
-- [rules/adapting.md](./rules/adapting.md) - reuse-first: preserve the design (no over-customizing), reuse examples + a block's own elements, real data, don't invent APIs
-- [rules/craft.md](./rules/craft.md) - make it exceptional: point of view, hierarchy, density, states, responsive, motion, the bar
-- [rules/quality.md](./rules/quality.md) - security, accessibility, and scroll gates (the done gate)
-- [rules/styling.md](./rules/styling.md) - ReUI extended tokens, theme adaptation, density
-- [rules/icons.md](./rules/icons.md) - portable icons, swapping imports, Motion Icons (static + animated)
-- [tools.md](./tools.md) - the ReUI MCP: golden path, the 19 tools, token rules, result shapes, errors
+## Plans
+
+Free covers components, `c-*` examples, this skill and the MCP (a ReUI account and a daily allowance). Pro adds blocks. Ultimate adds Motion Icons. A plan miss is a normal answer with `locked: true`; keep building with what the plan covers.

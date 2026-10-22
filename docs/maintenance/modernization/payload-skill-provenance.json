@@ -1,0 +1,288 @@
+{
+  "capturedAt": "2026-10-22T01:31:51.431608+00:00",
+  "head": "715a970957035e08f81778daa8c90de8762cdc99",
+  "before": {
+    "docs/ai/skills/payloadcms-payload": {
+      "README.md": "8ae8f66133c15ac2e215c08a85f02c9584b9abb534b3708c646f855b030878d6",
+      "SKILL.md": "f6c8fd7d9014862d32b5b2a68b2ab3f261415f2d2087a830fa55de9c6ef49f79",
+      "reference/ACCESS-CONTROL-ADVANCED.md": "7015da0a57e1b952b97b88b6bff1927a793fc751ccb92ba9eef5c6c5539ca8d3",
+      "reference/ACCESS-CONTROL.md": "09f3a4bfd0ec1c1198535756a3efa612440da1303f0d681b4489ec4e36472ff2",
+      "reference/ADAPTERS.md": "d62b4a2c19fb22dce97fe34c558c5bc9c47257519c3ea87c129b4bcdb1eb9df3",
+      "reference/ADVANCED.md": "93cfa6652dfa66df6be2252454738320aa4493067e2f0a0f1ca0da0f57be5e51",
+      "reference/COLLECTIONS.md": "380983c9ace9aba7317b286fbf3117444a164ef9ebd37356819f1eee15afa1db",
+      "reference/ENDPOINTS.md": "0453202bfcdce6aae5764ef22e5c040133eb3ea4fe58b9b64cea32964fd0f210",
+      "reference/FIELD-TYPE-GUARDS.md": "9990671bd5beec265eaf43b13488a57ced0d0aab43033b42866c1a2d49fd1de4",
+      "reference/FIELDS.md": "da52818ed1abf03a531fd104ad97304330a22fc8a7a98c6276dca1eb8e9f1724",
+      "reference/HOOKS.md": "6050e6be7f7f4be42851afa547b7db802a2161fa7ae387dc5b523fae92441e08",
+      "reference/PLUGIN-DEVELOPMENT.md": "6171df4152ab3653346c9c080dd75adf24f8f83d1f5d3ccccb00646e51cc5212",
+      "reference/QUERIES.md": "34305f6a326cd02503222dc605dfa9c031b958d1e1009130422fddb17d12c024",
+      "references/upstream.md": "d488a97683adb96060beccec7d497a64fb922cabbfb4b6d7c445eca3c05a8bdc"
+    },
+    "docs/ai/skills/payloadcms-cms-migration": {
+      "SKILL.md": "6e105cdcd544bfcbe6ed426792aa568e54b250610fb85fc484d9290d54a74116",
+      "reference/PAYLOAD-FIELD-REFERENCE.md": "949ac3f2105998b4ab3e4e482c68421f1396c1e216ca4fcd437ad7628f08f4a5",
+      "references/upstream.md": "5d72bb2326f4442e131471a42dd2280ae63f27e4877aa82ecf42bff22dc8bd20"
+    },
+    ".agents/skills/payload": {
+      "README.md": "8ae8f66133c15ac2e215c08a85f02c9584b9abb534b3708c646f855b030878d6",
+      "SKILL.md": "050fc66234ef54906e34a1c0f5209ad7558f9adc59a7a0efd4db342f81427e20",
+      "reference/ACCESS-CONTROL-ADVANCED.md": "d9f8d8dea33afe17cfb060ee2b61bb28917ad366fad0184b8c22013fb37d6609",
+      "reference/ACCESS-CONTROL.md": "b2450eae4441a156177215366e9fc49c31966f9d06c7ec8cafd67883f553fbdb",
+      "reference/ADAPTERS.md": "b3114cd31914dbc3a79928da5625c39f49a2010428766c6d1eb971f9e809e5eb",
+      "reference/ADVANCED.md": "4652d502dcf89451a98ffd76e32ced4e2247a29f403c5a0f4cf9edbe2901f166",
+      "reference/COLLECTIONS.md": "7c4d8b95ff6a0e8d01880668656061ed55c17a4715c313474057a3810278a445",
+      "reference/ENDPOINTS.md": "cdacfbda05893efd40aab95311b5ae27f9e42e068e0fa7ad28049d9697461112",
+      "reference/FIELD-TYPE-GUARDS.md": "cb8a4eecb78a0cb5eb151345ff8079f33b05a5bb9ce4f182c598416e3bab3951",
+      "reference/FIELDS.md": "e7e93833a67b4064fde7d0a8d17e32e4f34cdc6b0c695656e2f88547ced32058",
+      "reference/HOOKS.md": "c77dddf075e571818b87e1bd4056c634aae4fbf19bec36624dd11afd91aca6ef",
+      "reference/PLUGIN-DEVELOPMENT.md": "cfd8360430e0216328cf07d57fc7722b2a69a257254d9396fc4fd0842342134b",
+      "reference/QUERIES.md": "468ca0bb663f3a818ad50072906feafb6b4ee665b4565d93494a89bfe0906ed0"
+    },
+    ".agents/skills/cms-migration": {
+      "SKILL.md": "f1799f2471e4d1a35189a6af406677ffb1bc1f83f0681ce0f6a6c7d0fc75c594",
+      "reference/PAYLOAD-FIELD-REFERENCE.md": "a716216645e2150d5c8d514dd8f54a78c120e97ebc20f9dd2f3f1b0d6f3f23cb"
+    }
+  },
+  "upstream": {
+    "repo": "payloadcms/skills",
+    "observedCommit": "832d5bc4258ae784f08cb7f03a3a674d6b2fa5f1",
+    "committedAt": "2026-07-07T16:55:47Z",
+    "defaultBranch": "main",
+    "skillFiles": [
+      {
+        "path": "skills/cms-migration/SKILL.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "3b3693ff8e7d84360c334f95ebc997bb32fd6c40",
+        "size": 5374,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/3b3693ff8e7d84360c334f95ebc997bb32fd6c40"
+      },
+      {
+        "path": "skills/cms-migration/reference/PAYLOAD-FIELD-REFERENCE.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "d80ce6c00ee6478628d5bab3f447a823d2af2c9b",
+        "size": 31127,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/d80ce6c00ee6478628d5bab3f447a823d2af2c9b"
+      },
+      {
+        "path": "skills/payload/README.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "e0f8ffd3308cc9e517fb61e12a05931590e99462",
+        "size": 2537,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/e0f8ffd3308cc9e517fb61e12a05931590e99462"
+      },
+      {
+        "path": "skills/payload/SKILL.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "bd85a9dc7f09fff99c9d788c5b7964dca5142b59",
+        "size": 23062,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/bd85a9dc7f09fff99c9d788c5b7964dca5142b59"
+      },
+      {
+        "path": "skills/payload/reference/ACCESS-CONTROL-ADVANCED.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "ad164f20f3d76b04f345c9e2e712ac38fa1e4c85",
+        "size": 17989,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/ad164f20f3d76b04f345c9e2e712ac38fa1e4c85"
+      },
+      {
+        "path": "skills/payload/reference/ACCESS-CONTROL.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "d3703051a8e4edfb5792df7585d75fec2cc5daa0",
+        "size": 18266,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/d3703051a8e4edfb5792df7585d75fec2cc5daa0"
+      },
+      {
+        "path": "skills/payload/reference/ADAPTERS.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "64d0f100bef648db8832c102bcf71be92409d48b",
+        "size": 7433,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/64d0f100bef648db8832c102bcf71be92409d48b"
+      },
+      {
+        "path": "skills/payload/reference/ADVANCED.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "d74440669ae672861443f0b951fdf82dce0bbe95",
+        "size": 8997,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/d74440669ae672861443f0b951fdf82dce0bbe95"
+      },
+      {
+        "path": "skills/payload/reference/COLLECTIONS.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "abfac20e2e43badf969bf240600701c1c1a94069",
+        "size": 6371,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/abfac20e2e43badf969bf240600701c1c1a94069"
+      },
+      {
+        "path": "skills/payload/reference/ENDPOINTS.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "99ef908d421a9a9fe645e3e6f49f90ce3d77f39a",
+        "size": 15435,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/99ef908d421a9a9fe645e3e6f49f90ce3d77f39a"
+      },
+      {
+        "path": "skills/payload/reference/FIELD-TYPE-GUARDS.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "59ec9380e8a0e3594c10787faf714f320551bc2c",
+        "size": 10900,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/59ec9380e8a0e3594c10787faf714f320551bc2c"
+      },
+      {
+        "path": "skills/payload/reference/FIELDS.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "b00ca1acaea4cb74421d1c7d5e1e112eefec5fed",
+        "size": 19033,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/b00ca1acaea4cb74421d1c7d5e1e112eefec5fed"
+      },
+      {
+        "path": "skills/payload/reference/HOOKS.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "b67556e883389a7d64b12b2e9cf02face66f8e2b",
+        "size": 4341,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/b67556e883389a7d64b12b2e9cf02face66f8e2b"
+      },
+      {
+        "path": "skills/payload/reference/PLUGIN-DEVELOPMENT.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "cd86289c7e862aa3a471cd31607e3fa7ff19d56f",
+        "size": 35278,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/cd86289c7e862aa3a471cd31607e3fa7ff19d56f"
+      },
+      {
+        "path": "skills/payload/reference/QUERIES.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "89cfff4c61e971cc883b2a3e22cc891f3127d927",
+        "size": 6093,
+        "url": "https://api.github.com/repos/payloadcms/skills/git/blobs/89cfff4c61e971cc883b2a3e22cc891f3127d927"
+      }
+    ],
+    "truncated": false
+  },
+  "preservedCoreRequirements": [
+    "OpenSpec/backend authority",
+    "Supabase RLS/Auth ownership",
+    "business data-access boundary",
+    "existing product content and approved collection settings",
+    "generated mirror ownership and verification"
+  ],
+  "disposition": "replace obsolete generic references with Core public-v4 adapters; consolidate canonical and installed names; preserve history and upstream provenance",
+  "replacements": {
+    "docs/ai/skills/payloadcms-payload": "docs/ai/skills/payload",
+    "docs/ai/skills/payloadcms-cms-migration": "docs/ai/skills/cms-migration"
+  },
+  "versionedApiGuide": {
+    "url": "https://github.com/payloadcms/payload/blob/v4.0.0-beta.3/docs/migration-guide/v4.mdx",
+    "sha256": "587c51d12eadc1c02f8ceee0dabb97985438cf148fa131bd1b1ba692bd7fffc2"
+  },
+  "sourceInstallLockPreserved": true,
+  "removedGenericManualsRemainInGitHistory": true,
+  "canonicalAfter": {
+    "payload": {
+      "SKILL.md": "905d5493386d591f4258fe04bad48b21950c5a78501acb0623d0850893ff2bab",
+      "reference/PUBLIC-V4.md": "1e354810a106a54c1b8ad9a2a56dc8e2a4aab6507ac1b386c4b2320ca7932362",
+      "references/upstream.md": "d034ddd0d83b9b12fec3d3e2991f07b07e6cb05cd04f957d61a05fc207b42535"
+    },
+    "cms-migration": {
+      "SKILL.md": "08b4b2296da608ffddbeb256470c1ed17faed8c3b04ebb8394d525b19401ee9d",
+      "references/upstream.md": "ea54a05200f648379fc95d88b5517c547396305c3ca8f05ffeb5cd7ed5dad15c"
+    }
+  },
+  "skillsCounts": {
+    "docs/ai/skills": 133,
+    ".agents/skills": 189,
+    ".cursor/skills": 189,
+    ".claude/skills": 189
+  },
+  "sourceInstallLockSha256": "bcdb780faad066cb3913cd7c0b0b8a3513a6e29356a862ae273c4659048e3bfe",
+  "mirrorOwnershipRegression": {
+    "red": {
+      "observedAt": "2026-10-22T01:30:44.515137+00:00",
+      "command": [
+        "bunx",
+        "--no-install",
+        "vitest",
+        "run",
+        "tests/unit/scripts/sync-agent-skills-exdev.test.ts"
+      ],
+      "exitCode": 1,
+      "logSha256": "a831de84de65a3647eac0a47e67a414ea728a21fc63ee58db1cf42da79175092"
+    },
+    "green": {
+      "startedAt": "2026-10-22T01:31:49.517376+00:00",
+      "completedAt": "2026-10-22T01:31:51.425556+00:00",
+      "command": [
+        "bunx",
+        "--no-install",
+        "vitest",
+        "run",
+        "tests/unit/scripts/sync-agent-skills-exdev.test.ts",
+        "tests/unit/scripts/verify-skills-sync-drift.test.ts"
+      ],
+      "exitCode": 0,
+      "logSha256": "2dbda418aec6c2d434c6ec108cfc7478a963d751afae06bc8b099643b6cf745a"
+    }
+  },
+  "mirrorsAfter": {
+    "payload": {
+      ".agents/skills": {
+        "SKILL.md": "905d5493386d591f4258fe04bad48b21950c5a78501acb0623d0850893ff2bab",
+        "reference/PUBLIC-V4.md": "1e354810a106a54c1b8ad9a2a56dc8e2a4aab6507ac1b386c4b2320ca7932362",
+        "references/upstream.md": "d034ddd0d83b9b12fec3d3e2991f07b07e6cb05cd04f957d61a05fc207b42535"
+      },
+      ".cursor/skills": {
+        "SKILL.md": "905d5493386d591f4258fe04bad48b21950c5a78501acb0623d0850893ff2bab",
+        "reference/PUBLIC-V4.md": "1e354810a106a54c1b8ad9a2a56dc8e2a4aab6507ac1b386c4b2320ca7932362",
+        "references/upstream.md": "d034ddd0d83b9b12fec3d3e2991f07b07e6cb05cd04f957d61a05fc207b42535"
+      },
+      ".claude/skills": {
+        "SKILL.md": "905d5493386d591f4258fe04bad48b21950c5a78501acb0623d0850893ff2bab",
+        "reference/PUBLIC-V4.md": "1e354810a106a54c1b8ad9a2a56dc8e2a4aab6507ac1b386c4b2320ca7932362",
+        "references/upstream.md": "d034ddd0d83b9b12fec3d3e2991f07b07e6cb05cd04f957d61a05fc207b42535"
+      }
+    },
+    "cms-migration": {
+      ".agents/skills": {
+        "SKILL.md": "08b4b2296da608ffddbeb256470c1ed17faed8c3b04ebb8394d525b19401ee9d",
+        "references/upstream.md": "ea54a05200f648379fc95d88b5517c547396305c3ca8f05ffeb5cd7ed5dad15c"
+      },
+      ".cursor/skills": {
+        "SKILL.md": "08b4b2296da608ffddbeb256470c1ed17faed8c3b04ebb8394d525b19401ee9d",
+        "references/upstream.md": "ea54a05200f648379fc95d88b5517c547396305c3ca8f05ffeb5cd7ed5dad15c"
+      },
+      ".claude/skills": {
+        "SKILL.md": "08b4b2296da608ffddbeb256470c1ed17faed8c3b04ebb8394d525b19401ee9d",
+        "references/upstream.md": "ea54a05200f648379fc95d88b5517c547396305c3ca8f05ffeb5cd7ed5dad15c"
+      }
+    }
+  },
+  "sync": {
+    "startedAt": "2026-10-22T01:49:28.796770+00:00",
+    "completedAt": "2026-10-22T01:49:39.741069+00:00",
+    "command": ["bun", "run", "skills:sync"],
+    "exitCode": 0,
+    "logSha256": "a44e7375e0f6baa18cba33f20026114f1741c6d69775541ea9b5fbbcb10fb3f5",
+    "statusUnchanged": true
+  },
+  "verify": {
+    "startedAt": "2026-10-22T01:49:39.958009+00:00",
+    "completedAt": "2026-10-22T01:49:50.424116+00:00",
+    "command": ["bun", "run", "skills:verify"],
+    "exitCode": 0,
+    "logSha256": "cd9f3e83234f8f03c9bf7801fbf5e557dbc1ca6a659c21b63715b8e88322dbad",
+    "statusUnchanged": true
+  }
+}

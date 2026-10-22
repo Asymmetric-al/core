@@ -7,7 +7,20 @@
     "types": ["node"],
     "strict": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["../../../packages/ui/*"],
+      "nuqs/adapters/react": [
+        "../../../packages/ui/node_modules/nuqs/dist/adapters/react.d.ts"
+      ]
+    }
   },
-  "include": ["playwright.config.ts", "specs/**/*.ts"]
+  "include": [
+    "playwright.config.ts",
+    "specs/**/*.ts",
+    "pdf-modernization-main.tsx",
+    "styles.d.ts",
+    "ui-utilities-main.tsx"
+  ]
 }

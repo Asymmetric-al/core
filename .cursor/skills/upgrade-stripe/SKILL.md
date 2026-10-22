@@ -1,18 +1,38 @@
 ---
 name: upgrade-stripe
-description: Guide for upgrading Stripe API versions and SDKs
+description: >-
+  Guide for upgrading Stripe API versions, webhook endpoints, server-side SDKs,
+  Stripe.js, and mobile SDKs
 
 ---
 
+<!-- CORE-OVERLAY-START -->
+## Core contracts
+
 In Core, read `packages/api/src/stripe/api-version.ts` and `packages/api/package.json` for the approved API version and SDK. Reuse the existing Stripe client. Preserve those pins unless the requested work explicitly includes a reviewed version upgrade; choose and verify that upgrade target before changing code. The upstream versions and examples below are reference snapshots, not Core upgrade instructions.
+
+Reuse existing authentication as opaque secure input. Never print, copy, commit or rotate credentials during skill maintenance. Product provisioning, CLI/plugin installs, terms acceptance, new credential creation and additional skill installation require the corresponding explicit task scope; they are never side effects of installing or refreshing this guidance. Follow current repository authority and the API/database ownership boundaries.
+<!-- CORE-OVERLAY-END -->
 
 # Upgrading Stripe Versions
 
-This guide covers upgrading Stripe API versions, server-side SDKs, Stripe.js, and mobile SDKs.
+## Choose a target API version
+
+When the task explicitly authorizes a Stripe upgrade, use the user-selected reviewed target. Otherwise preserve Core's approved API version and SDK pins above. For an authorized upgrade without a selected target, verify the current version in the official [API versioning documentation](https://docs.stripe.com/api/versioning.md), state that target and its source, and review compatibility before changing any pin.
+
+Bundled fallback API version: `2026-09-30.endive`. This value is only a snapshot from the last time this skill was generated, on 2026-10-22. Version identifiers start with their release date in YYYY-MM-DD format and new stable versions are released monthly, so a fallback version dated more than a month ago is probably stale. Use it only when you can’t reach docs.stripe.com. Never guess about a newer version number.
+
+Before making changes, compare the target with each API version the integration pins: client configuration, per-request overrides, and webhook endpoints. Unless the user explicitly asks for it, don’t move any pin to an older version or a stable pin to a preview version. If a pin already matches the target, report it as unchanged. State the selected target and its source. If live verification fails or is unavailable, say that the latest version remains unverified, and don’t claim the integration is on the latest version.
+
+When reviewing webhook endpoints and event destinations, distinguish snapshot events from thin events. Thin event payloads are unversioned, so they don’t need to be upgraded when you change your API version. API calls that retrieve the full event or related resource remain versioned.
+
+For SDKs that support explicit API version overrides, use the selected target in client configuration and per-request overrides. Use it in curl `Stripe-Version` test headers, too. Replace bundled API versions shown in those examples with the selected target before copying or running them. For Java, Go, and .NET, select an SDK release that targets the selected API version instead of overriding the SDK’s fixed version. Preview targets need the matching `beta` SDK release in every language; see [SDK versioning](https://docs.stripe.com/sdks/versioning.md).
 
 ## Understanding Stripe API Versioning
 
-Stripe uses date-based API versions (e.g., `2026-07-29.dahlia`, `2025-08-27.basil`, `2024-12-18.acacia`). Your account’s API version determines request/response behavior.
+Stripe uses date-based API versions (e.g., `2026-09-30.endive`, `2025-08-27.basil`, `2024-12-18.acacia`). Your account’s API version determines request/response behavior.
+
+Starting with the 2024-09-30.acacia release, Stripe releases new API versions monthly with no breaking changes. Twice a year, a new major release (for example, Basil) starts with an API version containing breaking changes. You can safely upgrade to any monthly release without updating your code.
 
 ### Types of Changes
 
@@ -30,11 +50,11 @@ Stripe uses date-based API versions (e.g., `2026-07-29.dahlia`, `2025-08-27.basi
 - Behavioral modifications
 - Removed endpoints or parameters
 
-Review the [API Changelog](https://docs.stripe.com/changelog.md) for all changes between versions.
+Review the [API changelog](https://docs.stripe.com/changelog.md) for all changes between versions. See [API upgrades](https://docs.stripe.com/upgrades.md) for the full upgrade guide.
 
 ## Server-Side SDK Versioning
 
-See [SDK Version Management](https://docs.stripe.com/sdks/set-version.md) for details.
+See [Set a Stripe API version for your SDK](https://docs.stripe.com/sdks/set-version.md) for details on setting an API version in code.
 
 ### Dynamically-Typed Languages (Ruby, Python, PHP, Node.js)
 
@@ -44,16 +64,16 @@ These SDKs offer flexible version control:
 
 ```python
 import stripe
-stripe.api_version = '2026-07-29.dahlia'
+stripe.api_version = '2026-09-30.endive'
 ```
 
 ```ruby
-Stripe.api_version = '2026-07-29.dahlia'
+Stripe.api_version = '2026-09-30.endive'
 ```
 
 ```javascript
 const stripe = require('stripe')('sk_test_xxx', {
-  apiVersion: '2026-07-29.dahlia'
+  apiVersion: '2026-09-30.endive'
 });
 ```
 
@@ -62,7 +82,7 @@ const stripe = require('stripe')('sk_test_xxx', {
 ```python
 stripe.Customer.create(
   email="customer@example.com",
-  stripe_version='2026-07-29.dahlia'
+  stripe_version='2026-09-30.endive'
 )
 ```
 
@@ -77,7 +97,7 @@ Always specify the API version you’re integrating against in your code instead
 ```javascript
 // Good: Explicit version
 const stripe = require('stripe')('sk_test_xxx', {
-  apiVersion: '2026-07-29.dahlia'
+  apiVersion: '2026-09-30.endive'
 });
 
 // Avoid: Relying on account default
@@ -88,14 +108,14 @@ const stripe = require('stripe')('sk_test_xxx');
 
 See [Stripe.js Versioning](https://docs.stripe.com/sdks/stripejs-versioning.md) for details.
 
-Stripe.js uses an evergreen model with major releases (Acacia, Basil, Clover, Dahlia) on a biannual basis.
+Stripe.js uses an evergreen model with major releases (Acacia, Basil, Clover, Dahlia, Endive) on a biannual basis.
 
 ### Loading Versioned Stripe.js
 
 **Via Script Tag:**
 
 ```html
-<script src="https://js.stripe.com/dahlia/stripe.js"></script>
+<script src="https://js.stripe.com/endive/stripe.js"></script>
 ```
 
 **Via npm:**
@@ -110,7 +130,7 @@ Major npm versions correspond to specific Stripe.js versions.
 
 Each Stripe.js version automatically pairs with its corresponding API version. For instance:
 
-- Dahlia Stripe.js uses `2026-07-29.dahlia` API
+- Endive Stripe.js uses `2026-09-30.endive` API
 - Acacia Stripe.js uses `2024-12-18.acacia` API
 
 You can’t override this association.
@@ -149,12 +169,12 @@ All mobile SDKs work with any Stripe API version you use on your backend unless 
 
 ## Upgrade Checklist
 
-1. Review the [API Changelog](https://docs.stripe.com/changelog.md) for changes between your current and target versions
-2. Check [Upgrades Guide](https://docs.stripe.com/upgrades.md) for migration guidance
+1. Review the [API changelog](https://docs.stripe.com/changelog.md) for changes between your current and target versions
+2. Check the [API upgrades guide](https://docs.stripe.com/upgrades.md) for migration guidance
 3. Update server-side SDK package version (e.g., `npm update stripe`, `pip install --upgrade stripe`)
 4. Update the `apiVersion` parameter in your Stripe client initialization
 5. Test your integration against the new API version using the `Stripe-Version` header
-6. Update webhook handlers to handle new event structures
+6. For each destination that receives snapshot events, review its configured API version. For webhook endpoints, follow [webhook versioning](https://docs.stripe.com/webhooks/versioning.md). For every v2 snapshot event destination — including webhook endpoints, Amazon EventBridge, and Azure Event Grid destinations — inspect [snapshot_api_version](https://docs.stripe.com/api/v2/core/event-destinations/object.md#v2_event_destination_object-snapshot_api_version) and, if it differs from the target, create and test a replacement destination because you can’t change it after creation. For a replacement webhook endpoint, save its new signing secret and configure the handler to accept both secrets during testing and cutover. After cutover, disable or delete the old destination to avoid duplicate delivery. Leave thin event destinations unchanged
 7. Update Stripe.js script tag or npm package version if needed
 8. Update mobile SDK versions in your package manager if needed
 9. Store Stripe object IDs in databases that accommodate up to 255 characters (case-sensitive collation)
@@ -166,20 +186,22 @@ Use the `Stripe-Version` header to test your code against a new version without 
 ```bash
 curl https://api.stripe.com/v1/customers \
   -u sk_test_xxx: \
-  -H "Stripe-Version: 2026-07-29.dahlia"
+  -H "Stripe-Version: 2026-09-30.endive"
 ```
 
 Or in code:
 
 ```javascript
 const stripe = require('stripe')('sk_test_xxx', {
-  apiVersion: '2026-07-29.dahlia'  // Test with new version
+  apiVersion: '2026-09-30.endive'  // Test with new version
 });
 ```
 
 ## Important Notes
 
+- For supported event types, follow the [migration guide](https://docs.stripe.com/webhooks/migrate-snapshot-to-thin-events.md) to move from snapshot events to thin events. After migration, webhook payloads no longer depend on API version upgrades; API calls that retrieve the full event or related resource remain versioned.
 - Your webhook listener should handle unfamiliar event types gracefully
 - Test webhooks with the new version structure before upgrading
 - Breaking changes are tagged by affected product areas (Payments, Billing, Connect, etc.)
 - Multiple API versions coexist simultaneously, enabling staged adoption
+- For 72 hours after upgrading, you can roll back to your previous API version in [Workbench](https://dashboard.stripe.com/workbench/overview)

@@ -166,8 +166,8 @@ describe("publicMediaReadAccess", () => {
     expect(access(accessArgs(req))).toEqual({
       or: [
         { filename: { equals: filename } },
-        { "sizes.thumbnail.filename": { equals: filename } },
-        { "sizes.card.filename": { equals: filename } },
+        { "variants.thumbnail.filename": { equals: filename } },
+        { "variants.card.filename": { equals: filename } },
       ],
     });
   });

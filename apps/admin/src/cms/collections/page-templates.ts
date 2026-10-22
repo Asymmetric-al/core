@@ -32,6 +32,7 @@ const nativePageTemplatesAdmin = isNativeCollectionWebStudioEnabled(
 
 export const PageTemplates: CollectionConfig = {
   slug: PAGE_TEMPLATES_SLUG,
+  authorship: false,
   admin: {
     defaultColumns: ["name", "pageType", "templateKey", "tenant", "updatedAt"],
     useAsTitle: "name",

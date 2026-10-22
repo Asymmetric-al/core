@@ -93,3 +93,5 @@ By contributing, you agree that we will release your contributions under the sam
 ## Development-phase build policy
 
 Routine `develop` PRs retain formatting, integrity, lint, type checking, unit tests, migration and smoke feedback. Dependency/build-configuration changes compile affected apps; ordinary source/docs changes may merge without a full release build. Merges into `develop` do not automatically deploy. Request `qa:smoke` for a ready preview; GitHub builds and uploads prebuilt output. Use `bun run ci:preflight -- --full` for full QA. Production releases and production-targeting pushes always require full preflight. See [CI reference](docs/ci.md).
+
+Imported PDF updates follow the [source and artifact refresh workflow](docs/maintenance/modernization/pdf-packages.md). `bun run verify:pdf-package-provenance` checks the frozen archives and extracted files offline and runs in normal preflight.

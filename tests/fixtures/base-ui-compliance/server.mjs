@@ -6,6 +6,11 @@ import { fileURLToPath } from "node:url";
 import tailwind from "@tailwindcss/postcss";
 import react from "@vitejs/plugin-react";
 
+import {
+  copyMaplibreWorkerAssets,
+  resolveMaplibreDistDir,
+} from "../../../scripts/copy-maplibre-worker-assets.mjs";
+
 const fixtureDirectory = fileURLToPath(new URL(".", import.meta.url));
 const repositoryRoot = resolve(fixtureDirectory, "../../..");
 const outputDirectory = resolve(
@@ -41,6 +46,19 @@ await build({
       resolveId(source, importer) {
         if (source === "virtual:base-ui-styles") return compiledCssPath;
         const workspaceFile = importer?.replaceAll("\\", "/");
+        // The fixture consumes the same public adapter as the UI workspace.
+        // Resolve from that owner without adding unused root dependencies.
+        if (
+          source === "nuqs/adapters/react" &&
+          workspaceFile?.endsWith("/ui-utilities-main.tsx")
+        ) {
+          return this.resolve(
+            source,
+            resolve(repositoryRoot, "packages/ui/index.ts"),
+            { skipSelf: true },
+          );
+        }
+
         const usesAnalytics = workspaceFile?.endsWith(
           "/missionary/app/analytics/page-client.tsx",
         );
@@ -161,6 +179,8 @@ await build({
       input: {
         main: resolve(fixtureDirectory, "index.html"),
         modernization: resolve(fixtureDirectory, "modernization.html"),
+        pdfModernization: resolve(fixtureDirectory, "pdf-modernization.html"),
+        uiUtilities: resolve(fixtureDirectory, "ui-utilities.html"),
         support: resolve(fixtureDirectory, "support.html"),
         workspace: resolve(fixtureDirectory, "workspace.html"),
         taskToolbar: resolve(fixtureDirectory, "task-toolbar.html"),
@@ -179,6 +199,12 @@ await build({
       },
     },
   },
+});
+copyMaplibreWorkerAssets({
+  distDir: resolveMaplibreDistDir(
+    resolve(repositoryRoot, "packages/ui/package.json"),
+  ),
+  publicDir: buildDirectory,
 });
 // Serve only the completed bundle: a fresh run cannot race dev dependency
 // optimization or reload another test's page when a dependency is discovered.

@@ -25,13 +25,13 @@ const PUBLIC_STATIC_MEDIA_READ_CONTEXT_KEY = "asymPublicStaticMediaRead";
 const STATIC_MEDIA_FILE_EXISTS_WHERE = { id: { exists: true } } satisfies Where;
 
 /**
- * Image-size filename fields from `apps/admin/src/cms/collections/media.ts`.
+ * Image-variant filename fields from `apps/admin/src/cms/collections/media.ts`.
  * Kept here so a Blob prefix lookup for a resized file stays scoped to the
  * same authorized filename without widening to the whole collection.
  */
-const MEDIA_IMAGE_SIZE_FILENAME_FIELDS = [
-  "sizes.thumbnail.filename",
-  "sizes.card.filename",
+const MEDIA_IMAGE_VARIANT_FILENAME_FIELDS = [
+  "variants.thumbnail.filename",
+  "variants.card.filename",
 ] as const;
 
 type PublicReadContext = {
@@ -132,7 +132,7 @@ function buildStaticMediaFilenameWhere(filename: string): Where {
   return {
     or: [
       { filename: { equals: filename } },
-      ...MEDIA_IMAGE_SIZE_FILENAME_FIELDS.map((field) => ({
+      ...MEDIA_IMAGE_VARIANT_FILENAME_FIELDS.map((field) => ({
         [field]: { equals: filename },
       })),
     ],

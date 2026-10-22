@@ -10,15 +10,78 @@ import {
 } from "./types";
 
 import type {
+  DocumentCutoverEnvironmentIdentity,
   DocumentCutoverEnvironmentProof,
   DocumentCutoverProofVerificationFailure,
   DocumentCutoverProofVerificationResult,
 } from "./types";
 
+/** The identity fields `--verify` compares against the current target. */
+export const DOCUMENT_CUTOVER_VERIFIED_ENVIRONMENT_FIELDS = [
+  "environmentLabel",
+  "databaseProjectId",
+  "storageIdentity",
+  "schemaVersion",
+] as const;
+
+export type DocumentCutoverTargetIdentity = Pick<
+  DocumentCutoverEnvironmentIdentity,
+  (typeof DOCUMENT_CUTOVER_VERIFIED_ENVIRONMENT_FIELDS)[number]
+>;
+
 export interface VerifyDocumentCutoverProofOptions {
   now?: () => Date;
-  /** Bounded freshness rule for clean proofs; stale clean proofs fail. */
+  /** Bounded freshness rule (from `recordedAt`); stale clean proofs fail. */
   maxProofAgeMs?: number;
+  /**
+   * The current target, resolved server-side at verification time. When
+   * given, any difference from the proof's recorded environment fails.
+   */
+  currentTarget?: DocumentCutoverTargetIdentity;
+}
+
+/**
+ * Legacy self-declared attestation fields (`cli:<os user>` / `git:<sha>`).
+ * They never authorized anything, and a proof that still carries them is
+ * rejected outright rather than trusted.
+ */
+const LEGACY_ATTESTATION_FIELDS = [
+  "attestation",
+  "attestedBy",
+  "attestationContext",
+] as const;
+
+function checkLegacyAttestation(
+  proof: DocumentCutoverEnvironmentProof,
+): DocumentCutoverProofVerificationFailure[] {
+  const record = proof as unknown as Record<string, unknown>;
+  return LEGACY_ATTESTATION_FIELDS.filter((field) => field in record).map(
+    (field) => ({
+      code: "legacy_attestation",
+      detail: `The proof carries a self-declared \`${field}\` attestation; only the owner's PR review of the committed proof approves it.`,
+    }),
+  );
+}
+
+function checkEnvironmentMatchesTarget(
+  proof: DocumentCutoverEnvironmentProof,
+  target: DocumentCutoverTargetIdentity,
+): DocumentCutoverProofVerificationFailure[] {
+  if (proof.environment === null) {
+    return [
+      {
+        code: "environment_mismatch",
+        detail: "The proof records no environment to compare with the target.",
+      },
+    ];
+  }
+  const recorded = proof.environment;
+  return DOCUMENT_CUTOVER_VERIFIED_ENVIRONMENT_FIELDS.filter(
+    (field) => recorded[field] !== target[field],
+  ).map((field) => ({
+    code: "environment_mismatch",
+    detail: `The proof's ${field} (${recorded[field]}) differs from the current target (${target[field]}).`,
+  }));
 }
 
 function checkCleanOutcomeConsistency(
@@ -38,8 +101,8 @@ function checkCleanOutcomeConsistency(
   if (proof.approval.decision !== "go") {
     inconsistent("A clean proof requires an explicit go decision.");
   }
-  if (!proof.owner.ownerId.trim() || !proof.approval.approverId.trim()) {
-    inconsistent("A clean proof requires named owner and approver identities.");
+  if (!proof.owner.ownerId.trim() || !proof.owner.ownerRole.trim()) {
+    inconsistent("A clean proof requires a named owner identity and role.");
   }
   if (
     proof.environment === null ||
@@ -85,7 +148,9 @@ function checkCleanOutcomeConsistency(
 
 /**
  * Detect any changed field or mismatched digest in a stored proof. Digest
- * recomputation catches byte-level tampering; the clean-outcome checks
+ * recomputation catches byte-level tampering; a legacy self-declared
+ * attestation is rejected; with `currentTarget`, the recorded environment must
+ * equal the target's; the clean-outcome checks
  * additionally reject a proof whose digests are internally consistent but
  * whose content could never legitimately produce a clean outcome — including
  * a proof whose evidence no longer covers every planned surface, and a clean
@@ -124,13 +189,21 @@ export async function verifyDocumentCutoverEnvironmentProof(
     }
   }
 
-  const { proofDigest, ...body } = proof;
+  const { digest, ...body } = proof;
   const expectedProofDigest = await digestCanonicalValue(body);
-  if (expectedProofDigest !== proofDigest) {
+  if (expectedProofDigest !== digest) {
     failures.push({
       code: "proof_digest_mismatch",
       detail: "The proof content does not match its whole-proof digest.",
     });
+  }
+
+  failures.push(...checkLegacyAttestation(proof));
+
+  if (options.currentTarget) {
+    failures.push(
+      ...checkEnvironmentMatchesTarget(proof, options.currentTarget),
+    );
   }
 
   if (proof.outcome === "clean_preproduction_proof") {

@@ -8,7 +8,7 @@
 ```typescript
 // Load an unpacked extension with a persistent context (Chromium only)
 const context = await chromium.launchPersistentContext(userDataDir, {
-  headless: false, // Extensions require headed mode
+  channel: 'chromium', // bundled Chromium: extensions work headless too
   args: [
     `--disable-extensions-except=${pathToExtension}`,
     `--load-extension=${pathToExtension}`,
@@ -16,7 +16,7 @@ const context = await chromium.launchPersistentContext(userDataDir, {
 });
 ```
 
-**Hard constraints**: Extensions only work in Chromium. They require `launchPersistentContext` (not `browser.newContext`). Headed mode is mandatory — `headless: false` or use the `--headless=new` Chromium flag for "new headless" mode which supports extensions.
+**Hard constraints**: Extensions only work in Chromium. They require `launchPersistentContext` (not `browser.newContext`). Use the bundled Chromium (`channel: 'chromium'`), which runs extensions in headless mode too, or launch headed. Google Chrome and Microsoft Edge removed the command-line flags needed to side-load extensions, so branded channels (`chrome`, `msedge`) cannot load them.
 
 ## Patterns
 
@@ -41,7 +41,7 @@ export const test = base.extend<ExtensionFixtures>({
   context: async ({}, use) => {
     const extensionPath = path.resolve(__dirname, '../my-extension');
     const context = await chromium.launchPersistentContext('', {
-      headless: false,
+      channel: 'chromium',
       args: [
         `--disable-extensions-except=${extensionPath}`,
         `--load-extension=${extensionPath}`,
@@ -74,7 +74,7 @@ const test = base.extend({
   context: async ({}, use) => {
     const extensionPath = path.resolve(__dirname, '../my-extension');
     const context = await chromium.launchPersistentContext('', {
-      headless: false,
+      channel: 'chromium',
       args: [
         `--disable-extensions-except=${extensionPath}`,
         `--load-extension=${extensionPath}`,
@@ -281,7 +281,7 @@ test('options page saves preferences', async ({ page, extensionId }) => {
 | Test extension storage | Use popup to set values, reload, verify persistence | `chrome.storage` is only accessible from extension pages |
 | Test options page | Navigate to `chrome-extension://<id>/options.html` | Same approach as popup testing |
 | Test cross-page behavior | Open multiple pages in the same context | Persistent context shares extension state across tabs |
-| Run in CI (headless) | Use `--headless=new` Chromium flag | New headless mode supports extensions unlike old headless |
+| Run in CI (headless) | `channel: 'chromium'` | The bundled Chromium's headless mode supports extensions |
 | Test with multiple extensions | Add multiple paths to `--load-extension` | Comma-separate paths in the flag value |
 
 ## Anti-Patterns
@@ -289,7 +289,7 @@ test('options page saves preferences', async ({ page, extensionId }) => {
 | Don't Do This | Problem | Do This Instead |
 |---|---|---|
 | `browser.newContext()` for extensions | Extensions require persistent context | `chromium.launchPersistentContext()` |
-| `headless: true` without `--headless=new` | Old headless mode does not support extensions | Set `headless: false` or use `args: ['--headless=new']` |
+| Default headless without `channel: 'chromium'` | The default headless shell does not load extensions | Set `channel: 'chromium'` or `headless: false` |
 | Testing on Firefox or WebKit | Extensions only work in Chromium | Skip extension tests for non-Chromium projects |
 | Clicking the extension icon via coordinates | Fragile, toolbar layout varies | Navigate directly to `chrome-extension://<id>/popup.html` |
 | Hardcoding the extension ID | IDs change between builds and machines | Extract dynamically from the service worker URL |
@@ -305,7 +305,7 @@ test('options page saves preferences', async ({ page, extensionId }) => {
 | `context.serviceWorkers()` returns empty | Service worker not yet registered | Use `context.waitForEvent('serviceworker')` before extracting the ID |
 | Popup page is blank | Popup HTML path is wrong | Check `manifest.json` for the correct `default_popup` path |
 | Content script not injecting | Page URL does not match `matches` in manifest | Verify the URL pattern in `content_scripts[].matches` |
-| Extension works locally but not in CI | CI uses old headless mode | Add `--headless=new` to launch args for CI |
+| Extension works locally but not in CI | CI runs the headless shell or a branded channel | Use `channel: 'chromium'` in CI |
 | `chrome.storage` calls fail | Accessing storage from non-extension context | Only access storage through extension pages (popup, options, background) |
 | Multiple extensions conflict | Both extensions modify the same page elements | Test each extension in its own persistent context |
 | Tests are slow to start | Persistent context initialization overhead | Reuse context across tests in the same file with `test.describe` |

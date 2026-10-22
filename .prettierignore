@@ -90,3 +90,6 @@ docs/features/missionary-workspace-depth/grill/
 
 # Exact MIT upstream bytes used by refresh regression tests; provenance hashes are checked.
 tests/fixtures/skills/emil-upstream/
+
+# Verbatim owner release record; refresh from the reviewed upstream commit.
+docs/maintenance/modernization/pdf-owner-release.json

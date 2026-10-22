@@ -172,7 +172,7 @@ derive filters before rendering.
 
 Every mutation parses its input with a Zod schema declared on
 `supportStore.inputs.*`, mutates the relevant collection, awaits
-`tx.isPersisted.promise`, and invalidates the
+`tx.when("settled")`, and invalidates the
 `supportHubQueryKeys.root` namespace. Optimistic flow matches the
 `useLogActivity` precedent from `packages/database/hooks/admin-workspace.ts`.
 

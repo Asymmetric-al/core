@@ -42,6 +42,7 @@
 - [x] 5.5 Record FastPR's unassociated direct envelope as a
       migration-or-retirement follow-up; register a replacement only after its
       configured App tuple is observed: #1427.
+- Note (2026-10-21): FastPR and PR-loop were retired in Oct 2026; #1427 closed as retired (not planned), 2026-10-21 (#2183).
 
 ## 6. Evidence
 
@@ -70,3 +71,7 @@
   tree unchanged.
 - Full preflight, clean-tree, and GitHub publication evidence is recorded only
   after the corrected working tree passes each remaining gate.
+
+### Retirement note — 2026-10-21
+
+- FastPR and PR-loop were retired in Oct 2026; #1427 closed as retired (not planned), 2026-10-21 (#2183). The dated 2026-08-25 evidence above is historical.

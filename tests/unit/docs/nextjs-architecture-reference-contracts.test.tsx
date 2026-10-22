@@ -166,7 +166,7 @@ describe("Next.js architecture executable reference contracts", () => {
     const section = read("references/pages-suspense.md")
       .split("## Error boundaries\n")[1]
       .split("\n## ")[0];
-    expect(section).toContain("'use client'");
+    expect(section).toContain("in a `use client` module");
     expect(section).toContain("fallback");
     expect(section).toContain("page remains a Server Component");
     expect(section).toContain("imports that boundary");
@@ -246,7 +246,7 @@ describe("Next.js architecture executable reference contracts", () => {
   it("keeps the refresh pinned, reviewed before copying, and mirror-preserving", () => {
     const source = read("references/upstream.md");
     expect(source).toContain("npx --yes skills@1.5.7");
-    expect(source).toContain("f2902b8538b25610da694394ecf88e69adf5f96a");
+    expect(source).toContain("84842f3c66da70462f36753603db86a347dfb83c");
     expect(source).toContain("rev-parse HEAD");
     expect(source).toContain("before copying");
     expect(source).toContain("raw upstream");

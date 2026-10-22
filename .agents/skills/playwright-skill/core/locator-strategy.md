@@ -454,8 +454,8 @@ await page.locator('article').filter({ hasText: 'Jane Smith' })
 // Third-party color picker with no semantic role
 await page.getByTestId('color-picker').click();
 
-// Custom drag-and-drop zone
-await page.getByTestId('drop-zone').dispatchEvent('drop', { dataTransfer });
+// Custom drag-and-drop zone (locator.drop(), 1.60+)
+await page.getByTestId('drop-zone').drop({ files: 'fixtures/report.pdf' });
 
 // Canvas-based chart
 const chart = page.getByTestId('revenue-chart');
@@ -466,7 +466,7 @@ await expect(chart).toBeVisible();
 // JavaScript
 await page.getByTestId('color-picker').click();
 
-await page.getByTestId('drop-zone').dispatchEvent('drop', { dataTransfer });
+await page.getByTestId('drop-zone').drop({ files: 'fixtures/report.pdf' });
 
 const chart = page.getByTestId('revenue-chart');
 await expect(chart).toBeVisible();

@@ -284,6 +284,41 @@ describe("published Supabase adapter compatibility with TanStack DB", () => {
     expect(parents.requests).toEqual([]);
   });
 
+  it("keeps mutation settlement pending until the confirmed server row is accepted", async () => {
+    const { collection, transport, load } = table([]);
+    await load();
+    transport.mutationResponse = row("pending", { name: "Server confirmed" });
+    const writeUpsert = collection.utils.writeUpsert.bind(collection.utils);
+    let release!: () => void;
+    const acceptance = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const write = vi
+      .spyOn(collection.utils, "writeUpsert")
+      .mockImplementationOnce(async (...args) => {
+        await acceptance;
+        return writeUpsert(...args);
+      });
+    const transaction = collection.insert(row("pending"));
+    try {
+      let settled = false;
+      const settlement = transaction.when("settled").then(() => {
+        settled = true;
+      });
+      await vi.waitFor(() => expect(write).toHaveBeenCalledOnce());
+      expect(settled).toBe(false);
+      expect(transaction.state).toBe("persisting");
+      expect(collection.get("pending")?.name).toBe("pending");
+
+      release();
+      await settlement;
+      expect(transaction.state).toBe("completed");
+      expect(collection.get("pending")?.name).toBe("Server confirmed");
+    } finally {
+      release();
+    }
+  });
+
   it("rejects an insert transaction and rolls back optimism when the server row fails validation", async () => {
     const { collection, transport, load } = table([]);
     await load();
@@ -293,7 +328,7 @@ describe("published Supabase adapter compatibility with TanStack DB", () => {
     expect(collection.get("inserted")?.name).toBe("inserted");
 
     await expect(
-      transaction.isPersisted.promise.then(() => transaction.state),
+      transaction.when("settled").then(() => transaction.state),
     ).rejects.toThrow("validation");
     expect(transaction.state).toBe("failed");
     expect(collection.has("inserted")).toBe(false);
@@ -312,7 +347,7 @@ describe("published Supabase adapter compatibility with TanStack DB", () => {
     expect(collection.get("existing")?.name).toBe("Optimistic");
 
     await expect(
-      transaction.isPersisted.promise.then(() => transaction.state),
+      transaction.when("settled").then(() => transaction.state),
     ).rejects.toThrow("validation");
     expect(transaction.state).toBe("failed");
     expect(collection.get("existing")?.name).toBe("Original");
@@ -330,7 +365,7 @@ describe("published Supabase adapter compatibility with TanStack DB", () => {
     expect(collection.has("existing")).toBe(false);
 
     await expect(
-      transaction.isPersisted.promise.then(() => transaction.state),
+      transaction.when("settled").then(() => transaction.state),
     ).rejects.toBe(failure);
     expect(transaction.state).toBe("failed");
     expect(collection.get("existing")?.name).toBe("existing");
@@ -418,16 +453,18 @@ describe("published Supabase adapter compatibility with TanStack DB", () => {
     const { collection, transport, load } = table([]);
     await load();
     transport.mutationResponse = row("persisted", { name: "Server insert" });
-    await collection.insert(row("persisted")).isPersisted.promise;
+    await collection.insert(row("persisted")).when("settled");
     expect(collection.get("persisted")?.name).toBe("Server insert");
 
     transport.mutationResponse = row("persisted", { name: "Server update" });
-    await collection.update("persisted", (draft) => {
-      draft.name = "Optimistic update";
-    }).isPersisted.promise;
+    await collection
+      .update("persisted", (draft) => {
+        draft.name = "Optimistic update";
+      })
+      .when("settled");
     expect(collection.get("persisted")?.name).toBe("Server update");
 
-    await collection.delete("persisted").isPersisted.promise;
+    await collection.delete("persisted").when("settled");
     expect(collection.has("persisted")).toBe(false);
   });
 
