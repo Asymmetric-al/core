@@ -9133,5 +9133,183 @@
       "files": 54,
       "tests": 560
     }
+  },
+  "templateCreationIdentityQualification": {
+    "recordedAt": "2026-10-22T06:06:19.945106+00:00",
+    "baseHead": "5cd06cf437d0709131b3c8da5050e1587730b293",
+    "finding": "Repeated template creation reused persisted block IDs; page numeric sequence was healthy. Current-head browser failure preserved before correction.",
+    "behavior": "Deep-clone layout; discard only persisted block IDs and faq/impact-stats nested row IDs. Preserve source templates, relationships, rich-text/custom IDs, tenant, auth and template references.",
+    "sourceSha256": {
+      "apps/admin/src/cms/create-from-template-endpoint.ts": "3141f5159975c81376da0a3ae51afa73b82cd7b7f93ab76b9077711850d8b02e",
+      "tests/unit/cms/create-from-template-endpoint.test.ts": "dca2ef1cc85b0f52b19e9a732c8b40e3064ec1c81840954b08bfccd342205580",
+      "tests/e2e/cms-local-happy-path.spec.ts": "6f0fbe8bf60588986b19716e92e0da8b88756a84f53cb3d9e5514f63325ecd86"
+    },
+    "checks": {
+      "red": {
+        "path": "/tmp/core-modernization-payload-template-identity-red-proof.json",
+        "sha256": "cd285e843ed59cc10b24324b28b4e65f6a49cc2c20970a33876cb3e4171f40e3",
+        "utc": "2026-10-22T05:55:16.899958+00:00",
+        "exitCode": 1,
+        "sourceSha256": "48251631d51ec71d07f5fe62026c68fdea21e67e3c44175066b19ea9b2d9b73b",
+        "testSha256": "fdb19dd566cbfae8e2058631c8c4473692b4cc9eb2521ad1f84db50d6ee42139",
+        "logSha256": "74a0745e7e101afe6bda776521ac5b4ad17e0ce5049a441251b6089d068380d8",
+        "expectedFailure": "copied template persisted row IDs"
+      },
+      "green": {
+        "path": "/tmp/core-modernization-payload-template-identity-green-proof.json",
+        "sha256": "fb8ab3e51a9bac83ae53c01f19920b991af47818df2d885a97f2951720b768de",
+        "utc": "2026-10-22T05:54:14.427980+00:00",
+        "exitCode": 0,
+        "command": [
+          "bunx",
+          "vitest",
+          "run",
+          "tests/unit/cms/create-from-template-endpoint.test.ts"
+        ],
+        "logSha256": "12e85e77a98d7153ddd54075a1394c676d33a3c0ffaf6ea41d1ccd0354478dea",
+        "sourceSha256": {
+          "apps/admin/src/cms/create-from-template-endpoint.ts": "3141f5159975c81376da0a3ae51afa73b82cd7b7f93ab76b9077711850d8b02e",
+          "tests/unit/cms/create-from-template-endpoint.test.ts": "fdb19dd566cbfae8e2058631c8c4473692b4cc9eb2521ad1f84db50d6ee42139",
+          "tests/e2e/cms-local-happy-path.spec.ts": "0823c1b673fcd064611812f67743969e31dc005837393a6bc9c812eecb9e8038"
+        }
+      },
+      "focused": {
+        "path": "/tmp/core-modernization-payload-template-identity-focused-proof.json",
+        "sha256": "8a03002f0848ff414954207700da059c149d9f4b92a73816088dacd6de3bd4c5",
+        "startedAt": "2026-10-22T05:56:16.650714+00:00",
+        "completedAt": "2026-10-22T05:56:22.901961+00:00",
+        "command": [
+          "bunx",
+          "vitest",
+          "run",
+          "tests/unit/cms",
+          "tests/unit/scripts/deploy-prebuilt-preview.test.ts",
+          "tests/unit/workflows/qa-smoke-preview-deploy.test.ts"
+        ],
+        "exitCode": 0,
+        "logSha256": "b42093711e29fd96bc88a16da0df301e400d9f29e88719658bb55e5f3110e4f2"
+      },
+      "static": {
+        "path": "/tmp/core-modernization-payload-template-identity-admin-static-proof.json",
+        "sha256": "972c0f8053e3ef580348ae310629014de04c1319830cab0215215f0a4cab5c49",
+        "startedAt": "2026-10-22T05:56:22.902317+00:00",
+        "completedAt": "2026-10-22T05:57:02.732702+00:00",
+        "command": [
+          "bunx",
+          "turbo",
+          "run",
+          "lint",
+          "typecheck",
+          "--filter=@asym/admin"
+        ],
+        "exitCode": 0,
+        "logSha256": "f4f0d75051a3c1c90614b09c757f03f6eecb85bf034022812649c191058eebf2"
+      },
+      "doctor": {
+        "path": "/tmp/core-modernization-payload-template-identity-doctor-proof.json",
+        "sha256": "02d229c54ce3ec00e58d254d7fa6977cb56164edd8d4815882295eb2b4edace8",
+        "startedAt": "2026-10-22T05:57:02.732960+00:00",
+        "completedAt": "2026-10-22T05:57:36.872324+00:00",
+        "command": ["bun", "run", "react-doctor:check"],
+        "exitCode": 0,
+        "logSha256": "bb78be04e88176b274a512714b9afc20545767ba38bf1b79e14a7aa1987cb361"
+      },
+      "shadscan": {
+        "path": "/tmp/core-modernization-payload-template-identity-shadscan-proof.json",
+        "sha256": "b0fefeb3ac4d33264dfb7c3bf29fcdea47aa07c47a6c44b117d5907c0f0f6e74",
+        "startedAt": "2026-10-22T05:57:36.872538+00:00",
+        "completedAt": "2026-10-22T05:58:01.077502+00:00",
+        "command": ["bun", "run", "verify:shadscan"],
+        "exitCode": 0,
+        "logSha256": "d859190eb6a9b236be46671f3a33a12849a495c19e5c1a610a398783a9c9e31d"
+      }
+    },
+    "independentReview": {
+      "path": "/tmp/core-modernization-payload-template-identity-independent-review.json",
+      "sha256": "147d950b455e347d73b26f1c500cd714af6a93192a20612fd7f149b6061e6d9b"
+    },
+    "browser": {
+      "path": "/tmp/core-modernization-payload-template-identity-rerun-browser-wrapper-proof.json",
+      "sha256": "3048a3d5c3401a2c9410b626c6140d6fa2ae8c01a2826448d4b6092153a103e5",
+      "database": "core_payload_v4_template_20261022",
+      "passed": true,
+      "authenticationBypass": false,
+      "existingSuite": {
+        "startedAt": "2026-10-22T06:03:49.484Z",
+        "completedAt": "2026-10-22T06:04:19.934Z",
+        "command": [
+          "/home/conrad/.nvm/versions/node/v24.22.1/bin/node",
+          "/home/conrad/code/core-worktrees/payload-final-cold-2026-10-22/node_modules/.bun/@playwright+test@1.64.1/node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "/tmp/core-modernization-payload-template-identity-rerun-existing-browser.config.mjs"
+        ],
+        "exitCode": 0,
+        "logSha256": "c6d7797b2e8b11fe4e5d92d84c54b20c650d518ccc6fb7b87533441a53efda88",
+        "stats": {
+          "startTime": "2026-10-22T06:03:50.039Z",
+          "duration": 29787.611999999997,
+          "expected": 8,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      },
+      "checks": [
+        "three-owned-real-local-auth-identities",
+        "all-three-existing-builds-have-identical-product-inputs",
+        "compiled-admin-ready",
+        "compiled-donor-ready",
+        "compiled-missionary-ready",
+        "real-password-session-mounts-native-cms",
+        "refreshed-real-session-retains-cms-identity",
+        "rest-upload-transforms-variants-and-preserves-original-bytes",
+        "anonymous-thumbnail-and-card-bytes-available-without-metadata-access",
+        "uploaded-media-opens-native-editor",
+        "light-preference-keyboard-focus-enters-controls",
+        "dark-preference-keyboard-focus-enters-controls",
+        "mission-control-forced-light-contract-preserved-under-dark-system-preference",
+        "dark-semantic-token-fixture-remains-distinct-without-enabling-product-dark-mode",
+        "cms-browser-has-no-page-errors",
+        "real-foreign-tenant-cannot-read-owned-upload",
+        "normal-signout-clears-cms-session-and-route-access",
+        "real-non-staff-session-cannot-enter-cms",
+        "all-existing-selected-cms-browser-tests-pass-without-skips",
+        "owned-local-auth-profile-and-tenant-census-restored"
+      ],
+      "freshBuild": {
+        "startedAt": "2026-10-22T05:56:10.316Z",
+        "completedAt": "2026-10-22T05:57:25.477Z",
+        "command": [
+          "node",
+          "scripts/run-with-ci-env.mjs",
+          "--",
+          "bun",
+          "run",
+          "build"
+        ],
+        "exitCode": 0,
+        "logSha256": "606aa597ecc9a75a48ddf2e8e243d7304610fc31c5055daa88ac471b1aeb82c8",
+        "publicConfig": "owned loopback Supabase gateway; generated public key only",
+        "authenticationBypass": false,
+        "buildIds": {
+          "admin": "60I3DwCNwLIhkXKxTNjyH",
+          "donor": "lTi4-wTU_sewKqY1dSDtz",
+          "missionary": "EseKKQzN0dqq8GzJYAkaC"
+        },
+        "qualificationLimit": "Product build passed; earlier browser harness assertion failed before template creation. Only E2E locator changed since build.",
+        "reusedForRuntimeHarnessCorrection": true,
+        "unchangedSourceInputCount": 2234
+      },
+      "fixtureAuthCensusRestored": true,
+      "ephemeralDatabaseLoginRevoked": true,
+      "productionTouched": false
+    },
+    "browserHarnessCorrection": {
+      "failedEvidence": "/tmp/core-modernization-payload-template-identity-browser-wrapper-proof.json",
+      "reason": "Next Cache Components retains hidden Activity route views. Match exactly one visible shell, retaining strictness; no first(), skip, retry or timeout changes. Installed cacheComponents documentation confirms this behavior.",
+      "rerunOnlyChanges": "E2E locator; all 2234 tracked product inputs and all3 BUILD_ID values matched the actual successful fresh build."
+    },
+    "remaining": "Normal commit/push gates, current-head CI, functioning hosted previews, development cutover and final merge qualification."
   }
 }

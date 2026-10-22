@@ -58,7 +58,9 @@ async function signInAsLocalDemoAdmin(page: Page, next = "/web-studio") {
   await page.goto(`${adminBaseURL}/login?next=${encodeURIComponent(next)}`);
   await page.getByRole("button", { name: "Demo Access" }).click();
   await page.waitForURL(new RegExp(next.replace(/\//g, "\\/")));
-  await expect(page.getByTestId("web-studio-native-shell")).toBeVisible();
+  await expect(
+    page.getByTestId("web-studio-native-shell").filter({ visible: true }),
+  ).toBeVisible();
   await expectNoPayloadFailure(page);
 }
 
@@ -295,7 +297,9 @@ test.describe("@cms-local strict local CMS happy path", () => {
 
     for (const route of collectionRoutes) {
       await page.goto(`${adminBaseURL}${route.href}`);
-      await expect(page.getByTestId("web-studio-native-shell")).toBeVisible();
+      await expect(
+        page.getByTestId("web-studio-native-shell").filter({ visible: true }),
+      ).toBeVisible();
       if (route.text) {
         await expect(page.getByText(route.text).first()).toBeVisible();
       } else {
@@ -314,6 +318,8 @@ test.describe("@cms-local strict local CMS happy path", () => {
       page.getByText("Draft local CMS preview content."),
     ).toBeVisible();
 
+    // Cache Components may retain hidden route views; strict matching still
+    // requires exactly one visible, interactive native shell.
     for (const href of [
       "/web-studio/templates",
       "/web-studio/pages/new-from-template",
@@ -323,34 +329,40 @@ test.describe("@cms-local strict local CMS happy path", () => {
       "/web-studio/missionaries",
     ]) {
       await page.goto(`${adminBaseURL}${href}`);
-      await expect(page.getByTestId("web-studio-native-shell")).toBeVisible();
+      await expect(
+        page.getByTestId("web-studio-native-shell").filter({ visible: true }),
+      ).toBeVisible();
       await expectNoPayloadFailure(page);
     }
 
     const uniqueSlug = `created-local-standard-page-${Date.now()}`;
-    const createResponse = await page.request.post(
-      `${adminBaseURL}/api/web-studio/create-from-template`,
-      {
-        data: {
-          targetCollection: "pages",
-          templateId: String(standardTemplate.id),
-          title: "Created Local Standard Page",
-          slug: uniqueSlug,
+    const createdIds: string[] = [];
+    for (const suffix of ["first", "second"]) {
+      const title = `Created Local Standard Page ${suffix}`;
+      const createResponse = await page.request.post(
+        `${adminBaseURL}/api/web-studio/create-from-template`,
+        {
+          data: {
+            targetCollection: "pages",
+            templateId: String(standardTemplate.id),
+            title,
+            slug: `${uniqueSlug}-${suffix}`,
+          },
         },
-      },
-    );
-    expect(createResponse.ok()).toBe(true);
-    const created = (await createResponse.json()) as {
-      collectionSlug: string;
-      id: string;
-    };
-    expect(created.collectionSlug).toBe("pages");
+      );
+      expect(createResponse.ok(), await createResponse.text()).toBe(true);
+      const created = (await createResponse.json()) as {
+        collectionSlug: string;
+        id: string;
+      };
+      expect(created.collectionSlug).toBe("pages");
+      expect(createdIds).not.toContain(created.id);
+      createdIds.push(created.id);
 
-    await page.goto(
-      `${adminBaseURL}/web-studio/collections/pages/${created.id}`,
-    );
-    await expect(
-      page.getByText("Created Local Standard Page").first(),
-    ).toBeVisible();
+      await page.goto(
+        `${adminBaseURL}/web-studio/collections/pages/${created.id}`,
+      );
+      await expect(page.getByText(title).first()).toBeVisible();
+    }
   });
 });

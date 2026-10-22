@@ -55,7 +55,8 @@ and reapplication. A migrated backup restored to a second database with all
 hashes. These are synthetic local fixture results, not hosted/provider or
 production qualification.
 
-All 52 selected existing/focused CMS files and 540 cases pass. A compiler
+The latest focused CMS and preview-delivery cohort passes 43 files and 355 cases;
+individual earlier cohorts remain recorded with their source hashes. A compiler
 regression also checks public string block references without implicit generated
 augmentation; the generated file stays intact. The four actual SDK JWT cases verify signed legacy/wrong-version denial, a valid current
 token and the disabled-local-strategy boundary. Generated types remain present
@@ -83,7 +84,7 @@ Source: [official versioned v4 migration guide](https://github.com/payloadcms/pa
 
 ### Public static media access correction
 
-PR #2185 review found two retired `sizes.*.filename` filters in the follow-up static-file access check. They now use `variants.thumbnail.filename` and `variants.card.filename`, retaining the original filename alternative, tenant checks and exact-name restriction. The existing regression failed before the fix (1 failed, 18 passed) and all 19 cases pass afterward. Independent review found no additional active legacy media member paths. Anonymous HTTP variant-byte checks and current-head full qualification remain separate release evidence.
+PR #2185 review found two retired `sizes.*.filename` filters in the follow-up static-file access check. They now use `variants.thumbnail.filename` and `variants.card.filename`, retaining the original filename alternative, tenant checks and exact-name restriction. The existing regression failed before the fix (1 failed, 18 passed) and all 19 cases pass afterward. Independent review found no additional active legacy media member paths. Anonymous HTTP thumbnail/card bytes and dimensions now pass without permitting metadata access. Current-head hosted release qualification remains open.
 
 ### Hosted migration roles and certificate verification
 
@@ -131,3 +132,16 @@ mutation. Twenty focused helper/workflow cases pass. Three new branch-only admin
 preview Secrets configure the expiring isolated fixture; existing shared and
 production credentials are unchanged. Hosted CMS HTTP checks and final-current-
 head release gates remain required.
+
+### Independent template document identities
+
+Repeated creation from one template exposed copied persisted block IDs. New
+pages now deep-clone the layout and let Payload generate new block and nested
+FAQ/impact-stat row IDs. Relationship IDs, rich-text/custom-node IDs, reviewed
+content, source templates, tenant checks and template links are preserved.
+The endpoint regression fails against the previous source and passes after the
+fix. The strict real-session browser suite creates two distinct pages from the
+same template and passes all eight cases with no skips, retries or flaky results.
+Its shell locator requires one visible native shell because Next Cache Components
+can retain hidden Activity route views. All three compiled product builds and
+2,234 tracked product inputs were verified before the locator-only rerun.
