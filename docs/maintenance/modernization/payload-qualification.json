@@ -9516,7 +9516,7 @@
       "path": "/tmp/core-modernization-payload-preview-regression-review.json",
       "sha256": "b625d3ab15dd1395968d966d53137e1412fcadf382677e69376b62108c1b06b8"
     },
-    "qualificationLimit": "New helper and ignore behavior await final independent review, normal push, current-head CI, actual hosted readback and browser checks. Prebuilt helper retirement follows hosted qualification.",
+    "qualificationLimit": "Normal push, current-head CI, actual hosted readback and browser checks remain required. Prebuilt helper retirement follows hosted qualification.",
     "independentReview": {
       "path": "/tmp/core-modernization-hosted-preview-independent-review.json",
       "sha256": "2ebcaa669bfbb1743bdc321c762799ce3c34718cdf2fdf8cf253d912045bb839",
@@ -9539,6 +9539,36 @@
         "path": "/tmp/core-modernization-hosted-preview-owner-delta-final-check-proof.json",
         "sha256": "3b9fccdddcf73dd943f19b05dded385fcf3cde3aa7084917fa3bfbf687b2f910",
         "result": "75deltas compatible; all46decisions/120stories/73proofs/18releases remain"
+      }
+    },
+    "gitFixtureIsolation": {
+      "recordedAt": "2026-10-22T09:33:59.276570+00:00",
+      "finding": "Full pre-push exposed inherited Git hook repository variables in the newly introduced deployment-history fixture. Its git init changed the shared repository core.bare flag and caused the fixture and motion inventory to fail.",
+      "restoration": "Restored only core.bare=false; primary user changes exactly match the preserved preflight inventory. No commits, tracked product files or credentials changed.",
+      "correction": "Use the existing repositoryGitEnvironment helper before all fixture Git commands. Exercise ordinary and synthetic hook environments, and assert the foreign config/index remain unchanged.",
+      "proofs": {
+        "red": {
+          "path": "/tmp/core-modernization-preview-git-fixture-red-proof.json",
+          "sha256": "510179761d9fa7569472bcab26f55ae56dbdfbf48fecb576025e8241f32043f2",
+          "exitCode": 1,
+          "logSha256": "dea0dd7a1cb0c9a0d360eb49367392fb6e68bc8edf749864dbcbbb61e177b660",
+          "testSha256": "d019bc6e8f9ebcd1fbbf5d0371ea5306b230566c54ec89829c188677f0f7ec27"
+        },
+        "green": {
+          "path": "/tmp/core-modernization-preview-git-fixture-green-proof.json",
+          "sha256": "5b95e9de138f9aa85f7e55761ae251906e7215f82fc05176ce5fe9fc7a92ead1",
+          "exitCode": 0,
+          "lastCommand": ["git", "diff", "--check"],
+          "logSha256": "8fd0707864f7afaae8b9eeaa81a05d91f22529e489c88b6900b689354e5ce15b",
+          "testSha256": "0e5930496317c9fa6b37e90334c6d37552c9aed7a159605e39ffca4a19cd38d2"
+        }
+      },
+      "currentTestSha256": "0e5930496317c9fa6b37e90334c6d37552c9aed7a159605e39ffca4a19cd38d2",
+      "remaining": "Normal full pre-push and current-head CI, hosted preview/browser qualification.",
+      "independentReview": {
+        "path": "/tmp/core-modernization-preview-git-fixture-review.json",
+        "sha256": "4230f55f01e86df9c66249b3592f6c3fea23fc02b1bddec7329c93c27a457a01",
+        "result": "Approved; two actual synthetic pre-push hooks pass28checks and preserve producer/foreign config, index and HEAD bytes."
       }
     }
   }
