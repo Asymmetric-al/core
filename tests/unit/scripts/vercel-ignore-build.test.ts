@@ -8,15 +8,15 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { repositoryGitEnvironment } from "../../../scripts/git/environment.mjs";
 import {
   APPS,
   isSharedRuntimeInput,
   resolveBuildDecision,
 } from "../../../scripts/vercel/should-ignore-build.mjs";
-
-import { repositoryGitEnvironment } from "../../../scripts/git/environment.mjs";
 
 const appNames = Object.keys(APPS);
 
@@ -152,11 +152,19 @@ describe.each([false, true])(
         encoding: "utf8",
       }).trim();
     }
-    function check(previous: string | undefined) {
+    function check(
+      previous: string | undefined,
+      patch: Record<string, string | undefined> = {},
+      app = "admin",
+    ) {
       const env = { ...fixtureEnv };
       delete env.VERCEL_GIT_PREVIOUS_SHA;
+      delete env.CORE_QA_FORCE_BUILD_SHA;
+      delete env.VERCEL_GIT_COMMIT_SHA;
+      delete env.VERCEL_ENV;
       if (previous !== undefined) env.VERCEL_GIT_PREVIOUS_SHA = previous;
-      return spawnSync(process.execPath, [script, "admin"], {
+      Object.assign(env, patch);
+      return spawnSync(process.execPath, [script, app], {
         cwd: root,
         env,
         encoding: "utf8",
@@ -227,6 +235,108 @@ describe.each([false, true])(
     });
     it("skips documentation when the product commit already deployed successfully", () => {
       expect(check(product).status).toBe(0);
+    });
+    it.each(appNames)(
+      "forces a docs-only QA Preview for %s when the marker matches provider SHA and actual Git HEAD",
+      (app) => {
+        const head = git("rev-parse", "HEAD");
+        const result = check(
+          product,
+          {
+            VERCEL_ENV: "preview",
+            VERCEL_GIT_COMMIT_SHA: head,
+            CORE_QA_FORCE_BUILD_SHA: head,
+          },
+          app,
+        );
+        expect(result.status).toBe(1);
+        expect(result.stdout).toBe(
+          "[vercel-ignore] QA Preview marker matched\n",
+        );
+        expect(result.stderr).toBe("");
+      },
+    );
+    it.each([
+      ["production", { VERCEL_ENV: "production" }],
+      ["development", { VERCEL_ENV: "development" }],
+      ["missing environment", { VERCEL_ENV: undefined }],
+      ["malformed environment", { VERCEL_ENV: "Preview" }],
+      ["missing provider SHA", { VERCEL_GIT_COMMIT_SHA: undefined }],
+      ["malformed provider SHA", { VERCEL_GIT_COMMIT_SHA: "branch-name" }],
+      ["mismatched provider SHA", { VERCEL_GIT_COMMIT_SHA: "f".repeat(40) }],
+      [
+        "malformed marker",
+        { CORE_QA_FORCE_BUILD_SHA: "marker-value-must-not-appear" },
+      ],
+      ["empty marker", { CORE_QA_FORCE_BUILD_SHA: "" }],
+      ["short marker", { CORE_QA_FORCE_BUILD_SHA: "a".repeat(39) }],
+      ["uppercase marker", { CORE_QA_FORCE_BUILD_SHA: "F".repeat(40) }],
+      ["mismatched marker", { CORE_QA_FORCE_BUILD_SHA: "f".repeat(40) }],
+      [
+        "matching forged provider and marker SHA",
+        {
+          VERCEL_GIT_COMMIT_SHA: "f".repeat(40),
+          CORE_QA_FORCE_BUILD_SHA: "f".repeat(40),
+        },
+      ],
+    ])(
+      "preserves a docs-only skip for %s and logs no marker value",
+      (_label, patch) => {
+        const head = git("rev-parse", "HEAD");
+        const result = check(product, {
+          VERCEL_ENV: "preview",
+          VERCEL_GIT_COMMIT_SHA: head,
+          CORE_QA_FORCE_BUILD_SHA: head,
+          ...patch,
+        });
+        expect(result.status).toBe(0);
+        expect(result.stdout).toBe(
+          "[vercel-ignore] QA Preview marker not matched\n" +
+            "[vercel-ignore] skipping admin: changed files do not affect this Vercel app\n",
+        );
+        expect(result.stderr).toBe("");
+      },
+    );
+    it("preserves a normal Preview skip when the marker is absent", () => {
+      const result = check(product, {
+        VERCEL_ENV: "preview",
+        VERCEL_GIT_COMMIT_SHA: git("rev-parse", "HEAD"),
+      });
+      expect(result.status).toBe(0);
+      expect(result.stdout).toBe(
+        "[vercel-ignore] skipping admin: changed files do not affect this Vercel app\n",
+      );
+    });
+    it("does not force an unknown app and retains its ordinary decision", () => {
+      const head = git("rev-parse", "HEAD");
+      const normal = check(product, {}, "unknown");
+      const marked = check(
+        product,
+        {
+          VERCEL_ENV: "preview",
+          VERCEL_GIT_COMMIT_SHA: head,
+          CORE_QA_FORCE_BUILD_SHA: head,
+        },
+        "unknown",
+      );
+      expect(marked.status).toBe(normal.status);
+      expect(marked.stdout).toBe(
+        "[vercel-ignore] QA Preview marker not matched\n" + normal.stdout,
+      );
+    });
+    it("still builds normal production product changes when a QA marker is rejected", () => {
+      const head = git("rev-parse", "HEAD");
+      const normal = check(baseline);
+      const marked = check(baseline, {
+        VERCEL_ENV: "production",
+        VERCEL_GIT_COMMIT_SHA: head,
+        CORE_QA_FORCE_BUILD_SHA: head,
+      });
+      expect(marked.status).toBe(normal.status);
+      expect(marked.status).toBe(1);
+      expect(marked.stdout).toBe(
+        "[vercel-ignore] QA Preview marker not matched\n" + normal.stdout,
+      );
     });
     it.each([undefined, "", "not-a-sha", "f".repeat(40)])(
       "builds without a usable previous deployment: %s",

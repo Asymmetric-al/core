@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+
 import { deployHostedPreview } from "../../../scripts/qa/deploy-hosted-preview.mjs";
 
 const sha = "a".repeat(40);
@@ -42,13 +43,18 @@ describe("hosted Git-source preview delivery", () => {
       deployHostedPreview({ app: "admin", env, ...fx }),
     ).resolves.toBe("https://admin-fixture.vercel.app");
     const [url, options] = fx.request.mock.calls[0];
-    expect(url).toContain("https://api.vercel.com/v13/deployments?");
+    expect(url).toBe(
+      "https://api.vercel.com/v13/deployments?teamId=team_YrLB8jJARcRH0jnF1HPpPGTB",
+    );
     expect(options.redirect).toBe("error");
     const body = JSON.parse(options.body);
     expect(body).toMatchObject({
       project: env.VERCEL_PROJECT_ID,
       gitSource: deployment().gitSource,
       buildMachine: "turbo",
+    });
+    expect(body.build).toEqual({
+      env: { CORE_QA_FORCE_BUILD_SHA: sha },
     });
     expect(body.gitMetadata).toMatchObject({
       commitRef: env.CORE_PREVIEW_GIT_BRANCH,
@@ -61,6 +67,49 @@ describe("hosted Git-source preview delivery", () => {
     expect(JSON.stringify(body)).not.toContain(env.VERCEL_TOKEN);
     expect(fx.request.mock.calls).toHaveLength(2);
   });
+  it("reuses an already READY same-head Preview only after a complete identity readback", async () => {
+    const fx = fixture([deployment("READY"), deployment("READY")]);
+    await expect(
+      deployHostedPreview({ app: "admin", env, ...fx }),
+    ).resolves.toBe("https://admin-fixture.vercel.app");
+    expect(fx.request.mock.calls).toHaveLength(2);
+    expect(fx.request.mock.calls[0][1].method).toBe("POST");
+    expect(fx.request.mock.calls[1][0]).toBe(
+      "https://api.vercel.com/v13/deployments/dpl_fixture123?teamId=team_YrLB8jJARcRH0jnF1HPpPGTB&withGitRepoInfo=true",
+    );
+    expect(fx.request.mock.calls[1][1].method).toBe("GET");
+    expect(fx.sleep).not.toHaveBeenCalled();
+  });
+  it.each([
+    [
+      "wrong-head POST",
+      { gitSource: { ...deployment().gitSource, sha: "b".repeat(40) } },
+      true,
+    ],
+    ["production POST", { target: "production" }, true],
+    [
+      "wrong-head readback",
+      { gitSource: { ...deployment().gitSource, sha: "b".repeat(40) } },
+      false,
+    ],
+    ["production readback", { target: "production" }, false],
+  ])(
+    "rejects a READY deduplication candidate with %s",
+    async (_label, patch, mismatchedPost) => {
+      const fx = fixture([
+        deployment("READY", mismatchedPost ? patch : {}),
+        deployment("READY", patch),
+      ]);
+      await expect(
+        deployHostedPreview({ app: "admin", env, ...fx }),
+      ).rejects.toThrow();
+      expect(fx.sleep).not.toHaveBeenCalled();
+      expect(fx.request.mock.calls).toHaveLength(2);
+      expect(
+        fx.request.mock.calls.some(([, options]) => options.method === "PATCH"),
+      ).toBe(false);
+    },
+  );
   it.each([
     ["donor", "prj_dZG3XkklLVZyqm85FW5Vvv7ph3kL"],
     ["missionary", "prj_6tXSJKsdv2JpK70GKkg9HIg5hiYN"],
@@ -138,6 +187,17 @@ describe("hosted Git-source preview delivery", () => {
       deployHostedPreview({ app: "admin", env, ...fx }),
     ).rejects.toThrow("ERROR");
     expect(fx.request.mock.calls).toHaveLength(3);
+  });
+  it("rejects a CANCELED canary instead of treating an ignored build as qualified", async () => {
+    const fx = fixture([deployment("CANCELED"), deployment("CANCELED")]);
+    await expect(
+      deployHostedPreview({ app: "admin", env, ...fx }),
+    ).rejects.toThrow("Hosted preview ended in CANCELED");
+    expect(fx.request.mock.calls).toHaveLength(2);
+    expect(fx.sleep).not.toHaveBeenCalled();
+    expect(
+      fx.request.mock.calls.some(([, options]) => options.method === "PATCH"),
+    ).toBe(false);
   });
   it("cancels only the created owned deployment when its bounded wait expires", async () => {
     const fx = fixture([deployment(), deployment()]);

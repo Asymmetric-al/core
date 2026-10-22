@@ -95,3 +95,21 @@ software. Its owning chain requires replacement or removal of obsolete tooling
 while preserving performance budgets. Existing current-version UI families also
 retain their final ownership/behavior qualification obligations. Telemetry,
 sanitization, email, browser payments and AI remain separate checkpoints.
+
+## Current-head Preview qualification
+
+The map-paint review fix at `61b709ac` passed CI, but its fresh hosted admin
+build was canceled by the normal ignored-build comparison with the preceding
+product build. Older successful previews therefore do not qualify that head.
+A dashboard retry with the ignored step disabled reached compilation and
+confirmed an 8 GiB memory failure; hosted admin QA must retain Turbo.
+
+The follow-up keeps provider SHA deduplication with mandatory identity readback
+and adds a SHA-bound, nonsecret build marker for explicit QA Previews. The
+ignored-build helper requires the known app, Preview target, matching provider
+commit and actual Git HEAD. Normal automatic build decisions are preserved.
+All 132 related local tests pass, including production and mismatch denial,
+same-head reuse checks and rejection of CANCELED builds. Hosted visibility of
+the marker, exact-head READY deployments and all three QA projects still
+require live qualification after publication. See the corrected
+[Preview QA runbook](../../qa/pr-preview-smoke.md).
