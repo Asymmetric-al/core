@@ -1,6 +1,4 @@
 import { DocumentAssetReference, DocumentAssetReferenceInput, DocumentAssetRole, DocumentAssetSourceMetadata, DocumentContentNode, DocumentPlaceholderInput, DocumentTemplateV1, FallbackBehavior, RepeaterBindingInput, SummaryBlockBindingInput, TableBindingInput, VariableDataContext } from "@asym/pdf-template-schema";
-
-//#region src/compose-pdf-document-html.d.ts
 type PdfDocumentCssMedia = 'all' | 'print';
 interface PdfDocumentCssRequirement {
   readonly id: string;
@@ -126,8 +124,6 @@ interface ComposePdfDocumentHtmlResult {
 }
 declare function composePdfDocumentHtml(input: ComposePdfDocumentHtmlInput): ComposePdfDocumentHtmlResult;
 declare function preflightPdfDocumentAssets(input: PreflightPdfDocumentAssetsInput): PreflightPdfDocumentAssetsResult;
-//#endregion
-//#region src/preview.d.ts
 type PdfPreviewMode = 'browser' | 'docraptor-test';
 type PdfPreviewStatus = 'success' | 'warning' | 'error';
 type PdfPreviewRenderer = 'browser' | 'docraptor';
@@ -210,6 +206,5 @@ interface PdfPreviewResult {
   readonly metadata: PdfPreviewMetadata;
 }
 declare function createBrowserPdfPreview(request: CreateBrowserPdfPreviewRequest): Promise<PdfPreviewResult>;
-//#endregion
 export { PdfDocumentMarkRenderer as A, PreflightPdfDocumentAssetsInput as B, PdfDocumentAssetDiagnosticSeverity as C, PdfDocumentCssMedia as D, PdfDocumentAssetRenderMode as E, PdfDocumentRenderWarningCode as F, composePdfDocumentHtml as H, PdfDocumentRenderWarningSeverity as I, PdfDocumentRenderWarningSource as L, PdfDocumentNodeRenderer as M, PdfDocumentNodeRendererContext as N, PdfDocumentCssRequirement as O, PdfDocumentRenderWarning as P, PdfDocumentVariableScope as R, PdfDocumentAssetDiagnosticCode as S, PdfDocumentAssetReference as T, preflightPdfDocumentAssets as U, PreflightPdfDocumentAssetsResult as V, PdfPreviewStatus as _, PdfPreviewDiagnostic as a, ComposePdfDocumentHtmlResult as b, PdfPreviewDiagnosticSource as c, PdfPreviewPreflightHook as d, PdfPreviewPreflightInput as f, PdfPreviewSnapshots as g, PdfPreviewResult as h, PdfPreviewArtifactKind as i, PdfDocumentMarkRendererContext as j, PdfDocumentMark as k, PdfPreviewMetadata as l, PdfPreviewRequestMetadata as m, CreateBrowserPdfPreviewRequest as n, PdfPreviewDiagnosticInput as o, PdfPreviewRenderer as p, PdfPreviewArtifact as r, PdfPreviewDiagnosticSeverity as s, BasePdfPreviewRequest as t, PdfPreviewMode as u, createBrowserPdfPreview as v, PdfDocumentAssetLookupReference as w, PdfDocumentAssetDiagnostic as x, ComposePdfDocumentHtmlInput as y, PdfDocumentVariableUsage as z };
-//# sourceMappingURL=preview-CzVYZKyh.d.cts.map
+//# sourceMappingURL=preview-3MYc_rMK.d.mts.map

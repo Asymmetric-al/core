@@ -1,5 +1,5 @@
 import { DocumentPageSettingsSchema } from "@asym/pdf-template-schema";
-//#region src/local-renderer.ts
+// src/local-renderer.ts
 const localRendererBoundary = {
 	packageName: "@asym/pdf-renderer/local-renderer",
 	maturity: "phase-35-local-renderer",
@@ -218,7 +218,6 @@ function measureDuration(startedAt, now) {
 function defaultNow() {
 	return Date.now();
 }
-//#endregion
 export { isPlaywrightBrowserUnavailable, localRendererBoundary, renderPlaywrightLocalPdf };
 
 //# sourceMappingURL=local-renderer.mjs.map

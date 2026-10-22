@@ -1,5 +1,5 @@
 import { DocumentTemplateV1Schema, LegacyPdfTemplateReferenceSchema, PdfBuilderFeatureFlagContractSchema, PdfSignedRenderUrlResultSchema, createFakePdfPermissionAdapter, selectPdfTemplateEngine, starterPdfTemplateFixtureByCategory } from "@asym/pdf-template-schema";
-//#region src/index.ts
+// src/index.ts
 const pdfStudioAdapterBoundary = {
 	consumes: [
 		"@asym/pdf-template-schema",
@@ -193,7 +193,6 @@ function throwMissingAdapter(adapterName) {
 		message: `PDF Studio adapter dependency is missing: ${adapterName}.`
 	});
 }
-//#endregion
 export { PdfStudioAdapterError, createFakePdfPermissionAdapter, createPdfStudioAdapter, pdfStudioAdapterBoundary, starterPdfTemplateFixtureByCategory };
 
 //# sourceMappingURL=index.mjs.map

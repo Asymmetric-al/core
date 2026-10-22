@@ -1,16 +1,14 @@
 /** @vitest-environment jsdom */
 
-import { PdfEditor } from "@asym/pdf-editor";
+import { PdfEditor, type PdfEditorRef } from "@asym/pdf-editor";
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import type { EmailEditorRef } from "held-pdf-email-editor-compat";
-
 afterEach(cleanup);
 
-describe("held PDF editor upstream compatibility", () => {
-  it("loads stored content and serializes it through the real held editor", async () => {
-    let editor: EmailEditorRef | undefined;
+describe("PDF editor upstream compatibility", () => {
+  it("loads stored content and serializes it through the real public editor", async () => {
+    let editor: PdfEditorRef | undefined;
     render(
       <PdfEditor
         content={{
@@ -29,7 +27,7 @@ describe("held PDF editor upstream compatibility", () => {
             },
           ],
         }}
-        onReady={(ready: EmailEditorRef) => {
+        onReady={(ready: PdfEditorRef) => {
           editor = ready;
         }}
       />,

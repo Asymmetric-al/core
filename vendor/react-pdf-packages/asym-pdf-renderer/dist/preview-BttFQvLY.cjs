@@ -1,5 +1,5 @@
 let _asym_pdf_template_schema = require("@asym/pdf-template-schema");
-//#region src/conditions.ts
+// src/conditions.ts
 function evaluatePdfDocumentCondition(input) {
 	if (!input.context) return {
 		visible: true,
@@ -35,8 +35,7 @@ function toRenderWarning(diagnostic, input) {
 		severity: diagnostic.severity
 	};
 }
-//#endregion
-//#region src/data-table.ts
+// src/data-table.ts
 function resolvePdfDocumentTableRows(input) {
 	const result = (0, _asym_pdf_template_schema.resolveTableRows)(input);
 	return {
@@ -58,8 +57,7 @@ function resolvePdfDocumentTableRows(input) {
 		}))
 	};
 }
-//#endregion
-//#region src/repeaters.ts
+// src/repeaters.ts
 function resolvePdfDocumentRepeaterItems(input) {
 	const result = (0, _asym_pdf_template_schema.resolveRepeaterItems)({
 		binding: input.binding,
@@ -83,8 +81,7 @@ function resolvePdfDocumentRepeaterItems(input) {
 		}))
 	};
 }
-//#endregion
-//#region src/compose-pdf-document-html.ts
+// src/compose-pdf-document-html.ts
 const phase09CssRequirement = {
 	id: "phase-09-document-serializer",
 	media: "all",
@@ -124,13 +121,13 @@ const phase09CssRequirement = {
 		".pdf-variable{white-space:nowrap;}"
 	].join("\n")
 };
-const safeAlignmentValues = new Set([
+const safeAlignmentValues = /* @__PURE__ */ new Set([
 	"left",
 	"center",
 	"right",
 	"justify"
 ]);
-const safeHrefSchemes = new Set([
+const safeHrefSchemes = /* @__PURE__ */ new Set([
 	"http",
 	"https",
 	"mailto",
@@ -1393,7 +1390,7 @@ function renderDataTableTotalRows(binding, totals) {
 }
 function renderDataTableTotalRow(input) {
 	const columnIndex = input.binding.columns.findIndex((column) => column.key === input.column.key);
-	const resolvedColumnIndex = columnIndex < 0 ? 0 : columnIndex;
+	const resolvedColumnIndex = Math.max(columnIndex, 0);
 	const leadingSpan = Math.max(resolvedColumnIndex, 1);
 	const trailingSpan = input.binding.columns.length - resolvedColumnIndex - 1;
 	const cellsHtml = [
@@ -2067,7 +2064,7 @@ function getMarkAttributes(mark, options = {}) {
 }
 function getAttributes(sourceAttributes, options) {
 	const attributes = {};
-	const excludedAttributeNames = new Set(["style", ...options.excludedAttributeNames ?? []]);
+	const excludedAttributeNames = /* @__PURE__ */ new Set(["style", ...options.excludedAttributeNames ?? []]);
 	if (sourceAttributes) for (const [name, value] of Object.entries(sourceAttributes)) {
 		if (excludedAttributeNames.has(name)) continue;
 		const normalizedName = normalizeAttributeName(name);
@@ -2212,7 +2209,7 @@ function addPaginationHintWarning(input) {
 function isInvalidPageBreakPlacement(ancestors) {
 	return ancestors.some((ancestor) => invalidPageBreakAncestorTypes.has(ancestor));
 }
-const invalidPageBreakAncestorTypes = new Set([
+const invalidPageBreakAncestorTypes = /* @__PURE__ */ new Set([
 	"heading",
 	"paragraph",
 	"table",
@@ -2419,8 +2416,7 @@ function isFallbackBehavior(value) {
 	if (value.mode === "use_value") return "value" in value;
 	return value.mode === "none" || value.mode === "omit";
 }
-//#endregion
-//#region src/print-shell.ts
+// src/print-shell.ts
 const standardPageSizes = {
 	letter: {
 		width: "8.5in",
@@ -2621,7 +2617,7 @@ function createThemeWarnings(theme, themeResult) {
 	});
 	return warnings;
 }
-const genericFontFamilies = new Set([
+const genericFontFamilies = /* @__PURE__ */ new Set([
 	"cursive",
 	"emoji",
 	"fangsong",
@@ -2799,9 +2795,8 @@ function renderElement(tagName, attributes, childrenHtml) {
 function escapeHtml(value) {
 	return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;");
 }
-//#endregion
-//#region src/preview.ts
-const printShellWarningCodes = new Set(["invalid_page_settings"]);
+// src/preview.ts
+const printShellWarningCodes = /* @__PURE__ */ new Set(["invalid_page_settings"]);
 async function createBrowserPdfPreview(request) {
 	const prepared = await preparePdfPreviewDocument(request, "browser");
 	if (!prepared.ok) return prepared.result;
@@ -2987,7 +2982,6 @@ function defaultNow() {
 function createDefaultPreviewId(mode, templateId) {
 	return `${mode}-${templateId ?? "invalid-template"}`;
 }
-//#endregion
 Object.defineProperty(exports, "composePdfDocumentHtml", {
 	enumerable: true,
 	get: function() {
