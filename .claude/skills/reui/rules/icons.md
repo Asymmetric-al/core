@@ -11,7 +11,7 @@ and do not introduce another icon library to follow a demo's imports.
 
 <!-- END:core-reui-overlay -->
 
-Follow the shadcn icon rules (use the project's configured `iconLibrary`, `data-icon` on icons inside `Button`, no sizing classes on icons inside components, pass icons as component objects not string keys). ReUI adds the following.
+Use the project's configured `iconLibrary`, put `data-icon="inline-start"` on an icon before the label inside `Button` (`data-icon="inline-end"` on one after it), put no sizing classes on icons inside components, and pass icons as components, not string keys. ReUI adds the following.
 
 ## Portable icons (library-agnostic)
 
@@ -31,20 +31,24 @@ Icons support the hierarchy, they don't replace it: keep them small, matched to 
 
 ## Motion Icons (the `@reui/icons/...` set)
 
-ReUI ships its own icon set in 4 styles (outline, solid, duotone, filled), each icon in two variants:
+ReUI ships its own icon set in 4 styles (outline, solid, duotone, filled). Every icon installs from the default path; some also have a real hover animation (motion/react) on the animated path:
 
 ```bash
-npx shadcn@latest add @reui/icons/default/<style>/<name> --yes    # static
-npx shadcn@latest add @reui/icons/animated/<style>/<name> --yes   # hover-animated (motion/react)
+npx shadcn@latest add @reui/icons/default/<style>/<name> --yes    # static, every icon
+npx shadcn@latest add @reui/icons/animated/<style>/<name> --yes   # hover-animated, only when the icon has installAnimated
 ```
 
-Motion Icons need an Ultimate license for **both discovery and install** (`REUI_LICENSE_KEY`, see [cli.md](./cli.md)). Without it `search_icons` comes back `locked` with no results and `search` returns no icons at all, so check the plan before you promise the user icons: on a free or Pro account, use the project's own `iconLibrary` instead. Reach for a Motion Icon on a primary action when a subtle hover cue helps; keep motion restrained.
+The animated path answers for every icon, but for an icon without a real animation it installs the same static drawing, so only use it when the icon carries `installAnimated`.
+
+Motion Icons need an Ultimate license for **both discovery and install** (`REUI_LICENSE_KEY`, see [cli.md](./cli.md)). Without it `search_icons` comes back `locked` with no results and `search` returns no icons at all, so check the plan before you promise the user icons: on a free or Pro account, use the project's own `iconLibrary` instead. On Ultimate, a Motion Icon on the primary action is the 1 hover flourish (see [motion.md](./motion.md)).
 
 Finding icons:
 
-- Several icons (the common case): **`search_icons(concepts[])`** - up to 24 concepts in one call, the best icons per concept with install commands. Pass `animated: true` to get only icons with a hover-animated Motion variant.
+- Several icons (the common case): **`search_icons(concepts[])`** - up to 24 concepts in one call, the best icons per concept with install commands. Pass `animated: true` to get only icons with a real hover animation; a concept with none comes back empty and `animatedNote` says so.
 - One icon: `search` with `type: "icon"`.
-- Icon results and `get_icon` carry `animated: true` and `installAnimated` when an animated variant exists - use those install strings, do not construct paths by hand.
-- Every icon result carries a `previewUrl` (its live icon-category page) - **share it with the user** so they can SEE the icon before installing.
+- Icon results and `get_icon` carry `animated: true` and `installAnimated` only when the icon really animates - use those install strings, do not construct paths by hand.
+- Every icon result carries a `previewUrl` (the icon's own page) and a `thumbnail` (its 4 styles side by side) - **show or share them** so the user can SEE the icon before installing, and look at the thumbnail yourself before trusting a name.
+- Several icons can fit one concept. Before installing, read `get_icon`'s `whenNotToUse` (each entry names the icon to use instead), and use its `label` as the `aria-label` of an icon-only button.
+- Icon names were revised in the icons v2 update. An old name (`save-2`, `abstract-18`) still answers in `get_icon`, `get_install_command`, `validate_usage` and `get_thumbnail` with the icon it became and `renamedFrom`, and still installs that same drawing; write the current name in new code. That includes names renamed because they misdescribed the drawing (`watch` installs a sand timer, `chevrons-down` points up), so look at the `thumbnail` before trusting an old name. `search_icons` answers an old name the same way, unless it is also an ordinary word icons are named for today (`watch`): then it ranks today's icons for the word, and `oldNameNotes` names the icon the old name installs. `search` ranks by current names only, so look an old name up with `get_icon`, never `search`. Only `tag` (it drew a money bag) no longer answers: the reply names the icons to use instead.
 
 The `icon-stack` component composes multiple icons into a stacked display.

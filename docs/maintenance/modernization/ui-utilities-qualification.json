@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-10-22T15:27:01.701485+00:00",
+  "recordedAt": "2026-10-22T16:59:58.040832+00:00",
   "status": "local-qualified-awaiting-ci-review-previews",
   "baseCommit": "3a8f77043f0fbcff692be14ad99ec6fdd55e7f99",
   "baselineSourceCommit": "f05cdc7fb15c19c26b986693077b591d2647ee17",
@@ -200,5 +200,30 @@
     "redTraceManifest": "/tmp/core-modernization-ui-utilities-map-paint-red-traces/manifest.json",
     "redTraceManifestSha256": "5a5bc11e5fd93e163c3b6168c4559eb696e9db96ef2a26be026b082ec27cc3b7",
     "green": "Full matrix and fixture compiler passed; current-head CI/previews will rerun after publication"
+  },
+  "previewPipelineFollowup": {
+    "status": "local-tested-awaiting-published-hosted-visibility-and-exact-head-qa",
+    "precedingHead": "61b709ac244678605d926d415f0ff8d52204a44d",
+    "priorQaRun": 39807571943,
+    "priorResult": "Admin CANCELED by ordinary diff ignore; old0af previews cannot qualify61. Dashboard ignore-disabled retry reached compilation then exhausted standard8GiB; adminTurbo retained.",
+    "canaryProof": "/tmp/core-modernization-ui-preview-canary-review.json",
+    "canaryProofSha256": "91bb957a3c9a324a06a75bc664dbbeea839507d9b9c592ece8ee0347be40e931",
+    "sourceFileSha256": {
+      "scripts/qa/deploy-hosted-preview.mjs": "c8bce14ade5c468ba747abbfede029e87af899ffc81453291b6a6a5c69b7ac13",
+      "tests/unit/scripts/deploy-hosted-preview.test.ts": "66cccb3955d78e0a3d098e761a340c88a7a2d78cd824ff46f5a9ffbe25f02327",
+      "scripts/vercel/should-ignore-build.mjs": "b2334c0b42e2e383f8db96f1bf5952257e3a898427d1f0f30f9fb6db529870ff",
+      "tests/unit/scripts/vercel-ignore-build.test.ts": "2bc7fdbd66d74f13591d1b661b3017d892e6f838fc4a5c9bcf925ecf9901f553"
+    },
+    "relatedTestsPassed": 132,
+    "localScope": "Known app, Preview, valid SHA equal to provider SHA and actualGitHEAD; missing/rejected markers preserve normal ignore; explicit request build.env only. Dedup retains complete identityGET, boundedpoll/cleanup and adminTurbo.",
+    "hostedIgnoredStepVisibility": "UNVERIFIED",
+    "requires": [
+      "Real fixed marker-matched build log for each app",
+      "Three exact-published-head READY provider identity readbacks",
+      "All three hosted smoke projects PASS",
+      "Current-head CI/review reconciliation, merge and final readback"
+    ],
+    "supersededProposalProof": "/tmp/core-modernization-ui-utilities-hosted-ignore-proposal-superseded.json",
+    "supersededProposalSha256": "66200f485b81fabc801e0e4c2c98d1d686780422f2f93c55a00089fbb8e6b24b"
   }
 }

@@ -100,11 +100,14 @@ export async function deployHostedPreview({
       );
     }
   }
+  // Allow provider SHA deduplication; reused deployments still require identity readback.
   const created = await json(
-    await call(`/v13/deployments?teamId=${TEAM}&forceNew=1`, "POST", {
+    await call(`/v13/deployments?teamId=${TEAM}`, "POST", {
       name: app,
       project: project.projectId,
       gitSource: { type: "github", repoId: REPOSITORY_ID, ref: branch, sha },
+      // Nonsecret deployment-only build input; hosted ignored-step visibility is a canary.
+      build: { env: { CORE_QA_FORCE_BUILD_SHA: sha } },
       gitMetadata: {
         commitRef: branch,
         commitSha: sha,

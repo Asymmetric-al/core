@@ -168,8 +168,8 @@ playwright-cli run-code "async page => {
   // Fill credentials in the popup
   await popup.fill('input[type=email]', 'user@gmail.com');
   await popup.click('#identifierNext');
-  await popup.fill('input[type=password]', 'password'); // pragma: allowlist secret
-  await popup.click('#passwordNext'); // pragma: allowlist secret
+  await popup.fill('input[type=password]', 'password');
+  await popup.click('#passwordNext');
 
   // Wait for popup to close and main page to redirect
   await popup.waitForEvent('close');

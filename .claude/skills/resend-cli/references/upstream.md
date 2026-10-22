@@ -1,37 +1,26 @@
 ---
-source_name: resend/resend-cli (resend-cli agent skill)
+source_name: resend/resend-cli
 source_url: https://github.com/resend/resend-cli
+source_type: github
+upstream_path: skills/resend-cli/SKILL.md
+reviewed_commit: d4367e18c194f2bb555aad99bf8851f21e81606a
+skills_lock_hash: 42e772737cf68ec85703c694b73edc2b9f87850bda1992bb77841a98b7610cd7
 license: MIT
-last_reviewed: 2026-09-16
-skills_lock_hash: 7ac3852492006d9439582db0a68e0ec21723aff4b89be799fe4e62361a12c47c
+last_reviewed: 2026-10-22
 ---
 
-# Upstream: Resend CLI agent skill
+# Upstream: resend-cli
 
-Canonical copy in this repo: `docs/ai/skills/resend-cli/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
+Reviewed source: https://github.com/resend/resend-cli/tree/d4367e18c194f2bb555aad99bf8851f21e81606a/skills/resend-cli
+Raw upstream `SKILL.md` SHA-256: `42e772737cf68ec85703c694b73edc2b9f87850bda1992bb77841a98b7610cd7`. License notices are preserved in `UPSTREAM-LICENSE`.
 
-- **Repository:** https://github.com/resend/resend-cli
-- **Latest release tag at review:** https://github.com/resend/resend-cli/releases/tag/v2.21.0
-- **Announcement:** https://resend.com/blog/resend-cli-2
-- **Upstream path:** `skills/resend-cli/` (includes `SKILL.md` and `references/*.md`)
-- **CLI docs:** https://resend.com/docs/cli
-- **Install via Skills CLI:** `npx skills add resend/resend-cli --skill resend-cli -y`
+Outcome: updated from the complete installed upstream subtree. Reviewed obsolete upstream companions are removed. Core adaptations: Preserve CLI/product ownership and secret-safe noninteractive workflow.
 
-## Not the same as platform / SDK skills
+## Refresh
 
-- **`resend/resend-skills`** — generic Resend platform skill (send, inbound, agent inbox). In this repo it may appear under `.agents/skills/resend/` when installed via the Skills CLI. It does **not** replace this CLI skill.
-- **App integration** — tenant Resend API keys, admin UI, routes, and webhooks are documented in `docs/guides/features/resend-integration.md`. Use that guide for product code; use **`resend-cli`** for the `resend` terminal binary, scripts, and CI/CD.
+1. Use an isolated temporary checkout at a reviewed immutable source commit. Verify its resolved commit and complete file inventory before import. Install only this skill if a Skills CLI copy is needed; pass `--agent codex --copy` for a project-local scratch install. Do not use global defaults or add unrelated pack members.
+2. Compare the complete source tree and all support files. Preserve marked Core overlays, exact package ownership, installed-version compatibility, and documented in-place corrections. Record raw upstream hashes separately from adapted bytes.
+3. Replace the installed source directory transactionally, removing reviewed stale upstream files while retaining local provenance and legitimate Core assets. Update its lock metadata in the same transaction. Never run imported lifecycle hooks, launchers, scripts or tests as a refresh side effect.
+4. Run `bun run skills:sync`, then non-mutating `bun run skills:verify`; review canonical or ecosystem sources and generated mirrors together.
 
-## Refresh from upstream
-
-This skill is **not** copied by `bun run skills:refresh-upstream`.
-
-1. `npx skills add resend/resend-cli --skill resend-cli -y` updates `.agents/skills/resend-cli/` and `skills-lock.json`.
-2. Copy the skill tree into `docs/ai/skills/resend-cli/`, restoring the **This repository** overlay in `SKILL.md`.
-3. Preserve this `references/upstream.md` file and update `last_reviewed`.
-4. `bun run skills:sync` && `bun run skills:verify`
-
-## Notes for maintainers
-
-- Do not copy secrets, tokens, or environment-specific identifiers into skill content.
-- Do not refresh this skill from `resend/resend-skills`; that package is a different CLI id (`resend`).
+This skill remains canonical-owned under `docs/ai/skills`. Repository authority, secrets policy and installed package evidence outrank generic source recipes.

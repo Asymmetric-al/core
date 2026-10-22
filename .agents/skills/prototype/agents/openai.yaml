@@ -1,3 +1,6 @@
 interface:
   display_name: "Prototype"
   short_description: "Prototype to answer a design question"
+
+policy:
+  allow_implicit_invocation: false

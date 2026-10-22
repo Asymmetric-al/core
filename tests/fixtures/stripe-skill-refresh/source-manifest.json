@@ -1,0 +1,11 @@
+{
+  "source": "https://docs.stripe.com/.well-known/skills/index.json",
+  "reviewedAt": "2026-10-22",
+  "sourceIndexSha256": "05e1a41ba66b644ee5543c0fb8958e4bb3d41ab58aac12a2f8286438d975d406",
+  "files": {
+    "stripe-best-practices/SKILL.md": "a240f40c84c43f8c216eb159ba427d2979a40038fc9eeeab15efc02ea7ae3a40",
+    "stripe-best-practices/references/tax.md": "ccc083b0001c6634053dad4ddef25d356d44b9d17591752dd74e602595fd2ddb",
+    "stripe-projects/SKILL.md": "3f6f72b6fe29418f2740977f2d4bc5c6e7675562df41b94e4da4ad34fd590bd7",
+    "upgrade-stripe/SKILL.md": "30e6f0dd9bc353768b35d1a768ae58e31219ffa992d39bae347d8950c29b563b"
+  }
+}

@@ -98,7 +98,7 @@ export function createUserData(overrides: Partial<UserData> = {}): UserData {
     firstName: `Test`,
     lastName: `User${id}`,
     email: `testuser-${id}@example.com`,
-    password: 'SecureP@ss123!', // pragma: allowlist secret
+    password: 'SecureP@ss123!',
     ...overrides,
   };
 }
@@ -127,7 +127,7 @@ test('rejects duplicate email', async ({ page }) => {
 
   await page.goto('/register');
   await page.getByLabel('Email').fill(user.email);
-  await page.getByLabel('Password').fill(user.password); // pragma: allowlist secret
+  await page.getByLabel('Password').fill(user.password);
   await page.getByRole('button', { name: 'Create account' }).click();
 
   await expect(page.getByText('Email already registered')).toBeVisible();
@@ -146,7 +146,7 @@ function createUserData(overrides = {}) {
     firstName: 'Test',
     lastName: `User${id}`,
     email: `testuser-${id}@example.com`,
-    password: 'SecureP@ss123!', // pragma: allowlist secret
+    password: 'SecureP@ss123!',
     ...overrides,
   };
 }
@@ -870,12 +870,12 @@ export default defineConfig({
 # .env.local
 BASE_URL=http://localhost:3000
 TEST_USER_EMAIL=testuser@localhost.test
-TEST_USER_PASSWORD=localpassword123 // pragma: allowlist secret
+TEST_USER_PASSWORD=localpassword123
 
 # .env.staging
 BASE_URL=https://staging.example.com
 TEST_USER_EMAIL=e2e-bot@staging.example.com
-TEST_USER_PASSWORD=staging-secret-from-vault // pragma: allowlist secret
+TEST_USER_PASSWORD=staging-secret-from-vault
 ```
 
 ```typescript

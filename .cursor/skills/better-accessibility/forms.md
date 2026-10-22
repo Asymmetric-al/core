@@ -4,7 +4,7 @@ Labels, autocomplete, error messaging, input types and submit behavior.
 
 ## Labels
 
-Every control needs a programmatic label: `<label for>` pointing at the input's `id`, or a wrapping `<label>`. A placeholder is never a label. It disappears the moment the user types and usually fails contrast.
+Every control needs a programmatic label: `<label for>` pointing at the input's `id`, or a wrapping `<label>`. A placeholder disappears the moment the user types and usually fails contrast, so it never stands in for a label.
 
 ```html
 <!-- Good: explicit association -->
@@ -15,9 +15,7 @@ Every control needs a programmatic label: `<label for>` pointing at the input's 
 <label> <input type="checkbox" /> Send me updates </label>
 ```
 
-Label and control share one hit target, so clicking "Send me updates" toggles the checkbox with no dead zone between them. Mark required fields with native `required` plus a visible indicator explained once per form ("\* required").
-
-A placeholder used _in addition to_ a label shows an example of the expected format: `placeholder="name@company.com"`.
+Clicking "Send me updates" toggles the checkbox, with no dead zone between them. Mark required fields with native `required` plus a visible indicator explained once per form ("* required").
 
 ## Error messaging
 
@@ -39,12 +37,11 @@ The complete pattern:
 - `aria-describedby` links the field to its inline error so screen readers announce it with the field.
 - Errors render inline beside their fields, with an icon or text. Never a red border alone, which is a color-only cue.
 - On submit, focus the first invalid field.
-- Allow incomplete submission so validation can surface. Never disable submit until valid (see below).
-- Accept free text and validate after. Never block typing or filter characters as the user types. Trim ordinary text before validating, because autocomplete and text expansion add trailing spaces. Leave passwords and other exact-match values unchanged. <!-- pragma: allowlist secret -->
+- Accept free text and validate after. Never block typing or filter characters as the user types. Trim values before validating, because autocomplete and text expansion add trailing spaces.
 
 ## Autocomplete and input types
 
-`autocomplete` with a meaningful `name` fills forms in one tap and is a WCAG requirement (1.3.5) for fields about the user. The common tokens:
+A valid `autocomplete` token on fields about the user is a WCAG requirement (1.3.5). Pair it with a descriptive `name` attribute, a real `<form>` and no fake inputs, so password managers and 2FA autofill work. The common tokens: <!-- pragma: allowlist secret -->
 
 | Field          | `autocomplete`                                                   |
 | -------------- | ---------------------------------------------------------------- |
@@ -54,7 +51,7 @@ The complete pattern:
 | Address        | `street-address`, `address-line1`, `postal-code`, `country`      |
 | Card           | `cc-number`, `cc-exp`, `cc-csc`, `cc-name`                       |
 | Login          | `username`, `current-password` <!-- pragma: allowlist secret --> |
-| Signup / reset | `new-password` <!-- pragma: allowlist secret -->                 |
+| Signup / reset | `username`, `new-password` <!-- pragma: allowlist secret -->     |
 | 2FA code       | `one-time-code`                                                  |
 
 Prefix with a section where relevant: `autocomplete="shipping street-address"`.
@@ -70,13 +67,9 @@ Correct `type` and `inputmode` pick the right mobile keyboard:
 
 Disable spellcheck on emails, codes and usernames: `spellcheck="false"`.
 
-## Never fight the user's tools
-
-- Stay compatible with password managers and 2FA autofill: real `<form>`, correct `autocomplete`, no fake inputs. <!-- pragma: allowlist secret -->
-
 ## Submit behavior
 
-- Keep submit enabled until the request starts, then disable it and show a spinner _beside the original label_. "Save" with a spinner, not a bare spinner. The label is what tells assistive tech which button is busy.
+- Keep submit enabled until the request starts. While it runs, show a spinner _beside the original label_: "Save" with a spinner, not a bare spinner. The label is what tells assistive tech which button is busy.
+- Mark the pending button `aria-disabled="true"` and ignore repeat clicks in the handler. Native `disabled` on the focused button drops focus to `<body>`.
 - Announce results. Success goes through a polite live region. On failure, focus the first invalid field, which is itself the announcement. Reserve `role="alert"` for form-level errors not tied to a field ([screen-readers.md](screen-readers.md)).
-- Warn on unsaved changes before navigation, and never lose typed input to a re-render. Hydration must preserve focus and value.
-- Enter submits from any focused input; in `<textarea>`, ⌘/Ctrl+Enter submits.
+- Warn on unsaved changes before navigation. A re-render or hydration must never reset a field's typed value or move focus out of it.

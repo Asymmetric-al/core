@@ -3,8 +3,10 @@ source_name: mattpocock/skills (prototype)
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/engineering/prototype/SKILL.md
-skills_lock_hash: d69b75e7b60e183d39b8a33cb8b2096e614fd9b48a5249c1cc951340961f86fa
-last_reviewed: 2026-07-09
+skills_lock_hash: 714de632d116bb73f65cdb5a882db15b9369a6713b9a47c0fad827848f0bfbe3
+last_reviewed: 2026-10-22
+reviewed_commit: 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+license: MIT
 ---
 
 # Upstream: prototype
@@ -23,3 +25,7 @@ Canonical copy in this repo: `docs/ai/skills/prototype/` (mirrored to `.agents/s
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 
 This skill is **not** updated by `bun run skills:refresh-upstream`.
+
+## Reviewed refresh, 2026-10-22
+
+Complete reviewed upstream tree at `5beb35b040e3de97e54fa9e386d7e42d15c295c2`: SKILL.md, LOGIC.md, UI.md and agents/openai.yaml. Preserve the exact MIT notice in [UPSTREAM-LICENSE](UPSTREAM-LICENSE). Core keeps the stable prototype identity, explicit invocation metadata and native policy, frontend ownership, isolated route boundary, and user authorization for branch/commit/publication actions. The logic demo now uses one shareable HTML file; the primary-source artifact capture workflow replaces the old terminal/delete guidance.

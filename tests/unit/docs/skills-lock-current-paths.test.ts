@@ -20,7 +20,7 @@ function readLock() {
 
 describe("skills lock current upstream paths", () => {
   it("keeps the current lockfile skill names", () => {
-    expect(Object.keys(readLock().skills)).toHaveLength(129);
+    expect(Object.keys(readLock().skills)).toHaveLength(150);
   });
 
   it("pins moved GitHub skill paths and the Resend CLI source", () => {
@@ -106,7 +106,7 @@ describe("skills lock current upstream paths", () => {
     expect(resendCli).toContain("### Triggers");
     expect(
       readRepoFile("docs/ai/skills/resend-cli/references/upstream.md"),
-    ).toContain("v2.21.0");
+    ).toContain("d4367e18c194f2bb555aad99bf8851f21e81606a");
     expect(
       readRepoFile("docs/ai/skills/resend-cli/references/upstream.md"),
     ).toContain("source_url: https://github.com/resend/resend-cli");

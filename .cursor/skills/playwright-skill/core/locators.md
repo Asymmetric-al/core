@@ -14,7 +14,7 @@ page.getByPlaceholder('Search...')                    // 4. Placeholder
 page.getByAltText('Company logo')                    // 5. Alt text (images)
 page.getByTitle('Close dialog')                      // 6. Title attribute
 page.getByTestId('checkout-summary')                 // 7. Test ID (last semantic option)
-page.locator('css=.legacy-widget >> internal:role=button') // 8. CSS/XPath (last resort)
+page.locator('.legacy-widget button')                // 8. CSS/XPath (last resort)
 ```
 
 ## Recent Locator Helpers (Playwright 1.59+)
@@ -79,6 +79,44 @@ await page.getByRole('link', { name: 'Settings' }).visible().click();
 ```
 
 **When it is the wrong tool**: if two visible elements match, `.visible()` does not help and you still get a strict-mode violation. Scope with chaining or `filter()` instead — see [Locator Chaining and Filtering](#locator-chaining-and-filtering). And if an element is hidden because the app has not finished rendering, `.visible()` narrows the match at query time rather than waiting for the right one to appear; assert on the expected element instead.
+
+### `locator.within()` For Combining Two Locators (Playwright 1.64+)
+
+**Use when**: You already hold two locators, a target and a container, and want "this button, within that dialog" without rewriting either.
+**Avoid when**: A plain chain reads just as well: `dialog.getByRole('button', { name: 'Save' })` is still the default.
+
+**Before 1.64** you could only scope by chaining from the container: `container.getByRole(...)`. That forces you to build the target from the container, so a reusable target locator (from a page object, a fixture, or a helper) had to be re-declared for each container it lived in.
+
+**1.64** adds `target.within(container)`, which reads in the natural order and reuses both locators as they are:
+
+```javascript
+const saveButton = page.getByRole('button', { name: 'Save' });
+const dialog = page.getByTestId('settings-dialog');
+
+await saveButton.within(dialog).click();
+```
+
+**Column-like queries**: relative parts such as `nth()` or `first()` are resolved **inside each parent separately**. That turns "the third cell of every row" into one locator instead of a loop:
+
+```javascript
+// The third cell of every row, not the third cell in the whole table
+const thirdColumn = page.getByRole('cell').nth(2).within(page.getByRole('row'));
+await expect(thirdColumn).toHaveText(['Apple', 'Banana', 'Cherry']);
+```
+
+Compare `page.getByRole('row').getByRole('cell').nth(2)`, which picks the third cell across the whole result set. When you mean "per row", use `within()`.
+
+### `page.getByRef()` For Aria Snapshot Refs (Playwright 1.64+)
+
+`page.ariaSnapshot({ mode: 'ai' })` labels each element with a short ref such as `e2`. `page.getByRef('e2')` turns that ref back into a locator. This is the bridge between an agent that reads the snapshot and test code that acts on it.
+
+```javascript
+const snapshot = await page.ariaSnapshot({ mode: 'ai' });
+// ... an agent picks "e2" from the snapshot ...
+await page.getByRef('e2').click();
+```
+
+Refs are tied to one snapshot of one page state. Use them inside agent loops and exploration scripts; in committed tests, rewrite the target as `getByRole()` so the test survives a re-render.
 
 ### `locator.normalize()` For Refactors
 
@@ -383,8 +421,8 @@ test('legacy app with no semantic markup', async ({ page }) => {
   // XPath — only when CSS cannot express the query (e.g., text + ancestor traversal)
   await page.locator('xpath=//td[contains(text(),"Overdue")]/ancestor::tr//button').click();
 
-  // Combine CSS with Playwright pseudo-selectors for resilience
-  await page.locator('.sidebar >> role=button[name="Expand"]').click();
+  // Scope a CSS container, then chain a semantic locator (preferred over `>>` selector chaining)
+  await page.locator('.sidebar').getByRole('button', { name: 'Expand' }).click();
 });
 ```
 
@@ -397,7 +435,7 @@ test('legacy app with no semantic markup', async ({ page }) => {
 
   await page.locator('table.report-grid td:has-text("Overdue")').first().click();
   await page.locator('xpath=//td[contains(text(),"Overdue")]/ancestor::tr//button').click();
-  await page.locator('.sidebar >> role=button[name="Expand"]').click();
+  await page.locator('.sidebar').getByRole('button', { name: 'Expand' }).click();
 });
 ```
 
@@ -561,8 +599,8 @@ test('interact with Shadow DOM elements', async ({ page }) => {
     .getByRole('link', { name: 'Profile' })
     .click();
 
-  // If you explicitly need non-piercing behavior (rare), use css=light/
-  // await page.locator('css:light=.outer-only').click();
+  // `css:light=` (non-piercing) is undocumented and listed as removed in the 1.58 notes, though 1.64
+  // still parses it; prefer scoping from a light-DOM parent
 });
 ```
 
@@ -687,7 +725,7 @@ test('handle dynamic content without manual waits', async ({ page }) => {
 | `page.getByText('Aceptar')` hardcoded i18n text | Fails when locale changes | `page.getByRole('button', { name: /accept/i })` or `getByTestId('confirm-btn')` |
 | `await page.waitForTimeout(3000)` | Arbitrary delay; too slow in fast environments, too short in slow ones | `await expect(locator).toBeVisible()` |
 | `page.locator('.card').locator('.card-title').locator('a')` | Deep CSS chaining breaks on any structural change | `page.getByRole('link', { name: 'Card title text' })` |
-| `page.$('selector')` (ElementHandle API) | Returns a snapshot, not auto-waiting; deprecated pattern | `page.locator('selector')` — locators are lazy and auto-wait |
+| `page.$('selector')` (ElementHandle API) | Returns a snapshot, not auto-waiting; discouraged pattern | `page.locator('selector')` — locators are lazy and auto-wait |
 | `page.locator('text=Click here')` | Legacy text selector syntax | `page.getByText('Click here')` or `getByRole` with name |
 | Multiple locators for one element in sequence | Each `locator()` call in a chain restarts the search | Store as variable: `const btn = page.getByRole('button', { name: 'Save' })` |
 

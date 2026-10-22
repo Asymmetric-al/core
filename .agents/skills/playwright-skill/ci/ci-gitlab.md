@@ -20,7 +20,7 @@ npx playwright test --reporter=dot    # minimal output for CI logs
 
 ```yaml
 # .gitlab-ci.yml
-image: mcr.microsoft.com/playwright:v1.52.0-noble
+image: mcr.microsoft.com/playwright:v1.64.0-noble
 
 stages:
   - install
@@ -72,7 +72,7 @@ test:
 
 ```yaml
 # .gitlab-ci.yml
-image: mcr.microsoft.com/playwright:v1.52.0-noble
+image: mcr.microsoft.com/playwright:v1.64.0-noble
 
 stages:
   - install
@@ -148,7 +148,7 @@ export default defineConfig({
 
 ```yaml
 # .gitlab-ci.yml
-image: mcr.microsoft.com/playwright:v1.52.0-noble
+image: mcr.microsoft.com/playwright:v1.64.0-noble
 
 stages:
   - test
@@ -195,7 +195,7 @@ Navigate to **Settings > CI/CD > Variables** and add:
 
 ```yaml
 # .gitlab-ci.yml
-image: mcr.microsoft.com/playwright:v1.52.0-noble
+image: mcr.microsoft.com/playwright:v1.64.0-noble
 
 stages:
   - install
@@ -259,7 +259,7 @@ stages:
 
 test:e2e:
   stage: test
-  image: mcr.microsoft.com/playwright:v1.52.0-noble
+  image: mcr.microsoft.com/playwright:v1.64.0-noble
   services:
     - name: postgres:16-alpine
       alias: db
@@ -296,7 +296,7 @@ test:e2e:
 # .gitlab-ci.yml (add to existing config)
 test:nightly:
   stage: test
-  image: mcr.microsoft.com/playwright:v1.52.0-noble
+  image: mcr.microsoft.com/playwright:v1.64.0-noble
   before_script:
     - npm ci
   script:
@@ -328,7 +328,7 @@ Set up the schedule in **CI/CD > Schedules**: `0 3 * * 1-5` (3 AM UTC, weekdays)
 
 | Anti-Pattern | Problem | Do This Instead |
 |---|---|---|
-| Not using the Playwright Docker image | Installing browsers every run adds 1-2 minutes | Use `mcr.microsoft.com/playwright:v1.52.0-noble` as base image |
+| Not using the Playwright Docker image | Installing browsers every run adds 1-2 minutes | Use `mcr.microsoft.com/playwright:v1.64.0-noble` as base image |
 | `artifacts: when: on_failure` only | No report when tests pass; can't verify results | Use `when: always` to capture reports regardless |
 | No `expire_in` on artifacts | Artifacts accumulate and consume storage | Set `expire_in: 14 days` for reports, `1 hour` for intermediate artifacts |
 | `parallel:` without `fail-fast: false` equivalent | GitLab does not cancel siblings by default (good), but `allow_failure: false` means the pipeline fails fast | Acceptable default behavior; no change needed |
@@ -346,8 +346,8 @@ Set up the schedule in **CI/CD > Schedules**: `0 3 * * 1-5` (3 AM UTC, weekdays)
 
 ```yaml
 # Check your version
-# npm ls @playwright/test  ->  @playwright/test@1.52.0
-image: mcr.microsoft.com/playwright:v1.52.0-noble
+# npm ls @playwright/test  ->  @playwright/test@1.64.0
+image: mcr.microsoft.com/playwright:v1.64.0-noble
 ```
 
 ### Tests hang in GitLab runner: "Navigation timeout exceeded"

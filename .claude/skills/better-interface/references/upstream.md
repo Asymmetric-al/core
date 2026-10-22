@@ -2,10 +2,12 @@
 source_name: jakubkrehel/skills
 source_url: https://github.com/jakubkrehel/skills
 source_path: skills/better-interface/
-source_commit: 267330e1adfc66a718fb65fa6918c1f06d0a689e
-upstream_skill_commit: 267330e1adfc66a718fb65fa6918c1f06d0a689e
+source_commit: 4c66b1fa86e9ab70187b43d7da9b6fdb29f2ef63
+upstream_skill_commit: 4c66b1fa86e9ab70187b43d7da9b6fdb29f2ef63
 license: MIT
-last_reviewed: 2026-09-16
+last_reviewed: 2026-10-22
+reviewed_commit: 4c66b1fa86e9ab70187b43d7da9b6fdb29f2ef63
+skills_lock_hash: 23416fef4d08e0417927b6eb6763b7b08ed832451abfb9e26ea699262a28abcb
 ---
 
 # Upstream: better-interface
@@ -15,7 +17,7 @@ Canonical copy in this repo: `docs/ai/skills/better-interface/`, mirrored to
 `bun run skills:sync`.
 
 - **Repository:** https://github.com/jakubkrehel/skills
-- **Reviewed pack commit:** `267330e1adfc66a718fb65fa6918c1f06d0a689e`
+- **Reviewed pack commit:** `4c66b1fa86e9ab70187b43d7da9b6fdb29f2ef63`
 - **Source path:** `skills/better-interface/`
 - **License:** MIT; the exact upstream notice is preserved in
   [LICENSE.md](LICENSE.md).
@@ -41,3 +43,10 @@ Canonical copy in this repo: `docs/ai/skills/better-interface/`, mirrored to
   higher-priority than generic upstream visual recipes.
 - Update `source_commit`, `upstream_skill_commit`, and `last_reviewed`
   whenever the vendored upstream changes.
+
+## Reviewed refresh, 2026-10-22
+
+- Source: `jakubkrehel/skills` at `4c66b1fa86e9ab70187b43d7da9b6fdb29f2ef63`.
+- Complete upstream skill tree: `skills/better-interface/`; MIT notice: [LICENSE.md](LICENSE.md).
+- Raw upstream `SKILL.md` SHA-256: `23416fef4d08e0417927b6eb6763b7b08ed832451abfb9e26ea699262a28abcb`.
+- Preserve Core discovery metadata, explicit-only invocation, existing overlays and compatibility corrections. Raw upstream scripts are vendored data; none were executed during this refresh.

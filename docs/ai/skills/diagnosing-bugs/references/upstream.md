@@ -1,10 +1,13 @@
 ---
-source_name: mattpocock/skills (diagnosing-bugs)
+source_name: mattpocock/skills
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/engineering/diagnosing-bugs/SKILL.md
-skills_lock_hash: c8743c51df3760039b2dcb8a5a61437da3128c6efb4c5381734a3f05403e9a84
-last_reviewed: 2026-07-09
+skills_lock_hash: 849198df88cdb65fd0d97236604c1fca7ff2f22d2f705f9724a800d0266b118d
+last_reviewed: 2026-10-22
+source_path: skills/engineering/diagnosing-bugs/
+reviewed_commit: 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+license: MIT
 ---
 
 # Upstream: diagnosing-bugs
@@ -23,3 +26,11 @@ Canonical copy in this repo: `docs/ai/skills/diagnosing-bugs/` (mirrored to `.ag
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 
 This skill is **not** updated by `bun run skills:refresh-upstream`.
+
+## Reviewed refresh, 2026-10-22
+
+- Source: `mattpocock/skills` at `5beb35b040e3de97e54fa9e386d7e42d15c295c2`.
+- Complete upstream skill tree: `skills/engineering/diagnosing-bugs/`; MIT notice: [LICENSE.md](LICENSE.md).
+- Raw upstream `SKILL.md` SHA-256: `849198df88cdb65fd0d97236604c1fca7ff2f22d2f705f9724a800d0266b118d`.
+- Preserve Core discovery metadata, explicit-only invocation, existing overlays and compatibility corrections. Raw upstream scripts are vendored data; none were executed during this refresh.
+- Core keeps CONTEXT.md, CONTEXT-MAP.md and CONTEXT-FORMAT.md; upstream glossary filenames are remapped without renaming repository documents. Core TDD and authorization rules override generic seam, refactor and commit instructions.
