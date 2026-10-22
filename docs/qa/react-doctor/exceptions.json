@@ -159,7 +159,7 @@
         "apps/admin/app/(app)/automations/page-client.tsx": "1e822bb8e8768f49326123d967cbaf3eb7f64bbc708264f856b1c5407a5254c3",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -1673,7 +1673,7 @@
         "apps/admin/app/(payload)/layout.tsx": "17e5c4926288a6c150fb57a4d30388a0d46c76f764d5fd28627154f36963f026",
         "apps/admin/src/cms/collections/cms-users.ts": "fba30f7696cd629bcbcaac9987a1f14486c1734c6f2df27b0947babf7498ef1c",
         "apps/admin/src/cms/auth/supabase-strategy.ts": "ad8373682bd6423cfceb5949075e443b42d578721cd2e3a13a4b2b2a01f3ab67",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -1848,7 +1848,7 @@
         "apps/admin/components/dashboard/charts/revenue-chart.tsx": "f14afd060eb3e204bc3565ec325b13bb0f244d2fbf8c6fbe8d6e98c2812e9566",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "packages/missionary/package.json": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -1888,7 +1888,7 @@
         "apps/admin/components/dashboard/charts/weekly-chart.tsx": "28fb60578d68d9cfba2d6833b30c297d43271b9c213501b4fa15861e7b8c8643",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "packages/missionary/package.json": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -2340,7 +2340,7 @@
       "sourceFileHash": "4a2a1d0e5bd19ea8a1acfb0ddbb801a347b3a2939f75240fa4d292927a8f2f1c",
       "evidenceFileHashes": {
         "apps/admin/features/mission-control/components/icons.tsx": "4a2a1d0e5bd19ea8a1acfb0ddbb801a347b3a2939f75240fa4d292927a8f2f1c",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -2444,7 +2444,7 @@
         "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": "fdf12e75c6db185dca2aea07ad7ef564fc01ea8994942b70b5350cd9d92d7e8e",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "packages/missionary/package.json": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -4724,7 +4724,7 @@
         "apps/donor/components/openpolicy/privacy-policy.tsx": "f20bf99cae680cd87f4bc97d7bcb9ee00c249075b5c59be4395fdde155a77d2c",
         "apps/donor/components/openpolicy/cookie-policy.tsx": "2ab88f03fce2ff3fa6552595d2aad7777b026697a463075fe7a9705adea131e1",
         "apps/donor/components/openpolicy/terms-of-service.tsx": "cba04917f74a338eae7005fd056ba4a112b41ddf0cb3e2ab8866e9a8c8a97ac2",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -5750,7 +5750,7 @@
       "sourceFileHash": "4a788a329cde31fc22e52a328a9bf784b5f42226eb22068ec1655cd6ed6ae672",
       "evidenceFileHashes": {
         "packages/missionary/components/task-kanban-board.tsx": "4a788a329cde31fc22e52a328a9bf784b5f42226eb22068ec1655cd6ed6ae672",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -5830,7 +5830,7 @@
         "packages/missionary/components/giving-breakdown-chart.tsx": "3e34e6908b5c2a575078ea34a8c4bb4114393021da7dd08c1dfcde74aed807be",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "packages/missionary/package.json": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -5870,7 +5870,7 @@
         "packages/missionary/components/metric-tiles.tsx": "1fff7e9b5e68d4d3d284669dd8ae27a47b6e905e5a3d1a97324d0c78ae368be7",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "packages/missionary/package.json": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -6636,7 +6636,7 @@
         "packages/ui/components/public/about-sections.tsx": "2eb3c43ba03cfe257f5811d83f6637bfc2900edeca1511260f9e117889d68411",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -6674,7 +6674,7 @@
         "packages/ui/components/public/home-hero-animated.tsx": "27705bb3aade267bbea63c4ecb19021979b7a0e50a799b97ec8465db8982a6ee",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -7262,7 +7262,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -7298,7 +7298,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -7334,7 +7334,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -7406,7 +7406,7 @@
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
         "packages/missionary/components/giving-breakdown-chart.tsx": "3e34e6908b5c2a575078ea34a8c4bb4114393021da7dd08c1dfcde74aed807be",
         "packages/missionary/components/metric-tiles.tsx": "1fff7e9b5e68d4d3d284669dd8ae27a47b6e905e5a3d1a97324d0c78ae368be7",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "apps/admin/components/dashboard/charts/revenue-chart.tsx": "f14afd060eb3e204bc3565ec325b13bb0f244d2fbf8c6fbe8d6e98c2812e9566",
         "apps/admin/components/dashboard/charts/weekly-chart.tsx": "28fb60578d68d9cfba2d6833b30c297d43271b9c213501b4fa15861e7b8c8643",
@@ -8435,7 +8435,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -8675,7 +8675,7 @@
         "packages/ui/components/shadcn/navigation-menu.ts": "d4ede3fd9b3a382ea89bae3cdad165edfd87b9cb45cd50359cafe0d7b73eceb5",
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -8951,7 +8951,7 @@
         "packages/ui/components/shadcn/rich-text-editor/extensions.ts": "aa604ff115ee739bbca1be7a213baabe945f0d8695ad9d6fc53a672004e5a388",
         "packages/ui/components/shadcn/rich-text-editor/image-view.ts": "a980eb79747730632fb040646a2d2645d88f73d9a5f7bba9ab2107a7134daa28",
         "tests/unit/packages/ui/image-resize-a11y.test.tsx": "272812e57efd2fef7f68116aa18399f90e8fab41c7fdf8aebcdc22a4b8df52be",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -9218,7 +9218,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/lib/base-ui.ts": "68b33342c62b74e72389cc1638234d78432801f5c250fa204937fbf4f8e6619a",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -9756,7 +9756,7 @@
       "sourceFileHash": "a20627ed47dae0e2385fdfa2825f0a7108dbbf363271cae866f408e89d680118",
       "evidenceFileHashes": {
         "packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx": "a20627ed47dae0e2385fdfa2825f0a7108dbbf363271cae866f408e89d680118",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {
@@ -9991,7 +9991,7 @@
         "packages/ui/tsconfig.json": "f8c63eb108926bca4f4326b9555a6ae2239e515635c47251456975e639b05eb9",
         "packages/ui/components/view-transitions/index.ts": "ba9d97ad8f3a2119b305ec4cb0c7085141189b9158e3c56cc2b1235c2d0db01d",
         "packages/lib/view-transitions/index.ts": "eacbe9b75a9e475b74401a7ca8162cf052e6593c38440754507ab9c4a26aa006",
-        "bun.lock": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2"
+        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
       }
     },
     {

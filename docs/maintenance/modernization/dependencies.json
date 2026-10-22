@@ -710,7 +710,7 @@
     {
       "name": "@inngest/test",
       "cohort": "data-workflows-api",
-      "owner": "Core maintainers",
+      "owner": "Core workflow maintainers",
       "upstream": {
         "type": "git",
         "url": "git+https://github.com/inngest/inngest-js.git",
@@ -728,10 +728,15 @@
           "target": "1.0.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-workflow-checkpoint-qualification",
+      "disposition": "verified-maintained-compatibility-dependency",
+      "verification": [
+        "All 95 existing workflow tests pass in baseline SDK 4.22.0 and selected 4.25.0 across 10 files.",
+        "All nine complete function registrations match; actual no-op and duplicate-event checks pass through pinned CLI 1.47.0.",
+        "Synthetic retry, cancellation and SDK-process restart probes pass with identical effect counts in both versions.",
+        "Full combined-stack gates, compiled/deployed endpoint checks, review, security graph and merge evidence remain pending."
+      ],
+      "note": "Exact current upstream release selected and locally tested; full current-head checkpoint qualification remains open.",
       "currentUses": [
         {
           "path": "package.json",
@@ -740,7 +745,11 @@
           "declared": "1.0.0",
           "target": "1.0.0"
         }
-      ]
+      ],
+      "selectedTarget": "1.0.0",
+      "selectedTargetSource": "https://registry.npmjs.org/@inngest%2Ftest/latest",
+      "refreshedAt": "2026-10-21T21:28:39.387189+00:00",
+      "qualification": "workflows-qualification.json"
     },
     {
       "name": "@lhci/cli",
@@ -4762,7 +4771,7 @@
     {
       "name": "inngest",
       "cohort": "data-workflows-api",
-      "owner": "Core maintainers",
+      "owner": "Core workflow maintainers",
       "upstream": {
         "url": "git+https://github.com/inngest/inngest-js.git",
         "type": "git",
@@ -4780,19 +4789,28 @@
           "target": "4.25.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-workflow-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "All 95 existing workflow tests pass in baseline SDK 4.22.0 and selected 4.25.0 across 10 files.",
+        "All nine complete function registrations match; actual no-op and duplicate-event checks pass through pinned CLI 1.47.0.",
+        "Synthetic retry, cancellation and SDK-process restart probes pass with identical effect counts in both versions.",
+        "Full combined-stack gates, compiled/deployed endpoint checks, review, security graph and merge evidence remain pending."
+      ],
+      "note": "Exact current upstream release selected and locally tested; full current-head checkpoint qualification remains open.",
       "currentUses": [
         {
           "path": "packages/api/package.json",
           "section": "dependencies",
           "declaredAs": "inngest",
-          "declared": "^4.22.0",
+          "declared": "4.25.0",
           "target": "4.25.0"
         }
-      ]
+      ],
+      "selectedTarget": "4.25.0",
+      "selectedTargetSource": "https://registry.npmjs.org/inngest/latest",
+      "refreshedAt": "2026-10-21T21:28:39.387189+00:00",
+      "qualification": "workflows-qualification.json"
     },
     {
       "name": "isomorphic-dompurify",
