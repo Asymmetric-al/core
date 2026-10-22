@@ -10,6 +10,58 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const TEAM = "team_YrLB8jJARcRH0jnF1HPpPGTB";
 export const VERCEL_CLI_VERSION = "65.0.0";
 
+function describeFailure(result) {
+  const status =
+    Number.isInteger(result.status) &&
+    result.status >= 0 &&
+    result.status <= 255
+      ? result.status
+      : "unknown";
+  const signals = [
+    "SIGABRT",
+    "SIGBUS",
+    "SIGINT",
+    "SIGKILL",
+    "SIGSEGV",
+    "SIGTERM",
+  ];
+  const codes = [
+    "EACCES",
+    "EAGAIN",
+    "ENOBUFS",
+    "ENOENT",
+    "ENOMEM",
+    "ETIMEDOUT",
+  ];
+  const signal = result.signal
+    ? (signals.find((value) => value === result.signal) ?? "unknown")
+    : "none";
+  const spawn = result.error
+    ? (codes.find((value) => value === result.error.code) ?? "unknown")
+    : "none";
+  const output = [result.stdout, result.stderr]
+    .filter((value) => typeof value === "string")
+    .join("\n");
+  const categories = [];
+  if (status === 137 || signal === "SIGKILL") categories.push("process-killed");
+  if (spawn === "ENOBUFS") categories.push("output-limit");
+  if (
+    /Invalid environment variables|Missing required environment variable/i.test(
+      output,
+    )
+  )
+    categories.push("environment-validation");
+  if (
+    /PAYLOAD_DATABASE_SSL_CA (?:requires exactly one sslmode=verify-full|must contain a non-empty CA certificate|cannot be combined with URI SSL overrides)/.test(
+      output,
+    )
+  )
+    categories.push("tls-configuration");
+  // Only bounded numbers and fixed labels leave this boundary. Never include
+  // child messages, environment values or arbitrary signal/error-code strings.
+  return `status=${status}; signal=${signal}; spawn=${spawn}; categories=${categories.join(",") || "unclassified"}`;
+}
+
 export function deployPrebuiltPreview({
   app,
   env = process.env,
@@ -83,7 +135,7 @@ export function deployPrebuiltPreview({
       );
       if (result.error || result.status !== 0)
         throw new Error(
-          `Preview ${args[0]} failed for ${app}; raw CLI output is withheld because it may contain environment values`,
+          `Preview ${args[0]} failed for ${app} (${describeFailure(result)}); raw CLI output is withheld because it may contain environment values`,
         );
       output = result.stdout?.trim();
     }

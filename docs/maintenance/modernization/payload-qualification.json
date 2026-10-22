@@ -9310,6 +9310,80 @@
       "reason": "Next Cache Components retains hidden Activity route views. Match exactly one visible shell, retaining strictness; no first(), skip, retry or timeout changes. Installed cacheComponents documentation confirms this behavior.",
       "rerunOnlyChanges": "E2E locator; all 2234 tracked product inputs and all3 BUILD_ID values matched the actual successful fresh build."
     },
-    "remaining": "Normal commit/push gates, current-head CI, functioning hosted previews, development cutover and final merge qualification."
+    "remaining": "Normal commit/push gates, current-head CI, functioning hosted previews, development cutover and final merge qualification.",
+    "independentReviewAddendum": {
+      "path": "/tmp/core-modernization-payload-template-identity-independent-review-addendum.json",
+      "sha256": "7fed35097c9dc56e3bec3bda355d28f851136b180f569a5a3b552bffc2a18cda"
+    },
+    "normalCommit": {
+      "path": "/tmp/core-modernization-payload-template-identity-commit-proof.json",
+      "sha256": "d64dd46cf89a7e8c8c86b33c2e5399018623795ec279aa4e317dbc579c1804d3",
+      "startedAt": "2026-10-22T06:07:54.173633+00:00",
+      "completedAt": "2026-10-22T06:08:17.937601+00:00",
+      "exitCode": 0,
+      "normalHooks": true,
+      "logSha256": "efa3445417b7cda1031f885eddf099af7d20c5f89b1e2f4fb98d1e80ab3388e5",
+      "files": [
+        "apps/admin/src/cms/create-from-template-endpoint.ts",
+        "tests/unit/cms/create-from-template-endpoint.test.ts",
+        "tests/e2e/cms-local-happy-path.spec.ts",
+        "docs/maintenance/modernization/payload.md",
+        "docs/maintenance/modernization/payload-qualification.json"
+      ],
+      "head": "26976747a7b5942f176c5d6513bf8e4ffb501875"
+    },
+    "normalPush": {
+      "path": "/tmp/core-modernization-payload-template-identity-push-proof.json",
+      "sha256": "edf132b0642b41b8c468c8bf17ad2f92df34f27016f453b50b65c8cd6e63de08",
+      "startedAt": "2026-10-22T06:09:13.100347+00:00",
+      "completedAt": "2026-10-22T06:17:31.929649+00:00",
+      "head": "26976747a7b5942f176c5d6513bf8e4ffb501875",
+      "exitCode": 0,
+      "normalPrePushHooks": true,
+      "logSha256": "3af162939b5530180ae92c9b95bbedf992d4c89962ca1f82eb1ac36c2491d92d"
+    }
+  },
+  "previewFailureDiagnosticSupport": {
+    "recordedAt": "2026-10-22T06:24:40.014326+00:00",
+    "baseHead": "26976747a7b5942f176c5d6513bf8e4ffb501875",
+    "behavior": "Report bounded process status and fixed signal/spawn/category labels. Raw child text, arbitrary error strings and environment values stay withheld. No credential, target, branch or cleanup changes.",
+    "checks": {
+      "red": {
+        "path": "/tmp/core-modernization-preview-safe-diagnostics-red-proof.json",
+        "sha256": "daa5ea42c84c6330c96125916663cc7d9bcd530e9c9cdcf627b53314db5b9a22",
+        "utc": "2026-10-22T06:20:11.752232+00:00",
+        "command": [
+          "bunx",
+          "vitest",
+          "run",
+          "tests/unit/scripts/deploy-prebuilt-preview.test.ts"
+        ],
+        "exitCode": 1,
+        "logSha256": "c7cd158d422209cd15b3cffecff978b9ec18ca1ef65ffcfdbd7ff19f54b6b7dc"
+      },
+      "green": {
+        "path": "/tmp/core-modernization-preview-safe-diagnostics-green-proof.json",
+        "sha256": "53f8aa9d9dd64072a1a695f4f0f3e441940b4bbf5d866cf01df17fe13be3d198",
+        "utc": "2026-10-22T06:21:10.138227+00:00",
+        "command": [
+          "bunx",
+          "vitest",
+          "run",
+          "tests/unit/scripts/deploy-prebuilt-preview.test.ts",
+          "tests/unit/workflows/qa-smoke-preview-deploy.test.ts"
+        ],
+        "exitCode": 0,
+        "logSha256": "975da0ab0b3e4918d66fe999b631e1a7bf5dab98b89a9636823288b64bf4404a",
+        "sourceSha256": {
+          "scripts/qa/deploy-prebuilt-preview.mjs": "e6c1cd7a8a1ab13d9dff934a093bdba690e15c9277cc9a95190deeb6914b975e",
+          "tests/unit/scripts/deploy-prebuilt-preview.test.ts": "ba4d62c7fac32c9321ff56531b656789c5d7a6cd0542f2ecc9767a0762bcb66c"
+        }
+      }
+    },
+    "independentReview": {
+      "path": "/tmp/core-modernization-preview-safe-diagnostics-independent-review.json",
+      "sha256": "0436c98738fbfa05d5482c4fb097637043f60349333aaf74cf0201f5b85651e0"
+    },
+    "qualificationLimit": "Failure categories are hints, not root-cause or deployed release qualification. Earlier hosted Git build failed with out_of_memory/137; separate QA failure withheld raw output and remains undiagnosed."
   }
 }

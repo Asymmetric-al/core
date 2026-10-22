@@ -145,3 +145,9 @@ same template and passes all eight cases with no skips, retries or flaky results
 Its shell locator requires one visible native shell because Next Cache Components
 can retain hidden Activity route views. All three compiled product builds and
 2,234 tracked product inputs were verified before the locator-only rerun.
+
+Preview delivery keeps raw CLI output private. Failed commands report bounded
+process status and fixed signal, spawn-error and category labels so diagnosis
+can continue without disclosing environment values. Five regressions verify
+that raw output and arbitrary error/signal strings stay withheld. These labels
+are diagnostic hints; a killed process alone does not establish a memory cause.

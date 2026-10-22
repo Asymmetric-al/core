@@ -63,6 +63,76 @@ describe("prebuilt preview delivery", () => {
     expect(run).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    {
+      result: {
+        status: 137,
+        signal: "SIGKILL",
+        stderr: "private-cms-password",
+      },
+      expected:
+        "status=137; signal=SIGKILL; spawn=none; categories=process-killed",
+    },
+    {
+      result: {
+        status: 1,
+        stderr: "Invalid environment variables private-cms-password",
+      },
+      expected:
+        "status=1; signal=none; spawn=none; categories=environment-validation",
+    },
+    {
+      result: {
+        status: 1,
+        stderr:
+          "PAYLOAD_DATABASE_SSL_CA requires exactly one sslmode=verify-full. private-cms-password",
+      },
+      expected:
+        "status=1; signal=none; spawn=none; categories=tls-configuration",
+    },
+    {
+      result: {
+        status: null,
+        error: { code: "ENOBUFS", message: "private-cms-password" },
+      },
+      expected:
+        "status=unknown; signal=none; spawn=ENOBUFS; categories=output-limit",
+    },
+    {
+      result: {
+        status: 1,
+        signal: "private-cms-password",
+        error: { code: "private-cms-password" },
+        stdout: "private-cms-password",
+      },
+      expected:
+        "status=1; signal=unknown; spawn=unknown; categories=unclassified",
+    },
+  ])(
+    "reports bounded failure diagnostics without exposing child output ($expected)",
+    ({ result, expected }) => {
+      const remove = vi.fn();
+      const run = vi
+        .fn()
+        .mockReturnValueOnce({ status: 0, stdout: "pulled" })
+        .mockReturnValueOnce(result);
+      let failure: unknown;
+      try {
+        deployPrebuiltPreview({ app: "admin", env, run, remove });
+      } catch (error) {
+        failure = error;
+      }
+      expect(failure).toBeInstanceOf(Error);
+      const message = failure instanceof Error ? failure.message : "";
+      expect(message).toContain(expected);
+      expect(message).not.toContain("private-cms-password");
+      expect(message).not.toContain(env.VERCEL_TOKEN);
+      expect(message).toContain("raw CLI output is withheld");
+      expect(run).toHaveBeenCalledTimes(2);
+      expect(remove).toHaveBeenCalledTimes(2);
+    },
+  );
+
   it.each([undefined, "", "HEAD", "feature\nother"])(
     "rejects an absent or invalid explicit PR branch (%s) before local mutation",
     (branch) => {
