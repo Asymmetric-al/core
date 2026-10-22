@@ -1,6 +1,6 @@
 # Workflow modernization checkpoint
 
-Status: implemented locally; full qualification and merge remain open.
+Status: requalified against merged data-access and GraphQL on `develop`; final-head CI, previews, review and merge remain open.
 
 The workflow SDK is pinned to Inngest 4.25.0. The existing v4 registrations, middleware and business handlers require no API rewrite. All nine registered configurations (seven business functions and two failure handlers) match the 4.22.0 baseline, including retry, concurrency, throttle, trigger and schedule settings. The current upstream `@inngest/test` 1.0.0 remains compatible.
 
@@ -12,4 +12,4 @@ The local `dev --persist` flag preserves SQL history, while execution state rema
 
 A longer cancellation probe in each SDK version observes the cancelled run beyond its original one-minute sleep deadline with no later effect. The actual compiled Mission Control production server also registers the same nine function configurations, completes the tenant-scoped no-op and suppresses a duplicate event. Both use a minimal local environment with no provider credentials.
 
-The [qualification record](workflows-qualification.json) freezes release metadata, artifact hashes, source identity, registration comparison, unit results and durability evidence. Local registration wraps the actual Next serve handlers in a Bun fixture. Full repository gates, a clean combined installation, deployed preview checks, current-head CI/review and merge readback are still required. Provider sandboxes and full advisory reconciliation remain open in their owning checkpoints. No production execution occurred.
+The [qualification record](workflows-qualification.json) freezes release metadata, artifact hashes, source identity, registration comparison, unit results and durability evidence. Local registration wraps the actual Next serve handlers in a Bun fixture. A clean checkout at the combined base passed a first-attempt frozen 1,946-package installation, 210 workflow/data/GraphQL cases and all 15 typechecks with caching bypassed. Installation and product compilation inputs are unchanged from the actual compiled endpoint qualification. Final-head full repository gates, deployed preview checks, current-head CI/review and merge readback remain required. Provider sandboxes and full advisory reconciliation remain open in their owning checkpoints. No production execution occurred.

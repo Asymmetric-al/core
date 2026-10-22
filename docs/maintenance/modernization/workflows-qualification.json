@@ -284,11 +284,11 @@
       "logSha256": "dc884d253781985c509eb5b2aeb9508a75f06cad02dcd58d3ef948c58b13abdc",
       "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
     },
-    "limitations": "Full clean installation and current combined-stack qualification remain pending. A frozen retry completed after the existing file-package postinstall repair handled the known first-pass link collision; no manual repair was applied."
+    "limitations": "A separate clean checkout passed a first-attempt frozen 1,946-package install without lock drift, an environment file, or the opaque vendored database. Existing file-package postinstall repairs remain owned by the PDF modernization checkpoint; no manual installation repair was used."
   },
   "limitations": [
     "Full repository gates, current-head CI and complete review reconciliation remain pending.",
-    "Requalify after data-access and GraphQL merge to develop; inherited unpublished changes do not close this checkpoint.",
+    "Requalified against merged develop 3408edad69c8cb6032e2cee301447653403b383f after the data-access and GraphQL checkpoints. Final-head full repository gates, deployed previews, CI/review and merge readback remain required.",
     "Actual local compiled Next endpoint qualification passes; deployed preview qualification remains pending.",
     "No hosted Inngest Cloud execution or real payment/email provider operation was performed. Existing sandbox qualification belongs to those owning cohorts.",
     "Nested SDK/CLI dependency graphs and advisories remain open for full security reconciliation.",
@@ -650,5 +650,133 @@
     },
     "scope": "Observed ZIP extraction is selected on Windows. Current canonical WSL/Linux launcher selects tar. This is entrypoint evidence, not completed advisory closure; execution inputs, supported platforms and full graph must be reconciled.",
     "recheck": "Any CLI/wrapper, installed adm-zip version, installer code, archive source or supported platform change invalidates reachability evidence."
+  },
+  "mergedDevelopQualification": {
+    "capturedAt": "2026-10-22T00:59:42.546829+00:00",
+    "develop": "3408edad69c8cb6032e2cee301447653403b383f",
+    "headBeforeEvidenceCommit": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+    "targetsRefresh": {
+      "observedAt": "2026-10-22T00:56:58.159539+00:00",
+      "head": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+      "allSelectedTargetsCurrent": true,
+      "records": [
+        {
+          "name": "inngest",
+          "target": "4.25.0",
+          "latest": "4.25.0",
+          "publishedAt": "2026-10-19T18:22:53.481Z",
+          "integrity": "sha512-WLrGXEiCBGFpEne6nBOj7+2joUKcGNb05AljK2/X6Hf+A0CLc694IzH7hVIn4IlUN6+7cCEcS4iJjoz6eS0fiA==",
+          "source": "https://registry.npmjs.org/inngest"
+        },
+        {
+          "name": "@inngest/test",
+          "target": "1.0.0",
+          "latest": "1.0.0",
+          "publishedAt": "2026-03-25T14:11:16.511Z",
+          "integrity": "sha512-T3K6w0o/AHk34zzYhh1lC183ziQUCTEmY+G7ZOFwR5q4vXkbmZpXzbRecuG+Om/mixJnJCjZbt43e6OMR3QAnQ==",
+          "source": "https://registry.npmjs.org/@inngest%2ftest"
+        },
+        {
+          "name": "inngest-cli",
+          "target": "1.47.0",
+          "latest": "1.47.0",
+          "publishedAt": "2026-10-21T19:43:06.605Z",
+          "integrity": "sha512-XkoW7OkjWeW/THR74vrSAGORXAIlKBXRvCsQglonSTkTTrEiAbHM92Uzyykv66PEVsWMfn69F2XiBu3xE+f9OA==",
+          "source": "https://registry.npmjs.org/inngest-cli"
+        }
+      ]
+    },
+    "combinedUnit": {
+      "startedAt": "2026-10-22T00:56:53.476151+00:00",
+      "completedAt": "2026-10-22T00:56:56.062309+00:00",
+      "head": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+      "command": [
+        "bunx",
+        "--no-install",
+        "vitest",
+        "run",
+        "tests/unit/packages/api/workflows",
+        "tests/unit/graphql-http-contract.test.ts",
+        "tests/unit/graphql-runtime-boundary.test.ts",
+        "tests/unit/graphql-gift-engagement-adapters.test.ts",
+        "tests/unit/packages/database/supabase-adapter-compatibility.test.ts",
+        "tests/unit/packages/database/tanstack-runtime-identity.test.ts",
+        "tests/unit/scripts/ci-build-policy.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-checks.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-verification.test.ts"
+      ],
+      "exitCode": 0,
+      "logSha256": "c2a3496999f1deffde773ef39ab12763318dd9ed7f3d706b96d7057b7684f5eb",
+      "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "filesPassed": 19,
+      "testsPassed": 210
+    },
+    "cleanInstallation": {
+      "startedAt": "2026-10-22T00:57:02.190606+00:00",
+      "completedAt": "2026-10-22T00:57:06.163159+00:00",
+      "head": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+      "worktree": "/home/conrad/code/core-worktrees/workflow-cold-install-2026-10-22",
+      "command": ["bun", "ci", "--no-cache", "--backend=copyfile"],
+      "exitCode": 0,
+      "logSha256": "6419d0bf73b1f9781afca34b2d453938eddc26572fbc22402ff554e4a299018c",
+      "lockBeforeSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "lockAfterSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "status": "",
+      "opaqueDatabaseAbsent": true,
+      "environmentFileAbsent": true,
+      "packagesInstalled": 1946,
+      "firstAttemptPassed": true,
+      "existingPostinstallRepairRetainedForPdfOwner": true
+    },
+    "cleanUnit": {
+      "startedAt": "2026-10-22T00:57:38.198072+00:00",
+      "completedAt": "2026-10-22T00:57:41.031499+00:00",
+      "head": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+      "command": [
+        "bunx",
+        "--no-install",
+        "vitest",
+        "run",
+        "tests/unit/packages/api/workflows",
+        "tests/unit/graphql-http-contract.test.ts",
+        "tests/unit/graphql-runtime-boundary.test.ts",
+        "tests/unit/graphql-gift-engagement-adapters.test.ts",
+        "tests/unit/packages/database/supabase-adapter-compatibility.test.ts",
+        "tests/unit/packages/database/tanstack-runtime-identity.test.ts",
+        "tests/unit/scripts/ci-build-policy.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-checks.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts",
+        "tests/unit/scripts/supabase-client-runtime-verification.test.ts"
+      ],
+      "exitCode": 0,
+      "logSha256": "9b185bd59c37f2f178953986cdc4c2ff8e1f11b8970837e3b1d723928680a7b1",
+      "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "filesPassed": 19,
+      "testsPassed": 210
+    },
+    "cleanForcedTypecheck": {
+      "startedAt": "2026-10-22T00:57:41.037548+00:00",
+      "completedAt": "2026-10-22T00:57:53.258310+00:00",
+      "head": "8eb4b8023e7ea112c3810c65b6d01f0e3e357b79",
+      "command": [
+        "bunx",
+        "--no-install",
+        "turbo",
+        "run",
+        "typecheck",
+        "--force"
+      ],
+      "exitCode": 0,
+      "logSha256": "c20abf0f0d694dc4d9c8501fbf937fe13aa8e9aa559d219cc0d6f885d25464cc",
+      "lockSha256": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+      "tasksPassed": 15,
+      "cacheHits": 0
+    },
+    "installationInputsUnchangedFromCompiledQualification": {
+      "package.json": "99e21f32113c57dffe1301421df13f2f939fceb2c0e2377a98a4dce9b7e068a9",
+      "packages/api/package.json": "136c651a7fc0eb3928174c4bbd1362a595fd5de319f759fa50ec1cc4621db7c1",
+      "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+    }
   }
 }
