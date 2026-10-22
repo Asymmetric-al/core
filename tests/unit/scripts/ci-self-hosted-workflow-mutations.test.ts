@@ -1,7 +1,7 @@
 /**
  * Mutation coverage for the #2158 self-hosted CI workflow harness
  * (PR #2160 review MAJOR-1..6, MINOR-7, the N1/N2 runner-variable follow-up,
- * and the run-body allowlist bypasses).
+ * the run-body allowlist bypasses, and MAJOR-9 unmodelled context members).
  * Each reviewer mutation is applied to an
  * in-memory copy of the real workflow YAML; the harness must accept the real
  * workflow and reject every mutated copy.
@@ -15,9 +15,11 @@ import {
   EVENT_SCENARIOS,
   FORK_FAIL_MESSAGE,
   FORK_ONLY_STEP_GUARD,
+  FORK_REJECT_IF,
   MODELED_TRIGGER_EVENTS,
   PINNED_CI_GATE_BODY,
   analyzeSelfHostedForkSafety,
+  assertPinnedForkRejectIf,
   assertScriptAllowed,
   assertScriptVariablesModelled,
   effectiveStepEnv,
@@ -25,12 +27,14 @@ import {
   executeCiGateResultsStep,
   executeGateJob,
   executeRunScript,
+  forkRejectProblems,
   forkRejectStepIndex,
   gateEnforcementProblems,
   hostedGateFailsClosedWhenHeavyNeedsSkipped,
   ifExpression,
   isForkAwareRunsOnExpression,
   isForkRejectStep,
+  isPinnedForkRejectIf,
   isSelfHostedJob,
   needsList,
   parseWorkflowSource,
@@ -1121,5 +1125,209 @@ describe("reject/gate run bodies are limited to an exact command allowlist", () 
     ["single quotes", "echo '$X ${Y} $(id) `id`'"],
   ])("accepts %s", (_label, script) => {
     expect(() => assertScriptAllowed(script)).not.toThrow();
+  });
+});
+
+/** True when `fn` fails closed: returns false or throws (never a pass). */
+function failsClosed(fn: () => boolean): boolean {
+  try {
+    return fn() === false;
+  } catch {
+    return true;
+  }
+}
+
+describe("MAJOR-9: pinned fork-reject if; unmodelled context members fail closed", () => {
+  const rejectIfTail =
+    "          github.event.pull_request.head.repo.full_name != github.repository\n        run: |\n";
+  const appendToRejectIf = (jobId: string, clause: string) =>
+    mutateJob(source(CI_INTEGRATION), jobId, (block) =>
+      mutate(
+        block,
+        rejectIfTail,
+        rejectIfTail.replace(
+          "github.repository\n",
+          `github.repository\n          ${clause}\n`,
+        ),
+        1,
+      ),
+    );
+  const forkScenarios = EVENT_SCENARIOS.filter((scenario) => scenario.fork);
+
+  it("both real reject steps use exactly the pinned FORK_REJECT_IF (= FORK_ONLY_STEP_GUARD)", () => {
+    expect(FORK_REJECT_IF).toBe(FORK_ONLY_STEP_GUARD);
+    const jobs = jobsOf(source(CI_INTEGRATION), CI_INTEGRATION);
+    for (const jobId of ["migrate", "smoke"] as const) {
+      const step = jobs[jobId]!.steps![0]!;
+      expect(step.if, jobId).toBe(FORK_REJECT_IF);
+      expect(() => assertPinnedForkRejectIf(step)).not.toThrow();
+      expect(forkRejectProblems(jobs[jobId]!), jobId).toEqual([]);
+    }
+  });
+
+  for (const [label, clause, member] of [
+    ["A1", "&& github.job != 'migrate'", "github.job"],
+    [
+      "A2",
+      "&& github.event.pull_request.head.repo.fork != true",
+      "github.event.pull_request.head.repo.fork",
+    ],
+  ] as const) {
+    for (const jobId of ["migrate", "smoke"] as const) {
+      describe(`${label} on the ${jobId} reject step if: ${clause}`, () => {
+        const job = () =>
+          jobsOf(appendToRejectIf(jobId, clause), label)[jobId]!;
+
+        it("is rejected by the pinned if (no reject step, named in the problems)", () => {
+          const step = job().steps![0]!;
+          expect(String(step.if)).toContain(clause);
+          expect(isForkRejectStep(step)).toBe(false);
+          expect(forkRejectStepIndex(job())).toBe(-1);
+          expect(() => assertPinnedForkRejectIf(step)).toThrow(
+            /is not allowed: it must be exactly FORK_REJECT_IF/,
+          );
+          expect(forkRejectProblems(job()).join("\n")).toMatch(
+            /step 0: .*not allowed: it must be exactly FORK_REJECT_IF/,
+          );
+        });
+
+        it(`evaluating it reads the unmodelled ${member}, which throws "not modelled"`, () => {
+          for (const scenario of forkScenarios) {
+            expect(() =>
+              evaluateIfCondition(
+                job().steps![0]!.if,
+                scenarioContext(scenario, {}),
+              ),
+            ).toThrow(
+              new RegExp(`'${member.replace(/\./g, "\\.")}' is not modelled`),
+            );
+          }
+        });
+
+        it("the required job fails closed end to end", () => {
+          expect(failsClosed(() => requiredJobFailsClosedOnFork(job()))).toBe(
+            true,
+          );
+        });
+      });
+    }
+  }
+
+  it.each([
+    ["a ${{ }} wrapper", `\${{ ${FORK_ONLY_STEP_GUARD} }}`],
+    ["an extra || clause", `${FORK_ONLY_STEP_GUARD} || false`],
+    [
+      "swapped conjuncts",
+      "github.event.pull_request.head.repo.full_name != github.repository && github.event_name == 'pull_request'",
+    ],
+    ["no if", undefined],
+  ])(
+    "a reject body under a non-pinned if (%s) fails closed",
+    (_label, condition) => {
+      const step: WorkflowStep = {
+        name: "Reject fork pull requests",
+        ...(condition === undefined ? {} : { if: condition }),
+        run: `echo "${FORK_FAIL_MESSAGE}"\nexit 1\n`,
+      };
+      expect(isPinnedForkRejectIf(step.if)).toBe(false);
+      expect(isForkRejectStep(step)).toBe(false);
+      expect(() => assertPinnedForkRejectIf(step)).toThrow(/is not allowed/);
+    },
+  );
+
+  it("the pin tolerates only whitespace normalisation (YAML >- folding)", () => {
+    expect(
+      isPinnedForkRejectIf(
+        "  github.event_name == 'pull_request' &&\n   github.event.pull_request.head.repo.full_name != github.repository\n",
+      ),
+    ).toBe(true);
+  });
+
+  it.each([
+    ["github.job == 'migrate'", "'github.job' is not modelled"],
+    [
+      "github.event.pull_request.head.repo.fork",
+      "head.repo.fork' is not modelled",
+    ],
+    ["github.actor == 'x'", "'github.actor' is not modelled"],
+    ["needs.migrate.result == 'success'", "'needs.migrate' is not modelled"],
+    ["vars.X == 'y'", "'vars.X' is not modelled"],
+    ["inputs.x == 'y'", "'inputs.x' is not modelled"],
+    ["env.X == 'y'", "Unknown context 'env'"],
+    ["secrets.X == 'y'", "Unknown context 'secrets'"],
+    ["runner.os == 'Linux'", "Unknown context 'runner'"],
+  ])("looking up an unmodelled member throws: %s", (expr, message) => {
+    for (const scenario of EVENT_SCENARIOS.filter((s) => s.fork)) {
+      expect(() =>
+        evaluateIfCondition(expr, scenarioContext(scenario, {})),
+      ).toThrow(message);
+    }
+  });
+
+  it("a modelled needs output is readable; an unmodelled one throws", () => {
+    const ctx = scenarioContext(EVENT_SCENARIOS[0]!, {
+      build: { result: "success", outputs: { requested: "true" } },
+    });
+    expect(
+      evaluateIfCondition("needs.build.outputs.requested == 'true'", ctx),
+    ).toBe(true);
+    expect(() =>
+      evaluateIfCondition("needs.build.outputs.other == 'true'", ctx),
+    ).toThrow(/'needs\.build\.outputs\.other' is not modelled/);
+  });
+
+  it("an unmodelled member in a gate job if is reported, not treated as passing", () => {
+    const text = mutate(
+      source(CI_INTEGRATION),
+      "  e2e-smoke-gate:\n    if: always()\n",
+      "  e2e-smoke-gate:\n    if: always() && github.job != 'e2e-smoke-gate'\n",
+      1,
+    );
+    const job = jobsOf(text, "gate if")["e2e-smoke-gate"]!;
+    expect(gateEnforcementProblems(job, ["test-e2e-smoke"]).join("\n")).toMatch(
+      /'github\.job' is not modelled/,
+    );
+    expect(
+      hostedGateFailsClosedWhenHeavyNeedsSkipped(job, ["test-e2e-smoke"]),
+    ).toBe(false);
+  });
+
+  it("an unmodelled member in a gate step if is reported, not treated as passing", () => {
+    const text = addStepKey(
+      source(CI_INTEGRATION),
+      "Fail if E2E failed on production",
+      "if: github.job != 'e2e-gate'",
+    );
+    const job = jobsOf(text, "gate step if")["e2e-gate"]!;
+    const production = EVENT_SCENARIOS.filter(
+      (scenario) =>
+        scenario.label.includes("production") &&
+        !scenario.label.startsWith("workflow_dispatch"),
+    );
+    expect(
+      gateEnforcementProblems(
+        job,
+        ["test-e2e", "instant-nav"],
+        production,
+      ).join("\n"),
+    ).toMatch(/'github\.job' is not modelled/);
+  });
+
+  it("an unmodelled member in the fork-aware runs-on is not fork-aware", () => {
+    const text = mutate(
+      source(CI_INTEGRATION),
+      "${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest'",
+      "${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && github.job != 'x' && 'ubuntu-latest'",
+      2,
+    );
+    const jobs = jobsOf(text, "runs-on");
+    for (const jobId of ["migrate", "smoke"] as const) {
+      expect(isForkAwareRunsOnExpression(jobs[jobId]!["runs-on"]), jobId).toBe(
+        false,
+      );
+      expect(
+        failsClosed(() => requiredJobFailsClosedOnFork(jobs[jobId]!)),
+      ).toBe(true);
+    }
   });
 });

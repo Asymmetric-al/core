@@ -29,13 +29,56 @@ describe("github-expression parser/evaluator", () => {
     expect(evalIn("!false == true", {})).toBe(true);
   });
 
-  it("string comparison is case-insensitive; missing properties are null", () => {
+  it("string comparison is case-insensitive; members of a modelled null are null", () => {
     expect(evalIn("github.event_name == 'PUSH'", { event_name: "push" })).toBe(
       true,
     );
     expect(
-      evalIn("github.event.pull_request.head == null", { event: {} }),
+      evalIn("github.event.pull_request.head == null", {
+        event: { pull_request: null },
+      }),
     ).toBe(true);
+  });
+
+  it.each([
+    ["github.job", { event_name: "push" }, "github.job"],
+    [
+      "github.event.pull_request.head.repo.fork",
+      { event: { pull_request: { head: { repo: { full_name: "a/b" } } } } },
+      "github.event.pull_request.head.repo.fork",
+    ],
+    [
+      "github.event.pull_request.head",
+      { event: {} },
+      "github.event.pull_request",
+    ],
+    ["github['ref_name']", { ref: "refs/heads/x" }, 'github["ref_name"]'],
+    ["needs.build.outputs.other", {}, "needs.build"],
+  ])(
+    "an unmodelled member fails closed instead of defaulting to null: %s",
+    (expr, github, member) => {
+      expect(() => evalIn(`${expr} != 'x'`, github)).toThrow(/is not modelled/);
+      expect(() => evalIn(expr, github)).toThrow(member);
+    },
+  );
+
+  it("unknown context roots fail closed as not modelled", () => {
+    for (const root of [
+      "env",
+      "vars",
+      "secrets",
+      "runner",
+      "steps",
+      "matrix",
+    ]) {
+      expect(() => evalIn(`${root}.X`, {})).toThrow(/not modelled/);
+    }
+  });
+
+  it("member names still match case-insensitively (ASCII only)", () => {
+    expect(evalIn("GITHUB.Event_Name", { event_name: "push" })).toBe("push");
+    // A non-ASCII member name reaches the fold and fails closed.
+    expect(() => evalIn("github['\u0131d']", { id: "x" })).toThrow(/Non-ASCII/);
   });
 
   it.each([

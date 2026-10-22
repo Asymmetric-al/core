@@ -468,14 +468,43 @@ function stringify(value: ExprValue): string {
   return String(value);
 }
 
-function lookup(object: ExprValue, key: string): ExprValue {
+/** Render a member/index chain such as `github.event.pull_request.head` for errors. */
+function describeMember(node: ExprNode): string {
+  switch (node.kind) {
+    case "ident":
+      return node.name;
+    case "member":
+      return `${describeMember(node.object)}.${node.property}`;
+    case "index":
+      return `${describeMember(node.object)}[${
+        node.index.kind === "literal" ? JSON.stringify(node.index.value) : "…"
+      }]`;
+    default:
+      return "(expression)";
+  }
+}
+
+/**
+ * Member lookup, fail closed. Keys match case-insensitively (GitHub contexts
+ * are) through the ASCII-only {@link foldOrdinalIgnoreCase}. A key missing from
+ * a modelled object throws "... is not modelled" instead of defaulting to null,
+ * because GitHub may well define it (`github.job`, `head.repo.fork`, ...). A
+ * member of a modelled null or primitive, or of an array, is null as on GitHub.
+ */
+function lookup(object: ExprValue, key: string, node: ExprNode): ExprValue {
   if (object === null || typeof object !== "object" || Array.isArray(object)) {
     return null;
   }
+  const folded = foldOrdinalIgnoreCase(key);
   const match = Object.keys(object).find(
-    (candidate) => candidate.toLowerCase() === key.toLowerCase(),
+    (candidate) => foldOrdinalIgnoreCase(candidate) === folded,
   );
-  return match === undefined ? null : object[match]!;
+  if (match === undefined) {
+    throw new Error(
+      `Expression member '${describeMember(node)}' is not modelled (no '${key}' in the scenario context)`,
+    );
+  }
+  return object[match]!;
 }
 
 const FUNCTIONS: Record<
@@ -512,23 +541,26 @@ export function evaluateExpression(
     case "literal":
       return node.value;
     case "ident": {
+      const name = foldOrdinalIgnoreCase(node.name);
       const root = Object.keys(ctx.contexts).find(
-        (key) => key.toLowerCase() === node.name.toLowerCase(),
+        (key) => foldOrdinalIgnoreCase(key) === name,
       );
       if (root === undefined) {
-        throw new Error(`Unknown context '${node.name}' in expression`);
+        throw new Error(
+          `Unknown context '${node.name}' in expression is not modelled`,
+        );
       }
       return ctx.contexts[root]!;
     }
     case "member":
-      return lookup(evaluateExpression(node.object, ctx), node.property);
+      return lookup(evaluateExpression(node.object, ctx), node.property, node);
     case "index": {
       const object = evaluateExpression(node.object, ctx);
       const index = evaluateExpression(node.index, ctx);
       if (Array.isArray(object) && typeof index === "number") {
         return object[index] ?? null;
       }
-      return lookup(object, stringify(index));
+      return lookup(object, stringify(index), node);
     }
     case "call": {
       const fn = FUNCTIONS[node.name];

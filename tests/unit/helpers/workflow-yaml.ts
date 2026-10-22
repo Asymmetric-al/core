@@ -65,6 +65,31 @@ export const SAME_REPO_GUARD =
 export const FORK_ONLY_STEP_GUARD =
   "github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository";
 
+/**
+ * The pinned fork-reject step `if:` (the "FORK_REJECT_IF" of the #2160 review):
+ * exactly {@link FORK_ONLY_STEP_GUARD}, as both real reject steps (migrate and
+ * smoke) write it. Compared after {@link normalizeWorkflowExpression}
+ * (whitespace runs collapsed to one space, trimmed — what YAML `>-` folding
+ * produces); a `${{ }}` wrapper or any other change is not the pinned text.
+ */
+export const FORK_REJECT_IF = FORK_ONLY_STEP_GUARD;
+
+export function isPinnedForkRejectIf(condition: unknown): boolean {
+  return (
+    typeof condition === "string" &&
+    normalizeWorkflowExpression(condition) === FORK_REJECT_IF
+  );
+}
+
+/** Throws "... is not allowed" unless the step `if:` is exactly {@link FORK_REJECT_IF}. */
+export function assertPinnedForkRejectIf(step: WorkflowStep): void {
+  if (!isPinnedForkRejectIf(step.if)) {
+    throw new Error(
+      `Fork-reject step if ${JSON.stringify(step.if ?? null)} is not allowed: it must be exactly FORK_REJECT_IF (${JSON.stringify(FORK_REJECT_IF)})`,
+    );
+  }
+}
+
 export const SELF_HOSTED_LABELS = [
   "self-hosted",
   "linux",
@@ -435,6 +460,19 @@ export function needsScenarios(job: WorkflowJob): NeedsState[] {
   return states;
 }
 
+/**
+ * Expression contexts for one modeled event. Fail closed: only what is listed
+ * here is modelled, and a member missing from it throws "not modelled" (see
+ * `lookup` in github-expression.ts) instead of defaulting to null.
+ * - `github`: the scenario's object (see {@link EVENT_SCENARIOS}).
+ * - `needs.<id>.result` / `needs.<id>.outputs.*`: from the needs state given
+ *   (only the job's declared needs; only the outputs supplied).
+ * - `inputs`, `vars`: modelled as empty, so every member throws.
+ * - `env`, `secrets`, `runner`, `steps`, `matrix`, `job`, `strategy`: not
+ *   contexts here, so any reference throws "Unknown context ... not modelled".
+ * - Status functions: `success()`/`failure()` from the needs results,
+ *   `cancelled()` false, `always()` true; other functions throw.
+ */
 export function scenarioContext(
   scenario: EventScenario,
   needs: NeedsState,
@@ -580,8 +618,8 @@ export function firstSecretStepIndex(job: WorkflowJob): number {
 // ---------------------------------------------------------------------------
 
 /**
- * Structural fork-reject check: a `run:` step (no `uses:`) whose `if` is the
- * fork-only guard, that cannot be neutralized by `continue-on-error` on any
+ * Structural fork-reject check: a `run:` step (no `uses:`) whose `if` is exactly
+ * the pinned {@link FORK_REJECT_IF}, that cannot be neutralized by `continue-on-error` on any
  * fork event, and whose body — executed under the step's real shell
  * (`bash -e` by default) with the runner's effective env (workflow, then job,
  * then step `env`) — exits non-zero and prints {@link FORK_FAIL_MESSAGE}.
@@ -595,7 +633,7 @@ export function isForkRejectStep(
 ): boolean {
   const run = step.run;
   if (typeof run !== "string" || step.uses !== undefined) return false;
-  if (!isForkOnlyStepGuard(step.if)) return false;
+  if (!isPinnedForkRejectIf(step.if)) return false;
   const owner = jobByStep.get(step);
   const envCtx = ctx ?? (owner ? stepEnvContextOf(owner) : {});
   try {
@@ -637,8 +675,20 @@ export function forkRejectProblems(job: WorkflowJob): string[] {
   if (rejectIndex === -1) {
     // A job-level `${{ }}` env value also makes the reject step unprovable,
     // so report the job-level secret use alongside the missing reject step.
+    // A step that prints the reject message under a different `if:` is named.
+    const unpinned = steps.flatMap((step, index) => {
+      if (typeof step.run !== "string" || !step.run.includes(FORK_FAIL_MESSAGE))
+        return [];
+      try {
+        assertPinnedForkRejectIf(step);
+        return [];
+      } catch (error) {
+        return [`step ${index}: ${(error as Error).message}`];
+      }
+    });
     return [
-      "no fork-reject step (fork-only if; body exits non-zero printing the message; no continue-on-error)",
+      "no fork-reject step (pinned FORK_REJECT_IF; body exits non-zero printing the message; no continue-on-error)",
+      ...unpinned,
       ...(jobLevelReferencesSecrets(job)
         ? ["job-level keys reference secrets in a fork-reachable job"]
         : []),
