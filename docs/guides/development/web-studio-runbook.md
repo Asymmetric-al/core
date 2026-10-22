@@ -10,8 +10,8 @@
 
 - Bun (see root `packageManager` in `package.json`)
 - Docker (for local Supabase) — see root `AGENTS.md` Supabase section
-- Node.js `24.15.0+` for Payload 4 CMS CLI commands (`cms:migrate`,
-  `cms:migrate:status`, `cms:importmap`)
+- Approved Node 24 release enforced by the root setup checks (currently `24.22.1`);
+  Payload public v4 itself requires at least `24.15.0` for CMS CLI commands
 - Node-compatible environment for Playwright when running E2E
 
 ---
@@ -59,6 +59,48 @@ Node pg's `sslmode=no-verify` to libpq's encrypted `require` mode without changi
 the environment file, and passes connection credentials through the child
 process environment rather than command arguments. Keep schema push disabled;
 do not use a local reset or demo seed to initialize a hosted database.
+
+### Public-v4 migration and rollback boundary
+
+The selected cohort is public `4.0.0-beta.3`. Check `apps/admin/package.json`,
+`bun.lock` and [the checkpoint](../../maintenance/modernization/payload.md)
+before a release; do not mix internal/public package versions.
+
+1. Verify the actual database/project and migration status using the committed
+   runner. Preserve a pre-cutover database backup and media assets; restore the
+   backup into an isolated database and compare counts and relationships. Inspect
+   custom `sizes`/`variants` field collisions, additional media metadata and the
+   existing long missionary-giving version-table/index/constraint names.
+2. Pause CMS writes and uploads. Keep public readers available only through the
+   existing authorized serializer boundary. Drain in-flight CMS writes before
+   capturing the final pre-cutover preservation checks.
+3. Run the committed migration runner. A fresh database first applies
+   `20260515_173042_init_payload_cms`; an existing database must already record it.
+   Then apply `20261022_002409_payload_v4_sizes_to_variants` (the official
+   predefined rename) followed by
+   `20261022_002412_payload_v4_public_beta_metadata` (nullable media metadata and
+   in-place shortening of the one versioned impact-stat items table). Do not use
+   schema push, a fresh/reset command, or regenerate the baseline migration.
+4. Confirm the migration ledger, records, relationships, original/variant asset
+   hashes, both public serializers, tenant denials and authenticated editor,
+   upload, draft/publish and preview behavior. Resume writes only after the
+   selected application revision and migrated schema pass these checks.
+
+Before new media/storage metadata has been written, the guarded down migration
+can reverse the qualified batch while writes remain paused. It locks media
+before checking compatibility and refuses rollback if new metadata would be
+lost. Inspect the migration batch before `migrate:down`; it reverses that batch.
+Do not clear legitimate metadata to force the guard to pass. After the boundary
+is crossed, use a reviewed forward fix or the verified pre-cutover restore with
+an explicit reconciliation of writes after that backup. Changing a UI feature
+flag does not roll back this schema. No production application is part of the
+modernization rehearsal.
+
+Core authenticates the CMS through Supabase cookie sessions with Payload's local
+strategy disabled. Those sessions need no reauthentication solely for the token
+header change. Old internal Payload JWTs lack public v4's protected `authVersion`
+header and are rejected; reissue any such tokens through the approved auth flow,
+without a legacy-token bypass. Verify sign-in, refresh and sign-out separately.
 
 For the one-command local path, use:
 
@@ -221,11 +263,12 @@ import map is stale for the current `payload.config.ts` or plugin set. Run
 
 ---
 
-## 9. Rollback
+## 9. Collection UI fallback
 
 1. Set `CMS_WEB_STUDIO_NATIVE_*=false` for affected collections; redeploy.
 2. Emergency: remove `endpoints: [webStudioCreateFromTemplateEndpoint]` from `payload.config.ts` disables template instantiation only.
-3. Do not drop `cms` data without backup + approval.
+3. This changes UI routing only. For schema rollback, follow the public-v4
+   migration boundary in section 3; do not drop `cms` data.
 
 ---
 
@@ -237,15 +280,15 @@ Route files under `apps/admin/app/api/**/*.ts` must be **thin re-exports** to `@
 
 ## 11. Common failures
 
-| Symptom                                                   | Likely cause                                                                                                          |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `PAYLOAD_SECRET must be configured`                       | Set secret or `NODE_ENV=test` for importmap                                                                           |
-| `.env.local` still points at hosted DB during local setup | Run `bun run cms:local:reset -- --force-env` to rewrite local CMS values                                              |
-| Import map wrong paths                                    | Re-run `cms:importmap` + check postprocess script                                                                     |
-| 404 on public CMS                                         | Tenant not resolved or no published doc                                                                               |
-| Wizard POST 403                                           | Not staff / wrong session                                                                                             |
-| `verify:data-boundary` fails                              | Direct `@asym/database` import in `app/api`                                                                           |
-| Nested `<html>` / hydration warning                       | `(payload)/layout.tsx` must embed Payload `RootProvider`; do not use Payload `RootLayout` under the admin root layout |
+| Symptom                                                   | Likely cause                                                                                                                                   |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PAYLOAD_SECRET must be configured`                       | Set secret or `NODE_ENV=test` for importmap                                                                                                    |
+| `.env.local` still points at hosted DB during local setup | Run `bun run cms:local:reset -- --force-env` to rewrite local CMS values                                                                       |
+| Import map wrong paths                                    | Re-run `cms:importmap` + check postprocess script                                                                                              |
+| 404 on public CMS                                         | Tenant not resolved or no published doc                                                                                                        |
+| Wizard POST 403                                           | Not staff / wrong session                                                                                                                      |
+| `verify:data-boundary` fails                              | Direct `@asym/database` import in `app/api`                                                                                                    |
+| Nested `<html>` / hydration warning                       | `(payload)/layout.tsx` must embed public `RootProviders` with `getRootLayoutData`; do not use Payload `RootLayout` under the admin root layout |
 
 ### Phase 22 D17 certification note
 

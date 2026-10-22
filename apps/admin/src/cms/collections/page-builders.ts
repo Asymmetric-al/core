@@ -15,6 +15,7 @@ import {
 import { PAGE_TEMPLATES_SLUG } from "../constants";
 import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
 import { applyTenantFromContext } from "../hooks/tenant";
+import { coreRichTextDocumentSchema } from "../rich-text-document-schema";
 
 import type { Block, Field, PayloadRequest, Validate } from "payload";
 
@@ -261,6 +262,7 @@ const pageLayoutBlocks: Block[] = [
         name: "body",
         type: "richText",
         required: true,
+        jsonSchema: [coreRichTextDocumentSchema],
       },
     ],
   },

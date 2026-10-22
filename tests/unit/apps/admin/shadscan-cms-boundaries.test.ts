@@ -140,10 +140,13 @@ describe("Shadscan CMS boundary evidence", () => {
     expect(authenticatedRequest).toBeDefined();
     const createRequest = callsTo(
       source,
-      "createLocalReq",
+      "createPayloadRequest",
       authenticatedRequest!,
     )[0];
-    expect(fields(source, createRequest?.arguments[0]).user).toBe("auth.user");
+    expect(fields(source, createRequest?.arguments[0])).toMatchObject({
+      payload: "payload",
+      user: "auth.user",
+    });
     const missingRecord = guardFor(source, "!doc");
     expect(callsTo(source, "notFound", missingRecord)).toHaveLength(1);
     expect(read.getStart()).toBeLessThan(missingRecord.getStart());
@@ -200,14 +203,30 @@ describe("Shadscan CMS boundary evidence", () => {
       path.dirname(viewsPath),
       delegatedExport.moduleSpecifier.text,
     );
-    const server = sourceAt(serverPath);
+    const adapter = sourceAt(serverPath);
+    const render = callTo(adapter, "renderNotFoundPage");
+    expect(render.parent.kind).toBe(ts.SyntaxKind.AwaitExpression);
+    expect(fields(adapter, render.arguments[0])).toMatchObject({
+      initAdminContext: "initAdminContext",
+    });
+    const renderImport = adapter.statements.find(
+      (statement) =>
+        ts.isImportDeclaration(statement) &&
+        ts.isStringLiteral(statement.moduleSpecifier) &&
+        statement.moduleSpecifier.text === "@payloadcms/ui/views/NotFound/page",
+    );
+    expect(renderImport).toBeDefined();
+    const uiServerPath = requireAdmin.resolve(
+      "@payloadcms/ui/views/NotFound/page",
+    );
+    const server = sourceAt(uiServerPath);
     expect(
       callsTo(server, "_jsx").some(
         (call) => call.arguments[0]?.getText(server) === "NotFoundClient",
       ),
     ).toBe(true);
     const client = sourceAt(
-      path.join(path.dirname(serverPath), "index.client.js"),
+      path.join(path.dirname(uiServerPath), "index.client.js"),
     );
     const recovery = callsTo(client, "_jsx").find(
       (call) => call.arguments[0]?.getText(client) === "Button",

@@ -21,6 +21,7 @@
     "better-writing",
     "cache-components",
     "check-compiler-errors",
+    "cms-migration",
     "code-review",
     "codebase-design",
     "commit",
@@ -89,8 +90,7 @@
     "openspec-sync-specs",
     "openspec-update-change",
     "openspec-verify-change",
-    "payloadcms-cms-migration",
-    "payloadcms-payload",
+    "payload",
     "pick-ui-library",
     "playwright-best-practices",
     "playwright-cli",
@@ -264,6 +264,10 @@
       "SKILL.md"
     ],
     "check-compiler-errors": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "cms-migration": [
       "SKILL.md",
       "references/upstream.md"
     ],
@@ -725,25 +729,9 @@
       "references/LICENSE.md",
       "references/upstream.md"
     ],
-    "payloadcms-cms-migration": [
+    "payload": [
       "SKILL.md",
-      "reference/PAYLOAD-FIELD-REFERENCE.md",
-      "references/upstream.md"
-    ],
-    "payloadcms-payload": [
-      "README.md",
-      "SKILL.md",
-      "reference/ACCESS-CONTROL-ADVANCED.md",
-      "reference/ACCESS-CONTROL.md",
-      "reference/ADAPTERS.md",
-      "reference/ADVANCED.md",
-      "reference/COLLECTIONS.md",
-      "reference/ENDPOINTS.md",
-      "reference/FIELD-TYPE-GUARDS.md",
-      "reference/FIELDS.md",
-      "reference/HOOKS.md",
-      "reference/PLUGIN-DEVELOPMENT.md",
-      "reference/QUERIES.md",
+      "reference/PUBLIC-V4.md",
       "references/upstream.md"
     ],
     "pick-ui-library": [

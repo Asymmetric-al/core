@@ -46,11 +46,28 @@ describe("Payload runtime integrations", () => {
     });
   });
 
-  it("leaves upload collections untouched when no Blob token is configured", () => {
+  it("retains local storage with stable storage metadata when no Blob token is configured", () => {
     const [adapter] = createPayloadStorageAdapters({});
     const baseConfig = createUploadConfig();
 
-    expect(adapter.init(baseConfig)).toBe(baseConfig);
+    const config = adapter.init(baseConfig);
+    const media = config.collections?.find(
+      (collection) => collection.slug === "media",
+    );
+    expect(media?.upload).toEqual(baseConfig.collections?.[0]?.upload);
+    expect(media?.upload).not.toHaveProperty("fileOperations");
+    expect(media?.upload).not.toHaveProperty("adapter");
+    expect(config.endpoints).toBeUndefined();
+    expect(media?.fields).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "url" }),
+        expect.objectContaining({
+          defaultValue: WEB_STUDIO_MEDIA_BLOB_PREFIX,
+          name: "prefix",
+        }),
+        expect.objectContaining({ name: "_objectKey" }),
+      ]),
+    );
     expect(adapter).toMatchObject({
       collections: ["media"],
       name: "vercel-blob",
@@ -80,6 +97,7 @@ describe("Payload runtime integrations", () => {
         expect.objectContaining({
           name: "url",
         }),
+        expect.objectContaining({ name: "_objectKey" }),
       ]),
     );
   });

@@ -26,7 +26,7 @@ if (args.length === 0) {
 let command;
 try {
   assertPayloadRuntimeRequirements();
-  command = getPayloadCliCommand(args);
+  command = await getPayloadCliCommand(args);
 } catch (cause) {
   console.error(cause instanceof Error ? cause.message : cause);
   process.exit(1);
@@ -112,7 +112,7 @@ const result = spawnSync(
   {
     cwd: repoRoot,
     env,
-    shell: process.platform === "win32",
+    shell: false,
     stdio: "inherit",
   },
 );

@@ -75,10 +75,10 @@ Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/`
 
 **Example — Payload CMS:**
 
-- **Application skill:** `docs/ai/skills/payloadcms-payload/SKILL.md` for collections, fields, hooks, access, queries, adapters, plugins, and Payload app behavior.
-- **Migration skill:** `docs/ai/skills/payloadcms-cms-migration/SKILL.md` for CMS to Payload content-model migration.
+- **Application skill:** `docs/ai/skills/payload/SKILL.md` for collections, fields, hooks, access, queries, adapters, plugins, and Payload app behavior.
+- **Migration skill:** `docs/ai/skills/cms-migration/SKILL.md` for CMS to Payload content-model migration.
 - **Upstream:** vendored from [`payloadcms/skills`](https://github.com/payloadcms/skills) (`skills/payload/`, `skills/cms-migration/`).
-- **Refresh notes:** `docs/ai/skills/payloadcms-payload/references/upstream.md` and `docs/ai/skills/payloadcms-cms-migration/references/upstream.md`.
+- **Refresh notes:** `docs/ai/skills/payload/references/upstream.md` and `docs/ai/skills/cms-migration/references/upstream.md`.
 - **Optional Skills CLI install:** `npx skills add payloadcms/skills`.
 - **Pair with:** `docs/ai/rules/backend.md` for server and data boundaries.
 

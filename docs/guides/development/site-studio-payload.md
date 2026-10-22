@@ -8,7 +8,7 @@ This guide explains how to run and validate the Site Studio integration that liv
 
 - Payload admin UI mounted at `/web-studio` in Mission Control
 - Payload admin theming bridged to shared Maia + Zinc design tokens from `@asym/ui`
-- Payload provider shell embedded inside the Mission Control root layout, so `/web-studio` keeps Payload form/access context without rendering a second document shell
+- Public `RootProviders` with `getRootLayoutData` embedded inside the Mission Control root layout, so `/web-studio` keeps Payload form/access context without rendering a second document shell
 - **Web Studio editorial shell:** Mission Control–native list/edit workspaces for:
   - `pages`
   - `navigation`
@@ -323,14 +323,9 @@ For import-map-only repairs, prefer `bun run cms:importmap` without
 `NODE_ENV=test` so the command sees `.env.local` and the same plugin/env shape as
 local development.
 
-If a deployment must be rolled back:
-
-1. Revert app/runtime changes (routes, payload config, access files).
-2. Keep the `cms` schema in place unless data loss is explicitly approved.
-3. If absolutely required, revert Payload migrations first, then application code.
-4. Re-run:
-   - `bun run cms:migrate:status`
-   - `bun run typecheck:admin`
-   - `bun run lint:admin`
-
-Do **not** drop `cms` data in production without an approved backup + restore plan.
+For a runtime/schema rollback, follow the [operations runbook's public-v4
+migration boundary](web-studio-runbook.md#public-v4-migration-and-rollback-boundary).
+Pause writes first and inspect the migration batch. The committed down migration
+refuses lossy rollback after new media/storage metadata is written. Use the
+verified restore/reconciliation or a forward fix after that boundary; reverting
+application code alone does not restore the preceding storage contract.

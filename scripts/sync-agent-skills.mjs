@@ -142,7 +142,9 @@ const CANONICAL_MANIFEST_VERSION = 2;
 // version-specific guidance.
 const fullyManagedCanonicalSkills = new Set([
   "accessibility-review",
+  "cms-migration",
   "find-animation-opportunities",
+  "payload",
   "playwright-cli",
   "vitest",
 ]);

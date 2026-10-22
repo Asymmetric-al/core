@@ -76,7 +76,7 @@ describe("serializePublishedPageLike", () => {
             alt: "Jane in field",
             url: "/api/media/file/jane.jpg",
             tenant: 99,
-            sizes: {
+            variants: {
               thumbnail: { url: "/api/media/file/jane-320.jpg" },
               card: { url: "/api/media/file/jane-960.jpg" },
             },

@@ -1,5 +1,9 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { defaultRichTextValue } from "../../../apps/admin/node_modules/@payloadcms/richtext-lexical/dist/index.js";
+
+import type { PageCreateFields } from "../../../apps/admin/src/cms/create-from-template-payload-shapes";
+
 const { getAdminClientMock } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
 }));
@@ -76,6 +80,71 @@ function makeReq({
 }
 
 describe("webStudioCreateFromTemplateEndpoint", () => {
+  it("preserves a template's legacy nodes and creates an independent unchanged fallback document", async () => {
+    const layout = [
+      {
+        blockType: "rich-text",
+        body: {
+          root: {
+            type: "root",
+            children: [
+              {
+                type: "legacy-core-node",
+                version: 1,
+                customData: { variable: "supporter.name" },
+              },
+            ],
+            direction: null,
+            format: "",
+            indent: 0,
+            version: 1,
+          },
+          legacyMetadata: { revision: 7 },
+        },
+      },
+    ];
+    const create = vi
+      .fn<(options: { data: PageCreateFields }) => Promise<{ id: number }>>()
+      .mockResolvedValue({ id: 44 });
+    const req = makeReq({
+      user: { id: "u1", role: "staff", tenantId: "17" },
+      body: {
+        targetCollection: "pages",
+        templateId: "1",
+        title: "Reviewed page",
+        slug: "reviewed-page",
+      },
+      payloadOverrides: {
+        findByID: vi.fn().mockResolvedValue({
+          id: 1,
+          tenant: 17,
+          pageType: "standard",
+          defaultLayout: layout,
+          templateKey: "standard-default",
+        }),
+        create,
+      },
+    });
+
+    const response = await handler(req);
+
+    expect(response.status).toBe(200);
+    expect(create).toHaveBeenCalledWith({
+      collection: "pages",
+      data: expect.objectContaining({
+        tenant: 17,
+        layout,
+        content: defaultRichTextValue,
+      }),
+      draft: true,
+      req,
+    });
+    const content = create.mock.calls[0]?.[0].data.content;
+    expect(content).toEqual(defaultRichTextValue);
+    expect(content).not.toBe(defaultRichTextValue);
+    expect(content?.root).not.toBe(defaultRichTextValue.root);
+  });
+
   it("requires tenantId for super-admin missionary giving creates", async () => {
     const req = makeReq({
       user: { id: "u1", role: "super_admin", tenantId: null },

@@ -141,7 +141,7 @@ function readTemplateKey(template: PageTemplateForCreate): string {
 }
 
 function createDefaultRichTextValue(): CmsRichTextValue {
-  return defaultRichTextValue as unknown as CmsRichTextValue;
+  return { ...structuredClone(defaultRichTextValue) };
 }
 
 function readTenantIdFromDoc(doc: {

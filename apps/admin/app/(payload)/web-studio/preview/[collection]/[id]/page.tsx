@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
-import { createLocalReq } from "payload";
+import { createPayloadRequest } from "payload";
 
 import type { ReactNode } from "react";
 
@@ -41,7 +41,10 @@ export default async function WebStudioAuthenticatedPreviewPage({
 
   const headerStore = await headers();
   const payload = await getPayloadClient();
-  const req = await createLocalReq({ req: { headers: headerStore } }, payload);
+  const req = await createPayloadRequest({
+    payload,
+    req: { headers: headerStore },
+  });
   const auth = await payload.auth({ headers: headerStore, req });
 
   if (!auth.user) {
@@ -52,10 +55,11 @@ export default async function WebStudioAuthenticatedPreviewPage({
     );
   }
 
-  const authedReq = await createLocalReq(
-    { req: { headers: headerStore }, user: auth.user },
+  const authedReq = await createPayloadRequest({
     payload,
-  );
+    req: { headers: headerStore },
+    user: auth.user,
+  });
   const doc = await payload.findByID({
     collection,
     depth: 2,
