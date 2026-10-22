@@ -233,9 +233,9 @@ jobs:
         if: failure()
         run: |
           echo "--- donor dev log (tail) ---"
-          tail -n 150 /tmp/donor-dev.log || true
+          tail -n 150 "${RUNNER_TEMP:-/tmp}/donor-dev.log" || true
           echo "--- admin dev log (tail) ---"
-          tail -n 150 /tmp/admin-dev.log || true
+          tail -n 150 "${RUNNER_TEMP:-/tmp}/admin-dev.log" || true
       - name: Upload artifact on failure
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
