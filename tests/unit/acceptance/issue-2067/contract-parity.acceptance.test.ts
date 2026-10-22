@@ -125,13 +125,18 @@ function normalize(raw: unknown): NormalizedFunction[] {
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
-/** import / export-from / dynamic import / require specifiers. */
+/**
+ * import / export-from / dynamic import / require specifiers. Whitespace
+ * around the keyword and `from` is optional (`import{a}from"x"`,
+ * `export*from'x'`), and dynamic import / require also accept a backtick
+ * literal (CodeRabbit r4334294556).
+ */
 function specifiers(source: string): string[] {
   const out: string[] = [];
   const patterns = [
-    /\b(?:import|export)\s+(?:type\s+)?(?:[^'"`;]*?\sfrom\s+)?["']([^"']+)["']/g,
-    /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
-    /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g,
+    /\b(?:import|export)(?=[\s{*])\s*(?:type\s+)?(?:[^'"`;]*?\bfrom\s*)?["']([^"']+)["']/g,
+    /\bimport\s*\(\s*["'`]([^"'`]+)["'`]\s*\)/g,
+    /\brequire\s*\(\s*["'`]([^"'`]+)["'`]\s*\)/g,
     /\bvi\.mock\s*\(\s*["']([^"']+)["']/g,
   ];
   for (const pattern of patterns) {
@@ -320,5 +325,45 @@ describe("issue #2067 addendum 4 — production contract parity", () => {
     expect(isTestSource("packages/api/tests/verify.mjs")).toBe(true);
     expect(isTestSource("packages/api/src/x.test.ts")).toBe(true);
     expect(isTestSource("scripts/document-cutover/contract.ts")).toBe(false);
+  });
+
+  it("self-check: the scanner sees import / re-export specifiers written without whitespace, and ignores non-imports that contain `from`", () => {
+    const fake = path.join(REPO_ROOT, "scripts", "x", "y.ts");
+    const intoTestsHits = (source: string) =>
+      specifiers(source).filter((specifier) => {
+        const target = resolveLocal(fake, specifier);
+        return target !== undefined && intoTests(target);
+      });
+    const forms = [
+      'import{a}from"../../tests/a";',
+      'import a from"../../tests/b";',
+      "export{a}from'../../tests/c';",
+      'import { a }from "../../tests/d";',
+      'export*from"../../tests/e";',
+      'export * as ns from"../../tests/f";',
+      'import type{T}from"../../tests/g";',
+      'import {\n  a,\n  b,\n}from"../../tests/i";',
+      'import type { T } from "../../tests/j";',
+      "const k = await import(`../../tests/k`);",
+      "const l = require(`tests/l`);",
+    ];
+    for (const form of forms) {
+      expect(intoTestsHits(form), form).toHaveLength(1);
+    }
+    expect(
+      intoTestsHits(
+        [
+          "const fromX = 1;",
+          'const s = "datafrom"; const t = "../../tests/m";',
+          "export const fromTests = 1;",
+          'export const label = "from"; const n = "../../tests/n";',
+          'const v = Array.from("../../tests/o");',
+          'exports.from = "../../tests/p";',
+          "const u = import.meta.url;",
+          'const kinds = ["import", "export", "../../tests/q"];',
+          'switch (k) { case "export": return "../../tests/r"; }',
+        ].join("\n"),
+      ),
+    ).toEqual([]);
   });
 });
