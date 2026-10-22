@@ -1,4 +1,5 @@
 import {
+  PAGE_LAYOUT_BLOCK_SLUGS,
   buildPageBuilderCollectionFields,
   buildPageBuilderHooks,
   buildPageBuilderVersions,
@@ -15,7 +16,42 @@ import {
   tenantScopedUpdateAccess,
 } from "../access/tenant-access";
 
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig, Field } from "payload";
+
+const missionaryGivingFields = buildPageBuilderCollectionFields(
+  "missionary-giving",
+).map((field): Field => {
+  if (field.type !== "blocks" || field.name !== "layout") return field;
+
+  return {
+    ...field,
+    blocks: field.blocks.map((block) => {
+      if (
+        typeof block === "string" ||
+        block.slug !== PAGE_LAYOUT_BLOCK_SLUGS.impactStats
+      ) {
+        return block;
+      }
+
+      return {
+        ...block,
+        fields: block.fields.map((item): Field => {
+          if (item.type !== "array" || item.name !== "items") return item;
+
+          return {
+            ...item,
+            // Only this versioned array exceeds PostgreSQL's identifier limit.
+            // Preserve the live table and every other collection's block names.
+            dbName: ({ tableName }) =>
+              tableName === "_missionary_giving_pages_v_blocks_impact_stats"
+                ? "mgp_impact_items"
+                : `${tableName}_items`,
+          };
+        }),
+      };
+    }),
+  };
+});
 
 const nativeMissionaryGivingPagesAdmin = isNativeCollectionWebStudioEnabled(
   "missionary-giving-pages",
@@ -40,6 +76,7 @@ const nativeMissionaryGivingPagesAdmin = isNativeCollectionWebStudioEnabled(
 
 export const MissionaryGivingPages: CollectionConfig = {
   slug: "missionary-giving-pages",
+  authorship: false,
   admin: {
     defaultColumns: ["title", "slug", "missionaryId", "tenant", "updatedAt"],
     preview: createWebStudioAuthenticatedPreviewURL("missionary-giving-pages"),
@@ -57,5 +94,5 @@ export const MissionaryGivingPages: CollectionConfig = {
   },
   hooks: buildPageBuilderHooks(),
   versions: buildPageBuilderVersions(),
-  fields: buildPageBuilderCollectionFields("missionary-giving"),
+  fields: missionaryGivingFields,
 };

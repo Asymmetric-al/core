@@ -1043,7 +1043,7 @@
     {
       "name": "@payloadcms/db-postgres",
       "cohort": "payload-v4",
-      "owner": "Core maintainers",
+      "owner": "Core CMS maintainers",
       "upstream": {
         "url": "https://github.com/payloadcms/payload.git",
         "type": "git",
@@ -1061,24 +1061,33 @@
           "target": "4.0.0-beta.3"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-payload-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
+        "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
+      ],
+      "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@payloadcms/db-postgres",
-          "declared": "4.0.0-internal.1f9ae9a",
+          "declared": "4.0.0-beta.3",
           "target": "4.0.0-beta.3"
         }
-      ]
+      ],
+      "selectedTarget": "4.0.0-beta.3",
+      "selectedTargetSource": "https://registry.npmjs.org/%40payloadcms%2Fdb-postgres/4.0.0-beta.3",
+      "refreshedAt": "2026-10-22T02:01:53.268864+00:00",
+      "qualification": "payload-qualification.json"
     },
     {
       "name": "@payloadcms/email-resend",
       "cohort": "payload-v4",
-      "owner": "Core maintainers",
+      "owner": "Core CMS maintainers",
       "upstream": {
         "url": "https://github.com/payloadcms/payload.git",
         "type": "git",
@@ -1096,24 +1105,33 @@
           "target": "4.0.0-beta.3"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-payload-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
+        "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
+      ],
+      "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@payloadcms/email-resend",
-          "declared": "4.0.0-internal.1f9ae9a",
+          "declared": "4.0.0-beta.3",
           "target": "4.0.0-beta.3"
         }
-      ]
+      ],
+      "selectedTarget": "4.0.0-beta.3",
+      "selectedTargetSource": "https://registry.npmjs.org/%40payloadcms%2Femail-resend/4.0.0-beta.3",
+      "refreshedAt": "2026-10-22T02:01:53.268864+00:00",
+      "qualification": "payload-qualification.json"
     },
     {
       "name": "@payloadcms/next",
       "cohort": "payload-v4",
-      "owner": "Core maintainers",
+      "owner": "Core CMS maintainers",
       "upstream": {
         "url": "https://github.com/payloadcms/payload.git",
         "type": "git",
@@ -1131,24 +1149,33 @@
           "target": "4.0.0-beta.3"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-payload-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
+        "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
+      ],
+      "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@payloadcms/next",
-          "declared": "4.0.0-internal.1f9ae9a",
+          "declared": "4.0.0-beta.3",
           "target": "4.0.0-beta.3"
         }
-      ]
+      ],
+      "selectedTarget": "4.0.0-beta.3",
+      "selectedTargetSource": "https://registry.npmjs.org/%40payloadcms%2Fnext/4.0.0-beta.3",
+      "refreshedAt": "2026-10-22T02:01:53.268864+00:00",
+      "qualification": "payload-qualification.json"
     },
     {
       "name": "@payloadcms/richtext-lexical",
       "cohort": "payload-v4",
-      "owner": "Core maintainers",
+      "owner": "Core CMS maintainers",
       "upstream": {
         "url": "https://github.com/payloadcms/payload.git",
         "type": "git",
@@ -1166,24 +1193,33 @@
           "target": "4.0.0-beta.3"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-payload-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
+        "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
+      ],
+      "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@payloadcms/richtext-lexical",
-          "declared": "4.0.0-internal.1f9ae9a",
+          "declared": "4.0.0-beta.3",
           "target": "4.0.0-beta.3"
         }
-      ]
+      ],
+      "selectedTarget": "4.0.0-beta.3",
+      "selectedTargetSource": "https://registry.npmjs.org/%40payloadcms%2Frichtext-lexical/4.0.0-beta.3",
+      "refreshedAt": "2026-10-22T02:01:53.268864+00:00",
+      "qualification": "payload-qualification.json"
     },
     {
       "name": "@payloadcms/storage-vercel-blob",
       "cohort": "payload-v4",
-      "owner": "Core maintainers",
+      "owner": "Core CMS maintainers",
       "upstream": {
         "url": "https://github.com/payloadcms/payload.git",
         "type": "git",
@@ -1201,24 +1237,70 @@
           "target": "4.0.0-beta.3"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-payload-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
+        "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
+      ],
+      "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@payloadcms/storage-vercel-blob",
-          "declared": "4.0.0-internal.1f9ae9a",
+          "declared": "4.0.0-beta.3",
           "target": "4.0.0-beta.3"
         }
-      ]
+      ],
+      "selectedTarget": "4.0.0-beta.3",
+      "selectedTargetSource": "https://registry.npmjs.org/%40payloadcms%2Fstorage-vercel-blob/4.0.0-beta.3",
+      "refreshedAt": "2026-10-22T02:01:53.268864+00:00",
+      "qualification": "payload-qualification.json"
+    },
+    {
+      "name": "@payloadcms/transformer-sharp",
+      "cohort": "payload-v4",
+      "owner": "Core CMS maintainers",
+      "upstream": {
+        "url": "https://github.com/payloadcms/payload.git",
+        "type": "git",
+        "directory": "packages/transformer-sharp"
+      },
+      "registrySource": "https://registry.npmjs.org/@payloadcms%2ftransformer-sharp",
+      "auditedAt": "2026-10-22T02:01:53.268864+00:00",
+      "initialTarget": "4.0.0-beta.3",
+      "uses": [],
+      "introducedDuringModernization": true,
+      "state": "implemented-awaiting-payload-checkpoint-qualification",
+      "disposition": "upgraded",
+      "currentUses": [
+        {
+          "path": "apps/admin/package.json",
+          "section": "dependencies",
+          "declaredAs": "@payloadcms/transformer-sharp",
+          "declared": "4.0.0-beta.3",
+          "target": "4.0.0-beta.3"
+        }
+      ],
+      "selectedTarget": "4.0.0-beta.3",
+      "selectedTargetSource": "https://registry.npmjs.org/%40payloadcms%2Ftransformer-sharp/4.0.0-beta.3",
+      "refreshedAt": "2026-10-22T02:01:53.268864+00:00",
+      "qualification": "payload-qualification.json",
+      "verification": [
+        "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
+        "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
+      ],
+      "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed."
     },
     {
       "name": "@payloadcms/ui",
       "cohort": "payload-v4",
-      "owner": "Core maintainers",
+      "owner": "Core CMS maintainers",
       "upstream": {
         "url": "https://github.com/payloadcms/payload.git",
         "type": "git",
@@ -1236,19 +1318,28 @@
           "target": "4.0.0-beta.3"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-payload-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
+        "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
+      ],
+      "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@payloadcms/ui",
-          "declared": "4.0.0-internal.1f9ae9a",
+          "declared": "4.0.0-beta.3",
           "target": "4.0.0-beta.3"
         }
-      ]
+      ],
+      "selectedTarget": "4.0.0-beta.3",
+      "selectedTargetSource": "https://registry.npmjs.org/%40payloadcms%2Fui/4.0.0-beta.3",
+      "refreshedAt": "2026-10-22T02:01:53.268864+00:00",
+      "qualification": "payload-qualification.json"
     },
     {
       "name": "@playwright/test",
@@ -5532,7 +5623,7 @@
     {
       "name": "payload",
       "cohort": "payload-v4",
-      "owner": "Core maintainers",
+      "owner": "Core CMS maintainers",
       "upstream": {
         "url": "https://github.com/payloadcms/payload.git",
         "type": "git",
@@ -5550,19 +5641,28 @@
           "target": "4.0.0-beta.3"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-payload-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Public beta3 cohort/current npm metadata and artifact integrity frozen in payload-qualification.json.",
+        "Current focused CMS suite: all52 retained files/521 cases pass, including an isolated real-compiler regression for public block references. Fresh frozen installation, deterministic generated types/import map and all15 forced typecheck tasks passed without lock drift; current-head CI/preview requalification follows the compiler fix.",
+        "Committed migration runner up/concurrent guarded refusal/down/reapply,265business-table/1576row preservation and migrated backup/restore pass on isolated PostgreSQL17.11.",
+        "Actual local Auth sessions and all8 existing CMS E2E cases pass without skips; all3 applications build. Full combined gates, deployed previews, final current-head review/CI/security reconciliation and merge readback remain open."
+      ],
+      "note": "Replaces the internal spike with the approved official public beta cohort. No production execution or final release closure is claimed.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "payload",
-          "declared": "4.0.0-internal.1f9ae9a",
+          "declared": "4.0.0-beta.3",
           "target": "4.0.0-beta.3"
         }
-      ]
+      ],
+      "selectedTarget": "4.0.0-beta.3",
+      "selectedTargetSource": "https://registry.npmjs.org/payload/4.0.0-beta.3",
+      "refreshedAt": "2026-10-22T02:01:53.268864+00:00",
+      "qualification": "payload-qualification.json"
     },
     {
       "name": "playwright-core",
@@ -6437,7 +6537,15 @@
           "declared": "^0.35.5",
           "target": "0.35.5"
         }
-      ]
+      ],
+      "payloadTransformerCompatibility": {
+        "version": "0.35.5",
+        "owner": "Core CMS maintainers",
+        "upstreamRequest": "0.35.4",
+        "reason": "Current transformer upstream minor patch is below the existing native-security floor; real transformer regression fails without this root override.",
+        "verification": "payload-qualification.json proofs.nativeTransformerRed/nativeTransformerGreen",
+        "recheck": "Payload transformer or Sharp/libvips release changes invalidate this compatibility qualification."
+      }
     },
     {
       "name": "sonner",
@@ -7323,7 +7431,7 @@
     }
   ],
   "manifestCoverage": {
-    "capturedAt": "2026-10-21T21:04:36.264623+00:00",
+    "capturedAt": "2026-10-22T02:47:03.384393+00:00",
     "baselineCommit": "800213405e2c51e07180e86ee8322355e0fdb4eb",
     "activeManifests": [
       "package.json",
@@ -7351,8 +7459,8 @@
       "vendor/react-pdf-packages/asym-pdf-template-schema/package.json"
     ],
     "manifestCount": 23,
-    "canonicalExternalAndImportedIdentities": 129,
-    "currentDeclarationCount": 301,
+    "canonicalExternalAndImportedIdentities": 130,
+    "currentDeclarationCount": 302,
     "internalWorkspaceLinks": [
       {
         "path": "package.json",
@@ -7883,6 +7991,7 @@
         "declared": "workspace:*"
       }
     ],
-    "normalization": "npm aliases retain declaredAs and exact declarations under their canonical upstream identity; imported PDF workspace/file declarations retain all consumers."
+    "normalization": "npm aliases retain declaredAs and exact declarations under their canonical upstream identity; imported PDF workspace/file declarations retain all consumers.",
+    "currentSourceBase": "7df55820eee8a1e0076dea489f3836e8d15d7c69"
   }
 }

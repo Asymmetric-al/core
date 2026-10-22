@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "reactDoctorVersion": "0.9.18",
   "configHash": "9593037aa41b52d104aeea055158d7046dc23cfe6b202ce74fa22e0423b54f98",
-  "reviewedAt": "2026-10-21T19:49:32.528420+00:00",
+  "reviewedAt": "2026-10-22T02:03:43.764342+00:00",
   "exceptions": [
     {
       "filePath": "app/(app)/admin/eve/model-policy-panel.tsx",
@@ -159,7 +159,7 @@
         "apps/admin/app/(app)/automations/page-client.tsx": "1e822bb8e8768f49326123d967cbaf3eb7f64bbc708264f856b1c5407a5254c3",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -1644,14 +1644,14 @@
       "title": "Sequential independent awaits",
       "message": "This awaited initializer does not read the previous result. If the operations are independent asynchronous work, they may overlap; await syntax alone does not establish a speedup.",
       "help": "Consider `Promise.all([...])` only for independent asynchronous work. Shared queues or synchronous work may not benefit. Preserve resource limits, transaction ordering, and failure/cancellation semantics.",
-      "line": 136,
+      "line": 129,
       "column": 3,
-      "offset": 4404,
+      "offset": 4160,
       "length": 108,
-      "endLine": 139,
+      "endLine": 132,
       "category": "Bugs",
       "fingerprint": "2cfcc0ab0d94d2b24af1d551d595b94e18466e6befa9bc376fbaafdb7ebfd96b",
-      "id": "app/(payload)/layout.tsx::136:3::react-doctor/server-sequential-independent-await::bda80df43529b244005b0dfadb2d798ccaea8517ab9d61a15263f1ce95ec9db6",
+      "id": "app/(payload)/layout.tsx::129:3::react-doctor/server-sequential-independent-await::bda80df43529b244005b0dfadb2d798ccaea8517ab9d61a15263f1ce95ec9db6",
       "normalizedFilePath": "app/(payload)/layout.tsx",
       "tags": ["server-action", "test-noise"],
       "target": "apps/admin",
@@ -1664,16 +1664,17 @@
         "SOURCE layout.tsx:125-143 awaits localization first, then authentication, then creates the request with both. Promise.all would start identity mutations on a localization failure. No dedicated localization-rejection ordering regression was executed or found in this review.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(payload)/layout.tsx:129; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(payload)/layout.tsx:136. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale."
+        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
+        "PUBLIC V4 REQUALIFICATION 2026-10-22: the historical initReq.js citation above describes the retired internal cohort; that path is absent in public 4.0.0-beta.3. The current Core layout:125-144 still awaits getLocalI18n before executeAuthStrategies; installed locale initialization can reject before the configured Supabase strategy synchronizes tenants/users. getRootLayoutData now consumes the authenticated request. Versioned SDK/source hashes and the independent unchanged-context review are recorded in docs/maintenance/modernization/payload-quality-qualification.json. No new exception, rule suppression or parallel initialization was introduced."
       ],
       "reconsiderWhen": "Reconsider if authentication becomes pure/failure-atomic, localization becomes proven infallible under the actual runtime contract, or initialization failure ordering is deliberately changed with integration coverage.",
       "sourceContextHash": "ad5749c6adf7f7954d4893dceb88c45a369274bb025ba24f3cdaffad094d8254",
-      "sourceFileHash": "17e5c4926288a6c150fb57a4d30388a0d46c76f764d5fd28627154f36963f026",
+      "sourceFileHash": "1e5f2c66bcdd71f0451e52fb4a012064e0ac4229f3dd676e19c90c4e232fdbe3",
       "evidenceFileHashes": {
-        "apps/admin/app/(payload)/layout.tsx": "17e5c4926288a6c150fb57a4d30388a0d46c76f764d5fd28627154f36963f026",
-        "apps/admin/src/cms/collections/cms-users.ts": "fba30f7696cd629bcbcaac9987a1f14486c1734c6f2df27b0947babf7498ef1c",
+        "apps/admin/app/(payload)/layout.tsx": "1e5f2c66bcdd71f0451e52fb4a012064e0ac4229f3dd676e19c90c4e232fdbe3",
+        "apps/admin/src/cms/collections/cms-users.ts": "1b3197743ed8cbdc949874f1e9259de8c988166c5e953bc48e7f7ed9a32ed56c",
         "apps/admin/src/cms/auth/supabase-strategy.ts": "ad8373682bd6423cfceb5949075e443b42d578721cd2e3a13a4b2b2a01f3ab67",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -1684,14 +1685,14 @@
       "title": "Array index used as a key",
       "message": "Your users can see & submit the wrong data when this list reorders or filters, so use a stable id like `key={item.id}`, not the array index \"index\".",
       "help": "Use a stable id from the item, like `key={item.id}` or `key={item.slug}`. Index keys break when the list reorders or filters.",
-      "line": 322,
+      "line": 326,
       "column": 16,
-      "offset": 9929,
+      "offset": 9960,
       "length": 28,
-      "endLine": 322,
+      "endLine": 326,
       "category": "Bugs",
       "fingerprint": "ab2313eb8a21c57bf6847d4c1735e12c3dc1ed5d37bc25ed8f8e6b5df5b4c478",
-      "id": "app/(payload)/web-studio/preview/[collection]/[id]/page.tsx::322:16::react-doctor/no-array-index-as-key::4355749737c20ecca42e88a124407ac8602be73048f4c3deb95ffd199427279c",
+      "id": "app/(payload)/web-studio/preview/[collection]/[id]/page.tsx::326:16::react-doctor/no-array-index-as-key::4355749737c20ecca42e88a124407ac8602be73048f4c3deb95ffd199427279c",
       "normalizedFilePath": "app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -1703,9 +1704,9 @@
       ],
       "reconsiderWhen": "Reconsider before adding per-row editable controls, local state/ref/focus, keyed motion, reorderable independent async ownership, or stable-record identity requirements.",
       "sourceContextHash": "ab2313eb8a21c57bf6847d4c1735e12c3dc1ed5d37bc25ed8f8e6b5df5b4c478",
-      "sourceFileHash": "933780b6fa4ee50d82e990afb1f845fcfef8ff0fac0630bcbafcef7f6535426a",
+      "sourceFileHash": "95b977b2390616f397b00c175d9f6929009957c3092501760866a6dc6f2b46b4",
       "evidenceFileHashes": {
-        "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx": "933780b6fa4ee50d82e990afb1f845fcfef8ff0fac0630bcbafcef7f6535426a"
+        "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx": "95b977b2390616f397b00c175d9f6929009957c3092501760866a6dc6f2b46b4"
       }
     },
     {
@@ -1716,14 +1717,14 @@
       "title": "Array index used as a key",
       "message": "Your users can see & submit the wrong data when this list reorders or filters, so use a stable id like `key={item.id}`, not the array index \"index\".",
       "help": "Use a stable id from the item, like `key={item.id}` or `key={item.slug}`. Index keys break when the list reorders or filters.",
-      "line": 350,
+      "line": 354,
       "column": 16,
-      "offset": 10818,
+      "offset": 10849,
       "length": 28,
-      "endLine": 350,
+      "endLine": 354,
       "category": "Bugs",
       "fingerprint": "497db698d571c2af0ee7094fbbe8e88cb953a740afb80062d288058b660f5be1",
-      "id": "app/(payload)/web-studio/preview/[collection]/[id]/page.tsx::350:16::react-doctor/no-array-index-as-key::4355749737c20ecca42e88a124407ac8602be73048f4c3deb95ffd199427279c",
+      "id": "app/(payload)/web-studio/preview/[collection]/[id]/page.tsx::354:16::react-doctor/no-array-index-as-key::4355749737c20ecca42e88a124407ac8602be73048f4c3deb95ffd199427279c",
       "normalizedFilePath": "app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -1735,9 +1736,9 @@
       ],
       "reconsiderWhen": "Reconsider before adding per-row editable controls, local state/ref/focus, keyed motion, reorderable independent async ownership, or stable-record identity requirements.",
       "sourceContextHash": "497db698d571c2af0ee7094fbbe8e88cb953a740afb80062d288058b660f5be1",
-      "sourceFileHash": "933780b6fa4ee50d82e990afb1f845fcfef8ff0fac0630bcbafcef7f6535426a",
+      "sourceFileHash": "95b977b2390616f397b00c175d9f6929009957c3092501760866a6dc6f2b46b4",
       "evidenceFileHashes": {
-        "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx": "933780b6fa4ee50d82e990afb1f845fcfef8ff0fac0630bcbafcef7f6535426a"
+        "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx": "95b977b2390616f397b00c175d9f6929009957c3092501760866a6dc6f2b46b4"
       }
     },
     {
@@ -1848,7 +1849,7 @@
         "apps/admin/components/dashboard/charts/revenue-chart.tsx": "f14afd060eb3e204bc3565ec325b13bb0f244d2fbf8c6fbe8d6e98c2812e9566",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "packages/missionary/package.json": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -1888,7 +1889,7 @@
         "apps/admin/components/dashboard/charts/weekly-chart.tsx": "28fb60578d68d9cfba2d6833b30c297d43271b9c213501b4fa15861e7b8c8643",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "packages/missionary/package.json": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -2340,7 +2341,7 @@
       "sourceFileHash": "4a2a1d0e5bd19ea8a1acfb0ddbb801a347b3a2939f75240fa4d292927a8f2f1c",
       "evidenceFileHashes": {
         "apps/admin/features/mission-control/components/icons.tsx": "4a2a1d0e5bd19ea8a1acfb0ddbb801a347b3a2939f75240fa4d292927a8f2f1c",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -2444,7 +2445,7 @@
         "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": "fdf12e75c6db185dca2aea07ad7ef564fc01ea8994942b70b5350cd9d92d7e8e",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "packages/missionary/package.json": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -4724,7 +4725,7 @@
         "apps/donor/components/openpolicy/privacy-policy.tsx": "f20bf99cae680cd87f4bc97d7bcb9ee00c249075b5c59be4395fdde155a77d2c",
         "apps/donor/components/openpolicy/cookie-policy.tsx": "2ab88f03fce2ff3fa6552595d2aad7777b026697a463075fe7a9705adea131e1",
         "apps/donor/components/openpolicy/terms-of-service.tsx": "cba04917f74a338eae7005fd056ba4a112b41ddf0cb3e2ab8866e9a8c8a97ac2",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -5750,7 +5751,7 @@
       "sourceFileHash": "4a788a329cde31fc22e52a328a9bf784b5f42226eb22068ec1655cd6ed6ae672",
       "evidenceFileHashes": {
         "packages/missionary/components/task-kanban-board.tsx": "4a788a329cde31fc22e52a328a9bf784b5f42226eb22068ec1655cd6ed6ae672",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -5830,7 +5831,7 @@
         "packages/missionary/components/giving-breakdown-chart.tsx": "3e34e6908b5c2a575078ea34a8c4bb4114393021da7dd08c1dfcde74aed807be",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "packages/missionary/package.json": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -5870,7 +5871,7 @@
         "packages/missionary/components/metric-tiles.tsx": "1fff7e9b5e68d4d3d284669dd8ae27a47b6e905e5a3d1a97324d0c78ae368be7",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "packages/missionary/package.json": "512f476759e3bc371ce4435b2a50a33ac4a403e01ee03d60ddb2f5f07e636f77",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -6636,7 +6637,7 @@
         "packages/ui/components/public/about-sections.tsx": "2eb3c43ba03cfe257f5811d83f6637bfc2900edeca1511260f9e117889d68411",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -6674,7 +6675,7 @@
         "packages/ui/components/public/home-hero-animated.tsx": "27705bb3aade267bbea63c4ecb19021979b7a0e50a799b97ec8465db8982a6ee",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -7262,7 +7263,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -7298,7 +7299,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -7334,7 +7335,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -7406,7 +7407,7 @@
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
         "packages/missionary/components/giving-breakdown-chart.tsx": "3e34e6908b5c2a575078ea34a8c4bb4114393021da7dd08c1dfcde74aed807be",
         "packages/missionary/components/metric-tiles.tsx": "1fff7e9b5e68d4d3d284669dd8ae27a47b6e905e5a3d1a97324d0c78ae368be7",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06",
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "apps/admin/components/dashboard/charts/revenue-chart.tsx": "f14afd060eb3e204bc3565ec325b13bb0f244d2fbf8c6fbe8d6e98c2812e9566",
         "apps/admin/components/dashboard/charts/weekly-chart.tsx": "28fb60578d68d9cfba2d6833b30c297d43271b9c213501b4fa15861e7b8c8643",
@@ -8435,7 +8436,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -8675,7 +8676,7 @@
         "packages/ui/components/shadcn/navigation-menu.ts": "d4ede3fd9b3a382ea89bae3cdad165edfd87b9cb45cd50359cafe0d7b73eceb5",
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -8951,7 +8952,7 @@
         "packages/ui/components/shadcn/rich-text-editor/extensions.ts": "aa604ff115ee739bbca1be7a213baabe945f0d8695ad9d6fc53a672004e5a388",
         "packages/ui/components/shadcn/rich-text-editor/image-view.ts": "a980eb79747730632fb040646a2d2645d88f73d9a5f7bba9ab2107a7134daa28",
         "tests/unit/packages/ui/image-resize-a11y.test.tsx": "272812e57efd2fef7f68116aa18399f90e8fab41c7fdf8aebcdc22a4b8df52be",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -9218,7 +9219,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "3a56c80dcc89cfb3007ed0aa6ee4370b50200ecca0f751a64dca5ac03cfdcd85",
         "packages/ui/lib/base-ui.ts": "68b33342c62b74e72389cc1638234d78432801f5c250fa204937fbf4f8e6619a",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -9756,7 +9757,7 @@
       "sourceFileHash": "a20627ed47dae0e2385fdfa2825f0a7108dbbf363271cae866f408e89d680118",
       "evidenceFileHashes": {
         "packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx": "a20627ed47dae0e2385fdfa2825f0a7108dbbf363271cae866f408e89d680118",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {
@@ -9991,7 +9992,7 @@
         "packages/ui/tsconfig.json": "f8c63eb108926bca4f4326b9555a6ae2239e515635c47251456975e639b05eb9",
         "packages/ui/components/view-transitions/index.ts": "ba9d97ad8f3a2119b305ec4cb0c7085141189b9158e3c56cc2b1235c2d0db01d",
         "packages/lib/view-transitions/index.ts": "eacbe9b75a9e475b74401a7ca8162cf052e6593c38440754507ab9c4a26aa006",
-        "bun.lock": "8ef96d83bac1c2b3a1512cfe2c3cabfcfa81d0a1cdbec956b1550f81abc0fa06"
+        "bun.lock": "05bca00c6fedbb4db3018dc0d6aecb13cd219caf2826179608e92fb25d984793"
       }
     },
     {

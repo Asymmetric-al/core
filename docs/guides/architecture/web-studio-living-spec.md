@@ -28,7 +28,7 @@
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Runtime**              | Single Payload instance in `apps/admin`; Postgres `cms` schema via `@payloadcms/db-postgres`.                                                                                                                                          |
 | **Admin route**          | `routes.admin: /web-studio` in `apps/admin/payload.config.ts`; Next catch-all `apps/admin/app/(payload)/web-studio/[[...segments]]/page.tsx`.                                                                                          |
-| **Admin provider shell** | `apps/admin/app/(payload)/layout.tsx` embeds Payload `RootProvider` inside the existing Mission Control document shell; it does not render another `<html>` / `<body>`.                                                                |
+| **Admin provider shell** | `apps/admin/app/(payload)/layout.tsx` embeds public Payload `RootProviders` using `getRootLayoutData` inside the existing Mission Control document shell; it does not render another `<html>` / `<body>`.                              |
 | **Payload REST/GraphQL** | `apps/admin/app/(payload)/api/[...slug]/route.ts`, `.../api/graphql/route.ts` — same origin as admin app.                                                                                                                              |
 | **Public read API**      | `apps/admin/app/api/cms/public/**` — **not** the `(payload)` group; tenant resolution + published-only queries.                                                                                                                        |
 | **Custom views**         | `buildConfig.admin.components.views` for top-level flows; per-collection `admin.components.views` for list/edit overrides.                                                                                                             |
@@ -36,23 +36,26 @@
 | **Access**               | `apps/admin/src/cms/access/*` + tenant hooks on collections; public content reads use the sole `PublishedContentReader` with `overrideAccess: false` and the independent public-read policy; tenant lookup is a non-content exception. |
 | **Preferences**          | Payload preferences API; keys in `apps/admin/src/cms-ui/web-studio/preferences/keys.ts`.                                                                                                                                               |
 
-### Payload 4 spike status
+### Public Payload v4 checkpoint
 
-Web Studio currently runs on Payload `4.0.0-internal.1f9ae9a` as an explicit
-spike dependency. This proves the admin CMS engine can boot, migrate, render
-native Web Studio routes, and keep public CMS boundaries intact on the internal
-Payload 4 line; it is not yet the final stable dependency contract.
+The current implementation selects the complete official public
+`4.0.0-beta.3` cohort, including the Sharp upload transformer. The prior internal
+spike is superseded. This is an approved pinned beta, with release qualification
+tracked in [the modernization checkpoint](../../maintenance/modernization/payload.md);
+source selection does not establish production admission or Phase 22–24 acceptance.
 
-Graduation criteria before treating Payload 4 as the durable baseline:
+The integration uses `createPayloadRequest`, access-enforced Local API defaults,
+explicit collection versions/authorship, root upload transformers and internal
+media `variants`. Public serializers retain their existing allowlisted response
+contract. The CMS keeps its upstream-required GraphQL 16 runtime inside the CMS
+boundary; product GraphQL 17 schema objects do not cross it.
 
-- replace internal Payload packages with a supported stable channel or an
-  explicitly approved pinned internal release;
-- keep `bun run cms:migrate`, `bun run cms:migrate:status`, and
-  `bun run cms:importmap` on Node.js `24.15.0+`;
-- keep `bun run typecheck:admin`, `bun run build:admin`,
-  `bun run test:unit:cms`, and CMS Playwright smoke green against Postgres;
-- keep donor/missionary apps consuming public CMS APIs rather than importing
-  Payload runtime code.
+Apply only the committed migrations through the guarded CMS runner. The
+[operations runbook](../development/web-studio-runbook.md) owns the ordered
+media/metadata migrations, backup verification, write pause and lossless rollback
+boundary. Keep approved Node 24 and Bun versions from the root setup checks;
+all three applications, the editor, authentication, uploads, tenant denials,
+clean installation and deployed previews require their recorded qualification.
 
 ---
 
@@ -177,7 +180,7 @@ Tenant order: `resolveTenantFromRequest` — **forwarded host / host primary-dom
 | Outer layout, studio nav, breadcrumbs, “Mission Control” rhythm     | Mission Control (`StudioLayout`, shell)                       |
 | Collection table chrome, filter bar integration, “New” CTA          | Mission Control native list                                   |
 | Document header actions row, inspector panel, preview button wiring | Mission Control (`NativeCollectionEditView`)                  |
-| Payload admin providers, permissions, preferences, locale, portal   | Embedded Payload `RootProvider` in `(payload)/layout.tsx`     |
+| Payload admin providers, permissions, preferences, locale, portal   | Embedded Payload `RootProviders` in `(payload)/layout.tsx`    |
 | Field rendering, validation, dirty state, Lexical                   | Payload                                                       |
 | Save / draft / publish / unpublish                                  | Payload controls                                              |
 | Versions / API / live preview **tabs**                              | Payload (default)                                             |
@@ -1073,7 +1076,7 @@ This target is planning authority, not a claim that the replacement has shipped.
 | Topic                        | Fact                                                                                           |
 | ---------------------------- | ---------------------------------------------------------------------------------------------- |
 | Global Payload editor        | `lexicalEditor()` in `apps/admin/payload.config.ts`                                            |
-| Package                      | `@payloadcms/richtext-lexical@4.0.0-internal.1f9ae9a`                                          |
+| Package                      | `@payloadcms/richtext-lexical` from the exact public-v4 cohort in `apps/admin/package.json`    |
 | TipTap in Web Studio tree    | **Not used** — no imports under `cms-ui/web-studio/`                                           |
 | TipTap in monorepo           | Root `package.json` / skills support **other** surfaces; **not** the Payload admin editor path |
 | Rich text in `layout` blocks | Block fields of type `richText` use the same Lexical editor                                    |
@@ -1222,9 +1225,10 @@ Handled inside Payload’s default edit view and field components. **Risk:** rep
 
 Use `apps/admin/package.json` for declared direct dependencies and `bun.lock`
 for their resolved versions; package-level manifests identify shared dependencies.
-The 2026-09-16 source inspection retains Payload
-`4.0.0-internal.1f9ae9a` and Next `16.3.0-preview.9`. The earlier copied
-table had stale Base UI, Query and Table versions and is retired.
+The 2026-09-16 inspection recorded Payload `4.0.0-internal.1f9ae9a` and Next
+`16.3.0-preview.9`. That historical observation is superseded by the security and public-v4
+modernization checkpoints. The earlier copied dependency table is retired;
+current manifests, the frozen lockfile and checkpoint evidence own versions.
 
 A dependency pin or successful engine spike does not establish the Phase 23
 production-qualified major-line commitment. Its qualification and release gates

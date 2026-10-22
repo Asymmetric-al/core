@@ -198,9 +198,12 @@ function serializePublicMedia(value: unknown) {
   }
 
   const media = value as Record<string, unknown>;
-  const sizes = media.sizes as Record<string, unknown> | undefined;
-  const thumbnail = readMediaSizeUrl(sizes?.thumbnail);
-  const card = readMediaSizeUrl(sizes?.card);
+  const variants =
+    media.variants && typeof media.variants === "object"
+      ? (media.variants as Record<string, unknown>)
+      : undefined;
+  const thumbnail = readMediaVariantUrl(variants?.thumbnail);
+  const card = readMediaVariantUrl(variants?.card);
 
   const serialized: SerializedPublicMedia = {
     id:
@@ -232,7 +235,7 @@ function serializePublicMedia(value: unknown) {
   return serialized;
 }
 
-function readMediaSizeUrl(value: unknown) {
+function readMediaVariantUrl(value: unknown) {
   if (!value || typeof value !== "object") {
     return null;
   }

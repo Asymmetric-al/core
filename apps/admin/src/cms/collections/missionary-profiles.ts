@@ -34,6 +34,7 @@ const nativeMissionaryProfilesAdmin = isNativeCollectionWebStudioEnabled(
 
 export const MissionaryProfiles: CollectionConfig = {
   slug: "missionary-profiles",
+  authorship: false,
   versions: false,
   admin: {
     defaultColumns: ["fullName", "tenant", "updatedAt"],

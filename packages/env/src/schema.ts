@@ -218,6 +218,7 @@ export const env = createEnv({
     BING_SITE_VERIFICATION: z.string().optional(),
     PAYLOAD_SECRET: z.string().optional(),
     PAYLOAD_DATABASE_URI: z.string().optional(),
+    PAYLOAD_DATABASE_SSL_CA: z.string().optional(),
     PAYLOAD_DATABASE_POOL_MAX: optionalPositiveInteger.refine(
       (value) => value === undefined || value >= 2,
       "PAYLOAD_DATABASE_POOL_MAX must be at least 2",
@@ -353,6 +354,7 @@ export const env = createEnv({
     BING_SITE_VERIFICATION: process.env.BING_SITE_VERIFICATION,
     PAYLOAD_SECRET: process.env.PAYLOAD_SECRET,
     PAYLOAD_DATABASE_URI: process.env.PAYLOAD_DATABASE_URI,
+    PAYLOAD_DATABASE_SSL_CA: process.env.PAYLOAD_DATABASE_SSL_CA,
     PAYLOAD_DATABASE_POOL_MAX: process.env.PAYLOAD_DATABASE_POOL_MAX,
     DONOR_APP_URL: process.env.DONOR_APP_URL,
     CMS_BASE_URL: process.env.CMS_BASE_URL,

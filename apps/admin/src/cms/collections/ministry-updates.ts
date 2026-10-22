@@ -11,6 +11,7 @@ import {
 } from "../access/tenant-access";
 import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
 import { applyTenantFromContext } from "../hooks/tenant";
+import { coreRichTextDocumentSchema } from "../rich-text-document-schema";
 
 import type { CollectionConfig } from "payload";
 
@@ -37,6 +38,7 @@ const nativeMinistryUpdatesAdmin = isNativeCollectionWebStudioEnabled(
 
 export const MinistryUpdates: CollectionConfig = {
   slug: "ministry-updates",
+  authorship: false,
   admin: {
     defaultColumns: ["title", "tenant", "updatedAt"],
     preview: createWebStudioAuthenticatedPreviewURL("ministry-updates"),
@@ -99,6 +101,7 @@ export const MinistryUpdates: CollectionConfig = {
       name: "content",
       type: "richText",
       required: true,
+      jsonSchema: [coreRichTextDocumentSchema],
     },
     {
       name: "publishedAt",

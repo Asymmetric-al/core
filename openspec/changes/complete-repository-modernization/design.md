@@ -87,3 +87,22 @@ payment drain but never mutate production. Finish with a cold combined install,
 SBOM and official-advisory reconciliation, previews, and a hashed release package
 containing committed migration order, preserved counts/assets/relationships,
 restore evidence, rollback limits, reauthentication and monitoring instructions.
+
+## Explicit preview delivery supersession
+
+The user-approved modernization finish line requires current-head deployed
+previews with opaque credentials preserved. Vercel CLI 65 does not return
+Preview Secrets through pull; clean local prebuilt builds receive placeholders
+and cannot use the configured CMS database. This change explicitly supersedes
+only the GitHub compilation/prebuilt upload clause of `reduce-development-builds`.
+Explicit same-repository, ready, labelled QA builds run on Vercel from the exact
+API-selected PR SHA and branch. Secrets stay with the provider. Automatic develop
+and PR Git deployment gates, correctness checks, affected-surface selection and
+production policy remain binding.
+
+Provider readback must prove project, repository, exact SHA, branch and Preview
+target before accepting READY. Bounded waits cancel only identified owned builds;
+unconfirmed ownership or cleanup fails qualification. Admin's observed 8 GiB
+hosted build exhaustion justifies a larger machine on that explicit preview only;
+no shared project settings change. Ignore decisions compare the last successful
+project-and-branch deployment SHA; missing or unusable history requires a build.

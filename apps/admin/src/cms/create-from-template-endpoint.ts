@@ -129,9 +129,22 @@ function readTemplateTenant(template: PageTemplateForCreate): string | null {
 }
 
 function readDefaultLayout(template: PageTemplateForCreate): CmsLayoutBlocks {
-  return "defaultLayout" in template && Array.isArray(template.defaultLayout)
-    ? (template.defaultLayout as CmsLayoutBlocks)
-    : [];
+  if (!Array.isArray(template.defaultLayout)) {
+    return [];
+  }
+
+  const layout = structuredClone(template.defaultLayout);
+  for (const block of layout) {
+    // A new document needs new persisted rows; relationship and rich-text IDs
+    // belong to the content and must survive template creation.
+    delete block.id;
+    if (block.blockType === "faq" || block.blockType === "impact-stats") {
+      for (const item of block.items) {
+        delete item.id;
+      }
+    }
+  }
+  return layout;
 }
 
 function readTemplateKey(template: PageTemplateForCreate): string {
@@ -141,7 +154,7 @@ function readTemplateKey(template: PageTemplateForCreate): string {
 }
 
 function createDefaultRichTextValue(): CmsRichTextValue {
-  return defaultRichTextValue as unknown as CmsRichTextValue;
+  return { ...structuredClone(defaultRichTextValue) };
 }
 
 function readTenantIdFromDoc(doc: {

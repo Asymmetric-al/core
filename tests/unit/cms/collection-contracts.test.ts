@@ -25,7 +25,7 @@ type CollectionDef = {
   versions?: false | DraftVersionsDef;
   upload?: {
     staticDir?: string;
-    imageSizes?: Array<{ name?: string; width?: number; height?: number }>;
+    variants?: Array<{ name?: string }>;
     mimeTypes?: string[];
     pasteURL?: boolean;
   };
@@ -190,7 +190,7 @@ describe("CMS collection contracts", () => {
     );
   });
 
-  it("keeps media upload transforms for thumbnail and card surfaces", () => {
+  it("keeps media upload restrictions and thumbnail/card variant names", async () => {
     expect(Media.upload).toEqual(
       expect.objectContaining({
         staticDir: "media",
@@ -202,13 +202,20 @@ describe("CMS collection contracts", () => {
           "image/webp",
         ],
         pasteURL: false,
-        imageSizes: expect.arrayContaining([
-          expect.objectContaining({
-            name: "thumbnail",
-            width: 320,
-            height: 320,
-          }),
-          expect.objectContaining({ name: "card", width: 960, height: 540 }),
+      }),
+    );
+    const { default: configured } =
+      await import("../../../apps/admin/payload.config");
+    const config = await configured;
+    expect(
+      config.collections.find((entry) => entry.slug === "media")?.upload,
+    ).toEqual(
+      expect.objectContaining({
+        variants: expect.arrayContaining([
+          // V4 projects names here; the transformer owns dimensions. The native
+          // media tests prove both output sizes for all five permitted formats.
+          expect.objectContaining({ name: "thumbnail" }),
+          expect.objectContaining({ name: "card" }),
         ]),
       }),
     );

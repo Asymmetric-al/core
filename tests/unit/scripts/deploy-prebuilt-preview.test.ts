@@ -4,6 +4,7 @@ import { deployPrebuiltPreview } from "../../../scripts/qa/deploy-prebuilt-previ
 
 const env = {
   GITHUB_ACTIONS: "true",
+  CORE_PREVIEW_GIT_BRANCH: "chore/AL-1965-payload-public-v4",
   VERCEL_ORG_ID: "team_YrLB8jJARcRH0jnF1HPpPGTB",
   VERCEL_PROJECT_ID: "prj_SB9DucsrJOT0wF1v43SWMFsSNdn8",
   VERCEL_TOKEN: "test-token",
@@ -36,6 +37,9 @@ describe("prebuilt preview delivery", () => {
       ["bunx", "vercel@65.0.0"],
     ]);
     expect(run.mock.calls[0][1]).toContain("--environment=preview");
+    expect(run.mock.calls[0][1]).toContain(
+      `--git-branch=${env.CORE_PREVIEW_GIT_BRANCH}`,
+    );
     expect(run.mock.calls[2][1]).toContain("--prebuilt");
     expect(run.mock.calls[2][1]).toContain("--target=preview");
     for (const call of run.mock.calls) {
@@ -58,6 +62,159 @@ describe("prebuilt preview delivery", () => {
     expect(remove).toHaveBeenCalledTimes(2);
     expect(run).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    {
+      result: {
+        status: 137,
+        signal: "SIGKILL",
+        stderr: "private-cms-password",
+      },
+      expected:
+        "status=137; signal=SIGKILL; spawn=none; categories=process-killed",
+    },
+    {
+      result: {
+        status: 1,
+        stderr: "Invalid environment variables private-cms-password",
+      },
+      expected:
+        "status=1; signal=none; spawn=none; categories=environment-validation",
+    },
+    {
+      result: {
+        status: 1,
+        stderr:
+          "PAYLOAD_DATABASE_SSL_CA requires exactly one sslmode=verify-full. private-cms-password",
+      },
+      expected:
+        "status=1; signal=none; spawn=none; categories=tls-configuration",
+    },
+    {
+      result: {
+        status: null,
+        error: { code: "ENOBUFS", message: "private-cms-password" },
+      },
+      expected:
+        "status=unknown; signal=none; spawn=ENOBUFS; categories=output-limit",
+    },
+    {
+      result: {
+        status: 1,
+        signal: "private-cms-password",
+        error: { code: "private-cms-password" },
+        stdout: "private-cms-password",
+      },
+      expected:
+        "status=1; signal=unknown; spawn=unknown; categories=unclassified",
+    },
+  ])(
+    "reports bounded failure diagnostics without exposing child output ($expected)",
+    ({ result, expected }) => {
+      const remove = vi.fn();
+      const run = vi
+        .fn()
+        .mockReturnValueOnce({ status: 0, stdout: "pulled" })
+        .mockReturnValueOnce(result);
+      let failure: unknown;
+      try {
+        deployPrebuiltPreview({ app: "admin", env, run, remove });
+      } catch (error) {
+        failure = error;
+      }
+      expect(failure).toBeInstanceOf(Error);
+      const message = failure instanceof Error ? failure.message : "";
+      expect(message).toContain(expected);
+      expect(message).not.toContain("private-cms-password");
+      expect(message).not.toContain(env.VERCEL_TOKEN);
+      expect(message).toContain("raw CLI output is withheld");
+      expect(run).toHaveBeenCalledTimes(2);
+      expect(remove).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it.each([
+    ["TypeError: Invalid URL private-cms-password", "invalid-url"],
+    ["connect ECONNREFUSED private-cms-password", "connection-failure"],
+    [
+      "self-signed certificate in certificate chain private-cms-password",
+      "tls-runtime",
+    ],
+    [
+      "FATAL ERROR: Reached heap limit Allocation failed private-cms-password",
+      "memory-limit",
+    ],
+    [
+      "Command exited with code 137 private-cms-password",
+      "nested-process-killed",
+    ],
+    ["Type error: Type mismatch private-cms-password", "typescript"],
+    ["Module not found: private-cms-password", "module-resolution"],
+    ["Error occurred prerendering page private-cms-password", "prerender"],
+    ["Build error occurred private-cms-password", "framework-build"],
+    [
+      "error: lockfile had changes, but lockfile is frozen private-cms-password",
+      "installation",
+    ],
+  ])(
+    "classifies the fixed failure marker %s without child text",
+    (stderr, category) => {
+      const run = vi
+        .fn()
+        .mockReturnValueOnce({ status: 0, stdout: "pulled" })
+        .mockReturnValueOnce({ status: 1, stderr });
+      expect(() =>
+        deployPrebuiltPreview({ app: "admin", env, run, remove: vi.fn() }),
+      ).toThrow(`categories=${category}`);
+      try {
+        deployPrebuiltPreview({
+          app: "admin",
+          env,
+          run: vi.fn().mockReturnValue({ status: 1, stderr }),
+          remove: vi.fn(),
+        });
+      } catch (error) {
+        expect(error instanceof Error ? error.message : "").not.toContain(
+          "private-cms-password",
+        );
+      }
+    },
+  );
+
+  it.each([
+    ["error: install failed private-cms-password", "installation"],
+    [
+      `error: install ${"x".repeat(201)} failed private-cms-password`,
+      "unclassified",
+    ],
+  ])("bounds the installation failure marker (%s)", (stderr, category) => {
+    expect(() =>
+      deployPrebuiltPreview({
+        app: "admin",
+        env,
+        run: vi.fn().mockReturnValue({ status: 1, stderr }),
+        remove: vi.fn(),
+      }),
+    ).toThrow(`categories=${category}`);
+  });
+
+  it.each([undefined, "", "HEAD", "feature\nother"])(
+    "rejects an absent or invalid explicit PR branch (%s) before local mutation",
+    (branch) => {
+      const run = vi.fn();
+      const remove = vi.fn();
+      expect(() =>
+        deployPrebuiltPreview({
+          app: "admin",
+          env: { ...env, CORE_PREVIEW_GIT_BRANCH: branch },
+          run,
+          remove,
+        }),
+      ).toThrow("explicit PR head branch");
+      expect(run).not.toHaveBeenCalled();
+      expect(remove).not.toHaveBeenCalled();
+    },
+  );
 
   it("rejects mismatched app/project credentials before touching local state", () => {
     const run = vi.fn();

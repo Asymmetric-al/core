@@ -141,21 +141,31 @@ export function resolveBuildDecision({ app, changedFiles }) {
 }
 
 function listChangedFiles() {
+  const previous = process.env.VERCEL_GIT_PREVIOUS_SHA;
+  if (!/^[a-f0-9]{40}$/.test(previous ?? "")) return [];
+
   const repoRoot = execFileSync("git", ["rev-parse", "--show-toplevel"], {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   }).trim();
 
+  execFileSync(
+    "git",
+    ["-C", repoRoot, "merge-base", "--is-ancestor", previous, "HEAD"],
+    {
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
   const diffOutput = execFileSync(
     "git",
-    ["-C", repoRoot, "diff", "--name-only", "HEAD^", "HEAD", "--"],
+    ["-C", repoRoot, "diff", "--name-only", "-z", previous, "HEAD", "--"],
     {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     },
   );
 
-  return diffOutput.split(/\r?\n/).filter(Boolean);
+  return diffOutput.split("\0").filter(Boolean);
 }
 
 function runCli(argv) {
@@ -164,9 +174,10 @@ function runCli(argv) {
 
   try {
     changedFiles = listChangedFiles();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.log(`[vercel-ignore] building ${app ?? "<missing>"}: ${message}`);
+  } catch {
+    console.log(
+      `[vercel-ignore] building ${app ?? "<missing>"}: previous deployment diff unavailable`,
+    );
     return 1;
   }
 

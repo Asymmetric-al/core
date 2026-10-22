@@ -406,3 +406,7 @@ bun run skills:verify
 For a failed upstream refresh, revert the changed canonical skill directories,
 `skills-lock.json`, `AGENTS.md`, `README.md`, and `docs/AI_AGENT_PLAYBOOK.md`,
 then rerun `bun run skills:sync`.
+
+## 2026-10-22 — Payload public-v4 adapters
+
+The canonical Payload application and CMS-import skills now use `payload` and `cms-migration`, matching their installed identities. This supersedes the historical `payloadcms-payload` / `payloadcms-cms-migration` aliases recorded above. Core's OpenSpec, backend, Supabase, data-access, and design-system overlays remain authoritative. The outdated generic v3 manuals are removed from active routing and mirrors; versioned public-v4 guidance and installed declarations replace them. Reviewed upstream commit, removed-file hashes, and migration provenance are recorded in [payload-skill-provenance.json](../maintenance/modernization/payload-skill-provenance.json).

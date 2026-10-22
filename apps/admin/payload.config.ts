@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { sharpTransformer } from "@payloadcms/transformer-sharp";
 import { buildConfig } from "payload";
 import sharp from "sharp";
 
@@ -51,6 +52,12 @@ function resolvePayloadSecret() {
 
 export default buildConfig({
   admin: {
+    dependencies: {
+      vercelBlobClientUploadHandler: {
+        type: "component",
+        path: "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler",
+      },
+    },
     components: {
       beforeNav: ["/src/cms-ui/root/Nav.tsx#Nav"],
       graphics: {
@@ -116,13 +123,28 @@ export default buildConfig({
   }),
   editor: lexicalEditor(),
   email: resolvePayloadEmailAdapter(),
+  llmInstructions: false,
   routes: {
     admin: "/web-studio",
   },
   secret: resolvePayloadSecret(),
   storage: createPayloadStorageAdapters(),
+  upload: {
+    transformers: [
+      sharpTransformer({
+        sharp,
+        collections: {
+          media: {
+            variants: [
+              { name: "thumbnail", width: 320, height: 320 },
+              { name: "card", width: 960, height: 540 },
+            ],
+          },
+        },
+      }),
+    ],
+  },
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },
-  sharp,
 });
