@@ -120,6 +120,24 @@ describe("Eve GitHub trigger authorization", () => {
     ).toBe(false);
   });
 
+  it.each([
+    [301_899_336, false],
+    [206_951_365, true],
+    [199_175_422, true],
+    [299_239_962, true],
+  ])(
+    "rejects the retired bot account and keeps approved App bot accounts (%i -> %s)",
+    async (id, expected) => {
+      expect(
+        await authorizeEveGithubActor({
+          actor: { id, login: "automation[bot]", type: "Bot" },
+          approvedBotAccountIds: APPROVED_PR_AUTOMATION_BOT_IDS,
+          request: github("inactive", "none"),
+        }),
+      ).toBe(expected);
+    },
+  );
+
   it("only accepts GitHub Actions check suites for automatic merge consideration", () => {
     expect(
       authorizeEveGithubCheckSuite({

@@ -2,11 +2,11 @@
 const CORE = "/repos/Asymmetric-al/core";
 const WRITE_ROLES = new Set(["write", "maintain", "admin"]);
 const GITHUB_ACTIONS_APP_ID = 15368;
-// Numeric GitHub bot accounts for the installed Cursor, Codex Connector, Eve,
-// and Core PR Loop Apps.
+// Numeric GitHub bot accounts for the installed Cursor, Codex Connector, and
+// Eve Apps.
 // This is used only for signed PR events, which lack performed_via_github_app.
 export const APPROVED_PR_AUTOMATION_BOT_IDS: ReadonlySet<number> = new Set([
-  206_951_365, 199_175_422, 299_239_962, 301_899_336,
+  206_951_365, 199_175_422, 299_239_962,
 ]);
 
 type GithubResponse = { body: unknown; status: number };
