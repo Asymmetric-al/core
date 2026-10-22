@@ -4,6 +4,7 @@ import { deployPrebuiltPreview } from "../../../scripts/qa/deploy-prebuilt-previ
 
 const env = {
   GITHUB_ACTIONS: "true",
+  CORE_PREVIEW_GIT_BRANCH: "chore/AL-1965-payload-public-v4",
   VERCEL_ORG_ID: "team_YrLB8jJARcRH0jnF1HPpPGTB",
   VERCEL_PROJECT_ID: "prj_SB9DucsrJOT0wF1v43SWMFsSNdn8",
   VERCEL_TOKEN: "test-token",
@@ -36,6 +37,9 @@ describe("prebuilt preview delivery", () => {
       ["bunx", "vercel@65.0.0"],
     ]);
     expect(run.mock.calls[0][1]).toContain("--environment=preview");
+    expect(run.mock.calls[0][1]).toContain(
+      `--git-branch=${env.CORE_PREVIEW_GIT_BRANCH}`,
+    );
     expect(run.mock.calls[2][1]).toContain("--prebuilt");
     expect(run.mock.calls[2][1]).toContain("--target=preview");
     for (const call of run.mock.calls) {
@@ -58,6 +62,24 @@ describe("prebuilt preview delivery", () => {
     expect(remove).toHaveBeenCalledTimes(2);
     expect(run).toHaveBeenCalledTimes(1);
   });
+
+  it.each([undefined, "", "HEAD", "feature\nother"])(
+    "rejects an absent or invalid explicit PR branch (%s) before local mutation",
+    (branch) => {
+      const run = vi.fn();
+      const remove = vi.fn();
+      expect(() =>
+        deployPrebuiltPreview({
+          app: "admin",
+          env: { ...env, CORE_PREVIEW_GIT_BRANCH: branch },
+          run,
+          remove,
+        }),
+      ).toThrow("explicit PR head branch");
+      expect(run).not.toHaveBeenCalled();
+      expect(remove).not.toHaveBeenCalled();
+    },
+  );
 
   it("rejects mismatched app/project credentials before touching local state", () => {
     const run = vi.fn();

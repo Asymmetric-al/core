@@ -46,6 +46,31 @@ describe("qa smoke preview deployment workflow", () => {
     expect(workflow).not.toContain("--target=production");
   });
 
+  it("binds the exact checked-out commit and preview settings to the API-selected PR branch", () => {
+    expect(workflow).toContain("head_ref=\"$(jq -r '.head.ref'");
+    expect(workflow).toContain('echo "head_ref=${head_ref}"');
+    expect(workflow).toContain(
+      "PR_HEAD_REF: ${{ steps.gate.outputs.head_ref }}",
+    );
+    expect(workflow).toContain(
+      "PR_HEAD_SHA: ${{ steps.gate.outputs.head_sha }}",
+    );
+    expect(workflow).toContain(
+      'git check-ref-format --branch "${PR_HEAD_REF}"',
+    );
+    expect(workflow).toContain(
+      'test "$(git rev-parse HEAD)" = "${PR_HEAD_SHA}"',
+    );
+    expect(workflow).toContain(
+      'git switch --create "${PR_HEAD_REF}" "${PR_HEAD_SHA}"',
+    );
+    expect(
+      workflow.match(
+        /CORE_PREVIEW_GIT_BRANCH: \$\{\{ steps\.gate\.outputs\.head_ref \}\}/g,
+      ),
+    ).toHaveLength(3);
+  });
+
   it("uses the prebuilt delivery helper once per requested surface", () => {
     expect(
       workflow.match(/node scripts\/qa\/deploy-prebuilt-preview\.mjs /g),

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "capturedAt": "2026-10-22T01:49:28.019427+00:00",
-  "status": "local migration/browser/cold-install/typecheck qualification passed; full gates and release qualification open",
+  "status": "Local representative and isolated hosted CMS runner/restore checks passed; current-head previews, development cutover and final merge qualification remain open",
   "owner": "Core CMS maintainers",
   "startingHead": "715a970957035e08f81778daa8c90de8762cdc99",
   "selectedVersions": {
@@ -2233,12 +2233,13 @@
     ]
   },
   "materialLimits": [
-    "Synthetic representative local PostgreSQL and owned loopback Supabase Auth; no hosted database or production execution",
     "Local API serializer comparison explicitly requests depth2 and trusted access; real browser tenant/auth tests are separately recorded",
-    "Complete repository gates pending; cold combined installation and fresh typechecks passed",
     "Three deployed previews and final current-base family review/CI/merge readback pending",
     "Full graph security review remains open; first fresh Bun audit request returned HTTP503, which is not a clean audit",
-    "Mission Control intentionally forces light mode; dark CSS token mapping is a temporary browser fixture, not product dark-mode activation"
+    "Mission Control intentionally forces light mode; dark CSS token mapping is a temporary browser fixture, not product dark-mode activation",
+    "Local representative data and real loopback Auth qualified; isolated hosted CMS bootstrap migration/backup/restore additionally passed. Hosted authenticated product behavior and full development cutover remain open.",
+    "Normal full pre-push on b6317ff passed; final preview-branch correction and eventual release head still require complete gates/CI/preview readback.",
+    "Legacy no-verify retirement and parent branch authz bootstrap replay remain open operational/security findings."
   ],
   "productionTouched": false,
   "releaseRefresh": {
@@ -8297,7 +8298,7 @@
     }
   },
   "hostedQualificationSupport": {
-    "status": "focused tests and independent review passed; committed hosted migration and final release gates pending",
+    "status": "committed scoped runner migration/status/no-op and isolated bootstrap backup/restore passed; hosted product previews and final cutover remain open",
     "scope": "Explicit custom migration role for an expiring owned fixture; verified CA PEM support in the existing server-side pool helper.",
     "sourceHashes": {
       "scripts/cms/lib/migration-target.mjs": "c38ded43d5d4f474c5c6b328e11430becc15b583694b45ea42dfba3f276a1690",
@@ -8551,6 +8552,586 @@
     "selectedFiles": 52,
     "selectedTests": 540,
     "existingTlsDisposition": "No-CA behavior remains unchanged for staged environment migration. Legacy no-verify is an open cutover and final-security item, with no accepted vulnerability exception.",
-    "productionTouched": false
+    "productionTouched": false,
+    "commit": {
+      "proofSha256": "f8a6dcbbb534c90c12b890ef7b7b2c0864264a96311f169b1409aa365feca47b",
+      "record": {
+        "startedAt": "2026-10-22T04:50:37.523212+00:00",
+        "completedAt": "2026-10-22T04:51:21.234767+00:00",
+        "exitCode": 0,
+        "head": "b6317ff1493e748f58c479a0a0d2054adfe69151",
+        "normalHooks": true,
+        "stagedFiles": [
+          ".env.example",
+          "apps/admin/src/cms/payload-database-config.ts",
+          "packages/env/src/schema.ts",
+          "scripts/cms/lib/migration-target.mjs",
+          "tests/unit/cms/payload-database-config.test.ts",
+          "tests/unit/scripts/cms-migration-target.test.ts",
+          "docs/guides/development/web-studio-runbook.md",
+          "docs/maintenance/modernization/payload.md",
+          "docs/maintenance/modernization/payload-qualification.json"
+        ],
+        "logSha256": "67dd43711dbeb2e603620ee4dddfea7201a6a90884386904c7b5b8819ee2789c",
+        "sourceHashes": {
+          ".env.example": "4a4df77a01d120fbaade981bb6949d681119c9cec13578365afaa9918e1d9dca",
+          "apps/admin/src/cms/payload-database-config.ts": "8c920b0755196d88fa4f4b5fa1504c8dea5bb66212c28bb7495c70e4e4bb79f5",
+          "packages/env/src/schema.ts": "b46078bb2a70d5214b00f97c1f22db9075751394a3d2de349c839271c6611fef",
+          "scripts/cms/lib/migration-target.mjs": "c38ded43d5d4f474c5c6b328e11430becc15b583694b45ea42dfba3f276a1690",
+          "tests/unit/cms/payload-database-config.test.ts": "dc6e11422c25e6409600921d2473699f44335230fbd2f4c8791d5f5e60c9bc2c",
+          "tests/unit/scripts/cms-migration-target.test.ts": "4380f2cead6b26e11fda7dbdf897359357713a6abcd11da10cbd469a15f18f24",
+          "docs/guides/development/web-studio-runbook.md": "922376ad23f343059c1dba0313590dadfa3ce95ad95571752509bf695962dc44",
+          "docs/maintenance/modernization/payload.md": "382c577c5303cf6c4c6b4397461d26faa8c8de6d1b5402d87cbc58fbe4392089",
+          "docs/maintenance/modernization/payload-qualification.json": "8999e1c9e56e684f6a3d831eee3fdcda2d44724f066f7cefaa72ac90fa834690"
+        }
+      }
+    },
+    "normalPush": {
+      "proofSha256": "e4a6324a5f784b657b2d8d549e9f4cfe44b4dc969201c399cdc7ecfe6c6c5a48",
+      "record": {
+        "startedAt": "2026-10-22T04:53:35.664023+00:00",
+        "completedAt": "2026-10-22T05:04:18.846736+00:00",
+        "head": "b6317ff1493e748f58c479a0a0d2054adfe69151",
+        "command": ["git", "push", "origin", "HEAD"],
+        "exitCode": 0,
+        "normalPrePushHooks": true,
+        "logSha256": "81afb5d999427c9cb60346e8b7cbf6cc2cbab5a5477c2a01e9b7270ebdafe93f"
+      }
+    }
+  },
+  "hostedCmsQualification": {
+    "project": "vnfcgevcyaqebewbueht",
+    "scope": "Owned isolated development branch, CMS-only; no parent customer data copied and no production writes",
+    "fixtureRoleExpiresAt": "2026-10-24T04:20:15.056685Z",
+    "bootstrapLimitation": "Parent migration history replay stopped at missing authz schema before this fixture. The partial21-table public bootstrap is not a complete business database restore. This separate operational replay finding remains open.",
+    "initialPreflight": {
+      "proofSha256": "a78d33f1780f5f4b1f414d769ff9acd1f8e7da395c155180833f7d17ca85a2ca",
+      "record": {
+        "startedAt": "2026-10-22T04:52:11.785046+00:00",
+        "completedAt": "2026-10-22T04:52:14.515334+00:00",
+        "head": "b6317ff1493e748f58c479a0a0d2054adfe69151",
+        "command": [
+          "node",
+          "scripts/cms/run-payload-command.mjs",
+          "--json",
+          "migrate"
+        ],
+        "targetProject": "vnfcgevcyaqebewbueht",
+        "fixtureRole": "core_payload_v4_2185",
+        "tls": "verify-full with trusted local CA file",
+        "schemaPushDisabled": true,
+        "exitCode": 1,
+        "logSha256": "badf3946dfc6ac79a6c3bcc00f6ac866a944af0a8c4af7106629ca92a431af8d",
+        "runnerSha256": "71727757560c20d371ed426fc8a30663dbf4cc4a6d80674bfb5af63f7a6b6b05",
+        "roleGuardSha256": "c38ded43d5d4f474c5c6b328e11430becc15b583694b45ea42dfba3f276a1690",
+        "fixtureLoaderMode": "0600",
+        "productionTouched": false
+      }
+    },
+    "initialPreflightDisposition": "Existing cms schema was empty, owned by postgres and lacked fixture privileges. Guarded fixture-only USAGE/CREATE grant applied after checking zero classes/types and scoped expiring role flags. No shared role modified.",
+    "migration": {
+      "proofSha256": "137ee9f2e1533d8f7c84d14eadd6e89ed94866840b6d0fd6aaa4f6d33d42cb29",
+      "record": {
+        "startedAt": "2026-10-22T04:53:10.155706+00:00",
+        "completedAt": "2026-10-22T04:53:27.640279+00:00",
+        "head": "b6317ff1493e748f58c479a0a0d2054adfe69151",
+        "command": [
+          "node",
+          "scripts/cms/run-payload-command.mjs",
+          "--json",
+          "migrate"
+        ],
+        "targetProject": "vnfcgevcyaqebewbueht",
+        "fixtureRole": "core_payload_v4_2185",
+        "tls": "verify-full with trusted local CA file",
+        "schemaPushDisabled": true,
+        "exitCode": 0,
+        "logSha256": "3f6a99b364b477f07464f649a1a870a6315dfc869aa5c320bf99bdfc21418b92",
+        "runnerSha256": "71727757560c20d371ed426fc8a30663dbf4cc4a6d80674bfb5af63f7a6b6b05",
+        "productionTouched": false
+      }
+    },
+    "preservation": {
+      "proofSha256": "1d5d16d9172940d7012808e7b77bd0472d379312b07c20c8b6384566dcd46062",
+      "record": {
+        "checkedAt": "2026-10-22 04:54:53 UTC",
+        "project": "vnfcgevcyaqebewbueht",
+        "scope": "Owned branch only; partial parent business bootstrap is not representative complete hosted business restore",
+        "before": [
+          {
+            "server_version": "17.11",
+            "cms_tables": 0,
+            "public_tables": [
+              {
+                "rows": 0,
+                "table": "assets",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "audit_logs",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "donations",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "donor_activities",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "donor_feed_preferences",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "donor_pledges",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "donors",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "follower_requests",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "follows",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "funds",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "locations",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "missionaries",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "missionary_tasks",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "pdf_templates",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "post_comments",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "post_fires",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "post_likes",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "post_prayers",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "posts",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "profiles",
+                "schema": "public"
+              },
+              {
+                "rows": 1,
+                "table": "tenants",
+                "schema": "public"
+              }
+            ]
+          }
+        ],
+        "after": [
+          {
+            "server_version": "17.11",
+            "cms_tables": 94,
+            "public_tables": [
+              {
+                "rows": 0,
+                "table": "assets",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "audit_logs",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "donations",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "donor_activities",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "donor_feed_preferences",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "donor_pledges",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "donors",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "follower_requests",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "follows",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "funds",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "locations",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "missionaries",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "missionary_tasks",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "pdf_templates",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "post_comments",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "post_fires",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "post_likes",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "post_prayers",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "posts",
+                "schema": "public"
+              },
+              {
+                "rows": 0,
+                "table": "profiles",
+                "schema": "public"
+              },
+              {
+                "rows": 1,
+                "table": "tenants",
+                "schema": "public"
+              }
+            ],
+            "cms_migrations": [
+              {
+                "name": "20260515_173042_init_payload_cms",
+                "batch": 1
+              },
+              {
+                "name": "20261022_002409_payload_v4_sizes_to_variants",
+                "batch": 1
+              },
+              {
+                "name": "20261022_002412_payload_v4_public_beta_metadata",
+                "batch": 1
+              }
+            ],
+            "legacy_size_columns": 0,
+            "variant_columns": 16,
+            "fixture_role": [
+              {
+                "role": "core_payload_v4_2185",
+                "expires": "2026-10-24T04:20:15.056685+00:00",
+                "create_db": false,
+                "superuser": false,
+                "bypass_rls": false,
+                "create_role": false
+              }
+            ]
+          }
+        ],
+        "publicTableCountsUnchanged": true,
+        "productionTouched": false
+      }
+    },
+    "runnerAndRestore": {
+      "proofSha256": "e284499571f94a780bb4cab4e7bf51163ebd9986fd6ef35f1754b4936e28a054",
+      "record": {
+        "startedAt": "2026-10-22T05:02:11.905796+00:00",
+        "head": "b6317ff1493e748f58c479a0a0d2054adfe69151",
+        "project": "vnfcgevcyaqebewbueht",
+        "productionTouched": false,
+        "commands": [
+          {
+            "operation": "migrate:status",
+            "command": [
+              "node",
+              "scripts/cms/run-payload-command.mjs",
+              "--json",
+              "migrate:status"
+            ],
+            "exitCode": 0,
+            "logSha256": "fc1f320c565a0e5235acf167de0ef6a8f4da8caa5ba9840d23d3a17638f14422"
+          },
+          {
+            "operation": "migrate",
+            "command": [
+              "node",
+              "scripts/cms/run-payload-command.mjs",
+              "--json",
+              "migrate"
+            ],
+            "exitCode": 0,
+            "logSha256": "de0f1d2cc4e5841f33de3621c63f1c29d0b083e0c8fda577a34e0d733d63e801"
+          }
+        ],
+        "backup": {
+          "path": "/tmp/core-modernization-payload-hosted-branch-bootstrap.dump",
+          "mode": "0o600",
+          "bytes": 418219,
+          "sha256": "347c03c99e9f011be2011fbee4b468b55a82b423fa3b242497bcd88d20da8bee",
+          "scope": "Owned isolated CMS schema only"
+        },
+        "restored": {
+          "container": "core-modernization-restore-20261021",
+          "database": "core_payload_v4_hosted_restore_20261022",
+          "serverVersion": "17.11",
+          "schema": "cms",
+          "tables": 94,
+          "rows": 3,
+          "allRowCountsEqual": true,
+          "rowCountSha256": "dc330bb2aaa5d56fce33fcc88df8aeadd50d4ed0390b59d0466c653ab6a0d760"
+        },
+        "completedAt": "2026-10-22T05:05:41.950047+00:00",
+        "passed": true
+      }
+    },
+    "remaining": "Hosted authenticated product/variant probes, representative development cutover, latest-head gates and final merge qualification."
+  },
+  "previewBranchEnvironmentCorrection": {
+    "problem": "Prebuilt preview helper omitted explicit PR branch during environment pull from detached SHA checkout.",
+    "source": "https://vercel.com/docs/cli/pull",
+    "behavior": "Require API-selected PR head branch; validate and bind the exact checked-out SHA to that branch, pass explicit --git-branch for pull, retain preview-only deploy targets and credential-safe output.",
+    "red": {
+      "proofSha256": "6c066b4ae0cc679263455d5dece220a115b29f46f3b3ae3f425423912f0fe4a0",
+      "record": {
+        "startedAt": "2026-10-22T05:09:51.296633+00:00",
+        "completedAt": "2026-10-22T05:09:52.255919+00:00",
+        "command": [
+          "bun",
+          "run",
+          "vitest",
+          "run",
+          "tests/unit/scripts/deploy-prebuilt-preview.test.ts",
+          "tests/unit/workflows/qa-smoke-preview-deploy.test.ts"
+        ],
+        "exitCode": 1,
+        "logSha256": "298a6c684e9e0cc60cdaf1cfaeb476253950092b2f8dfd3fc833cf812a73e3e2",
+        "baseHead": "b6317ff1493e748f58c479a0a0d2054adfe69151"
+      }
+    },
+    "green": {
+      "proofSha256": "cdbaa38da9b44f7619f83af6a778ec82737047ca2244497d433ab3553a66da18",
+      "record": {
+        "startedAt": "2026-10-22T05:09:52.256782+00:00",
+        "completedAt": "2026-10-22T05:09:53.042447+00:00",
+        "command": [
+          "bun",
+          "run",
+          "vitest",
+          "run",
+          "tests/unit/scripts/deploy-prebuilt-preview.test.ts",
+          "tests/unit/workflows/qa-smoke-preview-deploy.test.ts"
+        ],
+        "exitCode": 0,
+        "logSha256": "c44e817ad30ad9fec794e3c33b85243e97e16dd00de15cb30f668dde479769c7",
+        "baseHead": "b6317ff1493e748f58c479a0a0d2054adfe69151"
+      }
+    },
+    "actualGitBinding": {
+      "proofSha256": "11580ee9e3a0cae093bef80e4393e2f5ee679af2534c34d84f822c1990c8708b",
+      "record": {
+        "checkedAt": "2026-10-22T05:12:06.857981+00:00",
+        "scope": "Extracted actual workflow binding step executed only in a new synthetic Git repository",
+        "validDetachedCheckoutBoundToExplicitBranch": true,
+        "mismatchedShaRejectedBeforeBranchMutation": true,
+        "exactCommitPreserved": true,
+        "workflowBindingSha256": "e1a71f1b6def6a565704f89d0ae825b09c1346c2c25d49ad6a2170b2c1eea2e4",
+        "providerCalls": false,
+        "productGitChanges": false
+      }
+    },
+    "providerEnvironment": {
+      "projectId": "prj_SB9DucsrJOT0wF1v43SWMFsSNdn8",
+      "branch": "chore/AL-1965-payload-public-v4",
+      "target": ["preview"],
+      "createdKeys": [
+        "PAYLOAD_DATABASE_URI",
+        "PAYLOAD_SECRET",
+        "PAYLOAD_DATABASE_SSL_CA"
+      ],
+      "type": "Secret for all three; URI and CA remain paired runtime-only configuration",
+      "valuesPersistedInEvidence": false,
+      "existingEnvironmentValuesChanged": false,
+      "productionTouched": false
+    },
+    "finalReleaseGates": "Pending eventual fix commit and current-head QA deployment.",
+    "independentReview": {
+      "sha256": "245e4a93e1d9dd07b70c9074ff2c85b5ef44a520d3e88f0f9f30c9007005eedd",
+      "record": {
+        "checkedAt": "2026-10-22T05:15:55.513081+00:00",
+        "reviewer": "/root/security_dep_audit",
+        "findings": [],
+        "status": "approved-preview-branch-correction",
+        "files": {
+          "scripts/qa/deploy-prebuilt-preview.mjs": "250586c2895ed2e34ef4938a817069bf9d8590f8aae4d0eecea69bea6a751858",
+          ".github/workflows/qa-smoke-preview-deploy.yml": "0c60f4fe20a72c2f07e62cca3b58c928b614ac90a7c8357c5ba26b5c97f20560",
+          "tests/unit/scripts/deploy-prebuilt-preview.test.ts": "9b2be055833aa0411eb526fd5b5f9f4ef48f56ec88cdd3ef99072cf741f1f927",
+          "tests/unit/workflows/qa-smoke-preview-deploy.test.ts": "0f75e56098b7659993856e69dffda76757d9ac31a0603cd960bc9f4d4a16148c"
+        },
+        "scope": "Every changed line. API branch reaches all3 helper calls; exact-SHA binding aligns explicit preview env selection and deployed Git metadata. Shell-safe args, credentials guards, preview-only targets and cleanup retained.",
+        "proofsReviewed": "RED6failures -> GREEN2files20cases; extracted actual Git binding with mismatch denial.",
+        "limits": [
+          "Helper validates CR/LF/NUL, while workflow git check-ref-format validates the full invalid ref set.",
+          "Live provider deployment and env scope remain separate qualification."
+        ]
+      }
+    },
+    "formattedCombinedFocused": {
+      "proofSha256": "627813763a38103b3def1509a789e5fbf4c7016eb49bc17b955fe537fa49b9b5",
+      "record": {
+        "startedAt": "2026-10-22T05:16:57.590031+00:00",
+        "completedAt": "2026-10-22T05:17:30.294197+00:00",
+        "command": [
+          "bun",
+          "run",
+          "vitest",
+          "run",
+          "tests/unit/admin/eve-preview-build.test.ts",
+          "tests/unit/apps/admin/cms-create-feedback.test.tsx",
+          "tests/unit/apps/admin/cms-flow-loading.test.tsx",
+          "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
+          "tests/unit/apps/react-doctor-complexity-admin-contracts.test.ts",
+          "tests/unit/cms/collection-contracts.test.ts",
+          "tests/unit/cms/create-from-template-endpoint.test.ts",
+          "tests/unit/cms/local-cms-scripts.test.ts",
+          "tests/unit/cms/media-variants-serialization.test.ts",
+          "tests/unit/cms/payload-configuration-contract.test.ts",
+          "tests/unit/cms/payload-database-config.test.ts",
+          "tests/unit/cms/payload-import-map.test.ts",
+          "tests/unit/cms/payload-runtime-integrations.test.ts",
+          "tests/unit/cms/payload-semantic-theme.test.ts",
+          "tests/unit/cms/phase3-collections.test.ts",
+          "tests/unit/cms/public-content.test.ts",
+          "tests/unit/cms/public-media.test.ts",
+          "tests/unit/cms/public-missionary-project-pages-route.test.ts",
+          "tests/unit/cms/public-navigation-route.test.ts",
+          "tests/unit/cms/public-page-media.test.tsx",
+          "tests/unit/cms/public-pages-route.test.ts",
+          "tests/unit/cms/public-read-access.test.ts",
+          "tests/unit/cms/public-updates-route.test.ts",
+          "tests/unit/cms/published-content-reader.test.ts",
+          "tests/unit/cms/serialize-published-page.test.ts",
+          "tests/unit/cms/sharp-native-media.test.ts",
+          "tests/unit/cms/supabase-strategy.test.ts",
+          "tests/unit/cms/tenant-access.test.ts",
+          "tests/unit/cms/tenant-context.test.ts",
+          "tests/unit/cms/transformer-sharp-native-dependencies.test.ts",
+          "tests/unit/cms/web-studio-authenticated-preview.test.ts",
+          "tests/unit/cms/web-studio-create-api-url.test.ts",
+          "tests/unit/cms/web-studio-editor-state.test.ts",
+          "tests/unit/cms/web-studio-feature-flags.test.ts",
+          "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx",
+          "tests/unit/cms/web-studio-preview-url.test.ts",
+          "tests/unit/graphql-runtime-boundary.test.ts",
+          "tests/unit/packages/api/eve-sandbox-guardrails.test.ts",
+          "tests/unit/script-verifiers.test.ts",
+          "tests/unit/scripts/cms-media-remote-pattern.test.ts",
+          "tests/unit/scripts/cms-migration-target.test.ts",
+          "tests/unit/scripts/cms-payload-command.test.ts",
+          "tests/unit/scripts/cms-postgres.test.ts",
+          "tests/unit/scripts/cms-public-sole-entry.test.ts",
+          "tests/unit/scripts/data-boundary-tanstack-db.test.ts",
+          "tests/unit/scripts/design-system-exceptions.test.ts",
+          "tests/unit/scripts/phase24-authority-manifest.test.ts",
+          "tests/unit/scripts/phase24-authority-provenance.test.ts",
+          "tests/unit/cms/payload-rich-text-compatibility.test.ts",
+          "tests/unit/cms/payload-schema-identifiers.test.ts",
+          "tests/unit/cms/payload-jwt-version-compatibility.test.ts",
+          "tests/unit/cms/payload-collection-type-boundary.test.ts",
+          "tests/unit/scripts/deploy-prebuilt-preview.test.ts",
+          "tests/unit/workflows/qa-smoke-preview-deploy.test.ts"
+        ],
+        "exitCode": 0,
+        "logSha256": "1c671d9acaac41ad7fbdb227f82a18a95bbc12e4be9bc713889c0390183aa533",
+        "sourceHashes": {
+          "scripts/qa/deploy-prebuilt-preview.mjs": "250586c2895ed2e34ef4938a817069bf9d8590f8aae4d0eecea69bea6a751858",
+          ".github/workflows/qa-smoke-preview-deploy.yml": "0c60f4fe20a72c2f07e62cca3b58c928b614ac90a7c8357c5ba26b5c97f20560",
+          "tests/unit/scripts/deploy-prebuilt-preview.test.ts": "9b2be055833aa0411eb526fd5b5f9f4ef48f56ec88cdd3ef99072cf741f1f927",
+          "tests/unit/workflows/qa-smoke-preview-deploy.test.ts": "0f75e56098b7659993856e69dffda76757d9ac31a0603cd960bc9f4d4a16148c"
+        }
+      },
+      "files": 54,
+      "tests": 560
+    }
   }
 }

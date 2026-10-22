@@ -108,3 +108,26 @@ runner and hosted CMS migration remain separate qualification steps.
 Legacy no-CA behavior is temporarily retained while environments are converted.
 Retiring encrypted-but-unverified TLS remains an open cutover and final-security
 item; these probes do not close it or constitute an advisory exception.
+
+### Isolated hosted runner and preview binding
+
+Commit `b6317ff1493e748f58c479a0a0d2054adfe69151` passed normal full pre-push
+verification. Its committed runner then applied the initial migration and both
+public-beta migrations to the owned PostgreSQL 17.11 branch: 94 CMS tables,
+three migration records, no retired size columns, and all 21 existing public
+table row counts unchanged. Status reports all migrations applied; a repeated
+migration is a no-op. The CMS-only backup restored into a separate owned local
+database with all 94 table row counts unchanged. This bootstrap has three
+migration rows and is separate from the earlier representative-data rehearsal.
+The branch's parent business-history replay stopped at a missing `authz` schema;
+that operational finding remains open and this fixture does not qualify a
+complete hosted business restore.
+
+The preview helper now requires the PR API's head branch when pulling preview
+settings. The workflow still checks out the exact selected SHA, verifies it, and
+binds that commit to the validated branch before the CLI runs. A real temporary
+Git fixture proves the SHA is preserved and a mismatched SHA stops before branch
+mutation. Twenty focused helper/workflow cases pass. Three new branch-only admin
+preview Secrets configure the expiring isolated fixture; existing shared and
+production credentials are unchanged. Hosted CMS HTTP checks and final-current-
+head release gates remain required.

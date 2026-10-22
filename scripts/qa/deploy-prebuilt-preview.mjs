@@ -29,6 +29,16 @@ export function deployPrebuiltPreview({
       "Preview deployment requires GitHub Actions and the configured Core app/team credentials",
     );
   }
+  const branch = env.CORE_PREVIEW_GIT_BRANCH;
+  if (
+    typeof branch !== "string" ||
+    branch.length === 0 ||
+    branch !== branch.trim() ||
+    branch === "HEAD" ||
+    /[\r\n\0]/.test(branch)
+  ) {
+    throw new Error("Preview deployment requires an explicit PR head branch");
+  }
   const options = {
     cwd: root,
     env: {
@@ -42,7 +52,13 @@ export function deployPrebuiltPreview({
   };
   const credentials = ["--project", project.projectId, "--scope", TEAM];
   const steps = [
-    ["pull", "--yes", "--environment=preview", ...credentials],
+    [
+      "pull",
+      "--yes",
+      "--environment=preview",
+      `--git-branch=${branch}`,
+      ...credentials,
+    ],
     ["build", "--yes", "--target=preview", ...credentials],
     [
       "deploy",
