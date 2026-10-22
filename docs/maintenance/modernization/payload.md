@@ -80,3 +80,7 @@ duplicate Payload skills and retirement of generic v3 examples; current Core
 adapters preserve access, tenant, document, UI and migration ownership.
 
 Source: [official versioned v4 migration guide](https://github.com/payloadcms/payload/blob/v4.0.0-beta.3/docs/migration-guide/v4.mdx).
+
+### Public static media access correction
+
+PR #2185 review found two retired `sizes.*.filename` filters in the follow-up static-file access check. They now use `variants.thumbnail.filename` and `variants.card.filename`, retaining the original filename alternative, tenant checks and exact-name restriction. The existing regression failed before the fix (1 failed, 18 passed) and all 19 cases pass afterward. Independent review found no additional active legacy media member paths. Anonymous HTTP variant-byte checks and current-head full qualification remain separate release evidence.

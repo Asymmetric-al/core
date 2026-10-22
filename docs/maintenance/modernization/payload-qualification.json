@@ -8235,5 +8235,52 @@
         }
       }
     }
+  },
+  "publicStaticMediaCorrection": {
+    "issue": "PR #2185 review found retired sizes filename paths in static media follow-up access.",
+    "runtimeChange": "Use variants.thumbnail.filename and variants.card.filename; preserve exact-name constraints and all other access behavior.",
+    "red": {
+      "at": "2026-10-22T04:04:03.947779+00:00",
+      "command": [
+        "bun",
+        "x",
+        "--no-install",
+        "vitest",
+        "run",
+        "tests/unit/cms/public-read-access.test.ts"
+      ],
+      "exitCode": 1,
+      "logSha256": "f84a4b07509c8973438877a807b9c1a09a8e8a1fbc9ef335954c06a416f6daf5",
+      "runtimeSourceUnmodified": true
+    },
+    "green": {
+      "at": "2026-10-22T04:04:33.567729+00:00",
+      "command": [
+        "bun",
+        "x",
+        "--no-install",
+        "vitest",
+        "run",
+        "tests/unit/cms/public-read-access.test.ts"
+      ],
+      "exitCode": 0,
+      "logSha256": "877ac90a6381afd023170d388cd08b22e7078c37b9c6ccb3b5f68a2cf15e0675",
+      "files": [
+        {
+          "path": "apps/admin/src/cms/access/public-read.ts",
+          "sha256": "0f1b4ac841512fff8041099afbec6a27c4d5b3a36e765edc10c52abdd58461a3"
+        },
+        {
+          "path": "tests/unit/cms/public-read-access.test.ts",
+          "sha256": "086acb374216fb6517075c8986f69af97098a788659076c460c2a9190dc21e29"
+        }
+      ]
+    },
+    "independentReview": {
+      "path": "/tmp/core-modernization-payload-public-static-media-independent-review.json",
+      "sha256": "772be4fa181f9c7a1ff98483c6cefcc7c8fc9852914d0935373aeca73430fad2",
+      "approved": true
+    },
+    "currentHeadQualification": "Full normal pre-push gates and anonymous HTTP variant bytes pending; this does not change migrations or public serializer contracts."
   }
 }
