@@ -54,11 +54,16 @@ For an existing hosted database, explicitly select the intended Supabase project
 with `CMS_HOSTED_MIGRATION_REF=<project-ref> bun run cms:migrate`. The CLI checks
 that the database host and user match `NEXT_PUBLIC_SUPABASE_URL`, requires an
 encrypted connection, and rejects routing overrides before any migration. Status
-checks do not require this opt-in. The CMS psql helper translates
-Node pg's `sslmode=no-verify` to libpq's encrypted `require` mode without changing
-the environment file, and passes connection credentials through the child
-process environment rather than command arguments. Keep schema push disabled;
-do not use a local reset or demo seed to initialize a hosted database.
+checks do not require this opt-in. The default migration role is `postgres`.
+For an approved scoped role, also set `CMS_HOSTED_MIGRATION_ROLE=<role>`; the
+exact direct username or `<role>.<project-ref>` pooler username must match.
+Use `sslmode=verify-full` with the project's trusted root certificate. The CLI
+accepts a local certificate file via URI `sslrootcert`, which the psql helper
+passes through `PGSSLROOTCERT`; credentials also use the child environment,
+not arguments. Serverless runtime certificate setup is described below. Keep
+schema push disabled; do not use a local reset or demo seed to initialize a
+hosted database. Legacy `no-verify` translation remains for staged environment
+migration only and must be retired before final security qualification.
 
 ### Public-v4 migration and rollback boundary
 
@@ -246,8 +251,8 @@ import map is stale for the current `payload.config.ts` or plugin set. Run
 **Fix:**
 
 1. In the Supabase production project, open **Connect** and copy the **Session pooler** Postgres URL. The host should look like `aws-0-<region>.pooler.supabase.com`; do not use the direct `db.<ref>.supabase.co` URL.
-2. For the admin Payload runtime on Vercel, set the pooler query string to `sslmode=no-verify`. `sslmode=require` can fail in Node `pg` with `SELF_SIGNED_CERT_IN_CHAIN` before Payload renders.
-3. In the **admin** Vercel project, update production `PAYLOAD_DATABASE_URI` to the session-pooler URL. If `SUPABASE_DB_URL` is also used by admin runtime or hosted scripts, update it to the same pooler URL.
+2. Prepare the verified runtime pair: the session-pooler URI with exactly one `sslmode=verify-full`, and server-only `PAYLOAD_DATABASE_SSL_CA` containing the trusted PEM downloaded from that project's Database settings. Remove `sslrootcert`, `sslcert`, `sslkey`, `ssl`, and `uselibpqcompat` URI options when using the PEM variable; the runtime rejects conflicting TLS settings. The CA is public, but database credentials remain opaque. A certificate failure requires checking the project's current CA and hostname.
+3. Qualify this pair in an isolated preview first. The production release package must schedule the same approved environment update and redeployment; production execution is outside the modernization delivery. If `SUPABASE_DB_URL` is also used by hosted CLI scripts, supply its trusted local `sslrootcert` file separately rather than assuming the product PEM variable configures psql.
 4. Keep `PAYLOAD_DATABASE_POOL_MAX` unset unless the Supabase pool size is deliberately raised. The runtime defaults to `2` on Vercel/protected deployments because Payload keeps one startup Postgres client checked out and needs one query slot left open.
 5. Connect a Vercel Blob store to the admin project so production receives `BLOB_READ_WRITE_TOKEN`; Web Studio media uploads use Payload's official Vercel Blob adapter in hosted deployments.
 6. Keep `RESEND_API_KEY` configured in production. Payload auth email uses Payload's official Resend adapter and defaults to `Mission Control <noreply@asymmetric.al>` unless `PAYLOAD_EMAIL_FROM_ADDRESS` / `PAYLOAD_EMAIL_FROM_NAME` override it.

@@ -8281,6 +8281,276 @@
       "sha256": "772be4fa181f9c7a1ff98483c6cefcc7c8fc9852914d0935373aeca73430fad2",
       "approved": true
     },
-    "currentHeadQualification": "Full normal pre-push gates and anonymous HTTP variant bytes pending; this does not change migrations or public serializer contracts."
+    "currentHeadQualification": {
+      "normalPrePush": {
+        "proofSha256": "2551ed7978d9dcaddb7919c40428ca228531d84f47ccddea69fea5bc427687f1",
+        "record": {
+          "startedAt": "2026-10-22T04:11:47.979983+00:00",
+          "completedAt": "2026-10-22T04:20:55.462549+00:00",
+          "normalHooksUsed": true,
+          "exitCode": 0,
+          "logSha256": "bf7b365dc3f028efaed789d90e3179028968ae2c0c5ded0f897d64b1dcb8d879",
+          "head": "d730d613a5c75d04fb405de00b9a3e92c41e6542"
+        }
+      },
+      "remaining": "Anonymous HTTP variant bytes and final hosted/current-head release qualification."
+    }
+  },
+  "hostedQualificationSupport": {
+    "status": "focused tests and independent review passed; committed hosted migration and final release gates pending",
+    "scope": "Explicit custom migration role for an expiring owned fixture; verified CA PEM support in the existing server-side pool helper.",
+    "sourceHashes": {
+      "scripts/cms/lib/migration-target.mjs": "c38ded43d5d4f474c5c6b328e11430becc15b583694b45ea42dfba3f276a1690",
+      "tests/unit/scripts/cms-migration-target.test.ts": "4380f2cead6b26e11fda7dbdf897359357713a6abcd11da10cbd469a15f18f24",
+      "apps/admin/src/cms/payload-database-config.ts": "8c920b0755196d88fa4f4b5fa1504c8dea5bb66212c28bb7495c70e4e4bb79f5",
+      "tests/unit/cms/payload-database-config.test.ts": "dc6e11422c25e6409600921d2473699f44335230fbd2f4c8791d5f5e60c9bc2c",
+      "packages/env/src/schema.ts": "b46078bb2a70d5214b00f97c1f22db9075751394a3d2de349c839271c6611fef",
+      ".env.example": "4a4df77a01d120fbaade981bb6949d681119c9cec13578365afaa9918e1d9dca"
+    },
+    "proofs": {
+      "roleRed": {
+        "proofSha256": "3cf299b4869bd7e19a595a30c03213e96a280a5d65b7fa1b428a7b394b97605f",
+        "record": {
+          "at": "2026-10-22T04:28:52.412404+00:00",
+          "command": [
+            "bun",
+            "x",
+            "--no-install",
+            "vitest",
+            "run",
+            "tests/unit/scripts/cms-migration-target.test.ts"
+          ],
+          "exitCode": 1,
+          "logSha256": "cf575ea9fff48a5621d48663c9bd434e134332bf2f551d5f23e64246f83d3624",
+          "runtimeGuardUnmodified": true
+        }
+      },
+      "roleGreen": {
+        "proofSha256": "f8eda7771094f05a4234cc8953b2462ce1dad15874cd3ee0f546f5516dd04c9d",
+        "record": {
+          "at": "2026-10-22T04:28:53.210050+00:00",
+          "command": [
+            "bun",
+            "x",
+            "--no-install",
+            "vitest",
+            "run",
+            "tests/unit/scripts/cms-migration-target.test.ts"
+          ],
+          "exitCode": 0,
+          "logSha256": "2342ecd1e996b2fc3a7931722c68a5630dfc69a9d1b09b3da05c90be3f7e7554",
+          "files": [
+            {
+              "path": "scripts/cms/lib/migration-target.mjs",
+              "sha256": "fe5b2cccf54e30238bd551ba647d4513718ba00abf2e78f6fe2288d45da3b659"
+            },
+            {
+              "path": "tests/unit/scripts/cms-migration-target.test.ts",
+              "sha256": "ac26511eda80bbeff079f8e201ac7003bdd603c0e2eff63610b3d37cbae5162f"
+            }
+          ]
+        }
+      },
+      "caRed": {
+        "proofSha256": "9dc3acc13373f9c20babf02ba5f3b156d035a9013662bdc6bd64e6947847cf1f",
+        "record": {
+          "at": "2026-10-22T04:37:41.094946+00:00",
+          "command": [
+            "bun",
+            "x",
+            "--no-install",
+            "vitest",
+            "run",
+            "tests/unit/cms/payload-database-config.test.ts"
+          ],
+          "exitCode": 1,
+          "logSha256": "221a35a61a82829c54a18952f5874821efb4160a54e65f25501a1b687541895c",
+          "runtimeSourceUnmodified": true
+        }
+      },
+      "caGreen": {
+        "proofSha256": "d477ca90176f614eda84efc32d008ebd28bcd9dc9d5ac631d085159db38bca45",
+        "record": {
+          "at": "2026-10-22T04:37:42.004104+00:00",
+          "command": [
+            "bun",
+            "x",
+            "--no-install",
+            "vitest",
+            "run",
+            "tests/unit/cms/payload-database-config.test.ts"
+          ],
+          "exitCode": 0,
+          "logSha256": "00f1b36e19b9618043b3b7537e97be0a4bea39a5ff21bafb785a53f4533ade99"
+        }
+      },
+      "focused": {
+        "proofSha256": "dec9bd64ef1801a6058623b7b47f62250ba01a9817900fd14825083c02cc7d17",
+        "record": {
+          "startedAt": "2026-10-22T04:42:57.639740+00:00",
+          "completedAt": "2026-10-22T04:43:22.744466+00:00",
+          "command": [
+            "bun",
+            "run",
+            "vitest",
+            "run",
+            "tests/unit/admin/eve-preview-build.test.ts",
+            "tests/unit/apps/admin/cms-create-feedback.test.tsx",
+            "tests/unit/apps/admin/cms-flow-loading.test.tsx",
+            "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
+            "tests/unit/apps/react-doctor-complexity-admin-contracts.test.ts",
+            "tests/unit/cms/collection-contracts.test.ts",
+            "tests/unit/cms/create-from-template-endpoint.test.ts",
+            "tests/unit/cms/local-cms-scripts.test.ts",
+            "tests/unit/cms/media-variants-serialization.test.ts",
+            "tests/unit/cms/payload-configuration-contract.test.ts",
+            "tests/unit/cms/payload-database-config.test.ts",
+            "tests/unit/cms/payload-import-map.test.ts",
+            "tests/unit/cms/payload-runtime-integrations.test.ts",
+            "tests/unit/cms/payload-semantic-theme.test.ts",
+            "tests/unit/cms/phase3-collections.test.ts",
+            "tests/unit/cms/public-content.test.ts",
+            "tests/unit/cms/public-media.test.ts",
+            "tests/unit/cms/public-missionary-project-pages-route.test.ts",
+            "tests/unit/cms/public-navigation-route.test.ts",
+            "tests/unit/cms/public-page-media.test.tsx",
+            "tests/unit/cms/public-pages-route.test.ts",
+            "tests/unit/cms/public-read-access.test.ts",
+            "tests/unit/cms/public-updates-route.test.ts",
+            "tests/unit/cms/published-content-reader.test.ts",
+            "tests/unit/cms/serialize-published-page.test.ts",
+            "tests/unit/cms/sharp-native-media.test.ts",
+            "tests/unit/cms/supabase-strategy.test.ts",
+            "tests/unit/cms/tenant-access.test.ts",
+            "tests/unit/cms/tenant-context.test.ts",
+            "tests/unit/cms/transformer-sharp-native-dependencies.test.ts",
+            "tests/unit/cms/web-studio-authenticated-preview.test.ts",
+            "tests/unit/cms/web-studio-create-api-url.test.ts",
+            "tests/unit/cms/web-studio-editor-state.test.ts",
+            "tests/unit/cms/web-studio-feature-flags.test.ts",
+            "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx",
+            "tests/unit/cms/web-studio-preview-url.test.ts",
+            "tests/unit/graphql-runtime-boundary.test.ts",
+            "tests/unit/packages/api/eve-sandbox-guardrails.test.ts",
+            "tests/unit/script-verifiers.test.ts",
+            "tests/unit/scripts/cms-media-remote-pattern.test.ts",
+            "tests/unit/scripts/cms-migration-target.test.ts",
+            "tests/unit/scripts/cms-payload-command.test.ts",
+            "tests/unit/scripts/cms-postgres.test.ts",
+            "tests/unit/scripts/cms-public-sole-entry.test.ts",
+            "tests/unit/scripts/data-boundary-tanstack-db.test.ts",
+            "tests/unit/scripts/design-system-exceptions.test.ts",
+            "tests/unit/scripts/phase24-authority-manifest.test.ts",
+            "tests/unit/scripts/phase24-authority-provenance.test.ts",
+            "tests/unit/cms/payload-rich-text-compatibility.test.ts",
+            "tests/unit/cms/payload-schema-identifiers.test.ts",
+            "tests/unit/cms/payload-jwt-version-compatibility.test.ts",
+            "tests/unit/cms/payload-collection-type-boundary.test.ts"
+          ],
+          "exitCode": 0,
+          "logSha256": "bc55bb2178ce9cc0bed82896e651480b553a8ec68bf8f366aa59a8aa77c4c119",
+          "baseHead": "d730d613a5c75d04fb405de00b9a3e92c41e6542"
+        }
+      },
+      "reactDoctor": {
+        "proofSha256": "d3345b823ca9f2a7d699d0e10c7e4e967ccb3400ba04702d918bce7b05dea088",
+        "record": {
+          "startedAt": "2026-10-22T04:43:22.745592+00:00",
+          "completedAt": "2026-10-22T04:43:52.189589+00:00",
+          "command": ["bun", "run", "react-doctor:check"],
+          "exitCode": 0,
+          "logSha256": "2e21c0cc6960bcc41e4f81261310331a8eada8032d3e3dd8cac4b2a90cfd5792",
+          "baseHead": "d730d613a5c75d04fb405de00b9a3e92c41e6542"
+        }
+      },
+      "shadscan": {
+        "proofSha256": "1f462d643de2edb780697e3cd477b37c822b034165f0e9c4be3f7a6de5dd51d4",
+        "record": {
+          "startedAt": "2026-10-22T04:43:52.189860+00:00",
+          "completedAt": "2026-10-22T04:44:13.152885+00:00",
+          "command": ["bun", "run", "verify:shadscan"],
+          "exitCode": 0,
+          "logSha256": "f4b7f74be80f19c957922e85a23cd9172bf3fe8aa34ecabcfcbc93e5f354acf2",
+          "baseHead": "d730d613a5c75d04fb405de00b9a3e92c41e6542"
+        }
+      },
+      "nodePool": {
+        "proofSha256": "d03a5a2a00e7ca6037ee3ad6fe690a2684e7b80b077657ffee8cf2fbcd1dbd20",
+        "record": {
+          "checkedAt": "2026-10-22T04:39:00.336608+00:00",
+          "runtime": "node",
+          "exitCode": 0,
+          "probeSha256": "f3cfdc70865bb584e172b7bdbf578dd9aab07b844a9f771686f6348b80035275",
+          "sourceSha256": "8c920b0755196d88fa4f4b5fa1504c8dea5bb66212c28bb7495c70e4e4bb79f5",
+          "result": {
+            "connected": true,
+            "runtime": "Node v24.22.1",
+            "project": "vnfcgevcyaqebewbueht",
+            "readOnly": true,
+            "issue": null,
+            "certificateVerificationRequired": true,
+            "uriCannotOverwriteCa": true,
+            "rows": [
+              {
+                "role": "core_payload_v4_2185",
+                "server_version": "17.11"
+              }
+            ]
+          }
+        }
+      },
+      "bunPool": {
+        "proofSha256": "ea1031e5c845d07fc1f705a59e1edda02b4e7bf84d264bad7d33ad73d4bf7f0b",
+        "record": {
+          "checkedAt": "2026-10-22T04:39:02.910408+00:00",
+          "runtime": "bun",
+          "exitCode": 0,
+          "probeSha256": "f3cfdc70865bb584e172b7bdbf578dd9aab07b844a9f771686f6348b80035275",
+          "sourceSha256": "8c920b0755196d88fa4f4b5fa1504c8dea5bb66212c28bb7495c70e4e4bb79f5",
+          "result": {
+            "connected": true,
+            "runtime": "Bun 1.4.3",
+            "project": "vnfcgevcyaqebewbueht",
+            "readOnly": true,
+            "issue": null,
+            "certificateVerificationRequired": true,
+            "uriCannotOverwriteCa": true,
+            "rows": [
+              {
+                "role": "core_payload_v4_2185",
+                "server_version": "17.11"
+              }
+            ]
+          }
+        }
+      },
+      "independentReview": {
+        "proofSha256": "4c9eb796470be8ffdc6660f24df434bb718360ffb42184a5ec33f8d8b989ddb1",
+        "record": {
+          "schemaVersion": 1,
+          "checkedAt": "2026-10-22T04:50:23.675673+00:00",
+          "reviewer": "/root/security_dep_audit",
+          "status": "approved-scoped-hosted-qualification-support",
+          "findings": [],
+          "files": {
+            "scripts/cms/lib/migration-target.mjs": "c38ded43d5d4f474c5c6b328e11430becc15b583694b45ea42dfba3f276a1690",
+            "tests/unit/scripts/cms-migration-target.test.ts": "4380f2cead6b26e11fda7dbdf897359357713a6abcd11da10cbd469a15f18f24",
+            "apps/admin/src/cms/payload-database-config.ts": "8c920b0755196d88fa4f4b5fa1504c8dea5bb66212c28bb7495c70e4e4bb79f5",
+            "tests/unit/cms/payload-database-config.test.ts": "dc6e11422c25e6409600921d2473699f44335230fbd2f4c8791d5f5e60c9bc2c",
+            "packages/env/src/schema.ts": "b46078bb2a70d5214b00f97c1f22db9075751394a3d2de349c839271c6611fef",
+            ".env.example": "4a4df77a01d120fbaade981bb6949d681119c9cec13578365afaa9918e1d9dca"
+          },
+          "scope": "All changed lines across six files; exact role/project matching and routing/TLS guards retained; PEM mode fails closed and cannot be replaced by pg URI SSL parsing.",
+          "limitations": [
+            "CLI rehearsal requires trusted root through URI sslrootcert; PAYLOAD_DATABASE_SSL_CA is for the product pool.",
+            "Committed migration runner, final gates, hosted CMS behavior and legacy TLS retirement remain open."
+          ]
+        }
+      }
+    },
+    "selectedFiles": 52,
+    "selectedTests": 540,
+    "existingTlsDisposition": "No-CA behavior remains unchanged for staged environment migration. Legacy no-verify is an open cutover and final-security item, with no accepted vulnerability exception.",
+    "productionTouched": false
   }
 }

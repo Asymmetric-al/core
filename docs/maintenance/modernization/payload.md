@@ -55,7 +55,7 @@ and reapplication. A migrated backup restored to a second database with all
 hashes. These are synthetic local fixture results, not hosted/provider or
 production qualification.
 
-All 52 selected existing/focused CMS files and 521 cases pass. A compiler
+All 52 selected existing/focused CMS files and 540 cases pass. A compiler
 regression also checks public string block references without implicit generated
 augmentation; the generated file stays intact. The four actual SDK JWT cases verify signed legacy/wrong-version denial, a valid current
 token and the disabled-local-strategy boundary. Generated types remain present
@@ -84,3 +84,27 @@ Source: [official versioned v4 migration guide](https://github.com/payloadcms/pa
 ### Public static media access correction
 
 PR #2185 review found two retired `sizes.*.filename` filters in the follow-up static-file access check. They now use `variants.thumbnail.filename` and `variants.card.filename`, retaining the original filename alternative, tenant checks and exact-name restriction. The existing regression failed before the fix (1 failed, 18 passed) and all 19 cases pass afterward. Independent review found no additional active legacy media member paths. Anonymous HTTP variant-byte checks and current-head full qualification remain separate release evidence.
+
+### Hosted migration roles and certificate verification
+
+Hosted migration approval can name an explicit `CMS_HOSTED_MIGRATION_ROLE`;
+without it the guard requires `postgres`. A custom role must be a plain role
+name, and the exact direct or session-pooler username must match that role and
+the explicitly approved project. Routing overrides remain forbidden. The owned
+qualification branch uses a new expiring role with no superuser, role-creation,
+database-creation or RLS-bypass privileges. Its partial business bootstrap is
+not evidence of a complete development database restore.
+
+The existing product pool now accepts server-only `PAYLOAD_DATABASE_SSL_CA`
+with exactly one `sslmode=verify-full`. It requires certificate verification,
+rejects conflicting URI TLS options and removes the validated URI mode before
+node-postgres parsing can overwrite the CA object. Read-only connections to
+the isolated PostgreSQL 17.11 branch passed under Node 24.22.1 and Bun 1.4.3.
+The CLI uses a trusted local root through `sslrootcert` instead. All 540 focused
+cases, strict React Doctor and existing Shadscan floors pass; independent review
+approved the six implementation/test/configuration paths. The actual committed
+runner and hosted CMS migration remain separate qualification steps.
+
+Legacy no-CA behavior is temporarily retained while environments are converted.
+Retiring encrypted-but-unverified TLS remains an open cutover and final-security
+item; these probes do not close it or constitute an advisory exception.
