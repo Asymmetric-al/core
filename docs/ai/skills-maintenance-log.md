@@ -221,6 +221,33 @@ Outcomes: 80 updated, 89 current, 12 retained-snapshot, 8 unresolved, 1 excluded
 Review the exact source, companions, applicable license and Core adaptations before publishing.
 Source-group failures restore directories and lock/companion files together; retain recovery copies after incomplete rollback. Ecosystem refreshes replace only reviewed .agents source directories, then sync every client. Never run blanket installers or paid activation to manufacture a freshness claim. Check native invocation policy as well as SKILL frontmatter.
 
+### Verification and delivery
+
+- Full repository preflight passed before PR publication: 915 test files and
+  7,621 tests passed, with one expected failure and four skipped tests.
+  Application builds, workspace typechecks, formatting, OpenSpec, ownership,
+  lockfile and shared UI checks passed.
+- All 65 reviewed Cloudflare validator tests passed explicitly under WSL Node.
+  Refresh regression tests cover immutable pins, missing/symlinked companions,
+  overlay preservation, stale-file removal, directory/lock rollback, vendor
+  configuration non-execution and fixture Git-state isolation.
+- Mirror verification preserved the full tracked and untracked non-ignored
+  project-file fingerprint. All twelve PDF payload files in each of three
+  runtime trees retained their baseline SHA-256 digests.
+- Independent source/tooling reviews covered the complete authoring diff;
+  generated mirrors were verified from those sources. Shadscan remained 48/100.
+  Only eight root-manifest proof hashes changed after adding the refresh script;
+  findings, classifications and thresholds were preserved.
+- [PR #2187](https://github.com/Asymmetric-al/core/pull/2187) tracks exact-head
+  hosted CI and review state. Optional provider availability is reported there
+  separately from repository checks and independent source review.
+
+For future source edits, update the affected record's evidence and final hashes
+in skill-source-audit.json together with provenance and mirrors. Its dated
+imported/examined revisions are evidence, not fields to infer from another skill.
+Use the documented hash algorithm; do not relabel an unreviewed source current
+merely to make an integrity assertion pass.
+
 <!-- AL-2186-AUDIT-END -->
 
 ## Scope

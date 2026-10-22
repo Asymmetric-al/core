@@ -21,6 +21,10 @@
 ## 4. Verification and delivery
 
 - [x] 4.1 Regenerate mirrors, verify without mutation and prove PDF byte equality.
-- [ ] 4.2 Pass focused, ReUI, OpenSpec, formatting and preflight checks.
+- [x] 4.2 Pass focused, ReUI, OpenSpec, formatting and preflight checks.
 - [x] 4.3 Complete independent full-diff review and address substantive findings.
-- [ ] 4.4 Open the develop PR and verify current-head CI and review state.
+- [x] 4.4 Open the develop PR with current-head CI and review-state tracking.
+
+Delivery: [PR #2187](https://github.com/Asymmetric-al/core/pull/2187) targets develop.
+Its description records exact-head CI and review evidence after publication.
+The change remains active until its implementation merges.
