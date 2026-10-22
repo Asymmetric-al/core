@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import {
+  chmod,
   cp,
   lstat,
   mkdir,
@@ -17,6 +18,38 @@ import { afterEach, describe, expect, it } from "vitest";
 
 const repoRoot = process.cwd();
 const roots: string[] = [];
+
+function fixtureGit(
+  cwd: string,
+  args: string[],
+  inheritedEnvironment: NodeJS.ProcessEnv = process.env,
+) {
+  return spawnSync(
+    "git",
+    [
+      "-c",
+      "core.hooksPath=" + path.join(cwd, ".git", "disabled-fixture-hooks"),
+      "-c",
+      "user.name=Fixture",
+      "-c",
+      "user.email=fixture@example.invalid",
+      "-c",
+      "commit.gpgsign=false",
+      ...args,
+    ],
+    {
+      cwd,
+      encoding: "utf8",
+      // Git hooks export directory/index overrides. A fixture must never inherit
+      // those overrides or it can stage and commit into its caller's repository.
+      env: Object.fromEntries(
+        Object.entries(inheritedEnvironment).filter(
+          ([key]) => !key.startsWith("GIT_"),
+        ),
+      ),
+    },
+  );
+}
 const emilSkills = [
   "animate",
   "animate-expo",
@@ -100,27 +133,12 @@ async function createGithubFixture() {
     );
     await writeFile(path.join(root, ".cursor/agents", name), `old ${name}\n`);
   }
-  const env = Object.fromEntries(
-    Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
-  );
   for (const args of [
     ["init", "-b", "main"],
     ["add", "."],
-    [
-      "-c",
-      "user.name=Fixture",
-      "-c",
-      "user.email=fixture@example.invalid",
-      "commit",
-      "-m",
-      "Synthetic upstream fixture",
-    ],
+    ["commit", "-m", "Synthetic upstream fixture"],
   ]) {
-    const result = spawnSync("git", args, {
-      cwd: upstream,
-      encoding: "utf8",
-      env,
-    });
+    const result = fixtureGit(upstream, args);
     expect(result.status, result.stderr).toBe(0);
   }
   const file = path.join(root, "scripts/refresh-upstream-skills.mjs");
@@ -232,7 +250,7 @@ async function writeFile(target, content, ...options) {
     source = source.replace(
       groupEntry,
       groupEntry +
-        '  if (group.source !== "cursor/plugins") { console.error("REACHED_LATER_GITHUB_GROUP"); return 0; }\n',
+        '  if (group.source !== "cursor/plugins") { if (globalThis.fixtureCursorGroupReached) console.error("REACHED_LATER_GITHUB_GROUP"); return 0; }\n  globalThis.fixtureCursorGroupReached = true;\n',
     );
   }
   await writeFile(file, source);
@@ -280,6 +298,131 @@ afterEach(async () => {
 });
 
 describe("skill refresh transaction", () => {
+  it("isolates fixture Git directory, worktree and index from inherited hook state", async () => {
+    const root = await createFixture();
+    const parent = path.join(root, "sentinel-repository");
+    const target = path.join(root, "fixture-repository");
+    const cleanEnvironment = Object.fromEntries(
+      Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
+    );
+    for (const directory of [parent, target]) {
+      await mkdir(directory);
+      const initialized = fixtureGit(
+        directory,
+        ["init", "-b", "main"],
+        cleanEnvironment,
+      );
+      expect(initialized.status, initialized.stderr).toBe(0);
+    }
+    await writeFile(
+      path.join(parent, "sentinel.txt"),
+      "Preserve sentinel history and index.\n",
+    );
+    expect(fixtureGit(parent, ["add", "."], cleanEnvironment).status).toBe(0);
+    const sentinelCommit = fixtureGit(
+      parent,
+      ["commit", "-m", "Sentinel parent"],
+      cleanEnvironment,
+    );
+    expect(sentinelCommit.status, sentinelCommit.stderr).toBe(0);
+    const beforeHead = fixtureGit(
+      parent,
+      ["rev-parse", "HEAD"],
+      cleanEnvironment,
+    ).stdout;
+    const beforeIndex = await readFile(path.join(parent, ".git/index"));
+    const hookMarker = path.join(root, "FIXTURE_HOOK_EXECUTED");
+    const hook = path.join(target, ".git/hooks/pre-commit");
+    await writeFile(
+      hook,
+      '#!/bin/sh\nprintf executed > "' + hookMarker + '"\n',
+    );
+    await chmod(hook, 0o755);
+    await writeFile(
+      path.join(target, "fixture.txt"),
+      "Commit only in the synthetic target.\n",
+    );
+    const inheritedEnvironment = {
+      ...cleanEnvironment,
+      GIT_DIR: path.join(parent, ".git"),
+      GIT_WORK_TREE: target,
+      GIT_INDEX_FILE: path.join(parent, ".git/index"),
+      GIT_CONFIG_COUNT: "1",
+      GIT_CONFIG_KEY_0: "core.hooksPath",
+      GIT_CONFIG_VALUE_0: path.join(target, ".git/hooks"),
+    };
+    const added = fixtureGit(target, ["add", "."], inheritedEnvironment);
+    expect(added.status, added.stderr).toBe(0);
+    const saved = fixtureGit(
+      target,
+      ["commit", "-m", "Synthetic fixture only"],
+      inheritedEnvironment,
+    );
+    expect(saved.status, saved.stderr).toBe(0);
+    expect(
+      fixtureGit(parent, ["rev-parse", "HEAD"], cleanEnvironment).stdout,
+    ).toBe(beforeHead);
+    expect(await readFile(path.join(parent, ".git/index"))).toEqual(
+      beforeIndex,
+    );
+    expect(
+      fixtureGit(target, ["show", "HEAD:fixture.txt"], cleanEnvironment).stdout,
+    ).toBe("Commit only in the synthetic target.\n");
+    await expect(readFile(hookMarker)).rejects.toMatchObject({
+      code: "ENOENT",
+    });
+  });
+  it("formats staged source with trusted options without executing vendor configuration, plugins or lifecycle hooks", async () => {
+    const root = await createGithubFixture();
+    const upstream = path.join(root, "upstream");
+    const vendor = path.join(upstream, "cursor-team-kit/skills/weekly-review");
+    const marker = path.join(root, "VENDOR_CODE_EXECUTED");
+    const payload =
+      'require("node:fs").writeFileSync(' +
+      JSON.stringify(marker) +
+      ', "bad"); module.exports = {};\n';
+    await mkdir(path.join(vendor, "nested"));
+    await writeFile(path.join(vendor, ".prettierrc.cjs"), payload);
+    await writeFile(path.join(vendor, "nested/prettier.config.cjs"), payload);
+    await writeFile(path.join(vendor, "vendor-plugin.cjs"), payload);
+    await writeFile(
+      path.join(vendor, "package.json"),
+      JSON.stringify({
+        prettier: { plugins: ["./vendor-plugin.cjs"], semi: false },
+        scripts: {
+          preinstall: "node vendor-plugin.cjs",
+          test: "node vendor-plugin.cjs",
+        },
+      }),
+    );
+    await writeFile(
+      path.join(vendor, "nested/probe.js"),
+      "const  value={a:1}\n",
+    );
+    const binary = Buffer.from([0, 255, 128, 13, 10, 1]);
+    await writeFile(path.join(vendor, "opaque.bin"), binary);
+    const added = fixtureGit(upstream, ["add", "."]);
+    expect(added.status, added.stderr).toBe(0);
+    const saved = fixtureGit(upstream, [
+      "commit",
+      "-m",
+      "Inert vendor formatter fixtures",
+    ]);
+    expect(saved.status, saved.stderr).toBe(0);
+    await mkdir(path.join(root, "node_modules/.bin"), { recursive: true });
+    await symlink(
+      path.join(repoRoot, "node_modules/.bin/prettier"),
+      path.join(root, "node_modules/.bin/prettier"),
+    );
+    const result = run(root, "", "cursor/plugins");
+    expect(result.status, result.output).toBe(0);
+    const canonical = path.join(root, "docs/ai/skills/weekly-review");
+    expect(
+      await readFile(path.join(canonical, "nested/probe.js"), "utf8"),
+    ).toBe("const value = { a: 1 };\n");
+    expect(await readFile(path.join(canonical, "opaque.bin"))).toEqual(binary);
+    await expect(readFile(marker)).rejects.toMatchObject({ code: "ENOENT" });
+  });
   it("restores the original skill after source removal fails during an EXDEV backup", async () => {
     const root = await createFixture();
     await injectFault(root, "partial-backup");

@@ -9,8 +9,8 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 const skillsRoot = path.join(repoRoot, "docs", "ai", "skills");
 
-const INNGEST_SKILLS_REF = "ff42436bcedfb262d6a377571ce64a0d78d386a5";
-const INNGEST_CODEX_PLUGIN_REF = "39a5c1833f7b36ecd3402e04306dd43b9c3f1fa2";
+const INNGEST_SKILLS_REF = "082798a627bbe9c3ed3a6638a9f56116a035f122";
+const INNGEST_CODEX_PLUGIN_REF = "351e14c55a01f3924ab47f9feb69bae615b8bb52";
 const INNGEST_CLAUDE_PLUGIN_REF = "10536d34e593c436a76df9d313a66f480ea318c6";
 
 const coreSkills = [
@@ -170,7 +170,19 @@ async function writeReference({
   sourcePath,
   targetSkillName,
 }) {
-  const referenceText = await fetchText(rawUrl({ repo, ref, sourcePath }));
+  let referenceText = await fetchText(rawUrl({ repo, ref, sourcePath }));
+  if (targetSkillName === "inngest-api" && fileName === "rest-api-v2.md") {
+    const upstreamLink = "(cli-commands.md#insights-sql-over-execution-data)";
+    if (!referenceText.includes(upstreamLink)) {
+      throw new Error(
+        "Unable to apply Inngest API companion reference overlay; upstream link changed.",
+      );
+    }
+    referenceText = referenceText.replace(
+      upstreamLink,
+      "(../../inngest-api-cli/references/cli-commands.md#insights-sql-over-execution-data)",
+    );
+  }
   const referencesDir = path.join(skillsRoot, targetSkillName, "references");
 
   await mkdir(referencesDir, { recursive: true });
@@ -188,6 +200,20 @@ function applyRepoOverlay(skillName, content) {
     "../references/expressions.md",
     "../inngest/references/expressions.md",
   );
+
+  if (["inngest-api", "inngest-api-cli"].includes(skillName)) {
+    const cloudRoute =
+      "For Cloud operations with connected MCP tools, use `inngest-cloud` first.";
+    if (!nextContent.includes(cloudRoute)) {
+      throw new Error(
+        "Unable to apply Inngest Cloud routing overlay; upstream text changed.",
+      );
+    }
+    nextContent = nextContent.replace(
+      cloudRoute,
+      "For Cloud operations, prefer available connected Inngest Cloud MCP tools. This repository does not install the upstream inngest-cloud skill.",
+    );
+  }
 
   if (skillName === "inngest-agents") {
     const beforeAgentOverlay = nextContent;
@@ -244,7 +270,7 @@ right skill is unclear, start with \`docs/ai/skills/inngest/SKILL.md\`.
       or dependencies.
 - [ ] Existing workflows were audited before introducing or changing durable
       workflow behavior.
-- [ ] Any MCP usage is backed by a running Inngest dev server on the configured
+- [ ] Local dev-server MCP usage is backed by a running Inngest dev server on the configured
       port.
 - [ ] Upstream source and license attribution remain documented in
       \`docs/ai/skills/inngest/references/upstream.md\`.

@@ -18,6 +18,9 @@ import {
   annotateSecretScannerMentions,
   SECRET_SCANNER_SKIP_SUFFIXES,
 } from "./lib/skill-scanner-annotations.mjs";
+import { restoreReviewedEcosystemSkills } from "./lib/ecosystem-skill-adapters.mjs";
+import { restoreStripeCoreGuidance } from "./lib/stripe-skill-adapters.mjs";
+import { applyManagedSkillCompatibility } from "./lib/managed-skill-compatibility.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -136,11 +139,16 @@ function parseSyncArgs(argv) {
 const CANONICAL_MANIFEST_FILENAME = ".repo-canonical-skills.json";
 const CANONICAL_MANIFEST_VERSION = 2;
 
-// Core-authored adapters fully own their runtime directories. Some adapters
+// Complete Core-owned packages and adapters fully own their runtime directories. Some adapters
 // replace ecosystem installs with the same name (notably `vitest`), so an
 // overlay would leave stale upstream references discoverable beside Core's
-// version-specific guidance.
+// version-specific guidance or complete reviewed audit package.
 const fullyManagedCanonicalSkills = new Set([
+  "impeccable",
+  "reui",
+  "nextjs-app-architecture",
+  "supabase-postgres-best-practices",
+  "security-audit",
   "accessibility-review",
   "cms-migration",
   "find-animation-opportunities",
@@ -812,6 +820,32 @@ async function restoreWizardExplicitInvocation() {
   else metadata += "\ndisable-model-invocation: true";
   content = content.replace(frontmatter[0], `---\n${metadata}\n---`);
   await writeFile(skillPath, content, "utf8");
+  const metadataPath = path.join(
+    repoRoot,
+    ".agents/skills/wizard/agents/openai.yaml",
+  );
+  let nativeMetadata = "";
+  try {
+    nativeMetadata = await readFile(metadataPath, "utf8");
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  if (/allow_implicit_invocation:/u.test(nativeMetadata))
+    nativeMetadata = nativeMetadata.replace(
+      /allow_implicit_invocation:\s*(?:true|false)/u,
+      "allow_implicit_invocation: false",
+    );
+  else if (/^policy:\s*$/mu.test(nativeMetadata))
+    nativeMetadata = nativeMetadata.replace(
+      /^policy:\s*$/mu,
+      "policy:\n  allow_implicit_invocation: false",
+    );
+  else
+    nativeMetadata =
+      nativeMetadata.trimEnd() +
+      "\n\npolicy:\n  allow_implicit_invocation: false\n";
+  await mkdir(path.dirname(metadataPath), { recursive: true });
+  await writeFile(metadataPath, nativeMetadata.trimStart(), "utf8");
 }
 
 async function rewriteEcosystemCoreFile(relativePath, search, replacement) {
@@ -860,18 +894,13 @@ async function restoreEcosystemCoreGuidance() {
     ".agents/skills/stripe-best-practices",
   );
   const upgradeRoot = path.join(repoRoot, ".agents/skills/upgrade-stripe");
-  if ((await pathExists(stripeRoot)) || (await pathExists(upgradeRoot))) {
-    const replacements = JSON.parse(
-      await readFile(
-        path.join(
-          repoRoot,
-          "scripts/refresh-overlays/stripe-core-guidance.json",
-        ),
-        "utf8",
-      ),
-    );
-    for (const { path: relativePath, upstream, core } of replacements)
-      await rewriteEcosystemCoreFile(relativePath, upstream, core);
+  const projectsRoot = path.join(repoRoot, ".agents/skills/stripe-projects");
+  if (
+    (await pathExists(stripeRoot)) ||
+    (await pathExists(upgradeRoot)) ||
+    (await pathExists(projectsRoot))
+  ) {
+    await restoreStripeCoreGuidance(repoRoot);
   }
   await rewriteEcosystemCoreFile(
     "shadcn/SKILL.md",
@@ -1067,9 +1096,15 @@ async function main() {
   }
 
   await restoreGitGuardrailsFailClosedHook();
+  for (const name of ["claude-handoff", "handoff", "teach", "wizard"]) {
+    const target = path.join(repoRoot, ".agents/skills", name);
+    if (await pathExists(path.join(target, "SKILL.md")))
+      await applyManagedSkillCompatibility(name, target);
+  }
   await restoreWizardExplicitInvocation();
   await restoreEcosystemCoreGuidance();
   await restoreShadcnUiDataTable();
+  await restoreReviewedEcosystemSkills(repoRoot);
   await annotateSecretScannerMentionsInTree(targetRoots[0]);
 
   const agentMirrorSkills = await listAgentSkillsForMirror();

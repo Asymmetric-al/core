@@ -72,10 +72,10 @@ Cypress extends via `Cypress.Commands.add()` -- a global mutable registry. Playw
 | `cy.get('sel').should('have.length', 3)` | `await expect(locator).toHaveCount(3)` | Counts matching elements |
 | `cy.get('sel').should('have.value', 'x')` | `await expect(locator).toHaveValue('x')` | Input/textarea value |
 | `cy.get('sel').should('have.attr', 'href', '/x')` | `await expect(locator).toHaveAttribute('href', '/x')` | Any HTML attribute |
-| `cy.get('sel').should('have.class', 'active')` | `await expect(locator).toHaveClass(/active/)` | Regex for partial class match |
+| `cy.get('sel').should('have.class', 'active')` | `await expect(locator).toContainClass('active')` | Matches one class among many; `toHaveClass()` matches the full class list |
 | `cy.get('sel').should('be.disabled')` | `await expect(locator).toBeDisabled()` | |
 | `cy.get('sel').should('not.exist')` | `await expect(locator).toBeHidden()` | Or `.toHaveCount(0)` for truly absent elements |
-| `cy.intercept('GET', '/api/**', { body })` | `await page.route('/api/**', route => route.fulfill({ body }))` | Set up _before_ the action that triggers the request |
+| `cy.intercept('GET', '/api/**', { body })` | `await page.route('/api/**', route => route.fulfill({ json: body }))` | Set up _before_ the action that triggers the request |
 | `cy.intercept('POST', '/api/save').as('save')` | `const resp = page.waitForResponse('**/api/save')` | Start _before_ the action, `await` after |
 | `cy.wait('@save')` | `await resp` | Returns `Response` object with `.json()`, `.status()` |
 | `cy.fixture('users.json')` | Fixtures via `test.extend()` or direct `import`/`require` | See Example 5 below |
@@ -86,7 +86,7 @@ Cypress extends via `Cypress.Commands.add()` -- a global mutable registry. Playw
 | `Cypress.env('API_KEY')` | `process.env.API_KEY` | Or use `use: {}` in playwright.config for test-specific values |
 | `Cypress.Commands.add('login', fn)` | Custom fixture via `test.extend()` | See Example 5 below |
 | `cy.clock()` / `cy.tick(1000)` | `await page.clock.install()` / `await page.clock.fastForward(1000)` | `page.clock` API for full time control |
-| `cy.screenshot('name')` | `await page.screenshot({ path: 'name.png' })` | Auto-captured on failure when `screenshot: 'on'` in config |
+| `cy.screenshot('name')` | `await page.screenshot({ path: 'name.png' })` | Auto-captured on failure when `screenshot: 'only-on-failure'` in config |
 | `cy.viewport(1280, 720)` | `await page.setViewportSize({ width: 1280, height: 720 })` | Prefer setting in config or per-project |
 | `beforeEach(() => { cy.visit('/') })` | `test.beforeEach(async ({ page }) => { await page.goto('/') })` | Destructure `page` from fixtures |
 | `cy.scrollTo('bottom')` | `await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))` | Actions auto-scroll to elements; manual scroll is rarely needed |
@@ -772,7 +772,7 @@ export default defineConfig({
 
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    // Add more browsers — something Cypress cannot do:
+    // Add more browsers — WebKit (Safari) is only experimental in Cypress:
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
   ],
@@ -880,7 +880,7 @@ Replace the Cypress CI step with Playwright:
   run: npx playwright test
 
 - name: Upload Playwright Report
-  uses: actions/upload-artifact@v4
+  uses: actions/upload-artifact@v7
   if: ${{ !cancelled() }}
   with:
     name: playwright-report
@@ -930,7 +930,7 @@ cy.get('.card').should('be.visible').and('have.text', 'Hello').and('have.class',
 const card = page.locator('.card');
 await expect(card).toBeVisible();
 await expect(card).toHaveText('Hello');
-await expect(card).toHaveClass(/active/);
+await expect(card).toContainClass('active');
 ```
 
 ### 3. fill() vs type() — the speed difference
@@ -1148,16 +1148,15 @@ This replaces Cypress's time-travel debugger with a more detailed, offline-capab
 
 ### Component testing with framework support
 
-Test React, Vue, Svelte, and Solid components in real browsers (not jsdom):
+Test components from any framework in real browsers (not jsdom). Since 1.62 the built-in `mount` fixture renders a *story* (a small wrapper component) from a gallery page served by your own dev server; the `@playwright/experimental-ct-*` packages are deprecated. See [component testing](../core/component-testing.md):
 
 ```typescript
-import { test, expect } from '@playwright/experimental-ct-react';
-import { Button } from './Button';
+import { test, expect } from '@playwright/test';
 
 test('button renders with label', async ({ mount }) => {
-  const component = await mount(<Button label="Click me" />);
+  const component = await mount('components/Button/WithLabel');
   await expect(component).toContainText('Click me');
-  await component.click();
+  await component.getByRole('button').click();
 });
 ```
 

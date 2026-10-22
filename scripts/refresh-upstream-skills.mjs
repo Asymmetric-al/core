@@ -12,6 +12,10 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  applyManagedSkillCompatibility,
+  formatManagedSkillOutput,
+} from "./lib/managed-skill-compatibility.mjs";
+import {
   access,
   cp,
   lstat,
@@ -30,6 +34,12 @@ import {
   annotateSecretScannerMentions,
   SECRET_SCANNER_SKIP_SUFFIXES,
 } from "./lib/skill-scanner-annotations.mjs";
+import {
+  SECURITY_AUDIT_REVIEWED_COMMIT,
+  SECURITY_AUDIT_FILES,
+  SECURITY_AUDIT_CORE_OVERLAY,
+  assertSecurityAuditSource,
+} from "./lib/security-audit-source.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
@@ -48,7 +58,7 @@ const GRILL_UPSTREAM_DESCRIPTION =
   "description: Use when starting or reviewing a complex implementation where the user wants an agent to interrogate the plan against docs/source evidence, surface unknown unknowns, and avoid rushing into build mode. Combines docs-grounded grilling with a map-vs-territory unknowns pass.";
 const GRILL_CORE_DESCRIPTION =
   "description: Use only when the user explicitly invokes grill-for-unknowns or asks for a map-vs-territory unknowns pass, blindspot discovery, unknown-known prototypes, or a subagent launch packet before implementation.";
-const GRILL_REVIEWED_VERSION = "0.1.1";
+const GRILL_REVIEWED_VERSION = "0.1.3";
 const MATT_POCOCK_LINEAGE_COMMIT = "391a2701dd948f94f56a39f7533f8eea9a859c87";
 
 const emilKowalskiSkillNames = [
@@ -104,7 +114,8 @@ const jakubKrehelSources = jakubKrehelSkillNames.map((skillName) => ({
   preserve: ["references/upstream.md", "references/LICENSE.md"],
 }));
 
-const tasteSkillNames = ["design-taste-frontend", "redesign-existing-projects"];
+// Removed redesign-existing-projects is a retained snapshot, never a refresh input.
+const tasteSkillNames = ["design-taste-frontend"];
 
 const tasteSkillSources = tasteSkillNames.map((skillName) => ({
   sourceGroup: "leonxlnx/taste-skill",
@@ -118,7 +129,7 @@ const upstreamSources = [
     sourceGroup: "supabase/agent-skills",
     skillName: "supabase",
     from: path.join(repoRoot, ".agents", "skills", "supabase"),
-    preserve: ["references/upstream.md"],
+    preserve: ["references/upstream.md", "references/UPSTREAM-LICENSE"],
   },
   {
     sourceGroup: "supabase/agent-skills",
@@ -129,7 +140,7 @@ const upstreamSources = [
       "skills",
       "supabase-postgres-best-practices",
     ),
-    preserve: ["references/upstream.md"],
+    preserve: ["references/upstream.md", "references/UPSTREAM-LICENSE"],
   },
   {
     sourceGroup: "animations.dev",
@@ -164,7 +175,7 @@ const upstreamSources = [
     sourceGroup: "mattpocock/skills",
     skillName: "ask-matt",
     from: path.join(repoRoot, ".agents", "skills", "ask-matt"),
-    preserve: ["references/upstream.md"],
+    preserve: ["references/upstream.md", "references/LICENSE.md"],
   },
   {
     sourceGroup: "obra/superpowers",
@@ -216,6 +227,36 @@ const cursorTeamKitSkillNames = [
  * staging after overlay restore and must not become the Emil lock source.
  */
 const githubUpstreamGroups = [
+  {
+    name: "Cloudflare Security Audit",
+    repo: "https://github.com/cloudflare/security-audit-skill.git",
+    source: "cloudflare/security-audit-skill",
+    sourceUrl: "https://github.com/cloudflare/security-audit-skill",
+    ref: SECURITY_AUDIT_REVIEWED_COMMIT,
+    reviewedCommit: SECURITY_AUDIT_REVIEWED_COMMIT,
+    sourceRoot: "skills",
+    skillNames: ["security-audit"],
+    defaultCoreOverlay: SECURITY_AUDIT_CORE_OVERLAY,
+    refreshCommand: "bun run skills:refresh-security-audit",
+    license: "MIT; copyright 2025-2026 Cloudflare, Inc.",
+    reviewedSourceFiles: SECURITY_AUDIT_FILES,
+    lockSkillPath() {
+      return "skills/security-audit/SKILL.md";
+    },
+    upstreamPath() {
+      return "skills/security-audit/";
+    },
+    sourceUrlForSkill() {
+      return (
+        "https://github.com/cloudflare/security-audit-skill/tree/" +
+        SECURITY_AUDIT_REVIEWED_COMMIT +
+        "/skills/security-audit"
+      );
+    },
+    skillExtraCopies: {
+      "security-audit": [{ from: "LICENSE", to: "references/LICENSE.md" }],
+    },
+  },
   {
     name: "Cursor Team Kit",
     repo: "https://github.com/cursor/plugins.git",
@@ -463,15 +504,6 @@ const POST_REFRESH_REPLACEMENTS = [
       "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
     replace:
       "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
-    required: true,
-  },
-  {
-    skillName: "design-taste-frontend",
-    relativePath: "SKILL.md",
-    search:
-      "description: Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, audit-first on redesigns, strict pre-flight check.\n---",
-    replace:
-      "description: Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, audit-first on redesigns, strict pre-flight check.\ndisable-model-invocation: true\n---",
     required: true,
   },
   {
@@ -959,7 +991,7 @@ const POST_REFRESH_REPLACEMENTS = [
   {
     skillName: "emil-design-eng",
     relativePath: "SKILL.md",
-    search: "import { useSpring } from 'framer-motion';",
+    search: /import \{ useSpring \} from ["']framer-motion["'];/u,
     replace: 'import { useSpring } from "motion/react";',
     required: true,
   },
@@ -1703,7 +1735,13 @@ async function annotateSecretScannerMentionsInTree(targetRoot) {
 function findCompatibilitySearch(content, search, cursor) {
   if (typeof search === "string") {
     const index = content.indexOf(search, cursor);
-    return index === -1 ? null : { index, length: search.length };
+    if (index !== -1) return { index, length: search.length };
+    // Prettier can realign a table after a reviewed cell changes. Require the
+    // same escaped source words while tolerating formatting whitespace.
+    const match = whitespaceFlexiblePattern(search).exec(content.slice(cursor));
+    return match
+      ? { index: cursor + match.index, length: match[0].length }
+      : null;
   }
 
   const flags = search.flags.replaceAll("g", "").replaceAll("y", "");
@@ -1987,6 +2025,9 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
     }
   }
 
+  // Normalize the current import before the legacy required guard checks it.
+  await rewriteAskSonnerToasterImport(skillName, targetRoot);
+
   for (const replacement of POST_REFRESH_REPLACEMENTS) {
     if (replacement.skillName !== skillName) {
       continue;
@@ -2003,7 +2044,7 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
     if (!applied.matched) {
       if (replacement.required) {
         throw new Error(
-          `Required Core compatibility replacement is missing in ${path.relative(repoRoot, targetPath)}; review upstream drift before refreshing canonical skills.`,
+          `Required Core compatibility replacement is missing in ${path.relative(repoRoot, targetPath)}; review upstream drift before refreshing canonical skills. Expected: ${String(replacement.search).slice(0, 180)}`,
         );
       }
       if (content !== rawContent) {
@@ -2393,21 +2434,27 @@ async function formatSkillTarget(targetRoot) {
     return;
   }
 
-  const result = spawnSync(prettierBin, ["--write", targetRoot], {
-    cwd: repoRoot,
-    encoding: "utf8",
-    stdio: "inherit",
-    shell: process.platform === "win32",
-  });
-
-  if (result.error) {
-    throw result.error;
-  }
-
-  if (result.status !== 0) {
-    throw new Error(
-      `prettier failed for ${path.relative(repoRoot, targetRoot)} with exit ${result.status}`,
-    );
+  // A directory CLI invocation discovers executable configuration and plugins
+  // inside the imported tree. Resolve options only from the trusted repository
+  // and parse supported regular files as data, including hidden staging trees.
+  const prettier = await import("prettier");
+  const repositoryOptions =
+    (await prettier.resolveConfig(path.join(repoRoot, "package.json"), {
+      editorconfig: false,
+    })) ?? {};
+  for (const file of (await listFilesRecursively(targetRoot)).sort()) {
+    const info = await prettier.getFileInfo(file, {
+      resolveConfig: false,
+      ignorePath: [],
+      plugins: repositoryOptions.plugins,
+    });
+    if (!info.inferredParser) continue;
+    const content = await readFile(file, "utf8");
+    const formatted = await prettier.format(content, {
+      ...repositoryOptions,
+      filepath: file,
+    });
+    if (formatted !== content) await writeFile(file, formatted, "utf8");
   }
 }
 
@@ -2451,6 +2498,15 @@ function buildUpstreamMetadata({ group, skillName, hash, commitSha }) {
   const upstreamPath = group.upstreamPath(skillName);
   const sourceUrl = group.sourceUrlForSkill(skillName);
   const lockSkillPath = group.lockSkillPath(skillName);
+  const reviewedFiles = group.reviewedSourceFiles
+    ? "\n## Reviewed source inventory\n\n" +
+      group.reviewedSourceFiles.map((file) => "- " + file).join("\n") +
+      "\n\nLicense: " +
+      group.license +
+      ". The notice is preserved in references/LICENSE.md.\n" +
+      "The marked Core overlay is the only semantic adaptation. Validators and schema retain their upstream contracts.\n" +
+      "Refresh never executes imported code; reviewed validator tests run explicitly under WSL Node.\n"
+    : "";
   return `---
 source_name: ${group.source} (${skillName})
 source_url: ${sourceUrl}
@@ -2462,7 +2518,7 @@ last_reviewed: ${lastReviewed}
 
 # Upstream: ${skillName}
 
-Canonical copy in this repo: \`docs/ai/skills/${skillName}/\` (mirrored to \`.cursor/skills/\` and \`.agents/skills/\` via \`bun run skills:sync\`).
+Canonical copy in this repo: \`docs/ai/skills/${skillName}/\` (mirrored to \`.agents/skills/\`, \`.cursor/skills/\`, and \`.claude/skills/\` via \`bun run skills:sync\`).
 
 - **Repository:** ${group.sourceUrl}
 - **Ref:** \`${group.ref}\`
@@ -2473,7 +2529,7 @@ Canonical copy in this repo: \`docs/ai/skills/${skillName}/\` (mirrored to \`.cu
 
 ## Refresh from upstream
 
-1. Run \`bun run skills:refresh-upstream\`.
+1. Run \`${group.refreshCommand ?? "bun run skills:refresh-upstream"}\`.
 2. The script clones \`${group.repo}\` at \`${group.ref}\`, verifies the upstream skill directory exists, copies the full skill directory into \`docs/ai/skills/${skillName}/\`, and updates this metadata.
 3. Run \`bun run skills:sync\` and \`bun run skills:verify\` to refresh runtime mirrors.
 
@@ -2481,7 +2537,7 @@ Canonical copy in this repo: \`docs/ai/skills/${skillName}/\` (mirrored to \`.cu
 
 - Do not copy secrets, tokens, or environment-specific identifiers into skill content.
 - Preserve repo-local notes in this \`references/\` directory when refreshing.
-`;
+${reviewedFiles}`;
 }
 
 async function writeUpstreamMetadata({
@@ -2586,8 +2642,14 @@ async function prepareGithubSkillRefresh({
   assertPathInside(canonicalRoot, to, `${group.name} target`);
 
   if (!(await fileExists(upstreamSkillFile))) {
+    if (group.reviewedCommit)
+      throw new Error(
+        "Missing required reviewed upstream skill: " + upstreamSkillFile,
+      );
     return null;
   }
+  if (group.source === "cloudflare/security-audit-skill")
+    await assertSecurityAuditSource(upstreamSkillDir, cloneDir);
   await assertCanonicalDirectoryEntry(to);
 
   const staging = getTemporarySiblingPath(to, "refresh-staging");
@@ -2601,7 +2663,14 @@ async function prepareGithubSkillRefresh({
       targetRoot: staging,
       extraCopies: group.skillExtraCopies?.[skillName] ?? [],
     });
-    const preservedCoreOverlay = await readCoreOverlay(to);
+    const existingOverlay = await readCoreOverlay(to);
+    if (
+      group.defaultCoreOverlay &&
+      (await fileExists(path.join(to, "SKILL.md"))) &&
+      !existingOverlay
+    )
+      throw new Error("Missing required Core overlay for " + skillName);
+    const preservedCoreOverlay = existingOverlay ?? group.defaultCoreOverlay;
     await formatSkillTarget(staging);
     await restoreCoreOverlay(staging, preservedCoreOverlay, skillName);
     await applyPostRefreshReplacements(skillName, staging);
@@ -2652,16 +2721,53 @@ async function refreshGithubGroup(group, lockfile) {
   try {
     // Maintainers can rerun this command to pull newer upstream content without
     // manually copy-pasting skill files from GitHub.
-    runGit(
-      ["clone", "--depth", "1", "--branch", group.ref, group.repo, cloneDir],
-      `clone ${group.name}`,
-    );
+    if (group.reviewedCommit) {
+      if (!/^[a-f0-9]{40}$/u.test(group.reviewedCommit))
+        throw new Error(
+          "Reviewed source commit must be a complete immutable SHA",
+        );
+      const hooks = path.join(tempRoot, "disabled-hooks");
+      runGit(["init", "--quiet", cloneDir], "initialize reviewed source");
+      runGit(
+        [
+          "-C",
+          cloneDir,
+          "-c",
+          "core.hooksPath=" + hooks,
+          "fetch",
+          "--depth",
+          "1",
+          group.repo,
+          group.reviewedCommit,
+        ],
+        "fetch reviewed " + group.name,
+      );
+      runGit(
+        [
+          "-C",
+          cloneDir,
+          "-c",
+          "core.hooksPath=" + hooks,
+          "checkout",
+          "--detach",
+          "FETCH_HEAD",
+        ],
+        "checkout reviewed " + group.name,
+      );
+    } else {
+      runGit(
+        ["clone", "--depth", "1", "--branch", group.ref, group.repo, cloneDir],
+        `clone ${group.name}`,
+      );
+    }
     const commitSha = runGit(
       ["-C", cloneDir, "rev-parse", "HEAD"],
       `resolve ${group.name} commit`,
       { capture: true },
     );
 
+    if (group.reviewedCommit && commitSha !== group.reviewedCommit)
+      throw new Error("Reviewed source commit mismatch for " + group.name);
     const preparedRefreshes = [];
     const lockEntries = new Map();
 
@@ -2909,8 +3015,10 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   try {
     await cp(from, staging, { recursive: true });
     await restorePreservedFiles(staging, preservedFiles);
+    await applyManagedSkillCompatibility(skillName, staging);
     await restoreCoreOverlay(staging, preservedCoreOverlay, skillName);
     await applyPostRefreshReplacements(skillName, staging);
+    await formatManagedSkillOutput(skillName, staging);
     await assertPostRefreshCompatibility(skillName, staging);
   } catch (error) {
     await rm(staging, { recursive: true, force: true });

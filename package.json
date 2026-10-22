@@ -114,6 +114,7 @@
     "openspec:validate": "bun run openspec -- validate --all --strict",
     "openspec:audit-archive": "bun run openspec -- validate --archived",
     "skills:refresh-upstream": "node scripts/refresh-upstream-skills.mjs",
+    "skills:refresh-security-audit": "node scripts/refresh-upstream-skills.mjs --only=cloudflare/security-audit-skill",
     "skills:refresh-emilkowalski": "node scripts/refresh-upstream-skills.mjs --only=emilkowalski/skills",
     "skills:refresh-grill-for-unknowns": "node scripts/refresh-upstream-skills.mjs --only=nicobailon/grill-for-unknowns",
     "skills:refresh-jakubkrehel": "node scripts/refresh-upstream-skills.mjs --only=jakubkrehel/skills",

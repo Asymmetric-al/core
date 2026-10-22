@@ -1,0 +1,4 @@
+interface:
+  display_name: "ReUI"
+  short_description: "ReUI design and component rules for React apps on shadcn/ui and Tailwind."
+  default_prompt: "Use ReUI to build this UI with installed components and the ReUI motion and color rules."

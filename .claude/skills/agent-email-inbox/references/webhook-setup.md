@@ -16,7 +16,7 @@
 
 The API endpoint is `POST https://api.resend.com/webhooks`. You need:
 - `endpoint` (string, required): Your full public webhook URL (e.g., `https://<your-tunnel-domain>/webhook`)
-- `events` (string[], required): Event types to subscribe to. For an agent inbox, use `["email.received"]`
+- `events` (string[], required): Event types to subscribe to. For an agent inbox, use `["inbox.email.received"]`. For [Receiving without an inbox](../SKILL.md#receiving-without-an-inbox), use `["email.received"]`
 
 The response includes a `signing_secret` (format: `whsec_xxxxxxxxxx`) — **store this immediately** as `RESEND_WEBHOOK_SECRET`. This is the only time you'll see it in the response.
 
@@ -29,7 +29,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const { data, error } = await resend.webhooks.create({
   endpoint: 'https://<your-tunnel-domain>/webhook',
-  events: ['email.received'],
+  events: ['inbox.email.received'],
 });
 
 if (error) {
@@ -51,7 +51,7 @@ resend.api_key = 're_xxxxxxxxx'
 
 webhook = resend.Webhooks.create(params={
     "endpoint": "https://<your-tunnel-domain>/webhook",
-    "events": ["email.received"],
+    "events": ["inbox.email.received"],
 })
 
 print(f"Webhook created: {webhook['id']}")
@@ -65,7 +65,7 @@ curl -X POST 'https://api.resend.com/webhooks' \
   -H 'Content-Type: application/json' \
   -d '{
     "endpoint": "https://<your-tunnel-domain>/webhook",
-    "events": ["email.received"]
+    "events": ["inbox.email.received"]
   }'
 
 # Response:

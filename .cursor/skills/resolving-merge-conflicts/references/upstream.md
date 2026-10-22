@@ -5,6 +5,9 @@ source_type: github
 upstream_path: skills/engineering/resolving-merge-conflicts/SKILL.md
 skills_lock_hash: 9050aa34dc026b5b28f5b63003a8742d0669daa6b2916c7a0f082ca9bfa50184
 last_reviewed: 2026-07-09
+upstream_status: kept-snapshot
+last_checked: 2026-10-22
+checked_upstream_commit: 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 ---
 
 # Upstream: resolving-merge-conflicts
@@ -23,3 +26,7 @@ Canonical copy in this repo: `docs/ai/skills/resolving-merge-conflicts/` (mirror
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 
 This skill is **not** updated by `bun run skills:refresh-upstream`.
+
+## Kept snapshot, 2026-10-22
+
+The current upstream tree at 5beb35b040e3de97e54fa9e386d7e42d15c295c2 no longer publishes skills/engineering/resolving-merge-conflicts/. This is a **kept snapshot**: preserve the existing skill body, support files, license, discovery metadata and lock identity. The current upstream commit is an availability check, not the source revision of these retained bytes. Do not import a successor or remove this skill during refresh.

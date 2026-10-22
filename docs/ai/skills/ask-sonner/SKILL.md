@@ -36,6 +36,8 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
+When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.
+
 A guide skill for [Sonner](https://sonner.emilkowal.ski), the toast library. When a task involves Sonner — wiring it up, rendering toasts, styling them, or fixing them — answer from this file first. Full prop tables for `<Toaster />` and `toast()` live in [API.md](API.md); read it when you need an exact prop name, type, or default.
 
 ## Setup

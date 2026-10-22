@@ -165,6 +165,62 @@ describe("ReUI skill refresh staging", () => {
       originalSkill,
     );
   });
+  it("stages reviewed display-only OpenAI metadata without changing its bytes", async () => {
+    const f = await fixture();
+    const payload = bundle();
+    const metadata =
+      'interface:\n  display_name: "ReUI"\n  short_description: "ReUI component guidance."\n  default_prompt: "Use ReUI for this UI."\n';
+    payload.files.push({ path: "agents/openai.yaml", content: metadata });
+    await writeFile(f.bundlePath, JSON.stringify(payload));
+    const result = run(f.root, [
+      "--bundle=" + f.bundlePath,
+      "--output=" + f.output,
+    ]);
+    expect(result.status).toBe(0);
+    expect(
+      await readFile(path.join(f.output, "agents/openai.yaml"), "utf8"),
+    ).toBe(metadata);
+    expect(await readFile(path.join(f.canonical, "SKILL.md"), "utf8")).toBe(
+      originalSkill,
+    );
+  });
+
+  it.each([
+    [
+      "agents/openai.yaml",
+      'interface:\n  display_name: "ReUI"\n  short_description: "Guidance"\n  default_prompt: "Unsafe\\u0000value"\n',
+    ],
+    ["agents/other.yaml", 'interface:\n  display_name: "ReUI"\n'],
+    ["agents/openai.yml", 'interface:\n  display_name: "ReUI"\n'],
+    [
+      "agents/openai.yaml",
+      'interface:\n  display_name: "ReUI"\ncommands:\n  run: "node hook.js"\n',
+    ],
+    ["agents/openai.yaml", 'interface: &display\n  display_name: "ReUI"\n'],
+    ["agents/openai.yaml", "interface:\n  display_name: !include secret.txt\n"],
+    [
+      "agents/openai.yaml",
+      'interface:\n  display_name: "ReUI"\n  display_name: "Duplicate"\n  short_description: "Guidance"\n  default_prompt: "Use ReUI"\n',
+    ],
+  ])(
+    "rejects unsupported metadata path or authority-bearing YAML: %s",
+    async (filePath, content) => {
+      const f = await fixture();
+      const payload = bundle();
+      payload.files.push({ path: filePath, content });
+      await writeFile(f.bundlePath, JSON.stringify(payload));
+      const result = run(f.root, [
+        "--bundle=" + f.bundlePath,
+        "--output=" + f.output,
+      ]);
+      expect(result.status).not.toBe(0);
+      expect(existsSync(f.output)).toBe(false);
+      expect(await readFile(path.join(f.canonical, "SKILL.md"), "utf8")).toBe(
+        originalSkill,
+      );
+    },
+  );
+
   it("stages a complete fresh bundle with Core overlays and provenance without changing canonical skills or MCP", async () => {
     const f = await fixture();
     const result = run(f.root, [

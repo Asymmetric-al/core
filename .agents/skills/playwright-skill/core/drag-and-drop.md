@@ -433,7 +433,7 @@ test('moves a card through all stages', async ({ page }) => {
 
 ## Recipe 4: File Drop Zone
 
-> **Playwright 1.60+**: `locator.drop()` now simulates a *native* external file drop — dispatching real `dragenter` / `dragover` / `drop` events with a synthetic `DataTransfer`. This is the preferred approach for drop zones that listen for `drop` events (not just a hidden `input[type=file]`). On earlier versions, fall back to `setInputFiles` on the underlying file input (shown below).
+> **Playwright 1.60+**: `locator.drop()` (new in 1.60) simulates an external drop of files or data (`{ data: { 'text/plain': ... } }`) — dispatching `dragenter` / `dragover` / `drop` events with a synthetic `DataTransfer`. This is the preferred approach for drop zones that listen for `drop` events (not just a hidden `input[type=file]`). On earlier versions, fall back to `setInputFiles` on the underlying file input (shown below).
 
 ### Recommended: `locator.drop()` (Playwright 1.60+)
 

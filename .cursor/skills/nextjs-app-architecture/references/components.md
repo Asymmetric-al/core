@@ -114,8 +114,12 @@ Import the real skeleton and pass the prop inline at the `<Suspense>` boundary: 
 3. Responsive visibility must match (`hidden sm:block` in the real component → same in the skeleton).
 4. Show 2–5 placeholders for variable-length lists, not the real count.
 5. Don't include skeletons for inner Suspense content — those have their own boundaries.
-6. Reserve the right height. CLS comes from skeletons that are shorter than the real content.
+6. Reserve the right height. CLS comes from skeletons that are shorter than the real content, and from real content that can be shorter than its skeleton; in that case give the real container the skeleton's `min-h`.
 7. Dense placeholders should not animate. A grid of 28 shimmering covers reads as flicker rather than progress, so use a flat low-contrast fill when there are many items and keep the animated sweep for a handful of bars.
+8. Draw text as bars shorter than the line, but keep the line box: bar height plus vertical margin equals the text's line-height, so a 20px line gets a 14px bar with 3px above and below. Stack bars in a flex column so the margins don't collapse into each other. In a block container a bar's bottom margin also collapses into the next block's top margin and the skeleton lands a few pixels short, so give a lone bar an explicit line box (`flex h-4 items-center`) instead of margins. Keep padding off the element that carries that fixed height: with border-box sizing, `h-7 pt-4` is 28px in total, not 16px of padding on a 28px line, and everything below the bar sits 16px too high. Put the padding on a wrapper around the line box.
+9. Large blocks (images, buttons, avatars) get the flat fill too; only text lines animate, or the whole page pulses.
+10. Extract repeated visual primitives (a route line, a label-over-value stat, an icon detail row) as small components that export their own skeleton, and compose the larger skeletons from them. Three hand-measured copies drift apart; one measured primitive stays right everywhere it is used.
+11. Signs of a bad skeleton, all seen in review: a fallback shaped like one variant used for another (one step's skeleton shown for another step), a fixed-height guess such as `h-[34rem]` standing in for a component whose frame could be composed from its real parts, a text fallback that later turns into different text, and a skeleton that lives in a different file from the component it stands in for.
 
 ## Group related components in one file
 
@@ -170,6 +174,26 @@ async function PostDetail({ id }: { id: string }) {
 }
 ```
 
+### Server half, client half
+
+When a client component needs server data, don't create the query in the page or layout to pass it down. Give the feature an async server component that awaits its queries and renders the client component, and name the pair after it: `ComposePanel` in `compose-panel.tsx`, `ComposePanelClient` in `compose-panel-client.tsx`. The page places `<ComposePanel />` like any other feature component, and the server half is where a prefetch or navigation gate goes.
+
+```tsx
+// features/thread/components/compose-panel.tsx
+export async function ComposePanel() {
+  const [user, contacts] = await Promise.all([getCurrentUser(), getContacts()]);
+  return <ComposePanelClient contacts={contacts} from={user} />;
+}
+```
+
+If that pair streams into a layout slot and reads client state from a provider that hydrated earlier (the panel's open state), the user can change that state before the slot arrives, and the slot's first client render would no longer match its server HTML. Render its state-dependent part only after mount, with a `useSyncExternalStore` that returns `false` on the server and `true` on the client.
+
+### Pass rendered content through slots
+
+Next.js supports passing server-rendered JSX to a Client Component as `children` or another named prop. Client Components may also be rendered directly from Server Components. Props that cross into a Client Component must follow React's serialization rules; use the official interleaving and serialization guidance (installed: `node_modules/next/dist/docs/01-app/01-getting-started/05-server-and-client-components.md`) rather than treating all element props as invalid.
+
+This skill still prefers plain values and explicit `children` / slot props. If a client design component needs to inspect or clone an element rather than render an opaque slot, keep that composition in the client module or expose a value/class API whose boundary is clear.
+
 ### Server content as children of client components
 
 Composition crosses the boundary. A client component can accept server-rendered JSX as children or props:
@@ -212,13 +236,18 @@ async function Post({ id }: { id: string }) {
 
 ## Client components that own their loading state
 
-When a client component needs server data but should manage its own loading (a sidebar badge, a popover that opens on hover), pass an **unresolved promise** from the server and resolve it with [`use()`](https://react.dev/reference/react/use) on the client. Wrap the consumer in `<Suspense>`.
+When a client component needs server data but should manage its own loading (a sidebar badge, a popover that opens on hover), pass an **unresolved promise** from the server and resolve it with [`use()`](https://react.dev/reference/react/use) on the client. Wrap the consumer in `<Suspense>`. The promise is created in a feature server component, not in the page, which never imports queries:
 
 ```tsx
-// page: pass the unresolved promise, wrap in Suspense
+// features/tag/components/tag-picker-field.tsx — creates the promise without awaiting it
+export function TagPickerField() {
+  return <TagPicker itemsPromise={getTags()} />;
+}
+
+// page: places the boundary
 <Suspense fallback={<TagListSkeleton />}>
-  <TagPicker itemsPromise={getTags()} />
-</Suspense>
+  <TagPickerField />
+</Suspense>;
 ```
 
 ```tsx
@@ -258,12 +287,12 @@ useEffect(() => {
 
 Prefer one of these shapes:
 
-- Key the interactive child by the value that resets it: `<SelectableList key={filterKey} filterKey={filterKey} />`.
+- Key the interactive child by the value that resets it: `<SelectableList key={filterKey} filterKey={filterKey} />`. Key leaves only: a key on a provider that wraps Suspense boundaries remounts every boundary under it, so its chrome and content re-skeleton. A provider resets by storing the value it belongs to next to its state and comparing during render: `const selected = state.list === list ? state.selected : new Map()`.
 - Derive the value during render.
 - Put the value in the URL/search params if navigation should own it.
 - Use a reducer where the same event that changes `filterKey` also clears `selectedItem`.
 
-Effects are for external systems: DOM APIs, subscriptions, timers, browser storage, analytics, or imperative libraries. They are not a cleanup lane for state that React could derive or reset structurally.
+Effects are for synchronizing with external systems: DOM APIs, subscriptions, timers, browser storage, analytics, or imperative libraries. For state that React can derive or reset structurally, follow [You Might Not Need an Effect](https://react.dev/learn/you-might-not-need-an-effect).
 
 ## Mutations
 

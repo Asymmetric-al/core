@@ -215,6 +215,8 @@ test('grant permissions mid-test', async ({ browser }) => {
 **Use when**: Testing copy/paste functionality, "Copy to clipboard" buttons, or paste-from-clipboard features.
 **Avoid when**: Your app does not interact with the clipboard.
 
+Since Playwright 1.62 the clipboard is isolated from the operating system in headless mode, so parallel tests no longer read or overwrite the machine's clipboard.
+
 **TypeScript**
 ```typescript
 import { test, expect } from '@playwright/test';
@@ -352,7 +354,7 @@ test('video call shows local preview with fake camera', async () => {
 **Use when**: Your app persists state, tokens, preferences, or feature flags in web storage.
 **Avoid when**: You can set the state through the UI or API instead. Prefer those approaches for realism.
 
-Playwright 1.61 adds a first-class Web Storage API — `page.localStorage` and `page.sessionStorage` — with `getItem`, `setItem`, `removeItem`, `clear`, and `items()`. Prefer it over `page.evaluate()`: no serialization boilerplate, and it works even when the page has a strict CSP that blocks script evaluation.
+Playwright 1.61 adds a first-class Web Storage API — `page.localStorage` and `page.sessionStorage` — with `getItem`, `setItem`, `removeItem`, `clear`, and `items()`. Prefer it over `page.evaluate()`: no serialization boilerplate. It operates on the current page's origin, so navigate first.
 
 **TypeScript**
 ```typescript
@@ -628,7 +630,7 @@ test('drive a real browser without changing its focus/media behavior', async () 
 });
 ```
 
-See [playwright-cli/session-management.md](../playwright-cli/session-management.md#attaching-to-a-real-browser-without-overrides-connectovercdp-nodefaults-playwright-160) for the CLI/agent attach workflow.
+See [playwright-cli/session-management.md](../playwright-cli/session-management.md#attaching-to-a-real-browser-without-overrides-connectovercdp-nodefaults--playwright-160) for the CLI/agent attach workflow.
 
 ## Decision Guide
 

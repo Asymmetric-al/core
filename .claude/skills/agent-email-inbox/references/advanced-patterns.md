@@ -71,9 +71,9 @@ npm install resend@latest
 ```
 Or use the Svix fallback (see [webhook-setup.md](webhook-setup.md)).
 
-### "Cannot read properties of undefined (reading 'get')"
+### "Cannot read properties of undefined (reading 'threads')" or "(reading 'get')"
 
-**Cause:** Resend SDK version too old — `emails.receiving.get()` requires a recent SDK.
+**Cause:** Resend SDK version too old. `resend.inboxes.*` needs `resend` >= 6.34.1, and `emails.receiving.get()` also needs a recent SDK.
 **Fix:**
 ```bash
 npm install resend@latest
@@ -96,16 +96,18 @@ npm list resend
 
 ### Email received but no webhook fires
 
-1. Check the webhook is "Active" in Resend dashboard → Webhooks
-2. Check the endpoint URL is correct (including the path, e.g., `/webhook`)
-3. Check the tunnel is running: `curl https://<your-tunnel-url>`
-4. Check the "Recent Deliveries" section on your webhook for status codes
+1. Check the webhook subscribes to `inbox.email.received`. A webhook on `email.received` alone does not get inbox events
+2. Check the webhook is "Active" in Resend dashboard → Webhooks
+3. Check the endpoint URL is correct (including the path, e.g., `/webhook`)
+4. Check the tunnel is running: `curl https://<your-tunnel-url>`
+5. Check the "Recent Deliveries" section on your webhook for status codes
 
 ### Security check rejecting all emails
 
 1. Check the sender address is in your `ALLOWED_SENDERS` list
-2. Check for case mismatch — the comparison should be case-insensitive
-3. Debug by logging: `console.log('Sender:', event.data.from.toLowerCase())`
+2. Check for case mismatch. The comparison should be case-insensitive
+3. Check that you compare the address only. `from` can be `Name <address>`, so use `senderAddress()` from SKILL.md
+4. Debug by logging: `console.log('Sender:', senderAddress(email.from))`
 
 ### Agent doesn't auto-respond to emails
 

@@ -6,10 +6,12 @@ disable-model-invocation: true
 
 Implement the work described by the user in the spec or tickets.
 
-Use /tdd where possible, at pre-agreed seams.
+If the user passes a ticket reference, fetch it from the issue tracker and state its title before starting. If the reference is ambiguous, ask.
+
+Apply Core `tdd` at an established public seam. Ask only when material behavior or the seam is ambiguous.
 
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 
-Once done, use /code-review to review the work.
+Once done, call the Skill tool with "code-review" to review the work.
 
-Commit your work to the current branch.
+Commit to the current branch when the task authorizes committing, following the repository commit and verification rules.

@@ -40,6 +40,8 @@ before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
+When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.
+
 A construction skill. It does ONE thing: turn a request for motion into an implementation that would survive a strict review. It does not audit a codebase (that's `improve-animations`), critique a diff (that's `review-animations`), hunt for places that could animate (that's `find-animation-opportunities`), or build for React Native (that's `animate-expo`).
 
 ## Operating Posture

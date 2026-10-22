@@ -115,8 +115,8 @@ test('required field shows a red asterisk via ::after', async ({ page }) => {
   const label = page.getByText('Email', { exact: true });
 
   // Verify the ::after content and color of the "required" marker
-  await expect(label).toHaveCSS('content', '"*"', { pseudo: '::after' });
-  await expect(label).toHaveCSS('color', 'rgb(220, 38, 38)', { pseudo: '::after' });
+  await expect(label).toHaveCSS('content', '"*"', { pseudo: 'after' });
+  await expect(label).toHaveCSS('color', 'rgb(220, 38, 38)', { pseudo: 'after' });
 });
 ```
 
@@ -128,7 +128,7 @@ test('required field shows a red asterisk via ::after', async ({ page }) => {
   await page.goto('/register');
 
   const label = page.getByText('Email', { exact: true });
-  await expect(label).toHaveCSS('content', '"*"', { pseudo: '::after' });
+  await expect(label).toHaveCSS('content', '"*"', { pseudo: 'after' });
 });
 ```
 
@@ -488,9 +488,11 @@ Playwright checks before acting:
 | `check()` | Attached, visible, stable, enabled |
 | `selectOption()` | Attached, visible, enabled |
 | `hover()` | Attached, visible, stable |
-| `type()` | Attached, visible, enabled, editable |
+| `pressSequentially()` | Attached only (no actionability checks) |
 
 This means you almost never need explicit waits before actions. Do NOT write `await expect(button).toBeVisible()` before `await button.click()` — the click already waits for visibility.
+
+Actions also scroll the target into view, including nested scroll containers. Since 1.62, pass `scroll: 'none'` (for example `click({ scroll: 'none' })`) to skip that; the action then fails if the element is not already in the viewport, which asserts it is reachable without scrolling.
 
 ### Explicit Waits
 
@@ -662,7 +664,7 @@ export default defineConfig({
 | Element count | `expect(locator).toHaveCount(n)` | Retries until count matches |
 | Input value | `expect(locator).toHaveValue('x')` | Auto-retries on the locator |
 | Element attribute | `expect(locator).toHaveAttribute('href', '/x')` | Auto-retries |
-| CSS property | `expect(locator).toHaveCSS('color', 'rgb(0,0,0)')` | Auto-retries; use computed RGB values. Add `{ pseudo: '::after' }` (1.60+) for pseudo-element styles |
+| CSS property | `expect(locator).toHaveCSS('color', 'rgb(0,0,0)')` | Auto-retries; use computed RGB values. Add `{ pseudo: 'after' }` (1.60+) for pseudo-element styles |
 | Element gone from DOM | `expect(locator).not.toBeAttached()` | Distinguishes hidden vs. removed |
 | URL changed | `page.waitForURL('/path')` or `expect(page).toHaveURL('/path')` | `toHaveURL` auto-retries; `waitForURL` blocks |
 | Page title | `expect(page).toHaveTitle('Title')` | Auto-retries |

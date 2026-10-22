@@ -29,7 +29,7 @@ See [Core workflow](../SKILL.md#this-repository-asymmetric-alcore).
 
 ## Registry setup (one-time, per project)
 
-Free items (the 24 components and all `c-*` examples) need only the plain string registry in `components.json`:
+Free items (the ReUI components and all `c-*` examples) need only the plain string registry in `components.json`:
 
 ```json
 { "registries": { "@reui": "https://reui.io/r/{style}/{name}.json" } }
@@ -95,7 +95,7 @@ bunx --bun shadcn@latest add @reui/<name> --yes # bun
 
 ## Free vs premium boundary
 
-- Public, no key: `c-*` examples and the 24 components (`@reui/data-grid`, `@reui/badge`, ...) that those examples depend on.
+- Public, no key: `c-*` examples and the ReUI components (`@reui/data-grid`, `@reui/badge`, ...) that those examples depend on.
 - Key required at install: blocks (`@reui/<category>-N`) need a Pro or Ultimate license; Motion Icons (`@reui/icons/...`) need Ultimate.
 - Templates are downloads from their page on reui.io, not installs: free ones need only a ReUI account, and each template's page says what the others need.
 

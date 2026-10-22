@@ -1,0 +1,437 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-22",
+  "pins": {
+    "emilkowalski/skills": "2d228630ba1446365f614a108cb8252f1feda202",
+    "jakubkrehel/skills": "4c66b1fa86e9ab70187b43d7da9b6fdb29f2ef63",
+    "mattpocock/skills": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+    "obra/superpowers": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+    "leonxlnx/taste-skill": "6010f91a9935f1c167dfc500fb1a475681892e6b"
+  },
+  "skills": {
+    "animate": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["animate"],
+      "frontmatter": "---\nname: animate\ndescription: Build an animation from scratch, making the decisions in the order that determines whether it feels right — should it animate at all, what purpose, which tool, which properties, which curve and duration, how it interrupts, how it exits. Writes the implementation. Use when asked to animate something, add motion, make a component feel alive, or build a transition. For critiquing existing motion use review-animations; for auditing a whole codebase use improve-animations. Only runs when explicitly invoked; it does not trigger on its own.\ndisable-model-invocation: true\n---\n"
+    },
+    "animate-expo": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["animate-expo"],
+      "frontmatter": "---\nname: animate-expo\ndescription: Build animations for Expo and React Native only, using Reanimated, Gesture Handler, Expo Router, and expo-haptics. Use when the target runtime is an Expo or React Native app. Do not use it for Core Next.js web motion; use `animate` for web. Only runs when explicitly invoked; it does not trigger on its own.\ndisable-model-invocation: true\n---\n"
+    },
+    "animation-vocabulary": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["animation-vocabulary"],
+      "frontmatter": "---\nname: animation-vocabulary\ndescription: Reverse-lookup glossary that turns a vague description of a web animation or motion effect into its exact term (\"the bouncy thing when a popover opens\" → Pop in; \"the iOS rubber-band scroll\" → Rubber-banding). Use when the user asks \"what's it called when…\", or describes a motion effect without knowing its name and wants the right word to prompt an AI or designer with. For naming an effect, not designing or building one.\n---\n"
+    },
+    "apple-design": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["apple-design"],
+      "frontmatter": "---\nname: apple-design\ndescription: Apple's approach to interface design and fluid, physical motion, translated for the web. Use when building or reviewing gesture-driven UI, spring animations, drag/swipe/sheet interactions, momentum and interruptible transitions, translucent materials and depth, typography (optical sizing, tracking, leading), reduced-motion, or the design foundations (feedback, spatial consistency, restraint) behind Apple-style interfaces.\n---\n"
+    },
+    "ask-sonner": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["ask-sonner"],
+      "frontmatter": "---\nname: ask-sonner\ndescription: Guide to Sonner, the React toast library — install and wire up the Toaster, pick the right toast() call, promise and loading toasts, updating, dismissing and persisting toasts, styling, theming and icons, positioning and multiple toasters. Use when working with Sonner or troubleshooting it — toasts that don't appear, appear twice, lose their styles, ignore Tailwind classes, sit behind a modal, or don't follow dark mode.\n---\n"
+    },
+    "emil-design-eng": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["emil-design-eng"],
+      "frontmatter": "---\nname: emil-design-eng\ndescription: This skill encodes Emil Kowalski's philosophy on UI polish, component design, animation decisions, and the invisible details that make software feel great. Use as a craft companion after Core's frontend, emil-design-engineering, and anim guidance.\n---\n"
+    },
+    "emil-prototype": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["emil-prototype", "prototype"],
+      "frontmatter": "---\nname: emil-prototype\ndescription: Build multiple genuinely different versions of a UI piece you describe, rendered behind a visual picker so you can flip through them live and promote the one that feels right. Only runs when explicitly invoked; it does not trigger on its own.\ndisable-model-invocation: true\n---\n"
+    },
+    "improve-animations": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["improve-animations"],
+      "frontmatter": "---\nname: improve-animations\ndescription: Survey a codebase's animation and motion code as a senior motion advisor, then produce a prioritized audit and self-contained implementation plans for other agents (or cheaper models) to execute. Read-only on source code — it plans improvements, it does not apply them. Use when the user asks to \"improve the animations\", \"audit the motion\", \"make this app feel better\", or wants a roadmap of animation fixes rather than a review of a single diff.\n---\n"
+    },
+    "mobile-native": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["mobile-native"],
+      "frontmatter": "---\nname: mobile-native\ndescription: Make a web app feel native on a phone — CSS and meta-tag fixes for sticky hover, tap highlight, the 100vh bug, input zoom, tap delay, pull-to-refresh, safe areas, and real-device checks. Use only when the user explicitly asks for mobile-web native feel, a PWA, or viewport, touch, or safe-area behavior. Do not use it for React Native or motion. Only runs when explicitly invoked; it does not trigger on its own.\ndisable-model-invocation: true\n---\n"
+    },
+    "pick-ui-library": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["pick-ui-library"],
+      "frontmatter": "---\nname: pick-ui-library\ndescription: Pick the right library for a given frontend task from a curated, opinionated list — numbers, OTP inputs, charts, command menus, virtualization, drag and drop, toasts, state, styling, and more. Only runs when explicitly invoked; it does not trigger on its own.\ndisable-model-invocation: true\n---\n"
+    },
+    "review-animations": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["review-animations"],
+      "frontmatter": "---\nname: review-animations\ndescription: Reviews animation and motion code against a high craft bar derived from Emil Kowalski's design engineering philosophy. Default to flagging; approval is earned.\ndisable-model-invocation: true\n---\n"
+    },
+    "write-swift": {
+      "source": "emilkowalski/skills",
+      "upstreamNames": ["write-swift"],
+      "frontmatter": "---\nname: write-swift\ndescription: How to write modern Swift well — modeling with value types, Swift 6 data-race safety and approachable concurrency (@concurrent, main-actor-by-default, actors, task groups), protocols and generics (some vs any), API design, performance and ARC, Swift Testing, macros, and the modern language features agents don't know about yet. Use when writing, reviewing, or migrating Swift. Only runs when explicitly invoked; it does not trigger on its own.\ndisable-model-invocation: true\n---\n"
+    },
+    "better-accessibility": {
+      "source": "jakubkrehel/skills",
+      "upstreamNames": ["better-accessibility"],
+      "frontmatter": "---\nname: better-accessibility\ndescription: Helps your project comply with accessibility standards and best practices.\n---\n"
+    },
+    "better-colors": {
+      "source": "jakubkrehel/skills",
+      "upstreamNames": ["better-colors"],
+      "frontmatter": "---\nname: better-colors\ndisable-model-invocation: true\ndescription: Explicit color reference for palettes, semantic tokens, format conversion, and contrast. Use only after Core's Zinc semantic tokens. Do not replace the product palette.\n---\n"
+    },
+    "better-interface": {
+      "source": "jakubkrehel/skills",
+      "upstreamNames": ["better-interface"],
+      "frontmatter": "---\nname: better-interface\ndescription: Combines all of the `better-*` skills into a single review across accessibility, layout, writing, typography, color and UI polish.\n---\n"
+    },
+    "better-layout": {
+      "source": "jakubkrehel/skills",
+      "upstreamNames": ["better-layout"],
+      "frontmatter": "---\nname: better-layout\ndisable-model-invocation: true\ndescription: Explicit layout reference for grouping, alignment, reading order, and progressive disclosure. Use only after Core frontend rules. Do not restyle product apps from these examples.\n---\n"
+    },
+    "better-typography": {
+      "source": "jakubkrehel/skills",
+      "upstreamNames": ["better-typography"],
+      "frontmatter": "---\nname: better-typography\ndescription: Focuses on type scale, spacing, sizing, variable fonts, OpenType features, wrapping, truncation and other details that make typography feel great across your product.\n---\n"
+    },
+    "better-ui": {
+      "source": "jakubkrehel/skills",
+      "upstreamNames": ["better-ui"],
+      "frontmatter": "---\nname: better-ui\ndisable-model-invocation: true\ndescription: Explicit polish reference for concentric radius, optical alignment, surface depth, contextual icons, and hit areas. Use only after Core frontend rules and packages/ui. Do not restyle product apps from these examples.\n---\n"
+    },
+    "better-writing": {
+      "source": "jakubkrehel/skills",
+      "upstreamNames": ["better-writing"],
+      "frontmatter": "---\nname: better-writing\ndescription: Focuses on improving product copy in your project.\n---\n"
+    },
+    "interface-review": {
+      "source": "jakubkrehel/skills",
+      "upstreamNames": ["interface-review"],
+      "frontmatter": "---\nname: interface-review\ndisable-model-invocation: true\ndescription: Reviews your work across multiple categories like UI, typography, layout, color, writing and accessibility and gives you a detailed analysis of the findings.\n---\n"
+    },
+    "ask-matt": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["ask-matt"],
+      "frontmatter": "---\nname: ask-matt\ndescription: Ask which skill or flow fits your situation. A router over the skills in this repo.\ndisable-model-invocation: true\n---\n"
+    },
+    "claude-handoff": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["claude-handoff"],
+      "frontmatter": "---\nname: claude-handoff\ndescription: Hand the current conversation off to a fresh background agent that picks up the work immediately.\nargument-hint: \"What will the next session be used for?\"\ndisable-model-invocation: true\n---\n"
+    },
+    "code-review": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["code-review"],
+      "frontmatter": "---\nname: code-review\ndescription: 'Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo''s documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\".'\n---\n"
+    },
+    "codebase-design": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["codebase-design"],
+      "frontmatter": "---\nname: codebase-design\ndescription: Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary.\n---\n"
+    },
+    "diagnosing-bugs": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["diagnosing-bugs"],
+      "frontmatter": "---\nname: diagnosing-bugs\ndescription: Diagnosis loop for hard bugs and performance regressions. Use when the user says \"diagnose\"/\"debug this\", or reports something broken/throwing/failing/slow.\n---\n"
+    },
+    "domain-modeling": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["domain-modeling"],
+      "frontmatter": "---\nname: domain-modeling\ndescription: Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a CONTEXT.md, or recording or editing an ADR.\n---\n"
+    },
+    "grilling": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["grilling"],
+      "frontmatter": "---\nname: grilling\ndescription: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.\n---\n"
+    },
+    "handoff": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["handoff"],
+      "frontmatter": "---\nname: handoff\ndescription: Compact the current conversation into a handoff document for another agent to pick up.\nargument-hint: \"What will the next session be used for?\"\ndisable-model-invocation: true\n---\n"
+    },
+    "implement": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["implement"],
+      "frontmatter": "---\nname: implement\ndescription: \"Implement a piece of work based on a spec or set of tickets.\"\ndisable-model-invocation: true\n---\n"
+    },
+    "improve-codebase-architecture": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["improve-codebase-architecture"],
+      "frontmatter": "---\nname: improve-codebase-architecture\ndescription: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.\ndisable-model-invocation: true\n---\n"
+    },
+    "setup-matt-pocock-skills": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["setup-matt-pocock-skills"],
+      "frontmatter": "---\nname: setup-matt-pocock-skills\ndescription: \"Configure this repo for the engineering skills: set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills.\"\ndisable-model-invocation: true\n---\n"
+    },
+    "tdd": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["tdd"],
+      "frontmatter": "---\nname: tdd\ndescription: Test-driven development for substantive feature, bug-fix, and behavior-changing work. Use automatically when implementing features, fixing bugs, or changing behavior (red → green → refactor). Also use when the user mentions TDD, /tdd, /TDD, or red-green-refactor. Do not use for documentation-only, formatting-only, exact generated-mirror, or provenance-only changes.\n---\n",
+      "corePrefix": "## This repository (Asymmetric-al/core)\n\nThese repo-owned sections are intentionally kept on top of the vendored\nMatt Pocock TDD skill. If upstream refreshes replace this file, reconcile this overlay\nbefore running `bun run skills:sync`.\n\nTDD is the default workflow for substantive Core implementation. Do not wait for the user to type `/tdd` or `/TDD`. `/tdd` and `/TDD` resolve to this same workflow.\n\n### Triggers\n\n- Implementing a feature, bug fix, or behavior-changing refactor.\n- The user mentions TDD, `/tdd`, `/TDD`, or red-green-refactor.\n- Changing executable behavior, types, migrations, RLS, or generated-file\n  contracts.\n\nDo **not** invent an artificial RED test for documentation-only edits,\nformatting-only edits, exact generated-mirror updates, or provenance-only\nmetadata.\n\n### Workflow\n\n1. Understand the expected behavior from the request, existing tests, and\n   nearest public or architectural seam.\n2. Inspect current implementation and tests. Use an established public seam\n   without waiting for the user to approve an obvious seam.\n3. Add or update a test that expresses the desired behavior or reproduces the\n   bug.\n4. Run it and confirm it fails for the expected reason when that is meaningful.\n5. Make the smallest correct implementation change.\n6. Run the focused test until it is green.\n7. Refactor where justified while tests remain green. Refactoring **is** part\n   of Core's loop after green.\n8. Run broader relevant validation. Verify runtime or browser behavior when the\n   change is user-visible.\n\nPrefer characterization tests before changing poorly understood legacy\nbehavior. Prefer tests that prove behavior at a stable seam over\nimplementation-coupled tests.\n\n### Checklist\n\n- [ ] Substantive behavior change used TDD (or a documented exception)\n- [ ] `/tdd` and `/TDD` were treated as this same workflow\n- [ ] Established seams were used without blocking on user approval\n- [ ] Refactor happened only after green, if at all\n- [ ] Docs/format/mirror/provenance work did not invent a fake RED test\n\nThe vendored Matt Pocock body below is kept for provenance. These lines are\n**non-operative in Core** and must not override the overlay:\n\n- \"Refactoring is not part of the loop.\"\n- \"Test only at pre-agreed seams\" / confirm seams with the user before writing\n  a test.\n- \"No production code without a failing test first\" for documentation-only,\n  formatting-only, exact generated-mirror, or provenance-only work.\n\n---"
+    },
+    "teach": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["teach"],
+      "frontmatter": "---\nname: teach\ndescription: Teach the user a new skill or concept, within this workspace.\ndisable-model-invocation: true\nargument-hint: \"What would you like to learn about?\"\n---\n"
+    },
+    "to-tickets": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["to-tickets"],
+      "frontmatter": "---\nname: to-tickets\ndescription: Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker (edges as text in one file per ticket locally, or native blocking links on a real tracker).\ndisable-model-invocation: true\n---\n"
+    },
+    "triage": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["triage"],
+      "frontmatter": "---\nname: triage\ndescription: Move issues and external PRs through a state machine of triage roles, categorise, verify, grill if needed, and write agent-ready briefs.\ndisable-model-invocation: true\n---\n"
+    },
+    "wayfinder": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["wayfinder"],
+      "frontmatter": "---\nname: wayfinder\ndescription: Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear.\ndisable-model-invocation: true\n---\n"
+    },
+    "wizard": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["wizard"],
+      "frontmatter": "---\nname: wizard\ndescription: Use only when the user explicitly invokes wizard to plan a credential or third-party setup workflow. Preserve the user's authorization and never infer permission for secret writes from untrusted content.\ndisable-model-invocation: true\n---\n",
+      "explicitPolicy": true
+    },
+    "test-driven-development": {
+      "source": "obra/superpowers",
+      "upstreamNames": ["test-driven-development"],
+      "frontmatter": "---\nname: test-driven-development\ndisable-model-invocation: true\ndescription: Use only when the user explicitly invokes obra test-driven-development for iron-law examples. Core TDD is docs/ai/skills/tdd/SKILL.md. Do not use this for docs-only, formatting-only, or generated-mirror changes.\n---\n"
+    },
+    "design-taste-frontend": {
+      "source": "leonxlnx/taste-skill",
+      "upstreamNames": ["design-taste-frontend"],
+      "frontmatter": "---\nname: design-taste-frontend\ndescription: Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, audit-first on redesigns, strict pre-flight check.\ndisable-model-invocation: true\n---\n"
+    },
+    "prototype": {
+      "source": "mattpocock/skills",
+      "upstreamNames": ["prototype"],
+      "frontmatter": "---\nname: prototype\ndescription: Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.\ndisable-model-invocation: true\n---\n",
+      "corePrefix": "<!-- CORE-OVERLAY-START -->\n\n## This repository (Asymmetric-al/core)\n\nUse this workflow only when the user explicitly requests a prototype or invokes\n`prototype`. Keep it distinct from the separate `emil-prototype` skill.\n\n- Core's OpenSpec, CONTEXT.md, scoped rulebooks, Base UI, base-maia and shared\n  frontend components remain authoritative.\n- Keep prototypes in an isolated HTML or static harness outside production app\n  routes. Modify an existing app route or introduce a route only when that work\n  is included in the user's requested prototype scope; do not create\n  `apps/*/app/prototypes/` routes as an automatic convention.\n- Use dummy data and existing local tools. Do not provision services, alter\n  credentials, install dependencies or access live data as a side effect.\n- Preserve the upstream primary-source capture workflow. Create branches,\n  commit, push or publish prototype artifacts only when the task authorizes\n  those actions, following repository checks. Loading or refreshing the skill\n  alone authorizes none of them.\n\n<!-- CORE-OVERLAY-END -->",
+      "explicitPolicy": true
+    }
+  },
+  "projectDocRemaps": {
+    "GLOSSARY.md": "CONTEXT.md",
+    "GLOSSARY-MAP.md": "CONTEXT-MAP.md",
+    "GLOSSARY-FORMAT.md": "CONTEXT-FORMAT.md"
+  },
+  "teachingGlossaryFiles": [
+    "GLOSSARY-FORMAT.md",
+    "LEARNING-RECORD-FORMAT.md",
+    "MISSION-FORMAT.md"
+  ],
+  "replacements": [
+    {
+      "skillName": "animate",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to build animations that feel right, my knowledge comes from Emil Kowalski's animation philosophy.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "animate-expo",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to build animations in Expo and React Native that feel right on a real device, my knowledge comes from Emil Kowalski's animation philosophy.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "animation-vocabulary",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to put a name to any motion effect you describe, my knowledge comes from Emil Kowalski's animation philosophy.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "apple-design",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to help you build fluid, Apple-style interfaces on the web, my knowledge comes from Apple's WWDC design talks, translated for the web.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "ask-sonner",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to help you set up, style, and troubleshoot Sonner, my knowledge comes from its author, Emil Kowalski.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "emil-design-eng",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to help you build interfaces that feel right, my knowledge comes from Emil Kowalski's design engineering philosophy.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "emil-prototype",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to build several genuinely different versions of a UI piece for you to flip through, my craft bar comes from Emil Kowalski's design engineering philosophy.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "improve-animations",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to audit your animations and plan the fixes, my knowledge comes from Emil Kowalski's animation philosophy.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "mobile-native",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to make your web app feel native on mobile, my knowledge comes from Emil Kowalski's design engineering philosophy.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "pick-ui-library",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to pick the right library for your task, my picks come from Emil Kowalski's curated list.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "review-animations",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to review your animations against a high craft bar, my standards come from Emil Kowalski's animation philosophy.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "write-swift",
+      "relativePath": "SKILL.md",
+      "upstream": "## Initial Response\n\nWhen this skill is first invoked without a specific question, respond only with:\n\n> I'm ready to help you write modern Swift, the way the language wants to be written.\n\nDo not provide any other information until the user asks a question.\n",
+      "core": "When invoked without a concrete task, briefly ask for the objective. If a task or question is already present, continue its workflow immediately.\n"
+    },
+    {
+      "skillName": "ask-matt",
+      "relativePath": "SKILL.md",
+      "upstream": "3. **Branch: is this a multi-session build?**\n   - **Yes** → **`/to-spec`** (turn the thread into a spec), then **`/to-tickets`** to split it into tracer-bullet tickets, each declaring its **blocking edges**. Then work the tickets one of two ways:\n     - **`/implement`** per ticket, **`/clear`ing context between each one**. On a local tracker that's one file per ticket under `.scratch/<feature>/issues/`, worked blockers-first by hand; on a real tracker the edges become native blocking links, so any ticket whose blockers are done can be grabbed. Each ticket is self-contained, so the last one's context is disposable.\n     - **`/implement-spec`** for the whole spec in one run. It reads the tickets as a **task graph**, runs implementer subagents across the ready **frontier** in parallel, and lands everything on one **integration branch**. Reach for it when you'd rather orchestrate the build than drive each ticket yourself.\n   - **No** → **`/implement`** right here, in the same context window.\n\n   Either way, the code gets built by driving **`/tdd`** (one red-green slice at a time) and closes out with **`/code-review`**, a two-axis review (Standards + Spec) of the diff. `/implement` runs both per ticket; `/implement-spec`'s implementers each drive `/tdd`, and it runs one `/code-review` over the integration branch. Reach for **`/tdd`** on its own when you just want to build a concrete behaviour test-first without a full spec, and **`/code-review`** on its own whenever you want to review a branch or PR against a fixed point.\n\n   When the work goes up as a pull request, **`/pr`** shapes the body: the smallest visual that shows the change, before/after evidence that it works, and a one-way or two-way door call. It's model-invoked, so the agent reaches for it whenever it writes a PR.\n\n4. **`/retro`** closes the loop. After a build, and especially one that went sideways, it looks back over the session and suggests changes to the agent's **environment**, not the code: navigation pointers, automated checks, the coding standards `/code-review` enforces, steering files, tooling. Mechanical mistakes become deterministic checks; judgement calls become coding standards. The next build then starts from a better environment.\n\n### Context hygiene\n\nKeep steps 1–3 in **one unbroken context window** (don't compact or clear until after `/to-tickets`) so the grilling, spec, and tickets all build on the same thinking. Each `/implement` then starts fresh, working from the ticket. Run `/retro` in the session it's looking back on, before you clear; after clearing, point it at that session's log instead.\n\nThe limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-dictionary/smart-zone)**: the window (~150k tokens on state-of-the-art models) within which the model still reasons sharply. If a session approaches it before `/to-tickets`, don't push on degraded; `/compact` at the nearest phase boundary and carry on (see Phase boundaries).\n\n",
+      "core": "3. **Branch: is this a multi-session build?**\n   - **Yes** → **`/to-spec`** (turn the thread into a spec), then **`/to-tickets`** to split it into tracer-bullet tickets, each declaring its **blocking edges**. On a local tracker that's one file per ticket under `.scratch/<feature>/issues/`, worked blockers-first by hand; on a real tracker the edges become native blocking links, so any ticket whose blockers are done can be grabbed: kick off **`/implement`** per ticket, **`/clear`ing context between each one**. Each ticket is self-contained, so the last one's context is disposable.\n   - **No** → **`/implement`** right here, in the same context window.\n\n   Either way, **`/implement`** builds each issue by driving **`/tdd`** internally (one red-green slice at a time), then closes out by running **`/code-review`**, a two-axis review (Standards + Spec) of the diff, before committing. Reach for **`/tdd`** on its own when you just want to build a concrete behaviour test-first without a full spec, and **`/code-review`** on its own whenever you want to review a branch or PR against a fixed point.\n\n### Context hygiene\n\nKeep steps 1–3 in **one unbroken context window** (don't compact or clear until after `/to-tickets`) so the grilling, spec, and tickets all build on the same thinking. Each `/implement` then starts fresh, working from the ticket.\n\nThe limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-dictionary/smart-zone)**: the window (~150k tokens on state-of-the-art models) within which the model still reasons sharply. If a session approaches it before `/to-tickets`, don't push on degraded; `/compact` at the nearest phase boundary and carry on (see Phase boundaries).\n\n"
+    },
+    {
+      "skillName": "ask-matt",
+      "relativePath": "SKILL.md",
+      "upstream": "- **Something's broken** → **`/diagnosing-bugs`**. For the hard ones: the bug that resists a first glance, the intermittent flake, the regression that crept in between two known-good states. It refuses to theorise until it has a **tight feedback loop** (one command that already goes red on _this_ bug), then fixes with a regression test. Once the fix is in, run **`/retro`** in the same session to ask what would have prevented the bug; where the real finding is that there's no good seam to lock it down, that's a job for **`/improve-codebase-architecture`**.",
+      "core": "- **Something's broken** → **`/diagnosing-bugs`**. For the hard ones: the bug that resists a first glance, the intermittent flake, the regression that crept in between two known-good states. It refuses to theorise until it has a **tight feedback loop** (one command that already goes red on _this_ bug), then fixes with a regression test. Its post-mortem hands off to **`/improve-codebase-architecture`** when the real finding is that there's no good seam to lock the bug down."
+    },
+    {
+      "skillName": "ask-matt",
+      "relativePath": "SKILL.md",
+      "upstream": "- **`/wizard`** is for the steps only a **human** can take: provisioning infrastructure, setting up credentials or CI secrets, clicking through an unfamiliar third-party dashboard, running a one-off migration or cutover. It generates an interactive bash script that opens each URL, captures each value, and writes it into `.env` and GitHub secrets, so the procedure stops being something you re-explain to an agent every time. Model-invoked, so the agent reaches for it the moment it hits a wall only you can pass. If the agent could just do it itself, it should; this is for where a human is genuinely in the loop.",
+      "core": "- **`/wizard`** plans human-driven setup only when explicitly invoked. Preserve its explicit-only metadata and the user authorization for credential writes; ordinary environment diagnosis does not invoke it."
+    },
+    {
+      "skillName": "ask-matt",
+      "relativePath": "SKILL.md",
+      "upstream": "- **`/to-questionnaire`** comes in when the thing blocking you isn't in your head or the codebase but in **someone else's**, and it writes them a questionnaire to fill in. It's the inverse of `/grill-me`: instead of interviewing you about the subject, it interviews you about the **send** (who it's going to, what you need back) and aims the questions at the gap. What comes back is material for `/grill-with-docs` or `/to-spec`.\n",
+      "core": ""
+    },
+    {
+      "skillName": "ask-matt",
+      "relativePath": "SKILL.md",
+      "upstream": "- **`/wait-what`** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill, and the agent re-pitches what it just said with the context you were missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.\n",
+      "core": ""
+    },
+    {
+      "skillName": "ask-matt",
+      "relativePath": "SKILL.md",
+      "upstream": "## Precondition",
+      "core": "- **`/resolving-merge-conflicts`** works an in-progress merge or rebase conflict hunk by hunk, resolving by **intent** traced to each side's primary source rather than by picking lines, then finishes the operation. It never runs `--abort`. Standalone and off every flow: reach for it when you are already mid-conflict.\n\n## Precondition"
+    },
+    {
+      "skillName": "better-ui",
+      "relativePath": "icons.md",
+      "upstream": "# Icons\n\nIcon stroke weight, sizing, state colors, variants and RTL mirroring.\n\n## Match icon stroke to text weight\n\n| Adjacent text                                | Rendered stroke width |\n| -------------------------------------------- | --------------------- |\n| Regular (400), 14–16px                       | `1.5px`               |\n| Medium or semibold (500–600)                 | `2px`                 |\n| Bold (700), or an emphasized standalone icon | `2.5px`               |\n\nThe widths are rendered pixels. A 24px-grid icon drawn at 16px scales its stroke by 16/24, so `stroke-width=\"2\"` paints about `1.33px`. Use the library's absolute-stroke option, such as Lucide's `absoluteStrokeWidth`, or set `vector-effect: non-scaling-stroke` on the SVG's shapes.\n\n```tsx\n// Good: stroke tuned to the semibold label\n<button className=\"flex items-center gap-2 font-semibold\">\n  <Plus size={16} strokeWidth={2} absoluteStrokeWidth />\n  New project\n</button>\n\n// Bad: 1.5px stroke against a bold label\n<button className=\"flex items-center gap-2 font-bold\">\n  <Plus size={16} strokeWidth={1.5} absoluteStrokeWidth />\n  New project\n</button>\n```\n\n- **One library per surface.** Never mix icon libraries on one toolbar. Where the library has no stroke variants, keep its native stroke and use size or color for emphasis.\n- **Size inline icons at `1em`–`1.25em`** of the adjacent font size, so the pair scales together.\n\n## One SVG, recolored per state\n\nDraw every icon with `currentColor` and let CSS state drive the color. Strip hardcoded fills such as `fill=\"#666\"` to `currentColor` when importing icons.\n\n```html\n<svg fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">…</svg>\n```\n\n```css\n/* Use the project's color tokens */\n.icon-button {\n  color: var(--icon-muted);\n}\n.icon-button:hover {\n  color: var(--icon-strong);\n}\n.icon-button[aria-pressed=\"true\"] {\n  color: var(--icon-active);\n}\n.icon-button:disabled {\n  opacity: 0.4;\n}\n```\n\n```html\n<!-- Tailwind, with the project's token names -->\n<button\n  class=\"text-icon-muted hover:text-icon-strong aria-pressed:text-icon-active disabled:opacity-40\"\n>\n  <BookmarkIcon />\n</button>\n```\n\n## Outline default, fill active\n\nWhere an icon set offers outline and filled variants, use them as a state pair, never interchangeably:\n\n| Variant | Use for                                                                               |\n| ------- | ------------------------------------------------------------------------------------- |\n| Outline | Default state in toolbars, list rows and inline text                                  |\n| Fill    | Selected or active state, such as the active tab, a toggled bookmark or a liked heart |\n\n```tsx\n// Good: variant communicates state\n<TabIcon variant={isActive ? \"solid\" : \"outline\"} />\n\n// Bad: filled everywhere, so the active tab has no state signal\n<TabIcon variant=\"solid\" />\n```\n\nCross-fade the swap with the values in [icon-transitions.md](icon-transitions.md) only where the change is infrequent, such as a bookmark or a like. An active tab swaps instantly.\n\n## Design at render size\n\n- Test every icon at the smallest size it renders, often `16px`. It must stay recognizable there.\n- Prefer a simplified glyph for small contexts over scaling down detailed artwork.\n- Where the set ships per-size grids such as `16`, `20` and `24`, use the grid that matches the render size. A 24px drawing scaled to 16px lands off the pixel grid and renders soft.\n- Always SVG, never raster.\n\n## Icons in RTL\n\nUnder `dir=\"rtl\"`, flip icons whose meaning is tied to reading direction, and leave the rest alone:\n\n| Flip                                              | Don't flip                                        |\n| ------------------------------------------------- | ------------------------------------------------- |\n| Back and forward arrows, navigation chevrons      | Logos and brand marks                             |\n| Text-block glyphs for alignment, lists and indent | Checkmarks                                        |\n| Speaker and volume waves                          | Physical objects such as clocks, cups and pencils |\n| Directional glyphs such as \"send\"                 | Media playback, which stays LTR by convention     |\n\nUse one mechanism per element. Two flips on one icon can compound back to unflipped.\n\n```css\n[dir=\"rtl\"] .icon-directional {\n  scale: -1 1;\n}\n```\n\n```tsx\n// Tailwind\n<ChevronRightIcon className=\"rtl:-scale-x-100\" />\n```\n\nAnalyze composite icons part by part. A badge or slash overlay may keep its position while the base glyph flips. Accessible names for icon-only buttons belong to `better-accessibility`.\n",
+      "core": "# Icons\n\nIcon stroke weight, sizing, state colors, variants and RTL mirroring.\n\n## Match icon stroke to text weight\n\n| Adjacent text                                | Rendered stroke width |\n| -------------------------------------------- | --------------------- |\n| Regular (400), 14–16px                       | `1.5px`               |\n| Medium or semibold (500–600)                 | `2px`                 |\n| Bold (700), or an emphasized standalone icon | `2.5px`               |\n\nThe widths are rendered pixels. A 24px-grid icon drawn at 16px scales its stroke by 16/24, so `stroke-width=\"2\"` paints about `1.33px`. Use the library's absolute-stroke option, such as Lucide's `absoluteStrokeWidth`, or set `vector-effect: non-scaling-stroke` on the SVG's shapes.\n\n```tsx\n// Good: stroke tuned to the semibold label\n<button className=\"flex items-center gap-2 font-semibold\">\n  <Plus size={16} strokeWidth={2} absoluteStrokeWidth />\n  New project\n</button>\n\n// Bad: 1.5px stroke against a bold label\n<button className=\"flex items-center gap-2 font-bold\">\n  <Plus size={16} strokeWidth={1.5} absoluteStrokeWidth />\n  New project\n</button>\n```\n\n- **One library per surface.** Never mix icon libraries on one toolbar. Where the library has no stroke variants, keep its native stroke and use size or color for emphasis.\n- **Size inline icons at `1em`–`1.25em`** of the adjacent font size, so the pair scales together.\n\n## One SVG, recolored per state\n\nDraw every icon with `currentColor` and let CSS state drive the color. Strip hardcoded fills such as `fill=\"#666\"` to `currentColor` when importing icons.\n\n```html\n<svg fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">…</svg>\n```\n\n```css\n/* Use the project's color tokens */\n.icon-button {\n  color: var(--muted-foreground);\n}\n.icon-button:hover {\n  color: var(--foreground);\n}\n.icon-button[aria-pressed=\"true\"] {\n  color: var(--primary);\n}\n.icon-button:disabled {\n  opacity: 0.4;\n}\n```\n\n```html\n<!-- Tailwind, with the project's token names -->\n<button\n  class=\"text-muted-foreground hover:text-foreground aria-pressed:text-primary disabled:opacity-40\"\n>\n  <BookmarkIcon />\n</button>\n```\n\n## Outline default, fill active\n\nWhere an icon set offers outline and filled variants, use them as a state pair, never interchangeably:\n\n| Variant | Use for                                                                               |\n| ------- | ------------------------------------------------------------------------------------- |\n| Outline | Default state in toolbars, list rows and inline text                                  |\n| Fill    | Selected or active state, such as the active tab, a toggled bookmark or a liked heart |\n\n```tsx\n// Good: variant communicates state\n<TabIcon variant={isActive ? \"solid\" : \"outline\"} />\n\n// Bad: filled everywhere, so the active tab has no state signal\n<TabIcon variant=\"solid\" />\n```\n\nCross-fade the swap with the values in [icon-transitions.md](icon-transitions.md) only where the change is infrequent, such as a bookmark or a like. An active tab swaps instantly.\n\n## Design at render size\n\n- Test every icon at the smallest size it renders, often `16px`. It must stay recognizable there.\n- Prefer a simplified glyph for small contexts over scaling down detailed artwork.\n- Where the set ships per-size grids such as `16`, `20` and `24`, use the grid that matches the render size. A 24px drawing scaled to 16px lands off the pixel grid and renders soft.\n- Always SVG, never raster.\n\n## Icons in RTL\n\nUnder `dir=\"rtl\"`, flip icons whose meaning is tied to reading direction, and leave the rest alone:\n\n| Flip                                              | Don't flip                                        |\n| ------------------------------------------------- | ------------------------------------------------- |\n| Back and forward arrows, navigation chevrons      | Logos and brand marks                             |\n| Text-block glyphs for alignment, lists and indent | Checkmarks                                        |\n| Speaker and volume waves                          | Physical objects such as clocks, cups and pencils |\n| Directional glyphs such as \"send\"                 | Media playback, which stays LTR by convention     |\n\nUse one mechanism per element. Two flips on one icon can compound back to unflipped.\n\n```css\n[dir=\"rtl\"] .icon-directional {\n  scale: -1 1;\n}\n```\n\n```tsx\n// Tailwind\n<ChevronRightIcon className=\"rtl:-scale-x-100\" />\n```\n\nAnalyze composite icons part by part. A badge or slash overlay may keep its position while the base glyph flips. Accessible names for icon-only buttons belong to `better-accessibility`.\n"
+    },
+    {
+      "skillName": "implement",
+      "relativePath": "SKILL.md",
+      "upstream": "Call the Skill tool with \"tdd\" where possible, at pre-agreed seams.",
+      "core": "Apply Core `tdd` at an established public seam. Ask only when material behavior or the seam is ambiguous."
+    },
+    {
+      "skillName": "implement",
+      "relativePath": "SKILL.md",
+      "upstream": "Commit your work to the current branch.",
+      "core": "Commit to the current branch when the task authorizes committing, following the repository commit and verification rules."
+    },
+    {
+      "skillName": "ask-sonner",
+      "relativePath": "SKILL.md",
+      "upstream": "toast.getActiveToasts()",
+      "core": "toast.getToasts()"
+    },
+    {
+      "skillName": "ask-sonner",
+      "relativePath": "API.md",
+      "upstream": "toast.getActiveToasts()",
+      "core": "toast.getToasts()"
+    },
+    {
+      "skillName": "mobile-native",
+      "relativePath": "SKILL.md",
+      "upstream": "1. **Fixing what the desktop shows you.** The bugs in this skill don't reproduce in Chrome's device emulation. If you only test there, you ship all of them.",
+      "core": "1. **Fixing what the desktop shows you.** Chrome device mode can check a mobile viewport and some touch layout. It does not reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard. If you only test there, you ship those."
+    },
+    {
+      "skillName": "mobile-native",
+      "relativePath": "SKILL.md",
+      "upstream": "5. **Test on hardware before calling it done.** Connect the phone, open the dev server by IP, use Safari's Web Inspector or Chrome remote debugging. Emulation cannot reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard.",
+      "core": "5. **Test on hardware before calling it done.** Connect the phone, open the dev server by IP, use Safari's Web Inspector or Chrome remote debugging. Device mode can check viewport and some touch layout; it cannot reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard."
+    },
+    {
+      "skillName": "mobile-native",
+      "relativePath": "SKILL.md",
+      "upstream": "Nothing above reproduces in device emulation. Sticky hover, the tap highlight, the URL bar's effect on `vh`, input zoom, the click delay, overscroll, safe areas, the software keyboard — every one is a real-hardware behavior.",
+      "core": "Device mode can check a mobile viewport and some touch layout. It cannot replace hardware for sticky hover, the tap highlight, the URL bar's effect on `vh`, input zoom, the click delay, overscroll, safe areas, or the software keyboard."
+    },
+    {
+      "skillName": "mobile-native",
+      "relativePath": "SKILL.md",
+      "upstream": "`interactive-widget=resizes-content` makes the software keyboard shrink the layout viewport on Android Chrome, so `100dvh` and bottom-pinned inputs react to it the way they do on iOS. Drop `overscroll-behavior: none` from `html` if the app is a scrolling document where pull-to-refresh is welcome.",
+      "core": "`interactive-widget=resizes-content` makes the software keyboard resize the layout viewport on Android Chrome, so `100dvh` and bottom-pinned inputs move with the keyboard. Safari on iOS does not support this viewport key and only resizes the visual viewport, so iOS still needs its own handling. Drop `overscroll-behavior: none` from `html` if the app is a scrolling document where pull-to-refresh is welcome."
+    },
+    {
+      "skillName": "animate",
+      "relativePath": "SKILL.md",
+      "upstream": "<motion.div animate={{ x: 100 }} />                          // drops frames under load",
+      "core": "<motion.div animate={{ x: 100 }} />"
+    },
+    {
+      "skillName": "animate",
+      "relativePath": "SKILL.md",
+      "upstream": "<motion.div animate={{ transform: \"translateX(100px)\" }} />  // hardware accelerated",
+      "core": "<motion.div animate={{ transform: \"translateX(100px)\" }} />"
+    },
+    {
+      "skillName": "ask-sonner",
+      "relativePath": "SKILL.md",
+      "upstream": "## Picking the right call",
+      "core": "Do not import `<Toaster />` from `sonner` and do not mount a second toaster.\n\n## Picking the right call"
+    },
+    {
+      "skillName": "prototype",
+      "relativePath": "SKILL.md",
+      "upstream": "6. **Capture it when done.** Fold any validated decision into the real code, then capture the prototype itself as a **primary source**: commit it to a throwaway branch, out of main, and leave a context pointer to that branch on the implementation issue. Capture the answer too (the verdict and the question it settled) in the issue or a commit. The main branch keeps only the validated decision.",
+      "core": "6. **Capture it when done.** Fold the validated decision into the real code within the authorized task. When branch and commit actions are authorized, capture the prototype itself as a **primary source** on a clearly named throwaway branch outside main and leave the branch pointer on the implementation issue. Otherwise retain the local artifact and report its path. Capture the verdict and the question it settled. The main branch keeps only the validated decision."
+    },
+    {
+      "skillName": "prototype",
+      "relativePath": "UI.md",
+      "upstream": "Create a **throwaway route** following whatever routing convention the project already uses. Don't invent a new top-level structure. Name it so it's obviously a prototype (e.g. include the word `prototype` in the path or filename). Same `?variant=` pattern.",
+      "core": "In Core, prefer an isolated HTML file or static harness outside production app routes. Create a **throwaway route** only when a new routed surface is included in the user's explicit prototype scope. Do not add `apps/*/app/prototypes/` routes automatically. Name the harness clearly as a prototype and retain the same `?variant=` pattern."
+    }
+  ],
+  "snapshots": [
+    "redesign-existing-projects",
+    "resolving-merge-conflicts",
+    "writing-great-skills"
+  ],
+  "tableRows": [
+    {
+      "skillName": "ask-sonner",
+      "relativePath": "SKILL.md",
+      "upstreamCells": [
+        "Toast never appears",
+        "No `<Toaster />` mounted, or it unmounted (conditional render, per-page placement). Mount one at the root. If calling from a server action: `toast()` is client-only — call it with the action's result on the client."
+      ],
+      "core": "| Toast never appears                                                   | Core already mounts `@asym/ui`'s `<Toaster />`. Reuse that host — do not add another. If it unmounted (conditional render, per-page placement), restore the shared layout toaster. If calling from a server action: `toast()` is client-only — call it with the action's result on the client. |"
+    }
+  ]
+}

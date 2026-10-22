@@ -1,0 +1,225 @@
+{
+  "version": 1,
+  "replacements": [
+    {
+      "path": "api-design-principles/assets/rest-api-template.py",
+      "upstream": "    return JSONResponse(\n        status_code=exc.status_code,\n        content=ErrorResponse(\n            error=exc.__class__.__name__,\n            message=exc.detail if isinstance(exc.detail, str) else exc.detail.get(\"message\", \"Error\"),\n            details=exc.detail.get(\"details\") if isinstance(exc.detail, dict) else None\n        ).model_dump()\n    )",
+      "core": "    # Core adaptation: HTTPException.detail can be neither a string nor a dict.\n    detail = exc.detail\n    detail_dict = detail if isinstance(detail, dict) else None\n\n    return JSONResponse(\n        status_code=exc.status_code,\n        content=ErrorResponse(\n            error=exc.__class__.__name__,\n            message=detail if isinstance(detail, str) else (detail_dict.get(\"message\", \"Error\") if detail_dict else \"Error\"),\n            details=detail_dict.get(\"details\") if detail_dict else None\n        ).model_dump()\n    )"
+    },
+    {
+      "path": "skill-creator/eval-viewer/generate_review.py",
+      "upstream": "    data_json = json.dumps(embedded)",
+      "core": "    data_json = json.dumps(embedded).replace(\"<\", \"\\\\u003c\")"
+    },
+    {
+      "path": "shadcn-ui/SKILL.md",
+      "upstream": "import { clsx, type ClassValue } from \"clsx\"\nimport { twMerge } from \"tailwind-merge\"\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs))\n}",
+      "core": "export { cn } from \"cnfast\";\nexport type { ClassValue } from \"cnfast\";"
+    },
+    {
+      "path": "shadcn-ui/resources/setup-guide.md",
+      "upstream": "import { clsx, type ClassValue } from \"clsx\"\nimport { twMerge } from \"tailwind-merge\"\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs))\n}",
+      "core": "export { cn } from \"cnfast\";\nexport type { ClassValue } from \"cnfast\";"
+    },
+    {
+      "path": "shadcn-ui/SKILL.md",
+      "upstream": "- **clsx** and **tailwind-merge** (for class composition)",
+      "core": "- **cnfast** (for class composition; Core consumes the shared `@asym/ui/lib/utils` export)"
+    },
+    {
+      "path": "shadcn-ui/scripts/verify-setup.sh",
+      "upstream": "if grep -q \"export function cn\" \"$UTILS_FILE\"; then",
+      "core": "if grep -q 'export .*cn.*from \"cnfast\"' \"$UTILS_FILE\" || grep -q \"export function cn\" \"$UTILS_FILE\"; then"
+    },
+    {
+      "path": "shadcn-ui/scripts/verify-setup.sh",
+      "upstream": "RECOMMENDED_DEPS=(\"class-variance-authority\" \"clsx\" \"tailwind-merge\" \"tailwindcss-animate\")",
+      "core": "RECOMMENDED_DEPS=(\"class-variance-authority\" \"cnfast\" \"tailwindcss-animate\")"
+    },
+    {
+      "path": "tailwind-design-system/references/details.md",
+      "upstream": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs));\n}",
+      "core": "export { cn } from \"cnfast\";\nexport type { ClassValue } from \"cnfast\";"
+    },
+    {
+      "path": "typescript-expert/SKILL.md",
+      "upstream": "description: >-\n  TypeScript and JavaScript expert with deep knowledge of type-level\n  programming, performance optimization, monorepo management, migration\n  strategies, and modern tooling. Use PROACTIVELY for any TypeScript/JavaScript\n  issues including complex type gymnastics, build performance, debugging, and\n  architectural decisions. If a specialized expert is a better fit, I will\n  recommend switching and stop.",
+      "core": "description: TypeScript and JavaScript guidance for type-level programming, performance, monorepos, migrations, and compiler or tooling problems. Use current project scripts and available research or delegation tools."
+    },
+    {
+      "path": "typescript-expert/SKILL.md",
+      "upstream": "bundle: [typescript-type-expert, typescript-build-expert]\n",
+      "core": ""
+    },
+    {
+      "path": "typescript-expert/SKILL.md",
+      "upstream": "0. If the issue requires ultra-specific expertise, recommend switching and stop:\n   - Deep webpack/vite/rollup bundler internals → typescript-build-expert\n   - Complex ESM/CJS migration or circular dependency analysis → typescript-module-expert\n   - Type performance profiling or compiler internals → typescript-type-expert\n\n   Example to output:\n   \"This requires deep bundler expertise. Please invoke: 'Use the typescript-build-expert subagent.' Stopping here.\"\n",
+      "core": "0. Investigate the relevant compiler, module, or bundler boundary with current source and installed documentation. Delegate focused research using available platform capabilities when useful, then continue the task; no named specialist is a prerequisite."
+    },
+    {
+      "path": "typescript-expert/SKILL.md",
+      "upstream": "   npx tsc --version\n   node -v",
+      "core": "   bun --version\n   node --version\n   # Read installed compiler versions from the workspace manifests."
+    },
+    {
+      "path": "typescript-expert/SKILL.md",
+      "upstream": "   npm run -s typecheck || npx tsc --noEmit\n   npm test -s || npx vitest run --reporter=basic --no-watch\n   # Only if needed and build affects outputs/config\n   npm run -s build",
+      "core": "   bun run typecheck\n   bun run test:unit\n   # Select the relevant build script only when the change requires a build."
+    },
+    {
+      "path": "lint-and-validate/SKILL.md",
+      "upstream": "description: \"Automatic quality control, linting, and static analysis procedures. Use after every code modification to ensure syntax correctness and project standards. Triggers onKeywords: lint, format, check, validate, types, static analysis.\"",
+      "core": "description: Select and interpret configured linting, formatting, type checking, and static-analysis checks for a requested code change or validation workflow."
+    },
+    {
+      "path": "lint-and-validate/SKILL.md",
+      "upstream": "> **MANDATORY:** Run appropriate validation tools after EVERY code change. Do not finish a task until the code is error-free.",
+      "core": "> Run the configured checks appropriate to the change. Report results and genuine blockers; do not broaden a small validation task into unrelated cleanup."
+    },
+    {
+      "path": "lint-and-validate/SKILL.md",
+      "upstream": "1. **Lint/Fix:** `npm run lint` or `npx eslint \"path\" --fix`\n2. **Types:** `npx tsc --noEmit`\n3. **Security:** `npm audit --audit-level=high`",
+      "core": "1. **Lint:** choose the relevant configured `bun run lint` script.\n2. **Types:** use the configured `bun run typecheck` script.\n3. **Formatting/tests:** select `bun run format:check` and the relevant test command as required by the change."
+    },
+    {
+      "path": "lint-and-validate/SKILL.md",
+      "upstream": "`ruff check \"path\" --fix`",
+      "core": "`ruff check \"path\"`"
+    },
+    {
+      "path": "lint-and-validate/SKILL.md",
+      "upstream": "2. **Run Audit:** `npm run lint && npx tsc --noEmit`",
+      "core": "2. **Run checks:** use the appropriate configured repository scripts."
+    },
+    {
+      "path": "lint-and-validate/SKILL.md",
+      "upstream": "3. **Analyze Report:** Check the \"FINAL AUDIT REPORT\" section.",
+      "core": "3. **Analyze results:** inspect the actual exit status and diagnostics."
+    },
+    {
+      "path": "lint-and-validate/SKILL.md",
+      "upstream": "4. **Fix & Repeat:** Submitting code with \"FINAL AUDIT\" failures is NOT allowed.",
+      "core": "4. **Fix and recheck:** resolve failures caused by the change and disclose unrelated blockers."
+    },
+    {
+      "path": "lint-and-validate/SKILL.md",
+      "upstream": "**Strict Rule:** No code should be committed or reported as \"done\" without passing these checks.",
+      "core": "Report only checks actually run, their outcomes, and any remaining limitations."
+    },
+    {
+      "path": "systematic-debugging/SKILL.md",
+      "upstream": "`superpowers:test-driven-development`",
+      "core": "`docs/ai/skills/tdd/SKILL.md`"
+    },
+    {
+      "path": "systematic-debugging/SKILL.md",
+      "upstream": "`superpowers:verification-before-completion`",
+      "core": "`docs/ai/rules/testing.md`"
+    },
+    {
+      "path": "use-dom/SKILL.md",
+      "upstream": "name: expo-dom",
+      "core": "name: use-dom"
+    },
+    {
+      "path": "use-dom/SKILL.md",
+      "upstream": "description: Use Expo DOM components to run web code in a webview on native and as-is on web. Migrate web code to native incrementally. For the end-to-end migration of a whole web app, use the expo-web-to-native skill.",
+      "core": "description: Use Expo DOM components to run web code in a native webview and as-is on web, or migrate web components incrementally. Core compatibility alias for the official expo-dom skill."
+    },
+    {
+      "path": "use-dom/SKILL.md",
+      "upstream": "## Submitting Feedback\nIf you encounter errors, misleading or outdated information in this skill, report it so Expo can improve:\n```bash\nnpx --yes submit-expo-feedback@latest --category skills --subject \"expo-dom\" \"<actionable feedback>\"\n```\nOnly submit when you have something specific and actionable to report. Include as much relevant context as possible.\nIf an agent repeatedly fails at an Expo task or the user has to step in, submit a brief report of the task, expected result, and what went wrong using `--category evals` and the relevant Expo package or command as `--subject`.\n",
+      "core": "## Feedback\n\nSubmit external feedback only when the user explicitly asks to send it. Review the requested content and destination first; skill use alone does not authorize feedback or telemetry.\n"
+    },
+    {
+      "path": "use-dom/agents/openai.yaml",
+      "upstream": "$expo-dom",
+      "core": "$use-dom"
+    },
+    {
+      "path": "interface-design/SKILL.md",
+      "upstream": "description: Craft-first interface design for dashboards, admin panels, SaaS apps, tools, settings pages, data interfaces, and interactive products. Use when designing, building, reviewing, auditing, or refining product UI where visual craft, layout hierarchy, tokens, states, visual direction, or design-system consistency matter. Not for marketing pages, landing pages, campaigns, or brand-only work.",
+      "core": "description: Use only when the user explicitly invokes interface-design to explore or review product-interface craft. Preserve Core's established Base UI, base-maia, tokens, and shared component ownership."
+    },
+    {
+      "path": "interface-design/SKILL.md",
+      "upstream": "name: interface-design\n",
+      "core": "name: interface-design\ndisable-model-invocation: true\n"
+    },
+    {
+      "path": "interface-design/agents/openai.yaml",
+      "upstream": "allow_implicit_invocation: true",
+      "core": "allow_implicit_invocation: false"
+    },
+    {
+      "path": "deployment-pipeline-design/references/details.md",
+      "upstream": "(references/advanced-strategies.md)",
+      "core": "(advanced-strategies.md)"
+    },
+    {
+      "path": "shadcn-ui/README.md",
+      "upstream": "(../../../../CONTRIBUTING.md)",
+      "core": "(https://github.com/google-labs-code/stitch-skills/blob/0337446dadde6f8c94210444e2aa9d546126480f/CONTRIBUTING.md)"
+    },
+    {
+      "path": "shadcn-ui/README.md",
+      "upstream": "(../../../../LICENSE)",
+      "core": "(references/LICENSE.md)"
+    },
+    {
+      "path": "shadcn-ui/examples/auth-layout.tsx",
+      "upstream": "<CardContent className=\"space-y-4\">\n                <div className=\"space-y-2\">\n                  <Label htmlFor=\"email\">",
+      "core": "<CardContent className=\"flex flex-col gap-4\">\n                <div className=\"flex flex-col gap-2\">\n                  <Label htmlFor=\"email\">"
+    },
+    {
+      "path": "shadcn-ui/examples/auth-layout.tsx",
+      "upstream": "<CardContent className=\"space-y-4\">\n                <div className=\"space-y-2\">\n                  <Label htmlFor=\"name\">",
+      "core": "<CardContent className=\"flex flex-col gap-4\">\n                <div className=\"flex flex-col gap-2\">\n                  <Label htmlFor=\"name\">"
+    },
+    {
+      "path": "shadcn-ui/examples/auth-layout.tsx",
+      "upstream": "<div className=\"space-y-2\">\n                  <Label htmlFor=\"password\">",
+      "core": "<div className=\"flex flex-col gap-2\">\n                  <Label htmlFor=\"password\">"
+    },
+    {
+      "path": "shadcn-ui/examples/auth-layout.tsx",
+      "upstream": "<div className=\"space-y-2\">\n                  <Label htmlFor=\"register-email\">",
+      "core": "<div className=\"flex flex-col gap-2\">\n                  <Label htmlFor=\"register-email\">"
+    },
+    {
+      "path": "shadcn-ui/examples/auth-layout.tsx",
+      "upstream": "<div className=\"space-y-2\">\n                  <Label htmlFor=\"register-password\">",
+      "core": "<div className=\"flex flex-col gap-2\">\n                  <Label htmlFor=\"register-password\">"
+    },
+    {
+      "path": "shadcn-ui/examples/auth-layout.tsx",
+      "upstream": "<div className=\"space-y-2\">\n                  <Label htmlFor=\"confirm-password\">",
+      "core": "<div className=\"flex flex-col gap-2\">\n                  <Label htmlFor=\"confirm-password\">"
+    },
+    {
+      "path": "shadcn-ui/examples/auth-layout.tsx",
+      "upstream": "<CardFooter className=\"flex flex-col space-y-4\">\n                <Button \n                  type=\"submit\" \n                  className=\"w-full\"\n                  disabled={isLoading}\n                >\n                  {isLoading ? \"Signing in...\" : \"Sign in\"}",
+      "core": "<CardFooter className=\"flex flex-col gap-y-4\">\n                <Button \n                  type=\"submit\" \n                  className=\"w-full\"\n                  disabled={isLoading}\n                >\n                  {isLoading ? \"Signing in...\" : \"Sign in\"}"
+    },
+    {
+      "path": "shadcn-ui/examples/auth-layout.tsx",
+      "upstream": "<CardFooter>\n                <Button \n                  type=\"submit\" \n                  className=\"w-full\"\n                  disabled={isLoading}\n                >\n                  {isLoading ? \"Creating account...\" : \"Create account\"}",
+      "core": "<CardFooter className=\"flex flex-col gap-y-4\">\n                <Button \n                  type=\"submit\" \n                  className=\"w-full\"\n                  disabled={isLoading}\n                >\n                  {isLoading ? \"Creating account...\" : \"Create account\"}"
+    },
+    {
+      "path": "shadcn-ui/examples/data-table.tsx",
+      "upstream": "    ColumnDef,\n    ColumnFiltersState,",
+      "core": "    type ColumnDef,\n    type ColumnFiltersState,"
+    },
+    {
+      "path": "shadcn-ui/examples/data-table.tsx",
+      "upstream": "    SortingState,",
+      "core": "    type SortingState,"
+    },
+    {
+      "path": "shadcn-ui/examples/data-table.tsx",
+      "upstream": "className=\"flex items-center justify-end space-x-2 py-4\"",
+      "core": "className=\"flex items-center justify-end gap-x-2 py-4\""
+    }
+  ]
+}

@@ -2,9 +2,9 @@
 source: https://reui.io/docs/agent-skills
 bundle_url: https://mcp.reui.io/api/skills/download
 upstream_installer: https://mcp.reui.io/install
-upstream_version: e7aac3424a
-bundle_sha256: 79becac482cf5e25ee6f3de7b75f8f8b83693bfb017643ad35a7a735b7550338
-last_refreshed: 2026-10-07
+upstream_version: 68f0e6fa91
+bundle_sha256: fb9324c5b132e58b91ad73c72d1aa02c072351565db225c44eaed177f14fa191
+last_refreshed: 2026-10-22
 reviewed_commit: unavailable — ReUI publishes a hosted bundle rather than a public repository commit
 license: ReUI terms; no separate license identifier is published in the agent-skill bundle
 license_url: https://reui.io/legal/license
@@ -14,8 +14,8 @@ license_url: https://reui.io/legal/license
 
 Canonical copy: `docs/ai/skills/reui/`; generated mirrors: `.agents/skills/reui/`,
 `.cursor/skills/reui/`, and `.claude/skills/reui/`. This tree vendors the complete
-**11-file** official shared bundle, not just `SKILL.md`: all nine `rules/*.md`
-files plus `tools.md` and `SKILL.md`.
+**16-file** official shared bundle, not just `SKILL.md`: all thirteen `rules/*.md`
+files plus `tools.md`, `SKILL.md`, and display-only `agents/openai.yaml`.
 
 Current [Claude](https://reui.io/docs/claude.md),
 [Codex](https://reui.io/docs/codex.md), and
@@ -50,7 +50,7 @@ They describe upstream bytes **before** Core overlays or formatting.
    write remote absolute paths, traversal paths, duplicate paths, or symlinks
    into canonical or mirrored directories.
 4. Reconcile `<!-- BEGIN:core-reui-overlay -->` /
-   `<!-- END:core-reui-overlay -->` blocks in all eleven upstream files. Preserve
+   `<!-- END:core-reui-overlay -->` blocks in the applicable upstream files. Preserve
    Core discovery fields in `SKILL.md` and `references/docs.md`. Three explicit
    entrypoint adjustments also need review after staging: the upstream version
    reminder must point to this staged workflow, the plan sentence must distinguish
@@ -80,3 +80,7 @@ They describe upstream bytes **before** Core overlays or formatting.
 For setup/API documentation use [documentation routing](./docs.md). Ordinary
 component installation uses the shared UI package and existing authenticated
 registry, separately from this skill-maintenance workflow.
+
+## Reviewed refresh 2026-10-22
+
+Reviewed complete hosted version `68f0e6fa91`, bundle SHA-256 `fb9324c5b132e58b91ad73c72d1aa02c072351565db225c44eaed177f14fa191`. Upstream replaced `rules/styling.md` and `rules/craft.md` with focused color, theming and motion guidance; their Core overlays move to the replacement files, and the obsolete files are removed. The bundle adds display-only `agents/openai.yaml`; safe staging accepts exactly its three quoted interface fields and rejects command/tool authority, tags, anchors, duplicate fields and other YAML paths. Entry-point version reminders stay on Core staging; shared table ownership, headless authentication, Filters helper signatures and Number Field exports retain their Core corrections. New motion and color recipes remain subordinate to existing Core tokens, motion policy and installed components. No installer, launcher or hook was executed.

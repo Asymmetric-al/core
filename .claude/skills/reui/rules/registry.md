@@ -26,10 +26,10 @@ See [Core workflow](../SKILL.md#this-repository-asymmetric-alcore).
 
 ReUI is a shadcn-compatible registry with four entity types. **Examples and blocks are built FROM components** - reuse them, don't rebuild.
 
-- **component** - one of the 24 ReUI building blocks with a real API (`data-grid`, `kanban`, `filters`, `date-selector`, `tree`, ...). Install directly (`@reui/data-grid`) or let it come in as a dependency of an example/block. Free. Read its API with `get_component(name)`.
+- **component** - one of the ReUI components with a real API (`data-grid`, `kanban`, `filters`, `date-selector`, `tree`, ...). Install directly (`@reui/data-grid`) or let it come in as a dependency of an example/block. Free. Read its API with `get_component(name)`.
 - **example** - a free `c-*` single-pattern use-case of a component (`c-kanban-1`, `c-data-grid-3`). Install one and read it to copy real composition. Find a component's examples with `get_examples(name)`.
-- **block** - a premium, full-page section that composes several components (`data-grid-base-2`, `settings-2`). Pro or Ultimate license at install. Adapts to your active theme via semantic tokens.
-- **icon** - Motion Icons in 4 styles (outline, solid, duotone, filled), static (`@reui/icons/default/<style>/<name>`) and hover-animated (`@reui/icons/animated/<style>/<name>`). Ultimate license at install. See [icons.md](./icons.md).
+- **block** - a premium, full-page section that composes several components (a full dashboard or settings page). Pro or Ultimate license at install. Its surfaces, text and borders use your theme tokens; its category accents (chart series, tags, avatars) are fixed palette colors paired for light and dark.
+- **icon** - Motion Icons in 4 styles (outline, solid, duotone, filled), static (`@reui/icons/default/<style>/<name>`), plus a hover-animated variant (`@reui/icons/animated/<style>/<name>`) only for icons that carry `installAnimated`. Ultimate license at install. See [icons.md](./icons.md).
 
 ## The @reui registry
 
@@ -43,7 +43,7 @@ Premium installs need the authenticated form + `REUI_LICENSE_KEY` in `.env.local
 
 ## ReUI items vs shadcn/ui components
 
-- **ReUI items** (the 24 components, `c-*` examples, blocks, Motion Icons) install as `@reui/<name>`.
+- **ReUI items** (the components, `c-*` examples, blocks, Motion Icons) install as `@reui/<name>`.
 - **shadcn/ui components** that ReUI builds on (`button`, `dialog`, `select`, `card`, ...) are not ReUI items. They install from shadcn by bare name: `npx shadcn@latest add button --yes`.
 - **`badge` and `alert` exist in both registries.** `@reui/badge` and `@reui/alert` are ReUI's components (the extra variants in [components.md](./components.md)); bare `badge` and `alert` are shadcn's.
 - **In an item's `registryDependencies`**, a `@reui/<name>` entry is a ReUI item and a bare name is a shadcn/ui item. `add` installs both for you.
@@ -55,11 +55,11 @@ ReUI ships every item in two builds - `base` (Base UI) and `radix` (Radix UI) - 
 
 **So the MCP's own `docsUrl` and `previewUrl` match your base**, send your `style` to the MCP: add `?style=<your components.json style>` to the ReUI MCP server URL (or set an `X-Reui-Style` header) in your MCP client config - set once, applies to every call. The MCP then resolves docs/preview links to YOUR library (`/docs/components/radix/...`, `/preview/radix/...` for a radix project) instead of the default base; `get_project_context` echoes back the style it currently sees so you can confirm it. Install commands are unaffected (the CLI already installs the right variant). If you notice the MCP returning `base` links for a `radix` project, tell the user to add `?style=` to the server URL.
 
-Blocks adapt to your active theme through semantic tokens and CSS variables - change the theme and every block follows.
+Blocks take surfaces, text and borders from your theme tokens, so a theme change re-tints them; category accents stay fixed by design.
 
 ## Free vs premium
 
-- **Free, no license key:** the 24 components, all `c-*` examples, and this skill. The MCP is free too but still needs a free ReUI account (the agent signs in on first use); a license key is only for premium installs.
+- **Free, no license key:** the ReUI components, all `c-*` examples, and this skill. The MCP is free too but still needs a free ReUI account (the agent signs in on first use); a license key is only for premium installs.
 - **Premium, license required at install:** blocks (Pro or Ultimate) and Motion Icons (Ultimate). Set `REUI_LICENSE_KEY` (see [cli.md](./cli.md)).
 - **Templates** are downloads, not installs: free ones need only a ReUI account, and each template's page on reui.io says what the others need.
 

@@ -108,7 +108,7 @@ Claiming takes over a domain **another Resend account has already verified**. Th
 Claim → Add TXT proof to DNS → Verify claim → (completed) → Update DKIM in DNS → Verify domain → Send
 ```
 
-Claim methods are available in the **Node.js** (`resend >= 6.14.0`), **Python** (`resend >= 2.34.0`), **Ruby** (`resend >= 1.6.0`), **Go** (`resend-go/v3 >= 3.11.0`), **Rust** (`resend-rs >= 0.26.1`), and **Java** (`resend-java >= 4.16.0`) SDKs, plus the **CLI** (`resend domains claim`) and REST API. Not yet in the PHP or .NET SDKs.
+Claim methods are available in the **Node.js** (`resend >= 6.14.0`), **Python** (`resend >= 2.34.0`), **Ruby** (`resend >= 1.6.0`), **Go** (`resend-go/v4 >= 4.0.0`), **Rust** (`resend-rs >= 0.26.1`), and **Java** (`resend-java >= 4.16.0`) SDKs, plus the **CLI** (`resend domains claim`) and REST API. Not yet in the PHP or .NET SDKs.
 
 | Operation | Method | Notes |
 |-----------|--------|-------|

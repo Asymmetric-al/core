@@ -6,6 +6,9 @@ source_commit: ccbc15639c97057cbfcf32ecebc38ef716e4bb37
 upstream_skill_commit: ccbc15639c97057cbfcf32ecebc38ef716e4bb37
 license: MIT
 last_reviewed: 2026-09-16
+upstream_status: kept-snapshot
+last_checked: 2026-10-22
+checked_upstream_commit: 6010f91a9935f1c167dfc500fb1a475681892e6b
 ---
 
 # Upstream: redesign-existing-projects
@@ -41,3 +44,7 @@ Canonical copy in this repo: `docs/ai/skills/redesign-existing-projects/`, mirro
   higher-priority than generic upstream visual recipes.
 - Update `source_commit`, `upstream_skill_commit`, and `last_reviewed`
   whenever the vendored upstream changes.
+
+## Kept snapshot, 2026-10-22
+
+The current upstream tree at 6010f91a9935f1c167dfc500fb1a475681892e6b no longer publishes skills/redesign-skill/. This is a **kept snapshot**: preserve the existing skill body, support files, license, discovery metadata and lock identity. The current upstream commit is an availability check, not the source revision of these retained bytes. Do not import a successor or remove this skill during refresh.

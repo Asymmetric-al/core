@@ -1,0 +1,106 @@
+{
+  "pins": {
+    "emilkowalski/skills": "2d228630ba1446365f614a108cb8252f1feda202",
+    "jakubkrehel/skills": "4c66b1fa86e9ab70187b43d7da9b6fdb29f2ef63",
+    "mattpocock/skills": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+    "obra/superpowers": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+    "leonxlnx/taste-skill": "6010f91a9935f1c167dfc500fb1a475681892e6b"
+  },
+  "files": {
+    "animate": {
+      "source": "emilkowalski/skills",
+      "path": "skills/animate/",
+      "rawSkillHash": "b8ede161270458e6ae2e45e8a1985373515d4c63de5568ddb0f9012d7634356c"
+    },
+    "animate-expo": {
+      "source": "emilkowalski/skills",
+      "path": "skills/animate-expo/",
+      "rawSkillHash": "9a01a91701e6563c67677dde6b66ab30f066a5341d42c21a90ba51d99679274a"
+    },
+    "animation-vocabulary": {
+      "source": "emilkowalski/skills",
+      "path": "skills/animation-vocabulary/",
+      "rawSkillHash": "40d2b27adfdfeb0570a9f20e7d0255109d9233c50603878bcd0dcd04c923fd94"
+    },
+    "apple-design": {
+      "source": "emilkowalski/skills",
+      "path": "skills/apple-design/",
+      "rawSkillHash": "77bb63b7043bb93aca2ff4ab040c249484eef35682bb6ff7163433c31d30adc7"
+    },
+    "ask-sonner": {
+      "source": "emilkowalski/skills",
+      "path": "skills/ask-sonner/",
+      "rawSkillHash": "39f3ee185b3aa2cf70a689052ff078953ce7ba5915ed7a9391d232e9d4dcf57f"
+    },
+    "emil-design-eng": {
+      "source": "emilkowalski/skills",
+      "path": "skills/emil-design-eng/",
+      "rawSkillHash": "ffbe68e6007fb42cb8149f089b400a1ca007d59ba23e8948e2be4476f3175939"
+    },
+    "emil-prototype": {
+      "source": "emilkowalski/skills",
+      "path": "skills/prototype/",
+      "rawSkillHash": "bba39c955eb1871c5a02733976ceec5d0324198e0812e667604756489c89f7b9"
+    },
+    "improve-animations": {
+      "source": "emilkowalski/skills",
+      "path": "skills/improve-animations/",
+      "rawSkillHash": "73962447464433476343e2c12cd08ab39cc99a9e5f3c118c5fb54ed897574ef6"
+    },
+    "mobile-native": {
+      "source": "emilkowalski/skills",
+      "path": "skills/mobile-native/",
+      "rawSkillHash": "888b7651d66d66dbac4e72b7c554638eb19bd971d686d6cbdf030a5ef3788f55"
+    },
+    "pick-ui-library": {
+      "source": "emilkowalski/skills",
+      "path": "skills/pick-ui-library/",
+      "rawSkillHash": "675fdce308683256ed617351a9b74d23457a5fbd0a562d9831b9c764b8c5e682"
+    },
+    "review-animations": {
+      "source": "emilkowalski/skills",
+      "path": "skills/review-animations/",
+      "rawSkillHash": "6ff590d29e436766135aa3d137be1fac2a867165c7257fc315b189361f1873af"
+    },
+    "write-swift": {
+      "source": "emilkowalski/skills",
+      "path": "skills/write-swift/",
+      "rawSkillHash": "16a4b6adb74e338e55e704ce5753ad54d825438b8a63930eeaede9f3c04c9447"
+    },
+    "ask-matt": {
+      "source": "mattpocock/skills",
+      "path": "skills/engineering/ask-matt/",
+      "rawSkillHash": "1371f5ce005de0992a44b137748bfb960a56948aa9871b405fe9d90b24332e3c"
+    },
+    "tdd": {
+      "source": "mattpocock/skills",
+      "path": "skills/engineering/tdd/",
+      "rawSkillHash": "5505d25bbaa8fc14a79e4d20163936958992a2995b7f1dd1d6197edc9ed722e0"
+    },
+    "implement": {
+      "source": "mattpocock/skills",
+      "path": "skills/engineering/implement/",
+      "rawSkillHash": "483bdc4ccf4ac31d86ac7beeaa0d0db80313e71e120bb8c59b3196ae5decd53d"
+    },
+    "domain-modeling": {
+      "source": "mattpocock/skills",
+      "path": "skills/engineering/domain-modeling/",
+      "rawSkillHash": "7b925d7b1e341a2eeae33ad68a8a8c0ab889a38ddd22a7598e4c240e5a7556a3"
+    },
+    "design-taste-frontend": {
+      "source": "leonxlnx/taste-skill",
+      "path": "skills/taste-skill/",
+      "rawSkillHash": "d955dae4ba8ab2d994f4bb06b4bf412a1d9875433a8597939c391f4bae91dd7a"
+    },
+    "wizard": {
+      "source": "mattpocock/skills",
+      "path": "skills/engineering/wizard/",
+      "rawSkillHash": "bdf31d48211ea559878f95a4f344aeabf8d85897488ba564382bab0b000daac1"
+    },
+    "prototype": {
+      "source": "mattpocock/skills",
+      "path": "skills/engineering/prototype/",
+      "rawSkillHash": "714de632d116bb73f65cdb5a882db15b9369a6713b9a47c0fad827848f0bfbe3"
+    }
+  }
+}
