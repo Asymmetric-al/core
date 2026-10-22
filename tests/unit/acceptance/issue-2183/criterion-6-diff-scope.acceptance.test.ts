@@ -3,6 +3,11 @@
  * Spec (rev 1, Blake-approved 2026-10-21 3:07 PM PT):
  * {@link https://github.com/Asymmetric-al/core/issues/2183#issuecomment-6327313476}
  *
+ * Opt-in only. This is a one-time scope check for the #2183 PR. In the normal
+ * unit suite it would fail every later PR that touches a file outside #2183's
+ * "In" list, so it is skipped unless `ACCEPTANCE_2183_SCOPE=1` or
+ * `ACCEPTANCE_2183_BASE=<ref|sha>` is set.
+ *
  * "The PR diff" is computed as every path changed between the merge base with
  * develop and the working tree (committed, staged, unstaged and untracked).
  * The base is `ACCEPTANCE_2183_BASE` if set, else `git merge-base HEAD
@@ -31,9 +36,12 @@ const ALLOWED = new Set<string>([
   CRITERION_2_TEST_FILE,
 ]);
 
+const BASE_OVERRIDE = process.env.ACCEPTANCE_2183_BASE?.trim() ?? "";
+const ENABLED =
+  process.env.ACCEPTANCE_2183_SCOPE?.trim() === "1" || BASE_OVERRIDE !== "";
+
 function diffBase(): string {
-  const override = process.env.ACCEPTANCE_2183_BASE?.trim();
-  if (override) return override;
+  if (BASE_OVERRIDE) return BASE_OVERRIDE;
   const mergeBase = git(["merge-base", "HEAD", "origin/develop"]);
   if (mergeBase.status === 0 && mergeBase.stdout.trim()) {
     return mergeBase.stdout.trim();
@@ -54,7 +62,13 @@ function changedPaths(base: string): string[] {
   ].sort();
 }
 
-describe("issue #2183 done criterion 6", () => {
+if (!ENABLED) {
+  describe("issue #2183 done criterion 6 (opt-in)", () => {
+    it.skip("skipped: criterion 6 is a one-time scope check for the #2183 PR and would fail every later PR that touches files outside #2183's In list; set ACCEPTANCE_2183_SCOPE=1 (diff against git merge-base HEAD origin/develop) or ACCEPTANCE_2183_BASE=<ref|sha> (diff against that base) to run it", () => {});
+  });
+}
+
+describe.skipIf(!ENABLED)("issue #2183 done criterion 6", () => {
   it('criterion 6: "The PR diff touches only the files listed under "In", plus the test file from criterion 2."', () => {
     const base = diffBase();
     const outside = changedPaths(base).filter(

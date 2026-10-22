@@ -14,6 +14,12 @@
  *   PR-loop that uses supported / verified / kept / keep / preserve / accept /
  *   continue without a negation or "retired" (so "no longer a supported path"
  *   is fine). In spec.md, any scenario whose THEN accepts must not name PR-loop.
+ * - The negation (or, in a scenario, "reject") must belong to the PR-loop
+ *   claim itself: it has to sit in the same clause as the PR-loop mention,
+ *   where a clause ends at another named path (FastPR, Eve, Cursor, Codex,
+ *   Blake, Conrad), at ";", or at but / whereas / while / although / though /
+ *   yet / however / except / unlike. So "PR-loop is accepted, but
+ *   FastPR is retired and rejected" is still reported.
  * - "pending migration": the develop wording is "migration or retirement"
  *   (also "migration-or-retirement"); both are banned outside tasks.md.
  * - tasks.md: the spec forbids rewriting dated evidence or unticking finished
@@ -45,6 +51,26 @@ const SUPPORT_WORDS =
   /\b(?:supported|support|verified|verify|kept|keep|keeps|preserv\w*|accept\w*|continu\w*)\b/i;
 const NEGATION = /\b(?:retired|no longer|not|never|nor)\b/i;
 const PENDING_MIGRATION = /pending migration|migration[- ]or[- ]retirement/i;
+const SCENARIO_NEGATION = /\b(?:retired|no longer|not|never|nor|reject\w*)\b/i;
+/** Where a PR-loop claim's clause ends: another named path, or a contrast. */
+const CLAUSE_BOUNDARY =
+  /\bfast[- ]?pr\b|\bpr-fast\b|\b(?:Eve|Cursor|Codex|Blake|Conrad)\b|;|\b(?:but|whereas|while|although|though|yet|however|except|unlike)\b/gi;
+
+/** True when every PR-loop mention in `text` is negated within its own clause. */
+function prLoopClaimsNegated(text: string, negation: RegExp): boolean {
+  const boundaries = [...text.matchAll(CLAUSE_BOUNDARY)].map((match) => ({
+    start: match.index,
+    end: match.index + match[0].length,
+  }));
+  return [...text.matchAll(new RegExp(PR_LOOP.source, "gi"))].every((match) => {
+    const before = boundaries.filter((b) => b.end <= match.index).at(-1);
+    const after = boundaries.find(
+      (b) => b.start >= match.index + match[0].length,
+    );
+    const clause = text.slice(before?.end ?? 0, after?.start ?? text.length);
+    return negation.test(clause);
+  });
+}
 
 const MARKDOWN_IN_FILES = [
   IN_FILES.proposal,
@@ -78,7 +104,7 @@ describe("issue #2183 done criterion 3", () => {
           if (
             PR_LOOP.test(sentence) &&
             SUPPORT_WORDS.test(sentence) &&
-            !NEGATION.test(sentence)
+            !prLoopClaimsNegated(sentence, NEGATION)
           ) {
             offenders.push(`${file}:${block.startLine}: ${sentence}`);
           }
@@ -100,8 +126,13 @@ describe("issue #2183 done criterion 3", () => {
         return (
           then !== null &&
           /\baccept/i.test(then[1] as string) &&
-          !/\breject/i.test(then[1] as string) &&
-          PR_LOOP.test(scenario)
+          scenario
+            .split(/\n- \*\*/)
+            .some(
+              (part) =>
+                PR_LOOP.test(part) &&
+                !prLoopClaimsNegated(part, SCENARIO_NEGATION),
+            )
         );
       })
       .map((scenario) => (scenario.split("\n")[0] as string).trim());

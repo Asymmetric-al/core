@@ -5,9 +5,13 @@
  *
  * Interpretation (reported as open questions):
  * - "tracked files" = `git grep` over the working tree's tracked files.
- * - "dated evidence lines" = a line that itself carries a date (ISO
- *   `2026-08-25`, or a month with a year like `Oct 2026`), or a line inside a
- *   Markdown section whose heading says "evidence" and carries a date.
+ * - "dated evidence lines" = a line in a Markdown evidence section (the
+ *   nearest heading or one of its parent headings says "evidence") that either
+ *   carries a date itself (ISO `2026-08-25`, or a month with a year like
+ *   `Oct 2026`) or sits under an evidence heading that carries a date. A date
+ *   alone does not make a line evidence: a dated line outside an evidence
+ *   section (e.g. "PR Loop remains approved (Oct 2026)" in a README, or a dated
+ *   code comment) is still reported.
  * - Criterion 2 requires `301_899_336` in its test file, so that file is
  *   excluded from the ID scan, and this Acceptance directory (which has to
  *   quote both patterns) is excluded from both scans.
@@ -30,15 +34,32 @@ import {
 
 const ARCHIVE = "openspec/changes/archive/";
 
-function inDatedEvidenceSection(hit: GrepHit): boolean {
+/** The hit's enclosing Markdown headings: the nearest one and its parents. */
+function headingChain(hit: GrepHit): string[] {
+  const chain: { level: number; heading: string }[] = [];
+  for (const section of markdownSections(readRepoFile(hit.file))) {
+    if (section.startLine > hit.line) break;
+    const level = (/^#+/.exec(section.heading) as RegExpExecArray)[0].length;
+    while (
+      chain.length > 0 &&
+      (chain.at(-1) as { level: number }).level >= level
+    ) {
+      chain.pop();
+    }
+    chain.push({ level, heading: section.heading });
+  }
+  return chain.map((entry) => entry.heading);
+}
+
+function isDatedEvidenceLine(hit: GrepHit): boolean {
   if (!hit.file.endsWith(".md")) return false;
-  const section = markdownSections(readRepoFile(hit.file))
-    .filter((candidate) => candidate.startLine <= hit.line)
-    .at(-1);
+  const evidenceHeadings = headingChain(hit).filter((heading) =>
+    /evidence/i.test(heading),
+  );
+  if (evidenceHeadings.length === 0) return false;
   return (
-    section !== undefined &&
-    /evidence/i.test(section.heading) &&
-    DATE_PATTERN.test(section.heading)
+    DATE_PATTERN.test(hit.text) ||
+    evidenceHeadings.some((heading) => DATE_PATTERN.test(heading))
   );
 }
 
@@ -48,8 +69,7 @@ function offending(pattern: string, extraExcluded: string[] = []): GrepHit[] {
       !hit.file.startsWith(ARCHIVE) &&
       !hit.file.startsWith(ACCEPTANCE_DIR) &&
       !extraExcluded.includes(hit.file) &&
-      !DATE_PATTERN.test(hit.text) &&
-      !inDatedEvidenceSection(hit),
+      !isDatedEvidenceLine(hit),
   );
 }
 
