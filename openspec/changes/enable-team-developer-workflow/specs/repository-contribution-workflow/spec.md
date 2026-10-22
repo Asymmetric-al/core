@@ -23,7 +23,7 @@ independently allowlisting each field.
 
 #### Scenario: Existing maintainers and verified automation continue
 
-- **WHEN** Blake uses an exact registered tuple, Eve or PR-loop uses its exact
+- **WHEN** Blake uses an exact registered tuple, Eve uses its exact
   actor-bound tuple, or Cursor Agent uses its exact tuple with a signature from
   the bound `cursoragent` account
 - **THEN** attribution verification accepts the path without treating display
