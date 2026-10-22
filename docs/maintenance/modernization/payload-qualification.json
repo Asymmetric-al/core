@@ -9448,5 +9448,84 @@
       "logSha256": "caa7940b9de3ffe06661a5233aae3bc7befd9bb2bd091ef55a0bb9f3f8238ec1"
     },
     "qualificationLimit": "Current QA failure remains undiagnosed. A separate hosted Git build reported out_of_memory/137; these are distinct observations. Current-head CI, hosted product preview, cutover and final release qualification remain open."
+  },
+  "hostedPreviewDelivery": {
+    "recordedAt": "2026-10-22T08:37:20.337894+00:00",
+    "baseHead": "ff31efe9cb44b3cd1ced23d1ae24e1f0076ee782",
+    "previousRun": {
+      "path": "/tmp/core-modernization-payload-ff31-preview-failure-proof.json",
+      "sha256": "f23021cfbc0152874d16924dc60bef413d35d12b1389fef287270f7c943609ee",
+      "at": "2026-10-22T07:39:04.998455+00:00",
+      "runId": 39741283641,
+      "jobId": 119698840822,
+      "head": "ff31efe9cb44b3cd1ced23d1ae24e1f0076ee782",
+      "logSha256": "cb4906713a969bb3ac3162815259305322273a9f642c67f3f08f52615c55e15f",
+      "boundedDiagnostics": [
+        "Preview build failed for admin (status=1; signal=none; spawn=none; categories=framework-build)"
+      ]
+    },
+    "cause": "Vercel65 pull materializes unavailable Preview Secrets as placeholders. CMS config import rejects the placeholder Postgres URL. Exact returned error remains private; source-grounded constant and provider metadata identify the contract mismatch.",
+    "design": "Hosted Git-source preview at exact approved branch/SHA; provider identity and null target verified before READY; provider Secrets not downloaded. Bounded owned cancellation and identity recovery; admin-only per-deployment Turbo after observed8GiB OOM; no projectSettings overrides.",
+    "ignoreRange": "Last successful project+branch SHA through HEAD; absent/invalid/unavailable/nonancestor history builds.",
+    "checks": {
+      "ignoreRed": {
+        "path": "/tmp/core-modernization-vercel-deployed-baseline-red-proof.json",
+        "sha256": "ecc3c71c0e67bc6db416ec19e99a816bb31858e134de132c57d07838fd47725e",
+        "at": "2026-10-22T08:21:17.005536+00:00",
+        "exitCode": 1,
+        "logSha256": "e91825f6a21683cced94aec50481d30e32516b909f269bd90fa82e4c1a188d66"
+      },
+      "ignoreGreen": {
+        "path": "/tmp/core-modernization-vercel-deployed-baseline-green-proof.json",
+        "sha256": "ad3641f2f95c613f355789a3a18fb9c4fb3ab3e68dbbe5ff3bb9291dad92a7ef",
+        "at": "2026-10-22T08:21:50.975668+00:00",
+        "exitCode": 0,
+        "logSha256": "dc9983d1a877cf6c2eff633e45c79034cc65d6edd319514ec9a87ef04a489581"
+      },
+      "deliveryRed": {
+        "path": "/tmp/core-modernization-hosted-preview-delivery-red-proof.json",
+        "sha256": "60441bca0a1f4c83671675ba0133e465a2c38c768524bfcce1cf50f932d92d22",
+        "at": "2026-10-22T08:23:37.344399+00:00",
+        "exitCode": 1,
+        "logSha256": "5c3f3ab08f28b835f154a5ebccfa4d537c54cffb70ab92274b65a3db6a1c3e94"
+      },
+      "firstPollRed": {
+        "path": "/tmp/core-modernization-hosted-preview-first-poll-red-proof.json",
+        "sha256": "29cae7180e3fb61492dab3fee3836fcde8e42b3b60abf4f5c0b4e54fe1ac5c81",
+        "at": "2026-10-22T08:29:31.460897+00:00",
+        "exitCode": 1,
+        "logSha256": "78788c51def7b792444cd1ba7e49d558b8d0e5e1b094293f36981bc756c0b434"
+      },
+      "currentGreen": {
+        "path": "/tmp/core-modernization-hosted-preview-cleanup-qualified-proof.json",
+        "sha256": "f767ea7ec28569aa51a1f732dcb5cce394601e8cd30773e939169904494b210e",
+        "at": "2026-10-22T08:34:10.449096+00:00",
+        "exitCode": 0,
+        "logSha256": "173bddd8fccc32871a2125aa99c46c9d5821520c23c3308b50419b5a52e443b0",
+        "sourceSha256": {
+          "scripts/qa/deploy-hosted-preview.mjs": "90d5cd442e2fc836f494d673eed7bf52add7a371f89ba01a2e0eec449c721de7",
+          "scripts/vercel/should-ignore-build.mjs": "ec036bdd10115875311042eacf9e5ef0f63951e27a2eed6bf246092e088c6e3e",
+          "tests/unit/scripts/deploy-hosted-preview.test.ts": "c179f6d0746fc1f50575922e36bef3c14bd6ce32781461482b0c4e2c3e2b2042",
+          "tests/unit/scripts/vercel-ignore-build.test.ts": "154b5c6bbf708dd37d32c98f735966b5bcd103bc361cca8f82dc9d39c2f5608b",
+          ".github/workflows/qa-smoke-preview-deploy.yml": "427597e3bec622064cadc2b7bf2778c3ab138366afc1728222479d6d0c8a0fc6",
+          "tests/unit/workflows/qa-smoke-preview-deploy.test.ts": "a6da3db282b9bf4fe6f74eaa35c207613120db915e954a55a3e002ccbb72bc61"
+        }
+      }
+    },
+    "priorIndependentDiagnosis": {
+      "path": "/tmp/core-modernization-payload-preview-regression-review.json",
+      "sha256": "b625d3ab15dd1395968d966d53137e1412fcadf382677e69376b62108c1b06b8"
+    },
+    "qualificationLimit": "New helper and ignore behavior await final independent review, normal push, current-head CI, actual hosted readback and browser checks. Prebuilt helper retirement follows hosted qualification.",
+    "independentReview": {
+      "path": "/tmp/core-modernization-hosted-preview-independent-review.json",
+      "sha256": "2ebcaa669bfbb1743bdc321c762799ce3c34718cdf2fdf8cf253d912045bb839",
+      "finding": "P2 missing first-poll cleanup; corrected and approved in immutable addendum"
+    },
+    "correctionApproval": {
+      "path": "/tmp/core-modernization-hosted-preview-cleanup-independent-review.json",
+      "sha256": "ee48867f2507ff7e91df3286b0b5e2ac8daa066282046df7e2b78d0c4eb2cf88",
+      "result": "Exact six current hashes approved; supplied66cases and eight independent synthetic ownership/cancellation probes pass."
+    }
   }
 }

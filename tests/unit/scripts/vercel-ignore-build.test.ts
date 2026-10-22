@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
   APPS,
@@ -113,4 +117,79 @@ describe("Vercel ignored-build helper", () => {
       reason: "missing diff context",
     });
   });
+});
+
+describe("Vercel last successful deployment diff", () => {
+  let root: string;
+  let baseline: string;
+  let product: string;
+  let unrelated: string;
+  const script = path.resolve("scripts/vercel/should-ignore-build.mjs");
+  const fixtureEnv = {
+    ...process.env,
+    GIT_AUTHOR_NAME: "Fixture",
+    GIT_AUTHOR_EMAIL: "fixture@example.test",
+    GIT_COMMITTER_NAME: "Fixture",
+    GIT_COMMITTER_EMAIL: "fixture@example.test",
+  };
+  function git(...args: string[]) {
+    return execFileSync("git", args, {
+      cwd: root,
+      env: fixtureEnv,
+      encoding: "utf8",
+    }).trim();
+  }
+  function check(previous: string | undefined) {
+    const env = { ...fixtureEnv };
+    delete env.VERCEL_GIT_PREVIOUS_SHA;
+    if (previous !== undefined) env.VERCEL_GIT_PREVIOUS_SHA = previous;
+    return spawnSync(process.execPath, [script, "admin"], {
+      cwd: root,
+      env,
+      encoding: "utf8",
+    });
+  }
+  beforeAll(() => {
+    root = mkdtempSync(path.join(os.tmpdir(), "core-deploy-baseline-"));
+    git("init");
+    mkdirSync(path.join(root, "apps/admin"), { recursive: true });
+    writeFileSync(path.join(root, "apps/admin/page.tsx"), "baseline");
+    git("add", ".");
+    git("commit", "-m", "baseline");
+    baseline = git("rev-parse", "HEAD");
+    writeFileSync(path.join(root, "apps/admin/page.tsx"), "new product");
+    git("add", ".");
+    git("commit", "-m", "product");
+    product = git("rev-parse", "HEAD");
+    mkdirSync(path.join(root, "docs"));
+    writeFileSync(path.join(root, "docs/qualification.md"), "qualification");
+    git("add", ".");
+    git("commit", "-m", "qualification only");
+  });
+  it("builds when the previous successful commit is outside current ancestry", () => {
+    unrelated = git(
+      "commit-tree",
+      git("write-tree"),
+      "-m",
+      "unrelated successful history",
+    );
+    expect(check(unrelated).status).toBe(1);
+  });
+  afterAll(() => {
+    if (root) rmSync(root, { recursive: true, force: true });
+  });
+  it("builds product changes followed by a documentation-only head", () => {
+    const result = check(baseline);
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain("apps/admin/page.tsx");
+  });
+  it("skips documentation when the product commit already deployed successfully", () => {
+    expect(check(product).status).toBe(0);
+  });
+  it.each([undefined, "", "not-a-sha", "f".repeat(40)])(
+    "builds without a usable previous deployment: %s",
+    (previous) => {
+      expect(check(previous).status).toBe(1);
+    },
+  );
 });

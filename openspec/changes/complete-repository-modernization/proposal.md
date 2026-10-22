@@ -52,3 +52,10 @@ production release package. Production migrations/deployment are excluded.
 Keep Eve and native PDF rollout at their current settings. Preserve opaque
 credentials and user work. Rollback boundaries, write pauses, backups and
 payment drains must be rehearsed before any data-format cutover is qualified.
+
+## Preview delivery amendment
+
+The modernization `development-build-policy` delta explicitly supersedes the
+older GitHub prebuilt-preview clause so current Vercel Secrets remain provider
+owned. Existing automatic-deployment, scope, credential and exact-commit guards
+remain. See the design's explicit supersession and the modified requirement.

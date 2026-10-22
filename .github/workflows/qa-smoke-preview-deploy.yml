@@ -251,41 +251,38 @@ jobs:
             exit 1
           fi
 
-      - name: Install local preview build dependencies
-        if: steps.scope.outputs.any == 'true'
-        run: |
-          bash scripts/github/install-canvas-deps.sh
-          bun ci --no-cache --backend=copyfile
-
       - name: Deploy admin preview
         if: steps.scope.outputs.admin == 'true'
         id: deploy_admin
         env:
           CORE_PREVIEW_GIT_BRANCH: ${{ steps.gate.outputs.head_ref }}
+          CORE_PREVIEW_GIT_SHA: ${{ steps.gate.outputs.head_sha }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: node scripts/qa/deploy-prebuilt-preview.mjs admin
+        run: node scripts/qa/deploy-hosted-preview.mjs admin
 
       - name: Deploy donor preview
         if: steps.scope.outputs.donor == 'true'
         id: deploy_donor
         env:
           CORE_PREVIEW_GIT_BRANCH: ${{ steps.gate.outputs.head_ref }}
+          CORE_PREVIEW_GIT_SHA: ${{ steps.gate.outputs.head_sha }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_DONOR_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: node scripts/qa/deploy-prebuilt-preview.mjs donor
+        run: node scripts/qa/deploy-hosted-preview.mjs donor
 
       - name: Deploy missionary preview
         if: steps.scope.outputs.missionary == 'true'
         id: deploy_missionary
         env:
           CORE_PREVIEW_GIT_BRANCH: ${{ steps.gate.outputs.head_ref }}
+          CORE_PREVIEW_GIT_SHA: ${{ steps.gate.outputs.head_sha }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_MISSIONARY_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: node scripts/qa/deploy-prebuilt-preview.mjs missionary
+        run: node scripts/qa/deploy-hosted-preview.mjs missionary
 
       - name: Comment preview URLs
         if: steps.gate.outputs.should_run == 'true'
@@ -369,6 +366,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          bash scripts/github/install-canvas-deps.sh
           bun ci --no-cache --backend=copyfile
           bunx playwright install --with-deps chromium
 

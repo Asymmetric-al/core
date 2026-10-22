@@ -166,3 +166,23 @@ review approves the corrected source, including large near-match checks.
 A separate hosted Git build reported memory exhaustion and exit 137. The QA
 status-1 failure is a distinct observation; diagnostic labels do not establish
 a shared cause. Current-head previews and cutover remain required.
+
+### Hosted preview delivery with provider-owned Secrets
+
+The current CLI prebuilt path fails because Preview Secrets are returned as
+placeholders. The public database configuration correctly rejects that placeholder
+URL. Explicit QA now requests hosted Git-source builds for the approved PR branch
+and exact SHA, verifies complete provider identity and Preview target, and waits
+for READY. Application credentials stay with Vercel. Admin's verified hosted
+8 GiB exhaustion is handled with a larger machine for that preview alone;
+shared project settings and automatic deployment gates are unchanged.
+
+Ignore decisions use the last successful project-and-branch deployment SHA,
+including product changes before a documentation-only head. Missing, invalid,
+unavailable or non-ancestor history requires building. Real Git regressions
+fail before the fix. The focused delivery/workflow cohort passes 66 cases,
+including first-poll failure, ownership recovery and bounded cancellation.
+A failed ownership or cleanup readback remains an explicit unqualified result.
+The earlier prebuilt helper is pending retirement after actual hosted-path
+qualification; its diagnostic evidence remains historical. This local result is
+not a deployed-preview or release completion claim.

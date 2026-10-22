@@ -1,5 +1,9 @@
 # Design
 
+> The provider-Secret preview delivery clause is explicitly superseded by
+> [complete repository modernization](../complete-repository-modernization/design.md#explicit-preview-delivery-supersession).
+> The compilation selector and automatic-deployment policy remain binding.
+
 ## Decisions
 
 Use one tested compilation selector for GitHub CI and local preflight. Production and explicit manual CI require all apps; routine develop PRs compile only dependency/build inputs; develop pushes select no compilation. Missing diff context requires full compilation. The existing ci-gate accepts a skipped build only after a successful no-build plan and successful correctness checks.
