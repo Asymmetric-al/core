@@ -182,11 +182,15 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
   });
 
   describe("(e) hosted gates fail closed when heavy needs skipped on fork", () => {
-    it("e2e-smoke-gate uses if: always() and needs test-e2e-smoke", () => {
+    it("e2e-smoke-gate uses if: always() and needs migrate, smoke, test-e2e-smoke", () => {
       expect(isAlwaysExpression(ifExpression(jobs["e2e-smoke-gate"]))).toBe(
         true,
       );
-      expect(needsList(jobs["e2e-smoke-gate"])).toEqual(["test-e2e-smoke"]);
+      expect(needsList(jobs["e2e-smoke-gate"])).toEqual([
+        "migrate",
+        "smoke",
+        "test-e2e-smoke",
+      ]);
     });
 
     it("e2e-smoke-gate fails closed when test-e2e-smoke was skipped", () => {
