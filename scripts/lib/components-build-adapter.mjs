@@ -64,13 +64,43 @@ function replaceReviewedTableRow(content, rule, relative) {
   return lines.join("\n");
 }
 
-function assertCoreComposition(content, relative) {
-  for (const code of content.matchAll(
-    /\x60{3}(?:tsx?|jsx?)\n([\s\S]*?)\x60{3}/gu,
-  )) {
+function* scriptCodeBlocks(content) {
+  let fence;
+  let script = false;
+  let lines = [];
+  for (const line of content.split(/\r?\n/u)) {
+    if (!fence) {
+      const opening = /^ {0,3}(\x60{3,}|~{3,})(.*)$/u.exec(line);
+      if (!opening) continue;
+      fence = opening[1];
+      script = /^(?:tsx?|jsx?|typescript|javascript)$/u.test(
+        opening[2].trim().split(/\s+/u)[0],
+      );
+      lines = [];
+      continue;
+    }
+    const closing = /^ {0,3}(\x60{3,}|~{3,})[ \t]*$/u.exec(line);
     if (
-      /@radix-ui\/|<Slot\b|\basChild\b|\buseControllableState\b/u.test(code[1])
-    )
+      closing &&
+      closing[1][0] === fence[0] &&
+      closing[1].length >= fence.length
+    ) {
+      if (script) yield lines.join("\n");
+      fence = undefined;
+    } else lines.push(line);
+  }
+  if (fence && script) yield lines.join("\n");
+}
+
+function assertCoreComposition(content, relative) {
+  for (const code of scriptCodeBlocks(content)) {
+    for (const imported of code.matchAll(
+      /\bimport\s+([^;]+?)\s+from\s*(["'])([^"']+)\2/gu,
+    )) {
+      if (/\bcn\b/u.test(imported[1]) && imported[3] !== "@asym/ui/lib/utils")
+        throw new Error("Unreviewed components-build cn import: " + relative);
+    }
+    if (/@radix-ui\/|<Slot\b|\basChild\b|\buseControllableState\b/u.test(code))
       throw new Error(
         "Unreviewed components-build composition or state implementation: " +
           relative,

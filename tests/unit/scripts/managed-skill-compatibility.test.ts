@@ -471,6 +471,107 @@ describe("reviewed raw managed-skill restoration", () => {
         expect(await readFile(path.join(root, name), "utf8"), name).toBe(body);
     },
   );
+  it.each([
+    ["AGENTS.md", false],
+    ["AGENTS.md", true],
+    ["rules/overview.md", false],
+    ["rules/overview.md", true],
+    ["rules/styling.md", false],
+    ["rules/styling.md", true],
+  ] as const)(
+    "rejects a drifted cn import in %s (adapted=%s) despite another valid import",
+    async (relative, adapted) => {
+      const root = await componentsFixture();
+      if (adapted)
+        await applyManagedSkillCompatibility("components-build", root);
+      const file = path.join(root, relative);
+      let content = await readFile(file, "utf8");
+      const shared = 'import { cn } from "@asym/ui/lib/utils";';
+      if (adapted) {
+        const noticeFrom = content.indexOf("<!-- CORE-COMPONENTS-CN-START -->");
+        const noticeThrough =
+          content.indexOf("<!-- CORE-COMPONENTS-CN-END -->") +
+          "<!-- CORE-COMPONENTS-CN-END -->".length;
+        let at = content.indexOf(shared);
+        if (at >= noticeFrom && at < noticeThrough)
+          at = content.indexOf(shared, noticeThrough);
+        expect(at).toBeGreaterThan(0);
+        content =
+          content.slice(0, at) +
+          content
+            .slice(at)
+            .replace(shared, 'import { cn } from "@legacy/ui/utils";');
+      } else if (relative === "rules/styling.md") {
+        const guidance = JSON.parse(
+          await readFile(
+            path.join(
+              repo,
+              "scripts/refresh-overlays/components-build-cn.json",
+            ),
+            "utf8",
+          ),
+        );
+        const rule = guidance.replacements.find(
+          (row: { path: string; allowRepeatedCore?: boolean }) =>
+            row.path === relative && row.allowRepeatedCore,
+        );
+        expect(content).toContain(rule.upstream);
+        content = content.replace(
+          rule.upstream,
+          'import { cn } from "@legacy/ui/utils";',
+        );
+      } else {
+        expect(content).toContain('import { cn } from "@/lib/utils";');
+        content = content.replace(
+          'import { cn } from "@/lib/utils";',
+          'import { cn } from "@legacy/ui/utils";',
+        );
+      }
+      const fence = String.fromCharCode(96).repeat(3);
+      await writeFile(
+        file,
+        content + "\n" + fence + "tsx\n" + shared + "\n" + fence + "\n",
+      );
+      const before = new Map<string, string>();
+      for (const name of Object.keys(componentsRawFiles))
+        before.set(name, await readFile(path.join(root, name), "utf8"));
+      await expect(
+        applyManagedSkillCompatibility("components-build", root),
+      ).rejects.toThrow("components-build");
+      for (const [name, body] of before)
+        expect(await readFile(path.join(root, name), "utf8"), name).toBe(body);
+    },
+  );
+  it.each([
+    [String.fromCharCode(96).repeat(3), 'tsx title="Trigger"'],
+    [String.fromCharCode(96).repeat(4), 'jsx title="Trigger"'],
+    ["~~~", 'typescript title="Trigger"'],
+    ["~~~~", 'javascript title="Trigger"'],
+  ])(
+    "rejects legacy code in %s fences with %s attributes before writes",
+    async (fence, info) => {
+      const root = await componentsFixture();
+      const file = path.join(root, "rules/composition.md");
+      await writeFile(
+        file,
+        componentsRawFiles["rules/composition.md"] +
+          "\n" +
+          fence +
+          info +
+          "\n<Slot asChild />;\n" +
+          fence +
+          "\n",
+      );
+      const before = new Map<string, string>();
+      for (const name of Object.keys(componentsRawFiles))
+        before.set(name, await readFile(path.join(root, name), "utf8"));
+      await expect(
+        applyManagedSkillCompatibility("components-build", root),
+      ).rejects.toThrow("composition or state implementation");
+      for (const [name, body] of before)
+        expect(await readFile(path.join(root, name), "utf8"), name).toBe(body);
+    },
+  );
   it("rejects an extra active legacy host recipe before adapting other documents", async () => {
     const root = await componentsFixture();
     const file = path.join(root, "rules/composition.md");
