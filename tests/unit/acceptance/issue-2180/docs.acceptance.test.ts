@@ -126,20 +126,38 @@ describe("#2180 criterion 9: docs/ops/github-access.md (:39-63 only)", () => {
   });
 });
 
-/** docs/ci.md at ac69ef6f (431 lines; the spec's ":410" predates #2155). */
-const CI_BASE = {
-  bytes: 35265,
-  sha256: "b546066ff785ea4243ee657cc8fb403a2b28124eaf2c2982bbeb19a87efa6d21",
-};
+/**
+ * Accepted docs/ci.md prefixes (ruling 2, #2180 issuecomment-6371787636):
+ * develop at a200250f (459 lines, after #2153/#2155/#2223), which the single
+ * merge-only sync brings in, and develop at ac69ef6f (431 lines; the spec's
+ * ":410" predates #2155), which the unsynced PR head still carries. The file
+ * must start with exactly one of these byte prefixes; only the EOF append
+ * follows it.
+ */
+const CI_BASES = [
+  {
+    ref: "a200250f",
+    bytes: 37848,
+    sha256: "0560ae8fd108720b4d741be8e6dcbc389039e7a6b8eaa3b0273b762943672ddc",
+  },
+  {
+    ref: "ac69ef6f",
+    bytes: 35265,
+    sha256: "b546066ff785ea4243ee657cc8fb403a2b28124eaf2c2982bbeb19a87efa6d21",
+  },
+] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {
   const appended = () => {
     const bytes = readFileSync("docs/ci.md");
+    const base = CI_BASES.find(
+      (b) => sha(bytes.subarray(0, b.bytes).toString("utf8")) === b.sha256,
+    );
     expect(
-      sha(bytes.subarray(0, CI_BASE.bytes).toString("utf8")),
-      "existing docs/ci.md bytes unchanged",
-    ).toBe(CI_BASE.sha256);
-    return bytes.subarray(CI_BASE.bytes).toString("utf8");
+      base?.ref,
+      `existing docs/ci.md bytes unchanged (prefix of develop ${CI_BASES.map((b) => b.ref).join(" or ")})`,
+    ).toBeDefined();
+    return bytes.subarray(base!.bytes).toString("utf8");
   };
   it("appends only a 'Self-hosted runner security' section of <= 8 lines", () => {
     const added = appended();
