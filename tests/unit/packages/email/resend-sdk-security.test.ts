@@ -100,23 +100,77 @@ describe("real Resend SDK security boundaries", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it.each([".", "..", "../domains", "email/../domains"])(
-    "rejects dot-segment inbound ID %s before fetch",
-    async (emailId) => {
-      const email = await getReceivedEmail("re_local_fixture", emailId);
-      const attachments = await listReceivedEmailAttachments(
-        "re_local_fixture",
-        emailId,
+  it.each([
+    "",
+    ".",
+    "..",
+    "../domains",
+    "email/../domains",
+    "%2E%2E",
+    "%2e%2e%2fdomains",
+    "..\\domains",
+    "email\\..\\domains",
+    ".\t.",
+    " email_local_fixture ",
+  ])("rejects dot-segment inbound ID %s before fetch", async (emailId) => {
+    const email = await getReceivedEmail("re_local_fixture", emailId);
+    const attachments = await listReceivedEmailAttachments(
+      "re_local_fixture",
+      emailId,
+    );
+    expect(email).toMatchObject({
+      success: false,
+      errorCode: RESEND_ERROR_CODES.VALIDATION_ERROR,
+    });
+    expect(attachments).toMatchObject({
+      success: false,
+      errorCode: RESEND_ERROR_CODES.VALIDATION_ERROR,
+    });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("preserves valid provider IDs and response mapping through the real SDK", async () => {
+    const emailId = "49a3999c-0ce1-4ea6-ab68-afcd6dc2e794";
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ id: emailId, subject: "Local fixture" }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: [
+              {
+                id: "attachment_local",
+                filename: "fixture.txt",
+                download_url: "https://example.invalid/fixture.txt",
+              },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
       );
-      expect(email).toMatchObject({
-        success: false,
-        errorCode: RESEND_ERROR_CODES.VALIDATION_ERROR,
-      });
-      expect(attachments).toMatchObject({
-        success: false,
-        errorCode: RESEND_ERROR_CODES.VALIDATION_ERROR,
-      });
-      expect(fetch).not.toHaveBeenCalled();
-    },
-  );
+    expect(await getReceivedEmail("re_local_fixture", emailId)).toMatchObject({
+      success: true,
+      data: { id: emailId, subject: "Local fixture" },
+    });
+    expect(
+      await listReceivedEmailAttachments("re_local_fixture", emailId),
+    ).toMatchObject({
+      success: true,
+      data: [{ id: "attachment_local", filename: "fixture.txt" }],
+    });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe(
+      `https://api.resend.com/emails/receiving/${emailId}`,
+    );
+    expect(vi.mocked(fetch).mock.calls[1]?.[0]).toBe(
+      `https://api.resend.com/emails/receiving/${emailId}/attachments`,
+    );
+  });
 });

@@ -26,14 +26,17 @@ function readGitSha() {
 
 /** @param {Record<string, string | undefined>} [env] */
 export function resolveSentryReleaseName(env = process.env) {
-  return firstNonEmpty(
-    env.SENTRY_RELEASE,
-    env.VERCEL_GIT_COMMIT_SHA,
-    env.GIT_SHA,
-    env.GITHUB_SHA,
-    env.NEXT_PUBLIC_GIT_SHA,
-    readGitSha(),
-  );
+  for (const key of [
+    "SENTRY_RELEASE",
+    "VERCEL_GIT_COMMIT_SHA",
+    "GIT_SHA",
+    "GITHUB_SHA",
+    "NEXT_PUBLIC_GIT_SHA",
+  ]) {
+    const value = firstNonEmpty(env[key]);
+    if (value && value !== key) return value;
+  }
+  return readGitSha();
 }
 
 /** @param {Record<string, string | undefined>} [env] */

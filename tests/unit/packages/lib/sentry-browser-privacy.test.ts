@@ -47,8 +47,6 @@ describe("real Sentry browser HTTP context under Core's collection policy", () =
     Sentry.init({
       ...getSentryCompatibilityOptions(),
       dsn: "https://public@example.invalid/1",
-      defaultIntegrations: false,
-      integrations: [Sentry.httpContextIntegration()],
       transport: () => ({
         send: async (envelope: unknown) => {
           envelopes.push(envelope);

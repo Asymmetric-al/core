@@ -128,6 +128,18 @@ export function buildSentryReleaseSourcemapProof({
   );
 
   const turbo = turboConfig ?? readJson("turbo.json");
+  checks.push(
+    resolveSentryReleaseName({
+      SENTRY_RELEASE: "SENTRY_RELEASE",
+      VERCEL_GIT_COMMIT_SHA: "VERCEL_GIT_COMMIT_SHA",
+      GIT_SHA: "qualified-commit",
+    }) === "qualified-commit"
+      ? pass("self-named release placeholders fall through to a real candidate")
+      : fail(
+          "self-named release placeholders fall through to a real candidate",
+          "expected placeholder release variables to be ignored",
+        ),
+  );
   const buildEnv = new Set(turbo?.tasks?.build?.env ?? []);
   const missingTurboKeys = REQUIRED_TURBO_ENV.filter(
     (key) => !buildEnv.has(key),

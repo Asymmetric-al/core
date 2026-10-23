@@ -57,6 +57,27 @@ describe("Sentry release and sourcemap verifier", () => {
     ).toBe("manual");
   });
 
+  it.each([
+    "SENTRY_RELEASE",
+    "VERCEL_GIT_COMMIT_SHA",
+    "GIT_SHA",
+    "GITHUB_SHA",
+    "NEXT_PUBLIC_GIT_SHA",
+  ])("ignores a self-named %s placeholder", (key) => {
+    expect(resolveSentryReleaseName({ [key]: ` ${key} ` })).toMatch(
+      /^[a-f0-9]{40}$/u,
+    );
+  });
+
+  it("falls through a placeholder to the next valid release candidate", () => {
+    expect(
+      buildSentryNextConfigOptions({
+        SENTRY_RELEASE: "SENTRY_RELEASE",
+        VERCEL_GIT_COMMIT_SHA: "qualified-commit",
+      }).release.name,
+    ).toBe("qualified-commit");
+  });
+
   it("summarizes the repo proof without secret values", () => {
     const proof = buildSentryReleaseSourcemapProof({
       appConfigTexts: {

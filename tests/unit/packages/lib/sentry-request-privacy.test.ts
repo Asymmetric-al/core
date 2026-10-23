@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import * as Sentry from "@sentry/nextjs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -5,6 +7,10 @@ import { getSentryCompatibilityOptions } from "../../../../packages/lib/monitori
 
 describe("Sentry request collection with Core's compatibility policy", () => {
   const envelopes: unknown[] = [];
+  // Default ContextLines may capture fixture source; runtime sentinels must not
+  // also appear as literals in that source or its assertion expressions.
+  const hookSecret = randomUUID();
+  const refererSecret = randomUUID();
 
   beforeEach(() => {
     envelopes.length = 0;
@@ -14,8 +20,6 @@ describe("Sentry request collection with Core's compatibility policy", () => {
     Sentry.init({
       ...getSentryCompatibilityOptions(),
       dsn: "https://public@example.invalid/1",
-      defaultIntegrations: false,
-      integrations: [Sentry.requestDataIntegration()],
       transport: () => ({
         send: async (envelope: unknown) => {
           envelopes.push(envelope);
@@ -93,8 +97,8 @@ describe("Sentry request collection with Core's compatibility policy", () => {
   it.each(["referer", "Referer", "referrer"])(
     "filters %s on the same captureRequestError path exported by every app",
     async (header) => {
-      // This collector is installed by the SDK's server defaults; isolate it
-      // here to keep automatic HTTP instrumentation out of the offline fixture.
+      // Keep the production SDK defaults enabled; the custom transport retains
+      // actual emitted envelopes locally without sending fixture telemetry.
       expect(
         Sentry.getDefaultIntegrations({}).some(
           (integration) => integration.name === "RequestData",
@@ -104,10 +108,9 @@ describe("Sentry request collection with Core's compatibility policy", () => {
         new Error("local Next request-error fixture"),
         {
           method: "GET",
-          path: "/reports?campaign=fall&jwt=hook-secret",
+          path: `/reports?campaign=fall&jwt=${hookSecret}`,
           headers: {
-            [header]:
-              "https://core.example.test/checkout?campaign=fall&jwt=referer-secret",
+            [header]: `https://core.example.test/checkout?campaign=fall&jwt=${refererSecret}`,
             "content-type": "application/json",
           },
         },
@@ -124,7 +127,8 @@ describe("Sentry request collection with Core's compatibility policy", () => {
         '"referer":"[Filtered]"'.replace("referer", header),
       );
       expect(serialized).toContain("/reports?campaign=fall&jwt=[Filtered]");
-      expect(serialized).not.toMatch(/hook-secret|referer-secret/);
+      expect(serialized).not.toContain(hookSecret);
+      expect(serialized).not.toContain(refererSecret);
       expect(serialized).toContain("application/json");
       expect(fetch).not.toHaveBeenCalled();
     },
