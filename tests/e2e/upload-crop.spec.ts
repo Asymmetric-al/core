@@ -130,6 +130,12 @@ test.describe("Image Upload and Crop Flow", () => {
   test("should close cropper and preserve original state on cancel", async ({
     page,
   }) => {
+    // The demo avatar is a remote Unsplash URL and Avatar.Image renders the <img>
+    // only once it loads; blocking it keeps the initials fallback stable between
+    // the before/after observations and removes the outside-network dependency.
+    await page.route("https://images.unsplash.com/**", (route) =>
+      route.abort(),
+    );
     await gotoDonorSettings(page);
 
     const uploadRequests: string[] = [];
