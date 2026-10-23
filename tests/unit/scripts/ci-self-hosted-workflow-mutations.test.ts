@@ -200,6 +200,7 @@ const ciGateRun = (jobs: WorkflowJobs, overrides: Record<string, string>) =>
       typecheck: "success",
       build: "success",
       "test-unit": "success",
+      "acceptance-tests": "success",
       ...overrides,
     },
     outputs: { "compilation-plan": { requested: "true" } },
