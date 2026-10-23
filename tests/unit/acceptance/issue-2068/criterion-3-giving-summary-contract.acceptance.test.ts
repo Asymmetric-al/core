@@ -13,19 +13,34 @@
  *   `household_support_items` and `daf_recommendation_items` are added,
  *   grouped per currency, with a new `view_version`."
  *
- * Interpretation (reported as open questions):
- * - "direct-gift fields" = `period_gift_dates` and `period_gift_amounts` (the
- *   per-gift fields at cc568c92). Other base fields are not asserted.
- * - "a new `view_version`" = an integer greater than the base value 1.
- * - "grouped per currency" has no representation in a flat field-name list,
- *   so it is not asserted here.
+ * Spec addendum 1 (clarifications, approved 2026-10-22 9:49 PM PT):
+ * {@link https://github.com/Asymmetric-al/core/issues/2068#issuecomment-6357644196}
+ * - Item 2: grouping per currency is not testable from the catalog; criterion
+ *   3 asserts the two added fields are present (criterion 6 covers
+ *   `period_total`).
+ * - Item 3: the direct-gift fields that stay are `period_gift_dates` and
+ *   `period_gift_amounts`; `tenant_display_name`, `donor_display_name`,
+ *   `period_start`, `period_end` and `not_official_statement` also stay
+ *   unchanged; the new `view_version` is any integer greater than 1.
+ * - Item 4: `phase19_statement_seam` already exists in `PURPOSE_LAUNCH_GATES`
+ *   and is only newly added to the giving entry's `launch.gates`; only the
+ *   phase07/phase13/phase14 gates are new names in `PURPOSE_LAUNCH_GATES`.
+ *
+ * Interpretation:
  * - "tests assert each one" = the In item 4 test files name each asserted
  *   value literally.
+ * - The exact-set check on `PURPOSE_LAUNCH_GATES` is opt-in
+ *   (`ACCEPTANCE_2068_SCOPE=1` or `ACCEPTANCE_2068_BASE=<ref>`), because a
+ *   later PR may legitimately add gate names.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
 
 import { describe, expect, it } from "vitest";
+
+const SCOPE_ENABLED =
+  process.env.ACCEPTANCE_2068_SCOPE?.trim() === "1" ||
+  (process.env.ACCEPTANCE_2068_BASE?.trim() ?? "") !== "";
 
 import {
   DOCUMENT_PURPOSE_IDS,
@@ -35,16 +50,55 @@ import {
 import {
   ADDED_SECTION_FIELDS,
   AVAILABILITY_TEST_FILE,
+  BASE_GIVING_FIELDS,
+  BASE_GIVING_GATES,
+  BASE_PURPOSE_LAUNCH_GATES,
   BASE_VIEW_VERSION,
   CATALOG_TEST_FILE,
   DIRECT_GIFT_FIELDS,
   EXPECTED_GATES,
   EXPECTED_RECIPIENT_ROLE,
+  EXISTING_GATE_ADDED_TO_GIVING,
   EXPECTED_SOURCE_OWNER,
+  git,
   NEW_GATES,
   PURPOSE_ID,
   readRepoFile,
+  SPEC_BASE_SHA,
+  UNCHANGED_FIELDS,
 } from "./catalog-scan";
+
+/** Quoted string literals in a file as it was at the spec base. */
+function baseSource(relativePath: string): string {
+  const shown = git(["show", `${SPEC_BASE_SHA}:${relativePath}`]);
+  if (shown.status !== 0) throw new Error(`git show failed: ${relativePath}`);
+  return shown.stdout;
+}
+
+const GIVING_CATALOG =
+  "packages/api/src/generated-documents/purpose-catalog/catalog.ts";
+const CATALOG_TYPES =
+  "packages/api/src/generated-documents/purpose-catalog/types.ts";
+
+/** The giving entry's source block at the spec base. */
+function baseGivingBlock(): string {
+  const source = baseSource(GIVING_CATALOG);
+  const start = source.indexOf(`"${PURPOSE_ID}": {`);
+  const end = source.indexOf('  "tribute.notification@1": {', start);
+  if (start < 0 || end < 0) throw new Error("giving entry not found at base");
+  return source.slice(start, end);
+}
+
+/** The string literals of `name: [ ... ]` within a source block. */
+function arrayLiterals(block: string, name: string): string[] {
+  const match = new RegExp(`\\b${name}\\b[^=:]*[=:]\\s*\\[([^\\]]*)\\]`).exec(
+    block,
+  );
+  if (!match) throw new Error(`${name} array not found`);
+  return [...(match[1] as string).matchAll(/"([^"]+)"/g)].map(
+    (m) => m[1] as string,
+  );
+}
 
 const contract = () => getDocumentPurposeContract(PURPOSE_ID);
 
@@ -79,11 +133,49 @@ describe("issue #2068 done criterion 3: launch.gates", () => {
     expect(contract().launch.state).toBe("supported_after_gates");
   });
 
-  it("criterion 3: the new gate names are added to PURPOSE_LAUNCH_GATES", () => {
+  it("criterion 3 / addendum 1 item 4: the new gate names (phase07, phase13, phase14 only) are added to PURPOSE_LAUNCH_GATES", () => {
     for (const gate of NEW_GATES) {
       expect(PURPOSE_LAUNCH_GATES as readonly string[]).toContain(gate);
     }
   });
+
+  it("criterion 3 / addendum 1 item 4: phase19_statement_seam is an existing PURPOSE_LAUNCH_GATES name, newly added to the giving entry", () => {
+    // Base facts the addendum relies on (types.ts:140 at cc568c92).
+    expect(
+      arrayLiterals(baseSource(CATALOG_TYPES), "PURPOSE_LAUNCH_GATES"),
+    ).toEqual([...BASE_PURPOSE_LAUNCH_GATES]);
+    expect(arrayLiterals(baseGivingBlock(), "gates")).toEqual([
+      ...BASE_GIVING_GATES,
+    ]);
+    for (const gate of NEW_GATES) {
+      expect(BASE_PURPOSE_LAUNCH_GATES as readonly string[]).not.toContain(
+        gate,
+      );
+    }
+    // Live: still an existing name, and now on the giving entry.
+    expect(PURPOSE_LAUNCH_GATES as readonly string[]).toContain(
+      EXISTING_GATE_ADDED_TO_GIVING,
+    );
+    expect(contract().launch.gates as readonly string[]).toContain(
+      EXISTING_GATE_ADDED_TO_GIVING,
+    );
+  });
+
+  it("criterion 3: no existing PURPOSE_LAUNCH_GATES name is removed or renamed", () => {
+    for (const gate of BASE_PURPOSE_LAUNCH_GATES) {
+      expect(PURPOSE_LAUNCH_GATES as readonly string[]).toContain(gate);
+    }
+  });
+
+  // Opt-in: a later PR may legitimately add more gate names.
+  it.skipIf(!SCOPE_ENABLED)(
+    "criterion 3 / addendum 1 item 4: PURPOSE_LAUNCH_GATES gains exactly the three new names (opt-in: ACCEPTANCE_2068_SCOPE=1 or ACCEPTANCE_2068_BASE=<ref>)",
+    () => {
+      expect([...PURPOSE_LAUNCH_GATES].sort()).toEqual(
+        [...BASE_PURPOSE_LAUNCH_GATES, ...NEW_GATES].sort(),
+      );
+    },
+  );
 });
 
 describe("issue #2068 done criterion 3: approved data view (D2a)", () => {
@@ -97,13 +189,27 @@ describe("issue #2068 done criterion 3: approved data view (D2a)", () => {
     }
   });
 
+  it("criterion 3 / addendum 1 item 3: tenant_display_name, donor_display_name, period_start, period_end and not_official_statement stay unchanged versus cc568c92", () => {
+    const base = arrayLiterals(baseGivingBlock(), "fields");
+    expect(base).toEqual([...BASE_GIVING_FIELDS]);
+    for (const field of [...UNCHANGED_FIELDS, ...DIRECT_GIFT_FIELDS]) {
+      expect(base).toContain(field);
+      expect(contract().approved_data_view.fields).toContain(field);
+    }
+    // Every base field other than period_total is kept under its base name
+    // (order is not asserted).
+    const kept = base.filter((field) => field !== "period_total");
+    const live = contract().approved_data_view.fields as readonly string[];
+    expect(kept.filter((field) => !live.includes(field))).toEqual([]);
+  });
+
   it("criterion 3 / D2a: household_support_items and daf_recommendation_items are added", () => {
     for (const field of ADDED_SECTION_FIELDS) {
       expect(contract().approved_data_view.fields).toContain(field);
     }
   });
 
-  it("criterion 3 / D2a: the data view gets a new view_version", () => {
+  it("criterion 3 / D2a / addendum 1 item 3: the data view gets a new view_version (any integer > 1)", () => {
     const { view_version } = contract().approved_data_view;
     expect(Number.isInteger(view_version)).toBe(true);
     expect(view_version).toBeGreaterThan(BASE_VIEW_VERSION);

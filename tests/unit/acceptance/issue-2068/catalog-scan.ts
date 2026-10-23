@@ -5,6 +5,9 @@
  * Approval and decision text:
  * {@link https://github.com/Asymmetric-al/core/issues/2068#issuecomment-6357392760}
  *
+ * Spec addendum 1 (clarifications, approved 2026-10-22 9:49 PM PT):
+ * {@link https://github.com/Asymmetric-al/core/issues/2068#issuecomment-6357644196}
+ *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
 
@@ -58,11 +61,39 @@ export const EXPECTED_SOURCE_OWNER =
 /** In item 3: the amended `recipient_role.role`. */
 export const EXPECTED_RECIPIENT_ROLE = "authorized_recognition_subject";
 
-/** In item 3: the gate names added to `PURPOSE_LAUNCH_GATES`. */
+/**
+ * In item 3 / addendum 1 item 4: the only gate names that are new in
+ * `PURPOSE_LAUNCH_GATES`.
+ */
 export const NEW_GATES = [
   "phase07_purpose_privacy_proof",
   "phase13_purpose_privacy_proof",
   "phase14_recognition_subject_proof",
+] as const;
+
+/**
+ * Addendum 1 item 4: already in `PURPOSE_LAUNCH_GATES` at the spec base
+ * (`types.ts:140`) but not yet on the giving entry; this PR adds it there.
+ */
+export const EXISTING_GATE_ADDED_TO_GIVING = "phase19_statement_seam";
+
+/** The giving entry's `launch.gates` at the spec base. */
+export const BASE_GIVING_GATES = [
+  "core_d3_renderer_qualified",
+  "core_d4_artifact_pipeline",
+] as const;
+
+/** `PURPOSE_LAUNCH_GATES` at the spec base (`types.ts:137-147`). */
+export const BASE_PURPOSE_LAUNCH_GATES = [
+  "us_legal_finance_review",
+  "core_d3_renderer_qualified",
+  "core_d4_artifact_pipeline",
+  "phase19_statement_seam",
+  "ca_pack_active",
+  "ca_issuer_coverage_case_proof",
+  "phase14_tribute_contract",
+  "phase16_pledge_contract",
+  "registered_safe_data_view",
 ] as const;
 
 /** In item 3 / criterion 4: the six gates of the amended entry. */
@@ -70,13 +101,36 @@ export const EXPECTED_GATES = [
   "core_d3_renderer_qualified",
   "core_d4_artifact_pipeline",
   ...NEW_GATES,
-  "phase19_statement_seam",
+  EXISTING_GATE_ADDED_TO_GIVING,
 ] as const;
 
 /** D2a: the direct-gift fields that stay (present at the spec base). */
 export const DIRECT_GIFT_FIELDS = [
   "period_gift_dates",
   "period_gift_amounts",
+] as const;
+
+/**
+ * Addendum 1 item 3: the other base fields, which stay unchanged.
+ */
+export const UNCHANGED_FIELDS = [
+  "tenant_display_name",
+  "donor_display_name",
+  "period_start",
+  "period_end",
+  "not_official_statement",
+] as const;
+
+/** The giving entry's `approved_data_view.fields` at the spec base. */
+export const BASE_GIVING_FIELDS = [
+  "tenant_display_name",
+  "donor_display_name",
+  "period_start",
+  "period_end",
+  "period_gift_dates",
+  "period_gift_amounts",
+  "period_total",
+  "not_official_statement",
 ] as const;
 
 /** D2a: the recognition sections that are added. */

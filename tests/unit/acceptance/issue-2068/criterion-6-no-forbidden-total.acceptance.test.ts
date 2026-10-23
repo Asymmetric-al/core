@@ -3,8 +3,10 @@
  * Spec (rev 1, Blake-approved 2026-10-22 9:28 PM PT, decisions D1a and D2a):
  * {@link https://github.com/Asymmetric-al/core/issues/2068#issuecomment-6357332555}
  *
- * Criterion 6: "The data view shows no total that `statement-operations.md:628-629`
- * forbids." That clause (D15, lines 627-628 at cc568c92) reads: "The overview
+ * Criterion 6: "The data view shows no total that `statement-operations.md`
+ * forbids." Spec addendum 1 item 5 corrects the reference to
+ * `openspec/contracts/statement-operations.md:627-628`
+ * ({@link https://github.com/Asymmetric-al/core/issues/2068#issuecomment-6357644196}). That clause (D15) reads: "The overview
  * MUST NOT show a deductible, official, converted, blended, or direct-plus-
  * recognition total".
  *

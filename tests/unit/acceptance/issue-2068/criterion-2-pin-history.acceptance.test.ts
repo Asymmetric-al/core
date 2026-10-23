@@ -16,11 +16,17 @@
  * - `ACCEPTANCE_2068_PR_BODY_FILE=<path>` reads the PR body from a file (for
  *   example `gh pr view <n> --json body --jq .body > body.md`).
  *
- * How "with the tests passing" is checked: the pre-change pin commit must
+ * Spec addendum 1 item 1
+ * ({@link https://github.com/Asymmetric-al/core/issues/2068#issuecomment-6357644196}):
+ * "with the tests passing" means the product and unit tests that already exist
+ * at that commit pass; the acceptance tests for criteria 3-6 are expected to
+ * fail until the change commit.
+ *
+ * How that is checked: the pre-change pin commit must
  * leave the whole purpose-catalog directory byte-identical to cc568c92 (same
  * git tree), so its live digest is provably {@link PRE_CHANGE_DIGEST} and the
- * pin assertion passes there. Whether the rest of the suite passes on that
- * commit is a CI fact; see runtime-checklist.md.
+ * pin assertion passes there. Whether the pre-existing product and unit
+ * tests pass on that commit is a CI fact; see runtime-checklist.md.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
