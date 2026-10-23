@@ -10,7 +10,7 @@
  * the executable catalog cannot drift from the normative document.
  */
 
-export const DOCUMENT_PURPOSE_CATALOG_SCHEMA_VERSION = "1";
+export const DOCUMENT_PURPOSE_CATALOG_SCHEMA_VERSION = "2";
 
 export const DOCUMENT_PURPOSE_LANES = [
   "official_tax",
@@ -143,6 +143,9 @@ export const PURPOSE_LAUNCH_GATES = [
   "phase14_tribute_contract",
   "phase16_pledge_contract",
   "registered_safe_data_view",
+  "phase07_purpose_privacy_proof",
+  "phase13_purpose_privacy_proof",
+  "phase14_recognition_subject_proof",
 ] as const;
 export type PurposeLaunchGate = (typeof PURPOSE_LAUNCH_GATES)[number];
 
