@@ -104,11 +104,15 @@ DocRaptor fidelity and the wider UI/security/combined release remain unqualified
 
 The [observability and content SDK checkpoint](observability-content-sdks.md)
 pins Sentry 11.9.0, parser/sanitizer, Resend and browser Stripe.js with current
-React Stripe. Its [current qualification](observability-content-sdks-current-qualification.json)
-binds actual develop integration, full preflight, all three builds, 9,067 passing
-tests and a clean frozen installation. The [current release freeze](observability-content-sdks-current-releases.json)
+React Stripe. Its [source-bound qualification](observability-content-sdks-current-qualification.json)
+distinguishes predecessor `7a5fbc17` full-preflight, build and clean-install
+evidence from the later seven-file review corrections at `ec1b281a`, qualified
+with focused behavior and typechecks. Those dated receipts do not establish
+current-head release-gate status. The [current release freeze](observability-content-sdks-current-releases.json)
 owns active versions; earlier intended-stack records are historical.
 
-Release CI, exact-commit previews, merge readbacks and combined qualification
-remain required delivery evidence. This SDK checkpoint does not close the wider
+[PR #2214](https://github.com/Asymmetric-al/core/pull/2214) owns current-head CI,
+review reconciliation and exact-commit Preview readbacks. The owner requested
+that it remain open for manual merge. Merge readbacks and combined qualification
+remain future delivery evidence; this SDK checkpoint does not close the wider
 AI, payment, legal, editor or nested-security families.
