@@ -67,9 +67,8 @@ either. Resolve with `gh pr view 42` and fall back to `gh issue view 42`.
 
 Create a GitHub issue.
 
-Every open GitHub issue created by a skill must include exactly one `type:*`,
-one `status:*`, and one `complexity:*` label. When a skill says to apply
-`ready-for-agent`, use `status:ready` plus:
+Every open GitHub issue created by a skill must include exactly one `type:*`
+and one `complexity:*` label. When a skill says to apply `ready-for-agent`, apply `Ready` plus:
 
 - `type:feature` for feature/spec/product work, `type:bug` for defects,
   `type:docs` for documentation-only work, `type:refactor` for behavior-neutral
@@ -94,13 +93,12 @@ tickets.
 
 - **Map**: a single issue labelled `wayfinder:map`, holding the
   Notes / Decisions-so-far / Fog body. Create it with
-  `gh issue create --label wayfinder:map --label type:chore --label status:todo --label complexity:hard`.
+  `gh issue create --label wayfinder:map --label type:chore --label complexity:hard`.
 - **Child ticket**: an issue linked to the map as a GitHub sub-issue. Where
   sub-issues are not enabled, add the child to a task list in the map body and
   put `Part of #<map>` at the top of the child body. Labels:
   `wayfinder:<type>` (`research`, `prototype`, `grilling`, or `task`) plus
-  exactly one repo `type:*`, `status:*`, and `complexity:*` label. Use
-  `status:todo` when creating a child. For `research`, `prototype`, and
+  exactly one repo `type:*` and `complexity:*` label; no readiness label. For `research`, `prototype`, and
   `grilling` children, use `type:chore` unless the child clearly documents a
   user-facing doc change (`type:docs`). For `task` children, use the actual work
   type (`type:bug`, `type:feature`, `type:refactor`, `type:docs`, or

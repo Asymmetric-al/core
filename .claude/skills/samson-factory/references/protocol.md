@@ -54,9 +54,10 @@ to one. Where the runtime does not load those settings, explicit role prompts
 are the boundary. This is a shared workspace. Do not claim filesystem isolation,
 tool removal, model access or rebuild persistence from configuration alone.
 
-Assigned issue workers return DELIVERY_READY with the actual PR/head/base,
+Assigned issue workers return DELIVERY_READY to Samson with the actual PR/head/base,
 acceptance revision, independent review decisions, final acceptance and required
-checks, then stop before merge. David owns the protected expected-head merge,
-independent merge verification and the same-worker closeout handoff. Missing
+checks, then stop before merge. Samson, acting under Blake's authorization,
+owns the protected expected-head merge, independent merge verification and the
+same-worker closeout handoff. Missing
 required isolation for review/acceptance command execution remains INCONCLUSIVE;
 shared files, hashes and role TOMLs do not establish that execution boundary.
