@@ -471,16 +471,27 @@ describe("reviewed raw managed-skill restoration", () => {
         expect(await readFile(path.join(root, name), "utf8"), name).toBe(body);
     },
   );
-  it.each([
-    ["AGENTS.md", false],
-    ["AGENTS.md", true],
-    ["rules/overview.md", false],
-    ["rules/overview.md", true],
-    ["rules/styling.md", false],
-    ["rules/styling.md", true],
-  ] as const)(
-    "rejects a drifted cn import in %s (adapted=%s) despite another valid import",
-    async (relative, adapted) => {
+  it.each(
+    (
+      [
+        ["AGENTS.md", false],
+        ["AGENTS.md", true],
+        ["rules/overview.md", false],
+        ["rules/overview.md", true],
+        ["rules/styling.md", false],
+        ["rules/styling.md", true],
+      ] as const
+    ).flatMap(([relative, adapted]) =>
+      [
+        'import { cn } from "@legacy/ui/utils";',
+        'import{ cn } from "@legacy/ui/utils";',
+        'import { cn }from "@legacy/ui/utils";',
+        'import{ cn }from "@legacy/ui/utils";',
+      ].map((legacyImport) => [relative, adapted, legacyImport] as const),
+    ),
+  )(
+    "rejects a drifted cn import in %s (adapted=%s, %s) despite another valid import",
+    async (relative, adapted, legacyImport) => {
       const root = await componentsFixture();
       if (adapted)
         await applyManagedSkillCompatibility("components-build", root);
@@ -498,9 +509,7 @@ describe("reviewed raw managed-skill restoration", () => {
         expect(at).toBeGreaterThan(0);
         content =
           content.slice(0, at) +
-          content
-            .slice(at)
-            .replace(shared, 'import { cn } from "@legacy/ui/utils";');
+          content.slice(at).replace(shared, legacyImport);
       } else if (relative === "rules/styling.md") {
         const guidance = JSON.parse(
           await readFile(
@@ -516,15 +525,12 @@ describe("reviewed raw managed-skill restoration", () => {
             row.path === relative && row.allowRepeatedCore,
         );
         expect(content).toContain(rule.upstream);
-        content = content.replace(
-          rule.upstream,
-          'import { cn } from "@legacy/ui/utils";',
-        );
+        content = content.replace(rule.upstream, legacyImport);
       } else {
         expect(content).toContain('import { cn } from "@/lib/utils";');
         content = content.replace(
           'import { cn } from "@/lib/utils";',
-          'import { cn } from "@legacy/ui/utils";',
+          legacyImport,
         );
       }
       const fence = String.fromCharCode(96).repeat(3);
