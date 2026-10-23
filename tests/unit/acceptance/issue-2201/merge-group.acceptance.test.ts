@@ -172,7 +172,7 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
         .digest("hex")
         .slice(0, 16);
     });
-    expect(prints).toEqual(["5c45b189b9f994ab", "f62439b67c445769"]);
+    expect(prints).toEqual(["5c45b189b9f994ab", "1078832efaff84e6"]);
   });
 });
 

@@ -20,9 +20,13 @@ Current workflow semantics:
 - Explicit `qa:smoke` previews compile on the standard GitHub runner, then use `vercel deploy --prebuilt --target=preview`; Vercel does not compile the source again. Preview serving and fixed subscription costs still apply.
 - `ci-integration.yml` runs on all PR bases. Pushes still run only on `develop` and `production`.
 - `integrity` runs the locked workspace Shadscan audit on every CI event. The reusable `.github/workflows/shadscan.yml` publishes its retained report; audit failures block `ci-gate`. See [Shadscan](guides/development/shadscan.md) for discovery, per-app floors and evidence review.
-- `test-e2e-smoke` produces `e2e-smoke-gate`; `integration-gate` summarizes
-  `migrate`, `smoke`, and that gate. See § Branch protection for the dated live
-  required-context inventory.
+- `e2e-smoke-gate` needs `migrate`, `smoke`, and `test-e2e-smoke` and passes
+  only when all three succeeded; `integration-gate` summarizes `migrate`,
+  `smoke`, and that gate. A skipped need never passes either gate (fail closed).
+  On failure each gate logs one `Root cause: <job> (<result>)` line naming the
+  first non-success need in dependency order, so an upstream `migrate` or
+  `smoke` failure is not reported as an E2E failure. See § Branch protection
+  for the dated live required-context inventory.
 - Non-production PRs run the same placeholder Supabase E2E path as `develop`
   (`example.supabase.co`, zero-config bypass). They do **not** inherit
   `continue-on-error`; full E2E must pass. Production PRs keep hosted secrets
@@ -32,8 +36,8 @@ Current workflow semantics:
   `e2e-gate`) in merge-queue (`merge_group`) runs; it still runs on the
   `develop` push that follows the merge. Required checks `ci-gate`,
   `migrate`, `smoke`, and `e2e-smoke-gate` still run and report on
-  merge-group commits; `e2e-smoke-gate` still needs `test-e2e-smoke` to
-  succeed (fails closed).
+  merge-group commits; `e2e-smoke-gate` still needs `migrate`, `smoke`, and
+  `test-e2e-smoke` to succeed (fails closed).
 - The canonical repository has no `main` branch. Legacy deny-only configuration
   may still mention it.
 
@@ -290,7 +294,7 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 
 ### `migrate`
 
-- _What it does:_ Spins up a fresh `postgres:15-alpine` container, runs `node scripts/verify/supabase-migrations.mjs` to bootstrap the minimal Supabase `auth`/`storage` compatibility schemas and apply timestamped forward migrations from `supabase/migrations/`, then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Verifies that `public.profiles` has exactly 1 row after seeding.
+- _What it does:_ Spins up a fresh Postgres 17 service container (see § Service container images), runs `node scripts/verify/supabase-migrations.mjs` to bootstrap the minimal Supabase `auth`/`storage` compatibility schemas and apply timestamped forward migrations from `supabase/migrations/`, then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Verifies that `public.profiles` has exactly 1 row after seeding.
 - The SQL verifier requires the reviewed field-policy census after all forward migrations and before reporting success. Policy-flag drift, uncensused columns and census execution failures block the job. Unsupported nonlocal targets are refused before any SQL runs; the old nonlocal override no longer applies. Migration and unit-test jobs fetch full Git history so the census can verify its recorded source revision.
 - _Why it matters:_ Catches migration ordering conflicts across both SQL + Payload migration systems, plus FK/seed incompatibilities, before they reach a hosted Supabase project.
 - _Debug locally:_ Run `bun run db:migrate:local` (applies migrations without seed) or `bun run seed:demo:local` (migrate + seed via helper script).
@@ -304,9 +308,12 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 ### `test-e2e-smoke` (needs: `smoke`)
 
 - _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data. Playwright Chromium is installed before either dev server starts, so `bunx` does not mutate the module graph while Turbopack is compiling. The job then starts `apps/donor` on port 3005 with `E2E_AUTH_BYPASS=true`, waits until `/api/health` and `/api/auth/demo-account` both succeed, starts `apps/admin` on port 3030, waits for admin `/api/health`, and runs the bounded Playwright smoke suite via `bun run test:e2e:smoke` (demo auth preflight, usability smoke, donate, upload-crop under the donor-auth project, and Support Hub smoke). The job has a 25-minute cap, the Playwright smoke step has a 15-minute cap, and failures upload `playwright-smoke-report/` plus the dev-server logs.
-- _Branch behavior:_ Produces `e2e-smoke-gate`; `integration-gate` also summarizes
-  this result. See § Branch protection for which contexts GitHub currently
-  requires.
+- _Branch behavior:_ Produces `e2e-smoke-gate`, which also needs `migrate` and
+  `smoke`; `integration-gate` summarizes that gate. Both gates fail when any
+  need is skipped, failed, or cancelled, and log one `Root cause:` line for
+  the first non-success (`migrate`, then `smoke`, then `test-e2e-smoke` or
+  `e2e-smoke-gate`). See § Branch protection for which contexts GitHub
+  currently requires.
 - _Debug locally:_ Run `bun run test:e2e:smoke` after `bun run test:e2e:auth-preflight` with donor on port 3005.
 - _Coverage note:_ This bounded smoke gate is not the a11y, hydration, perf, or full auth signal. Run `bun run test:a11y`, `bun run test:perf`, or the broader `bun run test:e2e` when a change affects those contracts.
 - _Regression guards (unit):_ `tests/unit/scripts/ci-integration-workflow.contract.test.ts` locks `integration-gate` / `e2e-smoke-gate` / `e2e-gate` wiring; `tests/unit/e2e/e2e-flake-guards.test.ts` forbids `waitForTimeout` in `tests/e2e/**/*.spec.ts`; `tests/unit/scripts/ci-preflight.contract.test.ts` locks `ci:preflight` stage order; `tests/unit/scripts/local-gates.contract.test.ts` locks `bun run check`; `tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` keeps donor/missionary unit smoke coverage and API email mock posture.
@@ -345,6 +352,20 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
   admin, missionary, CMS, and boneyard scripts keep their own configs and should
   be run separately when those surfaces are in scope.
 - _Debug locally:_ Run `bun run test:e2e:auth-preflight` first, then `bun run test:e2e:production-gate` for the required production gate, `bun run test:e2e` for the broader local suite, `bun run test:e2e:cms` for portable CMS/admin coverage, `bun run test:e2e:cms:local` for the local seed-dependent CMS proof, `bun run test:e2e:strict` (core strict env), `bun run test:e2e:cms:strict` (CMS strict env), `bun run test:perf` (perf-only suites), or `bun run test:e2e --project=chromium` (Chromium only). Use `bun run test:e2e:ui` for interactive debugging.
+
+### Service container images
+
+- `migrate`, `smoke`, `test-e2e-smoke`, and `test-e2e` each run one `postgres`
+  service from
+  `public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`.
+  ECR Public mirrors the Docker official image, which avoids anonymous Docker
+  Hub pull limits on the shared runner egress IP.
+- The pull is anonymous: no secret or `credentials:` key is required. The
+  fork-reachable `migrate` and `smoke` jobs must not reference secrets anyway.
+- The digest pins the reviewed bytes even when the `17.11-alpine` tag moves.
+- _Bump:_ change the tag and digest in all four `image:` lines together, and
+  first confirm the digest exists on the mirror (for example,
+  `docker manifest inspect public.ecr.aws/docker/library/postgres@sha256:<digest>`).
 
 ---
 
