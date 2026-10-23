@@ -1010,6 +1010,24 @@ function refScenario(eventName: string, branch: string): EventScenario {
   };
 }
 
+/** A merge-queue entry for develop: same-repo, no pull_request payload. */
+function mergeGroupScenario(pr: number, sha: string): EventScenario {
+  const branch = `gh-readonly-queue/develop/pr-${pr}-${sha}`;
+  return {
+    label: `merge_group develop pr-${pr}`,
+    fork: false,
+    github: {
+      event_name: "merge_group",
+      repository: REPOSITORY,
+      ref: `refs/heads/${branch}`,
+      ref_name: branch,
+      base_ref: "",
+      head_ref: "",
+      event: {},
+    },
+  };
+}
+
 /**
  * Every event shape the CI workflows trigger on, fork and same-repo. The
  * pull_request scenarios run under value set A first (the original nine, in
@@ -1025,6 +1043,7 @@ export const EVENT_SCENARIOS: readonly EventScenario[] = [
   refScenario("workflow_dispatch", "develop"),
   refScenario("workflow_dispatch", "production"),
   refScenario("workflow_dispatch", "feature"),
+  mergeGroupScenario(1, "1".repeat(40)),
   ...PULL_REQUEST_VALUE_SETS.slice(1).flatMap((values) => [
     pullRequestScenario(true, "develop", values),
     pullRequestScenario(true, "production", values),
