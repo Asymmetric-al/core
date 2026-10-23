@@ -378,7 +378,7 @@ Verified through the GitHub branch-protection API on 2026-09-23:
   than a PR-review requirement.
 - `integration-gate` remains a workflow summary job but is not currently a
   required branch-protection context.
-- `acceptance-tests` is not a required status check. It is enforced through
+- `acceptance-tests` is a required status check. It is enforced through
   `ci-gate`, which needs it and fails unless it succeeded.
 - `release-source-gate` is defined in `release-source.yml` for production PRs.
   It runs from the trusted default branch with a read-only token and verifies
