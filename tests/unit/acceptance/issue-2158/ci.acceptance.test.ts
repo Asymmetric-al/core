@@ -51,6 +51,7 @@ const EXPECTED_RUNS_ON: Record<
   typecheck: "ubuntu-latest",
   build: "self-hosted",
   "test-unit": "self-hosted",
+  "acceptance-tests": "ubuntu-latest",
   "ci-gate": "ubuntu-latest",
 };
 
@@ -179,6 +180,7 @@ describe("issue #2158 PR A — ci.yml acceptance", () => {
       "typecheck",
       "build",
       "test-unit",
+      "acceptance-tests",
     ] as const;
 
     const allSuccess = (): Record<string, string> =>

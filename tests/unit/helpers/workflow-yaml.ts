@@ -1488,6 +1488,7 @@ const CI_GATE_SUCCESS_RESULTS = {
   typecheck: "success",
   unit: "success",
   build: "success",
+  acceptance: "success",
 } as const;
 
 const CI_GATE_FORK_SKIP_RESULTS = {
