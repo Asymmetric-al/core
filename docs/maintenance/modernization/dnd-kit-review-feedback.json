@@ -1,0 +1,600 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-22T21:09:04.328971+00:00",
+  "status": "local-source-reviewed-integrated-install-and-strict-qualified-final-publication-open",
+  "pullRequest": {
+    "number": 2195,
+    "url": "https://github.com/Asymmetric-al/core/pull/2195",
+    "qualifiedParentCommit": "de87149ad569e58def4d5de1708c4218e77e8767",
+    "candidateCommit": "7b79de8e62d9abbfe047ddcd48dc449ee95df85f",
+    "candidateState": "Source fixes committed through normal hooks, then develop normally merged at this source checkpoint. Successor docs and root inventory/quality follow-ups still require final normal commit/publication; no final published head assigned.",
+    "boundary": "Parent-head pre-push/CI/deployments are historical. Dated 303-browser and 63-unit proofs retain exact source/old-lock bindings. Current merged-lock install/strict scans are separately bound; final successor pre-push, remote CI/reviews/previews and merge remain OPEN.",
+    "sourceFixCommit": "906d5f4b1068187b36543fb559df5aff4dc6b7d6",
+    "integratedDevelopCommit": "cc568c92c1cd283d82a4ef9c6d4be7dabe4efee4",
+    "finalPublishedHead": null
+  },
+  "supersedesForActiveCandidateRouting": {
+    "path": "dnd-kit-qualification.json",
+    "sha256": "27b47b8533522f2a8e729ed6acd4d9a9a442f56a85775198bcb95f4d80484c5b",
+    "preservation": "Original qualification remains byte-exact historical evidence: all 19 dated execution receipts, hook import-normalization bridge and original board hash 974582a9 retain their tested bytes. No earlier receipt is relabeled as proof for later source or lock.",
+    "historicalBoardSha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba",
+    "historicalPassedReceipts": 19
+  },
+  "reviewFeedback": [
+    {
+      "commentId": 4352678327,
+      "reviewThreadId": "PRRT_kwDOQ4BXFs6vWQLY",
+      "url": "https://github.com/Asymmetric-al/core/pull/2195#discussion_r4352678327",
+      "disposition": "Local shared-component concern resolved by successor global notification; remote reconciliation OPEN.",
+      "change": "Intermediate shared destructive Alert is historical. Final board owns one Sonner error through Core shared Toaster, preserving complete failure copy and design-system ownership.",
+      "evidence": "currentLocalEvidence.notificationBrowser; independentReviews.notification"
+    },
+    {
+      "commentId": 4352700340,
+      "reviewThreadId": "PRRT_kwDOQ4BXFs6vWTak",
+      "url": "https://github.com/Asymmetric-al/core/pull/2195#discussion_r4352700340",
+      "disposition": "Eight human-readable strings normalized locally; remote reconciliation OPEN.",
+      "change": "Four notes/four compatibility descriptions received 12 literal spacing/spelling fixes; machine-readable declarations/versions/identities/dispositions and compatibility requirements preserved. Root separately reconciles new develop inventory declarations."
+    },
+    {
+      "reviewId": 5619861529,
+      "url": "https://github.com/Asymmetric-al/core/pull/2195#pullrequestreview-5619861529",
+      "disposition": "Hook deduplication retained with persistent board-owned notification; remote reconciliation OPEN.",
+      "change": "Move persistence retains HTTP fields, optimistic state, rollback, logging and false result; only redundant move-failure toast removed. Other mutation toasts remain. Historical 17/4 hook proof retained; final 63/6 units and 303/5 browser proof separately bound."
+    },
+    {
+      "reviewId": 5619977769,
+      "url": "https://github.com/Asymmetric-al/core/pull/2195#pullrequestreview-5619977769",
+      "disposition": "Filtered mapping implemented/reviewed; settled false/throw after provider destruction proved; never-settling Promise contract retained. Remote reconciliation OPEN.",
+      "change": "Actual page/controller converts displayed positions to full-column positions before unchanged hook callback. Shared Toaster survives unmount. No client timeout, abort/replay or unproved server-cancellation protocol added.",
+      "evidence": "filteredOrdering; pendingPersistenceContract; currentLocalEvidence; independentReviews"
+    }
+  ],
+  "historicalPublishedParentEvidence": {
+    "head": "de87149ad569e58def4d5de1708c4218e77e8767",
+    "normalInitialPush": {
+      "path": "/tmp/core-modernization-dnd-current-develop-initial-push.json",
+      "sha256": "b21a0183bf37defc85fcb1856925e79e9ca668ff3f6a65882d9d634b852f9757",
+      "logSha256": "1efb12565d6c4783ffb0906b8fb778517dfb18f6ce604c81cce48155b36146a0",
+      "exitCode": 0,
+      "unitFilesPassed": 923,
+      "unitCasesPassed": 7749,
+      "expectedFail": 1,
+      "skippedTests": 4,
+      "skippedFiles": 2,
+      "typechecks": 15,
+      "appBuilds": 3,
+      "boundary": "Normal pre-push passed for published parent de87149, before shared-Alert/inventory review fixes; does not qualify the new worktree."
+    },
+    "all20RemoteAndReviewCoverage": {
+      "path": "/tmp/core-modernization-dnd-pr2195-all20-review-coverage.json",
+      "sha256": "bf35c11e50c7130125859f02478cd66071625cb75e339384f982becf1e71ec79",
+      "changedPaths": 20,
+      "boundary": "Exact original20 remote files at de87149 only. Three follow-up paths have separate review; the new guide/appendix still need final current-byte coverage."
+    },
+    "requiredCI": {
+      "status": "PASS historical parent: four required checks SUCCESS in dated native GitHub readback relayed by root.",
+      "head": "de87149ad569e58def4d5de1708c4218e77e8767",
+      "requiredCheckCount": 4,
+      "checks": [
+        {
+          "name": "e2e-smoke-gate",
+          "conclusion": "SUCCESS",
+          "runId": 39840340853,
+          "jobId": 120044480895,
+          "url": "https://github.com/Asymmetric-al/core/actions/runs/39840340853/job/120044480895"
+        },
+        {
+          "name": "ci-gate",
+          "conclusion": "SUCCESS",
+          "runId": 39840341068,
+          "jobId": 120043367097,
+          "url": "https://github.com/Asymmetric-al/core/actions/runs/39840341068/job/120043367097"
+        },
+        {
+          "name": "smoke",
+          "conclusion": "SUCCESS",
+          "runId": 39840340853,
+          "jobId": 120040529297,
+          "url": "https://github.com/Asymmetric-al/core/actions/runs/39840340853/job/120040529297"
+        },
+        {
+          "name": "migrate",
+          "conclusion": "SUCCESS",
+          "runId": 39840340853,
+          "jobId": 120039381623,
+          "url": "https://github.com/Asymmetric-al/core/actions/runs/39840340853/job/120039381623"
+        }
+      ],
+      "readbackRecordedAt": "2026-10-22T21:09:04.328971+00:00",
+      "providerEvidence": {
+        "path": "/tmp/core-modernization-dnd-historical-parent-provider-relay.json",
+        "sha256": "b98d95251d5ea98f6799223867d65ed7a08e97a402d9ba1175bd84c31d349629"
+      },
+      "currentCandidateQualified": false,
+      "boundary": "Remote parent head remained unchanged. These checks do not qualify unpushed successor source/docs/current merge."
+    },
+    "hostedQA": {
+      "firstRun": {
+        "id": 39840583067,
+        "status": "gate-skipped; not qualification"
+      },
+      "labelTriggeredRun": {
+        "id": 39840790842,
+        "head": "de87149ad569e58def4d5de1708c4218e77e8767",
+        "status": "SUCCESS historical parent QA; latest filtered readback confirms job conclusion.",
+        "updatedAt": "2026-10-22T19:40:07Z",
+        "jobName": "label-gated-preview-smoke",
+        "jobConclusion": "SUCCESS",
+        "url": "https://github.com/Asymmetric-al/core/actions/runs/39840790842",
+        "readbackRecordedAt": "2026-10-22T21:09:04.328971+00:00",
+        "providerEvidence": {
+          "path": "/tmp/core-modernization-dnd-historical-parent-provider-relay.json",
+          "sha256": "b98d95251d5ea98f6799223867d65ed7a08e97a402d9ba1175bd84c31d349629"
+        },
+        "scope": "Root previously verified all three exact-parent preview and headless-smoke steps. Latest native filtered readback confirms job conclusion only; no later source/current successor qualification."
+      }
+    }
+  },
+  "remaining": [
+    {
+      "kind": "fresh-current-base-install-doctor-and-shadscan",
+      "state": "PASSED-LOCALLY",
+      "requirement": "Current install/strict receipts bound; changed source/lock/policy requires requalification."
+    },
+    {
+      "kind": "current-byte-successor-documentation-review",
+      "state": "OPEN",
+      "requirement": "Independent current-byte guide/record review and structural/format checks, then complete remote file coverage."
+    },
+    {
+      "kind": "final-successor-normal-commit-and-prepush",
+      "state": "OPEN",
+      "requirement": "Source commit 906d5f4/integration 7b79de8 completed; parent de87149 completed its own pre-push. Final docs/inventory/quality commit and new combined-head full pre-push still required; old gates do not transfer."
+    },
+    {
+      "kind": "new-head-required-ci-and-review-threads",
+      "state": "OPEN",
+      "requirement": "Current-head required CI, complete review, valid-feedback replies/resolution/readback and final provider state."
+    },
+    {
+      "kind": "three-exact-head-hosted-previews",
+      "state": "OPEN",
+      "requirement": "All three current-head READY fixed-marker previews and hosted QA; gate-skipped/older-head results do not qualify."
+    },
+    {
+      "kind": "merge-and-postmerge-readback",
+      "state": "OPEN",
+      "requirement": "Exact approved-head merge, ancestry/tree readback and post-merge Main/Integration workflows."
+    },
+    {
+      "kind": "owner-compatibility-security-and-final-release",
+      "state": "OPEN",
+      "requirement": "Root inventory/new pg identities, coherent current Payload cohort, whole-Core advisories including Braces, final SBOM/manual reconciliation and combined release package. No unreachability exception; production execution excluded."
+    }
+  ],
+  "historicalPreHookStrictEvidence": [
+    {
+      "path": "/tmp/core-modernization-dnd-shared-alert-strict-doctor.json",
+      "sha256": "af3f2191a4b08240664054dd35b7c9392bfece70608f119eb6fb2e352d14aace",
+      "logSha256": "adb2f5486b3d5f67aa51864956b401611ef717f750114cb8b4791c4402630d51",
+      "kind": "strict-doctor",
+      "exitCode": 0,
+      "sourceState": "Shared-Alert board before later hook-toast deletion and Doctor source-file-hash requalification; not final current hook/ledger qualification."
+    },
+    {
+      "path": "/tmp/core-modernization-dnd-shared-alert-strict-shadscan.json",
+      "sha256": "ac3706ebef449db53fd1c3dfeaa25731d9fde67d49cd0037699f3e0779e19ae1",
+      "logSha256": "8d93e53fe5dcd5653243aa27c1f7db8d099e5b5c2fa910f94b89ffe79900d1ea",
+      "kind": "strict-shadscan",
+      "exitCode": 0,
+      "sourceState": "Shared-Alert board before later hook-toast deletion and Doctor source-file-hash requalification; not final current hook/ledger qualification."
+    }
+  ],
+  "historicalIntermediateSourceReadback": {
+    "scope": "Dated byte inventory of the earlier shared-Alert/deduplicated-hook iteration. This is not a final candidate binding; the accepted unmount finding requires later source and new qualification.",
+    "paths": {
+      "apps/admin/package.json": "c3574c0ddf18d6bd51ec06aab78bc0b9141ebe9028d67eb8d94de4d072aa2700",
+      "bun.lock": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "packages/missionary/components/task-kanban-board.tsx": "78f18f50b49b42bc1d006af9a9b73fe7d6f3b0def57a9b44d615f093d7f004fd",
+      "packages/missionary/package.json": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439",
+      "tests/fixtures/base-ui-compliance/server.mjs": "66006a1d5f431f5649046def07b5feb16b4cfe841bae6992d0ed4096295daa2c",
+      "tests/fixtures/base-ui-compliance/tsconfig.json": "1840b91a9aeeca91789e808303e9411856bbacd32e466458c4a49f771ea9ea50",
+      "tests/fixtures/base-ui-compliance/kanban-main.tsx": "a0eafed1ed269c614ecd9fd3421c97bbdeb8f3c99604fd37240de6432a121e2f",
+      "tests/fixtures/base-ui-compliance/kanban.html": "cbc5cd6cc4959e2c368693eb96f6d82a1801d615dc3020dc17af1920dcb4d9f1",
+      "tests/fixtures/base-ui-compliance/specs/kanban.spec.ts": "05d3c1e3e8b1cc0e6e4006a37810261fadcfdc23f1f1dc703c1b54572d964f7e",
+      "tests/unit/packages/lib/use-tasks-move-contract.test.tsx": "443e2d7d24d94357911769536941c0db2594dcaaec50f09d5b863b4c13068178",
+      "packages/lib/hooks/use-tasks.ts": "e172f151820d035d6efe97aa52145f82519475decd0d29e1fa3248cb705a6dca"
+    },
+    "reviewFeedbackDeltaHashes": {
+      "packages/missionary/components/task-kanban-board.tsx": "78f18f50b49b42bc1d006af9a9b73fe7d6f3b0def57a9b44d615f093d7f004fd",
+      "docs/maintenance/modernization/dependencies.json": "e3a08533d437908199ff03576afd551b66680cfa27374e0787a2b6d1addeae63",
+      "tooling/shadscan/findings.json": "6dd831ce7bfbffe386ca5ffa645eb97d071d3af52c4cbc5ed19972ca82b7cc5a",
+      "packages/lib/hooks/use-tasks.ts": "e172f151820d035d6efe97aa52145f82519475decd0d29e1fa3248cb705a6dca",
+      "tests/unit/packages/lib/use-tasks-move-contract.test.tsx": "443e2d7d24d94357911769536941c0db2594dcaaec50f09d5b863b4c13068178"
+    },
+    "unchangedMigrationPathsBridged": 8
+  },
+  "historicalIntermediateSourceAndQualityProvenance": {
+    "independentReview": {
+      "path": "/tmp/core-modernization-dnd-shared-alert-independent-review-20261022T194619Z-39bc0aef.json",
+      "sha256": "39bc0aef194acde932569e0dd72fd6f6a222e3e8315c69dc527281bb4029e37d"
+    },
+    "shadscanProofUpdate": {
+      "path": "/tmp/core-modernization-dnd-shared-alert-proof-hash-update.json",
+      "sha256": "ad974bafc40b246394972374e28e505387c6a45056d3281328a3496da5fb73bd"
+    },
+    "shadscan": {
+      "entries": 118,
+      "changedProofSlots": 1,
+      "changedPointer": "/entries/92/proof/0/sha256",
+      "beforeBoardSha256": "974582a957a2773c7cf54972870570913c0f6c53366e2210310ba64891f330ba",
+      "afterBoardSha256": "78f18f50b49b42bc1d006af9a9b73fe7d6f3b0def57a9b44d615f093d7f004fd",
+      "currentLedgerSha256": "6dd831ce7bfbffe386ca5ffa645eb97d071d3af52c4cbc5ed19972ca82b7cc5a",
+      "preserved": "All identities/classifications/rationales/recheck conditions/fingerprints/thresholds/score floors and all other structural ledger values; no new exception or waiver.",
+      "strictExecutionState": "PENDING separate fresh root execution receipt."
+    },
+    "doctor": {
+      "ledgerSha256": "462a1833a6126e9edc04865501cc15bc0a0c2d2a97a01bd0ff58dcb91f51878d",
+      "expectedExistingExceptionCount": 293,
+      "strictExecutionState": "PENDING requalification; first post-hook attempt failed on existing source-context evidence.",
+      "unsuccessfulPostHookAttempt": {
+        "path": "/tmp/core-modernization-dnd-review-feedback-final-doctor.json",
+        "sha256": "ec473434d9c467fe79999b93cf8a9f7d74eebf81026d1e6aec633eb4b990ff47",
+        "logSha256": "bfc7cf8fa595f24bb6b13e1e087a06b6d7e57a80a803ba272d48a5fac0ec0a65",
+        "exitCode": 1,
+        "reason": "Existing exception source context changed at packages/lib/hooks/use-tasks.ts:182; no new exception or suppression is authorized."
+      },
+      "boundary": "The original fix receipt zero-reference count was a literal full-path search, not complete ledger-reference qualification. The separate correction identifies the existing split target/filePath reference; the failed first post-hook guard remains unsuccessful history.",
+      "primarySourceHashRequalification": {
+        "path": "/tmp/core-modernization-dnd-single-error-doctor-source-hash-requalification.json",
+        "sha256": "370e714e7c08a5b663e1543c811fd1241e7b5a6429309f390624fb3ec2ec6b42",
+        "changedLeaf": "/exceptions/153/sourceFileHash",
+        "preserved": "Existing context hash, line182, fingerprint/rule/reason/evidence/recheck and all other structural values. No exception added.",
+        "independentReviewAndFreshGuard": "PENDING"
+      }
+    },
+    "singleAnnouncementFix": {
+      "path": "/tmp/core-modernization-dnd-single-error-announcement-fix.json",
+      "sha256": "c13b2149ef092275ed39fdaae53e58616c7f5c1e0629783e157ba1085936c6f6"
+    },
+    "singleAnnouncementIndependentReview": {
+      "status": "PENDING",
+      "scope": "Current use-tasks.ts and use-tasks-move-contract.test.tsx bytes; prior board-only review does not cover the later hook delta."
+    }
+  },
+  "historicalIntermediateLocalEvidence": [
+    {
+      "path": "/tmp/core-modernization-dnd-shared-alert-full-browser.json",
+      "sha256": "eae918fd32cb33014e05976fd6abcac7afcbf9d9dc45fe6a38778995f1d632e5",
+      "logSha256": "9a0b11ae19dbd0171fb2d50101e39ee2c9d0e402fbb10d11d0c08b02599f69ce",
+      "kind": "shared-alert-full-browser",
+      "exitCode": 0,
+      "passed": 299,
+      "existingSkipped": 5,
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "startedAt": "2026-10-22T19:40:37.740439+00:00",
+      "endedAt": "2026-10-22T19:45:46.330333+00:00",
+      "sourceBinding": {
+        "packages/missionary/components/task-kanban-board.tsx": "78f18f50b49b42bc1d006af9a9b73fe7d6f3b0def57a9b44d615f093d7f004fd"
+      },
+      "meaning": "Actual board/shared Alert fixture and all existing browser cases passed. The fixture does not import the real HTTP mutation hook; later hook behavior is qualified separately by its new unit proof. No physical-device/performance or hosted-preview claim.",
+      "finalCandidateBoundary": "Historical iteration only; does not qualify the subsequent persistent-notification implementation."
+    },
+    {
+      "path": "/tmp/core-modernization-dnd-single-error-announcement-green.json",
+      "sha256": "5525e4a158cd16bdee619dee4e108661e3be7b696cd2bcb9fb0124c50866c9cc",
+      "logSha256": "80ce62dec7fb19f00a54e66e6932972339a613d4e474f939236b192e1825438c",
+      "kind": "single-announcement-actual-hook-unit",
+      "exitCode": 0,
+      "files": 4,
+      "passed": 17,
+      "lockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "sourceBinding": {
+        "packages/lib/hooks/use-tasks.ts": "e172f151820d035d6efe97aa52145f82519475decd0d29e1fa3248cb705a6dca",
+        "tests/unit/packages/lib/use-tasks-move-contract.test.tsx": "443e2d7d24d94357911769536941c0db2594dcaaec50f09d5b863b4c13068178"
+      },
+      "red": {
+        "path": "/tmp/core-modernization-dnd-single-error-announcement-red.json",
+        "sha256": "acfd94420ce962f838f0b054019fddb62b288d4b033e975ed62bf5ac71339949",
+        "logSha256": "d61b066b238b87750c5361405bbc336867dabb969a721f14c50d26363f587ab5",
+        "failedCases": 2,
+        "passedCases": 4
+      },
+      "meaning": "Actual HTTP hook denial/network cases fail RED when the duplicate toast exists and pass after its removal; request/order/rollback/logging assertions remain. Not a full-suite or hosted-provider qualification.",
+      "finalCandidateBoundary": "Historical iteration only; does not qualify the subsequent persistent-notification implementation."
+    }
+  ],
+  "historicalInitialReviewFeedback": [
+    {
+      "commentId": 4352678327,
+      "reviewThreadId": "PRRT_kwDOQ4BXFs6vWQLY",
+      "url": "https://github.com/Asymmetric-al/core/pull/2195#discussion_r4352678327",
+      "disposition": "Earlier shared-Alert iteration implemented locally; later accepted unmount finding means this is not final candidate acceptance.",
+      "change": "Use the shared Alert destructive variant with AlertCircle and AlertDescription for move failure, preserving the complete existing Task move failed. Please try again. copy once. AlertTitle is optional and omitted to avoid repeating the same sentence.",
+      "preservation": "Exact base-maia/Base UI/semantic tokens and shared component ownership; drag provider, sensors, grouping, callback, async rollback, focus and motion behavior unchanged."
+    },
+    {
+      "commentId": 4352700340,
+      "reviewThreadId": "PRRT_kwDOQ4BXFs6vWTak",
+      "url": "https://github.com/Asymmetric-al/core/pull/2195#discussion_r4352700340",
+      "disposition": "Implemented locally; remote reply/resolution/readback remains required.",
+      "change": "Normalize eight human-readable inventory leaf strings: four notes and four compatibility-state descriptions, with12 literal spacing/spelling substitutions.",
+      "preservation": "All machine-readable versions, declarations, identities, dispositions, counts and compatibility/recheck requirements unchanged."
+    },
+    {
+      "reviewId": 5619861529,
+      "url": "https://github.com/Asymmetric-al/core/pull/2195#pullrequestreview-5619861529",
+      "disposition": "Earlier hook-toast deletion retained as provenance; its standalone single-announcement solution is incomplete under the later accepted unmount finding.",
+      "change": "Keep the board Alert as the single move-failure announcement by removing only the existing moveTask failure toast from useTasks. Other mutation toasts remain unchanged.",
+      "preservation": "HTTP request, optimistic state, exact rollback, error logging and false return remain unchanged. Denied/network failure regressions assert no duplicate toast while retaining persistence/rollback assertions."
+    }
+  ],
+  "historicalAcceptedUnmountFinding": {
+    "status": "OPEN-awaiting-new-source-and-real-qualification",
+    "finding": "The board-owned live Alert unmounts if a user switches to List view during a pending save. Once the hook toast is removed, a later failed save can become silent. The earlier board fixture and hook-unit proofs did not cover that combined lifecycle.",
+    "acceptedOwnerDirection": "Implement one board-owned global Sonner notification through the actual shared Toaster so the failure survives board unmount; retain persist-only hook behavior and unrelated mutation toasts. This is an implementation direction, not a completed-source or qualification claim.",
+    "requiredProof": "Bind the actual later board/fixture/test/ledger bytes and independent review; prove pending save -> view toggle/unmount -> declined save through the real shared Toaster, then fresh full matrix, strict guards and normal current-head publication/release gates.",
+    "finalCandidateSourceHashes": null,
+    "priorIterationBoundary": "Shared-Alert review39bc, hook deduplication fixc13, Doctor correction370e and their dated execution counts remain historical; none qualifies the pending final candidate.",
+    "independentFinding": {
+      "path": "/tmp/core-modernization-dnd-single-announcement-independent-review-20261022T195558Z-c12d7e07.json",
+      "sha256": "c12d7e073fe2908e72a426625b34f610642c54c606288610512b81eb1b6d05eb"
+    }
+  },
+  "resolvedLocalUnmountFinding": {
+    "status": "RESOLVED-LOCALLY-reviewed-and-browser-qualified-release-gates-open",
+    "finding": "Intermediate local Alert disappeared when List unmounted board before failed save settled.",
+    "implementation": "Board owns stable public Sonner-generated id through actual shared Toaster at app layout. False/throw notify after unmount; same-board retry dismisses only its defined owned id. No global or unmount dismissal; unrelated toasts remain.",
+    "copy": "Task move failed. Please try again.",
+    "sourceSha256": "f69b510c8fea99015913705d67dcf3c2edb2d280920d0090e10b40b483c654be",
+    "evidence": "currentLocalEvidence.notificationBrowser; independentReviews.notification"
+  },
+  "filteredOrdering": {
+    "status": "IMPLEMENTED-LOCALLY-and-independently-reviewed",
+    "owner": "Pure packages/lib/hooks/task-move-index.ts helper, explicit @asym/lib/hooks/task-move-index export, apps/missionary/app/tasks/page-client.tsx controller adapter.",
+    "publicContract": "onMoveTask(taskId,status,index) and useTasks.moveTask(taskId,status,index) signatures and PATCH status/sort_key fields unchanged; adapter translates visible index to full-column index.",
+    "anchorSemantics": [
+      "Exclude moved task; sort full destination by committed sort_key.",
+      "Insert immediately before next shown destination sibling.",
+      "Without next shown sibling, insert immediately after last shown destination sibling.",
+      "Without any shown destination sibling, append to full destination."
+    ],
+    "preservation": "Hidden siblings retain complete records/relative order; arrays unchanged. Invalid/stale displayed indices throw before persistence. Task/auth/tenant/session ownership and UI layout/focus/motion unchanged.",
+    "workedExample": "A(call,100), hidden B(email,200), C(call,300), displayed[A,C], A after C: former visible index 1 produced 250 before C; mapped full index 2 produces 400 after C.",
+    "meaningfulRed": {
+      "path": "/tmp/core-modernization-dnd-filter-hidden-sibling-red.json",
+      "sha256": "04d2a18520a97e8989b834a3513e7753e93a67467312475a9c0c08c40afd8263",
+      "startedAt": "2026-10-22T20:18:18.565965+00:00",
+      "endedAt": "2026-10-22T20:18:20.241413+00:00",
+      "exitCode": 1,
+      "logSha256": "d8b3c8efae55249f9969f0a18ecf4f22b65141b8c7e98d8bed99652d7257fb8c"
+    },
+    "actualPageProof": "Real Search/Refine type/priority controls with board stub invoke actual controller; visible[A,C] yields full index 2 and unchanged true/false.",
+    "actualHookProof": "Nine anchor/hidden-first/hidden-last/cross-column/no-shown/empty/unfiltered scenarios across type, priority and title search verify exact HTTP ranks/unchanged hidden records.",
+    "unitEvidence": "currentLocalEvidence.mapperAndControllerUnit"
+  },
+  "pendingPersistenceContract": {
+    "status": "INTENTIONAL-existing-Promise-settlement-admission-boundary",
+    "decision": {
+      "path": "/tmp/core-modernization-dnd-pending-save-scope-decision.json",
+      "sha256": "bfc0eb98cb53b04257e48745b3d49a3366ba12ef599810f54021125e2e89c5d3"
+    },
+    "behavior": "Drag admission held until supplied persistence Promise settles. Settled false/throw resumes cleanup/reports once even after provider destruction. Never-settling Promise remains pending.",
+    "sourceRationale": "fetchResult forwards RequestInit.signal, but server update/read has no cancellation, operation fence or terminal acknowledgement. Abort+GET can race late commit; old-state read does not establish terminal negative outcome.",
+    "excludedClaims": [
+      "No bounded network timeout",
+      "No server cancellation guarantee",
+      "No Promise.race releasing admission while write remains live",
+      "No automatic replay/new operation protocol"
+    ],
+    "evidence": "Pending-admission case and delayed false/throw after real destruction pass in all four projects; browser fixture and actual HTTP hook proofs remain separate."
+  },
+  "sourceAndIntegration": {
+    "sourceFixCommit": "906d5f4b1068187b36543fb559df5aff4dc6b7d6",
+    "sourceFixNormalCommit": {
+      "path": "/tmp/core-modernization-dnd-review-fixes-normal-source-commit.json",
+      "sha256": "89379fc0c13e00b8757b0dabe34422043602533e1924105f02ff89590b09778f",
+      "startedAt": "2026-10-22T20:47:27.368252+00:00",
+      "exitCode": 0,
+      "logSha256": "920075cf058853d3da7906bc640c34280a4069f669a5815b845e6733f272f363"
+    },
+    "integratedSourceHead": "7b79de8e62d9abbfe047ddcd48dc449ee95df85f",
+    "developBase": "cc568c92c1cd283d82a4ef9c6d4be7dabe4efee4",
+    "method": "Normal merge; no integration during dated notification browser proof.",
+    "currentLockSha256": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247",
+    "incomingChanges": "Develop PR2169 adds root pg/@types/pg 8.20.0 and document-cutover work. Lock adds two root declarations without new package records; dated source bindings retained, current install/strict results separately bound.",
+    "inventoryOwner": "Root recorded two new pg/@types/pg identities as OPEN inventory work and owns the separate 8.20.0-to-8.23.1 upgrade. Dnd does not claim these identities upgraded or closed.",
+    "finalCommitAndPublication": "OPEN; no future final commit or deployed head invented."
+  },
+  "currentSourceReadback": {
+    "recordedAt": "2026-10-22T21:05:03.847916+00:00",
+    "integratedSourceHead": "7b79de8e62d9abbfe047ddcd48dc449ee95df85f",
+    "scope": "Current product plus merged-lock/quality readback; does not retarget historical execution.",
+    "paths": {
+      "apps/missionary/app/tasks/page-client.tsx": "1d9a7ab13c45fa8786ae3378eb8fe099e0abe483c9b88a1d85255ebf26783ebd",
+      "packages/lib/hooks/task-move-index.ts": "b4091b4745438ea6c291abfede78d2fee26279631878da976422c9bbf59b380a",
+      "packages/lib/package.json": "858035b8e9a9ce2833ec0d795ab7b96895878245414169a9849df1f48c1ed89b",
+      "tests/unit/packages/lib/use-tasks-move-contract.test.tsx": "241b6da64c597c99a6db7cabfaddd7f3e9f684fd53531d8220cc6f53ca4953d0",
+      "tests/unit/apps/missionary/app/tasks/task-board-filtered-move.test.tsx": "132b6ebbd90fd2a2447794b2e8d38d698e08118c5305661b68c1edc4fbefe248",
+      "tests/fixtures/base-ui-compliance/task-toolbar-hooks-stub.ts": "ffcf5aa7394699c263f84db6fcdbbcb06664f895323475104290c7e4c203351c",
+      "packages/missionary/components/task-kanban-board.tsx": "f69b510c8fea99015913705d67dcf3c2edb2d280920d0090e10b40b483c654be",
+      "tests/fixtures/base-ui-compliance/kanban-main.tsx": "039485a6d638522071dd7b3a29ea6795b3e95c93396c0c1e22d1e9d5becd982b",
+      "tests/fixtures/base-ui-compliance/specs/kanban.spec.ts": "a050e0b1a755d856bd43cf72774452a9c1e4e2d4fd6807a3bd9c2488253d026f",
+      "packages/lib/hooks/use-tasks.ts": "e172f151820d035d6efe97aa52145f82519475decd0d29e1fa3248cb705a6dca",
+      "package.json": "8fff17ae88f1b71b3ebb624e94e6919710a4acaf9f3a0d20bc6c7b97c166c85e",
+      "apps/admin/package.json": "c3574c0ddf18d6bd51ec06aab78bc0b9141ebe9028d67eb8d94de4d072aa2700",
+      "packages/missionary/package.json": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439",
+      "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247",
+      "docs/qa/react-doctor/exceptions.json": "4490078795e967a5aa651b2d60d9ce3e5332c2a0c95c014577997126c5ffbd69",
+      "tooling/shadscan/findings.json": "5921a27b8c91f0bb1365ce336cf9112ac1a639e3c38b2824f77b951ce17210ce"
+    }
+  },
+  "independentReviews": {
+    "notification": {
+      "path": "/tmp/core-modernization-dnd-lifecycle-independent-root-review.json",
+      "sha256": "81c1fe4474fe24758a409b4a2243fa0897163a6b988efa34f54800611124f88c"
+    },
+    "filteredOrderingAndIntegratedSource": {
+      "path": "/tmp/core-modernization-dnd-filter-independent-root-review.json",
+      "sha256": "d5521d4bdc2dcedfdfadec1a66fa2121d9b14ee4a688042e374bf344cad931ff"
+    },
+    "boundary": "No important introduced finding within bounded scope; current-base guards and final publication separate."
+  },
+  "currentLocalEvidence": {
+    "notificationBrowser": {
+      "path": "/tmp/core-modernization-dnd-lifecycle-full-browser-green.json",
+      "sha256": "121dc012f41d8df2a7fd4eb213553d149792c93576fdc8f02df9b7406b098b9c",
+      "startedAt": "2026-10-22T20:06:38.026383+00:00",
+      "endedAt": "2026-10-22T20:12:29.460322+00:00",
+      "exitCode": 0,
+      "logSha256": "5361568c420ac437c98f72133c267ec1e954f32fecd26047b25cd119a920d0b5",
+      "kind": "notification-lifecycle-full-browser",
+      "passed": 303,
+      "existingSkipped": 5,
+      "unexpected": 0,
+      "flaky": 0,
+      "projects": 4,
+      "sourceBinding": {
+        "packages/missionary/components/task-kanban-board.tsx": "f69b510c8fea99015913705d67dcf3c2edb2d280920d0090e10b40b483c654be",
+        "tests/fixtures/base-ui-compliance/kanban-main.tsx": "039485a6d638522071dd7b3a29ea6795b3e95c93396c0c1e22d1e9d5becd982b",
+        "tests/fixtures/base-ui-compliance/specs/kanban.spec.ts": "a050e0b1a755d856bd43cf72774452a9c1e4e2d4fd6807a3bd9c2488253d026f"
+      },
+      "testedLockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "scope": "Real Dnd provider/sensors, shared Toaster and fixture controls; delayed false/throw after List/unmount, one visible live-region message, later focus, no stuck overlay/errors, remount and successful fresh drag in four projects. Not provider writes, speech-engine testing, mapper-browser rerun or current-lock preflight."
+    },
+    "mapperAndControllerUnit": {
+      "path": "/tmp/core-modernization-dnd-filter-final-qualified-unit.json",
+      "sha256": "05c606e8c1fe747a21b42f1509b129df74cf16383ca854eb53f9c94dae884d9e",
+      "startedAt": "2026-10-22T20:37:21.386715+00:00",
+      "endedAt": "2026-10-22T20:37:28.647692+00:00",
+      "exitCode": 0,
+      "logSha256": "c7384371fe0fc3a092dbf69002feef951b497ae10e5fa93f5e3b30e7492a4446",
+      "kind": "actual-controller-and-http-hook-unit",
+      "passed": 63,
+      "files": 6,
+      "sourceBeforeEqualsAfter": true,
+      "testedLockSha256": "7888652be538c2a3969393cb0395c064edb246c938966471ed742465c8c0205d",
+      "scope": "Six actual TasksPage Search/Refine type/priority cases prove callback mapping and true/false results. Actual HTTP hook tests prove rank 400 vs baseline 250, nine anchor scenarios across three filters, hidden-record preservation, stale-index rejection, rollback/pending semantics, request order/lifecycle, controls and deletion/focus recovery."
+    },
+    "currentBaseFrozenInstall": {
+      "path": "/tmp/core-modernization-dnd-current-cc568-frozen-install.json",
+      "sha256": "f17cf5447dc41dda769e84baa958864b1c9578b8a4d55dba75ca6016a7e9973b",
+      "startedAt": "2026-10-22T20:56:36.949976+00:00",
+      "endedAt": "2026-10-22T20:56:37.108324+00:00",
+      "exitCode": 0,
+      "logSha256": "77a5c4515b6572f42d2d518a2c8f8ad9123e3f0a7d2e4dad7d3c1ccef6de5641",
+      "lockSha256": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247",
+      "lockBeforeEqualsAfter": true,
+      "opaqueInputLinkSameIdentity": true,
+      "scope": "Frozen install after normal develop merge; opaque content never read/copied and vendor database absent."
+    },
+    "currentBaseStrictDoctor": {
+      "path": "/tmp/core-modernization-dnd-current-cc568-strict-doctor.json",
+      "sha256": "cb29cb3e3f53df24cf5c8b82879caaacc6aa222767923ccbdbf220c8f88ab3ad",
+      "startedAt": "2026-10-22T20:57:02.121274+00:00",
+      "endedAt": "2026-10-22T20:57:35.342360+00:00",
+      "exitCode": 0,
+      "logSha256": "9293e645718c567753b1b52a03c5d51617bdaa987dffa60e8bdaab6ea0384e84",
+      "kind": "strict-doctor",
+      "sourceHead": "7b79de8e62d9abbfe047ddcd48dc449ee95df85f",
+      "lockSha256": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247",
+      "ledgerSha256": "4490078795e967a5aa651b2d60d9ce3e5332c2a0c95c014577997126c5ffbd69",
+      "targets": 8,
+      "actionable": 0,
+      "exactExceptions": 293,
+      "skippedChecks": 0
+    },
+    "currentBaseStrictShadscan": {
+      "path": "/tmp/core-modernization-dnd-current-cc568-strict-shadscan.json",
+      "sha256": "6180c288f88f8dffb6c6a529fce916312595e55e08140cd4814bc56db709314c",
+      "startedAt": "2026-10-22T20:57:02.117930+00:00",
+      "endedAt": "2026-10-22T20:57:27.527332+00:00",
+      "exitCode": 0,
+      "logSha256": "89ced84387bd72f783329e69baf935e1ba49f9f2ae4434ade7541ec8be3d7efc",
+      "kind": "strict-shadscan",
+      "sourceHead": "7b79de8e62d9abbfe047ddcd48dc449ee95df85f",
+      "lockSha256": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247",
+      "ledgerSha256": "5921a27b8c91f0bb1365ce336cf9112ac1a639e3c38b2824f77b951ce17210ce",
+      "classifications": 118,
+      "rawScore": 48,
+      "scoresAndFloors": {
+        "admin": {
+          "score": 43,
+          "floor": 43
+        },
+        "donor": {
+          "score": 61,
+          "floor": 59
+        },
+        "missionary": {
+          "score": 47,
+          "floor": 47
+        }
+      },
+      "policyRelaxation": false
+    },
+    "focusedChecks": {
+      "productHelperAndContractLint": {
+        "path": "/tmp/core-modernization-dnd-filter-final-product-lint.json",
+        "sha256": "dd3d590074cb54db637122666f7a39dc56b75181447f2c56ff89d60bb79a854b",
+        "exitCode": 0,
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "scopedSourceFormat": {
+        "path": "/tmp/core-modernization-dnd-filter-final-source-format.json",
+        "sha256": "55bdec069a0363ec8509198191d402791a89b43f71c37fcaeaba1f613ba2d19f",
+        "exitCode": 0,
+        "logSha256": "e1735aca96375a1901932753e18ebf8c948949632e14981beeb69b6abe6a4293"
+      },
+      "dedicatedPageTestAdHocLint": {
+        "path": "/tmp/core-modernization-dnd-filter-final-source-lint.json",
+        "sha256": "0d765f42847cf27a99c2af25033f48bcd7837079614dc17d84011be77b9f4c8e",
+        "exitCode": 1,
+        "logSha256": "468d9413cc21f5035206faaf78c7c161d44c175a6176a094f6c2643e7a75eb44"
+      },
+      "adHocLintBoundary": "Dedicated actual-page regression follows existing tests/unit/apps direct app-import convention. Explicit ad-hoc lint rejects that import; failure retained, no suppression/config/alias workaround. Product-only lint scope accepted by owning review; final declared repository gates remain OPEN."
+    }
+  },
+  "qualityRequalification": {
+    "policy": "No new exception/suppression, reclassification, waiver, floor or reduced scope.",
+    "historicalHookContext": "Existing Doctor 153 whole-file hash only after toast removal; loading/fetch context/reason/support/recheck unchanged. First stale-hash failure remains unsuccessful history.",
+    "mapperDoctor148": {
+      "path": "/tmp/core-modernization-dnd-filter-doctor-source-requalification.json",
+      "sha256": "5790e1326670c041adae5159dda4bfc11ca461472024b5a91c9b66a39eac7c9c"
+    },
+    "mapperDoctorScope": "Genuine standard scan supplied line 553/offset 15578/endLine 561/current id. Five existing location/id/source-hash leaves refreshed; fingerprint/context, complete capture block/handler, reason/support/recheck and other records unchanged.",
+    "shadscanNotificationAndMapper": "Three existing notification source proofs and nine lib-manifest support hashes refreshed only; incoming develop separately refreshes eight root-manifest support hashes.",
+    "mapperShadscanProofRefresh": {
+      "path": "/tmp/core-modernization-dnd-filter-proof-hash-update.json",
+      "sha256": "6cb0802e93fd99f2565f5d4e432c2287603fed088747ebbe62c0db3461a1edca"
+    },
+    "currentBaseLockSupportRefresh": {
+      "path": "/tmp/core-modernization-dnd-current-base-lock-support-refresh.json",
+      "sha256": "ede88534b52d3ca47946028b28b3940aeb37d6a44c2029e758fad6e939358a30"
+    },
+    "currentBaseLockScope": "Exactly 21 existing Doctor evidenceFileHashes/bun.lock leaves refreshed for normal merged lock; other parsed/formatting bytes preserved.",
+    "currentResults": "Fresh standard strict Doctor/Shadscan pass for current merged lock/ledgers; earlier outcomes remain historical."
+  },
+  "environmentBoundary": {
+    "runner": "OS-only env allowlist and exact bun run --no-env-file package-script placement; browser separately gets OS-only environment and pinned sandboxed Chromium.",
+    "controlledProof": {
+      "path": "/tmp/core-modernization-dnd-lifecycle-bun-run-env-boundary-controls.json",
+      "sha256": "e86dde35d6c50409f4139dc6b6e21852ce52041b23228fc2edc62a39cfc10ed9"
+    },
+    "established": "Harmless isolated public .env/.env.local sentinels absent in both Node children under exact run placement; explicit --env-file controls load both. Direct runtime controls also distinguish loading. Plain unflagged package run was not a positive control.",
+    "limits": "Proves tested run boundary, not install flag behavior. Real env values never inspected/copied; frozen install has separate opaque-link receipt.",
+    "browser": "Playwright 1.64.1/pinned Chromium 156.0.8078.4, chromiumSandbox=true; guard denies app API/external requests. No extra CSS/init workaround or real auth/task write."
+  },
+  "officialReleaseRefresh": {
+    "path": "/tmp/core-modernization-dnd-official-metadata-recheck-20261022.json",
+    "sha256": "cb7f811cdce049595859644fe9c878f01cc14a886d537eed7ca7637de0d054f9",
+    "checkedAt": "2026-10-22T20:46:56.332361+00:00",
+    "result": "Seven current consumed Dnd packages remain official latest 0.5.1. Four selected release records match integrity/dependency/peer/repository; installed versions unchanged.",
+    "sources": [
+      "https://registry.npmjs.org/@dnd-kit%2freact/latest",
+      "https://github.com/clauderic/dnd-kit/releases"
+    ],
+    "boundary": "Observation-time release metadata only; no new install/security/browser/publication outcome inferred."
+  }
+}

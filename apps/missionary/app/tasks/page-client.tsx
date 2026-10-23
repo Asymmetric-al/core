@@ -1,6 +1,7 @@
 "use client";
 
 import { useTasks } from "@asym/lib/hooks";
+import { getFullTaskMoveIndex } from "@asym/lib/hooks/task-move-index";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
@@ -665,6 +666,7 @@ function DeleteTaskDialog({
 
 function useTasksPageController() {
   const {
+    tasks,
     loading,
     error,
     filteredTasks,
@@ -672,7 +674,7 @@ function useTasksPageController() {
     completeTask,
     reopenTask,
     deleteTask,
-    moveTask,
+    moveTask: moveTaskInFullColumn,
     refresh,
   } = useTasks();
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -838,6 +840,22 @@ function useTasksPageController() {
     typeFilter,
     priorityFilter,
   ]);
+
+  const moveTask = useCallback(
+    (taskId: string, status: TaskStatus, visibleIndex: number) =>
+      moveTaskInFullColumn(
+        taskId,
+        status,
+        getFullTaskMoveIndex(
+          tasks,
+          displayedTasks,
+          taskId,
+          status,
+          visibleIndex,
+        ),
+      ),
+    [tasks, displayedTasks, moveTaskInFullColumn],
+  );
 
   const handleComplete = async (task: Task) => {
     if (task.status === "completed") {

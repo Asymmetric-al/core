@@ -21,6 +21,7 @@
     "specs/**/*.ts",
     "pdf-modernization-main.tsx",
     "styles.d.ts",
-    "ui-utilities-main.tsx"
+    "ui-utilities-main.tsx",
+    "kanban-main.tsx"
   ]
 }
