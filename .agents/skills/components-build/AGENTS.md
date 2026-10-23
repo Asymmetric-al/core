@@ -1,5 +1,20 @@
 # Components.build Specification
 
+<!-- CORE-COMPONENTS-CN-START -->
+
+**Core shared class helper:** consume the existing helper through the shared UI
+boundary:
+
+```tsx
+import { cn } from "@asym/ui/lib/utils";
+```
+
+Do not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`
+for these recipes. The generic npm dependency examples below are retained
+upstream material and are **non-operative in Core**. Current workspace manifests
+and `packages/ui/lib/utils.ts` own the implementation and dependency choices.
+<!-- CORE-COMPONENTS-CN-END -->
+
 **Version 1.0.0**  
 components.build  
 January 2026
@@ -36,8 +51,8 @@ Comprehensive guidelines for building modern, composable, and accessible UI comp
    - 7.1 [Component Types](#71-component-types)
 8. [Polymorphism](#8-polymorphism) — **MEDIUM**
    - 8.1 [Polymorphism Patterns](#81-polymorphism-patterns)
-9. [As-Child](#9-as-child) — **MEDIUM**
-   - 9.1 [asChild Pattern](#91-aschild-pattern)
+9. [Render Composition](#9-render-composition) — **MEDIUM**
+   - 9.1 [Base UI render Composition](#91-base-ui-render-composition)
 10. [Data Attributes](#10-data-attributes) — **LOW**
 
 - 10.1 [Data Attributes for Styling](#101-data-attributes-for-styling)
@@ -163,32 +178,22 @@ function Button() {
 **Correct:**
 
 ```tsx
-// Composable, accessible, customizable
-import { cn } from "@/lib/utils";
+// Compose the existing shared component and class helper.
+import type * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { cn } from "@asym/ui/lib/utils";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "outline";
-}
-
-export function Button({
+export function ProjectActions({
   className,
-  variant = "default",
-  children,
   ...props
-}: ButtonProps) {
+}: Omit<React.ComponentPropsWithRef<"div">, "children">) {
   return (
-    <button
-      className={cn(
-        "inline-flex items-center justify-center rounded-md px-4 py-2",
-        "focus-visible:outline-none focus-visible:ring-2",
-        variant === "default" && "bg-primary text-primary-foreground",
-        variant === "outline" && "border border-input bg-background",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </button>
+    <div className={cn("flex gap-2", className)} {...props}>
+      <Button type="button">Open project</Button>
+      <Button type="button" variant="outline">
+        Project settings
+      </Button>
+    </div>
   );
 }
 ```
@@ -233,14 +238,21 @@ Favor composition over inheritance. Build components that combine and nest to cr
 **Correct: composable, each layer customizable**
 
 ```tsx
-<Accordion.Root open={open} onOpenChange={setOpen}>
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@asym/ui/components/shadcn/accordion";
+
+<Accordion defaultValue={[]}>
   {items.map((item) => (
-    <Accordion.Item key={item.id}>
-      <Accordion.Trigger>{item.title}</Accordion.Trigger>
-      <Accordion.Content>{item.content}</Accordion.Content>
-    </Accordion.Item>
+    <AccordionItem key={item.id} value={item.id}>
+      <AccordionTrigger>{item.title}</AccordionTrigger>
+      <AccordionContent>{item.content}</AccordionContent>
+    </AccordionItem>
   ))}
-</Accordion.Root>
+</Accordion>;
 ```
 
 Components must be usable by all users. Accessibility is not optional—it's a baseline feature.
@@ -274,9 +286,11 @@ Components should be easy to restyle or adapt to different design requirements.
 **Correct: design tokens and className override**
 
 ```tsx
-export function Button({ className, ...props }: ButtonProps) {
-  return <button className={cn("base-button-styles", className)} {...props} />;
-}
+import { Button } from "@asym/ui/components/shadcn/button";
+
+<Button type="button" variant="outline" className="self-start">
+  Project details
+</Button>;
 ```
 
 Best practices:
@@ -318,13 +332,13 @@ Components should not be black boxes. Developers should be able to inspect and m
 **Correct: clear, readable implementation**
 
 ```tsx
-export function Button({ children, onClick, ...props }: ButtonProps) {
-  return (
-    <button onClick={onClick} {...props}>
-      {children}
-    </button>
-  );
-}
+// The shared implementation is first-party, inspectable source:
+// packages/ui/components/shadcn/button-component.tsx
+import { Button } from "@asym/ui/components/shadcn/button";
+
+<Button type="button" onClick={handleClick}>
+  Project details
+</Button>;
 ```
 
 **Incorrect: obfuscated or overly complex**
@@ -338,17 +352,22 @@ Components should come with clear documentation and examples.
 **Correct: comprehensive JSDoc**
 
 ```tsx
+import type * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
+
 /**
- * Button component for primary actions.
+ * Project action that preserves the shared Button contract.
  *
  * @example
- * <Button variant="primary" onClick={handleClick}>Click me</Button>
+ * <ProjectAction variant="default" onClick={handleClick}>Open project</ProjectAction>
  *
  * @remarks
- * - Supports keyboard navigation (Enter/Space)
- * - Accessible by default with proper ARIA attributes
+ * - Native action, keyboard, disabled and ref behavior stay with Button.
+ * - Use ButtonLink or buttonVariants on a link for navigation.
  */
-export function Button({ ... }: ButtonProps) { }
+export function ProjectAction(props: React.ComponentProps<typeof Button>) {
+  return <Button {...props} />;
+}
 ```
 
 A well-designed component applies all six principles together: **Composes** with other components, **works for everyone** with proper accessibility, **adapts** to different designs via theming, **performs** efficiently, **can be inspected** and modified, and **is easy to learn** through documentation.
@@ -370,7 +389,9 @@ Precise terminology for classifying and naming UI artifacts.
 
 The **lowest-level building block** providing behavior and accessibility without styling. Completely headless.
 
-**Examples:** Radix UI Primitives, React Aria Components, Headless UI
+**Core example:** Base UI Dialog root, behind the shared `Dialog` export. Other
+primitive libraries in the upstream taxonomy are terminology examples, not
+approved dependencies in Core.
 
 A **styled, reusable UI unit** that adds visual design to primitives or composes multiple elements.
 
@@ -409,40 +430,40 @@ A **helper** for developer ergonomics or composition; not rendered UI.
 **Incorrect: mislabeling a styled component as a primitive**
 
 ```tsx
-// Wrong: This is styled, so it's a Component, not a Primitive
-function DialogPrimitive({ open, onOpenChange, children }) {
-  return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content className="rounded-lg border bg-white p-6 shadow-lg">
-        {children}
-      </Dialog.Content>
-    </Dialog.Root>
-  );
-}
+import { DialogContent } from "@asym/ui/components/shadcn/dialog";
+
+// Wrong classification: DialogContent is already a styled shared component,
+// not a behavior-only primitive. Its owning source supplies Maia presentation.
+type BehaviorOnlyPrimitive = typeof DialogContent;
 ```
 
 **Correct: proper classification based on styling presence**
 
 ```tsx
-// Primitive - behavior only, no styling
-function DialogPrimitive({ open, onOpenChange, children }) {
-  return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      {children}
-    </Dialog.Root>
-  );
-}
+import type * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@asym/ui/components/shadcn/dialog";
 
-// Component - styled wrapper around primitive
-function Dialog({ open, onOpenChange, children }) {
+// Block - feature composition of existing shared components.
+// Caller-owned controlled or uncontrolled root props are forwarded unchanged.
+function ProjectDialog(
+  props: Omit<React.ComponentProps<typeof Dialog>, "children">,
+) {
   return (
-    <DialogPrimitive open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content
-        className={cn("rounded-lg border bg-white p-6 shadow-lg")}
-      >
-        {children}
-      </Dialog.Content>
-    </DialogPrimitive>
+    <Dialog {...props}>
+      <DialogTrigger render={<Button type="button" variant="outline" />}>
+        Project details
+      </DialogTrigger>
+      <DialogContent>
+        <DialogTitle>Project details</DialogTitle>
+        Review the details before continuing.
+      </DialogContent>
+    </Dialog>
   );
 }
 ```
@@ -455,7 +476,9 @@ function Dialog({ open, onOpenChange, children }) {
 
 - **Controlled** - Value driven by props (parent is source of truth)
 
-- **Uncontrolled** - Internal state with optional `defaultValue`
+- **Uncontrolled** - Primitive-owned value initialized with its actual default
+  prop (`defaultValue`, `defaultChecked` or `defaultOpen`); later default changes
+  do not control the current value.
 
 - **Provider/Context** - Supplies shared state to subtree
 
@@ -475,86 +498,64 @@ function Dialog({ open, onOpenChange, children }) {
 
 **Impact: HIGH**
 
-Breaking down complex components into composable sub-components
-using Root, Trigger, Content, and other naming patterns.
+Compose existing shared parts without duplicating state or behavior.
 
 ### 4.1 Component Composition
 
-**Impact: HIGH (Foundation of component architecture)**
+**Impact: HIGH (Compose existing shared parts without duplicating state or behavior)**
 
-Composition is the foundation of building modern UI components. Instead of cramming all functionality into a single component with dozens of props, break components down into smaller, focused sub-components that work together.
+Compose the existing Core parts before building a new primitive. Shared Base UI components already own state coordination, keyboard navigation, ARIA and focus behavior; do not recreate them with a parallel Context or an inert `asChild` prop.
 
-**Incorrect: monolithic, hard to customize**
-
-```tsx
-<Accordion data={data} />
-```
-
-**Correct: composable, each layer customizable**
+#### Compose the Shared Parts
 
 ```tsx
-export const Accordion = { Root, Item, Trigger, Content };
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@asym/ui/components/shadcn/accordion";
 
-// Usage
-<Accordion.Root open={open} setOpen={setOpen}>
-  <Accordion.Item>
-    <Accordion.Trigger>Title</Accordion.Trigger>
-    <Accordion.Content>Content</Accordion.Content>
-  </Accordion.Item>
-</Accordion.Root>;
+<Accordion defaultValue={["details"]}>
+  <AccordionItem value="details">
+    <AccordionTrigger>Project details</AccordionTrigger>
+    <AccordionContent>Compose the content for this feature.</AccordionContent>
+  </AccordionItem>
+</Accordion>;
 ```
 
-The main container that holds sub-components and manages shared state using Context:
+Import the existing flat exports shown above. Do not invent an `Accordion.Root` namespace or replace `value`/`defaultValue`/`onValueChange` with a custom `open`/`setOpen` state API.
 
-A simple wrapper for each item:
+#### Compose a Trigger Host
 
-Handles user interaction:
+```tsx
+import { Button } from "@asym/ui/components/shadcn/button";
+import { DialogTrigger } from "@asym/ui/components/shadcn/dialog";
 
-Displays the main content:
+<DialogTrigger render={<Button type="button" variant="outline" />}>
+  Open details
+</DialogTrigger>;
+```
 
-Export components as a namespace:
+Use this trigger inside the existing Dialog root. The `render` host receives the primitive's merged props and ref. Custom hosts must forward both to the same DOM node; do not discard them, manually clone the child or nest interactive elements.
 
-- **Root** - Main container component
+See [Base UI render composition](rules/as-child.md) for native button versus link semantics, and [state management](rules/state.md) for controlled and uncontrolled use.
 
-- **Trigger** - Element that initiates an action
+#### Keep Ownership Clear
 
-- **Content** - Element containing the main content
+- **Root** owns the existing primitive's state and coordinates its parts.
+- **Item** groups the primitive's related trigger and content.
+- **Trigger** retains the primitive's interaction and accessible state.
+- **Content** retains its visibility, focus and lifecycle behavior.
+- **Title / Description** provide the accessible name and supporting context.
 
-- **Header/Body/Footer** - Structured content areas
+Feature-specific wrappers may arrange these parts and forward their existing public props/ref. Extend the shared component through `packages/ui` when new reusable behavior is needed; do not introduce an app-local primitive or state abstraction.
 
-- **Title/Description** - Informational components
+#### Verify the Result
 
-1. **Single Responsibility** - Each sub-component should have one clear purpose
+Check the actual exported types and rendered host, then verify keyboard navigation, names, focus and disabled behavior at the composed feature boundary. Keep semantic tokens and exact `base-maia` presentation.
 
-2. **Context for State** - Use React Context to share state between sub-components
-
-3. **Extend HTML Attributes** - Always extend native HTML element props
-
-4. **Consistent Naming** - Follow established conventions
-
-5. **Namespace Exports** - Export components as a namespace for clean API
-
-6. **Composition Over Configuration** - Prefer multiple components over many props
-
-**Use composition when:**
-
-- A component has multiple responsibilities
-
-- Customization requires CSS overrides
-
-- You need flexible layouts or structures
-
-- Building a component library
-
-- Components need to work together but remain independent
-
-**Avoid composition for:**
-
-- Simple, single-purpose components
-
-- Components that don't need customization
-
-- Over-engineering simple UI elements
+References: [Base UI composition](https://base-ui.com/react/handbook/composition), `packages/ui/components/shadcn/accordion.tsx`, and `packages/ui/components/shadcn/dialog.tsx`.
 
 ---
 
@@ -584,6 +585,16 @@ Always start with the most appropriate HTML element:
 **Correct: semantic element**
 
 ```tsx
+import { Button } from "@asym/ui/components/shadcn/button";
+
+<Button type="button" onClick={handleClick}>
+  Open project
+</Button>;
+```
+
+**Live-region examples (avoid duplicate announcements):**
+
+```tsx
 // Polite announcement
 <div role="status" aria-live="polite">{savedMessage && "Saved"}</div>
 
@@ -591,11 +602,17 @@ Always start with the most appropriate HTML element:
 <div role="alert" aria-live="assertive">{errorMessage}</div>
 ```
 
-Every interactive element must be keyboard accessible:
+Every interactive element must be keyboard accessible. Reuse the existing
+shared Dialog, DropdownMenu and Tabs parts for modal, menu and tab behavior;
+a role and tabIndex alone do not implement keyboard navigation, focus
+containment/restoration, dismissal or tab/panel relationships.
 
-Use ARIA attributes when necessary:
+Use ARIA attributes when necessary. Shared DialogTitle/Description and Tabs
+parts generate their relationships; do not create missing labelledby targets.
 
-Support users with visual impairments:
+Support users with visual impairments using existing foreground/background and
+ring tokens. Shared controls own their focus presentation; generic CSS examples
+are background for authorized host authoring, not app-global overrides.
 
 1. **Don't use ARIA if you can use semantic HTML**
 
@@ -629,6 +646,20 @@ Support users with visual impairments:
 
 **Disabled elements:**
 
+```tsx
+import { Button } from "@asym/ui/components/shadcn/button";
+
+// The form owns submission; Button owns native disabled behavior.
+<>
+  <Button type="submit" disabled={!isValid} aria-describedby="submit-help">
+    Submit
+  </Button>
+  <span id="submit-help">{!isValid && "Fill required fields"}</span>
+</>;
+```
+
+**Allow zooming:**
+
 ```html
 <!-- Allow zooming -->
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -640,107 +671,85 @@ Support users with visual impairments:
 
 **Impact: HIGH**
 
-Controlled and uncontrolled state patterns using
-useControllableState for flexible component APIs.
+Controlled and uncontrolled state through the existing shared primitive APIs.
 
 ### 6.1 State Management Patterns
 
-**Impact: HIGH (Flexible component APIs for all use cases)**
+**Impact: HIGH (Reuse the shared primitive’s controlled and uncontrolled APIs)**
 
-Build flexible components that work seamlessly in both controlled and uncontrolled modes.
+Use the existing shared primitive's state API before adding state machinery. Core has no shared controllable-state hook to import. Do not add a Radix helper dependency or implement a second abstraction for these recipes.
 
-Component manages its own state internally:
+#### Uncontrolled State
 
-**When to use:** Simple components, default behavior, internal state is sufficient.
-
-Parent component manages the state:
-
-**When to use:** State coordination, external data sources, form validation, persistence.
-
-Use `@radix-ui/react-use-controllable-state` to support both:
-
-**Usage:**
+Let the primitive manage state and supply only its initial default:
 
 ```tsx
-import { useControllableState } from "@radix-ui/react-use-controllable-state";
+import { Switch } from "@asym/ui/components/shadcn/switch";
 
-type ToggleProps = {
-  checked?: boolean;
-  defaultChecked?: boolean;
-  onCheckedChange?: (checked: boolean) => void;
-  disabled?: boolean;
-};
+<Switch aria-label="Email notifications" defaultChecked={false} />;
+```
 
-export const Toggle = ({
-  checked: controlledChecked,
-  defaultChecked,
-  onCheckedChange,
-  disabled,
-}: ToggleProps) => {
-  const [checked, setChecked] = useControllableState({
-    prop: controlledChecked,
-    defaultProp: defaultChecked ?? false,
-    onChange: onCheckedChange,
-  });
+`defaultChecked` supplies the initial value; later changes to the prop do not control the current state. Use this mode when the parent does not need to own the value.
 
+#### Controlled State
+
+Keep the confirmed value in the parent and pass the primitive's matching change callback:
+
+```tsx
+import * as React from "react";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+
+function NotificationPreference() {
+  const [enabled, setEnabled] = React.useState(false);
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      disabled={disabled}
-      onClick={() => !disabled && setChecked(!checked)}
-    >
-      {checked ? "On" : "Off"}
-    </button>
+    <Switch
+      aria-label="Email notifications"
+      checked={enabled}
+      onCheckedChange={setEnabled}
+    />
   );
-};
+}
 ```
 
-| State Type | Value Prop | Default Prop | Change Callback |
+Use controlled state for coordination, validation or persistence. Keep a component in the same mode for its lifetime; pass a defined controlled value from its first render.
 
-|------------|------------|--------------|-----------------|
+#### Value-Based Primitives
 
-| Generic | `value` | `defaultValue` | `onValueChange` |
-
-| Boolean | `checked` | `defaultChecked` | `onCheckedChange` |
-
-| Open/Close | `open` | `defaultOpen` | `onOpenChange` |
-
-| Selection | `selected` | `defaultSelected` | `onSelectedChange` |
-
-**1. Always Make Props Optional:**
+Use the actual primitive's value type and public exports. The shared Accordion uses an array of expanded item values:
 
 ```tsx
-// ✅ Supports both patterns
-type Props = {
-  value?: number;
-  defaultValue?: number;
-  onValueChange?: (value: number) => void;
-};
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@asym/ui/components/shadcn/accordion";
+
+<Accordion defaultValue={["details"]}>
+  <AccordionItem value="details">
+    <AccordionTrigger>Details</AccordionTrigger>
+    <AccordionContent>Project details</AccordionContent>
+  </AccordionItem>
+</Accordion>;
 ```
 
-**2. Provide Sensible Defaults:**
+For controlled expansion, pass `value={expandedItems}` and `onValueChange={setExpandedItems}` with parent state typed to the shared Accordion's value contract. Do not replace that API with a boolean `open`/`setOpen` pair.
 
-```tsx
-const [value, setValue] = useControllableState({
-  prop: controlledValue,
-  defaultProp: defaultValue ?? 0,
-  onChange: onValueChange,
-});
-```
+#### Preserve the Primitive Contract
 
-**3. Handle onChange in Both Modes:**
+| Existing primitive | Controlled prop | Initial default  | Change callback   |
+| ------------------ | --------------- | ---------------- | ----------------- |
+| Switch / Checkbox  | `checked`       | `defaultChecked` | `onCheckedChange` |
+| Accordion / Tabs   | `value`         | `defaultValue`   | `onValueChange`   |
+| Dialog / Popover   | `open`          | `defaultOpen`    | `onOpenChange`    |
 
-The `onChange` callback should fire regardless of controlled/uncontrolled mode.
+- Inspect the existing component's exported props; value types and callback details vary by primitive.
+- Forward the existing state props, callback arguments and ref when a wrapper is required.
+- Preserve `false`, `0` and empty values; do not use truthiness to decide whether a prop is controlled.
+- Do not combine controlled and default props to create competing state owners, or mirror a controlled prop into another local state variable.
+- Let the shared primitive own keyboard, ARIA, disabled and focus behavior.
 
-1. **Flexibility** - Works in both controlled and uncontrolled modes
-
-2. **Developer Experience** - Simple API for simple cases, powerful for complex
-
-3. **Consistency** - Matches patterns used by Radix UI and professional libraries
-
-4. **Backward Compatibility** - Easy to migrate from uncontrolled to controlled
+References: `packages/ui/components/shadcn/switch.tsx`, `packages/ui/components/shadcn/accordion.tsx`, and [Base UI composition](https://base-ui.com/react/handbook/composition).
 
 ---
 
@@ -748,8 +757,8 @@ The `onChange` callback should fire regardless of controlled/uncontrolled mode.
 
 **Impact: HIGH**
 
-TypeScript patterns for component props including extending HTML
-attributes, exporting types, and single element wrapping.
+TypeScript patterns for inheriting native host props/ref, deriving existing
+shared-part props, and exporting clear contracts without changing host ownership.
 
 ### 7.1 Component Types
 
@@ -757,7 +766,9 @@ attributes, exporting types, and single element wrapping.
 
 Proper typing is essential for creating flexible, customizable, and type-safe component interfaces.
 
-Each exported component should wrap a single HTML or JSX element:
+Prefer small composable parts with clear host contracts. Preserve existing
+non-DOM roots and compound implementations; do not add a wrapper element or
+rewrite a shared primitive to satisfy a literal single-element rule:
 
 **Incorrect: hard to customize**
 
@@ -776,45 +787,57 @@ const Card = ({ title, description, footer, ...props }) => (
 **Correct: composable, each layer customizable**
 
 ```tsx
-export type CardRootProps = React.ComponentProps<"div"> & {
-  variant?: "default" | "outlined";
-};
+import type * as React from "react";
 
-export const CardRoot = ({ variant = "default", ...props }: CardRootProps) => (
-  <div {...props} />
+// A justified new passive wrapper, after checking existing shared parts.
+export type SummarySectionProps = React.ComponentPropsWithRef<"section">;
+export const SummarySection = (props: SummarySectionProps) => (
+  <section {...props} />
 );
 ```
 
-Every component should extend native HTML attributes:
+New passive DOM wrappers inherit their host attributes and ref. Wrappers around
+an existing component derive that component's actual props instead of replacing
+its state, render or event contract with a generic HTML type:
 
 **Common HTML Attribute Types:**
 
 ```tsx
-// Enables type extraction
-import type { CardRootProps } from "@/components/ui/card";
-type Variant = CardRootProps["variant"];
+import type * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card } from "@asym/ui/components/shadcn/card";
+import { cn } from "@asym/ui/lib/utils";
 
-// Enables extending
-export type ExtendedCardProps = CardRootProps & { isLoading?: boolean };
+type CardProps = React.ComponentProps<typeof Card>;
+type ButtonVariant = React.ComponentProps<typeof Button>["variant"];
+export type ProjectCardProps = CardProps & { projectId: string };
 
-// Enables wrapper components
-const MyCard = (props: CardRootProps) => (
-  <CardRoot {...props} className={cn("my-custom-class", props.className)} />
+// Consume feature metadata before forwarding the existing DOM props.
+const ProjectCard = ({ projectId, className, ...props }: ProjectCardProps) => (
+  <Card
+    data-project-id={projectId}
+    className={cn("self-start", className)}
+    {...props}
+  />
 );
 ```
 
-Always export prop types for consumers:
+Expose an owned component's prop contract. For existing shared components without
+a named props export, use `React.ComponentProps<typeof Part>`:
 
 **Naming convention:** Export types as `<ComponentName>Props`.
 
-**1. Always Spread Props Last:**
+**1. Preserve Merged Props and Existing Behavior:**
 
 ```tsx
-// ✅ User props override defaults
-<div className="default-class" {...props} />
+import { cn } from "@asym/ui/lib/utils";
 
-// ❌ Defaults override user props
-<div {...props} className="default-class" />
+// Destructure props that need merging; forward the remainder unchanged.
+const { className, ...rest } = props;
+<div className={cn("flex gap-2", className)} {...rest} />;
+
+// A later className spread must not overwrite the merged value.
+// Preserve each primitive's existing state, event and ref composition contract.
 ```
 
 **2. Avoid Prop Name Conflicts:**
@@ -827,12 +850,16 @@ type CardProps = React.ComponentProps<"div"> & { title: string };
 type CardProps = React.ComponentProps<"div"> & { heading: string };
 ```
 
-**3. Document Custom Props:**
+**3. Document Custom Props and Host Boundaries:**
+
+Dialog `modal` controls interaction/focus behavior, not portal selection. Derive
+its props from the shared root; generic div props omit that contract. The
+following passive-wrapper illustration is not a Dialog type.
 
 ```tsx
 type PolymorphicProps<E extends React.ElementType> = {
   as?: E;
-} & React.ComponentPropsWithoutRef<E>;
+} & React.ComponentPropsWithRef<E>;
 
 function Component<E extends React.ElementType = "div">({
   as,
@@ -843,7 +870,9 @@ function Component<E extends React.ElementType = "div">({
 }
 ```
 
-For components that can render as different elements:
+For justified new passive wrappers only, the generic `as` typing is background.
+Existing Core interactive parts retain their public `render`, host props and
+ref contract; it does not add `as` to Button:
 
 | Pattern | Usage | Example |
 
@@ -855,7 +884,7 @@ For components that can render as different elements:
 
 | Polymorphic | Render as different elements | `PolymorphicProps<T>` |
 
-| Type extraction | Get specific prop type | `CardProps['variant']` |
+| Type extraction | Get specific prop type | `React.ComponentProps<typeof Button>["variant"]` |
 
 | Type extension | Extend existing component props | `CardProps & { isLoading?: boolean }` |
 
@@ -865,28 +894,36 @@ For components that can render as different elements:
 
 **Impact: MEDIUM**
 
-Implementing the `as` prop pattern to change rendered HTML
-elements while preserving component functionality.
+Using existing shared host/render APIs for interaction; generic `as`
+illustrations remain background for justified passive content/layout wrappers.
 
 ### 8.1 Polymorphism Patterns
 
 **Impact: MEDIUM (Flexible element rendering)**
 
-Build flexible components that can render as different HTML elements or components while maintaining consistent styling and behavior.
+Use the existing Core component's public host API first. Shared actions use
+`Button`; navigation uses `ButtonLink` or `buttonVariants` on an anchor/Next Link.
+Base UI parts use `render` with their actual native props and forwarded ref.
 
-The `as` prop allows components to change their rendered element type:
+The generic `as` illustrations below remain upstream background for justified
+**passive** content/layout wrappers. They do not add `as` to shared components or
+replace interaction behavior. New reusable behavior belongs to its reviewed
+`packages/ui` owner.
 
 **Typography Components:**
 
 ```tsx
-function Text({ as: Element = 'span', variant = 'body', ...props }) {
-  const className = cn(
-    'text-base',
-    variant === 'heading' && 'text-2xl font-bold',
-    variant === 'body' && 'text-base',
-    props.className
+function Text({ as: Element = 'span', variant = 'body', className, ...props }) {
+  return (
+    <Element
+      className={cn(
+        'text-base',
+        variant === 'heading' && 'text-2xl font-bold',
+        className
+      )}
+      {...props}
+    />
   );
-  return <Element className={className} {...props} />;
 }
 
 <Text as="h1" variant="heading">Title</Text>
@@ -896,8 +933,8 @@ function Text({ as: Element = 'span', variant = 'body', ...props }) {
 **Layout Components:**
 
 ```tsx
-function Flex({ as: Element = 'div', ...props }) {
-  return <Element className={cn('flex', props.className)} {...props} />;
+function Flex({ as: Element = 'div', className, ...props }) {
+  return <Element className={cn('flex', className)} {...props} />;
 }
 
 <Flex as="header" className="justify-between"><Logo /><Navigation /></Flex>
@@ -907,17 +944,12 @@ function Flex({ as: Element = 'div', ...props }) {
 **Interactive Elements:**
 
 ```tsx
-function Clickable({ as: Element = "button", ...props }) {
-  const isButton = Element === "button";
-  const isAnchor = Element === "a";
-  return (
-    <Element
-      role={!isButton && !isAnchor ? "button" : undefined}
-      tabIndex={!isButton && !isAnchor ? 0 : undefined}
-      {...props}
-    />
-  );
-}
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
+
+<Button type="button" onClick={handleClick}>
+  Open details
+</Button>;
+<ButtonLink href="/projects">Projects</ButtonLink>;
 ```
 
 **1. Default to Semantic Elements:**
@@ -948,22 +980,14 @@ interface BoxProps {
 }
 ```
 
-**3. Handle Event Handlers:**
+**3. Forward the Existing Host Contract:**
 
 ```tsx
-function Interactive({ as: Element = "button", onClick, ...props }) {
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (Element !== "button" && (e.key === "Enter" || e.key === " ")) {
-      onClick?.(e as any);
-    }
-  };
-  return (
-    <Element
-      onClick={onClick}
-      onKeyDown={Element !== "button" ? handleKeyDown : undefined}
-      {...props}
-    />
-  );
+import type * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
+
+function ProjectAction(props: React.ComponentProps<typeof Button>) {
+  return <Button {...props} />;
 }
 ```
 
@@ -971,7 +995,7 @@ function Interactive({ as: Element = "button", onClick, ...props }) {
 
 ```tsx
 // Incorrect: Invalid - button inside button
-<Button as="button"><Button as="button">Nested</Button></Button>
+<Button><Button>Nested</Button></Button>
 
 // Incorrect: Invalid - div inside p
 <Text as="p"><Box as="div">Invalid</Box></Text>
@@ -1016,177 +1040,91 @@ function Parent() {
 
 ---
 
-## 9. As-Child
+## 9. Render Composition
 
 **Impact: MEDIUM**
 
-Radix UI Slot pattern for merging props and behaviors with
-custom child elements without wrapper elements.
+Base UI render composition with preserved native semantics, props and ref.
 
-### 9.1 asChild Pattern
+### 9.1 Base UI render Composition
 
-**Impact: MEDIUM (Prop merging without wrapper elements)**
+**Impact: MEDIUM (Compose one semantic host with preserved behavior)**
 
-The `asChild` prop allows components to merge their props, behaviors, and event handlers with a custom child element instead of rendering a default DOM element.
+`rules/as-child.md` remains the compatibility index for older `asChild` references. In Core, compose the existing `@asym/ui` Base UI parts with `render`; do not add Radix Slot or an `asChild` API.
 
-Implement `asChild` when:
-
-- Building trigger components (Dialog.Trigger, Tooltip.Trigger)
-
-- Creating composable components that wrap other elements
-
-- Allowing users to customize rendered element while preserving functionality
-
-- Integrating with existing design system components
-
-**Without asChild: nested elements**
+#### Compose the Existing Trigger
 
 ```tsx
-<Dialog.Trigger>
-  <button>Open Dialog</button>
-</Dialog.Trigger>
-// Renders: <button><button>Open Dialog</button></button>
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@asym/ui/components/shadcn/dialog";
+
+<Dialog>
+  <DialogTrigger render={<Button type="button" variant="outline" />}>
+    Open details
+  </DialogTrigger>
+  <DialogContent>
+    <DialogTitle>Details</DialogTitle>
+    Review the details before continuing.
+  </DialogContent>
+</Dialog>;
 ```
 
-**With asChild: props merge onto child**
+`render` merges the trigger behavior onto the custom host. Do not put a second button inside a trigger. Keep the shared primitive responsible for keyboard behavior, disabled state, ARIA and focus restoration.
+
+#### Forward Props and Ref
+
+A custom render component must spread the received props and forward its ref to the same DOM node. React 19 components can receive `ref` as a prop:
 
 ```tsx
-<Dialog.Trigger asChild>
-  <button>Open Dialog</button>
-</Dialog.Trigger>
-// Renders: <button data-state="closed">Open Dialog</button>
-```
+import * as React from "react";
+import { DialogTrigger } from "@asym/ui/components/shadcn/dialog";
 
-**Custom Trigger Elements:**
-
-```tsx
-<AlertDialog.Trigger asChild>
-  <a href="/delete">Delete Account</a>
-</AlertDialog.Trigger>
-
-<Tooltip.Trigger asChild>
-  <IconButton icon={<InfoIcon />} />
-</Tooltip.Trigger>
-
-<DropdownMenu.Trigger asChild>
-  <Button variant="outline" size="icon">
-    <MoreVertical className="h-4 w-4" />
-  </Button>
-</DropdownMenu.Trigger>
-```
-
-**Semantic HTML:**
-
-```tsx
-<NavigationMenu.Link asChild>
-  <Link href="/products" className="nav-link">
-    Products
-  </Link>
-</NavigationMenu.Link>
-```
-
-**Component Composition:**
-
-```tsx
-<Dialog.Trigger asChild>
-  <Tooltip.Trigger asChild>
-    <button>Open dialog (with tooltip)</button>
-  </Tooltip.Trigger>
-</Dialog.Trigger>
-```
-
-**1. Child Must Spread Props:**
-
-**Incorrect:**
-
-```tsx
-// Won't receive trigger behavior
-const BadButton = ({ children }) => <button>{children}</button>;
-```
-
-**Correct:**
-
-```tsx
-// Properly receives all props
-const GoodButton = ({ children, ...props }) => (
-  <button {...props}>{children}</button>
-);
-```
-
-**2. Single Child Element Only:**
-
-**Incorrect:**
-
-```tsx
-// Multiple children
-<Trigger asChild>
-  <button>One</button>
-  <button>Two</button>
-</Trigger>
-```
-
-**Correct:**
-
-```tsx
-// Single child
-<Trigger asChild>
-  <button>Single Button</button>
-</Trigger>
-```
-
-**3. Maintain Accessibility:**
-
-**Correct:**
-
-```tsx
-// Maintains button semantics
-<Dialog.Trigger asChild>
-  <button type="button">Open</button>
-</Dialog.Trigger>
-```
-
-**Note: ensure proper ARIA**
-
-```tsx
-// Ensure proper ARIA when using non-semantic elements
-<Dialog.Trigger asChild>
-  <div role="button" tabIndex={0} aria-label="Open dialog">
-    Open
-  </div>
-</Dialog.Trigger>
-```
-
-**Don't manually clone elements:**
-
-**Incorrect:**
-
-```tsx
-// Manual cloning misses edge cases
-if (asChild) {
-  return React.cloneElement(children, { ...props });
+function ActionButton({
+  ref,
+  type = "button",
+  ...props
+}: React.ComponentPropsWithRef<"button">) {
+  return <button ref={ref} type={type} {...props} />;
 }
+
+<DialogTrigger render={<ActionButton />}>Open details</DialogTrigger>;
 ```
 
-**Correct:**
+Preserve the primitive's event handlers, attributes and ref when adding a wrapper. Prefer its existing `render` API to manual element cloning or custom prop-merging logic.
+
+#### Preserve Native Semantics
+
+Use a button host for an action. Only set `nativeButton={false}` when deliberately rendering a non-button host and the specific primitive supports that prop; inspect its current public props first. It is not a general composition flag or a fix for an incorrect host.
+
+Navigation remains a link. Apply the shared `buttonVariants` classes to an anchor or Next.js Link:
 
 ```tsx
-// Use Slot for proper merging
-if (asChild) {
-  return <Slot {...props}>{children}</Slot>;
-}
+import Link from "next/link";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
+
+<a href="/settings" className={buttonVariants({ variant: "outline" })}>
+  Settings
+</a>;
+
+<Link href="/projects" className={buttonVariants({ variant: "outline" })}>
+  Projects
+</Link>;
 ```
 
-The `asChild` pattern is essential for:
+Do not render an anchor through `Button`: its button role would override native link semantics. Do not substitute a generic div for a native button merely to obtain the same appearance.
 
-- **Composability** - Enables flexible component composition
+#### Check the Composed Host
 
-- **Customizable** - Allows users to control rendered elements
+- Confirm one interactive DOM host, its accessible name and its intended native role.
+- Verify forwarded props/ref, keyboard activation, focus restoration and disabled behavior.
+- Reuse `packages/ui/components/shadcn/button.ts` and the existing primitive export; do not create an app-local primitive fork.
 
-- **Transparent** - No hidden wrapper elements in DOM
-
-- **Accessible** - Maintains semantic HTML structure
-
-Reference: [https://www.radix-ui.com/primitives/docs/utilities/slot](https://www.radix-ui.com/primitives/docs/utilities/slot)
+References: [Base UI composition](https://base-ui.com/react/handbook/composition), [shadcn Base UI Button](https://ui.shadcn.com/docs/components/base/button).
 
 ---
 
@@ -1194,44 +1132,91 @@ Reference: [https://www.radix-ui.com/primitives/docs/utilities/slot](https://www
 
 **Impact: LOW**
 
-Using data-state and data-slot attributes for styling component
-states and targeting sub-components.
+Reading existing Base UI state attributes and preserving stable data-slot
+identities without duplicating state or overriding shared-control appearance.
 
 ### 10.1 Data Attributes for Styling
 
 **Impact: LOW (Clean state-based styling patterns)**
 
-Use `data-state` and `data-slot` attributes to create flexible, maintainable component APIs.
+Use the existing primitive's emitted state attributes and stable `data-slot`
+identifiers. Core uses Base UI presence attributes, not a generic
+`data-state="open"` contract.
 
-**Never expose separate className props for different states.** Use `data-state` attributes:\*\*
+**Never expose separate className props for different states.** Use the existing
+primitive's emitted attributes and supported styling contract instead.
 
-```tsx
-const Dialog = ({ className, ...props }: DialogProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <div
-      data-state={isOpen ? "open" : "closed"}
-      className={cn("transition-all", className)}
-      {...props}
-    />
-  );
-};
-```
+#### Read State from the Existing Part
 
-**Consumer styles from outside:**
+Do not mirror the primitive's open value into another local state variable or
+replace a Dialog with a bare div. The shared root coordinates state; its content
+part renders the popup DOM and supplies the existing Maia appearance.
 
 ```tsx
-<form className="[&_[data-slot=button]]:w-full">
-  <Button>Submit</Button>
-</form>
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@asym/ui/components/shadcn/dialog";
+
+<Dialog defaultOpen={false}>
+  <DialogTrigger render={<Button type="button" variant="outline" />}>
+    Project details
+  </DialogTrigger>
+  <DialogContent>
+    <DialogTitle>Project details</DialogTitle>
+    Review the details before continuing.
+  </DialogContent>
+</Dialog>;
 ```
 
-Give components stable identifiers for parent targeting:
+`Dialog` does not render a DOM host. Read or style the existing state on the
+appropriate rendered part; do not pass popup presentation to the root.
+
+#### Current Core State Contracts
+
+| Shared part                      | Attribute emitted by its primitive | Configure through                  |
+| -------------------------------- | ---------------------------------- | ---------------------------------- |
+| DialogContent / AccordionContent | `data-open` / `data-closed`        | The root's existing state API      |
+| AccordionTrigger                 | `data-panel-open`                  | Accordion `value` / `defaultValue` |
+| TabsTrigger                      | `data-active`                      | Tabs `value` / `defaultValue`      |
+| Button / Switch                  | `data-disabled` when disabled      | `disabled`                         |
+| Slider parts                     | `data-orientation`                 | `orientation`                      |
+| TooltipContent                   | `data-side`                        | `side`                             |
+
+Presence attributes are absent for false state; do not manually stamp
+`data-disabled={false}` onto a shared primitive. A feature-defined
+`data-loading` attribute is separate from the primitive's disabled or busy
+behavior. Use the real `disabled` / `aria-busy` props where appropriate.
+
+#### Tailwind Integration
+
+Inside an existing primitive's reviewed authoring owner, selectors such as
+`data-open:`, `data-closed:`, `data-panel-open:` and `data-active:` read its actual
+attributes. Consumers use the component's existing variants and placement API;
+state selectors are not permission to override shared appearance or motion.
+The installed Dialog already owns its popup entrance and exit animation.
+
+**Arrange existing shared controls:**
+
+```tsx
+<div className="flex gap-2">
+  <Button type="button">Save project</Button>
+  <Button type="button" variant="outline">
+    Cancel
+  </Button>
+</div>
+```
+
+Preserve existing primitive identifiers; name new feature slots only in their
+reviewed owner. Slot selectors do not grant shared-control appearance overrides.
 
 **Incorrect:**
 
 ```tsx
-data-slot="input"           // Too generic
+data-slot="my-wrapper"      // Unclear new feature-slot purpose
 data-slot="blueButton"      // Includes styling
 data-slot="div-wrapper"     // Implementation detail
 ```
@@ -1239,47 +1224,35 @@ data-slot="div-wrapper"     // Implementation detail
 **Correct:**
 
 ```tsx
-const Button = ({
-  variant = "primary",
-  size = "md",
-  loading,
-  disabled,
-  className,
-  ...props
-}: ButtonProps) => {
-  return (
-    <button
-      data-slot="button"
-      data-loading={loading}
-      data-disabled={disabled}
-      className={cn(buttonVariants({ variant, size }), className)}
-      disabled={disabled}
-      {...props}
-    />
-  );
-};
+import { Button } from "@asym/ui/components/shadcn/button";
 
-// Usage
-<form className="[&_[data-slot=button]]:w-full">
-  <Button loading={isLoading} className="data-[loading=true]:opacity-50">
-    Submit
-  </Button>
-</form>;
+// The feature owns loading; Button owns action and disabled behavior.
+<Button
+  type="submit"
+  variant="default"
+  size="default"
+  disabled={isLoading || isDisabled}
+  aria-busy={isLoading}
+  data-loading={isLoading ? "" : undefined}
+>
+  {isLoading ? "Saving…" : "Save"}
+</Button>;
 ```
 
 | Pattern | Use For |
 
 |---------|---------|
 
-| `data-state` | Visual states (open/closed, active, loading) |
+| Primitive state attributes | The existing part's open, active or disabled state |
 
 | `data-slot` | Component identification, parent-child targeting |
 
-| `props` | Variants (primary, secondary), sizes, event handlers |
+| `props` | Existing variants, sizes, state props and event handlers |
 
-1. **Use `data-state` instead of separate className props** for states
+1. **Read the existing primitive state attributes** instead of duplicating state
+   or adding separate state-specific className props
 
-2. **Add `data-slot` to reusable components** for targeting
+2. **Preserve existing `data-slot` values**; name new feature slots in their owner
 
 3. **Use kebab-case** for `data-slot` values
 
@@ -1300,25 +1273,31 @@ Component styling with Tailwind CSS, cn utility, class-variance-authority
 
 **Impact: HIGH (Predictable, maintainable styling patterns)**
 
-Use Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).
+Use Tailwind CSS with Core’s shared `cn` helper for class merging and conditional classes, and existing variant APIs (CVA).
 
-**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.
+**Why:** Core’s shared `cn` helper resolves class conflicts consistently with the installed UI implementation.
 
 **Incorrect:**
 
 ```tsx
-// Without tailwind-merge, conflicting classes both apply
-className = "bg-red-500 bg-blue-500"; // Both classes apply, causing conflicts
+// Without class merging, conflicting classes both apply
+className = "bg-primary bg-background"; // Both classes apply, causing conflicts
 className = "px-4 py-2 px-8"; // Both px-4 and px-8 apply
 ```
 
 **Correct:**
 
 ```tsx
-twMerge("bg-red-500", "bg-blue-500"); // "bg-blue-500"
-twMerge("px-4 py-2", "px-8"); // "py-2 px-8"
-twMerge("text-sm", "text-lg"); // "text-lg"
+import { cn } from "@asym/ui/lib/utils";
+
+cn("bg-primary", "bg-background"); // "bg-background"
+cn("px-4 py-2", "px-8"); // "py-2 px-8"
+cn("text-sm", "text-lg"); // "text-lg"
 ```
+
+Core consumers use existing variants and placement APIs. Native/CVA examples
+illustrate a justified new passive authoring owner after component discovery;
+they do not permit recreating Button or overriding shared appearance.
 
 Apply classes in this order:
 
@@ -1334,49 +1313,41 @@ Apply classes in this order:
 
 ```tsx
 // Wrong order: user className comes before variants, preventing overrides
-className={cn(className, variant === 'primary' && 'bg-blue-500')}
+className={cn(className, variant === 'muted' && 'bg-muted')}
 ```
 
 **Correct:**
 
 ```tsx
+import type * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@asym/ui/lib/utils";
 
-const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-all",
-  {
-    variants: {
-      variant: {
-        default: "bg-blue-500 text-white hover:bg-blue-600",
-        destructive: "bg-red-500 text-white hover:bg-red-600",
-        outline: "border border-gray-300 bg-transparent hover:bg-gray-50",
-        ghost: "hover:bg-gray-100",
-      },
-      size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 px-3 text-sm",
-        lg: "h-10 px-6",
-        icon: "h-9 w-9",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
+// Passive authoring illustration, not a replacement for shared Card or Button.
+const summaryVariants = cva("rounded-lg border bg-card text-card-foreground", {
+  variants: {
+    density: { default: "p-4", compact: "p-2" },
+    emphasis: { default: "", muted: "bg-muted text-muted-foreground" },
   },
-);
+  defaultVariants: { density: "default", emphasis: "default" },
+});
 
-type ButtonProps = React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants>;
+type SummarySectionProps = React.ComponentPropsWithRef<"section"> &
+  VariantProps<typeof summaryVariants>;
 
-export const Button = ({ className, variant, size, ...props }: ButtonProps) => {
+export function SummarySection({
+  className,
+  density,
+  emphasis,
+  ...props
+}: SummarySectionProps) {
   return (
-    <button
-      className={cn(buttonVariants({ variant, size }), className)}
+    <section
+      className={cn(summaryVariants({ density, emphasis }), className)}
       {...props}
     />
   );
-};
+}
 ```
 
 For components with multiple variants:
@@ -1392,13 +1363,18 @@ For components with multiple variants:
 **1. Extract Repeated Patterns:**
 
 ```tsx
-export const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';
+// In an authorized host owner; shared controls already supply their focus style.
+export const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50';
 export const disabled = 'disabled:pointer-events-none disabled:opacity-50';
 
 className={cn(focusRing, disabled, className)}
 ```
 
 **2. Use CSS Variables for Dynamic Values:**
+
+This generic CSS-variable example illustrates mechanics only. In Core, use an
+existing named runtime adapter/contract for dynamic values; it is not an inline-
+style, arbitrary-color or shared-control restyling allowance.
 
 **Incorrect:**
 
@@ -1431,10 +1407,12 @@ type ButtonProps = {
 **State-Based Styling:**
 
 ```tsx
-<div
+// Decorative passive state only; existing primitives own visibility/focus.
+<span
+  aria-hidden="true"
   className={cn(
-    "transition-all",
-    isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
+    "transition-opacity duration-(--duration-standard) motion-reduce:transition-none",
+    isHighlighted ? "opacity-100" : "opacity-50",
   )}
 />
 ```
@@ -1445,7 +1423,7 @@ type ButtonProps = {
 <div
   className={cn(
     baseVariants({ variant, size }),
-    isActive && "ring-2 ring-blue-500",
+    isActive && "ring-2 ring-ring",
     isDisabled && "opacity-50 cursor-not-allowed",
     className,
   )}
@@ -1465,7 +1443,11 @@ system values across components.
 
 **Impact: MEDIUM (Flexible theming and consistency)**
 
-Use semantic design tokens instead of hardcoded colors. Design tokens separate what something is from how it looks.
+Use semantic design tokens instead of hardcoded colors. Design tokens separate
+what something is from how it looks. Core consumes the existing Maia/Zinc tokens
+in `packages/ui/styles/globals.css`; generic token-authoring or native-host
+examples do not authorize app-local themes, palette changes or duplicate shared
+controls. New token work stays with its existing shared owner and review.
 
 **Base Tokens:**
 
@@ -1509,11 +1491,13 @@ Use semantic design tokens instead of hardcoded colors. Design tokens separate w
 <div className="bg-background text-foreground border-border">Content</div>
 ```
 
-Override tokens in `.dark` class:
+Generic theme-authoring background: `.dark` can override tokens. Core already
+owns its approved shared light/dark values; consume them unchanged:
 
 Components automatically adapt because they reference tokens.
 
-Use `oklch()` for better color manipulation:
+For generic token-authoring background, `oklch()` supports perceptual color
+manipulation; it does not authorize replacing Core's existing values:
 
 1. **Never hardcode colors** - Always use design tokens
 
@@ -1546,17 +1530,21 @@ Brief introduction explaining what the component does:
 
 Include live demos with code:
 
-Clear, copy-paste ready instructions:
+For a justified Core addition, use the installed pinned CLI from repository root
+with `--cwd packages/ui`; app consumers import `@asym/ui`. External npm
+installation examples remain publishing background:
 
 List key capabilities:
 
 Show variants, states, and advanced usage:
 
-Document all props:
+Derive actual props from the shared component and current source. Example API
+tables are illustrative subsets, not independent definitions:
 
 Document a11y features:
 
-Track versions:
+Track versions; hypothetical external changelogs are documentation background,
+not Core Button release history or additional props:
 
 **Use Real-World Examples:**
 
@@ -1603,13 +1591,18 @@ function UserProfile({ user }) {
 **Make Examples Runnable:**
 
 ```tsx
-// ✅ Complete, runnable
-import { Button } from "@/components/ui/button";
+// ✅ Complete client example
+"use client";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { useState } from "react";
 
 export function CounterButton() {
   const [count, setCount] = useState(0);
-  return <Button onClick={() => setCount(count + 1)}>Count: {count}</Button>;
+  return (
+    <Button onClick={() => setCount((current) => current + 1)}>
+      Count: {count}
+    </Button>
+  );
 }
 ```
 
@@ -1650,6 +1643,20 @@ components via registries like shadcn/ui.
 
 Registries distribute **source code**, not compiled packages. This enables true component ownership and customization.
 
+#### Core Consumption Boundary
+
+Core already consumes shared source through `@asym/ui`; do not create an app-local
+`components/ui` tree or replace it with an external UI package. A registry item
+is a candidate source import, not proof of Base UI/Maia compatibility. Review its
+source and dependencies, adapt it to the existing shared owner, and use the
+installed pinned CLI from repository root with `--cwd packages/ui` only when an
+addition is justified.
+
+Registry metadata, distribution comparisons and deployment/publishing examples
+below remain generic external-authoring background. They do not change Core's
+private package exports/build layout, authorize deployment, or establish rights
+to redistribute any imported source. Preserve its actual provenance and notices.
+
 **Bad:**
 
 ```typescript
@@ -1660,8 +1667,8 @@ import { Button } from "some-ui-library";
 **Good:**
 
 ```typescript
-// Registry-based - source code in your project
-import { Button } from "@/components/ui/button";
+// Core consumes its existing shared first-party source.
+import { Button } from "@asym/ui/components/shadcn/button";
 ```
 
 **Bad:**
@@ -1735,7 +1742,7 @@ vercel --prod
 **Example:**
 
 ```bash
-npx shadcn@latest add https://your-project.vercel.app/metric-card.json
+bunx --no-install shadcn add https://your-project.vercel.app/metric-card.json --cwd packages/ui
 ```
 
 **Example:**
@@ -1830,6 +1837,11 @@ configuration, exports, and module formats.
 **Impact: LOW (Traditional package distribution)**
 
 Distribute components as npm packages for stable, versioned dependencies with centralized updates.
+
+This chapter is generic external publishing background. Core's `@asym/ui` is a
+private source-export workspace package; its current manifest/build/exports stay
+authoritative. Do not copy this sample package, dependency pins or publication
+commands into Core as a replacement for that boundary.
 
 Choose npm when:
 
@@ -1997,6 +2009,15 @@ third-party component ecosystems.
 
 Marketplaces like [21st.dev](https://21st.dev) combine registry accessibility with package repository discoverability.
 
+#### Core Adoption Boundary
+
+These marketplace examples are discovery/external-authoring background, not an
+approved replacement for Core's shared primitives. Review the complete source,
+dependencies and permissions before adopting any item; adapt behavior to Base UI
+and appearance to exact `base-maia`/semantic tokens. Do not import a second
+primitive system or install into an app. A justified compatible addition uses
+the installed pinned CLI from repository root with `--cwd packages/ui`.
+
 **For Publishing:**
 
 - Share without managing infrastructure
@@ -2010,7 +2031,7 @@ Marketplaces like [21st.dev](https://21st.dev) combine registry accessibility wi
 **For Consuming:**
 
 ```bash
-npx shadcn@latest add https://21st.dev/r/haydenbleasel/dialog-stack
+bunx --no-install shadcn add https://21st.dev/r/haydenbleasel/dialog-stack --cwd packages/ui
 ```
 
 - Curated discovery by category

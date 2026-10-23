@@ -47,9 +47,11 @@ tooling/eslint-config/patches/*.patch text eol=lf whitespace=-space-before-tab
 *.ps1 text eol=crlf
 
 # Agent skill mirrors: normalize to LF so CI sync matches committed files.
+docs/ai/skills/impeccable/scripts/impeccable.cmd text eol=lf
 .agents/** text eol=lf
 .cursor/skills/** text eol=lf
 .cursor/skills-cursor/** text eol=lf
+.claude/skills/** text eol=lf
 # Legacy agent dir (if present) leave untouched.
 .agent/** -text
 

@@ -1596,15 +1596,16 @@
       "sourcePath": "skills/components-build/SKILL.md",
       "rawSkillHash": "55c76ed69a72f69b9e0a19ac08422f64bf88624f4f5f4069903f418883efba97",
       "lockHash": "ef827017f8483932b644935f8b69a7a5a8a862b5f2a818b9e688503e0ffede0c",
-      "entrypointHash": "09b8785148f92042ed20b45a5fc10fd7ef2b574317b5be0b153084ef88141559",
-      "treeHash": "7a333a2dcd18445a2d558889c840e2ea6b60521fa59d537e15ee35c0d4e89b42",
+      "entrypointHash": "0ac96ea2ec9ac2aa8a64d695737c22451ae12092997611bfdb3c038555de36d7",
+      "treeHash": "192e3257eb7d7a9496d7f4bcb8e4f1ec1cffac6819f3fe2b954afffcd19c2c41",
       "license": {
         "identifier": null,
         "status": "unresolved-applicable-license",
         "noticeFiles": []
       },
       "adaptations": [
-        "Retain Core Base UI/base-maia workflow inserted above unchanged upstream specification."
+        "Retain the existing Core Base UI/base-maia workflow; apply the separately reviewed Core class-helper correction to active generic examples.",
+        "Use cn and ClassValue from @asym/ui/lib/utils; preserve the existing source and permission record, and mark generic publishing dependency examples as non-operative for Core."
       ],
       "evidence": "docs/ai/skills/components-build/references/upstream.md",
       "reviewEvidence": [
@@ -1615,7 +1616,9 @@
           "matchesAfterRepositoryMarkdownFormatting": false,
           "acceptedDifferences": [
             "Retain Core Base UI/base-maia workflow inserted above unchanged upstream specification."
-          ]
+          ],
+          "localPayloadScope": "Historical comparison before the Core class-helper correction below; immutable upstream identities and original comparisons retained.",
+          "reviewedInstalledEntrypointSha256": "09b8785148f92042ed20b45a5fc10fd7ef2b574317b5be0b153084ef88141559"
         },
         {
           "kind": "complete-source-companion-comparison",
@@ -1728,7 +1731,9 @@
             }
           ],
           "missingFiles": ["metadata.json"],
-          "method": "Git blob identity, or trusted repository Prettier normalization; no imported script execution."
+          "method": "Git blob identity, or trusted repository Prettier normalization; no imported script execution.",
+          "localPayloadScope": "Historical comparison before the Core class-helper correction below; immutable upstream identities and original comparisons retained.",
+          "reviewedInstalledEntrypointSha256": "09b8785148f92042ed20b45a5fc10fd7ef2b574317b5be0b153084ef88141559"
         },
         {
           "kind": "permission-gap",
@@ -1739,6 +1744,15 @@
           "kind": "omitted-upstream-metadata",
           "path": "metadata.json",
           "finding": "Catalog metadata absent locally; not imported while permission remains unresolved."
+        },
+        {
+          "kind": "Core-owned-class-helper-correction",
+          "sourceBaseline": "8b31d2cc8bbd8189e03936cf1f355967ced538d3",
+          "authority": ["packages/ui/lib/utils.ts", "packages/ui/package.json"],
+          "publicImport": "@asym/ui/lib/utils",
+          "adapter": "scripts/lib/components-build-adapter.mjs",
+          "regression": "tests/unit/scripts/managed-skill-compatibility.test.ts",
+          "claim": "Bounded local guidance correction, persistent through reviewed compatibility/sync seams; no new upstream source imported or permission/freshness issue resolved."
         }
       ]
     },
@@ -3744,8 +3758,8 @@
       "sourcePath": "docs/ai/skills/inngest/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "26d242b77ff34e04e10526c64d91431f3273df47cb980442babeccb6b9c4a363",
-      "treeHash": "19df2b7043947f46b3722c7bd843e54b881f154ff38d18cdad7de3b728921ee3",
+      "entrypointHash": "dedcd86d195c4e5a054c7d03ca528a6ce07f28ab28beaa8f5d1f25eccebf2c9f",
+      "treeHash": "854704f9c41699b6703d7662ecae87948fab3182c7dcc8b84a419fe44d4c3b7e",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -3761,7 +3775,8 @@
         ]
       },
       "adaptations": [
-        "Retain repository-owned installed-contract guidance; upstream inspiration is lineage and does not imply imported or latest upstream content."
+        "Retain repository-owned installed-contract guidance; upstream inspiration is lineage and does not imply imported or latest upstream content.",
+        "Identify Core's installed Inngest runtime, API ownership and local development limits in the Core-authored router and refresh template; no provider or upstream freshness claim."
       ],
       "evidence": "docs/ai/skills/inngest/references/upstream.md",
       "reviewEvidence": [
@@ -3774,7 +3789,22 @@
             "docs/ai/stack-registry.md",
             "package.json"
           ],
-          "claim": "Source ownership and installed-contract retention; no external freshness claim."
+          "claim": "Source ownership and installed-contract retention; no external freshness claim.",
+          "scope": "Historical installed contract before the Core runtime classification correction below; original reviewed hash retained."
+        },
+        {
+          "kind": "Core-runtime-guidance-correction",
+          "sourceBaseline": "8b31d2cc8bbd8189e03936cf1f355967ced538d3",
+          "authority": [
+            "packages/api/package.json",
+            "packages/api/src/workflows/inngest/client.ts",
+            "packages/api/src/workflows/serve.ts",
+            "apps/admin/app/api/inngest/route.ts",
+            "docs/guides/features/inngest-workflows/local-development.md"
+          ],
+          "refreshTemplate": "scripts/refresh-inngest-skills.mjs",
+          "regression": "tests/unit/scripts/inngest-refresh-provenance.test.ts",
+          "claim": "Correct installed runtime classification and repository ownership; live Cloud qualification and upstream API freshness are separate."
         }
       ]
     },

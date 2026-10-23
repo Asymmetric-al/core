@@ -121,8 +121,22 @@ describe("integrated catalog Core contracts", () => {
   it("keeps compiled component guidance consistent with the Core render rule", async () => {
     const index = await read("components-build");
     const compiled = await read("components-build", "AGENTS.md");
-    expect(index).toContain("asChild");
-    expect(compiled).toContain("asChild");
+    const render = await read("components-build", "rules/as-child.md");
+    const state = await read("components-build", "rules/state.md");
+    expect(index).toContain("Render Composition");
+    expect(index).toContain("existing flat shared exports");
+    expect(compiled).toContain("## 9. Render Composition");
+    expect(compiled).toContain(
+      "[Base UI render Composition](#91-base-ui-render-composition)",
+    );
+    for (const content of [compiled, render, state])
+      expect(content).not.toMatch(
+        /from ["']@radix-ui\/|<Slot\b|useControllableState/u,
+      );
+    expect(render).toContain("DialogTrigger render={<Button");
+    expect(render).toContain("buttonVariants");
+    expect(state).toContain("defaultValue");
+    expect(state).toContain("onCheckedChange");
   });
 
   it("preserves the repaired Ask Matt routes and Cursor babysit loop", async () => {
@@ -183,7 +197,8 @@ describe("integrated catalog Core contracts", () => {
     expect(styling).not.toContain('from "cn"');
     expect(styling).toContain('from "@asym/ui/lib/utils"');
     const renderRule = await read("components-build", "rules/as-child.md");
-    expect(renderRule).toContain("asChild");
+    expect(renderRule).toContain("DialogTrigger render={<Button");
+    expect(renderRule).not.toContain('from "@radix-ui/react-slot"');
   });
 
   it("keeps motion recipes and picker recommendations within Core's installed contracts", async () => {

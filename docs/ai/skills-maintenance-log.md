@@ -1,6 +1,27 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-10-22
+Last updated: 2026-10-23
+
+## Component guidance compatibility review - 2026-10-23 (AL-1965)
+
+Reviewed the complete 22-file `components-build` payload against Core's installed
+shared UI and compiler contracts. Corrected active flat exports, controlled-state
+ownership, native element/ref types, Base UI state attributes, semantic tokens,
+reduced motion, disabled submission, and registry ownership in the canonical
+rules and compiled guidance. Generic authoring examples remain explicitly scoped;
+this local review does not establish a new upstream revision or resolve the
+existing permission gap recorded in `references/upstream.md`.
+
+The owned refresh adapter restores the reviewed guidance across 20 active files,
+rejects drift before publication, and parses static helper imports and exports
+with the pinned TypeScript 6 compiler API. Its fixtures retain the original raw
+capture and identify the additional full previous-Core capture as local evidence.
+All three mirrors and the selected installed payload hashes were regenerated.
+Local qualification passed 124 refresh/parity tests across four files and checked
+15 complete examples with the product TypeScript 7 compiler; seven negative
+controls reject unsupported public props and refs. Partial illustrative snippets
+are outside that compiler proof. These checks do not qualify browser behavior or
+live services.
 
 <!-- AL-2186-AUDIT-START -->
 

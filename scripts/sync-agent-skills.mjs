@@ -22,6 +22,7 @@ import { restoreReviewedEcosystemSkills } from "./lib/ecosystem-skill-adapters.m
 import { restoreStripeCoreGuidance } from "./lib/stripe-skill-adapters.mjs";
 import { applyManagedSkillCompatibility } from "./lib/managed-skill-compatibility.mjs";
 import { assertReviewedSkillFileModes } from "./lib/skill-file-modes.mjs";
+import { normalizeImpeccableLauncher } from "./lib/impeccable-source-adapter.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1057,6 +1058,15 @@ async function main() {
       skillName,
       path.join(sourceRoot, skillName),
     );
+  // Restore reviewed component recipes in their canonical owner before any
+  // mirror pruning, copying or manifest publication.
+  if (canonicalSkills.includes("components-build"))
+    await applyManagedSkillCompatibility(
+      "components-build",
+      path.join(sourceRoot, "components-build"),
+    );
+  if (canonicalSkills.includes("impeccable"))
+    await normalizeImpeccableLauncher(path.join(sourceRoot, "impeccable"));
   const canonicalSkillFiles = await buildCanonicalSkillFiles(canonicalSkills);
   const previousManifests = new Map();
 

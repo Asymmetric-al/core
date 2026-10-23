@@ -27,7 +27,7 @@ secondary actions, or destructive operations.
 Include live demos with code:
 
 ```tsx
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 
 export function ButtonDemo() {
   return (
@@ -42,11 +42,13 @@ export function ButtonDemo() {
 
 #### 3. Installation
 
-Clear, copy-paste ready instructions:
+For a justified Core addition, use the installed pinned CLI from repository root
+and target `packages/ui`; app consumers import `@asym/ui`. The external npm
+installation line below is publishing background, not a new Core dependency:
 
 ```bash
 # shadcn/ui CLI
-npx shadcn@latest add button
+bunx --no-install shadcn add button --cwd packages/ui
 
 # npm
 npm install @acme/ui-components
@@ -78,7 +80,9 @@ Show variants, states, and advanced usage:
 
 // States
 <Button disabled>Disabled</Button>
-<Button isLoading>Loading...</Button>
+<Button disabled={isLoading} aria-busy={isLoading}>
+  {isLoading ? "Saving…" : "Save"}
+</Button>
 
 // With icon
 <Button><Icon /> Save</Button>
@@ -86,15 +90,17 @@ Show variants, states, and advanced usage:
 
 #### 6. Props/API Reference
 
-Document all props:
+Derive the complete contract from `React.ComponentProps<typeof Button>` and its
+current source. The table below illustrates common props/values, not an
+exhaustive or independent API definition:
 
 ```markdown
-| Prop       | Type                                        | Default     | Description    |
-| ---------- | ------------------------------------------- | ----------- | -------------- |
-| `variant`  | `"default" \| "secondary" \| "destructive"` | `"default"` | Visual style   |
-| `size`     | `"sm" \| "md" \| "lg"`                      | `"md"`      | Size           |
-| `disabled` | `boolean`                                   | `false`     | Disabled state |
-| `onClick`  | `(event: MouseEvent) => void`               | -           | Click handler  |
+| Prop       | Type                                             | Default     | Description           |
+| ---------- | ------------------------------------------------ | ----------- | --------------------- |
+| `variant`  | `"default" \| "secondary" \| "destructive"`      | `"default"` | Visual style          |
+| `size`     | `"sm" \| "default" \| "lg"` (common subset)      | `"default"` | Existing size axis    |
+| `disabled` | `boolean`                                        | `false`     | Disabled state        |
+| `onClick`  | `React.ComponentProps<typeof Button>["onClick"]` | -           | Native action handler |
 ```
 
 #### 7. Accessibility
@@ -112,7 +118,8 @@ Document a11y features:
 
 #### 8. Changelog
 
-Track versions:
+Track versions. The changelog below is generic documentation background for a
+hypothetical external component, not the release history or props of Core Button:
 
 ```markdown
 ## Changelog
@@ -174,13 +181,18 @@ function UserProfile({ user }) {
 **Make Examples Runnable:**
 
 ```tsx
-// ✅ Complete, runnable
-import { Button } from "@/components/ui/button";
+// ✅ Complete client example
+"use client";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { useState } from "react";
 
 export function CounterButton() {
   const [count, setCount] = useState(0);
-  return <Button onClick={() => setCount(count + 1)}>Count: {count}</Button>;
+  return (
+    <Button onClick={() => setCount((current) => current + 1)}>
+      Count: {count}
+    </Button>
+  );
 }
 ```
 
