@@ -37,6 +37,22 @@
  *   the `wontfix` check. Its rewording is In-scope work but not a done
  *   criterion, so it is not asserted.
  *
+ * Spec addendum 2 (approved 2026-10-22 10:09 PM PT):
+ * {@link https://github.com/Asymmetric-al/core/issues/2154#issuecomment-6357881867}
+ * - Items 1 and 3 (criterion 6): the scope also allows
+ *   `tests/unit/scripts/factory-startup-guidance.contract.test.ts` (its David
+ *   regex becomes the Samson equivalent). `docs/ai/skill-source-audit.json`
+ *   (item 2) is already under `docs/ai/**`.
+ * - Item 4: Wayfinder maps and tickets carry no readiness label; no check
+ *   requires one (only the retired example on `wayfinder/SKILL.md:65` is
+ *   flagged by criterion 1).
+ * - Item 5: "one category role and one state role" wording is accepted; the
+ *   criterion 4 checks reject only an exactly-one `status:*` rule and require
+ *   the D1a state representations in the mapping tables.
+ * - Item 6: David under `docs/guides/**` and `openspec/**` is out of scope
+ *   (#2199). The criterion 2 search does not cover those paths, and the
+ *   criterion 6 scope check still rejects any change there.
+ *
  * Interpretation:
  * - Criterion 1: the PR body part is opt-in via
  *   `ACCEPTANCE_2154_PR_BODY_FILE=<path>`: every file with a remaining hit
@@ -396,6 +412,10 @@ describe("issue #2154 done criterion 5: skill mirrors", () => {
 
 // --- Criterion 6 -----------------------------------------------------------
 
+/** Addendum 2 item 1: the one test file this PR may change outside docs. */
+const STARTUP_GUIDANCE_TEST =
+  "tests/unit/scripts/factory-startup-guidance.contract.test.ts";
+
 const SCOPE_BASE = process.env.ACCEPTANCE_2154_BASE?.trim() ?? "";
 const SCOPE_ENABLED =
   process.env.ACCEPTANCE_2154_SCOPE?.trim() === "1" || SCOPE_BASE !== "";
@@ -403,7 +423,7 @@ const SCOPE_ENABLED =
 describe("issue #2154 done criterion 6: diff scope", () => {
   // Opt-in: in the normal suite this would fail every later PR.
   it.skipIf(!SCOPE_ENABLED)(
-    "criterion 6: the diff touches only docs/ai/**, docs/agents/** and the three mirror folders (opt-in: ACCEPTANCE_2154_SCOPE=1 or ACCEPTANCE_2154_BASE=<ref>)",
+    "criterion 6 / addendum 2 item 3: the diff touches only docs/ai/**, docs/agents/**, the three mirror folders and tests/unit/scripts/factory-startup-guidance.contract.test.ts (opt-in: ACCEPTANCE_2154_SCOPE=1 or ACCEPTANCE_2154_BASE=<ref>)",
     () => {
       let base = SCOPE_BASE;
       if (!base) {
@@ -430,7 +450,9 @@ describe("issue #2154 done criterion 6: diff scope", () => {
         ACCEPTANCE_DIR,
       ];
       const outside = [...new Set(changed)].filter(
-        (file) => !allowed.some((prefix) => file.startsWith(prefix)),
+        (file) =>
+          file !== STARTUP_GUIDANCE_TEST &&
+          !allowed.some((prefix) => file.startsWith(prefix)),
       );
       expect(outside, `outside scope vs ${base}`).toEqual([]);
     },
