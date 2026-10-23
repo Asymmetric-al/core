@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-10-23T12:20:59.021677+00:00",
+  "recordedAt": "2026-10-23T13:49:20.113647+00:00",
   "status": "qualified-local-runtime",
-  "scope": "Current develop integrated; current runtime sources, clean installation, full repository preflight and three production builds qualified locally. CI and deployed previews are separate release evidence.",
-  "sourceCommit": "7a5fbc17cb42d0531541ba702df99bb8759160f6",
+  "scope": "Current develop integrated; the reviewed runtime successor has focused behavior, workspace/fixture types and quality qualification. Earlier full-preflight, clean-install and graph evidence retains its exact source binding. Current-head CI and deployed previews are separate PR release evidence.",
+  "sourceCommit": "ec1b281aec7b2dd9f2e57ec9e69a4c3e0a8b9582",
   "integratedDevelop": "0026bcbe8b601586c29bba422675ce5889edd7b1",
   "branch": "chore/AL-1965-observability-content-sdks",
   "cohort": {
@@ -50,6 +50,10 @@
       "sha256": "1831548159362c2b37dad823820daeb300a93f668496df353586771cdbbafb3b"
     },
     {
+      "path": "packages/email/resend/inbound.ts",
+      "sha256": "6fd4b3f06aeb3b6e532b12549dc4f6acb171cc47515e9a3994ffefb2fa34e0d6"
+    },
+    {
       "path": "packages/lib/monitoring/sentry-policy.ts",
       "sha256": "52330f068bce1e2a49c6d98b284516ab376a12cce5ba4be70f5e48fac4d5e3c0"
     },
@@ -59,15 +63,15 @@
     },
     {
       "path": "scripts/sentry/next-config.mjs",
-      "sha256": "e4966f2a5b94310280492eaf1fc864b2a345ae8423c024bf4be6d2f08bf4dbec"
+      "sha256": "0574f903b41fc526c7bb12e10af8768ae8926ea9d67be0bd643281e1caaa9c0e"
     },
     {
       "path": "scripts/verify/sentry-release-sourcemaps.mjs",
-      "sha256": "20e175e100a91d2c392a11361164b71adc6ffd51b626819d8991843191e6e045"
+      "sha256": "aac600c7af0b70f92c63ea994e7a6c37e924e463882c122ec62c374f3b05b17c"
     },
     {
       "path": "tests/unit/packages/email/resend-sdk-security.test.ts",
-      "sha256": "541ba44d184d09026ae6922d2a7a44f523c41bf0a1de06f83beac6086aa6310d"
+      "sha256": "482d13ff2bdc6f9d4dc2d963c18cf7e9447ece387f3b86c827bd48fbeb16532f"
     },
     {
       "path": "tests/unit/packages/lib/safe-html-client.test.tsx",
@@ -79,7 +83,7 @@
     },
     {
       "path": "tests/unit/packages/lib/sentry-browser-privacy.test.ts",
-      "sha256": "87c6ec155e2baa03e8b272b3a858e22b10fce535f1320e563451985518e2611a"
+      "sha256": "e323ff2bd9b5a9144ed49161618f61ce7550f93c3f04f6cdc85c4d0d94e3185f"
     },
     {
       "path": "tests/unit/packages/lib/sentry-policy.test.ts",
@@ -87,7 +91,7 @@
     },
     {
       "path": "tests/unit/packages/lib/sentry-request-privacy.test.ts",
-      "sha256": "734a63cb7036442acd636f529683a07bd85eb05531a672510b300848b5bab7a5"
+      "sha256": "f8e72da510dd899f88145ec60f070997c34a7291fed6d0e745dfe6cb281655ae"
     },
     {
       "path": "tests/unit/packages/lib/stripe-sdk-loader.test.ts",
@@ -95,14 +99,14 @@
     },
     {
       "path": "tests/unit/scripts/sentry-release-sourcemaps.test.ts",
-      "sha256": "2f38ae66f9b6fd7b98e9feb85437585866ae7097f88d2ae1cef165985dd1b747"
+      "sha256": "7aea286f7a346cbf5b4a361068e78d3dcf0c45c2562f60c16116e1a15e178db8"
     },
     {
       "path": "tooling/shadscan/findings.json",
       "sha256": "982434f92df132096083e5feb9ce00109b22f7fd9b14417ae38cb069e2d1ebbb"
     }
   ],
-  "runtimeTestAndQualityAggregateSha256": "6d652f79e736961cecab353cca406522b415e9567ff35a30ee5ef2b3b9592eaa",
+  "runtimeTestAndQualityAggregateSha256": "f8d91a5c9cbda0796c747af78482cef8c1a94066ded2e26921a895ef4197c5df",
   "aggregateFormat": "sorted path order; sha256 + two spaces + repo-relative path + LF",
   "checks": {
     "fullPreflight": {
@@ -119,25 +123,28 @@
       "consumerTypechecks": 15,
       "cacheReads": 0,
       "executionHead": "abf71411ceda1066d212ec77a52d7ae893b5320f",
-      "sourceBinding": "The preflight ran before the final runtime commit, on the integrated execution HEAD with the qualified source changes. The normal-commit receipt verifies that all 25 reviewed source bytes were committed unchanged as sourceCommit. Build Git/release metadata therefore uses the execution HEAD rather than sourceCommit."
+      "sourceBinding": "Dated pre-review evidence: preflight ran on integrated execution HEAD with source changes committed unchanged as 7a5fbc17cb42d0531541ba702df99bb8759160f6. It does not cover the later seven-file review corrections; final current-head CI and normal push qualification are recorded on PR #2214."
     },
     "focusedBehavior": {
       "receipt": {
+        "path": "/tmp/core-sdk2214-final-review-cohort-igp2ziom/receipt.json",
+        "sha256": "eeee23c1d10dab317441f7572ca1f60fbb586b704f19fe6a91a3e7df7c49728f"
+      },
+      "testsPassed": 274,
+      "filesPassed": 27,
+      "sourceBinding": "The seven-file successor was tested before commit and preserved unchanged by the normal commit as sourceCommit.",
+      "earlierReceipt": {
         "path": "/tmp/core-sdk119-current-focused-njgvp3va/receipt.json",
         "sha256": "82bfc2edc79cb956ccdcb9df5b75f1ccf46b69551a78fbf1c93f8a41de01156e"
-      },
-      "testsPassed": 260,
-      "filesPassed": 27,
-      "note": "The focused run passed. Its first typecheck invocation used incompatible Turbo flags and did not execute; the separate uncached typecheck receipt below supersedes that invocation."
+      }
     },
     "consumerTypechecks": {
       "receipt": {
-        "path": "/tmp/core-sdk119-current-types-quality-7phngfn8/receipt.json",
-        "sha256": "20126204135384abd8f5f94543151da8cfe42e1cfed5dc2c3ec025be3fe31a79"
+        "path": "/tmp/core-sdk2214-final-review-cohort-igp2ziom/receipt.json",
+        "sha256": "eeee23c1d10dab317441f7572ca1f60fbb586b704f19fe6a91a3e7df7c49728f"
       },
       "passed": 15,
-      "cached": 0,
-      "note": "Its pre-refresh Doctor run deliberately reports stale evidence hashes; the qualified Doctor successor below binds the approved refresh."
+      "cached": 0
     },
     "qualityAndWiring": {
       "receipt": {
@@ -203,14 +210,38 @@
     },
     "supplementalFixtureTypecheck": {
       "receipt": {
-        "path": "/tmp/core-sdk119-fixture-ts7-fmsia05m/receipt.json",
-        "sha256": "f70f836e4ee5716adcb615fbcd1452e59f4cc7b77f4349478067b4db0a1ef55c"
+        "path": "/tmp/core-sdk2214-final-review-cohort-igp2ziom/receipt.json",
+        "sha256": "eeee23c1d10dab317441f7572ca1f60fbb586b704f19fe6a91a3e7df7c49728f"
       },
-      "commit": "7a5fbc17cb42d0531541ba702df99bb8759160f6",
+      "sourceCommit": "ec1b281aec7b2dd9f2e57ec9e69a4c3e0a8b9582",
       "compiler": "TypeScript 7.0.2 native",
       "files": 6,
       "result": "pass",
-      "cleanCheckout": true
+      "note": "An initial email-only invocation used incremental=false with a composite project and failed TS6379; the normal workspace and fixture checks above supersede that invocation."
+    },
+    "reviewCorrections": {
+      "receipt": {
+        "path": "/tmp/core-sdk2214-late-review-red-zdxwdk2b/receipt.json",
+        "sha256": "51f163ac51beef9eca66a8755d7dd3cfc3b6d0af3312001bf04b8e387b0d5e0c"
+      },
+      "firstGreen": {
+        "path": "/tmp/core-sdk2214-late-review-green-46baphqa/receipt.json",
+        "sha256": "2d65a34712ca3e6ec6569ae4307398b52a83715df2cb4f9abb553c87abdefad4"
+      },
+      "normalCommit": {
+        "path": "/tmp/core-sdk2214-late-review-normal-commit-ki3enog2/receipt.json",
+        "sha256": "1d7da8ebb322f0bcd66d93b4545a61a13aaec58490250ed56bc39f231f3f46fa"
+      },
+      "independentReview": {
+        "path": "/tmp/core-sdk2214-final-independent-review-pqx_tvwu/review-receipt.json",
+        "sha256": "fcc501a950218a481c207a66858a317bccc91269dd83f674184ea1b1bba1d749"
+      },
+      "reviewedFiles": 7,
+      "importantNewFindings": 0,
+      "redClassification": "Six release-placeholder and five malformed receiving-ID behavior regressions; three additional default ContextLines failures were fixture source-literal collisions, corrected with runtime random sentinels while retaining whole-envelope assertions.",
+      "greenTests": 33,
+      "greenFiles": 4,
+      "mcpAndQueueBoundary": "Resolved disabled collection policy only. Production tracing can register Kafka, Amqplib and McpServer integrations; matching module activation requires separate emitted-payload qualification. The current fixture does not dispatch MCP or queue operations."
     }
   },
   "graph": {
@@ -282,7 +313,7 @@
     "originalSha256": "0bda6d3c3f01118f3d444ceb9ee2c5260789cb150f5ab82a05b444f04b222bbf"
   },
   "releaseRequirements": [
-    "Current-head CI, complete changed-file/review-thread reconciliation, exact-commit applicable previews and merge/post-merge readback.",
+    "Current-head CI, complete changed-file/review-thread reconciliation, exact-commit applicable previews and final readback; PR #2214 stays open for manual merge. No merge or production execution is authorized by this qualification.",
     "The combined modernization still requires current release/SBOM/security qualification and the remaining AI, payment, legal and editor families."
   ]
 }
