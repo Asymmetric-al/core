@@ -419,7 +419,6 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
 
       if (!result.ok) {
         setTasks(oldTasks);
-        toast.error("Failed to move task. Reverting...");
         console.error("Move task error:", result.error);
         return false;
       }

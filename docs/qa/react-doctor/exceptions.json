@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "reactDoctorVersion": "0.9.18",
   "configHash": "9593037aa41b52d104aeea055158d7046dc23cfe6b202ce74fa22e0423b54f98",
-  "reviewedAt": "2026-10-22T12:34:38.788Z",
+  "reviewedAt": "2026-10-22T16:22:38.975567+00:00",
   "exceptions": [
     {
       "filePath": "app/(app)/admin/eve/model-policy-panel.tsx",
@@ -159,7 +159,7 @@
         "apps/admin/app/(app)/automations/page-client.tsx": "1e822bb8e8768f49326123d967cbaf3eb7f64bbc708264f856b1c5407a5254c3",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -1674,7 +1674,7 @@
         "apps/admin/app/(payload)/layout.tsx": "1e5f2c66bcdd71f0451e52fb4a012064e0ac4229f3dd676e19c90c4e232fdbe3",
         "apps/admin/src/cms/collections/cms-users.ts": "1b3197743ed8cbdc949874f1e9259de8c988166c5e953bc48e7f7ed9a32ed56c",
         "apps/admin/src/cms/auth/supabase-strategy.ts": "ad8373682bd6423cfceb5949075e443b42d578721cd2e3a13a4b2b2a01f3ab67",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -1848,8 +1848,8 @@
         "apps/admin/components/dashboard/charts/revenue-chart-view.tsx": "e408163b5b80900e57881ff0741e9ef58c880ddf0563f8c231ff08a81b4725e6",
         "apps/admin/components/dashboard/charts/revenue-chart.tsx": "f14afd060eb3e204bc3565ec325b13bb0f244d2fbf8c6fbe8d6e98c2812e9566",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
-        "packages/missionary/package.json": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "packages/missionary/package.json": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439",
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -1888,8 +1888,8 @@
         "apps/admin/components/dashboard/charts/weekly-chart-view.tsx": "1cdd3fdf12689423fb5afd65395ffca27923785f2ab92979fe53ea856dab04d6",
         "apps/admin/components/dashboard/charts/weekly-chart.tsx": "28fb60578d68d9cfba2d6833b30c297d43271b9c213501b4fa15861e7b8c8643",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
-        "packages/missionary/package.json": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "packages/missionary/package.json": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439",
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -2341,7 +2341,7 @@
       "sourceFileHash": "4a2a1d0e5bd19ea8a1acfb0ddbb801a347b3a2939f75240fa4d292927a8f2f1c",
       "evidenceFileHashes": {
         "apps/admin/features/mission-control/components/icons.tsx": "4a2a1d0e5bd19ea8a1acfb0ddbb801a347b3a2939f75240fa4d292927a8f2f1c",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -2444,8 +2444,8 @@
         "apps/admin/features/mission-control/components/tiles/mission-control-chart-views.tsx": "6da8c30d0045c181363d8874e37c35e0ae16a1653f0faf27cdcdac1bf9521396",
         "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": "fdf12e75c6db185dca2aea07ad7ef564fc01ea8994942b70b5350cd9d92d7e8e",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
-        "packages/missionary/package.json": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "packages/missionary/package.json": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439",
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -2924,7 +2924,7 @@
       "severity": "warning",
       "title": "useState not destructured",
       "message": "`useState` should be destructured as `[value, setValue]` so readers can see the state value and setter together.",
-      "help": "Destructure `useState` as `const [thing, setThing] = useState(…)` so state reads and writes stay visible together.",
+      "help": "Destructure `useState` as `const [thing, setThing] = useState(\u2026)` so state reads and writes stay visible together.",
       "line": 22,
       "column": 9,
       "offset": 669,
@@ -4725,7 +4725,7 @@
         "apps/donor/components/openpolicy/privacy-policy.tsx": "f20bf99cae680cd87f4bc97d7bcb9ee00c249075b5c59be4395fdde155a77d2c",
         "apps/donor/components/openpolicy/cookie-policy.tsx": "2ab88f03fce2ff3fa6552595d2aad7777b026697a463075fe7a9705adea131e1",
         "apps/donor/components/openpolicy/terms-of-service.tsx": "cba04917f74a338eae7005fd056ba4a112b41ddf0cb3e2ab8866e9a8c8a97ac2",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -5327,15 +5327,15 @@
       "title": "Click handler missing keyboard handler",
       "message": "Keyboard users can't trigger this click handler because there's no keyboard one, so add `onKeyUp`, `onKeyDown`, or `onKeyPress`.",
       "help": "Pair `onClick` with a key handler so keyboard users can trigger it.",
-      "line": 552,
+      "line": 553,
       "column": 10,
-      "offset": 15506,
+      "offset": 15578,
       "length": 10,
-      "endLine": 560,
+      "endLine": 561,
       "category": "Accessibility",
       "matchByOccurrence": true,
       "fingerprint": "9f505b495a921ef11bc42d53be6e65ac85c94c7b08d73069a13b94a23c3512e6",
-      "id": "app/tasks/page-client.tsx::552:10::react-doctor/click-events-have-key-events::0276b7fa2cce4bf57dcf4c3b08bbc01356320e693896de670cbe6fcfde841bd1",
+      "id": "app/tasks/page-client.tsx::553:10::react-doctor/click-events-have-key-events::0276b7fa2cce4bf57dcf4c3b08bbc01356320e693896de670cbe6fcfde841bd1",
       "normalizedFilePath": "app/tasks/page-client.tsx",
       "tags": ["react-jsx-only"],
       "target": "apps/missionary",
@@ -5347,7 +5347,7 @@
       ],
       "reconsiderWhen": "Reconsider if this capture handler gains an action or native button/keyboard focus ownership changes.",
       "sourceContextHash": "9f505b495a921ef11bc42d53be6e65ac85c94c7b08d73069a13b94a23c3512e6",
-      "sourceFileHash": "1efa3080a28d3f46e7ee433396fe4099b52ac8845ba800b23fc55dea30a3afb6",
+      "sourceFileHash": "1d9a7ab13c45fa8786ae3378eb8fe099e0abe483c9b88a1d85255ebf26783ebd",
       "evidenceFileHashes": {
         "tests/unit/apps/missionary/app/tasks/task-delete-recovery.test.tsx": "79f2066a919ececd32f4b2fa60c961c0979dd63ac38c04923cb2b70d7a0d663c",
         "packages/missionary/components/task-row.tsx": "05dfa7dbf91977aadc43ac71a0440c11fe79fe797b8e5ee1be5ec5b79052beda"
@@ -5519,7 +5519,7 @@
       ],
       "reconsiderWhen": "Reconsider if fetchJsonResult starts rejecting, post-fetch work introduces a throwing operation before the reset, or loading ownership/lifecycle changes.",
       "sourceContextHash": "e17cf38674ba82e2fa24125ef1daead2f0d494a93e93e121ea882d2b23ba77e8",
-      "sourceFileHash": "2a7068080fbc14db96419dd94c564d7678eb39c67d218177e776825e16cab7d2",
+      "sourceFileHash": "e172f151820d035d6efe97aa52145f82519475decd0d29e1fa3248cb705a6dca",
       "evidenceFileHashes": {
         "packages/lib/http/fetch-result.ts": "1bdf060656734e9034ca46f1950807cc7c3a139faaaa8aa40c08b7251e394a9b",
         "tests/unit/packages/lib/use-tasks-fetch-lifecycle.test.tsx": "8b7a2723d84d53a429d059fc677b691b0fea2271537b00d83eb8dc156e6068d0",
@@ -5717,44 +5717,6 @@
       }
     },
     {
-      "filePath": "components/task-kanban-board.tsx",
-      "plugin": "react-doctor",
-      "rule": "jsx-props-no-spreading",
-      "severity": "warning",
-      "title": "Props spread onto element",
-      "message": "You can't tell what props reach this element when you spread them.",
-      "help": "List each prop explicitly so consumers can see the component API instead of receiving hidden spread props.",
-      "line": 365,
-      "column": 15,
-      "offset": 9111,
-      "length": 15,
-      "endLine": 365,
-      "category": "Maintainability",
-      "fingerprint": "41434970f707910600a7c69e20edba6e88e706dd9b110661ce1872d52b9d81b7",
-      "id": "components/task-kanban-board.tsx::365:15::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
-      "normalizedFilePath": "components/task-kanban-board.tsx",
-      "tags": [],
-      "target": "packages/missionary",
-      "reason": "This exact drag handle consumes useSortable's composed attributes and listeners. Preserving the hook-provided role, tabIndex, ARIA descriptors, and input-sensor handlers is the drag/keyboard integration contract.",
-      "evidence": [
-        "SNAPSHOT SOURCE packages/missionary/components/task-kanban-board.tsx:347-386: KanbanCard accepts { task, isOverlay, onEdit, onComplete }: KanbanCardProps and forwards `attributes` to `div`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
-        "SNAPSHOT SOURCE packages/missionary/components/task-kanban-board.tsx:349-350 and 386-387: attributes and listeners originate from useSortable and reach the same handle.",
-        "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
-        "SUPPORTING SOURCE: packages/missionary/components/task-kanban-board.tsx contains the typed forwarding declaration or complete lifetime/sequencing owner described above, outside the narrow diagnostic span; this complete source is now explicitly hash-bound.",
-        "INDEPENDENT COMPLETE-OWNER SOURCE REVIEW: the same owner contains the typed native/framework declarations or out-of-line disposal/sequencing cited above. Its complete-file evidence hash locks those supporting lines, not just the diagnostic span; this is source proof, not a claim of test execution.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/missionary/components/task-kanban-board.tsx:361; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/missionary/components/task-kanban-board.tsx:365. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale."
-      ],
-      "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
-      "sourceContextHash": "41434970f707910600a7c69e20edba6e88e706dd9b110661ce1872d52b9d81b7",
-      "sourceFileHash": "4a788a329cde31fc22e52a328a9bf784b5f42226eb22068ec1655cd6ed6ae672",
-      "evidenceFileHashes": {
-        "packages/missionary/components/task-kanban-board.tsx": "4a788a329cde31fc22e52a328a9bf784b5f42226eb22068ec1655cd6ed6ae672",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
-      }
-    },
-    {
       "filePath": "components/task-partner-select.tsx",
       "plugin": "react-doctor",
       "rule": "no-ungated-tailwind-animation",
@@ -5830,8 +5792,8 @@
         "packages/missionary/internal/charts/giving-breakdown-view.tsx": "035a8c4c9e1ada27f0b76aa4c1c4879e300cd4eac1ee01608685a189d755d48a",
         "packages/missionary/components/giving-breakdown-chart.tsx": "3e34e6908b5c2a575078ea34a8c4bb4114393021da7dd08c1dfcde74aed807be",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
-        "packages/missionary/package.json": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "packages/missionary/package.json": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439",
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -5870,8 +5832,8 @@
         "packages/missionary/internal/charts/metric-sparkline.tsx": "a46f640941967ecffbc54918bc00fe3295373ee8918fdd00c0722bb1e07652d1",
         "packages/missionary/components/metric-tiles.tsx": "1fff7e9b5e68d4d3d284669dd8ae27a47b6e905e5a3d1a97324d0c78ae368be7",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
-        "packages/missionary/package.json": "0760cebce716a19d0b094d2c88ad0c4972079f0fc1c7680453b302527d717bbc",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "packages/missionary/package.json": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439",
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -6637,7 +6599,7 @@
         "packages/ui/components/public/about-sections.tsx": "2eb3c43ba03cfe257f5811d83f6637bfc2900edeca1511260f9e117889d68411",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -6675,7 +6637,7 @@
         "packages/ui/components/public/home-hero-animated.tsx": "27705bb3aade267bbea63c4ecb19021979b7a0e50a799b97ec8465db8982a6ee",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -7263,7 +7225,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -7299,7 +7261,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -7335,7 +7297,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -7407,7 +7369,7 @@
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
         "packages/missionary/components/giving-breakdown-chart.tsx": "3e34e6908b5c2a575078ea34a8c4bb4114393021da7dd08c1dfcde74aed807be",
         "packages/missionary/components/metric-tiles.tsx": "1fff7e9b5e68d4d3d284669dd8ae27a47b6e905e5a3d1a97324d0c78ae368be7",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "apps/admin/components/dashboard/charts/revenue-chart.tsx": "f14afd060eb3e204bc3565ec325b13bb0f244d2fbf8c6fbe8d6e98c2812e9566",
         "apps/admin/components/dashboard/charts/weekly-chart.tsx": "28fb60578d68d9cfba2d6833b30c297d43271b9c213501b4fa15861e7b8c8643",
@@ -7771,7 +7733,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onKeyDown\" does not match the \"onKeyDown\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
+      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
       "line": 436,
       "column": 7,
       "offset": 12235,
@@ -7805,7 +7767,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onFocus\" does not match the \"onFocus\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
+      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
       "line": 437,
       "column": 7,
       "offset": 12272,
@@ -7839,7 +7801,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onBlur\" does not match the \"onBlur\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
+      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
       "line": 438,
       "column": 7,
       "offset": 12305,
@@ -8010,7 +7972,7 @@
       "rule": "async-await-in-loop",
       "severity": "warning",
       "title": "await inside a loop",
-      "message": "This for…of loop waits before starting the next iteration. If iterations perform independent asynchronous work, consider bounded concurrency; await syntax alone does not establish a speedup.",
+      "message": "This for\u2026of loop waits before starting the next iteration. If iterations perform independent asynchronous work, consider bounded concurrency; await syntax alone does not establish a speedup.",
       "help": "Consider concurrent calls only for independent asynchronous work. Shared queues or synchronous work may not benefit. Preserve resource limits, transaction ordering, and failure/cancellation semantics; observe all callback promises.",
       "line": 240,
       "column": 31,
@@ -8436,7 +8398,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577",
         "packages/ui/components/shadcn/index.ts": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -8676,7 +8638,7 @@
         "packages/ui/components/shadcn/navigation-menu.ts": "d4ede3fd9b3a382ea89bae3cdad165edfd87b9cb45cd50359cafe0d7b73eceb5",
         "packages/ui/package.json": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577",
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -8952,7 +8914,7 @@
         "packages/ui/components/shadcn/rich-text-editor/extensions.ts": "aa604ff115ee739bbca1be7a213baabe945f0d8695ad9d6fc53a672004e5a388",
         "packages/ui/components/shadcn/rich-text-editor/image-view.ts": "a980eb79747730632fb040646a2d2645d88f73d9a5f7bba9ab2107a7134daa28",
         "tests/unit/packages/ui/image-resize-a11y.test.tsx": "272812e57efd2fef7f68116aa18399f90e8fab41c7fdf8aebcdc22a4b8df52be",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -9193,7 +9155,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onClick\" does not match the \"onClick\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
+      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
       "line": 281,
       "column": 7,
       "offset": 8607,
@@ -9219,7 +9181,7 @@
       "evidenceFileHashes": {
         "packages/ui/package.json": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577",
         "packages/ui/lib/base-ui.ts": "68b33342c62b74e72389cc1638234d78432801f5c250fa204937fbf4f8e6619a",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -9757,7 +9719,7 @@
       "sourceFileHash": "a20627ed47dae0e2385fdfa2825f0a7108dbbf363271cae866f408e89d680118",
       "evidenceFileHashes": {
         "packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx": "a20627ed47dae0e2385fdfa2825f0a7108dbbf363271cae866f408e89d680118",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -9992,7 +9954,7 @@
         "packages/ui/tsconfig.json": "f8c63eb108926bca4f4326b9555a6ae2239e515635c47251456975e639b05eb9",
         "packages/ui/components/view-transitions/index.ts": "ba9d97ad8f3a2119b305ec4cb0c7085141189b9158e3c56cc2b1235c2d0db01d",
         "packages/lib/view-transitions/index.ts": "eacbe9b75a9e475b74401a7ca8162cf052e6593c38440754507ab9c4a26aa006",
-        "bun.lock": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd"
+        "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
       }
     },
     {
@@ -10119,7 +10081,7 @@
       "severity": "warning",
       "title": "useState not destructured",
       "message": "`useState` should be destructured as `[value, setValue]` so readers can see the state value and setter together.",
-      "help": "Destructure `useState` as `const [thing, setThing] = useState(…)` so state reads and writes stay visible together.",
+      "help": "Destructure `useState` as `const [thing, setThing] = useState(\u2026)` so state reads and writes stay visible together.",
       "line": 42,
       "column": 9,
       "offset": 948,
