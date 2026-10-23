@@ -8,6 +8,9 @@
  * Spec addendum 1 (clarifications, approved 2026-10-22 9:49 PM PT):
  * {@link https://github.com/Asymmetric-al/core/issues/2068#issuecomment-6357644196}
  *
+ * Spec addendum 2 (array order, approved 2026-10-22 10:09 PM PT):
+ * {@link https://github.com/Asymmetric-al/core/issues/2068#issuecomment-6357880766}
+ *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
 
@@ -96,7 +99,10 @@ export const BASE_PURPOSE_LAUNCH_GATES = [
   "registered_safe_data_view",
 ] as const;
 
-/** In item 3 / criterion 4: the six gates of the amended entry. */
+/**
+ * In item 3 / criterion 4: the six gates of the amended entry, in the exact
+ * order addendum 2 item 2 pins.
+ */
 export const EXPECTED_GATES = [
   "core_d3_renderer_qualified",
   "core_d4_artifact_pipeline",
@@ -130,6 +136,22 @@ export const BASE_GIVING_FIELDS = [
   "period_gift_dates",
   "period_gift_amounts",
   "period_total",
+  "not_official_statement",
+] as const;
+
+/**
+ * Addendum 2 item 1: the giving entry's `approved_data_view.fields`, exactly
+ * in this order (`period_total` replaced in place by the two added fields).
+ */
+export const EXPECTED_GIVING_FIELDS = [
+  "tenant_display_name",
+  "donor_display_name",
+  "period_start",
+  "period_end",
+  "period_gift_dates",
+  "period_gift_amounts",
+  "household_support_items",
+  "daf_recommendation_items",
   "not_official_statement",
 ] as const;
 

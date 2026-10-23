@@ -26,6 +26,16 @@
  *   and is only newly added to the giving entry's `launch.gates`; only the
  *   phase07/phase13/phase14 gates are new names in `PURPOSE_LAUNCH_GATES`.
  *
+ * Spec addendum 2 (array order, approved 2026-10-22 10:09 PM PT):
+ * {@link https://github.com/Asymmetric-al/core/issues/2068#issuecomment-6357880766}
+ * Canonical serialization keeps array order, so order feeds the digest.
+ * - Item 1: `approved_data_view.fields` is exactly the nine fields in order.
+ * - Item 2: `launch.gates` is exactly the six gates in order.
+ * - Item 3: `PURPOSE_LAUNCH_GATES` gains exactly the three new names,
+ *   appended at the end in order, and existing names keep their order.
+ * The field and gate order checks run by default (they are this PR's
+ * content). The exact `PURPOSE_LAUNCH_GATES` check stays opt-in.
+ *
  * Interpretation:
  * - "tests assert each one" = the In item 4 test files name each asserted
  *   value literally.
@@ -57,6 +67,7 @@ import {
   CATALOG_TEST_FILE,
   DIRECT_GIFT_FIELDS,
   EXPECTED_GATES,
+  EXPECTED_GIVING_FIELDS,
   EXPECTED_RECIPIENT_ROLE,
   EXISTING_GATE_ADDED_TO_GIVING,
   EXPECTED_SOURCE_OWNER,
@@ -126,10 +137,8 @@ describe("issue #2068 done criterion 3: recipient_role.role", () => {
 });
 
 describe("issue #2068 done criterion 3: launch.gates", () => {
-  it("criterion 3: launch.gates is exactly D3, D4 and the Phase 7/13/14/19 gates, and launch.state stays supported_after_gates", () => {
-    expect([...contract().launch.gates].sort()).toEqual(
-      [...EXPECTED_GATES].sort(),
-    );
+  it("criterion 3 / addendum 2 item 2: launch.gates is exactly D3, D4, phase07, phase13, phase14, phase19 in that order, and launch.state stays supported_after_gates", () => {
+    expect([...contract().launch.gates]).toEqual([...EXPECTED_GATES]);
     expect(contract().launch.state).toBe("supported_after_gates");
   });
 
@@ -161,19 +170,24 @@ describe("issue #2068 done criterion 3: launch.gates", () => {
     );
   });
 
-  it("criterion 3: no existing PURPOSE_LAUNCH_GATES name is removed or renamed", () => {
+  it("criterion 3 / addendum 2 item 3: no existing PURPOSE_LAUNCH_GATES name is removed or renamed, and existing names keep their order", () => {
     for (const gate of BASE_PURPOSE_LAUNCH_GATES) {
       expect(PURPOSE_LAUNCH_GATES as readonly string[]).toContain(gate);
     }
+    const base = BASE_PURPOSE_LAUNCH_GATES as readonly string[];
+    expect(PURPOSE_LAUNCH_GATES.filter((gate) => base.includes(gate))).toEqual([
+      ...BASE_PURPOSE_LAUNCH_GATES,
+    ]);
   });
 
-  // Opt-in: a later PR may legitimately add more gate names.
+  // Opt-in: a later PR may legitimately add or insert more gate names.
   it.skipIf(!SCOPE_ENABLED)(
-    "criterion 3 / addendum 1 item 4: PURPOSE_LAUNCH_GATES gains exactly the three new names (opt-in: ACCEPTANCE_2068_SCOPE=1 or ACCEPTANCE_2068_BASE=<ref>)",
+    "criterion 3 / addendum 1 item 4 + addendum 2 item 3: PURPOSE_LAUNCH_GATES is the base list in its order followed by exactly phase07, phase13, phase14 at the end (opt-in: ACCEPTANCE_2068_SCOPE=1 or ACCEPTANCE_2068_BASE=<ref>)",
     () => {
-      expect([...PURPOSE_LAUNCH_GATES].sort()).toEqual(
-        [...BASE_PURPOSE_LAUNCH_GATES, ...NEW_GATES].sort(),
-      );
+      expect([...PURPOSE_LAUNCH_GATES]).toEqual([
+        ...BASE_PURPOSE_LAUNCH_GATES,
+        ...NEW_GATES,
+      ]);
     },
   );
 });
@@ -201,6 +215,12 @@ describe("issue #2068 done criterion 3: approved data view (D2a)", () => {
     const kept = base.filter((field) => field !== "period_total");
     const live = contract().approved_data_view.fields as readonly string[];
     expect(kept.filter((field) => !live.includes(field))).toEqual([]);
+  });
+
+  it("criterion 3 / addendum 2 item 1: approved_data_view.fields is exactly the nine fields in order (period_total replaced in place)", () => {
+    expect([...contract().approved_data_view.fields]).toEqual([
+      ...EXPECTED_GIVING_FIELDS,
+    ]);
   });
 
   it("criterion 3 / D2a: household_support_items and daf_recommendation_items are added", () => {
