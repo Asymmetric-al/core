@@ -7,6 +7,21 @@ tags: definitions, primitive, component, block, template, pattern, utility, term
 
 ## Component Artifact Definitions
 
+<!-- CORE-COMPONENTS-CN-START -->
+
+**Core shared class helper:** consume the existing helper through the shared UI
+boundary:
+
+```tsx
+import { cn } from "@asym/ui/lib/utils";
+```
+
+Do not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`
+for these recipes. The generic npm dependency examples below are retained
+upstream material and are **non-operative in Core**. Current workspace manifests
+and `packages/ui/lib/utils.ts` own the implementation and dependency choices.
+<!-- CORE-COMPONENTS-CN-END -->
+
 Precise terminology for classifying and naming UI artifacts.
 
 ### Primitive (Unstyled Component)
@@ -107,17 +122,12 @@ A **multi-page collection** or full-site scaffold bundling pages, routing, layou
 ### Utility (Non-visual)
 
 A **helper** for developer ergonomics or composition; not rendered UI.
+Core reuses existing shared utilities; installed primitives own interaction state.
 
 ```tsx
-function useControllableState({ prop, defaultProp, onChange }) {
-  const [state, setState] = useState(defaultProp);
-  const value = prop !== undefined ? prop : state;
-  const setValue = (newValue) => {
-    if (prop === undefined) setState(newValue);
-    onChange?.(newValue);
-  };
-  return [value, setValue];
-}
+import { cn } from "@asym/ui/lib/utils";
+
+const className = cn("text-foreground", "font-medium");
 ```
 
 **Examples:** React hooks, class utilities, keybinding helpers, focus scopes

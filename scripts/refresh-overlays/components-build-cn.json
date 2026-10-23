@@ -170,6 +170,11 @@
       "path": "rules/_sections.md",
       "upstream": "## 9. As-Child (as-child)\n\n**Impact:** MEDIUM  \n**Description:** Radix UI Slot pattern for merging props and behaviors with\ncustom child elements without wrapper elements.\n\n",
       "core": "## 9. Render Composition (as-child)\n\n**Impact:** MEDIUM  \n**Description:** Base UI render composition with preserved native semantics,\nprops and ref.\n\n"
+    },
+    {
+      "path": "rules/definitions.md",
+      "upstream": "### Utility (Non-visual)\n\nA **helper** for developer ergonomics or composition; not rendered UI.\n\n```tsx\nfunction useControllableState({ prop, defaultProp, onChange }) {\n  const [state, setState] = useState(defaultProp);\n  const value = prop !== undefined ? prop : state;\n  const setValue = (newValue) => {\n    if (prop === undefined) setState(newValue);\n    onChange?.(newValue);\n  };\n  return [value, setValue];\n}\n```\n\n**Examples:** React hooks, class utilities, keybinding helpers, focus scopes",
+      "core": "### Utility (Non-visual)\n\nA **helper** for developer ergonomics or composition; not rendered UI.\nCore reuses existing shared utilities; installed primitives own interaction state.\n\n```tsx\nimport { cn } from \"@asym/ui/lib/utils\";\n\nconst className = cn(\"text-foreground\", \"font-medium\");\n```\n\n**Examples:** React hooks, class utilities, keybinding helpers, focus scopes"
     }
   ],
   "tableRows": [

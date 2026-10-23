@@ -12,8 +12,9 @@ const files = [
   "rules/state.md",
   "rules/composition.md",
   "rules/_sections.md",
+  "rules/definitions.md",
 ];
-const noticeFiles = new Set(files.slice(0, 6));
+const noticeFiles = new Set([...files.slice(0, 6), "rules/definitions.md"]);
 const guidanceUrl = new URL(
   "../refresh-overlays/components-build-cn.json",
   import.meta.url,

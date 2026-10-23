@@ -208,6 +208,71 @@ afterEach(async () => {
     await rm(root, { recursive: true, force: true });
 });
 describe("reviewed raw managed-skill restoration", () => {
+  it("adapts the advertised definitions utility without publishing another primitive state implementation", async () => {
+    const root = await componentsFixture();
+    await applyManagedSkillCompatibility("components-build", root);
+    const definitions = await readFile(
+      path.join(root, "rules/definitions.md"),
+      "utf8",
+    );
+    expect(definitions).not.toContain("useControllableState");
+    expect(definitions).toContain('import { cn } from "@asym/ui/lib/utils";');
+    expect(definitions).toContain("installed primitives own interaction state");
+    expect(definitions).toContain("### Classification Decision Flow");
+    expect(definitions).toContain("### Key Vocabulary");
+  });
+  it("rejects a drifted definitions state recipe before writing any document", async () => {
+    const root = await componentsFixture();
+    const file = path.join(root, "rules/definitions.md");
+    await writeFile(
+      file,
+      (await readFile(file, "utf8")).replace(
+        "return [value, setValue];",
+        "return [state, setState];",
+      ),
+    );
+    const before = new Map<string, string>();
+    for (const relative of Object.keys(componentsRawFiles))
+      before.set(relative, await readFile(path.join(root, relative), "utf8"));
+    await expect(
+      applyManagedSkillCompatibility("components-build", root),
+    ).rejects.toThrow("guidance drifted");
+    for (const [relative, expected] of before)
+      expect(await readFile(path.join(root, relative), "utf8"), relative).toBe(
+        expected,
+      );
+  });
+  it.each([false, true])(
+    "rejects an extra definitions state recipe (adapted=%s) before writes",
+    async (adapted) => {
+      const root = await componentsFixture();
+      if (adapted)
+        await applyManagedSkillCompatibility("components-build", root);
+      const file = path.join(root, "rules/definitions.md");
+      const fence = String.fromCharCode(96).repeat(3);
+      await writeFile(
+        file,
+        (await readFile(file, "utf8")) +
+          "\n" +
+          fence +
+          "tsx\nfunction useControllableState() { return [false, () => {}]; }\n" +
+          fence +
+          "\n",
+      );
+      const before = new Map<string, string>();
+      for (const relative of Object.keys(componentsRawFiles))
+        before.set(relative, await readFile(path.join(root, relative), "utf8"));
+      await expect(
+        applyManagedSkillCompatibility("components-build", root),
+      ).rejects.toThrow("components-build");
+      for (const [relative, expected] of before)
+        expect(
+          await readFile(path.join(root, relative), "utf8"),
+          relative,
+        ).toBe(expected);
+    },
+  );
+
   it("restores Base UI composition and state from independent legacy guidance fixtures", async () => {
     const root = await componentsFixture();
     await applyManagedSkillCompatibility("components-build", root);
