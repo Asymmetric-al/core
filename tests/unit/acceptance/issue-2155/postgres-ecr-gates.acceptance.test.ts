@@ -54,8 +54,15 @@ const combos = (ids: readonly string[]): Record<string, string>[] =>
   );
 const run = (id: string, results: Record<string, string>, s: Scenario) =>
   W.executeGateJob(jobs[id]!, { results }, s);
+/**
+ * Scope ruling: the §1.2 own-condition wording may appear on a separate log
+ * line but is not tested (neither required nor forbidden), so it is ignored.
+ */
 const rootCauses = (stdout: string) =>
-  stdout.split("\n").filter((line) => line.trim().startsWith("Root cause:"));
+  stdout
+    .split("\n")
+    .filter((line) => line.trim().startsWith("Root cause:"))
+    .filter((line) => !line.includes(OWN_SKIP));
 
 /**
  * Addendum 1 (A1) and §1.2: a gate passes only when every listed need
@@ -139,12 +146,10 @@ describe("#2155 criteria 4-5 (addendum 1 A1): e2e-smoke-gate pass/fail and root 
         expect(ex.status === 0, tag).toBe(want === null);
         expect(ex.stdout, tag).not.toContain(W.FORK_FAIL_MESSAGE);
         const lines = rootCauses(ex.stdout).map((l) => l.trim());
-        const allowed: string[][] =
-          want === null ? [[]] : [[`Root cause: ${want}`]];
-        // §1.2 own-condition row: its wording or the A1 form (A1 keeps §1.2 rows).
-        if (want === "test-e2e-smoke (skipped)")
-          allowed.push([`Root cause: ${OWN_SKIP}`]);
-        expect(allowed, tag).toContainEqual(lines);
+        // A1 governs every row, incl. the own-condition skip (Scope ruling).
+        expect(lines, tag).toEqual(
+          want === null ? [] : [`Root cause: ${want}`],
+        );
       }
     });
   }
