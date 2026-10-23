@@ -14,7 +14,7 @@ maintained compatibility dependency with a current upstream reason and owner.
 
 ## Coverage
 
-- [Dependency inventory](dependencies.json): 134 inventoried external/imported identities, including 130 current
+- [Dependency inventory](dependencies.json): 136 inventoried external/imported identities, including 132 current
   canonical identities across 23 active manifests (18 workspace/root manifests
   plus five imported PDF packages). Baseline and current declarations retain
   alias names and every imported-package consumer. Internal workspace links are
@@ -55,6 +55,7 @@ donor 61, missionary 47. Existing floors remain binding.
 | Payload                | Public 4.0.0-beta.3 coherent cohort                             | Merged; production cutover open | [Migration, restore, browser and unit evidence](payload.md)                                     |
 | PDF source / artifacts | Current coordinated 0.1.0 artifacts                             | Merged; post-merge CI passed    | [Source, import and verification](pdf-packages.md)                                              |
 | UI utilities           | Six direct libraries and four compatible leaves                 | Merged; post-merge CI passed    | [UI release readback](ui-utilities-release-readback.json); [behavior evidence](ui-utilities.md) |
+| Dnd public API         | Coordinated React/DOM/helper/abstract 0.5.1                     | Merged; post-merge CI passed    | [Release readback](dnd-kit-release-readback.json); [behavior](dnd-kit.md)                       |
 | UI / telemetry / AI    | Remaining families and pre-call governance                      | Pending                         | [Dnd migration](dnd-kit.md); remaining provider and combined qualification required             |
 | Payments / legal       | Stripe 23 / Endive; OpenPolicy current + owned Terms            | Pending                         | Sandbox drain/abort and document equality required                                              |
 | Nested security / docs | Complete graph, owned exceptions, current active instructions   | Pending                         | Final SBOM/manual reconciliation required                                                       |
@@ -84,13 +85,22 @@ exact-head hosted smoke projects passed. The source-bound post-merge readback
 records both Main CI and CI Integration success. This
 checkpoint does not close the wider UI or modernization campaign.
 
-The [Dnd API migration](dnd-kit.md) tracks the first-party replacement. Its
-recorded local gates remain dated prior-base evidence. Full browser requalification
-on the merged UI base passed 299 cases with 5 existing skips. Prepush,
-PR/current-head CI/review, hosted previews
-and merge remain open. The Payload beta.3 checkpoint remains
-dated qualified evidence; newly published beta.4 requires coherent owner
-requalification before the combined release freeze.
+The [Dnd first-party release](dnd-kit-release-readback.json) merged through
+[PR #2195](https://github.com/Asymmetric-al/core/pull/2195) as
+`f59331942c6e84ab66bcdd14c3b120025cceecfd` from qualified head
+`89ff719a73d302b3ba9079838f64fdd634d0002e`. Normal pre-push, exact-head CI/review,
+three READY previews/manual smoke and both post-merge workflows passed. Post-merge
+attempt 1 hit bounded apt-index bootstrap timeouts; the retained failed jobs
+passed on one retry with identical source and no policy changes. The release
+retains the preview creation-marker/readback limit and closes task 7.1a only.
+The original 299-case browser evidence remains historical; final notification
+303/5 and mapper 63/6 proofs retain their exact source/lock scopes.
+
+Inventory retains 136 identities including historical replacements, 132 current
+canonical identities, 300 declarations and 23 manifests. Both new `pg` identities
+remain OPEN. CMS legacy Dnd compatibility and coherent public Payload beta.4
+qualification remain open; the beta.3 checkpoint remains dated evidence. Live
+DocRaptor fidelity and the wider UI/security/combined release remain unqualified.
 
 The [observability and content SDK checkpoint](observability-content-sdks.md)
 updates Sentry, sanitization, Resend and browser Stripe.js, while retaining

@@ -27,6 +27,6 @@ export async function normalizeImpeccableLauncher(skillRoot) {
   }).decode(await readFile(file));
   if (before.includes("\u0000"))
     throw new Error("Impeccable launcher must contain UTF-8 text: " + file);
-  const after = before.replaceAll("\r\n", "\n");
+  const after = before.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
   if (after !== before) await writeFile(file, after, "utf8");
 }

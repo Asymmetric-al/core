@@ -39,7 +39,9 @@ async function fixture() {
   await mkdir(path.join(root, ".agents/skills/example/references"), {
     recursive: true,
   });
-  await mkdir(path.join(root, "docs/ai/skills/example"), { recursive: true });
+  await mkdir(path.join(root, "docs/ai/skills/example/references"), {
+    recursive: true,
+  });
   await mkdir(path.join(root, "docs/ai"), { recursive: true });
   await writeFile(
     path.join(root, ".agents/skills/example/SKILL.md"),
@@ -47,6 +49,14 @@ async function fixture() {
   );
   await writeFile(
     path.join(root, ".agents/skills/example/references/raw.md"),
+    "Original upstream bytes\n",
+  );
+  await writeFile(
+    path.join(root, "docs/ai/skills/example/SKILL.md"),
+    "# Reviewed Core guidance\n",
+  );
+  await writeFile(
+    path.join(root, "docs/ai/skills/example/references/raw.md"),
     "Original upstream bytes\n",
   );
   const audit = {
@@ -94,6 +104,44 @@ describe("targeted installed skill audit hashes", () => {
     const first = await readFile(auditPath, "utf8");
     expect(update(root, "example").status).toBe(0);
     expect(await readFile(auditPath, "utf8")).toBe(first);
+  });
+  it.each(["changed", "missing", "extra"])(
+    "refuses to stamp a canonical record when the source payload is %s",
+    async (difference) => {
+      const { root, auditPath } = await fixture();
+      const original = await readFile(auditPath, "utf8");
+      const canonical = path.join(root, "docs/ai/skills/example");
+      if (difference === "changed")
+        await writeFile(
+          path.join(canonical, "SKILL.md"),
+          "# Raw upstream guidance\n",
+        );
+      if (difference === "missing")
+        await rm(path.join(canonical, "references/raw.md"));
+      if (difference === "extra")
+        await writeFile(
+          path.join(canonical, "references/extra.md"),
+          "Unpublished\n",
+        );
+      const result = update(root, "example");
+      expect(result.status, result.stdout + result.stderr).not.toBe(0);
+      expect(result.stderr).toContain(
+        "Canonical and installed skill payloads differ",
+      );
+      expect(await readFile(auditPath, "utf8")).toBe(original);
+    },
+  );
+  it("rejects canonical symlinks before changing the audit", async () => {
+    const { root, auditPath } = await fixture();
+    const original = await readFile(auditPath, "utf8");
+    await symlink(
+      "raw.md",
+      path.join(root, "docs/ai/skills/example/references/link.md"),
+    );
+    const result = update(root, "example");
+    expect(result.status, result.stdout + result.stderr).not.toBe(0);
+    expect(result.stderr).toContain("symlink");
+    expect(await readFile(auditPath, "utf8")).toBe(original);
   });
   it("validates every selection before writing and rejects symlink payloads", async () => {
     const { root, auditPath } = await fixture();
