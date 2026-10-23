@@ -86,6 +86,8 @@ export function run(
     env?: Record<string, string>;
     bun?: boolean;
     files?: Record<string, string>;
+    /** How argv[1] names the script: absolute (default), cwd-relative, or a relative symlink. */
+    via?: "relative" | "symlink";
   } = {},
 ): Run {
   const cwd = fs.realpathSync(fs.mkdtempSync(path.join(tmpdir(), "acc-2223-")));
@@ -103,7 +105,15 @@ export function run(
     fs.mkdirSync(path.dirname(path.join(cwd, rel)), { recursive: true });
     fs.writeFileSync(path.join(cwd, rel), body);
   }
-  const r = spawnSync(process.execPath, [script, ...(opts.args ?? [])], {
+  let argv1 = script;
+  if (opts.via === "symlink") {
+    fs.mkdirSync(path.join(cwd, "linked"));
+    fs.symlinkSync(script, path.join(cwd, "linked", path.basename(script)));
+    argv1 = path.join("linked", path.basename(script));
+  } else if (opts.via === "relative") {
+    argv1 = path.relative(cwd, script);
+  }
+  const r = spawnSync(process.execPath, [argv1, ...(opts.args ?? [])], {
     cwd,
     env: { PATH: bin, FAKE_BUN_DIR: fake, ...opts.env },
     encoding: "utf8",

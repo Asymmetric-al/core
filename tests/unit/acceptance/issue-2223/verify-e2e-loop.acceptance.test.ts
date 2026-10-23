@@ -113,12 +113,15 @@ describe("#2223 criterion 9: an attempt passes only when exit 0 AND ok:true", ()
       );
     },
   );
-  it("a first-try pass runs once, exits 0 and claims no earlier failure", () => {
-    const r = loop([PASS]);
-    expect([r.status, r.calls.loop]).toEqual([0, [VERIFY]]);
-    expect(r.stdout).toBe(PASS.stdout);
-    expect(r.stderr).not.toMatch(/after [1-9]\d* failed attempt/);
-  });
+  it.each([undefined, ["1"], ["3"]])(
+    "a first-try pass (args %j) runs once, exits 0 and prints no 'Passed on attempt' line",
+    (args) => {
+      const r = loop([PASS], args);
+      expect([r.status, r.calls.loop]).toEqual([0, [VERIFY]]);
+      expect(r.stdout).toBe(PASS.stdout);
+      expect(r.stderr).not.toMatch(/Passed on attempt|failed attempt/);
+    },
+  );
   it.each([
     "not json",
     "42",
@@ -127,11 +130,14 @@ describe("#2223 criterion 9: an attempt passes only when exit 0 AND ok:true", ()
     json({ ok: "true" }),
     json({ ok: 1 }),
     json({ failed: [] }),
+    "[]",
+    json([{ ok: true }]),
   ])(
-    "stdout %s (unparsable, non-object or non-boolean ok) → exit 1 immediately",
+    "stdout %s (unparsable, null/number/string/array or non-boolean ok) → exit 1 immediately, no retry",
     (stdout) => {
-      const r = loop([{ exit: 0, stdout }], ["3"]);
+      const r = loop([{ exit: 0, stdout }, PASS], ["3"]);
       expect([r.status, r.calls.loop.length], r.stderr).toEqual([1, 1]);
+      expect(r.stderr).not.toContain("Attempt 2/3");
     },
   );
   it("bun cannot be spawned → exit 1 without retrying", () => {
@@ -143,6 +149,14 @@ describe("#2223 criterion 9: an attempt passes only when exit 0 AND ok:true", ()
 });
 
 describe("#2223 criterion 6: loop interface unchanged", () => {
+  it.each(["relative", "symlink"] as const)(
+    "main runs when invoked by a %s path (realpath main guard)",
+    (via) => {
+      const r = run(LOOP, { loop: [FAIL, PASS] }, { args: ["2"], via });
+      expect([r.status, r.calls.loop.length], r.stderr).toEqual([0, 2]);
+      expect(r.stdout).toBe(FAIL.stdout + PASS.stdout);
+    },
+  );
   it("prints the top-3 failures (with trace/video) to stderr", () => {
     const f = (n: number) => ({
       test: `t${n}`,

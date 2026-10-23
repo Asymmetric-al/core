@@ -311,6 +311,38 @@ describe("#2223 criteria 1, 3: outcome mapping O2-O13", () => {
       "Incomplete run: ",
     );
   });
+  it.each([0, 1])(
+    "O6/O9/O10 overlap (child exit %i): every condition adds its own entries",
+    (exit) => {
+      const rep = report([spec("never ran", test("expected", []))], {
+        errors: [{ message: "setup broke" }, { value: "second error" }],
+        stats: { expected: 0, unexpected: 1, flaky: 0, skipped: 0 },
+      });
+      const { s } = expectFail(
+        wrapper({ report: json(rep), exit }),
+        "playwright-runner",
+        "setup broke",
+      );
+      const has = (t: string, m: string) =>
+        s.failed.filter((f) => f.test === t && f.message.startsWith(m));
+      expect(has("playwright-runner", "").map((f) => f.message)).toEqual([
+        "setup broke",
+        "second error",
+      ]);
+      expect(
+        has(
+          "playwright-report",
+          "No tests executed (expected=0, flaky=0, skipped=0)",
+        ),
+        JSON.stringify(s.failed),
+      ).toHaveLength(1);
+      expect(
+        has("playwright-report", "Incomplete run: ").length,
+        JSON.stringify(s.failed),
+      ).toBeGreaterThanOrEqual(2);
+      expect(has("playwright-process", "")).toEqual([]);
+    },
+  );
   it.each([1, 2])(
     "O11: child exit %i with a clean passing report → playwright-process, exit 1",
     (code) => {
@@ -413,4 +445,12 @@ describe("#2223 criterion 5: CLI and project selection unchanged", () => {
     expectPass(r);
     expect(r.calls.e2e).toEqual([argv]);
   });
+  it.each(["relative", "symlink"] as const)(
+    "main runs when invoked by a %s path (realpath main guard)",
+    (via) => {
+      const r = run(WRAPPER, { e2e: [{ report: json(PASSING()) }] }, { via });
+      expectPass(r);
+      expect(r.calls.e2e).toHaveLength(1);
+    },
+  );
 });
