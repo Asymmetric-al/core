@@ -181,6 +181,7 @@ await build({
         modernization: resolve(fixtureDirectory, "modernization.html"),
         pdfModernization: resolve(fixtureDirectory, "pdf-modernization.html"),
         uiUtilities: resolve(fixtureDirectory, "ui-utilities.html"),
+        kanban: resolve(fixtureDirectory, "kanban.html"),
         support: resolve(fixtureDirectory, "support.html"),
         workspace: resolve(fixtureDirectory, "workspace.html"),
         taskToolbar: resolve(fixtureDirectory, "task-toolbar.html"),
