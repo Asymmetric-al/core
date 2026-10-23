@@ -82,7 +82,12 @@ const WORKFLOWS = [CI, CI_INTEGRATION] as const;
 type WorkflowPath = (typeof WORKFLOWS)[number];
 
 /** The only triggers allowed on workflows that host self-hosted jobs. */
-const PINNED_TRIGGERS = ["pull_request", "push", "workflow_dispatch"];
+const PINNED_TRIGGERS = [
+  "merge_group",
+  "pull_request",
+  "push",
+  "workflow_dispatch",
+];
 const PINNED_PUSH_BRANCHES = ["develop", "production"];
 
 /** How the harness runs a reject/gate body (before the temp script file). */
@@ -215,7 +220,7 @@ describe("MAJOR-4: trigger set is pinned on workflows that host self-hosted jobs
         ).toBe(true);
       });
 
-      it("triggers on exactly pull_request, push and workflow_dispatch", () => {
+      it("triggers on exactly merge_group, pull_request, push and workflow_dispatch", () => {
         expect(workflowTriggerEvents(doc)).toEqual(PINNED_TRIGGERS);
         expect(unmodeledTriggerEvents(doc)).toEqual([]);
         expect(
