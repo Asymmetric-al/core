@@ -38,7 +38,7 @@ Five **state** roles:
 
 For a PR, the same states read against the attached code: `ready-for-agent` (`Ready`) means a brief is attached and an agent should take the next step on the diff; `ready-for-human` means it's ready for a human to merge.
 
-Every triaged issue should carry exactly one category role and be in exactly one state role. State roles are tracker actions, not always labels (see `docs/agents/triage-labels.md`): only `ready-for-agent` applies a label, `Ready`. If state roles conflict, flag it and ask the maintainer before doing anything else.
+Every triaged issue should carry exactly one category role and be in exactly one state role. A state role is shown by its tracker action, never by a retired `status:*` label (see `docs/agents/triage-labels.md`): no readiness label (`needs-triage`), a triage-notes comment (`needs-info`), the `Ready` label (`ready-for-agent`), a human assignee (`ready-for-human`), or closing the issue with a comment (`wontfix`). If state roles conflict, flag it and ask the maintainer before doing anything else.
 
 These are canonical role names. The actual label strings used in the issue tracker may differ. The mapping should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
 

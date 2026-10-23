@@ -103,7 +103,12 @@ it.each([canonical, guide, spec])(
     const text = normalized(read(file));
     expect(text).toMatch(/fresh.{0,100}(?:own.role|role.only|specialist)/i);
     expect(text).toMatch(/stops? before merge/i);
-    expect(text).toMatch(/David.{0,240}protected expected.head merge/i);
+    expect(text).toMatch(
+      file === guide || file === spec
+        ? // TODO(#2199): drop David once the guide and spec are updated
+          /(?:Samson|David).{0,240}protected expected.head merge/i
+        : /Samson.{0,240}protected expected.head merge/i,
+    );
     expect(text).toMatch(
       /same.worker.{0,100}closeout|same.{0,30}(?:repair\s+)?worker.{0,100}closeout/i,
     );
