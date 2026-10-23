@@ -1,6 +1,8 @@
 import { lstat, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import ts from "typescript";
+
 const files = [
   "SKILL.md",
   "README.md",
@@ -12,8 +14,18 @@ const files = [
   "rules/state.md",
   "rules/composition.md",
   "rules/_sections.md",
+  "rules/definitions.md",
+  "rules/accessibility.md",
+  "rules/data-attributes.md",
+  "rules/design-tokens.md",
+  "rules/documentation.md",
+  "rules/marketplaces.md",
+  "rules/polymorphism.md",
+  "rules/principles.md",
+  "rules/registry.md",
+  "rules/types.md",
 ];
-const noticeFiles = new Set(files.slice(0, 6));
+const noticeFiles = new Set([...files.slice(0, 6), "rules/definitions.md"]);
 const guidanceUrl = new URL(
   "../refresh-overlays/components-build-cn.json",
   import.meta.url,
@@ -27,9 +39,34 @@ function replaceReviewed(content, rule, relative) {
     source,
     count: content.split(source).length - 1,
   }));
+  const coreSpans = [];
+  for (
+    let at = content.indexOf(rule.core);
+    at !== -1;
+    at = content.indexOf(rule.core, at + rule.core.length)
+  )
+    coreSpans.push([at, at + rule.core.length]);
+  const coreCount = coreSpans.length;
+  const outsideCore = matches.reduce((total, match) => {
+    let count = 0;
+    for (
+      let at = content.indexOf(match.source);
+      at !== -1;
+      at = content.indexOf(match.source, at + match.source.length)
+    )
+      if (
+        !coreSpans.some(
+          ([start, end]) => at >= start && at + match.source.length <= end,
+        )
+      )
+        count += 1;
+    return total + count;
+  }, 0);
   const count = matches.reduce((total, match) => total + match.count, 0);
-  const coreCount = content.split(rule.core).length - 1;
-  if (count === 0 && (rule.allowRepeatedCore ? coreCount > 0 : coreCount === 1))
+  if (
+    outsideCore === 0 &&
+    (rule.allowRepeatedCore ? coreCount > 0 : coreCount === 1)
+  )
     return content;
   if (count !== 1 || (!rule.allowRepeatedCore && coreCount > 0))
     throw new Error("Reviewed components-build guidance drifted: " + relative);
@@ -94,10 +131,44 @@ function* scriptCodeBlocks(content) {
 
 function assertCoreComposition(content, relative) {
   for (const code of scriptCodeBlocks(content)) {
-    for (const imported of code.matchAll(
-      /\bimport\b\s*([^;]+?)\s*\bfrom\b\s*(["'])([^"']+)\2/gu,
-    )) {
-      if (/\bcn\b/u.test(imported[1]) && imported[3] !== "@asym/ui/lib/utils")
+    // These docs include intentionally incomplete component skeletons. Parse
+    // identifiable declarations without treating every snippet as a full program.
+    // The owned TypeScript 6 API distinguishes real static imports/re-exports
+    // from commented dynamic imports, import.meta and string/example contents.
+    const source = ts.createSourceFile(
+      "components-example.tsx",
+      code,
+      ts.ScriptTarget.Latest,
+      false,
+      ts.ScriptKind.TSX,
+    );
+    for (const statement of source.statements) {
+      let bindings = [];
+      if (ts.isImportDeclaration(statement)) {
+        const clause = statement.importClause;
+        const named = clause?.namedBindings;
+        bindings = [clause?.name?.text];
+        if (named && ts.isNamespaceImport(named))
+          bindings.push(named.name.text);
+        else if (named && ts.isNamedImports(named))
+          for (const specifier of named.elements)
+            bindings.push(specifier.propertyName?.text, specifier.name.text);
+      } else if (
+        ts.isExportDeclaration(statement) &&
+        statement.exportClause &&
+        ts.isNamedExports(statement.exportClause)
+      ) {
+        for (const specifier of statement.exportClause.elements)
+          bindings.push(specifier.propertyName?.text, specifier.name.text);
+      }
+      // Ownership includes aliases and type-only declarations; neither is
+      // permission to document a second cn source in Core.
+      if (
+        bindings.includes("cn") &&
+        (!statement.moduleSpecifier ||
+          !ts.isStringLiteral(statement.moduleSpecifier) ||
+          statement.moduleSpecifier.text !== "@asym/ui/lib/utils")
+      )
         throw new Error("Unreviewed components-build cn import: " + relative);
     }
     if (/@radix-ui\/|<Slot\b|\basChild\b|\buseControllableState\b/u.test(code))

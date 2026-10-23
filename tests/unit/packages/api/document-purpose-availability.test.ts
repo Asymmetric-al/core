@@ -15,6 +15,7 @@ import {
 import type {
   DocumentQualificationAvailabilityPort,
   PurposeAvailabilityContext,
+  PurposeLaunchGate,
 } from "../../../../packages/api/src/generated-documents/purpose-catalog";
 
 const OFFICIAL_PURPOSE_IDS = [
@@ -26,6 +27,15 @@ const OFFICIAL_PURPOSE_IDS = [
   "ca.official_receipt.non_cash@1",
   "ca.official_receipt.advantage_split@1",
 ] as const;
+
+const GIVING_SUMMARY_GATES = [
+  "core_d3_renderer_qualified",
+  "core_d4_artifact_pipeline",
+  "phase07_purpose_privacy_proof",
+  "phase13_purpose_privacy_proof",
+  "phase14_recognition_subject_proof",
+  "phase19_statement_seam",
+] as const satisfies readonly PurposeLaunchGate[];
 
 function context(
   overrides: Partial<PurposeAvailabilityContext> = {},
@@ -359,6 +369,48 @@ describe("resolvePurposeAvailability", () => {
         "purpose_unknown",
       ]);
       expect(qualificationSpy).not.toHaveBeenCalled();
+    },
+  );
+});
+
+describe("giving summary launch gates", () => {
+  const allGivingGatesMet = (): Partial<Record<PurposeLaunchGate, boolean>> =>
+    Object.fromEntries(GIVING_SUMMARY_GATES.map((gate) => [gate, true]));
+
+  it("supports the giving summary only when all six launch gates are met", async () => {
+    const result = await resolvePurposeAvailability(
+      {
+        purpose_id: "giving.summary.informational@1",
+        context: context({ gate_status: allGivingGatesMet() }),
+      },
+      createFailClosedQualificationPort(),
+    );
+
+    expect(result.state).toBe("supported");
+    expect(result.causes).toEqual([]);
+  });
+
+  it.each(GIVING_SUMMARY_GATES)(
+    "keeps the giving summary dark when %s is unmet or missing",
+    async (gate) => {
+      const unmet = { ...allGivingGatesMet(), [gate]: false };
+      const missing = allGivingGatesMet();
+      delete missing[gate];
+
+      for (const gateStatus of [unmet, missing]) {
+        const result = await resolvePurposeAvailability(
+          {
+            purpose_id: "giving.summary.informational@1",
+            context: context({ gate_status: gateStatus }),
+          },
+          createFailClosedQualificationPort(),
+        );
+
+        expect(result.state).toBe("dark");
+        expect(result.causes).toEqual([
+          expect.objectContaining({ code: "launch_gate_unmet", gate }),
+        ]);
+      }
     },
   );
 });

@@ -117,16 +117,17 @@ preparation, not a new identity gate in repository hooks.
    tools. In-scope repairs use the same commit/review/acceptance cycle. New heads
    need current decisions and checks. Integrate a changed base as required;
    source conflicts go to Bezalel.
-10. Return DELIVERY_READY to David, the root coordinator, with issue/PR URL,
+10. Workers return DELIVERY_READY to Samson, the coordinator, with issue/PR URL,
     exact head SHA, `develop` base, acceptance revision, both independent review
     decisions, Ezra's final PASS and required-check evidence for that head.
     Missing evidence is BLOCKED; pending checks keep delivery in progress.
     STOP BEFORE MERGE. A changed head invalidates prior acceptance/check evidence
     and returns to the normal implementation, review and acceptance gates.
-11. David alone refreshes the live head/base/checks, required GitHub reviews and
-    protections, then performs the authorized protected expected-head merge.
+11. Samson alone, acting under Blake's authorization, refreshes the live
+    head/base/checks, required GitHub reviews and protections, then performs
+    the authorized protected expected-head merge.
     Preserve required human approval; never bypass protection or reroute a denied
-    action. David independently verifies merged state/SHA and presence on
+    action. Samson independently verifies merged state/SHA and presence on
     `develop`, then sends actual merge evidence to the same worker for bounded
     closeout of only that issue/PR. No Done status, completion claim or next issue
     precedes verified merge plus successful same-worker closeout. For #1955,

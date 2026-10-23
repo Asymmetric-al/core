@@ -56,42 +56,76 @@ const componentsLegacy = JSON.parse(
   retainedSectionMetadata: Record<string, string>;
 };
 
-// Synthetic raw-source excerpts retain the reviewed competing examples. They
-// exercise restoration without claiming a new upstream capture or source hash.
+// The full previous-Core capture predates this correction. Restore the
+// independently captured legacy composition/state blocks and literal helper
+// recipes into it; no input or expected text is derived from adapter rules.
+// Historical raw/rights captures remain unchanged.
+const componentsPrevious = JSON.parse(
+  await readFile(
+    path.join(fixtureRoot, "components-build-previous-core.json"),
+    "utf8",
+  ),
+) as {
+  files: Record<string, string>;
+  retainedCompiledSections: Record<string, string>;
+  retainedSectionMetadata: Record<string, string>;
+};
 const componentsRawFiles: Record<string, string> = {
-  "SKILL.md":
-    "---\nname: components-build\nlicense: MIT\n---\n\n# Components.build Specification\n\n## This repository (Asymmetric-al/core)\n\nExisting Base UI overlay stays intact.\n\n- `styling-cn-utility` - Combine clsx and tailwind-merge\n\n7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge\n",
-  "README.md":
-    "# Components Build Skill\n\n7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge\n\n## Authors\n\nHayden Bleasel, shadcn, Jordan Gilliam\n\n## License\n\nMIT\n",
-  "AGENTS.md":
-    '# Compiled components\n\n```tsx\nimport { cn } from "@/lib/utils";\n```\n\nUse Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).\n\n**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.\n\n```tsx\n// Without tailwind-merge, conflicting classes both apply\n```\n\n```tsx\ntwMerge("bg-red-500", "bg-blue-500"); // "bg-blue-500"\ntwMerge("px-4 py-2", "px-8"); // "py-2 px-8"\ntwMerge("text-sm", "text-lg"); // "text-lg"\n```\n\n```json\n{"dependencies":{"clsx":"^2.0.0","tailwind-merge":"^2.0.0"}}\n```\n',
-  "rules/styling.md":
-    '---\ntitle: Component Styling with Tailwind CSS\n---\n\nUse Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).\n\n```tsx\nimport { type ClassValue, clsx } from "clsx";\nimport { twMerge } from "tailwind-merge";\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs));\n}\n```\n\n**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.\n\n```tsx\n// Without tailwind-merge, conflicting classes both apply\n```\n\n```tsx\ntwMerge("bg-red-500", "bg-blue-500"); // "bg-blue-500"\ntwMerge("px-4 py-2", "px-8"); // "py-2 px-8"\ntwMerge("text-sm", "text-lg"); // "text-lg"\n```\n\n### Conditional Classes with `clsx`\n\ncn("base", { active: true });\n',
-  "rules/overview.md":
-    '---\ntitle: Component Overview\n---\n\n# Overview\n\n```tsx\nimport { cn } from "@/lib/utils";\n```\n',
-  "rules/npm.md":
-    '---\ntitle: Publishing to NPM\n---\n\n# Generic npm recipe\n\n```json\n{"dependencies":{"clsx":"^2.0.0","tailwind-merge":"^2.0.0"}}\n```\n',
+  ...componentsPrevious.files,
+  ...componentsLegacy.files,
   "references/upstream.md":
     "---\nsource_name: nolly-studio/components-build-skill\nskills_lock_hash: original-upstream-hash\n---\n\nOriginal provenance remains unchanged.\n",
   "references/LICENSE.md": "MIT\nOriginal rights notice.\n",
   "references/original.md.raw": "Original raw source: clsx and twMerge.\n",
 };
-
-for (const relative of ["AGENTS.md", "rules/styling.md"])
-  componentsRawFiles[relative] +=
-    '\n\x60\x60\x60tsx\nclassName = "bg-red-500 bg-blue-500"; // Both classes apply, causing conflicts\n\x60\x60\x60\n';
-
-Object.assign(componentsRawFiles, componentsLegacy.files);
-componentsRawFiles["SKILL.md"] +=
-  componentsLegacy.skillIndex + "\n" + componentsLegacy.compositionIndex;
-componentsRawFiles["README.md"] += componentsLegacy.readmeIndex;
-componentsRawFiles["AGENTS.md"] += [
-  componentsLegacy.compiledToc,
-  componentsLegacy.compiledChapter4,
-  componentsLegacy.compiledState,
-  componentsLegacy.compiledRender,
-  "## 10. Unrelated retained chapter\n\nSentinel guidance remains unchanged.\n",
-].join("\n\n");
+function restoreCompiledChapter(number: number, raw: string) {
+  const content = componentsRawFiles["AGENTS.md"]!;
+  const headings = [...content.matchAll(/^## (\d+)\. /gmu)];
+  const index = headings.findIndex((heading) => Number(heading[1]) === number);
+  if (index === -1)
+    throw new Error("Missing independent compiled fixture chapter");
+  const from = headings[index]!.index;
+  const through = headings[index + 1]?.index ?? content.length;
+  componentsRawFiles["AGENTS.md"] =
+    content.slice(0, from) + raw.trimEnd() + "\n\n" + content.slice(through);
+}
+restoreCompiledChapter(4, componentsLegacy.compiledChapter4);
+restoreCompiledChapter(6, componentsLegacy.compiledState);
+restoreCompiledChapter(9, componentsLegacy.compiledRender);
+componentsRawFiles["AGENTS.md"] =
+  componentsRawFiles["AGENTS.md"]!.replace(
+    /^9\. \[Render Composition\].+\n[ \t]+- 9\.1.+$/mu,
+    componentsLegacy.compiledToc.trim(),
+  ).replace(
+    'import { cn } from "@asym/ui/lib/utils";',
+    'import { cn } from "@/lib/utils";',
+  ) +
+  "\n## 17. Unrelated retained chapter\n\nSentinel guidance remains unchanged.\n";
+componentsRawFiles["rules/overview.md"] = componentsRawFiles[
+  "rules/overview.md"
+]!.replace(
+  'import { cn } from "@asym/ui/lib/utils";',
+  'import { cn } from "@/lib/utils";',
+);
+componentsRawFiles["rules/styling.md"] = componentsRawFiles[
+  "rules/styling.md"
+]!.replace(
+  'import { cn } from "@asym/ui/lib/utils";',
+  'import { type ClassValue, clsx } from "clsx";\nimport { twMerge } from "tailwind-merge";\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs));\n}',
+);
+componentsRawFiles["SKILL.md"] =
+  componentsRawFiles["SKILL.md"]!.replace(
+    /^\|\s*9\s*\|.+$/mu,
+    componentsLegacy.skillIndex
+      .split("\n")
+      .find((line: string) => /^\|\s*9\s*\|/u.test(line))!,
+  ) + "\nExisting Base UI overlay stays intact.\n";
+componentsRawFiles["README.md"] = componentsRawFiles["README.md"]!.replace(
+  /^\|\s*9\s*\|.+$/mu,
+  componentsLegacy.readmeIndex
+    .split("\n")
+    .find((line: string) => /^\|\s*9\s*\|/u.test(line))!,
+);
 
 async function componentsFixture() {
   await mkdir(path.join(repo, ".tmp"), { recursive: true });
@@ -208,6 +242,158 @@ afterEach(async () => {
     await rm(root, { recursive: true, force: true });
 });
 describe("reviewed raw managed-skill restoration", () => {
+  it.each(
+    [false, true].flatMap((adapted) =>
+      [
+        'const module = import("./cn")',
+        'const module = import ("./cn")',
+        'const module = import\n("./cn")',
+        'const location = import.meta.resolve("./cn")',
+        'const module = import/* lazy */("./cn")',
+        'const module = import /* lazy */ ("./cn")',
+        'const module = import // lazy\n("./cn")',
+        'const location = import /* source */ .meta.resolve("./cn")',
+      ].map((expression) => [adapted, expression] as const),
+    ),
+  )(
+    "allows import expressions before semicolon-free exports (adapted=%s, %s)",
+    async (adapted, expression) => {
+      const root = await componentsFixture();
+      if (adapted)
+        await applyManagedSkillCompatibility("components-build", root);
+      const file = path.join(root, "rules/definitions.md");
+      const fence = String.fromCharCode(96).repeat(3);
+      const example = expression + '\nexport { Button } from "@base-ui/react"';
+      await writeFile(
+        file,
+        (await readFile(file, "utf8")) +
+          "\n" +
+          fence +
+          "tsx\n" +
+          example +
+          "\n" +
+          fence +
+          "\n",
+      );
+      await expect(
+        applyManagedSkillCompatibility("components-build", root),
+      ).resolves.toBeUndefined();
+      expect(await readFile(file, "utf8")).toContain(example);
+    },
+  );
+
+  it.each(
+    [false, true].flatMap((adapted) =>
+      [
+        'import { cn as mergeClasses } from "@legacy/ui/utils";',
+        'import { other as cn } from "@legacy/ui/utils";',
+        'import cn from "@legacy/ui/utils";',
+        'import * as cn from "@legacy/ui/utils";',
+        'export { cn as mergeClasses } from "@legacy/ui/utils";',
+        'export { other as cn } from "@legacy/ui/utils";',
+        'import type { cn } from "@legacy/ui/utils";',
+        'import { type cn } from "@legacy/ui/utils";',
+        'export type { cn } from "@legacy/ui/utils";',
+      ].map((statement) => [adapted, statement] as const),
+    ),
+  )(
+    "rejects static cn ownership drift including aliases and type-only declarations (adapted=%s, %s)",
+    async (adapted, statement) => {
+      const root = await componentsFixture();
+      if (adapted)
+        await applyManagedSkillCompatibility("components-build", root);
+      const file = path.join(root, "rules/definitions.md");
+      const fence = String.fromCharCode(96).repeat(3);
+      await writeFile(
+        file,
+        (await readFile(file, "utf8")) +
+          "\n" +
+          fence +
+          "tsx\n" +
+          statement +
+          "\n" +
+          fence +
+          "\n",
+      );
+      const before = new Map<string, string>();
+      for (const relative of Object.keys(componentsRawFiles))
+        before.set(relative, await readFile(path.join(root, relative), "utf8"));
+      await expect(
+        applyManagedSkillCompatibility("components-build", root),
+      ).rejects.toThrow("cn import");
+      for (const [relative, expected] of before)
+        expect(
+          await readFile(path.join(root, relative), "utf8"),
+          relative,
+        ).toBe(expected);
+    },
+  );
+
+  it("adapts the advertised definitions utility without publishing another primitive state implementation", async () => {
+    const root = await componentsFixture();
+    await applyManagedSkillCompatibility("components-build", root);
+    const definitions = await readFile(
+      path.join(root, "rules/definitions.md"),
+      "utf8",
+    );
+    expect(definitions).not.toContain("useControllableState");
+    expect(definitions).toContain('import { cn } from "@asym/ui/lib/utils";');
+    expect(definitions).toContain("A caller may own");
+    expect(definitions).toContain("### Classification Decision Flow");
+    expect(definitions).toContain("### Key Vocabulary");
+  });
+  it("rejects a drifted definitions state recipe before writing any document", async () => {
+    const root = await componentsFixture();
+    const file = path.join(root, "rules/definitions.md");
+    await writeFile(
+      file,
+      (await readFile(file, "utf8")).replace(
+        "return [value, setValue];",
+        "return [state, setState];",
+      ),
+    );
+    const before = new Map<string, string>();
+    for (const relative of Object.keys(componentsRawFiles))
+      before.set(relative, await readFile(path.join(root, relative), "utf8"));
+    await expect(
+      applyManagedSkillCompatibility("components-build", root),
+    ).rejects.toThrow("guidance drifted");
+    for (const [relative, expected] of before)
+      expect(await readFile(path.join(root, relative), "utf8"), relative).toBe(
+        expected,
+      );
+  });
+  it.each([false, true])(
+    "rejects an extra definitions state recipe (adapted=%s) before writes",
+    async (adapted) => {
+      const root = await componentsFixture();
+      if (adapted)
+        await applyManagedSkillCompatibility("components-build", root);
+      const file = path.join(root, "rules/definitions.md");
+      const fence = String.fromCharCode(96).repeat(3);
+      await writeFile(
+        file,
+        (await readFile(file, "utf8")) +
+          "\n" +
+          fence +
+          "tsx\nfunction useControllableState() { return [false, () => {}]; }\n" +
+          fence +
+          "\n",
+      );
+      const before = new Map<string, string>();
+      for (const relative of Object.keys(componentsRawFiles))
+        before.set(relative, await readFile(path.join(root, relative), "utf8"));
+      await expect(
+        applyManagedSkillCompatibility("components-build", root),
+      ).rejects.toThrow("components-build");
+      for (const [relative, expected] of before)
+        expect(
+          await readFile(path.join(root, relative), "utf8"),
+          relative,
+        ).toBe(expected);
+    },
+  );
+
   it("restores Base UI composition and state from independent legacy guidance fixtures", async () => {
     const root = await componentsFixture();
     await applyManagedSkillCompatibility("components-build", root);
@@ -248,7 +434,7 @@ describe("reviewed raw managed-skill restoration", () => {
     expect(compiled).toContain("## 9. Render Composition");
     expect(compiled).toContain("[Render Composition](#9-render-composition)");
     expect(compiled).toContain(
-      "## 10. Unrelated retained chapter\n\nSentinel guidance remains unchanged.",
+      "## 17. Unrelated retained chapter\n\nSentinel guidance remains unchanged.",
     );
   });
 
@@ -285,7 +471,16 @@ describe("reviewed raw managed-skill restoration", () => {
       first.set(relative, actual);
       if (relative.startsWith("references/")) {
         expect(actual, relative).toBe(componentsRawFiles[relative]);
-      } else if (!Object.hasOwn(componentsLegacy.files, relative)) {
+      } else if (
+        [
+          "SKILL.md",
+          "README.md",
+          "AGENTS.md",
+          "rules/overview.md",
+          "rules/styling.md",
+          "rules/npm.md",
+        ].includes(relative)
+      ) {
         expect(actual, relative).toContain(
           'import { cn } from "@asym/ui/lib/utils";',
         );
@@ -301,13 +496,14 @@ describe("reviewed raw managed-skill restoration", () => {
     expect(first.get("AGENTS.md")).not.toContain("twMerge(");
     expect(first.get("AGENTS.md")).not.toContain('from "@/lib/utils"');
     expect(first.get("rules/overview.md")).not.toContain('from "@/lib/utils"');
-    expect(first.get("rules/npm.md")).toContain('"tailwind-merge":"^2.0.0"');
+    expect(first.get("rules/npm.md")).toMatch(
+      /"tailwind-merge"\s*:\s*"\^2\.0\.0"/u,
+    );
     expect(first.get("SKILL.md")).toContain(
       "Existing Base UI overlay stays intact.",
     );
-    expect(first.get("README.md")).toContain(
-      "Hayden Bleasel, shadcn, Jordan Gilliam",
-    );
+    for (const author of ["Hayden Bleasel", "shadcn", "Jordan Gilliam"])
+      expect(first.get("README.md")).toContain(author);
     // Formatting the restored Markdown must not invalidate the owned notice.
     for (const [relative, content] of first) {
       if (relative.startsWith("references/")) continue;
@@ -345,7 +541,7 @@ describe("reviewed raw managed-skill restoration", () => {
     );
     const headings = [...compiled.matchAll(/^## (\d+)\. /gmu)];
     for (const [chapter, expected] of Object.entries(
-      componentsLegacy.retainedCompiledSections,
+      componentsPrevious.retainedCompiledSections,
     )) {
       const index = headings.findIndex((heading) => heading[1] === chapter);
       expect(index, chapter).toBeGreaterThanOrEqual(0);
@@ -365,7 +561,7 @@ describe("reviewed raw managed-skill restoration", () => {
     );
     const headings = [...metadata.matchAll(/^## (\d+)\. /gmu)];
     for (const [chapter, expected] of Object.entries(
-      componentsLegacy.retainedSectionMetadata,
+      componentsPrevious.retainedSectionMetadata,
     )) {
       const index = headings.findIndex((heading) => heading[1] === chapter);
       expect(index, chapter).toBeGreaterThanOrEqual(0);
@@ -653,7 +849,16 @@ describe("reviewed raw managed-skill restoration", () => {
         mirrored.set(canonical, content);
         if (relative.startsWith("references/"))
           expect(content, file).toBe(componentsRawFiles[relative]);
-        else if (!Object.hasOwn(componentsLegacy.files, relative)) {
+        else if (
+          [
+            "SKILL.md",
+            "README.md",
+            "AGENTS.md",
+            "rules/overview.md",
+            "rules/styling.md",
+            "rules/npm.md",
+          ].includes(relative)
+        ) {
           expect(content, file).toContain(
             'import { cn } from "@asym/ui/lib/utils";',
           );

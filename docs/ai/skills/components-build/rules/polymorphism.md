@@ -7,19 +7,30 @@ tags: polymorphism, as-prop, element-type, typescript, semantic-html
 
 ## Polymorphism Patterns
 
-Build flexible components that can render as different HTML elements or components while maintaining consistent styling and behavior.
+Use the existing Core component's public host API before adding polymorphism.
+Shared actions use `Button`; navigation uses `ButtonLink` or `buttonVariants` on
+an anchor/Next Link. Base UI parts compose hosts through `render`, with their
+actual supported native props and forwarded ref.
 
-### Core Pattern: The `as` Prop
+The generic `as` examples below are upstream background for justified **passive**
+content/layout wrappers. They do not add `as` to shared components, replace an
+interaction primitive, or permit a div to stand in for a native action. New
+reusable behavior belongs to its reviewed `packages/ui` owner.
 
-The `as` prop allows components to change their rendered element type:
+### Core Interactive Hosts
+
+Choose the existing component for the native action or navigation semantics:
 
 ```tsx
-<Button as="a" href="/home">Go Home</Button>
-<Button as="button" type="submit">Submit</Button>
-<Button as="div" role="button" tabIndex={0}>Custom Element</Button>
+import Link from "next/link";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
+
+<ButtonLink href="/home">Go Home</ButtonLink>;
+<ButtonLink render={<Link href="/projects" />}>Projects</ButtonLink>;
+<Button type="submit">Submit</Button>;
 ```
 
-### Basic Implementation
+### Generic Passive Implementation (Background)
 
 ```tsx
 function Component({ as: Element = "div", children, ...props }) {
@@ -27,13 +38,13 @@ function Component({ as: Element = "div", children, ...props }) {
 }
 ```
 
-### TypeScript Implementation
+### Generic Passive Types (Background)
 
 ```tsx
 type PolymorphicProps<E extends React.ElementType> = {
   as?: E;
   children?: React.ReactNode;
-} & React.ComponentPropsWithoutRef<E>;
+} & React.ComponentPropsWithRef<E>;
 
 function Component<E extends React.ElementType = "div">({
   as,
@@ -50,14 +61,17 @@ function Component<E extends React.ElementType = "div">({
 **Typography Components:**
 
 ```tsx
-function Text({ as: Element = 'span', variant = 'body', ...props }) {
-  const className = cn(
-    'text-base',
-    variant === 'heading' && 'text-2xl font-bold',
-    variant === 'body' && 'text-base',
-    props.className
+function Text({ as: Element = 'span', variant = 'body', className, ...props }) {
+  return (
+    <Element
+      className={cn(
+        'text-base',
+        variant === 'heading' && 'text-2xl font-bold',
+        className
+      )}
+      {...props}
+    />
   );
-  return <Element className={className} {...props} />;
 }
 
 <Text as="h1" variant="heading">Title</Text>
@@ -67,8 +81,8 @@ function Text({ as: Element = 'span', variant = 'body', ...props }) {
 **Layout Components:**
 
 ```tsx
-function Flex({ as: Element = 'div', ...props }) {
-  return <Element className={cn('flex', props.className)} {...props} />;
+function Flex({ as: Element = 'div', className, ...props }) {
+  return <Element className={cn('flex', className)} {...props} />;
 }
 
 <Flex as="header" className="justify-between"><Logo /><Navigation /></Flex>
@@ -78,17 +92,12 @@ function Flex({ as: Element = 'div', ...props }) {
 **Interactive Elements:**
 
 ```tsx
-function Clickable({ as: Element = "button", ...props }) {
-  const isButton = Element === "button";
-  const isAnchor = Element === "a";
-  return (
-    <Element
-      role={!isButton && !isAnchor ? "button" : undefined}
-      tabIndex={!isButton && !isAnchor ? 0 : undefined}
-      {...props}
-    />
-  );
-}
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
+
+<Button type="button" onClick={handleClick}>
+  Open details
+</Button>;
+<ButtonLink href="/projects">Projects</ButtonLink>;
 ```
 
 ### Best Practices
@@ -121,22 +130,14 @@ interface BoxProps {
 }
 ```
 
-**3. Handle Event Handlers:**
+**3. Forward the Existing Host Contract:**
 
 ```tsx
-function Interactive({ as: Element = "button", onClick, ...props }) {
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (Element !== "button" && (e.key === "Enter" || e.key === " ")) {
-      onClick?.(e as any);
-    }
-  };
-  return (
-    <Element
-      onClick={onClick}
-      onKeyDown={Element !== "button" ? handleKeyDown : undefined}
-      {...props}
-    />
-  );
+import type * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
+
+function ProjectAction(props: React.ComponentProps<typeof Button>) {
+  return <Button {...props} />;
 }
 ```
 
@@ -146,7 +147,7 @@ function Interactive({ as: Element = "button", onClick, ...props }) {
 
 ```tsx
 // Incorrect: Invalid - button inside button
-<Button as="button"><Button as="button">Nested</Button></Button>
+<Button><Button>Nested</Button></Button>
 
 // Incorrect: Invalid - div inside p
 <Text as="p"><Box as="div">Invalid</Box></Text>

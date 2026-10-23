@@ -24,16 +24,25 @@ Marketplaces like [21st.dev](https://21st.dev) combine registry accessibility wi
 - Quality assurance
 - Unified tooling
 
+### Core Adoption Boundary
+
+These marketplace examples are discovery/external-authoring background, not an
+approved replacement for Core's shared primitives. Review the complete source,
+dependencies and permissions before adopting any item; adapt behavior to Base UI
+and appearance to exact `base-maia`/semantic tokens. Do not import a second
+primitive system or install into an app. A justified compatible addition uses
+the installed pinned CLI from repository root with `--cwd packages/ui`.
+
 ### Installation Pattern
 
 ```bash
-npx shadcn@latest add https://21st.dev/r/<author>/<component>
+bunx --no-install shadcn add https://21st.dev/r/<author>/<component> --cwd packages/ui
 ```
 
 Example:
 
 ```bash
-npx shadcn@latest add https://21st.dev/r/haydenbleasel/dialog-stack
+bunx --no-install shadcn add https://21st.dev/r/haydenbleasel/dialog-stack --cwd packages/ui
 ```
 
 ### What Marketplaces Provide

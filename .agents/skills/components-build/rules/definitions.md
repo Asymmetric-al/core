@@ -7,41 +7,46 @@ tags: definitions, primitive, component, block, template, pattern, utility, term
 
 ## Component Artifact Definitions
 
+<!-- CORE-COMPONENTS-CN-START -->
+
+**Core shared class helper:** consume the existing helper through the shared UI
+boundary:
+
+```tsx
+import { cn } from "@asym/ui/lib/utils";
+```
+
+Do not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`
+for these recipes. The generic npm dependency examples below are retained
+upstream material and are **non-operative in Core**. Current workspace manifests
+and `packages/ui/lib/utils.ts` own the implementation and dependency choices.
+<!-- CORE-COMPONENTS-CN-END -->
+
 Precise terminology for classifying and naming UI artifacts.
 
 ### Primitive (Unstyled Component)
 
 The **lowest-level building block** providing behavior and accessibility without styling. Completely headless.
 
-```tsx
-// Primitive - behavior only, no styling
-function DialogPrimitive({ open, onOpenChange, children }) {
-  return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      {children}
-    </Dialog.Root>
-  );
-}
-```
+In Core, the behavior-only implementation is Base UI's Dialog root inside
+`packages/ui/components/shadcn/dialog.tsx`. Feature code consumes the existing
+shared exports; it does not create another Dialog state or focus owner.
 
-**Examples:** Radix UI Primitives, React Aria Components, Headless UI
+**Core example:** Base UI Dialog root, behind the shared `Dialog` export.
+Other libraries listed by the upstream taxonomy are terminology examples, not
+approved primitive dependencies in Core.
 
 ### Component
 
 A **styled, reusable UI unit** that adds visual design to primitives or composes multiple elements.
 
 ```tsx
-// Component - styled and reusable
-function Button({ variant = "primary", size = "md", children, ...props }) {
-  return (
-    <button
-      className={cn("base-button-styles", variants[variant], sizes[size])}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
+import { Button } from "@asym/ui/components/shadcn/button";
+
+// Styled component - the existing shared visual and behavior owner.
+<Button type="button" variant="default" size="default">
+  Open project
+</Button>;
 ```
 
 **Examples:** shadcn/ui components, Material UI, Ant Design
@@ -57,21 +62,35 @@ A **specific composition** solving a UI/UX problem. Documentation-focused, not a
 An **opinionated, production-ready composition** solving a concrete interface use case.
 
 ```tsx
-// Block - complete, opinionated composition
-function PricingTable({ plans, onSelectPlan }) {
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
+
+type PricingTableProps = {
+  plans: { id: string; name: string; price: string }[];
+  onSelectPlan: (id: string) => void;
+};
+
+// Block - feature-specific composition of the shared flat exports.
+function PricingTable({ plans, onSelectPlan }: PricingTableProps) {
   return (
-    <div className="pricing-table">
+    <div className="grid gap-4">
       {plans.map((plan) => (
         <Card key={plan.id}>
-          <Card.Header>
-            <Card.Title>{plan.name}</Card.Title>
-          </Card.Header>
-          <Card.Content>
-            <div className="price">{plan.price}</div>
-          </Card.Content>
-          <Card.Footer>
-            <Button onClick={() => onSelectPlan(plan.id)}>Select Plan</Button>
-          </Card.Footer>
+          <CardHeader>
+            <CardTitle>{plan.name}</CardTitle>
+          </CardHeader>
+          <CardContent>{plan.price}</CardContent>
+          <CardFooter>
+            <Button type="button" onClick={() => onSelectPlan(plan.id)}>
+              Select Plan
+            </Button>
+          </CardFooter>
         </Card>
       ))}
     </div>
@@ -107,17 +126,14 @@ A **multi-page collection** or full-site scaffold bundling pages, routing, layou
 ### Utility (Non-visual)
 
 A **helper** for developer ergonomics or composition; not rendered UI.
+Core reuses existing shared utilities and primitive state APIs. A caller may own
+a controlled value; the existing primitive still coordinates interaction,
+keyboard, ARIA and focus behavior.
 
 ```tsx
-function useControllableState({ prop, defaultProp, onChange }) {
-  const [state, setState] = useState(defaultProp);
-  const value = prop !== undefined ? prop : state;
-  const setValue = (newValue) => {
-    if (prop === undefined) setState(newValue);
-    onChange?.(newValue);
-  };
-  return [value, setValue];
-}
+import { cn } from "@asym/ui/lib/utils";
+
+const className = cn("text-foreground", "font-medium");
 ```
 
 **Examples:** React hooks, class utilities, keybinding helpers, focus scopes
@@ -136,40 +152,40 @@ function useControllableState({ prop, defaultProp, onChange }) {
 **Incorrect (mislabeling a styled component as a primitive):**
 
 ```tsx
-// Wrong: This is styled, so it's a Component, not a Primitive
-function DialogPrimitive({ open, onOpenChange, children }) {
-  return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content className="rounded-lg border bg-white p-6 shadow-lg">
-        {children}
-      </Dialog.Content>
-    </Dialog.Root>
-  );
-}
+import { DialogContent } from "@asym/ui/components/shadcn/dialog";
+
+// Wrong classification: DialogContent is already a styled shared component,
+// not a behavior-only primitive. Its owning source supplies Maia presentation.
+type BehaviorOnlyPrimitive = typeof DialogContent;
 ```
 
 **Correct (proper classification based on styling presence):**
 
 ```tsx
-// Primitive - behavior only, no styling
-function DialogPrimitive({ open, onOpenChange, children }) {
-  return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      {children}
-    </Dialog.Root>
-  );
-}
+import type * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@asym/ui/components/shadcn/dialog";
 
-// Component - styled wrapper around primitive
-function Dialog({ open, onOpenChange, children }) {
+// Block - feature composition of existing shared components.
+// Caller-owned controlled or uncontrolled root props are forwarded unchanged.
+function ProjectDialog(
+  props: Omit<React.ComponentProps<typeof Dialog>, "children">,
+) {
   return (
-    <DialogPrimitive open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content
-        className={cn("rounded-lg border bg-white p-6 shadow-lg")}
-      >
-        {children}
-      </Dialog.Content>
-    </DialogPrimitive>
+    <Dialog {...props}>
+      <DialogTrigger render={<Button type="button" variant="outline" />}>
+        Project details
+      </DialogTrigger>
+      <DialogContent>
+        <DialogTitle>Project details</DialogTitle>
+        Review the details before continuing.
+      </DialogContent>
+    </Dialog>
   );
 }
 ```
@@ -180,7 +196,9 @@ function Dialog({ open, onOpenChange, children }) {
 - **Children/Slots** - Placeholders for caller-provided structure
 - **Render Prop** - Function child delegating rendering
 - **Controlled** - Value driven by props (parent is source of truth)
-- **Uncontrolled** - Internal state with optional `defaultValue`
+- **Uncontrolled** - Primitive-owned value initialized with its actual default
+  prop (`defaultValue`, `defaultChecked` or `defaultOpen`); later default changes
+  do not control the current value.
 - **Provider/Context** - Supplies shared state to subtree
 - **Portal** - Rendering outside DOM hierarchy for layering
 - **Headless** - Behavior without styling
