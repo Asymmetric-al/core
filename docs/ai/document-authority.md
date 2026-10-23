@@ -131,7 +131,7 @@ Core runtime or provider acceptance.
   hand-maintained. Historical grill packets, source captures and earlier model
   outputs remain provenance, not a competing specification or runtime proof.
   The explicit `/to-spec` synthesis incorporates D1–D50 and completeness
-  C01–C20; publication with `ready-for-agent` preserves every actual producer,
+  C01–C20; publication as `Ready` (formerly `ready-for-agent`) preserves every actual producer,
   authorization, migration and activation qualification gate.
 - Original issue packets, captured hashes, synthetic model outputs, grill
   transcripts and source-PR provenance remain dated records. A source record's
