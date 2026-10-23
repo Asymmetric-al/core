@@ -83,7 +83,7 @@ without repairing it. Setup does not start an issue trial.
 ## Code review and ownership
 
 - **Default code owners:** `@II-ricky-bobby-II` and `@cobmojo`
-- **Owner mapping file:** `/.github/CODEOWNERS` (mirrored in `/CODEOWNERS`)
+- **Owner mapping file:** `/.github/CODEOWNERS` (the only CODEOWNERS file)
 - **Review/gate policy:** `docs/guides/development/code-review-and-ownership.md`
 
 ## License for contributions

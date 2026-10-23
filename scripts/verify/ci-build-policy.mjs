@@ -92,9 +92,15 @@ export function readCompilationChanges({
 
 export function validateCiGate({ results, buildRequested }) {
   if (
-    !["plan", "format", "integrity", "lint", "typecheck", "unit"].every(
-      (key) => results[key] === "success",
-    )
+    ![
+      "plan",
+      "format",
+      "integrity",
+      "lint",
+      "typecheck",
+      "unit",
+      "acceptance",
+    ].every((key) => results[key] === "success")
   )
     return false;
   return (

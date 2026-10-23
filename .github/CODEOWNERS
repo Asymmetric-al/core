@@ -1,6 +1,21 @@
 # Default owners for all paths.
 * @II-ricky-bobby-II @cobmojo
 
+# This is the only CODEOWNERS file. Owners are people: Blake is
+# @II-ricky-bobby-II and Conrad is @cobmojo. Factory roles (Samson, Ezra and
+# the others) are not listed because GitHub Apps cannot be code owners;
+# per-role identities are tracked in #2156.
+#
+# CI workflows, this file, canonical skills and database migrations (#2153).
+# These name the same owners as the default; they make ownership of the
+# protected paths explicit. The last matching pattern wins, so path-specific
+# entries come after the default.
+/.github/workflows/ @II-ricky-bobby-II @cobmojo
+/.github/CODEOWNERS @II-ricky-bobby-II @cobmojo
+/docs/ai/skills/ @II-ricky-bobby-II @cobmojo
+/supabase/migrations/ @II-ricky-bobby-II @cobmojo
+/apps/admin/src/migrations/ @II-ricky-bobby-II @cobmojo
+
 # Document-cutover gate (#2067). Path-specific entries come after the default
 # because the last matching pattern wins. Only Blake approves committed proofs;
 # Blake or Conrad approve allowlist changes.

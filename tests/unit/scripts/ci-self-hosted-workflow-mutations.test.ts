@@ -159,7 +159,7 @@ const ENFORCING_STEPS: readonly EnforcingStep[] = [
     file: CI_INTEGRATION,
     job: "e2e-smoke-gate",
     step: "Fail if E2E smoke failed",
-    heavyNeeds: ["test-e2e-smoke"],
+    heavyNeeds: ["migrate", "smoke", "test-e2e-smoke"],
   },
   {
     file: CI_INTEGRATION,
@@ -200,6 +200,7 @@ const ciGateRun = (jobs: WorkflowJobs, overrides: Record<string, string>) =>
       typecheck: "success",
       build: "success",
       "test-unit": "success",
+      "acceptance-tests": "success",
       ...overrides,
     },
     outputs: { "compilation-plan": { requested: "true" } },
@@ -861,12 +862,22 @@ describe("runner variables do not leak: scrubbed script env, fail-closed referen
         expect(problems.join("\n")).toMatch(/\$GITHUB_JOB.*not modelled/);
         const job = jobsOf(text, "N2")["e2e-smoke-gate"]!;
         expect(
-          hostedGateFailsClosedWhenHeavyNeedsSkipped(job, ["test-e2e-smoke"]),
+          hostedGateFailsClosedWhenHeavyNeedsSkipped(job, [
+            "migrate",
+            "smoke",
+            "test-e2e-smoke",
+          ]),
         ).toBe(false);
         expect(() =>
           executeGateJob(
             job,
-            { results: { "test-e2e-smoke": "skipped" } },
+            {
+              results: {
+                migrate: "success",
+                smoke: "success",
+                "test-e2e-smoke": "skipped",
+              },
+            },
             EVENT_SCENARIOS[0]!,
           ),
         ).toThrow(/not modelled/);
@@ -957,6 +968,8 @@ describe("runner variables do not leak: scrubbed script env, fail-closed referen
   it("the real reject and gate scripts reference no environment variables", () => {
     const integration = jobsOf(source(CI_INTEGRATION), CI_INTEGRATION);
     const results = {
+      migrate: "success",
+      smoke: "success",
       "test-e2e-smoke": "success",
       "test-e2e": "success",
       "instant-nav": "success",
@@ -1005,6 +1018,7 @@ describe("runner variables do not leak: scrubbed script env, fail-closed referen
       typecheck: "success",
       unit: "success",
       build: "success",
+      acceptance: "success",
     });
     const leaked = withProcessEnv(
       {
@@ -1488,6 +1502,8 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
         );
         expect(
           hostedGateFailsClosedWhenHeavyNeedsSkipped(jobs["e2e-smoke-gate"]!, [
+            "migrate",
+            "smoke",
             "test-e2e-smoke",
           ]),
         ).toBe(false);
@@ -2564,6 +2580,7 @@ describe("repair 8 (MAJOR-11): env key names and runner-faithful execution", () 
         typecheck: "success",
         unit: "success",
         build: "success",
+        acceptance: "success",
       }),
       CI_BUILD_REQUESTED: "true",
     });

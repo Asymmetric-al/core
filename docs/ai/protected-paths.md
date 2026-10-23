@@ -19,7 +19,7 @@ Protection is reported in four distinct kinds so they are not conflated:
 
 | Path pattern    | Protection                                              | Controlling evidence                                     | Kind                          | Notes                                                                                                           |
 | --------------- | ------------------------------------------------------- | -------------------------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `*` (all paths) | Default code owners `@II-ricky-bobby-II` and `@cobmojo` | `.github/CODEOWNERS`, root `CODEOWNERS` (labeled mirror) | Documented + platform routing | CODEOWNERS routes review; the live `develop` rule did not require code-owner review when checked on 2026-08-25. |
+| `*` (all paths) | Default code owners `@II-ricky-bobby-II` and `@cobmojo` | `.github/CODEOWNERS` (single source; no other copy kept) | Documented + platform routing | CODEOWNERS routes review; the live `develop` rule did not require code-owner review when checked on 2026-08-25. |
 
 ## Generated / mirrored files (do not hand-edit)
 

@@ -5,7 +5,7 @@ This document defines who owns code review decisions and what contributors shoul
 ## Default Owners
 
 - Repository default code owners: `@II-ricky-bobby-II` and `@cobmojo`
-- Source of truth: `/.github/CODEOWNERS` (also mirrored in `/CODEOWNERS`)
+- Source of truth: `/.github/CODEOWNERS` (the only CODEOWNERS file)
 
 GitHub uses CODEOWNERS to route reviews on pull requests that touch owned paths.
 Ownership is not authorization: listing an owner does not grant a repository
@@ -65,7 +65,7 @@ has no `main` branch; do not create or target one.
 
 To change owners:
 
-1. Update `/.github/CODEOWNERS` (and keep `/CODEOWNERS` in sync).
+1. Update `/.github/CODEOWNERS`.
 2. Open a PR describing why ownership changed.
 3. Ask an applicable current owner/maintainer to review. GitHub's live branch
    rules determine whether that review is sufficient to merge.

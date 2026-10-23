@@ -124,6 +124,7 @@ describe("required CI gate", () => {
     lint: "success",
     typecheck: "success",
     unit: "success",
+    acceptance: "success",
   };
 
   it("accepts an intentional no-build result while keeping the gate present", () => {
@@ -157,6 +158,33 @@ describe("required CI gate", () => {
       ).toBe(false);
     }
   });
+
+  it.each(["skipped", "failure", "cancelled", "neutral", ""])(
+    "rejects acceptance %j with or without a build (#2153)",
+    (acceptance) => {
+      for (const [build, buildRequested] of [
+        ["success", true],
+        ["skipped", false],
+      ] as const) {
+        expect(
+          validateCiGate({
+            results: { ...results, acceptance, build },
+            buildRequested,
+          }),
+        ).toBe(false);
+      }
+    },
+  );
+
+  it("rejects results without an acceptance key (#2153)", () => {
+    const { acceptance: _acceptance, ...withoutAcceptance } = results;
+    expect(
+      validateCiGate({
+        results: { ...withoutAcceptance, build: "success" },
+        buildRequested: true,
+      }),
+    ).toBe(false);
+  });
 });
 
 const NON_SUCCESS_RESULTS = ["skipped", "cancelled", "failure"] as const;
@@ -170,6 +198,7 @@ describe("required CI gate rejects a non-success unit result (#2158 criterion 12
     typecheck: "success",
     unit: "success",
     build: "success",
+    acceptance: "success",
   };
 
   it("accepts all-success results as the control case", () => {
@@ -212,7 +241,7 @@ describe("required CI gate rejects a non-success unit result (#2158 criterion 12
 describe("ci-integration hosted gates require success from each heavy need (#2158 criterion 12)", () => {
   const jobs = loadWorkflowJobs(".github/workflows/ci-integration.yml");
   const GATES = {
-    "e2e-smoke-gate": ["test-e2e-smoke"],
+    "e2e-smoke-gate": ["migrate", "smoke", "test-e2e-smoke"],
     "integration-gate": ["migrate", "smoke", "e2e-smoke-gate"],
   } as const;
 
