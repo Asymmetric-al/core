@@ -2,12 +2,20 @@ import { describe, expect, it } from "vitest";
 
 import {
   DOCUMENT_PURPOSE_CATALOG,
+  DOCUMENT_PURPOSE_CATALOG_SCHEMA_VERSION,
+  DOCUMENT_PURPOSE_SERIALIZER_VERSION,
   buildDocumentPurposeCatalogManifest,
   canonicalizeDocumentPurposeValue,
   digestDocumentPurposeValue,
   getDocumentPurposeCatalogDigest,
   getDocumentPurposeContract,
 } from "../../../../packages/api/src/generated-documents/purpose-catalog";
+
+// Changing this pin is a reviewed, versioned contract change: any catalog value
+// or serialization change must update it deliberately, with a schema version
+// bump where the contract shape or meaning changes.
+const PINNED_CATALOG_DIGEST =
+  "456b5091243a22a0a75defe19c3fd753dc6848ca5ec4bbcfdeef0551ebc6cde6";
 
 describe("canonical serialization and the catalog digest", () => {
   it("serializes logically identical values identically regardless of key order", () => {
@@ -28,6 +36,17 @@ describe("canonical serialization and the catalog digest", () => {
     expect(digestDocumentPurposeValue(shuffled)).toBe(
       digestDocumentPurposeValue(ordered),
     );
+  });
+
+  it("pins the catalog digest and serialization contract to literal values", () => {
+    const manifest = buildDocumentPurposeCatalogManifest();
+
+    expect(getDocumentPurposeCatalogDigest()).toBe(PINNED_CATALOG_DIGEST);
+    expect(manifest.digest).toBe(PINNED_CATALOG_DIGEST);
+    expect(DOCUMENT_PURPOSE_SERIALIZER_VERSION).toBe("1");
+    expect(manifest.digest_algorithm).toBe("sha256");
+    expect(manifest.schema_version).toBe("1");
+    expect(DOCUMENT_PURPOSE_CATALOG_SCHEMA_VERSION).toBe("1");
   });
 
   it("keeps a stable digest across processes and repeated calls", () => {
