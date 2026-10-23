@@ -208,6 +208,42 @@ afterEach(async () => {
     await rm(root, { recursive: true, force: true });
 });
 describe("reviewed raw managed-skill restoration", () => {
+  it.each(
+    [false, true].flatMap((adapted) =>
+      [
+        'const module = import("./cn")',
+        'const module = import ("./cn")',
+        'const module = import\n("./cn")',
+        'const location = import.meta.resolve("./cn")',
+      ].map((expression) => [adapted, expression] as const),
+    ),
+  )(
+    "allows import expressions before semicolon-free exports (adapted=%s, %s)",
+    async (adapted, expression) => {
+      const root = await componentsFixture();
+      if (adapted)
+        await applyManagedSkillCompatibility("components-build", root);
+      const file = path.join(root, "rules/definitions.md");
+      const fence = String.fromCharCode(96).repeat(3);
+      const example = expression + '\nexport { Button } from "@base-ui/react"';
+      await writeFile(
+        file,
+        (await readFile(file, "utf8")) +
+          "\n" +
+          fence +
+          "tsx\n" +
+          example +
+          "\n" +
+          fence +
+          "\n",
+      );
+      await expect(
+        applyManagedSkillCompatibility("components-build", root),
+      ).resolves.toBeUndefined();
+      expect(await readFile(file, "utf8")).toContain(example);
+    },
+  );
+
   it("adapts the advertised definitions utility without publishing another primitive state implementation", async () => {
     const root = await componentsFixture();
     await applyManagedSkillCompatibility("components-build", root);

@@ -96,7 +96,7 @@ function* scriptCodeBlocks(content) {
 function assertCoreComposition(content, relative) {
   for (const code of scriptCodeBlocks(content)) {
     for (const imported of code.matchAll(
-      /\bimport\b\s*([^;]+?)\s*\bfrom\b\s*(["'])([^"']+)\2/gu,
+      /\bimport\b(?!\s*[.(])\s*([^;]+?)\s*\bfrom\b\s*(["'])([^"']+)\2/gu,
     )) {
       if (/\bcn\b/u.test(imported[1]) && imported[3] !== "@asym/ui/lib/utils")
         throw new Error("Unreviewed components-build cn import: " + relative);
