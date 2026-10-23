@@ -212,7 +212,7 @@ describe("required CI gate rejects a non-success unit result (#2158 criterion 12
 describe("ci-integration hosted gates require success from each heavy need (#2158 criterion 12)", () => {
   const jobs = loadWorkflowJobs(".github/workflows/ci-integration.yml");
   const GATES = {
-    "e2e-smoke-gate": ["test-e2e-smoke"],
+    "e2e-smoke-gate": ["migrate", "smoke", "test-e2e-smoke"],
     "integration-gate": ["migrate", "smoke", "e2e-smoke-gate"],
   } as const;
 
