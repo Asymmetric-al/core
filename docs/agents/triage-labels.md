@@ -20,18 +20,24 @@ docs-only work, `type:refactor` for behavior-neutral refactors, and
 
 | Triage state in mattpocock/skills | Repo tracker action                                       | Meaning                                  |
 | --------------------------------- | --------------------------------------------------------- | ---------------------------------------- |
-| `needs-triage`                    | apply exactly one `status:todo` label                     | Maintainer needs to evaluate this issue  |
-| `needs-info`                      | apply exactly one `status:blocked` label                  | Waiting on reporter for more information |
-| `ready-for-agent`                 | apply exactly one `status:ready` label                    | Fully specified, ready for an AFK agent  |
-| `ready-for-human`                 | apply exactly one `status:ready` label and assign a human | Requires human implementation            |
+| `needs-triage`                    | apply no readiness label; the issue stays without `Ready` | Maintainer needs to evaluate this issue  |
+| `needs-info`                      | post a triage-notes comment; do not apply `Ready`         | Waiting on reporter for more information |
+| `ready-for-agent`                 | apply the `Ready` label                                   | Fully specified, ready for an AFK agent  |
+| `ready-for-human`                 | do not apply `Ready`; assign a human owner                | Requires human implementation            |
 | `wontfix`                         | close the issue with a comment; do not create a label     | Will not be actioned                     |
 
-Every open issue must still carry exactly one `type:*`, one `status:*`, and one
-`complexity:*` label. Preserve an existing `complexity:*` label. If no
+Every open issue must still carry exactly one `type:*` and one `complexity:*`
+label. Preserve an existing `complexity:*` label. If no
 complexity is present and there is not enough evidence to classify it, apply
 `complexity:medium` as the triage default and call that out in the triage note.
 Do not create or apply extra labels named `bug`, `enhancement`, `needs-triage`,
-`needs-info`, `ready-for-agent`, `ready-for-human`, or `wontfix`.
+`needs-info`, `ready-for-agent` (use `Ready`), `ready-for-human`, or `wontfix`.
+
+## Factory labels
+
+- `status:needs-review` is retired and replaced by `factory:ready-to-merge`.
+- Only the factory applies `factory:*` labels, and only to in-flight work.
+- The other retired `status:*` labels (`status:todo`, `status:blocked`, `status:ready`) are replaced by the table above; do not apply them.
 
 When a skill mentions a role (for example, "apply the AFK-ready triage label"),
 use the corresponding repo tracker action from this table.

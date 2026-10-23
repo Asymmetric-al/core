@@ -1,15 +1,15 @@
 # Triage Labels
 
-The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker.
+The skills speak in terms of five canonical triage roles. This file maps those roles to the actions taken in this repo's issue tracker. Only `ready-for-agent` maps to a label (`Ready`); the other roles are expressed by comments, assignees or closing the issue.
 
-| Label in mattpocock/skills | Label in our tracker | Meaning                                  |
-| -------------------------- | -------------------- | ---------------------------------------- |
-| `needs-triage`             | `needs-triage`       | Maintainer needs to evaluate this issue  |
-| `needs-info`               | `needs-info`         | Waiting on reporter for more information |
-| `ready-for-agent`          | `ready-for-agent`    | Fully specified, ready for an AFK agent  |
-| `ready-for-human`          | `ready-for-human`    | Requires human implementation            |
-| `wontfix`                  | `wontfix`            | Will not be actioned                     |
+| Label in mattpocock/skills | Action in our tracker                                     | Meaning                                  |
+| -------------------------- | --------------------------------------------------------- | ---------------------------------------- |
+| `needs-triage`             | apply no readiness label; the issue stays without `Ready` | Maintainer needs to evaluate this issue  |
+| `needs-info`               | post a triage-notes comment; do not apply `Ready`         | Waiting on reporter for more information |
+| `ready-for-agent`          | apply the `Ready` label                                   | Fully specified, ready for an AFK agent  |
+| `ready-for-human`          | do not apply `Ready`; assign a human owner                | Requires human implementation            |
+| `wontfix`                  | close the issue with a comment; do not create a label     | Will not be actioned                     |
 
-When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table.
+When a skill mentions a role (e.g. "apply the AFK-ready triage label"), take the corresponding action from this table.
 
-Edit the "Label in our tracker" column to match whatever vocabulary you actually use.
+Edit the "Action in our tracker" column to match whatever vocabulary you actually use.

@@ -24,10 +24,11 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 ### Label taxonomy (required for every issue)
 
 - Complexity: `complexity:simple | complexity:easy | complexity:medium | complexity:hard`
-- Status: `status:todo | status:blocked | status:needs-review | status:ready`
+- Readiness: `Ready` when fully specified (see `docs/agents/triage-labels.md`); the retired `status:*` labels are not used.
+- Factory state: `factory:*`, applied only by the factory and only to in-flight work.
 - Type: `type:bug | type:feature | type:chore | type:refactor | type:docs`
 
-**Rule:** Exactly one label from each category. Do not mix multiple labels from the same category.
+**Rule:** Exactly one `type:*` and one `complexity:*` label. Do not mix multiple labels from the same category.
 
 ### CI gate
 
