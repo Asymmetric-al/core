@@ -212,4 +212,19 @@ describe("#2180 criterion 3: reusable-workflow paths fail", () => {
       expectProblem(g.selfHostedRunnerProblems(tree), file, 1, "remote");
     });
   }
+  // Scope ruling (#2180 gap 4): a remote reusable-workflow call fails R1 in
+  // EVERY workflow, allowlisted ones included; the 2158/2201 pins do not cover
+  // it because isSelfHostedJob() is false for reusable-workflow calls.
+  for (const file of ALLOWED) {
+    it(`a remote reusable workflow call added to allowlisted ${file} fails R1 naming the job`, async () => {
+      const g = await guard();
+      const tree = mutated(
+        file,
+        "\njobs:\n",
+        `\njobs:\n  remote:\n${callJob(REMOTE)}\n`,
+      );
+      expect(g.reachableWorkflows(tree)).toEqual(ALLOWED);
+      expectProblem(g.selfHostedRunnerProblems(tree), file, 1, "remote");
+    });
+  }
 });
