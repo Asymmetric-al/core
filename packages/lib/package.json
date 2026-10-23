@@ -60,7 +60,7 @@
     "@asym/auth": "workspace:*",
     "@asym/database": "workspace:*",
     "@asym/env": "workspace:*",
-    "@sentry/nextjs": "11.8.0",
+    "@sentry/nextjs": "11.9.0",
     "@stripe/stripe-js": "10.1.0",
     "@supabase/supabase-js": "2.118.0",
     "html-react-parser": "6.1.9",

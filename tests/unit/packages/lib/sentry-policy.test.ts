@@ -94,7 +94,9 @@ describe("Sentry collection and compatibility policy", () => {
         cookies: false,
         httpBodies: [],
         genAI: { inputs: false, outputs: false },
+        mcp: { inputs: false, outputs: false },
         databaseQueryData: false,
+        queues: false,
         graphQL: { document: false, variables: false },
       });
       expect(options?.dataCollection.httpHeaders.request.deny).toEqual(

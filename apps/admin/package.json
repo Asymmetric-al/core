@@ -39,7 +39,7 @@
     "@payloadcms/storage-vercel-blob": "4.0.0-beta.3",
     "@payloadcms/transformer-sharp": "4.0.0-beta.3",
     "@payloadcms/ui": "4.0.0-beta.3",
-    "@sentry/nextjs": "11.8.0",
+    "@sentry/nextjs": "11.9.0",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.118.0",
     "@tanstack/react-devtools": "0.10.13",

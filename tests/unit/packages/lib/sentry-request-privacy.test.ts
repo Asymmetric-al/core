@@ -31,6 +31,12 @@ describe("Sentry request collection with Core's compatibility policy", () => {
     vi.restoreAllMocks();
   });
 
+  it("does not inherit permissive MCP or queue payload collection defaults", () => {
+    const collection = Sentry.getClient()?.getDataCollectionOptions();
+    expect(collection?.mcp).toEqual({ inputs: false, outputs: false });
+    expect(collection?.queues).toBe(false);
+  });
+
   async function captureRequest(headers: Record<string, string>) {
     Sentry.captureEvent({
       message: "local request privacy fixture",
