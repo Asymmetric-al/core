@@ -6,16 +6,17 @@ Two workflow files run on every PR base, including internal stacked branches,
 on every push to `develop` and `production`, and on the GitHub merge queue's
 `merge_group` event (`checks_requested`, no branch filter):
 
-| Workflow          | File                                   | Branches                                                       | Jobs                                                                         | Target time               |
-| ----------------- | -------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------- |
-| Fast checks       | `.github/workflows/ci.yml`             | all PR bases; pushes on `develop`, `production`; `merge_group` | `format`, `integrity`, `lint`, `typecheck`, `build`, `test-unit` → `ci-gate` | < 4 min with remote cache |
-| Integration + E2E | `.github/workflows/ci-integration.yml` | all PR bases; pushes on `develop`, `production`; `merge_group` | `migrate → smoke → test-e2e-smoke → test-e2e`                                | ~5–25 min                 |
+| Workflow          | File                                   | Branches                                                       | Jobs                                                                                             | Target time               |
+| ----------------- | -------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | all PR bases; pushes on `develop`, `production`; `merge_group` | `format`, `integrity`, `lint`, `typecheck`, `build`, `test-unit`, `acceptance-tests` → `ci-gate` | < 4 min with remote cache |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | all PR bases; pushes on `develop`, `production`; `merge_group` | `migrate → smoke → test-e2e-smoke → test-e2e`                                                    | ~5–25 min                 |
 
 Current workflow semantics:
 
 - `ci.yml` is the always-on correctness gate for all PRs, including automation-created stacked PRs. `compilation-plan` selects affected apps only for dependency/build-configuration changes on PRs to `develop`; ordinary source/docs changes skip compilation. Missing diff context, production PRs/pushes, other PR bases, and explicit manual CI request full compilation.
 - `develop` pushes retain correctness feedback but do not repeat full compilation or trigger Vercel deployments. Superseded PR runs are canceled; production push runs are not canceled.
 - `ci-gate` accepts `build: skipped` only after a successful plan explicitly requests no build and all correctness prerequisites pass. A failed/canceled requested build or failed plan still blocks merging.
+- `acceptance-tests` runs `bun run test:acceptance` on a GitHub-hosted runner for every event, with no `if:` or `needs`, so it never reports `skipped`. `ci-gate` fails unless it succeeded.
 - `instant-nav` compiles donor only for production PRs/pushes or explicit manual integration QA. Required migration, smoke, and development smoke gates continue running.
 - Explicit `qa:smoke` previews compile on the standard GitHub runner, then use `vercel deploy --prebuilt --target=preview`; Vercel does not compile the source again. Preview serving and fixed subscription costs still apply.
 - `ci-integration.yml` runs on all PR bases. Pushes still run only on `develop` and `production`.
@@ -266,6 +267,15 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 Optional focused CMS unit coverage (not a `ci.yml` job today): `bun run test:unit:cms`.
 
+### `acceptance-tests`
+
+- _What it checks:_ Runs `bun run test:acceptance` (`scripts/verify/acceptance-tests.mjs`). The script runs the Vitest CLI over `tests/unit/acceptance/` with the JSON reporter, reads the run summary and prints `acceptance-tests: <files> files, <passed> passed, <skipped> skipped, <failed> failed`.
+- _Fails closed:_ The job fails when Vitest is missing, cannot be spawned or exits non-zero; when the JSON summary is missing or unreadable; when zero acceptance test files are collected; when zero tests execute (skipped and todo tests do not count); or when any test fails.
+- _Runner:_ GitHub-hosted `ubuntu-latest`, with no job-level `if:`, no `needs` and no path filter. It runs on every event, including fork PRs and `merge_group`, and never concludes `skipped`. It uses no secrets, variables or Turbo cache and inherits the workflow's read-only token permissions.
+- _Gate:_ `ci-gate` needs this job and requires `"acceptance": "success"` in `CI_RESULTS`. Any other result, including `skipped`, fails `ci-gate`.
+- _Why it exists:_ Acceptance criteria get a named check that cannot be skipped. `test-unit` also runs these files as part of `tests/unit/**`, but it is self-hosted and skipped on fork PRs.
+- _Debug locally:_ Run `bun run test:acceptance`, or `bunx vitest run tests/unit/acceptance/issue-<number>` for one issue's suite.
+
 ### Unit feedback report
 
 Run this when you want a structured, actionable unit-test triage report:
@@ -368,6 +378,8 @@ Verified through the GitHub branch-protection API on 2026-09-23:
   than a PR-review requirement.
 - `integration-gate` remains a workflow summary job but is not currently a
   required branch-protection context.
+- `acceptance-tests` is not a required status check. It is enforced through
+  `ci-gate`, which needs it and fails unless it succeeded.
 - `release-source-gate` is defined in `release-source.yml` for production PRs.
   It runs from the trusted default branch with a read-only token and verifies
   that the PR head is already reachable from `develop` through GitHub's compare
@@ -378,6 +390,22 @@ Verified through the GitHub branch-protection API on 2026-09-23:
 
 Commit metadata is not a CI or branch authorization gate. GitHub access and
 native branch protection control repository writes and merges.
+
+### Code ownership
+
+- `.github/CODEOWNERS` is the single source of code ownership; there is no
+  other CODEOWNERS file.
+- Owners are people only: Blake (`@II-ricky-bobby-II`) and Conrad
+  (`@cobmojo`). GitHub Apps cannot be code owners, so factory roles are not
+  listed; per-role identities are tracked in #2156.
+- `*` defaults to both owners. Explicit entries name the same owners for
+  `.github/workflows/`, `.github/CODEOWNERS`, `docs/ai/skills/`,
+  `supabase/migrations/` and `apps/admin/src/migrations/`.
+- The document-cutover entries (#2067) come last because the last matching
+  pattern wins: Blake or Conrad own the allowlist, and only Blake owns
+  committed proofs.
+- CODEOWNERS routes review requests. `develop` does not require code-owner
+  review, so ownership entries do not block merges by themselves.
 
 ---
 

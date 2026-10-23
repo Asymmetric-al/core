@@ -1006,6 +1006,7 @@ describe("runner variables do not leak: scrubbed script env, fail-closed referen
       typecheck: "success",
       unit: "success",
       build: "success",
+      acceptance: "success",
     });
     const leaked = withProcessEnv(
       {
@@ -2565,6 +2566,7 @@ describe("repair 8 (MAJOR-11): env key names and runner-faithful execution", () 
         typecheck: "success",
         unit: "success",
         build: "success",
+        acceptance: "success",
       }),
       CI_BUILD_REQUESTED: "true",
     });
