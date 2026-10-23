@@ -226,8 +226,13 @@ function grantsWrite(permissions: unknown): boolean {
   return strings(permissions).some((scope) => /write/i.test(scope));
 }
 
+/**
+ * Untrusted values for R3(f): `github.event*`, `github.head_ref`, `inputs.*`,
+ * and whole `github` / `inputs` contexts (for example `toJSON(github)`), which
+ * serialize those fields too. Safe members such as `github.sha` stay allowed.
+ */
 const UNTRUSTED_IN_RUN =
-  /\bgithub\s*(?:\.\s*(?:event|head_ref)\b|\[\s*['"](?:event|head_ref)['"])|\binputs\s*[.[]/i;
+  /\bgithub\s*(?:\.\s*(?:event|head_ref)\b|\[\s*['"](?:event|head_ref)['"])|\binputs\s*[.[]|(?<![\w.'"-])(?:github|inputs)(?![\w-])(?!\s*[.[])/i;
 
 function stepProblems(step: WorkflowStep): string[] {
   const uses = typeof step.uses === "string" ? step.uses : "";
@@ -253,7 +258,7 @@ function stepProblems(step: WorkflowStep): string[] {
   }
   if (expressions(run).some((e) => UNTRUSTED_IN_RUN.test(e))) {
     found.push(
-      "(f) interpolates github.event, github.head_ref or inputs into run:; pass it through env:",
+      "(f) interpolates github.event, github.head_ref, inputs or a whole github/inputs context into run:; pass it through env:",
     );
   }
   if (usesSecrets(step)) found.push("(e) references secrets");

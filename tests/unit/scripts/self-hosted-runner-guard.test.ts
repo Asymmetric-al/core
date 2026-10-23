@@ -193,6 +193,53 @@ describe("R3 privileged-trigger hygiene", () => {
     ]);
   });
 
+  /** A hosted, read-only pull_request_target workflow echoing `expression`. */
+  const echoing = (expression: string) =>
+    [
+      "on:",
+      "  pull_request_target:",
+      "permissions:",
+      "  contents: read",
+      "jobs:",
+      "  report:",
+      "    runs-on: ubuntu-latest",
+      "    steps:",
+      "      - run: |",
+      `          echo '\${{ ${expression} }}'`,
+      "",
+    ].join("\n");
+
+  for (const expression of [
+    "toJSON(github)",
+    "toJSON(inputs)",
+    "toJson( github )",
+    "TOJSON(\tInputs )",
+    "format('{0}', github)",
+    "toJSON(github.event)",
+  ]) {
+    it(`flags whole-context ${JSON.stringify(expression)} in run: as R3(f)`, () => {
+      const problems = selfHostedRunnerProblems(
+        tree({ "echo.yml": echoing(expression) }),
+      );
+      expect(problems).toEqual([
+        expect.stringMatching(/^echo\.yml report \[R3\] \(f\) /),
+      ]);
+    });
+  }
+
+  for (const expression of [
+    "toJSON(github.sha)",
+    "github.repository",
+    "contains(github.repository, 'github')",
+    "toJSON(steps)",
+  ]) {
+    it(`control: ${JSON.stringify(expression)} in run: passes`, () => {
+      expect(
+        selfHostedRunnerProblems(tree({ "echo.yml": echoing(expression) })),
+      ).toEqual([]);
+    });
+  }
+
   it("allows github.token and env-passed event data (release-source.yml)", () => {
     expect(real[release]).toContain("${{ github.token }}");
     expect(

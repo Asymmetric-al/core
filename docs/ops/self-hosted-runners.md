@@ -39,27 +39,28 @@ code, review it first and push the reviewed commits to a same-repo branch.
   `actions/download-artifact` or `gh run download`; (c) have no `actions/cache`
   or `setup-*` with `cache:`; (d) set read-only top-level `permissions` and no
   job-level write; (e) reference no `secrets.*` (`github.token` is allowed); and
-  (f) pass `github.event.*`, `github.head_ref` and `inputs.*` to `run:` through
-  `env:`, never by direct interpolation.
+  (f) pass `github.event.*`, `github.head_ref`, `inputs.*` and whole `github` or
+  `inputs` contexts (such as `toJSON(github)`) to `run:` through `env:`, never
+  by direct interpolation.
 
 A new workflow file or trigger that trips R1 or R2 needs a spec amendment on
 #2180, not a weaker guard.
 
 ## Threat model
 
-| Threat                                                          | Control                                                                                                                  | Owner                          | Repo or settings  |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------ | ----------------- |
-| T1 Fork `pull_request` rewrites `runs-on` in its own YAML       | A2, A3 and the maintainer rule; then A1; D-1 for the lasting fix                                                         | Samson / Blake                 | Settings          |
-| T2 `pull_request_target` path (fork checks false, secrets live) | R2 bans it on reachable workflows; R3 keeps its users hosted, checkout-free and read-only                                | Repo guard                     | Repo              |
-| T3 `workflow_run` path (artifact poisoning in base context)     | R2; R3(b) bans artifact downloads and checkout                                                                           | Repo guard                     | Repo              |
-| T4 `issue_comment` and review-event paths                       | R2; R3. No comment-triggered workflow exists today                                                                       | Repo guard                     | Repo              |
-| T5 `merge_group` path                                           | Same-repo, reviewed content only; modelled by the #2201 non-fork scenario; A7                                            | Repo harness; Samson / Blake   | Repo and settings |
-| T6 New, other or branch-only workflow targets proxmox           | R1 on `develop`. Branch-only files are trusted collaborator content until D-1                                            | Repo guard                     | Repo              |
-| T7 Reusable or remote-workflow indirection                      | R1 (transitive local calls, remote calls fail closed); R2 bans `workflow_call` on reachable files                        | Repo guard                     | Repo              |
-| T8 Secrets exposure                                             | Fork-reachable jobs pinned by the #2158/#2201 harness; R3(e) for privileged triggers; A5 for host disk                   | Repo harness; Runner bot       | Repo and host     |
-| T9 Persistence between jobs on a reused runner                  | A5 ephemeral JIT VMs; the repo cannot verify host state                                                                  | Runner bot, reviewed by Samson | Host              |
-| T10 Token permissions                                           | Allowlisted files' `permissions` pinned by #2201; R1 means no other reachable file; R3(d); A6                            | Repo guard; Samson / Blake     | Repo and settings |
-| T11 Cache poisoning                                             | Caches are ref-scoped; `TURBO_TOKEN` cannot reach forks; R3(c) bans caches under base-scope triggers; A5 for host caches | Repo guard; Runner bot         | Repo and host     |
+| Threat                                                          | Control                                                                                                                                                                                                                                                                                                                                                                                              | Owner                          | Repo or settings  |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ----------------- |
+| T1 Fork `pull_request` rewrites `runs-on` in its own YAML       | A2, A3 and the maintainer rule; then A1; D-1 for the lasting fix                                                                                                                                                                                                                                                                                                                                     | Samson / Blake                 | Settings          |
+| T2 `pull_request_target` path (fork checks false, secrets live) | R2 bans it on reachable workflows; R3 keeps its users hosted, checkout-free and read-only                                                                                                                                                                                                                                                                                                            | Repo guard                     | Repo              |
+| T3 `workflow_run` path (artifact poisoning in base context)     | R2; R3(b) bans artifact downloads and checkout                                                                                                                                                                                                                                                                                                                                                       | Repo guard                     | Repo              |
+| T4 `issue_comment` and review-event paths                       | R2; R3. No comment-triggered workflow exists today                                                                                                                                                                                                                                                                                                                                                   | Repo guard                     | Repo              |
+| T5 `merge_group` path                                           | Same-repo content only, modelled by the #2201 non-fork scenario. `develop` requires 0 approving reviews, so T5 rests on trusted collaborators plus the 4 required checks (`ci-gate`, `e2e-smoke-gate`, `migrate`, `smoke`), not on review. Samson accepted this risk for now; Code Owners plus separate App identities are tracked in [#2156](https://github.com/Asymmetric-al/core/issues/2156). A7 | Repo harness; Samson / Blake   | Repo and settings |
+| T6 New, other or branch-only workflow targets proxmox           | R1 on `develop`. Branch-only files are trusted collaborator content until D-1                                                                                                                                                                                                                                                                                                                        | Repo guard                     | Repo              |
+| T7 Reusable or remote-workflow indirection                      | R1 (transitive local calls, remote calls fail closed); R2 bans `workflow_call` on reachable files                                                                                                                                                                                                                                                                                                    | Repo guard                     | Repo              |
+| T8 Secrets exposure                                             | Fork-reachable jobs pinned by the #2158/#2201 harness; R3(e) for privileged triggers; A5 for host disk                                                                                                                                                                                                                                                                                               | Repo harness; Runner bot       | Repo and host     |
+| T9 Persistence between jobs on a reused runner                  | A5 ephemeral JIT VMs; the repo cannot verify host state                                                                                                                                                                                                                                                                                                                                              | Runner bot, reviewed by Samson | Host              |
+| T10 Token permissions                                           | Allowlisted files' `permissions` pinned by #2201; R1 means no other reachable file; R3(d); A6                                                                                                                                                                                                                                                                                                        | Repo guard; Samson / Blake     | Repo and settings |
+| T11 Cache poisoning                                             | Caches are ref-scoped; `TURBO_TOKEN` cannot reach forks; R3(c) bans caches under base-scope triggers; A5 for host caches                                                                                                                                                                                                                                                                             | Repo guard; Runner bot         | Repo and host     |
 
 ## Decisions
 
@@ -71,7 +72,9 @@ refs, so pinning `ci.yml@refs/heads/develop` would strand every PR and
 merge-group job. The lasting fix moves the self-hosted jobs into reusable
 workflows called by ref from `develop`/`production` and sets
 `restricted_to_workflows: true` on the group. It rewrites `ci.yml`,
-`ci-integration.yml` and the harness, so it needs its own approved issue.
+`ci-integration.yml` and the harness, and needs an org runner group in place of
+the current repo-level runners (A1). Tracked in
+[#2231](https://github.com/Asymmetric-al/core/issues/2231).
 
 ### D-2 Interaction-limit replacement
 
@@ -93,13 +96,12 @@ would block merges with no code change.
 Settings steps need Samson (security owner) or Blake; host steps belong to the
 Runner bot. Every command below is a read-only readback.
 
-- **A1 Runner group.** Register the Proxmox runners at org level in a dedicated,
-  non-default group with `visibility: selected` limited to `Asymmetric-al/core`
-  and `allows_public_repositories: true` (core is public).
-  `restricted_to_workflows` stays `false` until D-1. No repo-level runner
-  carries `proxmox`. Record the group name, repository list and date. Readback:
-  `gh api orgs/Asymmetric-al/actions/runner-groups` (needs `admin:org`) and
-  `gh api repos/Asymmetric-al/core/actions/runners`.
+- **A1 Runner registration (met).** The Proxmox runners are 4 JIT runners
+  registered at repository level on `Asymmetric-al/core`, labelled
+  `self-hosted, Linux, X64, proxmox`. Repo-level registration is the A1 control:
+  no other repository can schedule jobs on them. Samson ruled on 2026-10-23
+  that this meets A1 (PR #2241). Readback:
+  `gh api repos/Asymmetric-al/core/actions/runners --jq '.runners[] | [.name, ([.labels[].name] | join(","))] | @tsv'`.
 - **A2 PR creation.** Keep `pull_request_creation_policy=collaborators_only`.
   Readback: `gh api repos/Asymmetric-al/core --jq .pull_request_creation_policy`.
 - **A3 Fork-PR approval.** Keep "Require approval for all external
@@ -107,19 +109,27 @@ Runner bot. Every command below is a read-only readback.
   `gh api repos/Asymmetric-al/core/actions/permissions/fork-pr-contributor-approval`.
 - **A4 Interaction limit.** Renew by 2027-02-23 per #1906; not load-bearing for
   runners. Readback: `gh api repos/Asymmetric-al/core/interaction-limits`.
-- **A5 Ephemeral JIT VMs (Runner bot, reviewed by Samson).** One job per VM,
+- **A5 Ephemeral JIT VMs (met; Runner bot, reviewed by Samson).** One job per VM,
   destroyed after the job; no shared volume, toolcache, bun, Docker or `.turbo`
   state; no long-lived credentials in the template; JIT tokens minted per VM
   and never stored; LAN egress blocked. Attest it with one recent run showing
   distinct runner IDs:
   `gh api repos/Asymmetric-al/core/actions/runs/<run-id>/jobs --jq '.jobs[] | [.name, .runner_id] | @tsv'`.
-- **A6 Actions settings.** Default `GITHUB_TOKEN` read-only and "Allow GitHub
-  Actions to create and approve pull requests" off. The fork write-token and
-  secrets settings apply to private repositories only (N/A). Readback:
-  `gh api repos/Asymmetric-al/core/actions/permissions/workflow`.
-- **A7 Branch protection.** `develop` requires an approving review before
-  enqueue, so `merge_group` content is reviewed. Record only. Readback:
-  `gh api repos/Asymmetric-al/core/rules/branches/develop`.
+  Recorded met on #2180.
+- **A6 Actions settings (met).** Default `GITHUB_TOKEN` read-only and "Allow
+  GitHub Actions to create and approve pull requests" off. The fork write-token
+  and secrets settings apply to private repositories only (N/A). Read back by
+  Samson on 2026-10-23 ([#2180 comment](https://github.com/Asymmetric-al/core/issues/2180#issuecomment-6374927694)):
+  `default_workflow_permissions: read`, `can_approve_pull_request_reviews: false`.
+  Readback: `gh api repos/Asymmetric-al/core/actions/permissions/workflow`.
+- **A7 Branch protection (met).** `develop` uses classic branch protection:
+  strict required status checks `ci-gate`, `e2e-smoke-gate`, `migrate` and
+  `smoke`; enforce admins on; force pushes and deletions off; 0 required
+  approving reviews; Code Owners review not required (deferred to
+  [#2156](https://github.com/Asymmetric-al/core/issues/2156)). `merge_group` content is therefore not review-gated; see
+  T5. Read back by Samson on 2026-10-23 ([#2180 comment](https://github.com/Asymmetric-al/core/issues/2180#issuecomment-6374927694)). Readback:
+  `gh api repos/Asymmetric-al/core/branches/develop/protection` (the rules
+  endpoint returns `[]` because the protection is classic).
 
-Merge of #2180 is gated on A1 and A5 being recorded as done. A2, A3, A6 and A7
-are readbacks recorded in the same pass.
+A1, A5, A6 and A7 were recorded as met on 2026-10-23. A2 and A3 were read back
+the same day (D-2); A4 stays tracked by #1906.
