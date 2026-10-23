@@ -127,6 +127,26 @@ start_app() {
   echo $! >"$pidfile"
 }
 
+# One readiness probe, bounded by the time left before the deadline (floor 1s):
+# --connect-timeout <= min(5, remaining) and --max-time <= min(10, remaining).
+probe_url() {
+  local deadline="${1:?deadline required}"
+  local url="${2:?url required}"
+  local remaining=$((deadline - SECONDS))
+  if [[ "$remaining" -lt 1 ]]; then
+    remaining=1
+  fi
+  local connect_timeout=5
+  local max_time=10
+  if [[ "$remaining" -lt "$connect_timeout" ]]; then
+    connect_timeout="$remaining"
+  fi
+  if [[ "$remaining" -lt "$max_time" ]]; then
+    max_time="$remaining"
+  fi
+  curl -sf --connect-timeout "$connect_timeout" --max-time "$max_time" "$url" >/dev/null
+}
+
 wait_app() {
   local port="${1:?port required for wait}"
   local host="${2:-127.0.0.1}"
@@ -137,14 +157,15 @@ wait_app() {
   local max_seconds="${7:-120}"
 
   local base="http://${host}:${port}"
-  # Bound each probe so a server that accepts but never answers cannot stall
-  # the loop past max_seconds.
-  local probe=(curl -sf --connect-timeout 5 --max-time 10)
+  # max_seconds is an elapsed-time deadline (bash SECONDS), not a loop count:
+  # a server that accepts but never answers cannot stretch the wait.
+  local start="$SECONDS"
+  local deadline=$((start + max_seconds))
   local pid
-  for i in $(seq 1 "$max_seconds"); do
-    if "${probe[@]}" "${base}${health_path}" >/dev/null; then
-      if [[ -z "$extra_path" ]] || "${probe[@]}" "${base}${extra_path}" >/dev/null; then
-        echo "${APP} dev server ready after ${i}s"
+  while true; do
+    if probe_url "$deadline" "${base}${health_path}"; then
+      if [[ -z "$extra_path" ]] || probe_url "$deadline" "${base}${extra_path}"; then
+        echo "${APP} dev server ready after $((SECONDS - start))s"
         exit 0
       fi
     fi
@@ -155,10 +176,11 @@ wait_app() {
       rm -f "$pidfile"
       exit 1
     fi
-    if [[ "$i" -eq "$max_seconds" ]]; then
-      echo "Timed out waiting for ${APP} at ${base}${health_path}" >&2
+    if [[ "$SECONDS" -ge "$deadline" ]]; then
+      echo "Timed out after ${max_seconds}s waiting for ${APP} at ${base}${health_path}" >&2
       tail -n 150 "$log" 2>/dev/null || true
       kill_process_group "$pid"
+      rm -f "$pidfile"
       exit 1
     fi
     sleep 1
