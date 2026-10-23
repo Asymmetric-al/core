@@ -3,12 +3,13 @@
 ## Overview
 
 Two workflow files run on every PR base, including internal stacked branches,
-and on every push to `develop` and `production`:
+on every push to `develop` and `production`, and on the GitHub merge queue's
+`merge_group` event (`checks_requested`, no branch filter):
 
-| Workflow          | File                                   | Branches                                        | Jobs                                                                         | Target time               |
-| ----------------- | -------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------- |
-| Fast checks       | `.github/workflows/ci.yml`             | all PR bases; pushes on `develop`, `production` | `format`, `integrity`, `lint`, `typecheck`, `build`, `test-unit` → `ci-gate` | < 4 min with remote cache |
-| Integration + E2E | `.github/workflows/ci-integration.yml` | all PR bases; pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`                                | ~5–25 min                 |
+| Workflow          | File                                   | Branches                                                       | Jobs                                                                         | Target time               |
+| ----------------- | -------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | all PR bases; pushes on `develop`, `production`; `merge_group` | `format`, `integrity`, `lint`, `typecheck`, `build`, `test-unit` → `ci-gate` | < 4 min with remote cache |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | all PR bases; pushes on `develop`, `production`; `merge_group` | `migrate → smoke → test-e2e-smoke → test-e2e`                                | ~5–25 min                 |
 
 Current workflow semantics:
 
@@ -27,7 +28,12 @@ Current workflow semantics:
   `continue-on-error`; full E2E must pass. Production PRs keep hosted secrets
   and `e2e-gate`.
 - `test-e2e` remains informational on `develop` and is summarized by
-  `e2e-gate` on `production`.
+  `e2e-gate` on `production`. Its job-level `if:` skips it (and therefore
+  `e2e-gate`) in merge-queue (`merge_group`) runs; it still runs on the
+  `develop` push that follows the merge. Required checks `ci-gate`,
+  `migrate`, `smoke`, and `e2e-smoke-gate` still run and report on
+  merge-group commits; `e2e-smoke-gate` still needs `test-e2e-smoke` to
+  succeed (fails closed).
 - The canonical repository has no `main` branch. Legacy deny-only configuration
   may still mention it.
 
