@@ -1612,10 +1612,7 @@
       "verification": [
         "observability-content-sdks.md",
         "observability-content-sdks-current-qualification.json",
-        "observability-content-sdks-current-releases.json",
-        "observability-content-sdks-qualification.json",
-        "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json"
+        "observability-content-sdks-current-releases.json"
       ],
       "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
@@ -1756,10 +1753,7 @@
       "verification": [
         "observability-content-sdks.md",
         "observability-content-sdks-current-qualification.json",
-        "observability-content-sdks-current-releases.json",
-        "observability-content-sdks-qualification.json",
-        "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json"
+        "observability-content-sdks-current-releases.json"
       ],
       "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
@@ -1806,10 +1800,7 @@
       "verification": [
         "observability-content-sdks.md",
         "observability-content-sdks-current-qualification.json",
-        "observability-content-sdks-current-releases.json",
-        "observability-content-sdks-qualification.json",
-        "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json"
+        "observability-content-sdks-current-releases.json"
       ],
       "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
@@ -5012,10 +5003,7 @@
       "verification": [
         "observability-content-sdks.md",
         "observability-content-sdks-current-qualification.json",
-        "observability-content-sdks-current-releases.json",
-        "observability-content-sdks-qualification.json",
-        "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json"
+        "observability-content-sdks-current-releases.json"
       ],
       "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
@@ -5138,10 +5126,7 @@
       "verification": [
         "observability-content-sdks.md",
         "observability-content-sdks-current-qualification.json",
-        "observability-content-sdks-current-releases.json",
-        "observability-content-sdks-qualification.json",
-        "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json"
+        "observability-content-sdks-current-releases.json"
       ],
       "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
@@ -6665,10 +6650,7 @@
       "verification": [
         "observability-content-sdks.md",
         "observability-content-sdks-current-qualification.json",
-        "observability-content-sdks-current-releases.json",
-        "observability-content-sdks-qualification.json",
-        "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json"
+        "observability-content-sdks-current-releases.json"
       ],
       "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
