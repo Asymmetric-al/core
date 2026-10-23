@@ -8552,8 +8552,8 @@
       "sourcePath": "skills/engineering/triage/",
       "rawSkillHash": "917b0baf74be583e74f110857ed45df2766617f75c00baf61fd136d7af515edf",
       "lockHash": "917b0baf74be583e74f110857ed45df2766617f75c00baf61fd136d7af515edf",
-      "entrypointHash": "4af2075eab327ec37826169853f4a841c9e3d56faf85c228928fa03cfdc4cae8",
-      "treeHash": "57c74dc90e500748daae2c6acfc30ac8ddc202472dd8dcf4f794f4964963655d",
+      "entrypointHash": "16e3b5dbef56b4c212f0e46178fc62772e832bba36b6eb3e1d4b9488c8cd053f",
+      "treeHash": "61ade17a7bcff403268b8888cfc3f9ec171c4001c0119f2b1d7f5ab97f3b35d5",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8587,7 +8587,7 @@
           "adaptedFileHashes": {
             "AGENT-BRIEF.md": "93b9a2b0d26a747c5effa30b69be6b91483ddddea477528b26e06a8aaa4f0ae9",
             "OUT-OF-SCOPE.md": "672bf12b4e46cfdcbfcfa20da74361106edbceaf4690f4613bf6fda5ca7dbeb3",
-            "SKILL.md": "4af2075eab327ec37826169853f4a841c9e3d56faf85c228928fa03cfdc4cae8",
+            "SKILL.md": "16e3b5dbef56b4c212f0e46178fc62772e832bba36b6eb3e1d4b9488c8cd053f",
             "agents/openai.yaml": "2e683717720cf456d165d0bb1a68bb600d0b6a8ccb61841c172e50d26f95351c",
             "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
             "references/upstream.md": "89e6628faef7280023044d46024d3185dc8c2ad810f07ffc65b27bfa0a46a37b"

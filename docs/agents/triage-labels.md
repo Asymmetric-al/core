@@ -18,13 +18,13 @@ docs-only work, `type:refactor` for behavior-neutral refactors, and
 
 ## State roles
 
-| Triage state in mattpocock/skills | Repo tracker action                                       | Meaning                                  |
-| --------------------------------- | --------------------------------------------------------- | ---------------------------------------- |
-| `needs-triage`                    | apply no readiness label; the issue stays without `Ready` | Maintainer needs to evaluate this issue  |
-| `needs-info`                      | post a triage-notes comment; do not apply `Ready`         | Waiting on reporter for more information |
-| `ready-for-agent`                 | apply the `Ready` label                                   | Fully specified, ready for an AFK agent  |
-| `ready-for-human`                 | do not apply `Ready`; assign a human owner                | Requires human implementation            |
-| `wontfix`                         | close the issue with a comment; do not create a label     | Will not be actioned                     |
+| Triage state in mattpocock/skills | Repo tracker action                                                      | Meaning                                  |
+| --------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------- |
+| `needs-triage`                    | apply no readiness label; remove `Ready` if present                      | Maintainer needs to evaluate this issue  |
+| `needs-info`                      | post a triage-notes comment; do not apply `Ready` (remove it if present) | Waiting on reporter for more information |
+| `ready-for-agent`                 | apply the `Ready` label                                                  | Fully specified, ready for an AFK agent  |
+| `ready-for-human`                 | do not apply `Ready` (remove it if present); assign a human owner        | Requires human implementation            |
+| `wontfix`                         | close the issue with a comment; do not create a label                    | Will not be actioned                     |
 
 Every open issue must still carry exactly one `type:*` and one `complexity:*`
 label. Preserve an existing `complexity:*` label. If no
