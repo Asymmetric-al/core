@@ -1,6 +1,6 @@
 # Issue #2154 — runtime acceptance checklist (not automated)
 
-Spec: [rev 1 comment](https://github.com/Asymmetric-al/core/issues/2154#issuecomment-6357332711) (approved with D1a and D2a in [this comment](https://github.com/Asymmetric-al/core/issues/2154#issuecomment-6357392859)).
+Spec: [rev 1 comment](https://github.com/Asymmetric-al/core/issues/2154#issuecomment-6357332711) (approved with D1a and D2a in [this comment](https://github.com/Asymmetric-al/core/issues/2154#issuecomment-6357392859)); clarified by [addendum 1](https://github.com/Asymmetric-al/core/issues/2154#issuecomment-6357644363).
 
 ## Opt-in checks to run on the PR head
 
@@ -15,3 +15,7 @@ Spec: [rev 1 comment](https://github.com/Asymmetric-al/core/issues/2154#issuecom
 ## Not checked (D2a)
 
 - The OpenSpec scenario at `openspec/changes/add-six-agent-codex-factory/specs/agent-instruction-system/spec.md:42` stays out of this PR and is tracked in #2199. The scope check still rejects any `openspec/**` change in this PR.
+
+## Not automated (addendum 1 item 3)
+
+- [ ] `docs/ai/skills/triage/AGENT-BRIEF.md:122` (example brief) is reworded from "closed with a `wontfix` label" to closing with a comment. It is In-scope work, not a done criterion.

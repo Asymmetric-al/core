@@ -19,18 +19,31 @@
  * - D2a: the OpenSpec scenario stays out of this PR (tracked in #2199), so it
  *   is not checked here.
  *
- * Interpretation (reported as open questions):
- * - Criterion 1, "historical or compatibility references": a hit passes when
- *   its line or an adjacent line names the replacement (`Ready` in backticks or
- *   a `factory:` label) or carries an explicit marker (historical, legacy,
- *   retired, compatibility, formerly, deprecated, replaced, superseded). The PR
- *   body part is opt-in via `ACCEPTANCE_2154_PR_BODY_FILE=<path>`: every file
- *   with a remaining hit must be named in the body.
+ * Spec addendum 1 (clarifications, approved 2026-10-22 9:49 PM PT):
+ * {@link https://github.com/Asymmetric-al/core/issues/2154#issuecomment-6357644363}
+ * - Item 1 (criterion 1, strict reading intended): a line naming a retired
+ *   role is allowed only when `Ready` or an explicit historical or
+ *   compatibility marker (historical, legacy, retired, compatibility,
+ *   formerly, deprecated, replaced, superseded) is on the same line or the
+ *   next one.
+ * - Item 2 (criterion 4): the full D1a table is required in both
+ *   `docs/agents/triage-labels.md` and
+ *   `docs/ai/skills/setup-matt-pocock-skills/triage-labels.md`. The
+ *   `status:needs-review` to `factory:ready-to-merge` mapping and the
+ *   factory-only rule belong in `docs/agents/triage-labels.md`;
+ *   `docs/agents/issue-tracker.md` may repeat them, so either file satisfies
+ *   the check.
+ * - Item 3: `triage/AGENT-BRIEF.md:122` is an example brief and stays out of
+ *   the `wontfix` check. Its rewording is In-scope work but not a done
+ *   criterion, so it is not asserted.
+ *
+ * Interpretation:
+ * - Criterion 1: the PR body part is opt-in via
+ *   `ACCEPTANCE_2154_PR_BODY_FILE=<path>`: every file with a remaining hit
+ *   must be named in the body.
  * - Criterion 2: the spec lists photo credits and font names as the only
  *   non-role mentions, so every `David` outside those two data files counts.
- * - Criterion 4: the D1a mapping is checked in the two mapping tables
- *   (`docs/agents/triage-labels.md` and the setup skill's default mapping),
- *   one table row per role.
+ * - Criterion 4: the D1a mapping is checked one table row per role.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
@@ -137,8 +150,9 @@ function roleRow(text: string, role: string): string | undefined {
 // --- Criterion 1 -----------------------------------------------------------
 
 const RETIRED = "ready-for-agent|status:(ready|blocked|todo|needs-review)";
+// Addendum 1 item 1: `Ready` or an explicit historical/compatibility marker.
 const REPLACEMENT_OR_MARKER =
-  /`Ready`|`factory:|\b(historical|legacy|retired|compatib\w*|formerly|deprecated|replac\w*|superseded)\b/i;
+  /`Ready`|\b(historical|legacy|retired|compatib\w*|formerly|deprecated|replac\w*|superseded)\b/i;
 
 function retiredHits(): Hit[] {
   return grep(["-E", "-e", RETIRED], ["docs/ai", "docs/agents", ...MIRRORS]);
@@ -149,7 +163,8 @@ function unexplained(hits: Hit[]): Hit[] {
   return hits.filter((hit) => {
     const lines = cache.get(hit.file) ?? read(hit.file).split("\n");
     cache.set(hit.file, lines);
-    const window = lines.slice(Math.max(0, hit.line - 2), hit.line + 1);
+    // Same line or the next one (addendum 1 item 1).
+    const window = lines.slice(hit.line - 1, hit.line + 1);
     return !window.some((line) => REPLACEMENT_OR_MARKER.test(line));
   });
 }
