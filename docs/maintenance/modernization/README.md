@@ -103,12 +103,12 @@ qualification remain open; the beta.3 checkpoint remains dated evidence. Live
 DocRaptor fidelity and the wider UI/security/combined release remain unqualified.
 
 The [observability and content SDK checkpoint](observability-content-sdks.md)
-updates Sentry, sanitization, Resend and browser Stripe.js, while retaining
-current React Stripe. Local evidence and remaining publication/provider checks
-are bounded in its qualification record; the wider task 7.2 remains open.
+pins Sentry 11.9.0, parser/sanitizer, Resend and browser Stripe.js with current
+React Stripe. Its [current qualification](observability-content-sdks-current-qualification.json)
+binds actual develop integration, full preflight, all three builds, 9,067 passing
+tests and a clean frozen installation. The [current release freeze](observability-content-sdks-current-releases.json)
+owns active versions; earlier intended-stack records are historical.
 
-The [current qualification of the SDK stack](observability-content-sdks-integration-qualification.json)
-records fresh focused tests/types/lint/wiring and strict Doctor/Shadscan checks
-on the intended Dnd/Skill50/SDK candidate. The active SDK guide routes to that
-successor while retaining the original a45 proofs. Actual develop integration,
-full gates, CI, previews, publication and provider and release qualification remain open.
+Release CI, exact-commit previews, merge readbacks and combined qualification
+remain required delivery evidence. This SDK checkpoint does not close the wider
+AI, payment, legal, editor or nested-security families.

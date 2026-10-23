@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-23T12:20:59.021677+00:00",
+  "status": "qualified-local-runtime",
+  "scope": "Current develop integrated; current runtime sources, clean installation, full repository preflight and three production builds qualified locally. CI and deployed previews are separate release evidence.",
+  "sourceCommit": "7a5fbc17cb42d0531541ba702df99bb8759160f6",
+  "integratedDevelop": "0026bcbe8b601586c29bba422675ce5889edd7b1",
+  "branch": "chore/AL-1965-observability-content-sdks",
+  "cohort": {
+    "@sentry/nextjs": "11.9.0",
+    "html-react-parser": "6.1.9",
+    "isomorphic-dompurify": "4.6.0",
+    "resend": "6.34.1",
+    "@stripe/react-stripe-js": "7.0.0",
+    "@stripe/stripe-js": "10.1.0"
+  },
+  "runtime": {
+    "node": "24.22.1",
+    "bun": "1.4.3",
+    "productTypeScript": "7.0.2",
+    "ownedCompilerApiCompatibility": "6.0.3"
+  },
+  "releaseMetadata": {
+    "path": "observability-content-sdks-current-releases.json",
+    "sha256": "9bab7385682e3528b66ed84e50b1fd323e21ba0418faa1d78ce82af865e2b1e7"
+  },
+  "runtimeTestAndQualityInputs": [
+    {
+      "path": "apps/admin/package.json",
+      "sha256": "bf6224ba2ad7d7597617dc122a030ca1e6e5aada2b30fba22a07dbba55012870"
+    },
+    {
+      "path": "apps/donor/package.json",
+      "sha256": "6a6a0ad044fe7dca3347629e7c32f0008711fe5c9e38691f32e189c16af999df"
+    },
+    {
+      "path": "apps/missionary/package.json",
+      "sha256": "d7f23bc5792e03f1e74536b7baf1837fa6a48bf23a44dc6813ec82541e44591b"
+    },
+    {
+      "path": "bun.lock",
+      "sha256": "7afcc344d66ccb96f78969c594fe17515a334a01e76b3f392b464d04309b8214"
+    },
+    {
+      "path": "docs/qa/react-doctor/exceptions.json",
+      "sha256": "e26073b4236adc00c56c48632db8896bd39bca7db14d9cf63a3c3d49a3e65482"
+    },
+    {
+      "path": "packages/email/package.json",
+      "sha256": "1831548159362c2b37dad823820daeb300a93f668496df353586771cdbbafb3b"
+    },
+    {
+      "path": "packages/lib/monitoring/sentry-policy.ts",
+      "sha256": "52330f068bce1e2a49c6d98b284516ab376a12cce5ba4be70f5e48fac4d5e3c0"
+    },
+    {
+      "path": "packages/lib/package.json",
+      "sha256": "75c17ccae73192eae02c96b7213fda1cbc0758baed2a44110fbe67fe12fd697a"
+    },
+    {
+      "path": "scripts/sentry/next-config.mjs",
+      "sha256": "e4966f2a5b94310280492eaf1fc864b2a345ae8423c024bf4be6d2f08bf4dbec"
+    },
+    {
+      "path": "scripts/verify/sentry-release-sourcemaps.mjs",
+      "sha256": "20e175e100a91d2c392a11361164b71adc6ffd51b626819d8991843191e6e045"
+    },
+    {
+      "path": "tests/unit/packages/email/resend-sdk-security.test.ts",
+      "sha256": "541ba44d184d09026ae6922d2a7a44f523c41bf0a1de06f83beac6086aa6310d"
+    },
+    {
+      "path": "tests/unit/packages/lib/safe-html-client.test.tsx",
+      "sha256": "c0feb79b456e0c24379349df974e41e68be2f0857d23436c085be937cb0c496e"
+    },
+    {
+      "path": "tests/unit/packages/lib/safe-html.test.tsx",
+      "sha256": "3742a8b30833a30710d302107c586847efd1bcf328a3e99193d5858d2a76d6dd"
+    },
+    {
+      "path": "tests/unit/packages/lib/sentry-browser-privacy.test.ts",
+      "sha256": "87c6ec155e2baa03e8b272b3a858e22b10fce535f1320e563451985518e2611a"
+    },
+    {
+      "path": "tests/unit/packages/lib/sentry-policy.test.ts",
+      "sha256": "c045fd4e6cfa3af71f7a8c41e330dab2fadafe4a305e77d7e64bdddf40d1f7f2"
+    },
+    {
+      "path": "tests/unit/packages/lib/sentry-request-privacy.test.ts",
+      "sha256": "734a63cb7036442acd636f529683a07bd85eb05531a672510b300848b5bab7a5"
+    },
+    {
+      "path": "tests/unit/packages/lib/stripe-sdk-loader.test.ts",
+      "sha256": "0ebd28f01fc780c5a5d15778afcc98e092ecf64a902fd11dfa9abd778c4a63a4"
+    },
+    {
+      "path": "tests/unit/scripts/sentry-release-sourcemaps.test.ts",
+      "sha256": "2f38ae66f9b6fd7b98e9feb85437585866ae7097f88d2ae1cef165985dd1b747"
+    },
+    {
+      "path": "tooling/shadscan/findings.json",
+      "sha256": "982434f92df132096083e5feb9ce00109b22f7fd9b14417ae38cb069e2d1ebbb"
+    }
+  ],
+  "runtimeTestAndQualityAggregateSha256": "6d652f79e736961cecab353cca406522b415e9567ff35a30ee5ef2b3b9592eaa",
+  "aggregateFormat": "sorted path order; sha256 + two spaces + repo-relative path + LF",
+  "checks": {
+    "fullPreflight": {
+      "receipt": {
+        "path": "/tmp/core-sdk119-full-preflight-pvvr78pg/receipt.json",
+        "sha256": "934facd657a6bcae7d1f6df164e4a1592dca71b5e0877996c5a826f866a4938c"
+      },
+      "allStagesPassed": true,
+      "productionBuilds": ["admin", "donor", "missionary"],
+      "unitTestFilesPassed": 967,
+      "unitTestsPassed": 9067,
+      "existingSkippedFiles": 6,
+      "existingSkippedTests": 53,
+      "consumerTypechecks": 15,
+      "cacheReads": 0,
+      "executionHead": "abf71411ceda1066d212ec77a52d7ae893b5320f",
+      "sourceBinding": "The preflight ran before the final runtime commit, on the integrated execution HEAD with the qualified source changes. The normal-commit receipt verifies that all 25 reviewed source bytes were committed unchanged as sourceCommit. Build Git/release metadata therefore uses the execution HEAD rather than sourceCommit."
+    },
+    "focusedBehavior": {
+      "receipt": {
+        "path": "/tmp/core-sdk119-current-focused-njgvp3va/receipt.json",
+        "sha256": "82bfc2edc79cb956ccdcb9df5b75f1ccf46b69551a78fbf1c93f8a41de01156e"
+      },
+      "testsPassed": 260,
+      "filesPassed": 27,
+      "note": "The focused run passed. Its first typecheck invocation used incompatible Turbo flags and did not execute; the separate uncached typecheck receipt below supersedes that invocation."
+    },
+    "consumerTypechecks": {
+      "receipt": {
+        "path": "/tmp/core-sdk119-current-types-quality-7phngfn8/receipt.json",
+        "sha256": "20126204135384abd8f5f94543151da8cfe42e1cfed5dc2c3ec025be3fe31a79"
+      },
+      "passed": 15,
+      "cached": 0,
+      "note": "Its pre-refresh Doctor run deliberately reports stale evidence hashes; the qualified Doctor successor below binds the approved refresh."
+    },
+    "qualityAndWiring": {
+      "receipt": {
+        "path": "/tmp/core-sdk119-refreshed-quality-checks-2hg1a6y0/receipt.json",
+        "sha256": "b9ea112ba1683ceaf18bb677f247ce41c387bf24193c17af6df9dba204856b66"
+      },
+      "doctorRawDiagnostics": 293,
+      "doctorExactExceptions": 293,
+      "doctorActionable": 0,
+      "doctorTargets": 8,
+      "shadscanScore": 48,
+      "shadscanApplications": {
+        "apps/admin": 43,
+        "apps/donor": 61,
+        "apps/missionary": 47
+      },
+      "unchangedFloors": {
+        "apps/admin": 43,
+        "apps/donor": 59,
+        "apps/missionary": 47
+      },
+      "sentryWiring": "pass"
+    },
+    "qualityHashBridge": {
+      "receipt": {
+        "path": "/tmp/core-sdk119-quality-exact-leaf-valid-u2vvpxw_/receipt.json",
+        "sha256": "55ba2ba961e4653cd056cd66309b64828a1872e135f5ec0a8930eff9fe5eade1"
+      },
+      "doctorHashLeaves": 25,
+      "shadscanHashLeaves": 10,
+      "newExceptionsReasonsClassificationsOrFloorChanges": false
+    },
+    "cleanInstallation": {
+      "receipt": {
+        "path": "/tmp/core-sdk119-cold-ready-qlsc5u1c/receipt.json",
+        "sha256": "3cc383259c7a372a9d99c1f63b22f577ce690f826492aca040098ba94cca476a"
+      },
+      "commit": "7a5fbc17cb42d0531541ba702df99bb8759160f6",
+      "command": "bun ci --no-cache --backend=copyfile",
+      "packagesInstalled": 1942,
+      "freshPrivateCache": true,
+      "normalPrepareAndPostinstall": true,
+      "gitStatusClean": true,
+      "workspaceContract": "pass",
+      "lockDrift": "pass"
+    },
+    "independentSourceReview": {
+      "receipt": {
+        "path": "/tmp/core-sdk119-independent-source-quality-review-rkcewvr3/review-receipt.json",
+        "sha256": "9e6c89f1616641a05f4f8a7b3ae77d8106986c9c6a772708a63408834339ec0d"
+      },
+      "paths": 25,
+      "importantNewRuntimeFindings": 0,
+      "boundary": "Source/quality review and supplied focused evidence; later full preflight/clean installation are separate current receipts."
+    },
+    "runtimeCommitReadback": {
+      "receipt": {
+        "path": "/tmp/core-sdk119-runtime-normal-commit-mfr4oz75/receipt.json",
+        "sha256": "fef8bb671dcf48efbfe11e3828c1ca2fc5ac906201006f01bff83017ad189b4b"
+      },
+      "all25ReviewedSourceInputsUnchanged": true,
+      "normalCommitHooks": "pass"
+    },
+    "supplementalFixtureTypecheck": {
+      "receipt": {
+        "path": "/tmp/core-sdk119-fixture-ts7-fmsia05m/receipt.json",
+        "sha256": "f70f836e4ee5716adcb615fbcd1452e59f4cc7b77f4349478067b4db0a1ef55c"
+      },
+      "commit": "7a5fbc17cb42d0531541ba702df99bb8759160f6",
+      "compiler": "TypeScript 7.0.2 native",
+      "files": 6,
+      "result": "pass",
+      "cleanCheckout": true
+    }
+  },
+  "graph": {
+    "receipt": {
+      "path": "/tmp/core-sdk119-current-graph-yca4we4u/receipt.json",
+      "sha256": "07792cd2c103f0f67995f8ffdf6e8a9303d2c6d04b6970f5eb064e54c707cc6e"
+    },
+    "completeGraph": {
+      "path": "/tmp/core-sdk119-current-graph-yca4we4u/graph.json",
+      "sha256": "296f94ce5f30bcbc5a0acd7a49617c1712d5985028a5e4e22404e100b2a8e446"
+    },
+    "changedLockedPackageRecords": 22,
+    "changedWorkspaceRecords": 5,
+    "baselineAffectedEntries": 57,
+    "currentAffectedEntries": 56,
+    "baselineAdvisoryPairs": 113,
+    "currentAdvisoryPairs": 110,
+    "introducedAdvisoryPairs": 0,
+    "removedAdvisoryPairs": 3,
+    "requiredAndOptionalCohortClosureAdvisories": 0,
+    "sentryPeerExpandedRemaining": "braces3.0.3 / GHSA-vfj7-8cjw-p6xm; separate owning-tool remediation remains open.",
+    "limits": [
+      "Version/range and graph ownership evidence does not establish unreachability.",
+      "Other Payload/Monaco, workflow, archive/proxy and tooling advisories remain scoped modernization work.",
+      "No new advisory exception or override is granted."
+    ]
+  },
+  "executionBoundary": {
+    "credentialsAndOpaquePayloadDbAbsent": true,
+    "opaqueRootSymlinkRestored": true,
+    "productionExecution": false,
+    "sourceMapUploadAuthenticationPresent": false,
+    "applicationDsnsPresent": false,
+    "buildMode": "artifacts",
+    "nodeBuildTransportGuard": {
+      "receipt": {
+        "path": "/tmp/core-sdk119-full-preflight-pvvr78pg/receipt.json",
+        "sha256": "934facd657a6bcae7d1f6df164e4a1592dca71b5e0877996c5a826f866a4938c"
+      },
+      "nextBuildEntries": 3,
+      "permittedCompilerIpcEvents": 98,
+      "deniedFetchEvents": 1,
+      "deniedFetchProtocol": "data:",
+      "externalWireEventsObserved": 0,
+      "isOsFirewall": false
+    },
+    "liveProviderQualification": false
+  },
+  "historicalRecords": [
+    {
+      "path": "observability-content-sdks-qualification.json",
+      "sha256": "995495e79f31197a25eee4e1e2354f349096b130995468d84080f75ff88328e3",
+      "preservedByteExact": true
+    },
+    {
+      "path": "observability-content-sdks-integration-qualification.json",
+      "sha256": "30cc4dda868e07e8639e291c1110ed64c66913c97f804d1efce750a0905ca7a2",
+      "preservedByteExact": true
+    },
+    {
+      "path": "observability-content-sdks-releases.json",
+      "sha256": "61fa3045d5e165ed870e8562c3c8a23b2346bccb7aa8fa7f3a235f05aa473b77",
+      "preservedByteExact": true
+    }
+  ],
+  "historicalGuide": {
+    "path": "archive/observability-content-sdks-before-current-develop.md",
+    "capturedCommit": "7a5fbc17cb42d0531541ba702df99bb8759160f6",
+    "originalSha256": "0bda6d3c3f01118f3d444ceb9ee2c5260789cb150f5ab82a05b444f04b222bbf"
+  },
+  "releaseRequirements": [
+    "Current-head CI, complete changed-file/review-thread reconciliation, exact-commit applicable previews and merge/post-merge readback.",
+    "The combined modernization still requires current release/SBOM/security qualification and the remaining AI, payment, legal and editor families."
+  ]
+}

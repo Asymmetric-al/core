@@ -1607,45 +1607,49 @@
           "target": "11.8.0"
         }
       ],
-      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "state": "integrated-current-develop-locally-qualified",
       "disposition": "upgraded",
       "verification": [
         "observability-content-sdks.md",
+        "observability-content-sdks-current-qualification.json",
+        "observability-content-sdks-current-releases.json",
+        "observability-content-sdks-qualification.json",
         "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json",
-        "observability-content-sdks-qualification.json"
+        "observability-content-sdks-releases.json"
       ],
-      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open.",
+      "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@sentry/nextjs",
-          "declared": "11.8.0",
-          "target": "11.8.0"
+          "declared": "11.9.0",
+          "target": "11.9.0"
         },
         {
           "path": "apps/donor/package.json",
           "section": "dependencies",
           "declaredAs": "@sentry/nextjs",
-          "declared": "11.8.0",
-          "target": "11.8.0"
+          "declared": "11.9.0",
+          "target": "11.9.0"
         },
         {
           "path": "apps/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "@sentry/nextjs",
-          "declared": "11.8.0",
-          "target": "11.8.0"
+          "declared": "11.9.0",
+          "target": "11.9.0"
         },
         {
           "path": "packages/lib/package.json",
           "section": "dependencies",
           "declaredAs": "@sentry/nextjs",
-          "declared": "11.8.0",
-          "target": "11.8.0"
+          "declared": "11.9.0",
+          "target": "11.9.0"
         }
-      ]
+      ],
+      "selectedVersion": "11.9.0",
+      "lastVerifiedAt": "2026-10-23T11:08:03.901236+00:00"
     },
     {
       "name": "@shadcn/lint",
@@ -1747,15 +1751,17 @@
           "target": "7.0.0"
         }
       ],
-      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "state": "integrated-current-develop-locally-qualified",
       "disposition": "maintained-current",
       "verification": [
         "observability-content-sdks.md",
+        "observability-content-sdks-current-qualification.json",
+        "observability-content-sdks-current-releases.json",
+        "observability-content-sdks-qualification.json",
         "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json",
-        "observability-content-sdks-qualification.json"
+        "observability-content-sdks-releases.json"
       ],
-      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open. React Stripe 7.0.0 remains maintained current with Stripe.js 10.1.0 and React 19.3.1.",
+      "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
         {
           "path": "apps/donor/package.json",
@@ -1764,7 +1770,9 @@
           "declared": "7.0.0",
           "target": "7.0.0"
         }
-      ]
+      ],
+      "selectedVersion": "7.0.0",
+      "lastVerifiedAt": "2026-10-23T11:08:03.901236+00:00"
     },
     {
       "name": "@stripe/stripe-js",
@@ -1793,15 +1801,17 @@
           "target": "10.1.0"
         }
       ],
-      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "state": "integrated-current-develop-locally-qualified",
       "disposition": "upgraded",
       "verification": [
         "observability-content-sdks.md",
+        "observability-content-sdks-current-qualification.json",
+        "observability-content-sdks-current-releases.json",
+        "observability-content-sdks-qualification.json",
         "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json",
-        "observability-content-sdks-qualification.json"
+        "observability-content-sdks-releases.json"
       ],
-      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open.",
+      "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
         {
           "path": "apps/donor/package.json",
@@ -1817,7 +1827,9 @@
           "declared": "10.1.0",
           "target": "10.1.0"
         }
-      ]
+      ],
+      "selectedVersion": "10.1.0",
+      "lastVerifiedAt": "2026-10-23T11:08:03.901236+00:00"
     },
     {
       "name": "@supabase-labs/tanstack-db",
@@ -4995,15 +5007,17 @@
           "target": "6.1.9"
         }
       ],
-      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "state": "integrated-current-develop-locally-qualified",
       "disposition": "upgraded",
       "verification": [
         "observability-content-sdks.md",
+        "observability-content-sdks-current-qualification.json",
+        "observability-content-sdks-current-releases.json",
+        "observability-content-sdks-qualification.json",
         "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json",
-        "observability-content-sdks-qualification.json"
+        "observability-content-sdks-releases.json"
       ],
-      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open.",
+      "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
         {
           "path": "packages/lib/package.json",
@@ -5012,7 +5026,9 @@
           "declared": "6.1.9",
           "target": "6.1.9"
         }
-      ]
+      ],
+      "selectedVersion": "6.1.9",
+      "lastVerifiedAt": "2026-10-23T11:08:03.901236+00:00"
     },
     {
       "name": "husky",
@@ -5117,15 +5133,17 @@
           "target": "4.6.0"
         }
       ],
-      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "state": "integrated-current-develop-locally-qualified",
       "disposition": "upgraded",
       "verification": [
         "observability-content-sdks.md",
+        "observability-content-sdks-current-qualification.json",
+        "observability-content-sdks-current-releases.json",
+        "observability-content-sdks-qualification.json",
         "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json",
-        "observability-content-sdks-qualification.json"
+        "observability-content-sdks-releases.json"
       ],
-      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open.",
+      "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
         {
           "path": "packages/lib/package.json",
@@ -5134,7 +5152,9 @@
           "declared": "4.6.0",
           "target": "4.6.0"
         }
-      ]
+      ],
+      "selectedVersion": "4.6.0",
+      "lastVerifiedAt": "2026-10-23T11:08:03.901236+00:00"
     },
     {
       "name": "jsdom",
@@ -6640,15 +6660,17 @@
           "target": "6.34.1"
         }
       ],
-      "state": "local-stack-focused-qualified-awaiting-develop-integration",
+      "state": "integrated-current-develop-locally-qualified",
       "disposition": "upgraded",
       "verification": [
         "observability-content-sdks.md",
+        "observability-content-sdks-current-qualification.json",
+        "observability-content-sdks-current-releases.json",
+        "observability-content-sdks-qualification.json",
         "observability-content-sdks-integration-qualification.json",
-        "observability-content-sdks-releases.json",
-        "observability-content-sdks-qualification.json"
+        "observability-content-sdks-releases.json"
       ],
-      "note": "The recorded local stack passes fresh focused behavior, type, lint and wiring checks plus strict Doctor and Shadscan after the 35 approved hash updates. The successor qualification binds that evidence. Original a45 installs, builds and audits remain dated. Actual develop integration, combined gates/CI/previews/publication and provider/release qualification remain open.",
+      "note": "Actual develop0026 integration and runtime7a5 qualification pass full preflight, all3production builds,9067unit tests,260focused tests,15uncached consumer typechecks, strict Doctor/Shadscan and clean frozen installation. Current registry metadata selects the exact tested versions. CI, exact-commit previews, merge/post-merge readbacks and combined release qualification remain separate. Historical records retain their original bytes.",
       "currentUses": [
         {
           "path": "packages/email/package.json",
@@ -6657,7 +6679,9 @@
           "declared": "6.34.1",
           "target": "6.34.1"
         }
-      ]
+      ],
+      "selectedVersion": "6.34.1",
+      "lastVerifiedAt": "2026-10-23T11:08:03.901236+00:00"
     },
     {
       "name": "server-only",
