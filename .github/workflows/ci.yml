@@ -332,3 +332,43 @@ jobs:
           CI_RESULTS: >-
             {"plan":"${{ needs.compilation-plan.result }}","format":"${{ needs.format.result }}","integrity":"${{ needs.integrity.result }}","lint":"${{ needs.lint.result }}","typecheck":"${{ needs.typecheck.result }}","unit":"${{ needs.test-unit.result }}","build":"${{ needs.build.result }}","acceptance":"${{ needs.acceptance-tests.result }}"}
         run: node scripts/verify/ci-build-policy.mjs --gate
+
+  ci-gate-comment:
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && (needs.ci-gate.result == 'success' || needs.ci-gate.result == 'failure') }}
+    needs: [ci-gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Post the ci-gate status comment
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          CI_GATE_RESULT: ${{ needs.ci-gate.result }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          SERVER_URL: ${{ github.server_url }}
+        run: |
+          marker='<!-- ci-gate-status -->'
+          warn() { echo "::warning::ci-gate-comment: $1"; exit 0; }
+          command -v gh >/dev/null || warn "gh is not installed; no comment posted"
+          case "$CI_GATE_RESULT" in success | failure) ;; *) warn "unexpected ci-gate result" ;; esac
+          head=$(gh api "repos/$GH_REPO/pulls/$PR_NUMBER" --jq .head.sha) || warn "could not read the PR head"
+          if [ "$head" != "$HEAD_SHA" ]; then
+            echo "::notice::ci-gate-comment: PR head moved from $HEAD_SHA to $head; not commenting"
+            exit 0
+          fi
+          ids=$(gh api --paginate "repos/$GH_REPO/issues/$PR_NUMBER/comments?per_page=100" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id") ||
+            warn "could not list PR comments"
+          for id in $ids; do
+            gh api -X DELETE "repos/$GH_REPO/issues/comments/$id" >/dev/null || warn "could not delete comment $id"
+          done
+          body=$(printf '%s\nci-gate: %s on %s, run %s\n%s' "$marker" "$CI_GATE_RESULT" "$HEAD_SHA" "$RUN_ID" \
+            "$SERVER_URL/$GH_REPO/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT")
+          gh api "repos/$GH_REPO/issues/$PR_NUMBER/comments" -f body="$body" >/dev/null || warn "could not post the comment"
