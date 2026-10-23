@@ -10,6 +10,7 @@ import {
   FIXTURE_CLASSES,
   LEGAL_ISSUER_REQUIREMENTS,
   OUTPUT_POLICIES,
+  PURPOSE_LAUNCH_GATES,
   PURPOSE_PREDICATES,
   RELEASE_EVIDENCE_CLASSES,
   REVIEW_FLOORS,
@@ -137,7 +138,14 @@ describe("the launch purpose catalog", () => {
 
     expect(launch("giving.summary.informational@1")).toEqual({
       state: "supported_after_gates",
-      gates: ["core_d3_renderer_qualified", "core_d4_artifact_pipeline"],
+      gates: [
+        "core_d3_renderer_qualified",
+        "core_d4_artifact_pipeline",
+        "phase07_purpose_privacy_proof",
+        "phase13_purpose_privacy_proof",
+        "phase14_recognition_subject_proof",
+        "phase19_statement_seam",
+      ],
     });
     expect(launch("tribute.notification@1")).toEqual({
       state: "supported_after_gates",
@@ -151,6 +159,34 @@ describe("the launch purpose catalog", () => {
       state: "supported_after_gates",
       gates: ["registered_safe_data_view"],
     });
+  });
+
+  it("reconciles the giving summary with the amended manifest row and Phase 19 contract", () => {
+    const contract = getDocumentPurposeContract(
+      "giving.summary.informational@1",
+    );
+    const fields = contract.approved_data_view.fields;
+
+    expect(contract.source_owner).toBe(
+      "phase-07-receipt-compliance+phase-13-contribution-ledger+phase-14-recognition-subject+phase-19-statement-population",
+    );
+    expect(contract.recipient_role.role).toBe("authorized_recognition_subject");
+    expect(fields).toContain("household_support_items");
+    expect(fields).toContain("daf_recommendation_items");
+    expect(fields).toContain("period_gift_dates");
+    expect(fields).toContain("period_gift_amounts");
+    // Statement operations D15 forbids any overview total.
+    expect(fields).not.toContain("period_total");
+    expect(fields.filter((field) => /total/i.test(field))).toEqual([]);
+    expect(contract.approved_data_view.view_version).toBeGreaterThan(1);
+
+    for (const gate of [
+      "phase07_purpose_privacy_proof",
+      "phase13_purpose_privacy_proof",
+      "phase14_recognition_subject_proof",
+    ]) {
+      expect(PURPOSE_LAUNCH_GATES).toContain(gate);
+    }
   });
 
   it("assigns official policies exactly: archive output, protected review, identity policy", () => {

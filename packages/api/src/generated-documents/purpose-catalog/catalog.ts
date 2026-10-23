@@ -625,15 +625,15 @@ export const DOCUMENT_PURPOSE_CATALOG = {
     purpose_version: 1,
     lane: "governed_business",
     source_owner:
-      "phase-07-receipt-compliance+phase-13-contribution-ledger+phase-19-statement-population",
+      "phase-07-receipt-compliance+phase-13-contribution-ledger+phase-14-recognition-subject+phase-19-statement-population",
     legal_issuer_requirement: "none",
     recipient_role: {
-      role: "authorized_donor",
+      role: "authorized_recognition_subject",
       authorization_policy: "source_owned_recipient_resolution",
     },
     approved_data_view: {
       view_key: "giving.summary.period",
-      view_version: 1,
+      view_version: 2,
       fields: [
         "tenant_display_name",
         "donor_display_name",
@@ -641,7 +641,8 @@ export const DOCUMENT_PURPOSE_CATALOG = {
         "period_end",
         "period_gift_dates",
         "period_gift_amounts",
-        "period_total",
+        "household_support_items",
+        "daf_recommendation_items",
         "not_official_statement",
       ],
     },
@@ -688,7 +689,14 @@ export const DOCUMENT_PURPOSE_CATALOG = {
     release_evidence: GOVERNED_RELEASE_EVIDENCE,
     launch: {
       state: "supported_after_gates",
-      gates: ["core_d3_renderer_qualified", "core_d4_artifact_pipeline"],
+      gates: [
+        "core_d3_renderer_qualified",
+        "core_d4_artifact_pipeline",
+        "phase07_purpose_privacy_proof",
+        "phase13_purpose_privacy_proof",
+        "phase14_recognition_subject_proof",
+        "phase19_statement_seam",
+      ],
     },
   },
   "tribute.notification@1": {
