@@ -13,6 +13,13 @@ import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
 
 const TEST_IMAGE_PATH = path.join(__dirname, "fixtures", "test-image.png");
 const AUTH_OPTIONAL_SUITES = new Set(["Backend Image Processing"]);
+/** The product contract at packages/ui/components/primitives/image-upload.tsx (acceptTypes). */
+const ACCEPTED_TYPES = [
+  ["JPEG", "image/jpeg"],
+  ["PNG", "image/png"],
+  ["WebP", "image/webp"],
+  ["GIF", "image/gif"],
+] as const;
 
 type DemoAuthState = { available: true } | { available: false; reason: string };
 
@@ -24,18 +31,34 @@ async function gotoDonorSettings(page: Page) {
   await expect(page.getByRole("button", { name: /upload new/i })).toBeVisible();
 }
 
-async function openAvatarCropper(page: Page): Promise<boolean> {
-  if (!fs.existsSync(TEST_IMAGE_PATH)) {
-    return false;
-  }
+/** Opens the "Crop Image" dialog from Upload New; a missing fixture fails the test. */
+async function openAvatarCropper(page: Page) {
+  expect(
+    fs.existsSync(TEST_IMAGE_PATH),
+    `fixture missing: ${TEST_IMAGE_PATH}`,
+  ).toBe(true);
 
   const fileChooserPromise = page.waitForEvent("filechooser");
   await page.getByRole("button", { name: /upload new/i }).click();
   const fileChooser = await fileChooserPromise;
   await fileChooser.setFiles(TEST_IMAGE_PATH);
-  await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 });
 
-  return true;
+  const dialog = page.getByRole("dialog", { name: "Crop Image" });
+  await expect(dialog).toBeVisible({ timeout: 5000 });
+  return dialog;
+}
+
+/** What the "Upload public avatar" trigger renders: the image src, or the initials fallback. */
+async function observeAvatar(page: Page) {
+  const trigger = page.getByRole("button", { name: "Upload public avatar" });
+  await expect(trigger).toBeVisible();
+
+  const image = trigger.locator("img");
+  const src =
+    (await image.count()) > 0 ? await image.first().getAttribute("src") : null;
+  const text = ((await trigger.textContent()) ?? "").trim();
+  expect(src || text, "the avatar shows an image or initials").toBeTruthy();
+  return { src, text };
 }
 
 async function getDemoAuthState(
@@ -44,7 +67,7 @@ async function getDemoAuthState(
   if (demoAuthState) return demoAuthState;
 
   const availabilityRes = await request.get("/api/auth/demo-account");
-  if (!availabilityRes.ok) {
+  if (!availabilityRes.ok()) {
     demoAuthState = {
       available: false,
       reason: `Demo auth availability check failed (${availabilityRes.status()})`,
@@ -68,6 +91,14 @@ async function getDemoAuthState(
   return demoAuthState;
 }
 
+/** Required setup is broken: fail under CI (the smoke gate), skip locally. */
+function requireDemoSetup(reason: string) {
+  if (process.env.CI) {
+    throw new Error(`Required E2E setup unavailable: ${reason}`);
+  }
+  test.skip(true, reason);
+}
+
 test.beforeEach(async ({ page }, testInfo) => {
   const suiteName = testInfo.titlePath[1] ?? "";
   if (AUTH_OPTIONAL_SUITES.has(suiteName)) {
@@ -76,48 +107,24 @@ test.beforeEach(async ({ page }, testInfo) => {
 
   const authState = await getDemoAuthState(page.request);
   if (!authState.available) {
-    test.skip(true, authState.reason);
+    requireDemoSetup(authState.reason);
   }
 
   // Same-origin fetch + credentials so Set-Cookie applies to the browser context.
   const { ok, status } = await installDemoSessionInBrowser(page, "donor");
   if (!ok) {
-    test.skip(true, `Demo donor session install failed (${status})`);
+    requireDemoSetup(`Demo donor session install failed (${status})`);
   }
 });
 
 test.describe("Image Upload and Crop Flow", () => {
-  test.beforeAll(async () => {
-    const fixturesDir = path.join(__dirname, "fixtures");
-    if (!fs.existsSync(fixturesDir)) {
-      fs.mkdirSync(fixturesDir, { recursive: true });
-    }
-
-    if (!fs.existsSync(TEST_IMAGE_PATH)) {
-      const { createCanvas } = (await import("canvas").catch(() => null)) || {};
-      if (createCanvas) {
-        const canvas = createCanvas(400, 400);
-        const ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#3b82f6";
-        ctx.fillRect(0, 0, 400, 400);
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 48px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("TEST", 200, 220);
-        const buffer = canvas.toBuffer("image/png");
-        fs.writeFileSync(TEST_IMAGE_PATH, buffer);
-      }
-    }
-  });
-
   test("should open cropper dialog when image is selected", async ({
     page,
   }) => {
     await gotoDonorSettings(page);
 
-    if (await openAvatarCropper(page)) {
-      await expect(page.getByText("Crop Image")).toBeVisible();
-    }
+    const dialog = await openAvatarCropper(page);
+    await expect(dialog.getByText("Crop Image")).toBeVisible();
   });
 
   test("should close cropper and preserve original state on cancel", async ({
@@ -125,42 +132,39 @@ test.describe("Image Upload and Crop Flow", () => {
   }) => {
     await gotoDonorSettings(page);
 
-    const avatarBefore = await page
-      .locator('img[alt="Uploaded"]')
-      .first()
-      .getAttribute("src", { timeout: 1000 })
-      .catch(() => null);
+    const uploadRequests: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("/api/upload/image")) {
+        uploadRequests.push(request.url());
+      }
+    });
+    const avatarBefore = await observeAvatar(page);
 
-    if (await openAvatarCropper(page)) {
-      const dialog = page.getByRole("dialog");
+    const dialog = await openAvatarCropper(page);
+    const cancelButton = dialog.getByRole("button", { name: /cancel/i });
+    await expect(cancelButton).toBeVisible();
+    await cancelButton.click();
 
-      await page.getByRole("button", { name: /cancel/i }).click();
-
-      await expect(dialog).not.toBeVisible({ timeout: 3000 });
-
-      const avatarAfter = await page
-        .locator('img[alt="Uploaded"]')
-        .first()
-        .getAttribute("src", { timeout: 1000 })
-        .catch(() => null);
-      expect(avatarAfter).toBe(avatarBefore);
-    }
+    await expect(dialog).not.toBeVisible({ timeout: 3000 });
+    expect(await observeAvatar(page)).toEqual(avatarBefore);
+    expect(uploadRequests).toEqual([]);
+    await expect(page.getByText("Image uploaded successfully")).toHaveCount(0);
   });
 
   test("should show error for invalid file type", async ({ page }) => {
     await gotoDonorSettings(page);
 
-    const invalidFilePath = path.join(__dirname, "fixtures", "test.txt");
-    fs.writeFileSync(invalidFilePath, "This is not an image");
-
     const fileInput = page.locator('input[type="file"]').first();
-    await fileInput.setInputFiles(invalidFilePath);
+    await fileInput.setInputFiles({
+      name: "not-an-image.txt",
+      mimeType: "text/plain",
+      buffer: Buffer.from("This is not an image"),
+    });
 
-    await expect(
-      page.getByText(/unsupported|invalid|please select/i),
-    ).toBeVisible({ timeout: 5000 });
-
-    fs.unlinkSync(invalidFilePath);
+    await expect(page.getByText(/Unsupported file type/)).toBeVisible({
+      timeout: 5000,
+    });
+    await expect(page.getByRole("dialog")).toBeHidden();
   });
 
   test("ImageUpload component should have all required controls", async ({
@@ -180,37 +184,42 @@ test.describe("Image Upload and Crop Flow", () => {
   }) => {
     await gotoDonorSettings(page);
 
-    if (await openAvatarCropper(page)) {
-      const dialog = page.getByRole("dialog");
+    const dialog = await openAvatarCropper(page);
 
-      // Base UI sliders use a native range input (implicit ARIA role), so
-      // query by accessible role rather than an explicit role attribute.
-      const sliders = dialog.getByRole("slider");
-      await expect(sliders).toHaveCount(2);
+    // Base UI sliders use a native range input (implicit ARIA role), so
+    // query by accessible role rather than an explicit role attribute.
+    const sliders = dialog.getByRole("slider");
+    await expect(sliders).toHaveCount(2);
 
-      await expect(
-        page.getByRole("button", { name: /apply crop/i }),
-      ).toBeVisible();
-      await expect(page.getByRole("button", { name: /cancel/i })).toBeVisible();
+    await expect(
+      dialog.getByRole("button", { name: /apply crop/i }),
+    ).toBeVisible();
+    await expect(dialog.getByRole("button", { name: /cancel/i })).toBeVisible();
 
-      await page.getByRole("button", { name: /cancel/i }).click();
-    }
+    await dialog.getByRole("button", { name: /cancel/i }).click();
   });
 
   test("should support drag and drop", async ({ page }) => {
     await gotoDonorSettings(page);
 
-    if (fs.existsSync(TEST_IMAGE_PATH)) {
-      const uploadArea = page
-        .locator('[class*="relative"]')
-        .filter({ has: page.locator('input[type="file"]') })
-        .first();
+    const imageBase64 = fs.readFileSync(TEST_IMAGE_PATH).toString("base64");
+    // The ImageUpload root (the file input's parent) owns the drag handlers.
+    const uploadRoot = page.locator('input[type="file"]').first().locator("..");
+    const dataTransfer = await page.evaluateHandle((base64) => {
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const transfer = new DataTransfer();
+      transfer.items.add(
+        new File([bytes], "test-image.png", { type: "image/png" }),
+      );
+      return transfer;
+    }, imageBase64);
 
-      const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
+    await uploadRoot.dispatchEvent("dragover", { dataTransfer });
+    await uploadRoot.dispatchEvent("drop", { dataTransfer });
 
-      await uploadArea.dispatchEvent("dragover", { dataTransfer });
-      await uploadArea.dispatchEvent("dragleave", { dataTransfer });
-    }
+    await expect(
+      page.getByRole("dialog", { name: "Crop Image" }),
+    ).toBeVisible();
   });
 
   test("mobile viewport should show responsive cropper", async ({ page }) => {
@@ -218,63 +227,48 @@ test.describe("Image Upload and Crop Flow", () => {
 
     await gotoDonorSettings(page);
 
-    if (await openAvatarCropper(page)) {
-      const dialog = page.getByRole("dialog");
+    const dialog = await openAvatarCropper(page);
 
-      const dialogBox = await dialog.boundingBox();
-      expect(dialogBox?.width).toBeLessThanOrEqual(375);
+    const dialogBox = await dialog.boundingBox();
+    expect(dialogBox, "the cropper dialog has a bounding box").not.toBeNull();
+    expect(dialogBox?.width).toBeLessThanOrEqual(375);
 
-      await page.getByRole("button", { name: /cancel/i }).click();
-    }
+    await dialog.getByRole("button", { name: /cancel/i }).click();
   });
 });
 
 test.describe("Image Upload Validation", () => {
-  test("should accept JPEG files", async ({ page }) => {
+  test("file input accepts exactly the supported image types", async ({
+    page,
+  }) => {
     await gotoDonorSettings(page);
 
     const fileInput = page.locator('input[type="file"]').first();
     const acceptAttr = await fileInput.getAttribute("accept");
+    expect(acceptAttr, "the file input has an accept attribute").not.toBeNull();
+    const accepted = (acceptAttr ?? "")
+      .split(",")
+      .map((type) => type.trim())
+      .filter(Boolean);
 
-    expect(acceptAttr).toContain("image/jpeg");
-  });
-
-  test("should accept PNG files", async ({ page }) => {
-    await gotoDonorSettings(page);
-
-    const fileInput = page.locator('input[type="file"]').first();
-    const acceptAttr = await fileInput.getAttribute("accept");
-
-    expect(acceptAttr).toContain("image/png");
-  });
-
-  test("should accept WebP files", async ({ page }) => {
-    await gotoDonorSettings(page);
-
-    const fileInput = page.locator('input[type="file"]').first();
-    const acceptAttr = await fileInput.getAttribute("accept");
-
-    expect(acceptAttr).toContain("image/webp");
+    for (const [label, type] of ACCEPTED_TYPES) {
+      await test.step(`accepts ${label} (${type})`, async () => {
+        expect.soft(accepted, `${label} is accepted`).toContain(type);
+      });
+    }
+    expect([...accepted].sort()).toEqual(
+      ACCEPTED_TYPES.map(([, type]) => type).sort(),
+    );
   });
 });
 
 test.describe("Large File Upload", () => {
-  test("should allow files larger than 2MB (no client-side rejection)", async ({
+  test("settings copy advertises large-file auto-optimization", async ({
     page,
   }) => {
     await gotoDonorSettings(page);
 
     await expect(page.getByText(/large files auto-optimized/i)).toBeVisible();
-  });
-
-  test("should only reject files over 50MB safeguard limit", async ({
-    page,
-  }) => {
-    await gotoDonorSettings(page);
-
-    const fileInput = page.locator('input[type="file"]').first();
-    const acceptAttr = await fileInput.getAttribute("accept");
-    expect(acceptAttr).toContain("image/jpeg");
   });
 });
 
