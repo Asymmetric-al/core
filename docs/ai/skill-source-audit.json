@@ -1596,8 +1596,8 @@
       "sourcePath": "skills/components-build/SKILL.md",
       "rawSkillHash": "55c76ed69a72f69b9e0a19ac08422f64bf88624f4f5f4069903f418883efba97",
       "lockHash": "ef827017f8483932b644935f8b69a7a5a8a862b5f2a818b9e688503e0ffede0c",
-      "entrypointHash": "4f1a14663a9c273a71a78c36de97a3216563f96c0b3c1119e38715bc8d038dcc",
-      "treeHash": "80d0df718a5850b0ee74b1e9972a02644eb97e1a380f768c840fdd7c3a952fa3",
+      "entrypointHash": "0ac96ea2ec9ac2aa8a64d695737c22451ae12092997611bfdb3c038555de36d7",
+      "treeHash": "192e3257eb7d7a9496d7f4bcb8e4f1ec1cffac6819f3fe2b954afffcd19c2c41",
       "license": {
         "identifier": null,
         "status": "unresolved-applicable-license",

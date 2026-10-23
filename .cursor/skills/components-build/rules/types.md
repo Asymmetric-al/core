@@ -11,7 +11,9 @@ Proper typing is essential for creating flexible, customizable, and type-safe co
 
 ### Single Element Wrapping
 
-Each exported component should wrap a single HTML or JSX element:
+Prefer small composable parts with clear host contracts. Preserve existing
+non-DOM roots and compound implementations; this is not an instruction to add a
+wrapper element or rewrite a shared primitive:
 
 **Incorrect (hard to customize):**
 
@@ -30,26 +32,36 @@ const Card = ({ title, description, footer, ...props }) => (
 **Correct (composable, each layer customizable):**
 
 ```tsx
-<Card.Root>
-  <Card.Header>
-    <Card.Title>Title</Card.Title>
-    <Card.Description>Description</Card.Description>
-  </Card.Header>
-  <Card.Footer>Footer</Card.Footer>
-</Card.Root>
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
+
+<Card>
+  <CardHeader>
+    <CardTitle>Title</CardTitle>
+    <CardDescription>Description</CardDescription>
+  </CardHeader>
+  <CardFooter>Footer</CardFooter>
+</Card>;
 ```
 
 ### Extending HTML Attributes
 
-Every component should extend native HTML attributes:
+New passive DOM wrappers inherit their host attributes and ref. Wrappers around
+an existing component derive that component's actual props instead of replacing
+its state, render or event contract with a generic HTML type:
 
 ```tsx
-export type CardRootProps = React.ComponentProps<"div"> & {
-  variant?: "default" | "outlined";
-};
+import type * as React from "react";
 
-export const CardRoot = ({ variant = "default", ...props }: CardRootProps) => (
-  <div {...props} />
+// A justified new passive wrapper, after checking existing shared parts.
+export type SummarySectionProps = React.ComponentPropsWithRef<"section">;
+export const SummarySection = (props: SummarySectionProps) => (
+  <section {...props} />
 );
 ```
 
@@ -65,19 +77,26 @@ type LinkProps = React.ComponentProps<"a">;
 
 ### Exporting Types
 
-Always export prop types for consumers:
+Expose an owned component's prop contract. For existing shared components without
+a named props export, use `React.ComponentProps<typeof Part>`:
 
 ```tsx
-// Enables type extraction
-import type { CardRootProps } from "@/components/ui/card";
-type Variant = CardRootProps["variant"];
+import type * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card } from "@asym/ui/components/shadcn/card";
+import { cn } from "@asym/ui/lib/utils";
 
-// Enables extending
-export type ExtendedCardProps = CardRootProps & { isLoading?: boolean };
+type CardProps = React.ComponentProps<typeof Card>;
+type ButtonVariant = React.ComponentProps<typeof Button>["variant"];
+export type ProjectCardProps = CardProps & { projectId: string };
 
-// Enables wrapper components
-const MyCard = (props: CardRootProps) => (
-  <CardRoot {...props} className={cn("my-custom-class", props.className)} />
+// Consume feature metadata before forwarding the existing DOM props.
+const ProjectCard = ({ projectId, className, ...props }: ProjectCardProps) => (
+  <Card
+    data-project-id={projectId}
+    className={cn("self-start", className)}
+    {...props}
+  />
 );
 ```
 
@@ -85,14 +104,17 @@ const MyCard = (props: CardRootProps) => (
 
 ### Best Practices
 
-**1. Always Spread Props Last:**
+**1. Preserve Merged Props and Existing Behavior:**
 
 ```tsx
-// ✅ User props override defaults
-<div className="default-class" {...props} />
+import { cn } from "@asym/ui/lib/utils";
 
-// ❌ Defaults override user props
-<div {...props} className="default-class" />
+// Destructure props that need merging; forward the remainder unchanged.
+const { className, ...rest } = props;
+<div className={cn("flex gap-2", className)} {...rest} />;
+
+// A later className spread must not overwrite the merged value.
+// Preserve each primitive's existing state, event and ref composition contract.
 ```
 
 **2. Avoid Prop Name Conflicts:**
@@ -108,24 +130,26 @@ type CardProps = React.ComponentProps<"div"> & { heading: string };
 **3. Document Custom Props:**
 
 ```tsx
-export type DialogProps = React.ComponentProps<"div"> & {
-  /** Whether the dialog is currently open */
-  open: boolean;
-  /** Callback when the dialog requests to be closed */
-  onOpenChange: (open: boolean) => void;
-  /** Whether to render the dialog in a portal */
-  modal?: boolean;
-};
+import type * as React from "react";
+import { Dialog } from "@asym/ui/components/shadcn/dialog";
+
+// Preserve open/defaultOpen/onOpenChange and actual callback details.
+export type ProjectDialogProps = React.ComponentProps<typeof Dialog>;
+
+// modal controls interaction/focus behavior (including 'trap-focus').
+// It is not a portal switch; shared DialogContent owns its portal.
 ```
 
 ### Polymorphic Types
 
-For components that can render as different elements:
+For justified new passive wrappers only, the generic `as` typing is background.
+Existing Core interactive parts retain their public `render`, host props and
+ref contract; it does not add `as` to Button:
 
 ```tsx
 type PolymorphicProps<E extends React.ElementType> = {
   as?: E;
-} & React.ComponentPropsWithoutRef<E>;
+} & React.ComponentPropsWithRef<E>;
 
 function Component<E extends React.ElementType = "div">({
   as,
@@ -143,5 +167,5 @@ function Component<E extends React.ElementType = "div">({
 | Basic extension | Extend single HTML element      | `React.ComponentProps<'div'>`                           |
 | Custom props    | Add component-specific props    | `React.ComponentProps<'button'> & { variant?: string }` |
 | Polymorphic     | Render as different elements    | `PolymorphicProps<T>`                                   |
-| Type extraction | Get specific prop type          | `CardProps['variant']`                                  |
+| Type extraction | Get specific prop type          | `React.ComponentProps<typeof Button>["variant"]`        |
 | Type extension  | Extend existing component props | `CardProps & { isLoading?: boolean }`                   |

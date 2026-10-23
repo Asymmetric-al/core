@@ -44,14 +44,14 @@ primitive APIs.
 ## 7. Types (types)
 
 **Impact:** HIGH  
-**Description:** TypeScript patterns for component props including extending HTML
-attributes, exporting types, and single element wrapping.
+**Description:** TypeScript patterns for inheriting native host props/ref, deriving existing
+shared-part props, and exporting clear contracts without changing host ownership.
 
 ## 8. Polymorphism (polymorphism)
 
 **Impact:** MEDIUM  
-**Description:** Implementing the `as` prop pattern to change rendered HTML
-elements while preserving component functionality.
+**Description:** Using existing shared host/render APIs for interaction; generic `as`
+illustrations remain background for justified passive content/layout wrappers.
 
 ## 9. Render Composition (as-child)
 
@@ -62,8 +62,8 @@ props and ref.
 ## 10. Data Attributes (data-attributes)
 
 **Impact:** LOW  
-**Description:** Using data-state and data-slot attributes for styling component
-states and targeting sub-components.
+**Description:** Reading existing Base UI state attributes and preserving stable data-slot
+identities without duplicating state or overriding shared-control appearance.
 
 ## 11. Styling (styling)
 

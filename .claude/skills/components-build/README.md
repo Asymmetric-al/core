@@ -32,7 +32,7 @@ This skill provides comprehensive guidelines across 16 categories covering every
 components-build/
 ├── SKILL.md              # Skill definition (loaded by agents)
 ├── AGENTS.md             # Compiled rules (generated)
-├── metadata.json         # Version, organization, references
+├── metadata.json         # Upstream catalog file; absent locally (see source audit)
 ├── README.md             # This file
 └── rules/                # Individual rule files
     ├── _sections.md      # Section metadata and ordering
@@ -54,9 +54,9 @@ components-build/
 | 5   | Accessibility      | CRITICAL | Keyboard, screen readers, ARIA, focus management            |
 | 6   | State              | HIGH     | Controlled/uncontrolled patterns                            |
 | 7   | Types              | HIGH     | TypeScript props and interfaces                             |
-| 8   | Polymorphism       | MEDIUM   | `as` prop for element switching                             |
+| 8   | Polymorphism       | MEDIUM   | Existing host APIs; passive `as` background                 |
 | 9   | Render Composition | MEDIUM   | Base UI render + native semantics                           |
-| 10  | Data Attributes    | LOW      | `data-state` and `data-slot` patterns                       |
+| 10  | Data Attributes    | LOW      | Base UI state attributes and stable slots                   |
 | 11  | Styling            | HIGH     | Tailwind CSS, cn utility, CVA                               |
 | 12  | Design Tokens      | MEDIUM   | CSS variables and theming                                   |
 | 13  | Documentation      | MEDIUM   | JSDoc and usage examples                                    |
@@ -65,6 +65,13 @@ components-build/
 | 16  | Marketplaces       | LOW      | Distribution strategies                                     |
 
 ## Installation
+
+Core maintains this canonical pack in `docs/ai/skills/components-build/`.
+Generate installed mirrors with `bun run skills:sync` and check them with
+`bun run skills:verify`; do not hand-copy over a generated mirror.
+
+The client copy commands below are generic upstream installation background for
+external consumers, not Core maintenance commands.
 
 ### Claude Code
 
@@ -144,10 +151,10 @@ Reference: [MDN Semantic HTML](https://developer.mozilla.org/en-US/docs/Glossary
 
 1. **Composition over Configuration** - Break components into composable sub-components
 2. **Accessibility by Default** - Not an afterthought, but a requirement
-3. **Single Element Wrapping** - Each component wraps one HTML element
-4. **Extend HTML Attributes** - Always extend native element props
+3. **Composable Parts** - Respect each part's existing DOM or non-DOM host and ownership contract
+4. **Preserve Prop Contracts** - Derive existing part props; inherit native props/ref for new passive hosts
 5. **Export Types** - Make prop types available to consumers
-6. **Support Both State Patterns** - Controlled and uncontrolled
+6. **Preserve State Patterns** - Use each primitive's existing controlled/uncontrolled API
 7. **Intelligent Class Merging** - Import `cn` from `@asym/ui/lib/utils`.
 
 ## References

@@ -23,6 +23,14 @@ the parser's physical API resolution and the editor SDK. It runs inside
 exercise JSONC aliases, TSX parsing and a real native compilation that accepts a
 valid contract and rejects an invalid one.
 
+The managed-skill compatibility owner also uses that root API in
+[`components-build-adapter.mjs`](../../scripts/lib/components-build-adapter.mjs)
+to identify static helper imports and re-exports in TSX examples. It does not
+compile product code or declare incomplete documentation snippets valid programs.
+Its restoration tests cover aliases, type-only ownership, commented dynamic
+imports and semicolon-free exports. Recheck this consumer when changing either
+the supported API or the imported component guidance.
+
 The [TypeScript 7 release](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/)
 provides the stable native compiler. Its package does not expose the legacy
 JavaScript compiler API. Current

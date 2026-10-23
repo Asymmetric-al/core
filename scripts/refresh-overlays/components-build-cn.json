@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "source": "nolly-studio/components-build-skill",
   "upstreamSkillHash": "55c76ed69a72f69b9e0a19ac08422f64bf88624f4f5f4069903f418883efba97",
   "notice": "<!-- CORE-COMPONENTS-CN-START -->\n**Core shared class helper:** consume the existing helper through the shared UI\nboundary:\n\n```tsx\nimport { cn } from \"@asym/ui/lib/utils\";\n```\n\nDo not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`\nfor these recipes. The generic npm dependency examples below are retained\nupstream material and are **non-operative in Core**. Current workspace manifests\nand `packages/ui/lib/utils.ts` own the implementation and dependency choices.\n<!-- CORE-COMPONENTS-CN-END -->",
@@ -174,7 +174,913 @@
     {
       "path": "rules/definitions.md",
       "upstream": "### Utility (Non-visual)\n\nA **helper** for developer ergonomics or composition; not rendered UI.\n\n```tsx\nfunction useControllableState({ prop, defaultProp, onChange }) {\n  const [state, setState] = useState(defaultProp);\n  const value = prop !== undefined ? prop : state;\n  const setValue = (newValue) => {\n    if (prop === undefined) setState(newValue);\n    onChange?.(newValue);\n  };\n  return [value, setValue];\n}\n```\n\n**Examples:** React hooks, class utilities, keybinding helpers, focus scopes",
-      "core": "### Utility (Non-visual)\n\nA **helper** for developer ergonomics or composition; not rendered UI.\nCore reuses existing shared utilities; installed primitives own interaction state.\n\n```tsx\nimport { cn } from \"@asym/ui/lib/utils\";\n\nconst className = cn(\"text-foreground\", \"font-medium\");\n```\n\n**Examples:** React hooks, class utilities, keybinding helpers, focus scopes"
+      "core": "### Utility (Non-visual)\n\nA **helper** for developer ergonomics or composition; not rendered UI.\nCore reuses existing shared utilities and primitive state APIs. A caller may own\na controlled value; the existing primitive still coordinates interaction,\nkeyboard, ARIA and focus behavior.\n\n```tsx\nimport { cn } from \"@asym/ui/lib/utils\";\n\nconst className = cn(\"text-foreground\", \"font-medium\");\n```\n\n**Examples:** React hooks, class utilities, keybinding helpers, focus scopes",
+      "previousCore": [
+        "### Utility (Non-visual)\n\nA **helper** for developer ergonomics or composition; not rendered UI.\nCore reuses existing shared utilities; installed primitives own interaction state.\n\n```tsx\nimport { cn } from \"@asym/ui/lib/utils\";\n\nconst className = cn(\"text-foreground\", \"font-medium\");\n```\n\n**Examples:** React hooks, class utilities, keybinding helpers, focus scopes"
+      ]
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\n// Composable, accessible, customizable\nimport { cn } from \"@asym/ui/lib/utils\";\n\ninterface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {\n  variant?: \"default\" | \"outline\";\n}\n\nexport function Button({\n  className,\n  variant = \"default\",\n  children,\n  ...props\n}: ButtonProps) {\n  return (\n    <button\n      className={cn(\n        \"inline-flex items-center justify-center rounded-md px-4 py-2\",\n        \"focus-visible:outline-none focus-visible:ring-2\",\n        variant === \"default\" && \"bg-primary text-primary-foreground\",\n        variant === \"outline\" && \"border border-input bg-background\",\n        className,\n      )}\n      {...props}\n    >\n      {children}\n    </button>\n  );\n}\n",
+      "core": "\n```tsx\n// Compose the existing shared component and class helper.\nimport type * as React from \"react\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport { cn } from \"@asym/ui/lib/utils\";\n\nexport function ProjectActions({\n  className,\n  ...props\n}: Omit<React.ComponentPropsWithRef<\"div\">, \"children\">) {\n  return (\n    <div className={cn(\"flex gap-2\", className)} {...props}>\n      <Button type=\"button\">Open project</Button>\n      <Button type=\"button\" variant=\"outline\">\n        Project settings\n      </Button>\n    </div>\n  );\n}\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\n<Accordion.Root open={open} onOpenChange={setOpen}>\n  {items.map((item) => (\n    <Accordion.Item key={item.id}>\n      <Accordion.Trigger>{item.title}</Accordion.Trigger>\n      <Accordion.Content>{item.content}</Accordion.Content>\n    </Accordion.Item>\n  ))}\n</Accordion.Root>\n```\n\n",
+      "core": "\n```tsx\nimport {\n  Accordion,\n  AccordionContent,\n  AccordionItem,\n  AccordionTrigger,\n} from \"@asym/ui/components/shadcn/accordion\";\n\n<Accordion defaultValue={[]}>\n  {items.map((item) => (\n    <AccordionItem key={item.id} value={item.id}>\n      <AccordionTrigger>{item.title}</AccordionTrigger>\n      <AccordionContent>{item.content}</AccordionContent>\n    </AccordionItem>\n  ))}\n</Accordion>;\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\nexport function Button({ className, ...props }: ButtonProps) {\n  return <button className={cn(\"base-button-styles\", className)} {...props} />;\n}\n```\n\n",
+      "core": "\n```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n<Button type=\"button\" variant=\"outline\" className=\"self-start\">\n  Project details\n</Button>;\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\nexport function Button({ children, onClick, ...props }: ButtonProps) {\n  return (\n    <button onClick={onClick} {...props}>\n      {children}\n    </button>\n  );\n}\n```\n\n",
+      "core": "\n```tsx\n// The shared implementation is first-party, inspectable source:\n// packages/ui/components/shadcn/button-component.tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n<Button type=\"button\" onClick={handleClick}>\n  Project details\n</Button>;\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\n/**\n * Button component for primary actions.\n *\n * @example\n * <Button variant=\"primary\" onClick={handleClick}>Click me</Button>\n *\n * @remarks\n * - Supports keyboard navigation (Enter/Space)\n * - Accessible by default with proper ARIA attributes\n */\nexport function Button({ ... }: ButtonProps) { }\n```\n\n",
+      "core": "\n```tsx\nimport type * as React from \"react\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n/**\n * Project action that preserves the shared Button contract.\n *\n * @example\n * <ProjectAction variant=\"default\" onClick={handleClick}>Open project</ProjectAction>\n *\n * @remarks\n * - Native action, keyboard, disabled and ref behavior stay with Button.\n * - Use ButtonLink or buttonVariants on a link for navigation.\n */\nexport function ProjectAction(props: React.ComponentProps<typeof Button>) {\n  return <Button {...props} />;\n}\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "The **lowest-level building block** providing behavior and accessibility without styling. Completely headless.\n\n**Examples:** Radix UI Primitives, React Aria Components, Headless UI\n\nA **styled, reusable UI unit** that adds visual design to primitives or composes multiple elements.\n",
+      "core": "The **lowest-level building block** providing behavior and accessibility without styling. Completely headless.\n\n**Core example:** Base UI Dialog root, behind the shared `Dialog` export. Other\nprimitive libraries in the upstream taxonomy are terminology examples, not\napproved dependencies in Core.\n\nA **styled, reusable UI unit** that adds visual design to primitives or composes multiple elements.\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\n// Wrong: This is styled, so it's a Component, not a Primitive\nfunction DialogPrimitive({ open, onOpenChange, children }) {\n  return (\n    <Dialog.Root open={open} onOpenChange={onOpenChange}>\n      <Dialog.Content className=\"rounded-lg border bg-white p-6 shadow-lg\">\n        {children}\n      </Dialog.Content>\n    </Dialog.Root>\n  );\n}\n```\n\n",
+      "core": "\n```tsx\nimport { DialogContent } from \"@asym/ui/components/shadcn/dialog\";\n\n// Wrong classification: DialogContent is already a styled shared component,\n// not a behavior-only primitive. Its owning source supplies Maia presentation.\ntype BehaviorOnlyPrimitive = typeof DialogContent;\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\n// Primitive - behavior only, no styling\nfunction DialogPrimitive({ open, onOpenChange, children }) {\n  return (\n    <Dialog.Root open={open} onOpenChange={onOpenChange}>\n      {children}\n    </Dialog.Root>\n  );\n}\n\n// Component - styled wrapper around primitive\nfunction Dialog({ open, onOpenChange, children }) {\n  return (\n    <DialogPrimitive open={open} onOpenChange={onOpenChange}>\n      <Dialog.Content\n        className={cn(\"rounded-lg border bg-white p-6 shadow-lg\")}\n      >\n        {children}\n      </Dialog.Content>\n    </DialogPrimitive>\n  );\n}\n",
+      "core": "\n```tsx\nimport type * as React from \"react\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport {\n  Dialog,\n  DialogContent,\n  DialogTitle,\n  DialogTrigger,\n} from \"@asym/ui/components/shadcn/dialog\";\n\n// Block - feature composition of existing shared components.\n// Caller-owned controlled or uncontrolled root props are forwarded unchanged.\nfunction ProjectDialog(\n  props: Omit<React.ComponentProps<typeof Dialog>, \"children\">,\n) {\n  return (\n    <Dialog {...props}>\n      <DialogTrigger render={<Button type=\"button\" variant=\"outline\" />}>\n        Project details\n      </DialogTrigger>\n      <DialogContent>\n        <DialogTitle>Project details</DialogTitle>\n        Review the details before continuing.\n      </DialogContent>\n    </Dialog>\n  );\n}\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "- **Controlled** - Value driven by props (parent is source of truth)\n\n- **Uncontrolled** - Internal state with optional `defaultValue`\n\n- **Provider/Context** - Supplies shared state to subtree\n",
+      "core": "- **Controlled** - Value driven by props (parent is source of truth)\n\n- **Uncontrolled** - Primitive-owned value initialized with its actual default\n  prop (`defaultValue`, `defaultChecked` or `defaultOpen`); later default changes\n  do not control the current value.\n\n- **Provider/Context** - Supplies shared state to subtree\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\n// Polite announcement\n<div role=\"status\" aria-live=\"polite\">{savedMessage && \"Saved\"}</div>\n",
+      "core": "\n```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n<Button type=\"button\" onClick={handleClick}>\n  Open project\n</Button>;\n```\n\n**Live-region examples (avoid duplicate announcements):**\n\n```tsx\n// Polite announcement\n<div role=\"status\" aria-live=\"polite\">{savedMessage && \"Saved\"}</div>\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "```\n\nEvery interactive element must be keyboard accessible:\n\nUse ARIA attributes when necessary:\n\nSupport users with visual impairments:\n\n1. **Don't use ARIA if you can use semantic HTML**\n",
+      "core": "```\n\nEvery interactive element must be keyboard accessible. Reuse the existing\nshared Dialog, DropdownMenu and Tabs parts for modal, menu and tab behavior;\na role and tabIndex alone do not implement keyboard navigation, focus\ncontainment/restoration, dismissal or tab/panel relationships.\n\nUse ARIA attributes when necessary. Shared DialogTitle/Description and Tabs\nparts generate their relationships; do not create missing labelledby targets.\n\nSupport users with visual impairments using existing foreground/background and\nring tokens. Shared controls own their focus presentation; generic CSS examples\nare background for authorized host authoring, not app-global overrides.\n\n1. **Don't use ARIA if you can use semantic HTML**\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n**Disabled elements:**\n\n```html\n",
+      "core": "\n**Disabled elements:**\n\n```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n// The form owns submission; Button owns native disabled behavior.\n<>\n  <Button type=\"submit\" disabled={!isValid} aria-describedby=\"submit-help\">\n    Submit\n  </Button>\n  <span id=\"submit-help\">{!isValid && \"Fill required fields\"}</span>\n</>;\n```\n\n**Allow zooming:**\n\n```html\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "**Impact: HIGH**\n\nTypeScript patterns for component props including extending HTML\nattributes, exporting types, and single element wrapping.\n\n### 7.1 Component Types\n",
+      "core": "**Impact: HIGH**\n\nTypeScript patterns for inheriting native host props/ref, deriving existing\nshared-part props, and exporting clear contracts without changing host ownership.\n\n### 7.1 Component Types\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "Proper typing is essential for creating flexible, customizable, and type-safe component interfaces.\n\nEach exported component should wrap a single HTML or JSX element:\n\n**Incorrect: hard to customize**\n",
+      "core": "Proper typing is essential for creating flexible, customizable, and type-safe component interfaces.\n\nPrefer small composable parts with clear host contracts. Preserve existing\nnon-DOM roots and compound implementations; do not add a wrapper element or\nrewrite a shared primitive to satisfy a literal single-element rule:\n\n**Incorrect: hard to customize**\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\nexport type CardRootProps = React.ComponentProps<\"div\"> & {\n  variant?: \"default\" | \"outlined\";\n};\n\nexport const CardRoot = ({ variant = \"default\", ...props }: CardRootProps) => (\n  <div {...props} />\n);\n```\n\nEvery component should extend native HTML attributes:\n\n**Common HTML Attribute Types:**\n\n```tsx\n// Enables type extraction\nimport type { CardRootProps } from \"@/components/ui/card\";\ntype Variant = CardRootProps[\"variant\"];\n\n// Enables extending\nexport type ExtendedCardProps = CardRootProps & { isLoading?: boolean };\n\n// Enables wrapper components\nconst MyCard = (props: CardRootProps) => (\n  <CardRoot {...props} className={cn(\"my-custom-class\", props.className)} />\n);\n```\n\nAlways export prop types for consumers:\n\n**Naming convention:** Export types as `<ComponentName>Props`.\n\n**1. Always Spread Props Last:**\n\n```tsx\n// ✅ User props override defaults\n<div className=\"default-class\" {...props} />\n\n// ❌ Defaults override user props\n<div {...props} className=\"default-class\" />\n```\n\n",
+      "core": "\n```tsx\nimport type * as React from \"react\";\n\n// A justified new passive wrapper, after checking existing shared parts.\nexport type SummarySectionProps = React.ComponentPropsWithRef<\"section\">;\nexport const SummarySection = (props: SummarySectionProps) => (\n  <section {...props} />\n);\n```\n\nNew passive DOM wrappers inherit their host attributes and ref. Wrappers around\nan existing component derive that component's actual props instead of replacing\nits state, render or event contract with a generic HTML type:\n\n**Common HTML Attribute Types:**\n\n```tsx\nimport type * as React from \"react\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport { Card } from \"@asym/ui/components/shadcn/card\";\nimport { cn } from \"@asym/ui/lib/utils\";\n\ntype CardProps = React.ComponentProps<typeof Card>;\ntype ButtonVariant = React.ComponentProps<typeof Button>[\"variant\"];\nexport type ProjectCardProps = CardProps & { projectId: string };\n\n// Consume feature metadata before forwarding the existing DOM props.\nconst ProjectCard = ({ projectId, className, ...props }: ProjectCardProps) => (\n  <Card\n    data-project-id={projectId}\n    className={cn(\"self-start\", className)}\n    {...props}\n  />\n);\n```\n\nExpose an owned component's prop contract. For existing shared components without\na named props export, use `React.ComponentProps<typeof Part>`:\n\n**Naming convention:** Export types as `<ComponentName>Props`.\n\n**1. Preserve Merged Props and Existing Behavior:**\n\n```tsx\nimport { cn } from \"@asym/ui/lib/utils\";\n\n// Destructure props that need merging; forward the remainder unchanged.\nconst { className, ...rest } = props;\n<div className={cn(\"flex gap-2\", className)} {...rest} />;\n\n// A later className spread must not overwrite the merged value.\n// Preserve each primitive's existing state, event and ref composition contract.\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "```\n\n**3. Document Custom Props:**\n\n```tsx\ntype PolymorphicProps<E extends React.ElementType> = {\n  as?: E;\n} & React.ComponentPropsWithoutRef<E>;\n\nfunction Component<E extends React.ElementType = \"div\">({\n",
+      "core": "```\n\n**3. Document Custom Props and Host Boundaries:**\n\nDialog `modal` controls interaction/focus behavior, not portal selection. Derive\nits props from the shared root; generic div props omit that contract. The\nfollowing passive-wrapper illustration is not a Dialog type.\n\n```tsx\ntype PolymorphicProps<E extends React.ElementType> = {\n  as?: E;\n} & React.ComponentPropsWithRef<E>;\n\nfunction Component<E extends React.ElementType = \"div\">({\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "```\n\nFor components that can render as different elements:\n\n| Pattern | Usage | Example |\n",
+      "core": "```\n\nFor justified new passive wrappers only, the generic `as` typing is background.\nExisting Core interactive parts retain their public `render`, host props and\nref contract; it does not add `as` to Button:\n\n| Pattern | Usage | Example |\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "| Polymorphic | Render as different elements | `PolymorphicProps<T>` |\n\n| Type extraction | Get specific prop type | `CardProps['variant']` |\n\n| Type extension | Extend existing component props | `CardProps & { isLoading?: boolean }` |\n",
+      "core": "| Polymorphic | Render as different elements | `PolymorphicProps<T>` |\n\n| Type extraction | Get specific prop type | `React.ComponentProps<typeof Button>[\"variant\"]` |\n\n| Type extension | Extend existing component props | `CardProps & { isLoading?: boolean }` |\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "**Impact: MEDIUM**\n\nImplementing the `as` prop pattern to change rendered HTML\nelements while preserving component functionality.\n\n### 8.1 Polymorphism Patterns\n",
+      "core": "**Impact: MEDIUM**\n\nUsing existing shared host/render APIs for interaction; generic `as`\nillustrations remain background for justified passive content/layout wrappers.\n\n### 8.1 Polymorphism Patterns\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "**Impact: MEDIUM (Flexible element rendering)**\n\nBuild flexible components that can render as different HTML elements or components while maintaining consistent styling and behavior.\n\nThe `as` prop allows components to change their rendered element type:\n\n**Typography Components:**\n\n```tsx\nfunction Text({ as: Element = 'span', variant = 'body', ...props }) {\n  const className = cn(\n    'text-base',\n    variant === 'heading' && 'text-2xl font-bold',\n    variant === 'body' && 'text-base',\n    props.className\n  );\n  return <Element className={className} {...props} />;\n}\n\n",
+      "core": "**Impact: MEDIUM (Flexible element rendering)**\n\nUse the existing Core component's public host API first. Shared actions use\n`Button`; navigation uses `ButtonLink` or `buttonVariants` on an anchor/Next Link.\nBase UI parts use `render` with their actual native props and forwarded ref.\n\nThe generic `as` illustrations below remain upstream background for justified\n**passive** content/layout wrappers. They do not add `as` to shared components or\nreplace interaction behavior. New reusable behavior belongs to its reviewed\n`packages/ui` owner.\n\n**Typography Components:**\n\n```tsx\nfunction Text({ as: Element = 'span', variant = 'body', className, ...props }) {\n  return (\n    <Element\n      className={cn(\n        'text-base',\n        variant === 'heading' && 'text-2xl font-bold',\n        className\n      )}\n      {...props}\n    />\n  );\n}\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\nfunction Flex({ as: Element = 'div', ...props }) {\n  return <Element className={cn('flex', props.className)} {...props} />;\n}\n\n",
+      "core": "\n```tsx\nfunction Flex({ as: Element = 'div', className, ...props }) {\n  return <Element className={cn('flex', className)} {...props} />;\n}\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\nfunction Clickable({ as: Element = \"button\", ...props }) {\n  const isButton = Element === \"button\";\n  const isAnchor = Element === \"a\";\n  return (\n    <Element\n      role={!isButton && !isAnchor ? \"button\" : undefined}\n      tabIndex={!isButton && !isAnchor ? 0 : undefined}\n      {...props}\n    />\n  );\n}\n```\n\n",
+      "core": "\n```tsx\nimport { Button, ButtonLink } from \"@asym/ui/components/shadcn/button\";\n\n<Button type=\"button\" onClick={handleClick}>\n  Open details\n</Button>;\n<ButtonLink href=\"/projects\">Projects</ButtonLink>;\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "```\n\n**3. Handle Event Handlers:**\n\n```tsx\nfunction Interactive({ as: Element = \"button\", onClick, ...props }) {\n  const handleKeyDown = (e: React.KeyboardEvent) => {\n    if (Element !== \"button\" && (e.key === \"Enter\" || e.key === \" \")) {\n      onClick?.(e as any);\n    }\n  };\n  return (\n    <Element\n      onClick={onClick}\n      onKeyDown={Element !== \"button\" ? handleKeyDown : undefined}\n      {...props}\n    />\n  );\n}\n```\n",
+      "core": "```\n\n**3. Forward the Existing Host Contract:**\n\n```tsx\nimport type * as React from \"react\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\nfunction ProjectAction(props: React.ComponentProps<typeof Button>) {\n  return <Button {...props} />;\n}\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "```tsx\n// Incorrect: Invalid - button inside button\n<Button as=\"button\"><Button as=\"button\">Nested</Button></Button>\n\n// Incorrect: Invalid - div inside p\n",
+      "core": "```tsx\n// Incorrect: Invalid - button inside button\n<Button><Button>Nested</Button></Button>\n\n// Incorrect: Invalid - div inside p\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "**Impact: LOW**\n\nUsing data-state and data-slot attributes for styling component\nstates and targeting sub-components.\n\n### 10.1 Data Attributes for Styling\n",
+      "core": "**Impact: LOW**\n\nReading existing Base UI state attributes and preserving stable data-slot\nidentities without duplicating state or overriding shared-control appearance.\n\n### 10.1 Data Attributes for Styling\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "**Impact: LOW (Clean state-based styling patterns)**\n\nUse `data-state` and `data-slot` attributes to create flexible, maintainable component APIs.\n\n**Never expose separate className props for different states.** Use `data-state` attributes:\\*\\*\n\n```tsx\nconst Dialog = ({ className, ...props }: DialogProps) => {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <div\n      data-state={isOpen ? \"open\" : \"closed\"}\n      className={cn(\"transition-all\", className)}\n      {...props}\n    />\n  );\n};\n```\n\n**Consumer styles from outside:**\n\n```tsx\n<form className=\"[&_[data-slot=button]]:w-full\">\n  <Button>Submit</Button>\n</form>\n```\n\nGive components stable identifiers for parent targeting:\n\n**Incorrect:**\n\n```tsx\ndata-slot=\"input\"           // Too generic\ndata-slot=\"blueButton\"      // Includes styling\ndata-slot=\"div-wrapper\"     // Implementation detail\n",
+      "core": "**Impact: LOW (Clean state-based styling patterns)**\n\nUse the existing primitive's emitted state attributes and stable `data-slot`\nidentifiers. Core uses Base UI presence attributes, not a generic\n`data-state=\"open\"` contract.\n\n**Never expose separate className props for different states.** Use the existing\nprimitive's emitted attributes and supported styling contract instead.\n\n#### Read State from the Existing Part\n\nDo not mirror the primitive's open value into another local state variable or\nreplace a Dialog with a bare div. The shared root coordinates state; its content\npart renders the popup DOM and supplies the existing Maia appearance.\n\n```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport {\n  Dialog,\n  DialogContent,\n  DialogTitle,\n  DialogTrigger,\n} from \"@asym/ui/components/shadcn/dialog\";\n\n<Dialog defaultOpen={false}>\n  <DialogTrigger render={<Button type=\"button\" variant=\"outline\" />}>\n    Project details\n  </DialogTrigger>\n  <DialogContent>\n    <DialogTitle>Project details</DialogTitle>\n    Review the details before continuing.\n  </DialogContent>\n</Dialog>;\n```\n\n`Dialog` does not render a DOM host. Read or style the existing state on the\nappropriate rendered part; do not pass popup presentation to the root.\n\n#### Current Core State Contracts\n\n| Shared part                      | Attribute emitted by its primitive | Configure through                  |\n| -------------------------------- | ---------------------------------- | ---------------------------------- |\n| DialogContent / AccordionContent | `data-open` / `data-closed`        | The root's existing state API      |\n| AccordionTrigger                 | `data-panel-open`                  | Accordion `value` / `defaultValue` |\n| TabsTrigger                      | `data-active`                      | Tabs `value` / `defaultValue`      |\n| Button / Switch                  | `data-disabled` when disabled      | `disabled`                         |\n| Slider parts                     | `data-orientation`                 | `orientation`                      |\n| TooltipContent                   | `data-side`                        | `side`                             |\n\nPresence attributes are absent for false state; do not manually stamp\n`data-disabled={false}` onto a shared primitive. A feature-defined\n`data-loading` attribute is separate from the primitive's disabled or busy\nbehavior. Use the real `disabled` / `aria-busy` props where appropriate.\n\n#### Tailwind Integration\n\nInside an existing primitive's reviewed authoring owner, selectors such as\n`data-open:`, `data-closed:`, `data-panel-open:` and `data-active:` read its actual\nattributes. Consumers use the component's existing variants and placement API;\nstate selectors are not permission to override shared appearance or motion.\nThe installed Dialog already owns its popup entrance and exit animation.\n\n**Arrange existing shared controls:**\n\n```tsx\n<div className=\"flex gap-2\">\n  <Button type=\"button\">Save project</Button>\n  <Button type=\"button\" variant=\"outline\">\n    Cancel\n  </Button>\n</div>\n```\n\nPreserve existing primitive identifiers; name new feature slots only in their\nreviewed owner. Slot selectors do not grant shared-control appearance overrides.\n\n**Incorrect:**\n\n```tsx\ndata-slot=\"my-wrapper\"      // Unclear new feature-slot purpose\ndata-slot=\"blueButton\"      // Includes styling\ndata-slot=\"div-wrapper\"     // Implementation detail\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\nconst Button = ({\n  variant = \"primary\",\n  size = \"md\",\n  loading,\n  disabled,\n  className,\n  ...props\n}: ButtonProps) => {\n  return (\n    <button\n      data-slot=\"button\"\n      data-loading={loading}\n      data-disabled={disabled}\n      className={cn(buttonVariants({ variant, size }), className)}\n      disabled={disabled}\n      {...props}\n    />\n  );\n};\n\n// Usage\n<form className=\"[&_[data-slot=button]]:w-full\">\n  <Button loading={isLoading} className=\"data-[loading=true]:opacity-50\">\n    Submit\n  </Button>\n</form>;\n```\n\n",
+      "core": "\n```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n// The feature owns loading; Button owns action and disabled behavior.\n<Button\n  type=\"submit\"\n  variant=\"default\"\n  size=\"default\"\n  disabled={isLoading || isDisabled}\n  aria-busy={isLoading}\n  data-loading={isLoading ? \"\" : undefined}\n>\n  {isLoading ? \"Saving…\" : \"Save\"}\n</Button>;\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "|---------|---------|\n\n| `data-state` | Visual states (open/closed, active, loading) |\n\n| `data-slot` | Component identification, parent-child targeting |\n\n| `props` | Variants (primary, secondary), sizes, event handlers |\n\n1. **Use `data-state` instead of separate className props** for states\n\n2. **Add `data-slot` to reusable components** for targeting\n\n3. **Use kebab-case** for `data-slot` values\n",
+      "core": "|---------|---------|\n\n| Primitive state attributes | The existing part's open, active or disabled state |\n\n| `data-slot` | Component identification, parent-child targeting |\n\n| `props` | Existing variants, sizes, state props and event handlers |\n\n1. **Read the existing primitive state attributes** instead of duplicating state\n   or adding separate state-specific className props\n\n2. **Preserve existing `data-slot` values**; name new feature slots in their owner\n\n3. **Use kebab-case** for `data-slot` values\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "```\n\nApply classes in this order:\n\n",
+      "core": "```\n\nCore consumers use existing variants and placement APIs. Native/CVA examples\nillustrate a justified new passive authoring owner after component discovery;\nthey do not permit recreating Button or overriding shared appearance.\n\nApply classes in this order:\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\nimport { cva, type VariantProps } from \"class-variance-authority\";\n\nconst buttonVariants = cva(\n  \"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-all\",\n  {\n    variants: {\n      variant: {\n        default: \"bg-blue-500 text-white hover:bg-blue-600\",\n        destructive: \"bg-red-500 text-white hover:bg-red-600\",\n        outline: \"border border-gray-300 bg-transparent hover:bg-gray-50\",\n        ghost: \"hover:bg-gray-100\",\n      },\n      size: {\n        default: \"h-9 px-4 py-2\",\n        sm: \"h-8 px-3 text-sm\",\n        lg: \"h-10 px-6\",\n        icon: \"h-9 w-9\",\n      },\n    },\n    defaultVariants: {\n      variant: \"default\",\n      size: \"default\",\n    },\n  },\n);\n\ntype ButtonProps = React.ComponentProps<\"button\"> &\n  VariantProps<typeof buttonVariants>;\n\nexport const Button = ({ className, variant, size, ...props }: ButtonProps) => {\n  return (\n    <button\n      className={cn(buttonVariants({ variant, size }), className)}\n      {...props}\n    />\n  );\n};\n```\n\n",
+      "core": "\n```tsx\nimport type * as React from \"react\";\nimport { cva, type VariantProps } from \"class-variance-authority\";\nimport { cn } from \"@asym/ui/lib/utils\";\n\n// Passive authoring illustration, not a replacement for shared Card or Button.\nconst summaryVariants = cva(\"rounded-lg border bg-card text-card-foreground\", {\n  variants: {\n    density: { default: \"p-4\", compact: \"p-2\" },\n    emphasis: { default: \"\", muted: \"bg-muted text-muted-foreground\" },\n  },\n  defaultVariants: { density: \"default\", emphasis: \"default\" },\n});\n\ntype SummarySectionProps = React.ComponentPropsWithRef<\"section\"> &\n  VariantProps<typeof summaryVariants>;\n\nexport function SummarySection({\n  className,\n  density,\n  emphasis,\n  ...props\n}: SummarySectionProps) {\n  return (\n    <section\n      className={cn(summaryVariants({ density, emphasis }), className)}\n      {...props}\n    />\n  );\n}\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\nexport const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';\nexport const disabled = 'disabled:pointer-events-none disabled:opacity-50';\n\n",
+      "core": "\n```tsx\n// In an authorized host owner; shared controls already supply their focus style.\nexport const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50';\nexport const disabled = 'disabled:pointer-events-none disabled:opacity-50';\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n**2. Use CSS Variables for Dynamic Values:**\n\n**Incorrect:**\n",
+      "core": "\n**2. Use CSS Variables for Dynamic Values:**\n\nThis generic CSS-variable example illustrates mechanics only. In Core, use an\nexisting named runtime adapter/contract for dynamic values; it is not an inline-\nstyle, arbitrary-color or shared-control restyling allowance.\n\n**Incorrect:**\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\n<div\n  className={cn(\n    \"transition-all\",\n    isOpen ? \"opacity-100 translate-y-0\" : \"opacity-0 translate-y-4\",\n  )}\n/>\n",
+      "core": "\n```tsx\n// Decorative passive state only; existing primitives own visibility/focus.\n<span\n  aria-hidden=\"true\"\n  className={cn(\n    \"transition-opacity duration-(--duration-standard) motion-reduce:transition-none\",\n    isHighlighted ? \"opacity-100\" : \"opacity-50\",\n  )}\n/>\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "  className={cn(\n    baseVariants({ variant, size }),\n    isActive && \"ring-2 ring-blue-500\",\n    isDisabled && \"opacity-50 cursor-not-allowed\",\n    className,\n",
+      "core": "  className={cn(\n    baseVariants({ variant, size }),\n    isActive && \"ring-2 ring-ring\",\n    isDisabled && \"opacity-50 cursor-not-allowed\",\n    className,\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "**Impact: MEDIUM (Flexible theming and consistency)**\n\nUse semantic design tokens instead of hardcoded colors. Design tokens separate what something is from how it looks.\n\n**Base Tokens:**\n",
+      "core": "**Impact: MEDIUM (Flexible theming and consistency)**\n\nUse semantic design tokens instead of hardcoded colors. Design tokens separate\nwhat something is from how it looks. Core consumes the existing Maia/Zinc tokens\nin `packages/ui/styles/globals.css`; generic token-authoring or native-host\nexamples do not authorize app-local themes, palette changes or duplicate shared\ncontrols. New token work stays with its existing shared owner and review.\n\n**Base Tokens:**\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "```\n\nOverride tokens in `.dark` class:\n\nComponents automatically adapt because they reference tokens.\n\nUse `oklch()` for better color manipulation:\n\n1. **Never hardcode colors** - Always use design tokens\n",
+      "core": "```\n\nGeneric theme-authoring background: `.dark` can override tokens. Core already\nowns its approved shared light/dark values; consume them unchanged:\n\nComponents automatically adapt because they reference tokens.\n\nFor generic token-authoring background, `oklch()` supports perceptual color\nmanipulation; it does not authorize replacing Core's existing values:\n\n1. **Never hardcode colors** - Always use design tokens\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "Include live demos with code:\n\nClear, copy-paste ready instructions:\n\nList key capabilities:\n",
+      "core": "Include live demos with code:\n\nFor a justified Core addition, use the installed pinned CLI from repository root\nwith `--cwd packages/ui`; app consumers import `@asym/ui`. External npm\ninstallation examples remain publishing background:\n\nList key capabilities:\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "Show variants, states, and advanced usage:\n\nDocument all props:\n\nDocument a11y features:\n\nTrack versions:\n\n**Use Real-World Examples:**\n",
+      "core": "Show variants, states, and advanced usage:\n\nDerive actual props from the shared component and current source. Example API\ntables are illustrative subsets, not independent definitions:\n\nDocument a11y features:\n\nTrack versions; hypothetical external changelogs are documentation background,\nnot Core Button release history or additional props:\n\n**Use Real-World Examples:**\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```tsx\n// ✅ Complete, runnable\nimport { Button } from \"@/components/ui/button\";\nimport { useState } from \"react\";\n\nexport function CounterButton() {\n  const [count, setCount] = useState(0);\n  return <Button onClick={() => setCount(count + 1)}>Count: {count}</Button>;\n}\n```\n",
+      "core": "\n```tsx\n// ✅ Complete client example\n\"use client\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport { useState } from \"react\";\n\nexport function CounterButton() {\n  const [count, setCount] = useState(0);\n  return (\n    <Button onClick={() => setCount((current) => current + 1)}>\n      Count: {count}\n    </Button>\n  );\n}\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "Registries distribute **source code**, not compiled packages. This enables true component ownership and customization.\n\n**Bad:**\n\n",
+      "core": "Registries distribute **source code**, not compiled packages. This enables true component ownership and customization.\n\n#### Core Consumption Boundary\n\nCore already consumes shared source through `@asym/ui`; do not create an app-local\n`components/ui` tree or replace it with an external UI package. A registry item\nis a candidate source import, not proof of Base UI/Maia compatibility. Review its\nsource and dependencies, adapt it to the existing shared owner, and use the\ninstalled pinned CLI from repository root with `--cwd packages/ui` only when an\naddition is justified.\n\nRegistry metadata, distribution comparisons and deployment/publishing examples\nbelow remain generic external-authoring background. They do not change Core's\nprivate package exports/build layout, authorize deployment, or establish rights\nto redistribute any imported source. Preserve its actual provenance and notices.\n\n**Bad:**\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```typescript\n// Registry-based - source code in your project\nimport { Button } from \"@/components/ui/button\";\n```\n\n",
+      "core": "\n```typescript\n// Core consumes its existing shared first-party source.\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```bash\nnpx shadcn@latest add https://your-project.vercel.app/metric-card.json\n```\n\n",
+      "core": "\n```bash\nbunx --no-install shadcn add https://your-project.vercel.app/metric-card.json --cwd packages/ui\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\nDistribute components as npm packages for stable, versioned dependencies with centralized updates.\n\nChoose npm when:\n",
+      "core": "\nDistribute components as npm packages for stable, versioned dependencies with centralized updates.\n\nThis chapter is generic external publishing background. Core's `@asym/ui` is a\nprivate source-export workspace package; its current manifest/build/exports stay\nauthoritative. Do not copy this sample package, dependency pins or publication\ncommands into Core as a replacement for that boundary.\n\nChoose npm when:\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "Marketplaces like [21st.dev](https://21st.dev) combine registry accessibility with package repository discoverability.\n\n**For Publishing:**\n\n",
+      "core": "Marketplaces like [21st.dev](https://21st.dev) combine registry accessibility with package repository discoverability.\n\n#### Core Adoption Boundary\n\nThese marketplace examples are discovery/external-authoring background, not an\napproved replacement for Core's shared primitives. Review the complete source,\ndependencies and permissions before adopting any item; adapt behavior to Base UI\nand appearance to exact `base-maia`/semantic tokens. Do not import a second\nprimitive system or install into an app. A justified compatible addition uses\nthe installed pinned CLI from repository root with `--cwd packages/ui`.\n\n**For Publishing:**\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "\n```bash\nnpx shadcn@latest add https://21st.dev/r/haydenbleasel/dialog-stack\n```\n\n",
+      "core": "\n```bash\nbunx --no-install shadcn add https://21st.dev/r/haydenbleasel/dialog-stack --cwd packages/ui\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "README.md",
+      "upstream": "├── metadata.json         # Version, organization, references\n",
+      "core": "├── metadata.json         # Upstream catalog file; absent locally (see source audit)\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "README.md",
+      "upstream": "## Installation\n\n",
+      "core": "## Installation\n\nCore maintains this canonical pack in `docs/ai/skills/components-build/`.\nGenerate installed mirrors with `bun run skills:sync` and check them with\n`bun run skills:verify`; do not hand-copy over a generated mirror.\n\nThe client copy commands below are generic upstream installation background for\nexternal consumers, not Core maintenance commands.\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "README.md",
+      "upstream": "2. **Accessibility by Default** - Not an afterthought, but a requirement\n3. **Single Element Wrapping** - Each component wraps one HTML element\n4. **Extend HTML Attributes** - Always extend native element props\n5. **Export Types** - Make prop types available to consumers\n6. **Support Both State Patterns** - Controlled and uncontrolled\n7. **Intelligent Class Merging** - Import `cn` from `@asym/ui/lib/utils`.\n",
+      "core": "2. **Accessibility by Default** - Not an afterthought, but a requirement\n3. **Composable Parts** - Respect each part's existing DOM or non-DOM host and ownership contract\n4. **Preserve Prop Contracts** - Derive existing part props; inherit native props/ref for new passive hosts\n5. **Export Types** - Make prop types available to consumers\n6. **Preserve State Patterns** - Use each primitive's existing controlled/uncontrolled API\n7. **Intelligent Class Merging** - Import `cn` from `@asym/ui/lib/utils`.\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "SKILL.md",
+      "upstream": "- `types-extend-html` - Extend native HTML attributes\n- `types-export` - Export prop types for consumers\n- `types-single-element` - One component wraps one element\n",
+      "core": "- `types-extend-html` - Inherit native host props/ref for new passive wrappers\n- `types-export` - Export owned props; derive an existing part's public props\n- `types-single-element` - Preserve existing DOM, non-DOM and compound host contracts\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "SKILL.md",
+      "upstream": "- `polymorphism-as-prop` - Change rendered element type\n- `polymorphism-typescript` - Type-safe polymorphic components\n- `polymorphism-defaults` - Semantic element defaults\n",
+      "core": "- `polymorphism-host-api` - Use the existing shared action/link/render contract\n- `polymorphism-passive-types` - Generic passive-wrapper typing background\n- `polymorphism-defaults` - Preserve the intended native host semantics\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "SKILL.md",
+      "upstream": "- `data-attributes-state` - Use `data-state` for styling states\n",
+      "core": "- `data-attributes-state` - Read the existing Base UI part's emitted state attributes\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "SKILL.md",
+      "upstream": "rules/composition/SKILL.md\nrules/accessibility/SKILL.md\nrules/styling/SKILL.md\n",
+      "core": "rules/composition.md\nrules/accessibility.md\nrules/styling.md\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "SKILL.md",
+      "upstream": "3. **Single Element Wrapping** - Each component wraps one HTML element\n4. **Extend HTML Attributes** - Always extend native element props\n",
+      "core": "3. **Composable Parts** - Respect each part's existing DOM or non-DOM host and ownership contract\n4. **Preserve Prop Contracts** - Derive existing part props; inherit native props/ref for new passive hosts\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "SKILL.md",
+      "upstream": "6. **Support Both State Patterns** - Controlled and uncontrolled\n",
+      "core": "6. **Preserve State Patterns** - Use each primitive's existing controlled/uncontrolled API\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/_sections.md",
+      "upstream": "**Description:** TypeScript patterns for component props including extending HTML\nattributes, exporting types, and single element wrapping.\n",
+      "core": "**Description:** TypeScript patterns for inheriting native host props/ref, deriving existing\nshared-part props, and exporting clear contracts without changing host ownership.\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/_sections.md",
+      "upstream": "**Description:** Implementing the `as` prop pattern to change rendered HTML\nelements while preserving component functionality.\n",
+      "core": "**Description:** Using existing shared host/render APIs for interaction; generic `as`\nillustrations remain background for justified passive content/layout wrappers.\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/_sections.md",
+      "upstream": "**Description:** Using data-state and data-slot attributes for styling component\nstates and targeting sub-components.\n",
+      "core": "**Description:** Reading existing Base UI state attributes and preserving stable data-slot\nidentities without duplicating state or overriding shared-control appearance.\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/accessibility.md",
+      "upstream": "\n```tsx\nfunction Menu() {\n  const handleKeyDown = (e: React.KeyboardEvent) => {\n    switch (e.key) {\n      case \"ArrowDown\":\n        focusNextItem();\n        break;\n      case \"ArrowUp\":\n        focusPreviousItem();\n        break;\n      case \"Home\":\n        focusFirstItem();\n        break;\n      case \"End\":\n        focusLastItem();\n        break;\n      case \"Escape\":\n        closeMenu();\n        break;\n    }\n  };\n  return (\n    <div role=\"menu\" onKeyDown={handleKeyDown}>\n      {/* items */}\n    </div>\n  );\n}\n```\n\n",
+      "core": "\n```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport {\n  DropdownMenu,\n  DropdownMenuContent,\n  DropdownMenuItem,\n  DropdownMenuTrigger,\n} from \"@asym/ui/components/shadcn/dropdown-menu\";\n\n<DropdownMenu>\n  <DropdownMenuTrigger render={<Button type=\"button\" variant=\"outline\" />}>\n    Project actions\n  </DropdownMenuTrigger>\n  <DropdownMenuContent>\n    <DropdownMenuItem onClick={handleOpen}>Open project</DropdownMenuItem>\n    <DropdownMenuItem onClick={handleSettings}>\n      Project settings\n    </DropdownMenuItem>\n  </DropdownMenuContent>\n</DropdownMenu>;\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/accessibility.md",
+      "upstream": "#### 4. Visual Accessibility\n\nSupport users with visual impairments:\n\n```css\n/* Visible focus indicators */\nbutton:focus-visible {\n  outline: 2px solid var(--color-focus);\n  outline-offset: 2px;\n}\n",
+      "core": "#### 4. Visual Accessibility\n\nSupport users with visual impairments. Shared controls own their focus\npresentation; the CSS below illustrates semantic token mechanics for an\nauthorized host owner, not a global override of Core controls:\n\n```css\n/* Visible focus indicators */\nbutton:focus-visible {\n  outline: 2px solid var(--ring);\n  outline-offset: 2px;\n}\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/accessibility.md",
+      "upstream": "/* Sufficient color contrast (4.5:1 for normal text) */\n.text {\n  color: #333;\n  background: white;\n}\n```\n",
+      "core": "/* Sufficient color contrast (4.5:1 for normal text) */\n.text {\n  color: var(--foreground);\n  background: var(--background);\n}\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/accessibility.md",
+      "upstream": "\n```tsx\nfunction Modal({ isOpen, onClose, children }) {\n  return isOpen ? (\n    <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"modal-title\">\n      <button onClick={onClose} aria-label=\"Close dialog\">\n        ×\n      </button>\n      {children}\n    </div>\n  ) : null;\n}\n```\n\n",
+      "core": "\n```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport {\n  Dialog,\n  DialogContent,\n  DialogDescription,\n  DialogTitle,\n  DialogTrigger,\n} from \"@asym/ui/components/shadcn/dialog\";\n\n<Dialog>\n  <DialogTrigger render={<Button type=\"button\" variant=\"outline\" />}>\n    Project details\n  </DialogTrigger>\n  <DialogContent>\n    <DialogTitle>Project details</DialogTitle>\n    <DialogDescription>Review the project before continuing.</DialogDescription>\n    The existing content supplies its accessible close control.\n  </DialogContent>\n</Dialog>;\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/accessibility.md",
+      "upstream": "\n```tsx\n<button\n  aria-haspopup=\"true\"\n  aria-expanded={isOpen}\n  aria-controls=\"dropdown-menu\"\n>\n  Menu\n</button>;\n{\n  isOpen && (\n    <ul id=\"dropdown-menu\" role=\"menu\">\n      <li role=\"menuitem\" tabIndex={-1}>\n        Item 1\n      </li>\n    </ul>\n  );\n}\n```\n\n",
+      "core": "\n```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport {\n  DropdownMenu,\n  DropdownMenuContent,\n  DropdownMenuItem,\n  DropdownMenuTrigger,\n} from \"@asym/ui/components/shadcn/dropdown-menu\";\n\n<DropdownMenu>\n  <DropdownMenuTrigger render={<Button type=\"button\" />}>\n    Menu\n  </DropdownMenuTrigger>\n  <DropdownMenuContent>\n    <DropdownMenuItem onClick={handleOpen}>Open item</DropdownMenuItem>\n  </DropdownMenuContent>\n</DropdownMenu>;\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/accessibility.md",
+      "upstream": "\n```tsx\n<div role=\"tablist\" aria-label=\"Tabs\">\n  <button role=\"tab\" aria-selected={activeTab === 0} aria-controls=\"panel-0\">Tab 1</button>\n</div>\n<div id=\"panel-0\" role=\"tabpanel\" aria-labelledby=\"tab-0\">{/* content */}</div>\n```\n\n### Focus Management\n\n```css\n/* Show outline only for keyboard focus */\n*:focus-visible {\n  outline: 2px solid var(--color-focus);\n  outline-offset: 2px;\n}\n",
+      "core": "\n```tsx\nimport {\n  Tabs,\n  TabsContent,\n  TabsList,\n  TabsTrigger,\n} from \"@asym/ui/components/shadcn/tabs\";\n\n<Tabs defaultValue=\"details\">\n  <TabsList aria-label=\"Project information\">\n    <TabsTrigger value=\"details\">Details</TabsTrigger>\n    <TabsTrigger value=\"history\">History</TabsTrigger>\n  </TabsList>\n  <TabsContent value=\"details\">Project details</TabsContent>\n  <TabsContent value=\"history\">Project history</TabsContent>\n</Tabs>;\n```\n\n### Focus Management\n\nVerify focus entry, containment and restoration through the existing primitive.\nThe following generic CSS is host-authoring background; do not redeclare shared\nfocus styles globally in an app.\n\n```css\n/* Show outline only for keyboard focus */\n*:focus-visible {\n  outline: 2px solid var(--ring);\n  outline-offset: 2px;\n}\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/accessibility.md",
+      "upstream": "\n```tsx\n// ✅ Use aria-disabled and explain\n<button\n  aria-disabled={!isValid}\n  aria-describedby=\"submit-help\"\n  onClick={isValid ? handleSubmit : undefined}\n>Submit</button>\n<span id=\"submit-help\">{!isValid && 'Fill required fields'}</span>\n```\n\n",
+      "core": "\n```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n// The form owns submission; Button owns native disabled behavior.\n<>\n  <Button type=\"submit\" disabled={!isValid} aria-describedby=\"submit-help\">\n    Submit\n  </Button>\n  <span id=\"submit-help\">{!isValid && \"Fill required fields\"}</span>\n</>;\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/data-attributes.md",
+      "upstream": "\nUse `data-state` and `data-slot` attributes to create flexible, maintainable component APIs.\n\n### Use data-state for Visual States\n\n**Never expose separate className props for different states.** Use `data-state` attributes:\n\n```tsx\nconst Dialog = ({ className, ...props }: DialogProps) => {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <div\n      data-state={isOpen ? \"open\" : \"closed\"}\n      className={cn(\"transition-all\", className)}\n      {...props}\n    />\n  );\n};\n```\n\n**Consumer styles from outside:**\n\n```tsx\n<Dialog className=\"data-[state=open]:opacity-100 data-[state=closed]:opacity-0\" />\n```\n\n### Common State Patterns\n\n```tsx\n// Open/closed\n<Accordion data-state={isOpen ? 'open' : 'closed'} />\n\n// Selected\n<Tab data-state={isSelected ? 'active' : 'inactive'} />\n\n// Disabled\n<Button data-disabled={isDisabled} disabled={isDisabled} />\n\n// Loading\n<Button data-loading={isLoading} />\n\n// Orientation\n<Slider data-orientation=\"horizontal\" />\n\n// Side/position\n<Tooltip data-side=\"top\" />\n```\n\n",
+      "core": "\nUse the existing primitive's emitted state attributes and stable `data-slot`\nidentifiers. Core uses Base UI presence attributes, not a generic\n`data-state=\"open\"` contract.\n\n**Never expose separate className props for different states.** Use the existing\nprimitive's emitted attributes and supported styling contract instead.\n\n### Read State from the Existing Part\n\nDo not mirror the primitive's open value into another local state variable or\nreplace a Dialog with a bare div. The shared root coordinates state; its content\npart renders the popup DOM and supplies the existing Maia appearance.\n\n```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport {\n  Dialog,\n  DialogContent,\n  DialogTitle,\n  DialogTrigger,\n} from \"@asym/ui/components/shadcn/dialog\";\n\n<Dialog defaultOpen={false}>\n  <DialogTrigger render={<Button type=\"button\" variant=\"outline\" />}>\n    Project details\n  </DialogTrigger>\n  <DialogContent>\n    <DialogTitle>Project details</DialogTitle>\n    Review the details before continuing.\n  </DialogContent>\n</Dialog>;\n```\n\n`Dialog` does not render a DOM host. Read or style the existing state on the\nappropriate rendered part; do not pass popup presentation to the root.\n\n### Current Core State Contracts\n\n| Shared part                      | Attribute emitted by its primitive | Configure through                  |\n| -------------------------------- | ---------------------------------- | ---------------------------------- |\n| DialogContent / AccordionContent | `data-open` / `data-closed`        | The root's existing state API      |\n| AccordionTrigger                 | `data-panel-open`                  | Accordion `value` / `defaultValue` |\n| TabsTrigger                      | `data-active`                      | Tabs `value` / `defaultValue`      |\n| Button / Switch                  | `data-disabled` when disabled      | `disabled`                         |\n| Slider parts                     | `data-orientation`                 | `orientation`                      |\n| TooltipContent                   | `data-side`                        | `side`                             |\n\nPresence attributes are absent for false state; do not manually stamp\n`data-disabled={false}` onto a shared primitive. A feature-defined\n`data-loading` attribute is separate from the primitive's disabled or busy\nbehavior. Use the real `disabled` / `aria-busy` props where appropriate.\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/data-attributes.md",
+      "upstream": "\n```tsx\n<Dialog\n  className={cn(\n    \"rounded-lg border p-4\",\n    \"data-[state=open]:animate-in data-[state=open]:fade-in\",\n    \"data-[state=closed]:animate-out data-[state=closed]:fade-out\",\n  )}\n/>\n```\n\n",
+      "core": "\nInside an existing primitive's reviewed authoring owner, selectors such as\n`data-open:`, `data-closed:`, `data-panel-open:` and `data-active:` read its actual\nattributes. Consumers use the component's existing variants and placement API;\nstate selectors are not permission to override shared appearance or motion.\nThe installed Dialog already owns its popup entrance and exit animation.\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/data-attributes.md",
+      "upstream": "\nGive components stable identifiers for parent targeting:\n\n",
+      "core": "\nPreserve every existing primitive's stable identifier. The passive wrappers below\nillustrate slot mechanics only; first reuse the existing shared field/layout\nparts in Core. A new slot belongs to its reviewed component owner, not an\napp-local replacement or a selector-based shared-control restyle.\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/data-attributes.md",
+      "upstream": "```tsx\n<form className=\"[&_[data-slot=button]]:w-full\">\n  <Button>Submit</Button>\n</form>\n```\n",
+      "core": "```tsx\n<div className=\"flex gap-2\">\n  <Button type=\"button\">Save project</Button>\n  <Button type=\"button\" variant=\"outline\">\n    Cancel\n  </Button>\n</div>\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/data-attributes.md",
+      "upstream": "```tsx\ndata-slot=\"input\"           // Too generic\ndata-slot=\"blueButton\"      // Includes styling\n",
+      "core": "```tsx\ndata-slot=\"my-wrapper\"      // Unclear new feature-slot purpose\ndata-slot=\"blueButton\"      // Includes styling\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/data-attributes.md",
+      "upstream": "\n**Correct:**\n\n",
+      "core": "\n**Correct for new feature slots (keep existing shared slots unchanged):**\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/data-attributes.md",
+      "upstream": "\n| Pattern      | Use For                                              |\n| ------------ | ---------------------------------------------------- |\n| `data-state` | Visual states (open/closed, active, loading)         |\n| `data-slot`  | Component identification, parent-child targeting     |\n| `props`      | Variants (primary, secondary), sizes, event handlers |\n\n",
+      "core": "\n| Pattern                    | Use For                                                  |\n| -------------------------- | -------------------------------------------------------- |\n| Primitive state attributes | The existing part's open, active or disabled state       |\n| `data-slot`                | Component identification, parent-child targeting         |\n| `props`                    | Existing variants, sizes, state props and event handlers |\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/data-attributes.md",
+      "upstream": "```tsx\nconst Button = ({\n  variant = \"primary\",\n  size = \"md\",\n  loading,\n  disabled,\n  className,\n  ...props\n}: ButtonProps) => {\n  return (\n    <button\n      data-slot=\"button\"\n      data-loading={loading}\n      data-disabled={disabled}\n      className={cn(buttonVariants({ variant, size }), className)}\n      disabled={disabled}\n      {...props}\n    />\n  );\n};\n\n// Usage\n<form className=\"[&_[data-slot=button]]:w-full\">\n  <Button loading={isLoading} className=\"data-[loading=true]:opacity-50\">\n    Submit\n  </Button>\n</form>;\n```\n",
+      "core": "```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n// The feature owns loading; Button owns action and disabled behavior.\n<Button\n  type=\"submit\"\n  variant=\"default\"\n  size=\"default\"\n  disabled={isLoading || isDisabled}\n  aria-busy={isLoading}\n  data-loading={isLoading ? \"\" : undefined}\n>\n  {isLoading ? \"Saving…\" : \"Save\"}\n</Button>;\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/data-attributes.md",
+      "upstream": "\n1. **Use `data-state` instead of separate className props** for states\n2. **Add `data-slot` to reusable components** for targeting\n3. **Use kebab-case** for `data-slot` values\n",
+      "core": "\n1. **Read the existing primitive state attributes** instead of duplicating state\n   or adding separate state-specific className props\n2. **Preserve existing `data-slot` values**; name new feature slots in their owner\n3. **Use kebab-case** for `data-slot` values\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/definitions.md",
+      "upstream": "\n```tsx\n// Primitive - behavior only, no styling\nfunction DialogPrimitive({ open, onOpenChange, children }) {\n  return (\n    <Dialog.Root open={open} onOpenChange={onOpenChange}>\n      {children}\n    </Dialog.Root>\n  );\n}\n```\n\n**Examples:** Radix UI Primitives, React Aria Components, Headless UI\n\n",
+      "core": "\nIn Core, the behavior-only implementation is Base UI's Dialog root inside\n`packages/ui/components/shadcn/dialog.tsx`. Feature code consumes the existing\nshared exports; it does not create another Dialog state or focus owner.\n\n**Core example:** Base UI Dialog root, behind the shared `Dialog` export.\nOther libraries listed by the upstream taxonomy are terminology examples, not\napproved primitive dependencies in Core.\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/definitions.md",
+      "upstream": "```tsx\n// Component - styled and reusable\nfunction Button({ variant = \"primary\", size = \"md\", children, ...props }) {\n  return (\n    <button\n      className={cn(\"base-button-styles\", variants[variant], sizes[size])}\n      {...props}\n    >\n      {children}\n    </button>\n  );\n}\n```\n",
+      "core": "```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n// Styled component - the existing shared visual and behavior owner.\n<Button type=\"button\" variant=\"default\" size=\"default\">\n  Open project\n</Button>;\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/definitions.md",
+      "upstream": "```tsx\n// Block - complete, opinionated composition\nfunction PricingTable({ plans, onSelectPlan }) {\n  return (\n    <div className=\"pricing-table\">\n      {plans.map((plan) => (\n        <Card key={plan.id}>\n          <Card.Header>\n            <Card.Title>{plan.name}</Card.Title>\n          </Card.Header>\n          <Card.Content>\n            <div className=\"price\">{plan.price}</div>\n          </Card.Content>\n          <Card.Footer>\n            <Button onClick={() => onSelectPlan(plan.id)}>Select Plan</Button>\n          </Card.Footer>\n        </Card>\n",
+      "core": "```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport {\n  Card,\n  CardContent,\n  CardFooter,\n  CardHeader,\n  CardTitle,\n} from \"@asym/ui/components/shadcn/card\";\n\ntype PricingTableProps = {\n  plans: { id: string; name: string; price: string }[];\n  onSelectPlan: (id: string) => void;\n};\n\n// Block - feature-specific composition of the shared flat exports.\nfunction PricingTable({ plans, onSelectPlan }: PricingTableProps) {\n  return (\n    <div className=\"grid gap-4\">\n      {plans.map((plan) => (\n        <Card key={plan.id}>\n          <CardHeader>\n            <CardTitle>{plan.name}</CardTitle>\n          </CardHeader>\n          <CardContent>{plan.price}</CardContent>\n          <CardFooter>\n            <Button type=\"button\" onClick={() => onSelectPlan(plan.id)}>\n              Select Plan\n            </Button>\n          </CardFooter>\n        </Card>\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/definitions.md",
+      "upstream": "```tsx\n// Wrong: This is styled, so it's a Component, not a Primitive\nfunction DialogPrimitive({ open, onOpenChange, children }) {\n  return (\n    <Dialog.Root open={open} onOpenChange={onOpenChange}>\n      <Dialog.Content className=\"rounded-lg border bg-white p-6 shadow-lg\">\n        {children}\n      </Dialog.Content>\n    </Dialog.Root>\n  );\n}\n```\n",
+      "core": "```tsx\nimport { DialogContent } from \"@asym/ui/components/shadcn/dialog\";\n\n// Wrong classification: DialogContent is already a styled shared component,\n// not a behavior-only primitive. Its owning source supplies Maia presentation.\ntype BehaviorOnlyPrimitive = typeof DialogContent;\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/definitions.md",
+      "upstream": "```tsx\n// Primitive - behavior only, no styling\nfunction DialogPrimitive({ open, onOpenChange, children }) {\n  return (\n    <Dialog.Root open={open} onOpenChange={onOpenChange}>\n      {children}\n    </Dialog.Root>\n  );\n}\n\n// Component - styled wrapper around primitive\nfunction Dialog({ open, onOpenChange, children }) {\n  return (\n    <DialogPrimitive open={open} onOpenChange={onOpenChange}>\n      <Dialog.Content\n        className={cn(\"rounded-lg border bg-white p-6 shadow-lg\")}\n      >\n        {children}\n      </Dialog.Content>\n    </DialogPrimitive>\n  );\n",
+      "core": "```tsx\nimport type * as React from \"react\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport {\n  Dialog,\n  DialogContent,\n  DialogTitle,\n  DialogTrigger,\n} from \"@asym/ui/components/shadcn/dialog\";\n\n// Block - feature composition of existing shared components.\n// Caller-owned controlled or uncontrolled root props are forwarded unchanged.\nfunction ProjectDialog(\n  props: Omit<React.ComponentProps<typeof Dialog>, \"children\">,\n) {\n  return (\n    <Dialog {...props}>\n      <DialogTrigger render={<Button type=\"button\" variant=\"outline\" />}>\n        Project details\n      </DialogTrigger>\n      <DialogContent>\n        <DialogTitle>Project details</DialogTitle>\n        Review the details before continuing.\n      </DialogContent>\n    </Dialog>\n  );\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/definitions.md",
+      "upstream": "- **Controlled** - Value driven by props (parent is source of truth)\n- **Uncontrolled** - Internal state with optional `defaultValue`\n- **Provider/Context** - Supplies shared state to subtree\n",
+      "core": "- **Controlled** - Value driven by props (parent is source of truth)\n- **Uncontrolled** - Primitive-owned value initialized with its actual default\n  prop (`defaultValue`, `defaultChecked` or `defaultOpen`); later default changes\n  do not control the current value.\n- **Provider/Context** - Supplies shared state to subtree\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/design-tokens.md",
+      "upstream": "### Variable Architecture\n",
+      "core": "### Core Token Ownership\n\nCore consumes the existing Maia/Zinc tokens from\n`packages/ui/styles/globals.css`. Do not copy the generic root/dark/brand theme\ndefinitions below into an app or replace the approved shared values. New token\ndefinitions or palette changes require the existing shared owner and review;\nthey are not a component-local workaround. Native host examples illustrate token\nmechanics, while feature UI first reuses the existing shared components.\n\n### Generic Variable Architecture (Background)\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/design-tokens.md",
+      "upstream": "Override tokens in `.dark` class:\n",
+      "core": "Generic theme-authoring background: tokens can be overridden in `.dark`. Core\nalready defines its approved shared light/dark values; consume them unchanged:\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/design-tokens.md",
+      "upstream": "Use `oklch()` for better color manipulation:\n",
+      "core": "For token-authoring background, `oklch()` supports perceptual color manipulation.\nThis does not authorize replacing Core's existing semantic token values:\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/design-tokens.md",
+      "upstream": "### Theme Variants\n",
+      "core": "### Theme Variants (External Authoring Background)\n\nThese generic brand examples are not additional Core themes or approved token\nvalues. Core continues using the exact shared Maia/Zinc source.\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/documentation.md",
+      "upstream": "```tsx\nimport { Button } from \"@/components/ui/button\";\n\n",
+      "core": "```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/documentation.md",
+      "upstream": "\nClear, copy-paste ready instructions:\n\n",
+      "core": "\nFor a justified Core addition, use the installed pinned CLI from repository root\nand target `packages/ui`; app consumers import `@asym/ui`. The external npm\ninstallation line below is publishing background, not a new Core dependency:\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/documentation.md",
+      "upstream": "# shadcn/ui CLI\nnpx shadcn@latest add button\n\n",
+      "core": "# shadcn/ui CLI\nbunx --no-install shadcn add button --cwd packages/ui\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/documentation.md",
+      "upstream": "<Button disabled>Disabled</Button>\n<Button isLoading>Loading...</Button>\n\n",
+      "core": "<Button disabled>Disabled</Button>\n<Button disabled={isLoading} aria-busy={isLoading}>\n  {isLoading ? \"Saving…\" : \"Save\"}\n</Button>\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/documentation.md",
+      "upstream": "\nDocument all props:\n\n```markdown\n| Prop       | Type                                        | Default     | Description    |\n| ---------- | ------------------------------------------- | ----------- | -------------- |\n| `variant`  | `\"default\" \\| \"secondary\" \\| \"destructive\"` | `\"default\"` | Visual style   |\n| `size`     | `\"sm\" \\| \"md\" \\| \"lg\"`                      | `\"md\"`      | Size           |\n| `disabled` | `boolean`                                   | `false`     | Disabled state |\n| `onClick`  | `(event: MouseEvent) => void`               | -           | Click handler  |\n```\n",
+      "core": "\nDerive the complete contract from `React.ComponentProps<typeof Button>` and its\ncurrent source. The table below illustrates common props/values, not an\nexhaustive or independent API definition:\n\n```markdown\n| Prop       | Type                                             | Default     | Description           |\n| ---------- | ------------------------------------------------ | ----------- | --------------------- |\n| `variant`  | `\"default\" \\| \"secondary\" \\| \"destructive\"`      | `\"default\"` | Visual style          |\n| `size`     | `\"sm\" \\| \"default\" \\| \"lg\"` (common subset)      | `\"default\"` | Existing size axis    |\n| `disabled` | `boolean`                                        | `false`     | Disabled state        |\n| `onClick`  | `React.ComponentProps<typeof Button>[\"onClick\"]` | -           | Native action handler |\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/documentation.md",
+      "upstream": "\nTrack versions:\n\n",
+      "core": "\nTrack versions. The changelog below is generic documentation background for a\nhypothetical external component, not the release history or props of Core Button:\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/documentation.md",
+      "upstream": "```tsx\n// ✅ Complete, runnable\nimport { Button } from \"@/components/ui/button\";\nimport { useState } from \"react\";\n",
+      "core": "```tsx\n// ✅ Complete client example\n\"use client\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport { useState } from \"react\";\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/documentation.md",
+      "upstream": "  const [count, setCount] = useState(0);\n  return <Button onClick={() => setCount(count + 1)}>Count: {count}</Button>;\n}\n",
+      "core": "  const [count, setCount] = useState(0);\n  return (\n    <Button onClick={() => setCount((current) => current + 1)}>\n      Count: {count}\n    </Button>\n  );\n}\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/marketplaces.md",
+      "upstream": "\n### Installation Pattern\n",
+      "core": "\n### Core Adoption Boundary\n\nThese marketplace examples are discovery/external-authoring background, not an\napproved replacement for Core's shared primitives. Review the complete source,\ndependencies and permissions before adopting any item; adapt behavior to Base UI\nand appearance to exact `base-maia`/semantic tokens. Do not import a second\nprimitive system or install into an app. A justified compatible addition uses\nthe installed pinned CLI from repository root with `--cwd packages/ui`.\n\n### Installation Pattern\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/marketplaces.md",
+      "upstream": "```bash\nnpx shadcn@latest add https://21st.dev/r/<author>/<component>\n```\n",
+      "core": "```bash\nbunx --no-install shadcn add https://21st.dev/r/<author>/<component> --cwd packages/ui\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/marketplaces.md",
+      "upstream": "```bash\nnpx shadcn@latest add https://21st.dev/r/haydenbleasel/dialog-stack\n```\n",
+      "core": "```bash\nbunx --no-install shadcn add https://21st.dev/r/haydenbleasel/dialog-stack --cwd packages/ui\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/npm.md",
+      "upstream": "Distribute components as npm packages for stable, versioned dependencies with centralized updates.\n\n",
+      "core": "Distribute components as npm packages for stable, versioned dependencies with centralized updates.\n\nThis chapter is generic external publishing background. Core's `@asym/ui` is a\nprivate source-export workspace package; its current manifest/build/exports stay\nauthoritative. Do not copy this sample package, dependency pins or publication\ncommands into Core as a replacement for that boundary.\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/overview.md",
+      "upstream": "```tsx\n// Composable, accessible, customizable\nimport { cn } from \"@asym/ui/lib/utils\";\n\ninterface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {\n  variant?: \"default\" | \"outline\";\n}\n\nexport function Button({\n  className,\n  variant = \"default\",\n  children,\n  ...props\n}: ButtonProps) {\n  return (\n    <button\n      className={cn(\n        \"inline-flex items-center justify-center rounded-md px-4 py-2\",\n        \"focus-visible:outline-none focus-visible:ring-2\",\n        variant === \"default\" && \"bg-primary text-primary-foreground\",\n        variant === \"outline\" && \"border border-input bg-background\",\n        className,\n      )}\n      {...props}\n    >\n      {children}\n    </button>\n  );\n",
+      "core": "```tsx\n// Compose the existing shared component and class helper.\nimport type * as React from \"react\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport { cn } from \"@asym/ui/lib/utils\";\n\nexport function ProjectActions({\n  className,\n  ...props\n}: Omit<React.ComponentPropsWithRef<\"div\">, \"children\">) {\n  return (\n    <div className={cn(\"flex gap-2\", className)} {...props}>\n      <Button type=\"button\">Open project</Button>\n      <Button type=\"button\" variant=\"outline\">\n        Project settings\n      </Button>\n    </div>\n  );\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/polymorphism.md",
+      "upstream": "\nBuild flexible components that can render as different HTML elements or components while maintaining consistent styling and behavior.\n\n### Core Pattern: The `as` Prop\n\nThe `as` prop allows components to change their rendered element type:\n\n```tsx\n<Button as=\"a\" href=\"/home\">Go Home</Button>\n<Button as=\"button\" type=\"submit\">Submit</Button>\n<Button as=\"div\" role=\"button\" tabIndex={0}>Custom Element</Button>\n```\n\n### Basic Implementation\n\n",
+      "core": "\nUse the existing Core component's public host API before adding polymorphism.\nShared actions use `Button`; navigation uses `ButtonLink` or `buttonVariants` on\nan anchor/Next Link. Base UI parts compose hosts through `render`, with their\nactual supported native props and forwarded ref.\n\nThe generic `as` examples below are upstream background for justified **passive**\ncontent/layout wrappers. They do not add `as` to shared components, replace an\ninteraction primitive, or permit a div to stand in for a native action. New\nreusable behavior belongs to its reviewed `packages/ui` owner.\n\n### Core Interactive Hosts\n\nChoose the existing component for the native action or navigation semantics:\n\n```tsx\nimport Link from \"next/link\";\nimport { Button, ButtonLink } from \"@asym/ui/components/shadcn/button\";\n\n<ButtonLink href=\"/home\">Go Home</ButtonLink>;\n<ButtonLink render={<Link href=\"/projects\" />}>Projects</ButtonLink>;\n<Button type=\"submit\">Submit</Button>;\n```\n\n### Generic Passive Implementation (Background)\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/polymorphism.md",
+      "upstream": "\n### TypeScript Implementation\n\n",
+      "core": "\n### Generic Passive Types (Background)\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/polymorphism.md",
+      "upstream": "  children?: React.ReactNode;\n} & React.ComponentPropsWithoutRef<E>;\n\n",
+      "core": "  children?: React.ReactNode;\n} & React.ComponentPropsWithRef<E>;\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/polymorphism.md",
+      "upstream": "```tsx\nfunction Text({ as: Element = 'span', variant = 'body', ...props }) {\n  const className = cn(\n    'text-base',\n    variant === 'heading' && 'text-2xl font-bold',\n    variant === 'body' && 'text-base',\n    props.className\n  );\n  return <Element className={className} {...props} />;\n}\n",
+      "core": "```tsx\nfunction Text({ as: Element = 'span', variant = 'body', className, ...props }) {\n  return (\n    <Element\n      className={cn(\n        'text-base',\n        variant === 'heading' && 'text-2xl font-bold',\n        className\n      )}\n      {...props}\n    />\n  );\n}\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/polymorphism.md",
+      "upstream": "```tsx\nfunction Flex({ as: Element = 'div', ...props }) {\n  return <Element className={cn('flex', props.className)} {...props} />;\n}\n",
+      "core": "```tsx\nfunction Flex({ as: Element = 'div', className, ...props }) {\n  return <Element className={cn('flex', className)} {...props} />;\n}\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/polymorphism.md",
+      "upstream": "```tsx\nfunction Clickable({ as: Element = \"button\", ...props }) {\n  const isButton = Element === \"button\";\n  const isAnchor = Element === \"a\";\n  return (\n    <Element\n      role={!isButton && !isAnchor ? \"button\" : undefined}\n      tabIndex={!isButton && !isAnchor ? 0 : undefined}\n      {...props}\n    />\n  );\n}\n```\n",
+      "core": "```tsx\nimport { Button, ButtonLink } from \"@asym/ui/components/shadcn/button\";\n\n<Button type=\"button\" onClick={handleClick}>\n  Open details\n</Button>;\n<ButtonLink href=\"/projects\">Projects</ButtonLink>;\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/polymorphism.md",
+      "upstream": "\n**3. Handle Event Handlers:**\n\n```tsx\nfunction Interactive({ as: Element = \"button\", onClick, ...props }) {\n  const handleKeyDown = (e: React.KeyboardEvent) => {\n    if (Element !== \"button\" && (e.key === \"Enter\" || e.key === \" \")) {\n      onClick?.(e as any);\n    }\n  };\n  return (\n    <Element\n      onClick={onClick}\n      onKeyDown={Element !== \"button\" ? handleKeyDown : undefined}\n      {...props}\n    />\n  );\n}\n",
+      "core": "\n**3. Forward the Existing Host Contract:**\n\n```tsx\nimport type * as React from \"react\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\nfunction ProjectAction(props: React.ComponentProps<typeof Button>) {\n  return <Button {...props} />;\n}\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/polymorphism.md",
+      "upstream": "// Incorrect: Invalid - button inside button\n<Button as=\"button\"><Button as=\"button\">Nested</Button></Button>\n\n",
+      "core": "// Incorrect: Invalid - button inside button\n<Button><Button>Nested</Button></Button>\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/principles.md",
+      "upstream": "```tsx\n<Accordion.Root open={open} onOpenChange={setOpen}>\n  {items.map((item) => (\n    <Accordion.Item key={item.id}>\n      <Accordion.Trigger>{item.title}</Accordion.Trigger>\n      <Accordion.Content>{item.content}</Accordion.Content>\n    </Accordion.Item>\n  ))}\n</Accordion.Root>\n```\n",
+      "core": "```tsx\nimport {\n  Accordion,\n  AccordionContent,\n  AccordionItem,\n  AccordionTrigger,\n} from \"@asym/ui/components/shadcn/accordion\";\n\n<Accordion defaultValue={[]}>\n  {items.map((item) => (\n    <AccordionItem key={item.id} value={item.id}>\n      <AccordionTrigger>{item.title}</AccordionTrigger>\n      <AccordionContent>{item.content}</AccordionContent>\n    </AccordionItem>\n  ))}\n</Accordion>;\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/principles.md",
+      "upstream": "```tsx\nexport function Button({ className, ...props }: ButtonProps) {\n  return <button className={cn(\"base-button-styles\", className)} {...props} />;\n}\n```\n",
+      "core": "```tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n<Button type=\"button\" variant=\"outline\" className=\"self-start\">\n  Project details\n</Button>;\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/principles.md",
+      "upstream": "```tsx\nexport function Button({ children, onClick, ...props }: ButtonProps) {\n  return (\n    <button onClick={onClick} {...props}>\n      {children}\n    </button>\n  );\n}\n```\n",
+      "core": "```tsx\n// The shared implementation is first-party, inspectable source:\n// packages/ui/components/shadcn/button-component.tsx\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n<Button type=\"button\" onClick={handleClick}>\n  Project details\n</Button>;\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/principles.md",
+      "upstream": "```tsx\n/**\n * Button component for primary actions.\n *\n * @example\n * <Button variant=\"primary\" onClick={handleClick}>Click me</Button>\n *\n * @remarks\n * - Supports keyboard navigation (Enter/Space)\n * - Accessible by default with proper ARIA attributes\n */\nexport function Button({ ... }: ButtonProps) { }\n```\n",
+      "core": "```tsx\nimport type * as React from \"react\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n\n/**\n * Project action that preserves the shared Button contract.\n *\n * @example\n * <ProjectAction variant=\"default\" onClick={handleClick}>Open project</ProjectAction>\n *\n * @remarks\n * - Native action, keyboard, disabled and ref behavior stay with Button.\n * - Use ButtonLink or buttonVariants on a link for navigation.\n */\nexport function ProjectAction(props: React.ComponentProps<typeof Button>) {\n  return <Button {...props} />;\n}\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/registry.md",
+      "upstream": "Registries distribute **source code**, not compiled packages. This enables true component ownership and customization.\n\n",
+      "core": "Registries distribute **source code**, not compiled packages. This enables true component ownership and customization.\n\n### Core Consumption Boundary\n\nCore already consumes shared source through `@asym/ui`; do not create an app-local\n`components/ui` tree or replace it with an external UI package. A registry item\nis a candidate source import, not proof of Base UI/Maia compatibility. Review its\nsource and dependencies, adapt it to the existing shared owner, and use the\ninstalled pinned CLI from repository root with `--cwd packages/ui` only when an\naddition is justified.\n\nRegistry metadata, distribution comparisons and deployment/publishing examples\nbelow remain generic external-authoring background. They do not change Core's\nprivate package exports/build layout, authorize deployment, or establish rights\nto redistribute any imported source. Preserve its actual provenance and notices.\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/registry.md",
+      "upstream": "```typescript\n// Registry-based - source code in your project\nimport { Button } from \"@/components/ui/button\";\n```\n",
+      "core": "```typescript\n// Core consumes its existing shared first-party source.\nimport { Button } from \"@asym/ui/components/shadcn/button\";\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/registry.md",
+      "upstream": "```bash\nnpx shadcn@latest add https://your-project.vercel.app/metric-card.json\n```\n\n### Component JSON Structure\n\n",
+      "core": "```bash\nbunx --no-install shadcn add https://your-project.vercel.app/metric-card.json --cwd packages/ui\n```\n\n### Component JSON Structure (External Authoring Background)\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "### Component Pattern: Order Matters\n\nApply classes in this order:\n\n",
+      "core": "### Component Pattern: Order Matters\n\nCore consumers use existing variants and placement APIs. The native/CVA examples\nbelow illustrate a justified new passive authoring owner after shared-component\ndiscovery; they do not permit recreating Button or overriding shared appearance.\n\nApply classes in this order:\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "    <div\n      className={cn(\n        \"rounded-lg border bg-white shadow-sm\", // 1. Base\n        variant === \"primary\" && \"bg-blue-500\", // 2. Variants\n        isActive && \"ring-2 ring-blue-500\", // 3. Conditionals\n        className, // 4. User overrides\n      )}\n",
+      "core": "    <div\n      className={cn(\n        \"rounded-lg border bg-card text-card-foreground shadow-sm\", // 1. Base\n        variant === \"muted\" && \"bg-muted text-muted-foreground\", // 2. Variants\n        isActive && \"ring-2 ring-ring\", // 3. Conditionals\n        className, // 4. User overrides\n      )}\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "\n```tsx\nimport { cva, type VariantProps } from \"class-variance-authority\";\n\nconst buttonVariants = cva(\n  \"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-all\",\n  {\n    variants: {\n      variant: {\n        default: \"bg-blue-500 text-white hover:bg-blue-600\",\n        destructive: \"bg-red-500 text-white hover:bg-red-600\",\n        outline: \"border border-gray-300 bg-transparent hover:bg-gray-50\",\n        ghost: \"hover:bg-gray-100\",\n      },\n      size: {\n        default: \"h-9 px-4 py-2\",\n        sm: \"h-8 px-3 text-sm\",\n        lg: \"h-10 px-6\",\n        icon: \"h-9 w-9\",\n      },\n    },\n    defaultVariants: {\n      variant: \"default\",\n      size: \"default\",\n    },\n  },\n);\n\ntype ButtonProps = React.ComponentProps<\"button\"> &\n  VariantProps<typeof buttonVariants>;\n\nexport const Button = ({ className, variant, size, ...props }: ButtonProps) => {\n  return (\n    <button\n      className={cn(buttonVariants({ variant, size }), className)}\n      {...props}\n    />\n  );\n};\n```\n\n",
+      "core": "\n```tsx\nimport type * as React from \"react\";\nimport { cva, type VariantProps } from \"class-variance-authority\";\nimport { cn } from \"@asym/ui/lib/utils\";\n\n// Passive authoring illustration, not a replacement for shared Card or Button.\nconst summaryVariants = cva(\"rounded-lg border bg-card text-card-foreground\", {\n  variants: {\n    density: { default: \"p-4\", compact: \"p-2\" },\n    emphasis: { default: \"\", muted: \"bg-muted text-muted-foreground\" },\n  },\n  defaultVariants: { density: \"default\", emphasis: \"default\" },\n});\n\ntype SummarySectionProps = React.ComponentPropsWithRef<\"section\"> &\n  VariantProps<typeof summaryVariants>;\n\nexport function SummarySection({\n  className,\n  density,\n  emphasis,\n  ...props\n}: SummarySectionProps) {\n  return (\n    <section\n      className={cn(summaryVariants({ density, emphasis }), className)}\n      {...props}\n    />\n  );\n}\n```\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "\n```tsx\nexport const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';\nexport const disabled = 'disabled:pointer-events-none disabled:opacity-50';\n\n",
+      "core": "\n```tsx\n// In an authorized host owner; shared controls already supply their focus style.\nexport const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50';\nexport const disabled = 'disabled:pointer-events-none disabled:opacity-50';\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "\n**2. Use CSS Variables for Dynamic Values:**\n\n**Incorrect:**\n",
+      "core": "\n**2. Use CSS Variables for Dynamic Values:**\n\nThis generic CSS-variable example illustrates mechanics only. In Core, use an\nexisting named runtime adapter/contract for dynamic values; it is not an inline-\nstyle, arbitrary-color or shared-control restyling allowance.\n\n**Incorrect:**\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "\n```tsx\n<div\n  className={cn(\n    \"transition-all\",\n    isOpen ? \"opacity-100 translate-y-0\" : \"opacity-0 translate-y-4\",\n  )}\n/>\n",
+      "core": "\n```tsx\n// Decorative passive state only; existing primitives own visibility/focus.\n<span\n  aria-hidden=\"true\"\n  className={cn(\n    \"transition-opacity duration-(--duration-standard) motion-reduce:transition-none\",\n    isHighlighted ? \"opacity-100\" : \"opacity-50\",\n  )}\n/>\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "  className={cn(\n    baseVariants({ variant, size }),\n    isActive && \"ring-2 ring-blue-500\",\n    isDisabled && \"opacity-50 cursor-not-allowed\",\n    className,\n",
+      "core": "  className={cn(\n    baseVariants({ variant, size }),\n    isActive && \"ring-2 ring-ring\",\n    isDisabled && \"opacity-50 cursor-not-allowed\",\n    className,\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/types.md",
+      "upstream": "\nEach exported component should wrap a single HTML or JSX element:\n\n",
+      "core": "\nPrefer small composable parts with clear host contracts. Preserve existing\nnon-DOM roots and compound implementations; this is not an instruction to add a\nwrapper element or rewrite a shared primitive:\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/types.md",
+      "upstream": "```tsx\n<Card.Root>\n  <Card.Header>\n    <Card.Title>Title</Card.Title>\n    <Card.Description>Description</Card.Description>\n  </Card.Header>\n  <Card.Footer>Footer</Card.Footer>\n</Card.Root>\n```\n",
+      "core": "```tsx\nimport {\n  Card,\n  CardDescription,\n  CardFooter,\n  CardHeader,\n  CardTitle,\n} from \"@asym/ui/components/shadcn/card\";\n\n<Card>\n  <CardHeader>\n    <CardTitle>Title</CardTitle>\n    <CardDescription>Description</CardDescription>\n  </CardHeader>\n  <CardFooter>Footer</CardFooter>\n</Card>;\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/types.md",
+      "upstream": "\nEvery component should extend native HTML attributes:\n\n```tsx\nexport type CardRootProps = React.ComponentProps<\"div\"> & {\n  variant?: \"default\" | \"outlined\";\n};\n\nexport const CardRoot = ({ variant = \"default\", ...props }: CardRootProps) => (\n  <div {...props} />\n);\n",
+      "core": "\nNew passive DOM wrappers inherit their host attributes and ref. Wrappers around\nan existing component derive that component's actual props instead of replacing\nits state, render or event contract with a generic HTML type:\n\n```tsx\nimport type * as React from \"react\";\n\n// A justified new passive wrapper, after checking existing shared parts.\nexport type SummarySectionProps = React.ComponentPropsWithRef<\"section\">;\nexport const SummarySection = (props: SummarySectionProps) => (\n  <section {...props} />\n);\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/types.md",
+      "upstream": "\nAlways export prop types for consumers:\n\n```tsx\n// Enables type extraction\nimport type { CardRootProps } from \"@/components/ui/card\";\ntype Variant = CardRootProps[\"variant\"];\n\n// Enables extending\nexport type ExtendedCardProps = CardRootProps & { isLoading?: boolean };\n\n// Enables wrapper components\nconst MyCard = (props: CardRootProps) => (\n  <CardRoot {...props} className={cn(\"my-custom-class\", props.className)} />\n);\n",
+      "core": "\nExpose an owned component's prop contract. For existing shared components without\na named props export, use `React.ComponentProps<typeof Part>`:\n\n```tsx\nimport type * as React from \"react\";\nimport { Button } from \"@asym/ui/components/shadcn/button\";\nimport { Card } from \"@asym/ui/components/shadcn/card\";\nimport { cn } from \"@asym/ui/lib/utils\";\n\ntype CardProps = React.ComponentProps<typeof Card>;\ntype ButtonVariant = React.ComponentProps<typeof Button>[\"variant\"];\nexport type ProjectCardProps = CardProps & { projectId: string };\n\n// Consume feature metadata before forwarding the existing DOM props.\nconst ProjectCard = ({ projectId, className, ...props }: ProjectCardProps) => (\n  <Card\n    data-project-id={projectId}\n    className={cn(\"self-start\", className)}\n    {...props}\n  />\n);\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/types.md",
+      "upstream": "\n**1. Always Spread Props Last:**\n\n```tsx\n// ✅ User props override defaults\n<div className=\"default-class\" {...props} />\n\n// ❌ Defaults override user props\n<div {...props} className=\"default-class\" />\n```\n",
+      "core": "\n**1. Preserve Merged Props and Existing Behavior:**\n\n```tsx\nimport { cn } from \"@asym/ui/lib/utils\";\n\n// Destructure props that need merging; forward the remainder unchanged.\nconst { className, ...rest } = props;\n<div className={cn(\"flex gap-2\", className)} {...rest} />;\n\n// A later className spread must not overwrite the merged value.\n// Preserve each primitive's existing state, event and ref composition contract.\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/types.md",
+      "upstream": "```tsx\nexport type DialogProps = React.ComponentProps<\"div\"> & {\n  /** Whether the dialog is currently open */\n  open: boolean;\n  /** Callback when the dialog requests to be closed */\n  onOpenChange: (open: boolean) => void;\n  /** Whether to render the dialog in a portal */\n  modal?: boolean;\n};\n```\n",
+      "core": "```tsx\nimport type * as React from \"react\";\nimport { Dialog } from \"@asym/ui/components/shadcn/dialog\";\n\n// Preserve open/defaultOpen/onOpenChange and actual callback details.\nexport type ProjectDialogProps = React.ComponentProps<typeof Dialog>;\n\n// modal controls interaction/focus behavior (including 'trap-focus').\n// It is not a portal switch; shared DialogContent owns its portal.\n```\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/types.md",
+      "upstream": "\nFor components that can render as different elements:\n\n",
+      "core": "\nFor justified new passive wrappers only, the generic `as` typing is background.\nExisting Core interactive parts retain their public `render`, host props and\nref contract; it does not add `as` to Button:\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/types.md",
+      "upstream": "  as?: E;\n} & React.ComponentPropsWithoutRef<E>;\n\n",
+      "core": "  as?: E;\n} & React.ComponentPropsWithRef<E>;\n\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/types.md",
+      "upstream": "| Polymorphic     | Render as different elements    | `PolymorphicProps<T>`                                   |\n| Type extraction | Get specific prop type          | `CardProps['variant']`                                  |\n| Type extension  | Extend existing component props | `CardProps & { isLoading?: boolean }`                   |\n",
+      "core": "| Polymorphic     | Render as different elements    | `PolymorphicProps<T>`                                   |\n| Type extraction | Get specific prop type          | `React.ComponentProps<typeof Button>[\"variant\"]`        |\n| Type extension  | Extend existing component props | `CardProps & { isLoading?: boolean }`                   |\n",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "AGENTS.md",
+      "upstream": "className={cn(className, variant === 'primary' && 'bg-blue-500')}",
+      "core": "className={cn(className, variant === 'muted' && 'bg-muted')}",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
+    },
+    {
+      "path": "rules/styling.md",
+      "upstream": "className={cn(className, variant === 'primary' && 'bg-blue-500')}",
+      "core": "className={cn(className, variant === 'muted' && 'bg-muted')}",
+      "sourceKind": "reviewed-local-Core-supersession",
+      "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b"
     }
   ],
   "tableRows": [
@@ -207,6 +1113,75 @@
         "MEDIUM",
         "Base UI render + native semantics"
       ]
+    },
+    {
+      "path": "SKILL.md",
+      "upstreamCells": [
+        "8",
+        "Polymorphism",
+        "Element switching with `as` prop",
+        "`polymorphism`"
+      ],
+      "coreCells": [
+        "8",
+        "Polymorphism",
+        "Existing hosts; passive `as` background",
+        "`polymorphism`"
+      ]
+    },
+    {
+      "path": "SKILL.md",
+      "upstreamCells": [
+        "10",
+        "Data Attributes",
+        "`data-state` and `data-slot`",
+        "`data-attributes`"
+      ],
+      "coreCells": [
+        "10",
+        "Data Attributes",
+        "Base UI state attributes and stable slots",
+        "`data-attributes`"
+      ]
+    },
+    {
+      "path": "README.md",
+      "upstreamCells": [
+        "8",
+        "Polymorphism",
+        "MEDIUM",
+        "`as` prop for element switching"
+      ],
+      "coreCells": [
+        "8",
+        "Polymorphism",
+        "MEDIUM",
+        "Existing host APIs; passive `as` background"
+      ]
+    },
+    {
+      "path": "README.md",
+      "upstreamCells": [
+        "10",
+        "Data Attributes",
+        "LOW",
+        "`data-state` and `data-slot` patterns"
+      ],
+      "coreCells": [
+        "10",
+        "Data Attributes",
+        "LOW",
+        "Base UI state attributes and stable slots"
+      ]
     }
-  ]
+  ],
+  "coreReview": {
+    "date": "2026-10-23",
+    "baselineCommit": "b9b934471b893adc16e238c95e8a99c5593d983b",
+    "documentsReviewed": 22,
+    "activeAdapterDocuments": 20,
+    "sourceKind": "local Core correction; no new upstream capture or rights conclusion",
+    "proposalSha256": "acbb502010700a2676417501ab45d12df79ac4b23710fcc68d52f4b70bb8439c",
+    "independentAmendmentsSha256": "d5b907feb6239d8c318ba55f3b729a476ae450c198a7cd44db017c896b61d8e8"
+  }
 }

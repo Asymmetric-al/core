@@ -37,7 +37,7 @@ and the existing scoped class-helper note to `SKILL.md`, `README.md`, `AGENTS.md
 examples use semantic `bg-primary` / `bg-background` tokens. The same adapter
 restores the Base UI render/state guidance described below. Its data file
 retains the original reviewed excerpts alongside the Core replacements. It
-validates all ten selected documents, including the indices and compiled
+validates the selected documents, including the indices and compiled
 snippets, before writing any of them. Competing helper, active legacy
 composition/state code and reviewed-source drift fail closed. Provenance,
 license notices and raw captures are outside its write set.
@@ -83,4 +83,30 @@ raw captures, authors, license metadata and `skills-lock.json` identity remain
 unchanged.
 
 References: [Base UI composition](https://base-ui.com/react/handbook/composition)
-and [shadcn Base UI Button](https://ui.shadcn.com/docs/components/base/button).
+and [shadcn Base UI Button](https://ui.shadcn.com/docs/components/base/button); see the current Core correction below.
+
+## Core full-cohort recipe correction (2026-10-23)
+
+The complete 22-file local pack was reviewed at Core commit
+`b9b934471b893adc16e238c95e8a99c5593d983b`. The bounded Core correction aligns
+principles, definitions, types, polymorphism, data attributes, accessibility,
+styling and documentation examples with current shared exports. Accordion uses
+flat parts and its value-array contract; Dialog state stays at its existing
+root while content owns rendered popup DOM. Callers may own controlled values;
+initial defaults leave values with the primitive. Action/link/native props and
+refs remain those of the existing shared component, without a second activation
+or controllable-state implementation.
+
+Generic passive polymorphism, token-authoring and external publishing examples
+remain useful background, explicitly subordinate to Core's exact Maia/shared
+owner boundaries. Indices, section metadata and duplicated compiled subspans
+carry the same corrections. The explicit adapter target list covers the 20
+active guidance/index documents; `_template.md` and this provenance file remain
+outside its write set. The original raw/local captures and previous dated
+comparisons remain historical inputs rather than being relabeled as fresh proof.
+
+This note describes the guidance correction. It is not independent evidence of
+upstream freshness, tests, builds, CI, previews or release. It grants no rights,
+imports no new upstream source, and does not close the existing source-license
+gap. Original source identities, author/notice text, raw captures and lock
+metadata remain unchanged. Current local qualification is recorded separately.

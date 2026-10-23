@@ -91,32 +91,22 @@ function Button() {
 **Correct:**
 
 ```tsx
-// Composable, accessible, customizable
+// Compose the existing shared component and class helper.
+import type * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "outline";
-}
-
-export function Button({
+export function ProjectActions({
   className,
-  variant = "default",
-  children,
   ...props
-}: ButtonProps) {
+}: Omit<React.ComponentPropsWithRef<"div">, "children">) {
   return (
-    <button
-      className={cn(
-        "inline-flex items-center justify-center rounded-md px-4 py-2",
-        "focus-visible:outline-none focus-visible:ring-2",
-        variant === "default" && "bg-primary text-primary-foreground",
-        variant === "outline" && "border border-input bg-background",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </button>
+    <div className={cn("flex gap-2", className)} {...props}>
+      <Button type="button">Open project</Button>
+      <Button type="button" variant="outline">
+        Project settings
+      </Button>
+    </div>
   );
 }
 ```

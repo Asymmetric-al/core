@@ -22,14 +22,21 @@ Favor composition over inheritance. Build components that combine and nest to cr
 **Correct (composable, each layer customizable):**
 
 ```tsx
-<Accordion.Root open={open} onOpenChange={setOpen}>
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@asym/ui/components/shadcn/accordion";
+
+<Accordion defaultValue={[]}>
   {items.map((item) => (
-    <Accordion.Item key={item.id}>
-      <Accordion.Trigger>{item.title}</Accordion.Trigger>
-      <Accordion.Content>{item.content}</Accordion.Content>
-    </Accordion.Item>
+    <AccordionItem key={item.id} value={item.id}>
+      <AccordionTrigger>{item.title}</AccordionTrigger>
+      <AccordionContent>{item.content}</AccordionContent>
+    </AccordionItem>
   ))}
-</Accordion.Root>
+</Accordion>;
 ```
 
 ### 2. Accessible by Default
@@ -64,9 +71,11 @@ Components should be easy to restyle or adapt to different design requirements.
 **Correct (design tokens and className override):**
 
 ```tsx
-export function Button({ className, ...props }: ButtonProps) {
-  return <button className={cn("base-button-styles", className)} {...props} />;
-}
+import { Button } from "@asym/ui/components/shadcn/button";
+
+<Button type="button" variant="outline" className="self-start">
+  Project details
+</Button>;
 ```
 
 Best practices:
@@ -106,13 +115,13 @@ Components should not be black boxes. Developers should be able to inspect and m
 **Correct (clear, readable implementation):**
 
 ```tsx
-export function Button({ children, onClick, ...props }: ButtonProps) {
-  return (
-    <button onClick={onClick} {...props}>
-      {children}
-    </button>
-  );
-}
+// The shared implementation is first-party, inspectable source:
+// packages/ui/components/shadcn/button-component.tsx
+import { Button } from "@asym/ui/components/shadcn/button";
+
+<Button type="button" onClick={handleClick}>
+  Project details
+</Button>;
 ```
 
 **Incorrect (obfuscated or overly complex):**
@@ -128,17 +137,22 @@ Components should come with clear documentation and examples.
 **Correct (comprehensive JSDoc):**
 
 ```tsx
+import type * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
+
 /**
- * Button component for primary actions.
+ * Project action that preserves the shared Button contract.
  *
  * @example
- * <Button variant="primary" onClick={handleClick}>Click me</Button>
+ * <ProjectAction variant="default" onClick={handleClick}>Open project</ProjectAction>
  *
  * @remarks
- * - Supports keyboard navigation (Enter/Space)
- * - Accessible by default with proper ARIA attributes
+ * - Native action, keyboard, disabled and ref behavior stay with Button.
+ * - Use ButtonLink or buttonVariants on a link for navigation.
  */
-export function Button({ ... }: ButtonProps) { }
+export function ProjectAction(props: React.ComponentProps<typeof Button>) {
+  return <Button {...props} />;
+}
 ```
 
 A well-designed component applies all six principles together: **Composes** with other components, **works for everyone** with proper accessibility, **adapts** to different designs via theming, **performs** efficiently, **can be inspected** and modified, and **is easy to learn** through documentation.

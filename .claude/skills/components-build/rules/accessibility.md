@@ -34,32 +34,25 @@ Always start with the most appropriate HTML element:
 Every interactive element must be keyboard accessible:
 
 ```tsx
-function Menu() {
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    switch (e.key) {
-      case "ArrowDown":
-        focusNextItem();
-        break;
-      case "ArrowUp":
-        focusPreviousItem();
-        break;
-      case "Home":
-        focusFirstItem();
-        break;
-      case "End":
-        focusLastItem();
-        break;
-      case "Escape":
-        closeMenu();
-        break;
-    }
-  };
-  return (
-    <div role="menu" onKeyDown={handleKeyDown}>
-      {/* items */}
-    </div>
-  );
-}
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+
+<DropdownMenu>
+  <DropdownMenuTrigger render={<Button type="button" variant="outline" />}>
+    Project actions
+  </DropdownMenuTrigger>
+  <DropdownMenuContent>
+    <DropdownMenuItem onClick={handleOpen}>Open project</DropdownMenuItem>
+    <DropdownMenuItem onClick={handleSettings}>
+      Project settings
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>;
 ```
 
 #### 3. Screen Reader Support
@@ -80,19 +73,21 @@ Use ARIA attributes when necessary:
 
 #### 4. Visual Accessibility
 
-Support users with visual impairments:
+Support users with visual impairments. Shared controls own their focus
+presentation; the CSS below illustrates semantic token mechanics for an
+authorized host owner, not a global override of Core controls:
 
 ```css
 /* Visible focus indicators */
 button:focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
 /* Sufficient color contrast (4.5:1 for normal text) */
 .text {
-  color: #333;
-  background: white;
+  color: var(--foreground);
+  background: var(--background);
 }
 ```
 
@@ -109,54 +104,78 @@ button:focus-visible {
 #### Modal/Dialog
 
 ```tsx
-function Modal({ isOpen, onClose, children }) {
-  return isOpen ? (
-    <div role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <button onClick={onClose} aria-label="Close dialog">
-        ×
-      </button>
-      {children}
-    </div>
-  ) : null;
-}
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@asym/ui/components/shadcn/dialog";
+
+<Dialog>
+  <DialogTrigger render={<Button type="button" variant="outline" />}>
+    Project details
+  </DialogTrigger>
+  <DialogContent>
+    <DialogTitle>Project details</DialogTitle>
+    <DialogDescription>Review the project before continuing.</DialogDescription>
+    The existing content supplies its accessible close control.
+  </DialogContent>
+</Dialog>;
 ```
 
 #### Dropdown Menu
 
 ```tsx
-<button
-  aria-haspopup="true"
-  aria-expanded={isOpen}
-  aria-controls="dropdown-menu"
->
-  Menu
-</button>;
-{
-  isOpen && (
-    <ul id="dropdown-menu" role="menu">
-      <li role="menuitem" tabIndex={-1}>
-        Item 1
-      </li>
-    </ul>
-  );
-}
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+
+<DropdownMenu>
+  <DropdownMenuTrigger render={<Button type="button" />}>
+    Menu
+  </DropdownMenuTrigger>
+  <DropdownMenuContent>
+    <DropdownMenuItem onClick={handleOpen}>Open item</DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>;
 ```
 
 #### Tabs
 
 ```tsx
-<div role="tablist" aria-label="Tabs">
-  <button role="tab" aria-selected={activeTab === 0} aria-controls="panel-0">Tab 1</button>
-</div>
-<div id="panel-0" role="tabpanel" aria-labelledby="tab-0">{/* content */}</div>
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@asym/ui/components/shadcn/tabs";
+
+<Tabs defaultValue="details">
+  <TabsList aria-label="Project information">
+    <TabsTrigger value="details">Details</TabsTrigger>
+    <TabsTrigger value="history">History</TabsTrigger>
+  </TabsList>
+  <TabsContent value="details">Project details</TabsContent>
+  <TabsContent value="history">Project history</TabsContent>
+</Tabs>;
 ```
 
 ### Focus Management
 
+Verify focus entry, containment and restoration through the existing primitive.
+The following generic CSS is host-authoring background; do not redeclare shared
+focus styles globally in an app.
+
 ```css
 /* Show outline only for keyboard focus */
 *:focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 ```
@@ -196,13 +215,15 @@ function Modal({ isOpen, onClose, children }) {
 **Disabled elements:**
 
 ```tsx
-// ✅ Use aria-disabled and explain
-<button
-  aria-disabled={!isValid}
-  aria-describedby="submit-help"
-  onClick={isValid ? handleSubmit : undefined}
->Submit</button>
-<span id="submit-help">{!isValid && 'Fill required fields'}</span>
+import { Button } from "@asym/ui/components/shadcn/button";
+
+// The form owns submission; Button owns native disabled behavior.
+<>
+  <Button type="submit" disabled={!isValid} aria-describedby="submit-help">
+    Submit
+  </Button>
+  <span id="submit-help">{!isValid && "Fill required fields"}</span>
+</>;
 ```
 
 ### Mobile Accessibility
