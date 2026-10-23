@@ -126,15 +126,33 @@ export function pinnedIfProblems(job: WorkflowJob): string[] {
   const pin = jobId === undefined ? undefined : PINNED_JOB_IFS[jobId];
   if (!pin) return [];
   const problems: string[] = [];
-  const check = (where: string, actual: unknown, expected: string | null) => {
-    const text = pinnedText(actual);
+  // "Absent" means the `if` key does not exist. A key that is present with a
+  // null value (an unquoted YAML tag such as `if: !cancelled()`, or a bare
+  // `if:` / `if: ~`) is not absent, so it fails every pin on its own,
+  // independent of the key allowlist.
+  const check = (
+    where: string,
+    holder: { if?: unknown },
+    expected: string | null,
+  ) => {
+    const pinned = JSON.stringify(expected ?? "absent");
+    if (
+      Object.hasOwn(holder, "if") &&
+      (holder.if === null || holder.if === undefined)
+    ) {
+      problems.push(
+        `${where} if key is present with a null value (not absent) and is not allowed: pinned to ${pinned}`,
+      );
+      return;
+    }
+    const text = pinnedText(holder.if);
     if (text !== expected) {
       problems.push(
-        `${where} if ${JSON.stringify(text ?? "absent")} is not allowed: pinned to ${JSON.stringify(expected ?? "absent")}`,
+        `${where} if ${JSON.stringify(text ?? "absent")} is not allowed: pinned to ${pinned}`,
       );
     }
   };
-  check(`Job '${jobId}'`, job.if, pin.jobIf);
+  check(`Job '${jobId}'`, job, pin.jobIf);
   // Reject jobs: every step after the reject step — including the migrate
   // DATABASE_URL steps (8, 11, 12, 13) and "Verify document-cutover reader
   // role (real stack)" (14) — is pinned to no `if:`, so none can run after the
@@ -142,7 +160,7 @@ export function pinnedIfProblems(job: WorkflowJob): string[] {
   allSteps(job).forEach((step, index) =>
     check(
       `Job '${jobId}' step ${index}`,
-      step.if,
+      step,
       pin.role === "reject" && index === 0 ? FORK_REJECT_IF : null,
     ),
   );

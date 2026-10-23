@@ -2743,7 +2743,7 @@ describe("repair 9: the migrate 'Verify document-cutover reader role (real stack
     },
   );
 
-  it("an unquoted if: !cancelled() (a YAML tag, parsed as null) still fails closed on the if key", () => {
+  it("an unquoted if: !cancelled() (a YAML tag, parsed as null) fails the if-pin itself, and the key allowlist", () => {
     const job = editStep(
       STEP_TEXT.replace(
         "        env:",
@@ -2751,11 +2751,54 @@ describe("repair 9: the migrate 'Verify document-cutover reader role (real stack
       ),
     );
     expect(job.steps![14]!.if).toBeNull();
+    expect(pinnedIfProblems(job)).toEqual([
+      `Job 'migrate' step 14 if key is present with a null value (not absent) and is not allowed: pinned to "absent"`,
+    ]);
     expect(modelledKeyProblems(job, "reject").join("\n")).toContain(
       "Step 14 (reject) key 'if' is not modelled",
     );
     expect(requiredJobFailsClosedOnFork(job)).toBe(false);
   });
+
+  it.each([
+    ["an unquoted YAML tag", "if: !cancelled()"],
+    ["a bare if:", "if:"],
+    ["if: ~", "if: ~"],
+    ["if: null", "if: null"],
+  ])(
+    "pinnedIfProblems: an if key present with a null value (%s) is rejected; an absent key is accepted",
+    (_label, line) => {
+      const nullMessage = (where: string, pinned: string) =>
+        `${where} if key is present with a null value (not absent) and is not allowed: pinned to ${JSON.stringify(pinned)}`;
+      // Key absent: the real migrate job (no job if, no step if after step 0) passes.
+      expect(pinnedIfProblems(migrateOf(source(CI_INTEGRATION)))).toEqual([]);
+      // Present on step 14 (pinned absent).
+      const onStep = editStep(
+        STEP_TEXT.replace("        env:", `        ${line}\n        env:`),
+      );
+      expect(Object.hasOwn(onStep.steps![14]!, "if")).toBe(true);
+      expect(onStep.steps![14]!.if ?? null).toBeNull();
+      expect(pinnedIfProblems(onStep)).toEqual([
+        nullMessage("Job 'migrate' step 14", "absent"),
+      ]);
+      // Present on the migrate job (pinned absent).
+      const onJob = editMigrate((block) => `    ${line}\n${block}`);
+      expect(pinnedIfProblems(onJob)).toEqual([
+        nullMessage("Job 'migrate'", "absent"),
+      ]);
+      // General, not only step 14: a gate step (pinned absent).
+      const gateLine = "      - name: Fail if E2E smoke failed\n";
+      const gate = jobsOf(
+        mutateJob(source(CI_INTEGRATION), "e2e-smoke-gate", (block) =>
+          mutate(block, gateLine, `${gateLine}        ${line}\n`, 1),
+        ),
+        "null if gate",
+      )["e2e-smoke-gate"]!;
+      expect(pinnedIfProblems(gate)).toEqual([
+        nullMessage("Job 'e2e-smoke-gate' step 0", "absent"),
+      ]);
+    },
+  );
 
   it("the step gets exactly the fork protection of its DATABASE_URL siblings", () => {
     const job = migrateOf(source(CI_INTEGRATION));
