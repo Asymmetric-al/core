@@ -9,6 +9,21 @@ metadata:
 
 # Components.build Specification
 
+<!-- CORE-COMPONENTS-CN-START -->
+
+**Core shared class helper:** consume the existing helper through the shared UI
+boundary:
+
+```tsx
+import { cn } from "@asym/ui/lib/utils";
+```
+
+Do not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`
+for these recipes. The generic npm dependency examples below are retained
+upstream material and are **non-operative in Core**. Current workspace manifests
+and `packages/ui/lib/utils.ts` own the implementation and dependency choices.
+<!-- CORE-COMPONENTS-CN-END -->
+
 ## This repository (Asymmetric-al/core)
 
 These repo-owned sections are intentionally kept on top of the vendored
@@ -57,24 +72,24 @@ Reference these guidelines when:
 
 ## Rule Categories by Priority
 
-| Priority | Category        | Focus                            | Prefix            |
-| -------- | --------------- | -------------------------------- | ----------------- |
-| 1        | Overview        | Specification scope and goals    | `overview`        |
-| 2        | Principles      | Core design philosophy           | `principles`      |
-| 3        | Definitions     | Common terminology               | `definitions`     |
-| 4        | Composition     | Breaking down complex components | `composition`     |
-| 5        | Accessibility   | Keyboard, screen readers, ARIA   | `accessibility`   |
-| 6        | State           | Controlled/uncontrolled patterns | `state`           |
-| 7        | Types           | TypeScript props and interfaces  | `types`           |
-| 8        | Polymorphism    | Element switching with `as` prop | `polymorphism`    |
-| 9        | As-Child        | Radix Slot composition pattern   | `as-child`        |
-| 10       | Data Attributes | `data-state` and `data-slot`     | `data-attributes` |
-| 11       | Styling         | Tailwind CSS, cn utility, CVA    | `styling`         |
-| 12       | Design Tokens   | CSS variables and theming        | `design-tokens`   |
-| 13       | Documentation   | Component documentation          | `documentation`   |
-| 14       | Registry        | Component registries             | `registry`        |
-| 15       | NPM             | Publishing to npm                | `npm`             |
-| 16       | Marketplaces    | Component marketplaces           | `marketplaces`    |
+| Priority | Category           | Focus                                     | Prefix            |
+| -------- | ------------------ | ----------------------------------------- | ----------------- |
+| 1        | Overview           | Specification scope and goals             | `overview`        |
+| 2        | Principles         | Core design philosophy                    | `principles`      |
+| 3        | Definitions        | Common terminology                        | `definitions`     |
+| 4        | Composition        | Breaking down complex components          | `composition`     |
+| 5        | Accessibility      | Keyboard, screen readers, ARIA            | `accessibility`   |
+| 6        | State              | Controlled/uncontrolled patterns          | `state`           |
+| 7        | Types              | TypeScript props and interfaces           | `types`           |
+| 8        | Polymorphism       | Existing hosts; passive `as` background   | `polymorphism`    |
+| 9        | Render Composition | Base UI render + native semantics         | `as-child`        |
+| 10       | Data Attributes    | Base UI state attributes and stable slots | `data-attributes` |
+| 11       | Styling            | Tailwind CSS, cn utility, CVA             | `styling`         |
+| 12       | Design Tokens      | CSS variables and theming                 | `design-tokens`   |
+| 13       | Documentation      | Component documentation                   | `documentation`   |
+| 14       | Registry           | Component registries                      | `registry`        |
+| 15       | NPM                | Publishing to npm                         | `npm`             |
+| 16       | Marketplaces       | Component marketplaces                    | `marketplaces`    |
 
 ## Quick Reference
 
@@ -92,11 +107,11 @@ Reference these guidelines when:
 
 ### 4. Composition
 
-- `composition-root` - Root component with Context for shared state
-- `composition-item` - Item wrapper components
-- `composition-trigger` - Interactive trigger components
-- `composition-content` - Content display components
-- `composition-export` - Namespace export pattern
+- `composition-root` - Reuse the shared primitive’s state owner
+- `composition-item` - Compose the existing item parts
+- `composition-trigger` - Preserve interaction with Base UI render
+- `composition-content` - Reuse accessible content parts
+- `composition-export` - Import the existing flat shared exports
 
 ### 5. Accessibility
 
@@ -111,33 +126,33 @@ Reference these guidelines when:
 
 - `state-uncontrolled` - Internal state management
 - `state-controlled` - External state delegation
-- `state-controllable` - Support both patterns with useControllableState
+- `state-controllable` - Reuse the shared primitive’s value/defaultValue or checked/defaultChecked API.
 
 ### 7. Types
 
-- `types-extend-html` - Extend native HTML attributes
-- `types-export` - Export prop types for consumers
-- `types-single-element` - One component wraps one element
+- `types-extend-html` - Inherit native host props/ref for new passive wrappers
+- `types-export` - Export owned props; derive an existing part's public props
+- `types-single-element` - Preserve existing DOM, non-DOM and compound host contracts
 
 ### 8. Polymorphism
 
-- `polymorphism-as-prop` - Change rendered element type
-- `polymorphism-typescript` - Type-safe polymorphic components
-- `polymorphism-defaults` - Semantic element defaults
+- `polymorphism-host-api` - Use the existing shared action/link/render contract
+- `polymorphism-passive-types` - Generic passive-wrapper typing background
+- `polymorphism-defaults` - Preserve the intended native host semantics
 
-### 9. As-Child
+### 9. Render Composition
 
-- `as-child-slot` - Radix Slot for prop merging
-- `as-child-composition` - Compose with child components
+- `as-child-render` - Compose Base UI parts with the existing render API
+- `as-child-semantics` - Preserve the native host, forwarded props and ref
 
 ### 10. Data Attributes
 
-- `data-attributes-state` - Use `data-state` for styling states
+- `data-attributes-state` - Read the existing Base UI part's emitted state attributes
 - `data-attributes-slot` - Use `data-slot` for targeting sub-components
 
 ### 11. Styling
 
-- `styling-cn-utility` - Combine clsx and tailwind-merge
+- `styling-cn-utility` - Consume the shared Core `cn` helper.
 - `styling-order` - Base → Variants → Conditionals → User overrides
 - `styling-cva` - Class Variance Authority for variants
 - `styling-css-variables` - Dynamic values with CSS variables
@@ -171,9 +186,9 @@ Reference these guidelines when:
 Read individual rule files for detailed explanations and code examples:
 
 ```
-rules/composition/SKILL.md
-rules/accessibility/SKILL.md
-rules/styling/SKILL.md
+rules/composition.md
+rules/accessibility.md
+rules/styling.md
 ```
 
 Each rule file contains:
@@ -191,11 +206,11 @@ For the complete guide with all rules expanded: `AGENTS.md`
 
 1. **Composition over Configuration** - Break components into composable sub-components
 2. **Accessibility by Default** - Not an afterthought, but a requirement
-3. **Single Element Wrapping** - Each component wraps one HTML element
-4. **Extend HTML Attributes** - Always extend native element props
+3. **Composable Parts** - Respect each part's existing DOM or non-DOM host and ownership contract
+4. **Preserve Prop Contracts** - Derive existing part props; inherit native props/ref for new passive hosts
 5. **Export Types** - Make prop types available to consumers
-6. **Support Both State Patterns** - Controlled and uncontrolled
-7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge
+6. **Preserve State Patterns** - Use each primitive's existing controlled/uncontrolled API
+7. **Intelligent Class Merging** - Import `cn` from `@asym/ui/lib/utils`.
 
 ## Authors
 

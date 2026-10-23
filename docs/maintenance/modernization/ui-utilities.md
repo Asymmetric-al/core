@@ -99,13 +99,15 @@ classifies the six-library checkpoint's baseline Dnd API as legacy and
 recommends the new API. Current first-party replacement and the retained
 upstream CMS internals are tracked separately. The [official migration guide](https://dndkit.com/react/guides/migration/)
 requires a coordinated provider, sensor, sortable and event migration.
-The [Dnd API migration](dnd-kit.md) tracks the installed coordinated 0.5.1
-first-party replacement. Its recorded strict/full gates and behavior evidence
-are dated prior-base results; full browser requalification after merging this UI
-checkpoint passed 299 cases with 5 existing skips. Owner compatibility, prepush,
-PR/current-head CI/review,
-hosted previews and merge qualification remain required;
-the old package's latest dist-tag does not close this finding.
+The [Dnd release readback](dnd-kit-release-readback.json) closes the coordinated
+0.5.1 first-party replacement through PR #2195 at qualified head `89ff719a` and
+merge `f5933194`. Exact-head pre-push/CI/review, three hosted preview smokes and
+post-merge Main/Integration passed; the first bootstrap failure and successful
+attempt-2 retry remain recorded. Its [behavior guide](dnd-kit.md) preserves the
+notification, filtered-ordering and pending-persistence boundaries. Earlier
+299-case and pending-publication text in the dated UI release JSON remains
+historical; current Dnd status belongs to the later Dnd release record.
+CMS-owned legacy compatibility and wider UI work remain open.
 
 Current Lighthouse CI 0.15.1 still selects Lighthouse 12.6.1 and affected nested
 software. Its owning chain requires replacement or removal of obsolete tooling

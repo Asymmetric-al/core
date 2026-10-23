@@ -1596,15 +1596,16 @@
       "sourcePath": "skills/components-build/SKILL.md",
       "rawSkillHash": "55c76ed69a72f69b9e0a19ac08422f64bf88624f4f5f4069903f418883efba97",
       "lockHash": "ef827017f8483932b644935f8b69a7a5a8a862b5f2a818b9e688503e0ffede0c",
-      "entrypointHash": "09b8785148f92042ed20b45a5fc10fd7ef2b574317b5be0b153084ef88141559",
-      "treeHash": "7a333a2dcd18445a2d558889c840e2ea6b60521fa59d537e15ee35c0d4e89b42",
+      "entrypointHash": "0ac96ea2ec9ac2aa8a64d695737c22451ae12092997611bfdb3c038555de36d7",
+      "treeHash": "192e3257eb7d7a9496d7f4bcb8e4f1ec1cffac6819f3fe2b954afffcd19c2c41",
       "license": {
         "identifier": null,
         "status": "unresolved-applicable-license",
         "noticeFiles": []
       },
       "adaptations": [
-        "Retain Core Base UI/base-maia workflow inserted above unchanged upstream specification."
+        "Retain the existing Core Base UI/base-maia workflow; apply the separately reviewed Core class-helper correction to active generic examples.",
+        "Use cn and ClassValue from @asym/ui/lib/utils; preserve the existing source and permission record, and mark generic publishing dependency examples as non-operative for Core."
       ],
       "evidence": "docs/ai/skills/components-build/references/upstream.md",
       "reviewEvidence": [
@@ -1615,7 +1616,9 @@
           "matchesAfterRepositoryMarkdownFormatting": false,
           "acceptedDifferences": [
             "Retain Core Base UI/base-maia workflow inserted above unchanged upstream specification."
-          ]
+          ],
+          "localPayloadScope": "Historical comparison before the Core class-helper correction below; immutable upstream identities and original comparisons retained.",
+          "reviewedInstalledEntrypointSha256": "09b8785148f92042ed20b45a5fc10fd7ef2b574317b5be0b153084ef88141559"
         },
         {
           "kind": "complete-source-companion-comparison",
@@ -1728,7 +1731,9 @@
             }
           ],
           "missingFiles": ["metadata.json"],
-          "method": "Git blob identity, or trusted repository Prettier normalization; no imported script execution."
+          "method": "Git blob identity, or trusted repository Prettier normalization; no imported script execution.",
+          "localPayloadScope": "Historical comparison before the Core class-helper correction below; immutable upstream identities and original comparisons retained.",
+          "reviewedInstalledEntrypointSha256": "09b8785148f92042ed20b45a5fc10fd7ef2b574317b5be0b153084ef88141559"
         },
         {
           "kind": "permission-gap",
@@ -1739,6 +1744,15 @@
           "kind": "omitted-upstream-metadata",
           "path": "metadata.json",
           "finding": "Catalog metadata absent locally; not imported while permission remains unresolved."
+        },
+        {
+          "kind": "Core-owned-class-helper-correction",
+          "sourceBaseline": "8b31d2cc8bbd8189e03936cf1f355967ced538d3",
+          "authority": ["packages/ui/lib/utils.ts", "packages/ui/package.json"],
+          "publicImport": "@asym/ui/lib/utils",
+          "adapter": "scripts/lib/components-build-adapter.mjs",
+          "regression": "tests/unit/scripts/managed-skill-compatibility.test.ts",
+          "claim": "Bounded local guidance correction, persistent through reviewed compatibility/sync seams; no new upstream source imported or permission/freshness issue resolved."
         }
       ]
     },
@@ -3744,8 +3758,8 @@
       "sourcePath": "docs/ai/skills/inngest/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "26d242b77ff34e04e10526c64d91431f3273df47cb980442babeccb6b9c4a363",
-      "treeHash": "19df2b7043947f46b3722c7bd843e54b881f154ff38d18cdad7de3b728921ee3",
+      "entrypointHash": "dedcd86d195c4e5a054c7d03ca528a6ce07f28ab28beaa8f5d1f25eccebf2c9f",
+      "treeHash": "854704f9c41699b6703d7662ecae87948fab3182c7dcc8b84a419fe44d4c3b7e",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -3761,7 +3775,8 @@
         ]
       },
       "adaptations": [
-        "Retain repository-owned installed-contract guidance; upstream inspiration is lineage and does not imply imported or latest upstream content."
+        "Retain repository-owned installed-contract guidance; upstream inspiration is lineage and does not imply imported or latest upstream content.",
+        "Identify Core's installed Inngest runtime, API ownership and local development limits in the Core-authored router and refresh template; no provider or upstream freshness claim."
       ],
       "evidence": "docs/ai/skills/inngest/references/upstream.md",
       "reviewEvidence": [
@@ -3774,7 +3789,22 @@
             "docs/ai/stack-registry.md",
             "package.json"
           ],
-          "claim": "Source ownership and installed-contract retention; no external freshness claim."
+          "claim": "Source ownership and installed-contract retention; no external freshness claim.",
+          "scope": "Historical installed contract before the Core runtime classification correction below; original reviewed hash retained."
+        },
+        {
+          "kind": "Core-runtime-guidance-correction",
+          "sourceBaseline": "8b31d2cc8bbd8189e03936cf1f355967ced538d3",
+          "authority": [
+            "packages/api/package.json",
+            "packages/api/src/workflows/inngest/client.ts",
+            "packages/api/src/workflows/serve.ts",
+            "apps/admin/app/api/inngest/route.ts",
+            "docs/guides/features/inngest-workflows/local-development.md"
+          ],
+          "refreshTemplate": "scripts/refresh-inngest-skills.mjs",
+          "regression": "tests/unit/scripts/inngest-refresh-provenance.test.ts",
+          "claim": "Correct installed runtime classification and repository ownership; live Cloud qualification and upstream API freshness are separate."
         }
       ]
     },
@@ -7351,8 +7381,8 @@
       "sourcePath": "docs/ai/skills/samson-factory/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "1586b4669639d928227e17a8720f0f45502dcee1cd4bafc75ac78eca33eaef64",
-      "treeHash": "bad55a799cc3336ce8d3f365067a84f942609f955612abaf4fdca76ff5e87401",
+      "entrypointHash": "79b1f5f3a37f26d0295c75871b01e374c70b99b325ce65fcbe02d760c29898ba",
+      "treeHash": "c39ab0aaac036a39493d4a3df559aee0be5fcdb00fd01bb9a0325d53e63b3c34",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -7366,7 +7396,7 @@
         {
           "kind": "Core-source-owned-contract",
           "path": "docs/ai/skills/samson-factory/SKILL.md",
-          "entrypointSha256": "1586b4669639d928227e17a8720f0f45502dcee1cd4bafc75ac78eca33eaef64",
+          "entrypointSha256": "79b1f5f3a37f26d0295c75871b01e374c70b99b325ce65fcbe02d760c29898ba",
           "authority": [
             "AGENTS.md",
             "docs/ai/stack-registry.md",
@@ -7481,8 +7511,8 @@
       "sourcePath": "skills/engineering/setup-matt-pocock-skills/",
       "rawSkillHash": "f148858ffb7f63c03c06fca06e6fdb1d91a35c6b293244b8fdfacd5f4cc028c4",
       "lockHash": "f148858ffb7f63c03c06fca06e6fdb1d91a35c6b293244b8fdfacd5f4cc028c4",
-      "entrypointHash": "e2f382df9d048fbdf703530ff264f7683b680667a3c42cf3fb130e85ffdf93c7",
-      "treeHash": "3b26b3961fa3c6ae2bcaacff315090ce25c87bb20011058543102f4a8402b5a8",
+      "entrypointHash": "e85c747f0ed0246a9d75f78785a37e919844429dfd6850f2a24125b48ba07a4b",
+      "treeHash": "a71743cbab04ae72b4563c74f069579969676d19b3724cb8b19382bd7fd1911a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -7517,7 +7547,7 @@
             "agents/openai.yaml": "9527de0110541c45712319025155aeab8dc7d77c6ed6e5e83271bab1851ab939"
           },
           "adaptedFileHashes": {
-            "SKILL.md": "e2f382df9d048fbdf703530ff264f7683b680667a3c42cf3fb130e85ffdf93c7",
+            "SKILL.md": "e85c747f0ed0246a9d75f78785a37e919844429dfd6850f2a24125b48ba07a4b",
             "agents/openai.yaml": "9527de0110541c45712319025155aeab8dc7d77c6ed6e5e83271bab1851ab939",
             "domain.md": "edc6d6131fdffc4b7135704f5262124fc43355c95f61b7399dc5a4db643e28ca",
             "issue-tracker-github.md": "f0653fe106dd8ee7b33be27bd7fe3104b40555896cb45f61997aed20467020c3",
@@ -7525,7 +7555,7 @@
             "issue-tracker-local.md": "7dcda20a2eb4bdc89b95d1143423c0691309921cadae3132e6424f371030506e",
             "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
             "references/upstream.md": "fec7781be18aa69a3dc5062259c3040b3a769b5585cb5dba2ace3519fddf0e84",
-            "triage-labels.md": "ae512af838c78b8750471c42cd2b20fa32319553e61d84c9a23d171b40ce14aa"
+            "triage-labels.md": "f766b38f432b1807c14c0411a8f77cdd06b004d7f57d767358725484326f5247"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
         }
@@ -8443,8 +8473,8 @@
       "sourcePath": "skills/engineering/to-spec/SKILL.md",
       "rawSkillHash": "43ad9cf318e5e7d3d1fa360253a37021796dc87a0c2e595ad262661a10f85088",
       "lockHash": "71b6e4dd625e894073e11e1e8057fe473d93d32956d9ada2370259c6497f4fcd",
-      "entrypointHash": "43ad9cf318e5e7d3d1fa360253a37021796dc87a0c2e595ad262661a10f85088",
-      "treeHash": "f489837c95ef954b0fe7f91ef669da6fd47b6618316952723c898336b57f1620",
+      "entrypointHash": "7724c0f8dc7521b5832da64be776791ee52b2e317303b0fe10ecca84194a9d61",
+      "treeHash": "b3cc57b9ade8b14e03e5a5da6cc074b103101610e3c71d0ffbb2b1c731186b3c",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8501,8 +8531,8 @@
       "sourcePath": "skills/engineering/to-tickets/",
       "rawSkillHash": "56ec23c5b2782785d4e65bff9e315b6d3aeb4ef977c174a219e99489fada1995",
       "lockHash": "56ec23c5b2782785d4e65bff9e315b6d3aeb4ef977c174a219e99489fada1995",
-      "entrypointHash": "56ec23c5b2782785d4e65bff9e315b6d3aeb4ef977c174a219e99489fada1995",
-      "treeHash": "2de7433ef9a60fc940768b4b2c6ef29d3a7f670e79a4fd002f0101a279343cf5",
+      "entrypointHash": "27f04206f1eb7e6ea176fabc26d4a72b55fd1ea33bae860138e38d76dad5d176",
+      "treeHash": "4a8664b37f48ce855ca1a02e8f75b10dcc664a4ea1dd5f178a58bb678ad94469",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8532,7 +8562,7 @@
             "agents/openai.yaml": "21bc6215fffcd7614e9f772bb1760e87cc5fc7dcc707e7d282bc9414267a6090"
           },
           "adaptedFileHashes": {
-            "SKILL.md": "56ec23c5b2782785d4e65bff9e315b6d3aeb4ef977c174a219e99489fada1995",
+            "SKILL.md": "27f04206f1eb7e6ea176fabc26d4a72b55fd1ea33bae860138e38d76dad5d176",
             "agents/openai.yaml": "21bc6215fffcd7614e9f772bb1760e87cc5fc7dcc707e7d282bc9414267a6090",
             "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
             "references/upstream.md": "d92d251c6365261ef3064a94fb01558e34fe81b010f7a47c75e1d29e9658aedf"
@@ -8552,8 +8582,8 @@
       "sourcePath": "skills/engineering/triage/",
       "rawSkillHash": "917b0baf74be583e74f110857ed45df2766617f75c00baf61fd136d7af515edf",
       "lockHash": "917b0baf74be583e74f110857ed45df2766617f75c00baf61fd136d7af515edf",
-      "entrypointHash": "e210dbd969a69453ed14f28b003c0fc26f5b46120fc4e1fad4759e2b85a2c3b2",
-      "treeHash": "d90527cf3be90ec8029644b1e7032fe727aae87aeda6cdd4a775b7d0ea8e18b2",
+      "entrypointHash": "16e3b5dbef56b4c212f0e46178fc62772e832bba36b6eb3e1d4b9488c8cd053f",
+      "treeHash": "61ade17a7bcff403268b8888cfc3f9ec171c4001c0119f2b1d7f5ab97f3b35d5",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8585,9 +8615,9 @@
             "agents/openai.yaml": "2e683717720cf456d165d0bb1a68bb600d0b6a8ccb61841c172e50d26f95351c"
           },
           "adaptedFileHashes": {
-            "AGENT-BRIEF.md": "c2dc48d28eee86bc59e299ddc6f4a9c9eeeeecafb4781038bc27f9ea69dc2838",
-            "OUT-OF-SCOPE.md": "3e86b374668545e3129be1e41d842d2714615b718c45e7f1657ee81c5136187b",
-            "SKILL.md": "e210dbd969a69453ed14f28b003c0fc26f5b46120fc4e1fad4759e2b85a2c3b2",
+            "AGENT-BRIEF.md": "93b9a2b0d26a747c5effa30b69be6b91483ddddea477528b26e06a8aaa4f0ae9",
+            "OUT-OF-SCOPE.md": "672bf12b4e46cfdcbfcfa20da74361106edbceaf4690f4613bf6fda5ca7dbeb3",
+            "SKILL.md": "16e3b5dbef56b4c212f0e46178fc62772e832bba36b6eb3e1d4b9488c8cd053f",
             "agents/openai.yaml": "2e683717720cf456d165d0bb1a68bb600d0b6a8ccb61841c172e50d26f95351c",
             "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
             "references/upstream.md": "89e6628faef7280023044d46024d3185dc8c2ad810f07ffc65b27bfa0a46a37b"
@@ -9207,8 +9237,8 @@
       "sourcePath": "skills/engineering/wayfinder/",
       "rawSkillHash": "9be7b478c389605a24517d27752f278933588da97a1b5921b165f455edf4c5b7",
       "lockHash": "9be7b478c389605a24517d27752f278933588da97a1b5921b165f455edf4c5b7",
-      "entrypointHash": "9be7b478c389605a24517d27752f278933588da97a1b5921b165f455edf4c5b7",
-      "treeHash": "203ba244ff3cf9dad213832620897c89443dfabdd457cc90438ff55de7ae9486",
+      "entrypointHash": "d06bf686d3f1f1d5a52ec0512f13d2777af7536ebb5cdb940b416d14a1ed8ec1",
+      "treeHash": "ad6dd6b663552c4f5dc862d387431fbe4c448516eec55e4a97803dae09e077d5",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -9238,7 +9268,7 @@
             "agents/openai.yaml": "88bc81a11a6d52ac67aeaa76b8b619e387020d47c5133a4dd4927fd15c4ad073"
           },
           "adaptedFileHashes": {
-            "SKILL.md": "9be7b478c389605a24517d27752f278933588da97a1b5921b165f455edf4c5b7",
+            "SKILL.md": "d06bf686d3f1f1d5a52ec0512f13d2777af7536ebb5cdb940b416d14a1ed8ec1",
             "agents/openai.yaml": "88bc81a11a6d52ac67aeaa76b8b619e387020d47c5133a4dd4927fd15c4ad073",
             "references/LICENSE.md": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
             "references/upstream.md": "31d8566bae9fe60edd1b43a81f4f314ba52ce159a68f15dc9ea2a07a5f87ef94"

@@ -108,6 +108,34 @@ Nia keywords:
 - elements, stripe-js, @stripe/react-stripe-js
 - webhook, signature, events
 
+## Web Studio CMS
+
+- Payload CMS and `@payloadcms/db-postgres` power Mission Control Web Studio.
+- Drizzle is owned by Payload's Postgres adapter within the `cms` schema. It does
+  not establish a separate ORM boundary for Core business data.
+
+Nia keywords:
+
+- payload, collections, globals, Web Studio
+- @payloadcms/db-postgres, cms schema, adapter-owned drizzle
+
+## Durable Workflows
+
+- Inngest (durable jobs/workflows)
+
+Nia keywords:
+
+- inngest, steps, retries, scheduling
+
+Agent tooling note: official Inngest agent skills are vendored under
+`docs/ai/skills/inngest-*` for integration planning and implementation work.
+Core already installs Inngest in `packages/api/package.json`; the owned runtime
+client and function registration live under `packages/api/src/workflows/` and
+Mission Control exposes them through `apps/admin/app/api/inngest/route.ts`.
+Use `docs/guides/features/inngest-workflows/local-development.md` for local setup
+and durability limits. Installed runtime code and agent tooling do not establish
+live Cloud qualification.
+
 ## Email, Templates, and PDFs
 
 - React Email Editor (`@react-email/editor`) for Email Studio
@@ -152,31 +180,26 @@ Nia keywords:
 These items appear in roadmap/docs/UI copy but are not present in code dependencies today.
 Use these tags only when a task explicitly targets integration work.
 
-- Payload CMS
-- @payloadcms/db-postgres (Drizzle-based)
-- Drizzle ORM
-- Twenty CRM (retired 2026-07-06 — ADR-0001; Asym Postgres owns all CRM
-  truth; code dormant pending cleanup)
 - Svix (external webhooks)
-- Inngest (durable jobs/workflows)
 - Zapier (integrations)
 - Chatwoot CE
 - Documenso CE
 
 Nia keywords:
 
-- payload, collections, globals
-- drizzle, migrations
-- crm (Twenty retired 2026-07-06 — ADR-0001)
 - svix, webhook delivery
-- inngest, steps, retries, scheduling
 - zapier
 - chatwoot
 - documenso
 
-Agent tooling note: official Inngest agent skills are vendored under
-`docs/ai/skills/inngest-*` for integration planning and implementation work.
-This does not move Inngest out of planned/referenced product status.
+## Retired Integrations
+
+Twenty CRM is retired and prohibited by the
+[CRM contract](../../openspec/specs/crm-core/spec.md). Asym Postgres owns CRM
+truth; route CRM work through `packages/api/src/crm`. Historical ADR-0001 and
+retirement evidence remain records, not integration instructions. Runtime
+removal has merged; external provider/credential cleanup remains separately
+tracked in [retirement task 4.5](../../openspec/changes/complete-twenty-crm-retirement/tasks.md).
 
 ## "When user mentions X, include these stack tags"
 
@@ -188,14 +211,13 @@ This does not move Inngest out of planned/referenced product status.
 - "charts/visualization" -> Recharts
 - "motion/animation" -> motion
 - "rich text/editor/tiptap" -> Tiptap, @tiptap/react, StarterKit
+- "jobs/workflows/retries" -> Inngest
+- "cms/content" -> Payload
+- "crm/sync" -> Asym Postgres via `packages/api/src/crm`
 
 ## "Planned" tags (only for explicit integration work)
 
-- "jobs/workflows/retries" -> Inngest
 - "external webhooks" -> Svix
-- "cms/content" -> Payload
-- "crm/sync" -> retired Twenty pipeline (ADR-0001); CRM work targets Asym
-  Postgres via `packages/api/src/crm`
 - "support/chat" -> Chatwoot
 - "signing/docs" -> Documenso
 

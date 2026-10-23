@@ -9,6 +9,20 @@ tags: registry, shadcn, distribution, cli, source-code
 
 Registries distribute **source code**, not compiled packages. This enables true component ownership and customization.
 
+### Core Consumption Boundary
+
+Core already consumes shared source through `@asym/ui`; do not create an app-local
+`components/ui` tree or replace it with an external UI package. A registry item
+is a candidate source import, not proof of Base UI/Maia compatibility. Review its
+source and dependencies, adapt it to the existing shared owner, and use the
+installed pinned CLI from repository root with `--cwd packages/ui` only when an
+addition is justified.
+
+Registry metadata, distribution comparisons and deployment/publishing examples
+below remain generic external-authoring background. They do not change Core's
+private package exports/build layout, authorize deployment, or establish rights
+to redistribute any imported source. Preserve its actual provenance and notices.
+
 ### Core Concept
 
 **Bad:**
@@ -21,8 +35,8 @@ import { Button } from "some-ui-library";
 **Good:**
 
 ```typescript
-// Registry-based - source code in your project
-import { Button } from "@/components/ui/button";
+// Core consumes its existing shared first-party source.
+import { Button } from "@asym/ui/components/shadcn/button";
 ```
 
 ### Registry Metadata Format
@@ -100,10 +114,10 @@ vercel --prod
 **Example:**
 
 ```bash
-npx shadcn@latest add https://your-project.vercel.app/metric-card.json
+bunx --no-install shadcn add https://your-project.vercel.app/metric-card.json --cwd packages/ui
 ```
 
-### Component JSON Structure
+### Component JSON Structure (External Authoring Background)
 
 **Example:**
 

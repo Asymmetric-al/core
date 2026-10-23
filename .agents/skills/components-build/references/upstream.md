@@ -22,3 +22,91 @@ Canonical copy in this repo: `docs/ai/skills/components-build/` (mirrored to `.a
 3. Preserve this file. Run `bun run skills:sync` and `bun run skills:verify`.
 
 This skill is **not** updated by `bun run skills:refresh-upstream` today.
+
+## Core class-helper adaptation (2026-10-22)
+
+Core component examples consume `cn` from `@asym/ui/lib/utils`; they do not
+define another wrapper or install the generic `clsx`/`tailwind-merge` recipe.
+The generic npm dependency example is retained as non-operative upstream
+material. The existing Base UI / `base-maia` overlay and upstream authors,
+MIT attribution, source identity and original `skills_lock_hash` remain intact.
+
+`scripts/lib/components-build-adapter.mjs` applies the reviewed substitutions
+and the existing scoped class-helper note to `SKILL.md`, `README.md`, `AGENTS.md`,
+`rules/overview.md`, `rules/styling.md` and `rules/npm.md`. The reviewed merge
+examples use semantic `bg-primary` / `bg-background` tokens. The same adapter
+restores the Base UI render/state guidance described below. Its data file
+retains the original reviewed excerpts alongside the Core replacements. It
+validates the selected documents, including the indices and compiled
+snippets, before writing any of them. Competing helper, active legacy
+composition/state code and reviewed-source drift fail closed. Provenance,
+license notices and raw captures are outside its write set.
+
+Apply that adapter to a complete staged tree during a reviewed manual source
+reconciliation, before canonical promotion. `skills:sync` also restores this
+contract in `docs/ai/skills/components-build` before any mirror pruning, copying
+or manifest publication. Canonical and all three client copies therefore share
+the restored bytes, including after raw canonical restoration. This local adapter does not add an
+upstream refresh source group or change upstream lock metadata. It preserves an
+existing Core Base UI overlay; restore that overlay separately if an upstream
+replacement erased it. After review,
+run `bun run skills:sync` and non-mutating `bun run skills:verify`.
+
+## Core composition and state adaptation (2026-10-23)
+
+`rules/as-child.md` remains a compatibility index for older references. Its
+active recipes use the existing Base UI `render` API, a button host for actions,
+and a link with the shared `buttonVariants` for navigation. Custom render hosts
+forward the primitive's props and ref to the same DOM node. Only primitives
+that support `nativeButton` may use `nativeButton={false}` when deliberately
+rendering a non-button host.
+
+The adapter also restores `rules/state.md` and `rules/composition.md`. Examples
+reuse Core's flat Accordion exports and the primitive's existing
+`value`/`defaultValue`/`onValueChange` or
+`checked`/`defaultChecked`/`onCheckedChange` contract. No Radix state helper,
+new controllable-state abstraction or inert `asChild` prop is part of these
+recipes. The `SKILL.md` / `README.md` indices and compiled `AGENTS.md` chapters
+are restored together. The compilation metadata in `rules/_sections.md` uses
+the same section 6/9 descriptions; all other metadata sections and unrelated
+compiled guidance are retained.
+
+The maintenance fixtures record local pre-correction text as test inputs,
+separately from immutable upstream captures. Regression tests cover raw
+restoration, formatted idempotence, canonical equality with all three mirrors,
+and rejection before any document or mirror/manifest write.
+
+This adaptation grants no new rights. The components-build source-license gap
+in `docs/ai/skill-source-audit.json` remains **OPEN**; the retained MIT labels
+and author attribution do not resolve that gap. Original source identity,
+raw captures, authors, license metadata and `skills-lock.json` identity remain
+unchanged.
+
+References: [Base UI composition](https://base-ui.com/react/handbook/composition)
+and [shadcn Base UI Button](https://ui.shadcn.com/docs/components/base/button); see the current Core correction below.
+
+## Core full-cohort recipe correction (2026-10-23)
+
+The complete 22-file local pack was reviewed at Core commit
+`b9b934471b893adc16e238c95e8a99c5593d983b`. The bounded Core correction aligns
+principles, definitions, types, polymorphism, data attributes, accessibility,
+styling and documentation examples with current shared exports. Accordion uses
+flat parts and its value-array contract; Dialog state stays at its existing
+root while content owns rendered popup DOM. Callers may own controlled values;
+initial defaults leave values with the primitive. Action/link/native props and
+refs remain those of the existing shared component, without a second activation
+or controllable-state implementation.
+
+Generic passive polymorphism, token-authoring and external publishing examples
+remain useful background, explicitly subordinate to Core's exact Maia/shared
+owner boundaries. Indices, section metadata and duplicated compiled subspans
+carry the same corrections. The explicit adapter target list covers the 20
+active guidance/index documents; `_template.md` and this provenance file remain
+outside its write set. The original raw/local captures and previous dated
+comparisons remain historical inputs rather than being relabeled as fresh proof.
+
+This note describes the guidance correction. It is not independent evidence of
+upstream freshness, tests, builds, CI, previews or release. It grants no rights,
+imports no new upstream source, and does not close the existing source-license
+gap. Original source identities, author/notice text, raw captures and lock
+metadata remain unchanged. Current local qualification is recorded separately.

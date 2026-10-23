@@ -10,11 +10,17 @@ Use this router only to choose the specific skill to load next.
 
 ## This Repository
 
-- Inngest is currently planned or referenced in this repo, not an app runtime
-  dependency.
-- Do not add runtime packages, app code, migrations, or `INNGEST_*` env vars
-  unless the user explicitly asks for product Inngest integration and the work
-  has its own OpenSpec scope.
+- Core already uses Inngest as a runtime dependency in `packages/api/package.json`.
+  The owned client is `packages/api/src/workflows/inngest/client.ts`; registered
+  handlers live in `packages/api/src/workflows/serve.ts` and are exposed through
+  the thin `apps/admin/app/api/inngest/route.ts` route.
+- Audit those existing workflows before changing runtime behavior. Follow
+  `docs/guides/features/inngest-workflows/local-development.md` for local setup
+  and durability limits; installed runtime code does not prove live Cloud
+  qualification.
+- Keep new runtime adoption, provider provisioning, migrations and `INNGEST_*`
+  environment changes out of agent-tooling-only changes. Product runtime changes
+  require the user's task scope and the relevant OpenSpec change.
 - Inngest skills are subordinate to OpenSpec, root `AGENTS.md`, repo rulebooks,
   framework docs, and runtime evidence.
 
@@ -47,7 +53,7 @@ Use this router only to choose the specific skill to load next.
 
 ## Checklist
 
-- [ ] Confirm whether the repo already has Inngest runtime code.
+- [ ] Inspect Core's existing client, registered functions and thin serving route.
 - [ ] Load the most specific official Inngest skill for the task.
 - [ ] Keep product runtime adoption out of agent-tooling-only changes.
 - [ ] Use the Inngest dev-server MCP only when the dev server is running and

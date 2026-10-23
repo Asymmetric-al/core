@@ -2,12 +2,20 @@ import { describe, expect, it } from "vitest";
 
 import {
   DOCUMENT_PURPOSE_CATALOG,
+  DOCUMENT_PURPOSE_CATALOG_SCHEMA_VERSION,
+  DOCUMENT_PURPOSE_SERIALIZER_VERSION,
   buildDocumentPurposeCatalogManifest,
   canonicalizeDocumentPurposeValue,
   digestDocumentPurposeValue,
   getDocumentPurposeCatalogDigest,
   getDocumentPurposeContract,
 } from "../../../../packages/api/src/generated-documents/purpose-catalog";
+
+// Changing this pin is a reviewed, versioned contract change: any catalog value
+// or serialization change must update it deliberately, with a schema version
+// bump where the contract shape or meaning changes.
+const PINNED_CATALOG_DIGEST =
+  "45ca5f488c8de37813095c5a3fa3677989c298e4e2faa976b6f9c5a57537eeaa";
 
 describe("canonical serialization and the catalog digest", () => {
   it("serializes logically identical values identically regardless of key order", () => {
@@ -30,6 +38,17 @@ describe("canonical serialization and the catalog digest", () => {
     );
   });
 
+  it("pins the catalog digest and serialization contract to literal values", () => {
+    const manifest = buildDocumentPurposeCatalogManifest();
+
+    expect(getDocumentPurposeCatalogDigest()).toBe(PINNED_CATALOG_DIGEST);
+    expect(manifest.digest).toBe(PINNED_CATALOG_DIGEST);
+    expect(DOCUMENT_PURPOSE_SERIALIZER_VERSION).toBe("1");
+    expect(manifest.digest_algorithm).toBe("sha256");
+    expect(manifest.schema_version).toBe("2");
+    expect(DOCUMENT_PURPOSE_CATALOG_SCHEMA_VERSION).toBe("2");
+  });
+
   it("keeps a stable digest across processes and repeated calls", () => {
     const digest = getDocumentPurposeCatalogDigest();
     expect(digest).toMatch(/^[0-9a-f]{64}$/);
@@ -38,7 +57,7 @@ describe("canonical serialization and the catalog digest", () => {
     // Recomputing from a deep clone (fresh object graph, insertion order
     // re-created) must land on the same digest.
     const recomputed = digestDocumentPurposeValue({
-      schema_version: "1",
+      schema_version: DOCUMENT_PURPOSE_CATALOG_SCHEMA_VERSION,
       serializer_version: "1",
       entries: Object.keys(DOCUMENT_PURPOSE_CATALOG)
         .sort((left, right) => left.localeCompare(right))
@@ -59,12 +78,12 @@ describe("canonical serialization and the catalog digest", () => {
     mutated[0].review_floor = "standard";
 
     const base = digestDocumentPurposeValue({
-      schema_version: "1",
+      schema_version: DOCUMENT_PURPOSE_CATALOG_SCHEMA_VERSION,
       serializer_version: "1",
       entries,
     });
     const changed = digestDocumentPurposeValue({
-      schema_version: "1",
+      schema_version: DOCUMENT_PURPOSE_CATALOG_SCHEMA_VERSION,
       serializer_version: "1",
       entries: mutated,
     });
@@ -74,7 +93,9 @@ describe("canonical serialization and the catalog digest", () => {
   it("builds a manifest with schema version, sorted entries, algorithm, and digest", () => {
     const manifest = buildDocumentPurposeCatalogManifest();
 
-    expect(manifest.schema_version).toBe("1");
+    expect(manifest.schema_version).toBe(
+      DOCUMENT_PURPOSE_CATALOG_SCHEMA_VERSION,
+    );
     expect(manifest.digest_algorithm).toBe("sha256");
     expect(manifest.digest).toBe(getDocumentPurposeCatalogDigest());
     expect(manifest.entries).toHaveLength(11);

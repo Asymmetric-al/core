@@ -7,7 +7,27 @@ tags: npm, package, publishing, versioning, exports
 
 ## Publishing Components to NPM
 
+<!-- CORE-COMPONENTS-CN-START -->
+
+**Core shared class helper:** consume the existing helper through the shared UI
+boundary:
+
+```tsx
+import { cn } from "@asym/ui/lib/utils";
+```
+
+Do not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`
+for these recipes. The generic npm dependency examples below are retained
+upstream material and are **non-operative in Core**. Current workspace manifests
+and `packages/ui/lib/utils.ts` own the implementation and dependency choices.
+<!-- CORE-COMPONENTS-CN-END -->
+
 Distribute components as npm packages for stable, versioned dependencies with centralized updates.
+
+This chapter is generic external publishing background. Core's `@asym/ui` is a
+private source-export workspace package; its current manifest/build/exports stay
+authoritative. Do not copy this sample package, dependency pins or publication
+commands into Core as a replacement for that boundary.
 
 ### When to Use NPM
 

@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-22T22:16:57.087777+00:00",
+  "status": "merged-post-merge-ci-passed",
+  "pullRequest": {
+    "number": 2195,
+    "url": "https://github.com/Asymmetric-al/core/pull/2195",
+    "head": "89ff719a73d302b3ba9079838f64fdd634d0002e",
+    "base": "cc568c92c1cd283d82a4ef9c6d4be7dabe4efee4",
+    "merge": "f59331942c6e84ab66bcdd14c3b120025cceecfd",
+    "mergedAt": "2026-10-22T21:45:05Z"
+  },
+  "qualifiedLockSha256": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247",
+  "scope": {
+    "closedTask": "7.1a first-party Dnd public API replacement only",
+    "currentDirectCohort": {
+      "@dnd-kit/react": "0.5.1",
+      "@dnd-kit/dom": "0.5.1",
+      "@dnd-kit/helpers": "0.5.1",
+      "@dnd-kit/abstract": "0.5.1"
+    },
+    "preservedBehavior": "Shared global-Toaster single failure owner; displayed-to-full-column persistence anchors; original HTTP/auth/tenant/keyboard/focus/reduced-motion contracts; admission until supplied Promise settles.",
+    "behaviorGuide": "dnd-kit.md",
+    "boundary": "Qualified source is PR #2195 head 89ff719a and identical merge tree f5933194. Follow-up Skill50 code/documentation requires its own final gates/publication."
+  },
+  "ownerFinalReadback": {
+    "path": "/tmp/core-modernization-dnd-2195-final-release-readback.json",
+    "sha256": "65a065cfbbf420a0441f94765c3b061262878cbb253c83197f217bc7e844c3d3"
+  },
+  "historicalPrepublicationQualification": {
+    "originalQualification": {
+      "path": "dnd-kit-qualification.json",
+      "sha256": "27b47b8533522f2a8e729ed6acd4d9a9a442f56a85775198bcb95f4d80484c5b"
+    },
+    "reviewFeedback": {
+      "path": "dnd-kit-review-feedback.json",
+      "sha256": "fad648a8657a86727a3fc49943e6771553b5e06bf120da5a4e13d28aad45bbe4"
+    },
+    "preservation": "Both JSON snapshots remain byte-exact, including all 19 original dated receipts. Their earlier pending gates retain historical meaning; active release state is this later readback.",
+    "focusedEvidence": "Notification 303 passed/5 existing skips and mapper 63 passed/6 files retain tested source and old-lock scopes; no historical receipt retargeted."
+  },
+  "prQualification": {
+    "finalPremerge": {
+      "path": "/tmp/core-modernization-dnd-89ff-final-premerge-qualification.json",
+      "sha256": "cf1e3cf168f36d2eab66d52e6f8611b25bf5465b4d11b2e90b728b1b54f46bc9"
+    },
+    "normalPrepush": {
+      "path": "/tmp/core-modernization-dnd-final-review-fixes-current-base-push.json",
+      "sha256": "165fac0154c2a7ecaec6d4de7734d693edcb0a9d7cafe6912d6baa2730e09292"
+    },
+    "requiredChecks": [
+      {
+        "bucket": "pass",
+        "link": "https://github.com/Asymmetric-al/core/actions/runs/39856785668/job/120101287136",
+        "name": "e2e-smoke-gate",
+        "state": "SUCCESS"
+      },
+      {
+        "bucket": "pass",
+        "link": "https://github.com/Asymmetric-al/core/actions/runs/39856785748/job/120100772992",
+        "name": "ci-gate",
+        "state": "SUCCESS"
+      },
+      {
+        "bucket": "pass",
+        "link": "https://github.com/Asymmetric-al/core/actions/runs/39856785668/job/120097823064",
+        "name": "smoke",
+        "state": "SUCCESS"
+      },
+      {
+        "bucket": "pass",
+        "link": "https://github.com/Asymmetric-al/core/actions/runs/39856785668/job/120096936676",
+        "name": "migrate",
+        "state": "SUCCESS"
+      }
+    ],
+    "fullTestE2E": {
+      "name": "test-e2e",
+      "conclusion": "SUCCESS",
+      "link": "https://github.com/Asymmetric-al/core/actions/runs/39856785668/job/120098561235"
+    },
+    "reviews": {
+      "changedFilesCovered": 27,
+      "threads": 8,
+      "unresolved": 0,
+      "humanApprovalClaimed": false
+    },
+    "allChangedPathsReviewed": 27,
+    "allThreadsResolved": true,
+    "threadConnectionsExhausted": true,
+    "humanApprovalClaimed": false,
+    "sourceCoverage": {
+      "path": "/tmp/core-modernization-dnd-89ff-all27-current-remote-review-coverage.json",
+      "sha256": "31404860c0666777821e7cf2a85a93a5d2bf68d01af753c854aef4e3af6733cc"
+    }
+  },
+  "previews": [
+    {
+      "name": "admin",
+      "id": "dpl_FGqVwuhJGo3PkbdgM9SgzaEJJW7E",
+      "url": "https://admin-cod3sj5fe-asymmetric-al.vercel.app",
+      "state": "READY",
+      "projectId": "prj_SB9DucsrJOT0wF1v43SWMFsSNdn8",
+      "sourceHead": "89ff719a73d302b3ba9079838f64fdd634d0002e",
+      "sourceBranch": "chore/AL-1965-dnd-kit-modernization",
+      "providerTargetValue": null
+    },
+    {
+      "name": "donor",
+      "id": "dpl_FgXrXXXectVy1GjYVWfu8oFqLRER",
+      "url": "https://donor-kpsj118kb-asymmetric-al.vercel.app",
+      "state": "READY",
+      "projectId": "prj_dZG3XkklLVZyqm85FW5Vvv7ph3kL",
+      "sourceHead": "89ff719a73d302b3ba9079838f64fdd634d0002e",
+      "sourceBranch": "chore/AL-1965-dnd-kit-modernization",
+      "providerTargetValue": null
+    },
+    {
+      "name": "missionary",
+      "id": "dpl_H6A9yjA6APE4VASchM8jJ1pEyjad",
+      "url": "https://missionary-7l97sz2mj-asymmetric-al.vercel.app",
+      "state": "READY",
+      "projectId": "prj_6tXSJKsdv2JpK70GKkg9HIg5hiYN",
+      "sourceHead": "89ff719a73d302b3ba9079838f64fdd634d0002e",
+      "sourceBranch": "chore/AL-1965-dnd-kit-modernization",
+      "providerTargetValue": null
+    }
+  ],
+  "hostedSmoke": {
+    "runId": 39856981437,
+    "workflowDefinitionHead": "cc568c92c1cd283d82a4ef9c6d4be7dabe4efee4",
+    "checkedOutDeployedAndSmokedHead": "89ff719a73d302b3ba9079838f64fdd634d0002e",
+    "all3Pass": true,
+    "helperVerifiedExactGitSourceAndPreviewIdentity": true,
+    "forceBuildMarker": "sent in creation request, no independent marker-value readback claimed"
+  },
+  "previewEvidenceBoundary": "Trusted workflow definition cc568c92; checkout/deployment/manual smoke source 89ff719a. Helper/provider evidence verifies project/repository/branch/SHA and READY identities. Force-build marker was sent in creation requests; its value was not independently read back. Provider target values are retained as returned.",
+  "previewProviderReadback": {
+    "path": "/tmp/core-modernization-dnd-89ff-final-preview-provider-readback.json",
+    "sha256": "7dd0d4a834c4c2f64909067707e143d431ae71a41f673d2c0438bf90304dcd71"
+  },
+  "mergeReadback": {
+    "developAtReadback": "f59331942c6e84ab66bcdd14c3b120025cceecfd",
+    "mergeIsAncestor": true,
+    "mergedTreeEqualsQualifiedSourceHead": true,
+    "evidence": {
+      "path": "/tmp/core-modernization-dnd-2195-merge-ancestry-readback.json",
+      "sha256": "0abb927170c5db80b459b8d041ac4702002661eac5089ec505a1c410b4e07405"
+    }
+  },
+  "postMergeWorkflows": [
+    {
+      "name": "main",
+      "url": "https://github.com/Asymmetric-al/core/actions/runs/39859758560",
+      "head": "f59331942c6e84ab66bcdd14c3b120025cceecfd",
+      "attempt": 2,
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "format",
+          "conclusion": "success"
+        },
+        {
+          "name": "integrity",
+          "conclusion": "success"
+        },
+        {
+          "name": "typecheck",
+          "conclusion": "success"
+        },
+        {
+          "name": "test-unit",
+          "conclusion": "success"
+        },
+        {
+          "name": "build",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "compilation-plan",
+          "conclusion": "success"
+        },
+        {
+          "name": "lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "shadscan-report / report",
+          "conclusion": "success"
+        },
+        {
+          "name": "ci-gate",
+          "conclusion": "success"
+        }
+      ],
+      "evidence": {
+        "path": "/mnt/c/Users/Conrad/Documents/ChatGPT/Asym/outputs/dnd-2195-postmerge-main-final.json",
+        "sha256": "dbd9ebe9c52493cfd155586fb890ee8d410dd73476f21e40f20459765ffe3648"
+      }
+    },
+    {
+      "name": "integration",
+      "url": "https://github.com/Asymmetric-al/core/actions/runs/39859758348",
+      "head": "f59331942c6e84ab66bcdd14c3b120025cceecfd",
+      "attempt": 2,
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "migrate",
+          "conclusion": "success"
+        },
+        {
+          "name": "instant-nav",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "test-e2e-smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "test-e2e",
+          "conclusion": "success"
+        },
+        {
+          "name": "e2e-smoke-gate",
+          "conclusion": "success"
+        },
+        {
+          "name": "integration-gate",
+          "conclusion": "success"
+        },
+        {
+          "name": "e2e-gate",
+          "conclusion": "skipped"
+        }
+      ],
+      "evidence": {
+        "path": "/mnt/c/Users/Conrad/Documents/ChatGPT/Asym/outputs/dnd-2195-postmerge-integration-final.json",
+        "sha256": "e987c163fe26d8af697efc6bc11b8b952f7101818227d945653701d509544be6"
+      }
+    }
+  ],
+  "bootstrapRetry": {
+    "attempt1": {
+      "path": "/tmp/core-modernization-dnd-postmerge-first-attempt-bootstrap-failures.json",
+      "sha256": "f96174f3d4e0bdc5a46402dccb4a624e00caf4bffcfbc6666431b17f8250f945"
+    },
+    "failure": "Canvas system-dependency bootstrap apt-index download exhausted the existing two 180-second bounds; affected format/typecheck/integrity/migrate checks did not run.",
+    "response": "One failed-jobs-only retry for both exact-head workflows; attempt 2 SUCCESS with identical source and no code/configuration/policy/floor changes. First failures remain unsuccessful history.",
+    "conditionalJobs": "Post-merge build, instant-nav and production e2e-gate were skipped under workflow conditions. Applicable jobs including full test-e2e and smoke passed; skipped jobs are not executed passes."
+  },
+  "providerEvidence": [
+    {
+      "path": "/tmp/core-modernization-dnd-89ff-final-premerge-qualification.json",
+      "sha256": "cf1e3cf168f36d2eab66d52e6f8611b25bf5465b4d11b2e90b728b1b54f46bc9"
+    },
+    {
+      "path": "/tmp/core-modernization-dnd-89ff-all27-current-remote-review-coverage.json",
+      "sha256": "31404860c0666777821e7cf2a85a93a5d2bf68d01af753c854aef4e3af6733cc"
+    },
+    {
+      "path": "/tmp/core-modernization-dnd-89ff-final-preview-provider-readback.json",
+      "sha256": "7dd0d4a834c4c2f64909067707e143d431ae71a41f673d2c0438bf90304dcd71"
+    },
+    {
+      "path": "/tmp/core-modernization-dnd-2195-merge-ancestry-readback.json",
+      "sha256": "0abb927170c5db80b459b8d041ac4702002661eac5089ec505a1c410b4e07405"
+    },
+    {
+      "path": "/tmp/core-modernization-dnd-postmerge-first-attempt-bootstrap-failures.json",
+      "sha256": "f96174f3d4e0bdc5a46402dccb4a624e00caf4bffcfbc6666431b17f8250f945"
+    },
+    {
+      "path": "/mnt/c/Users/Conrad/Documents/ChatGPT/Asym/outputs/dnd-2195-final-merged-conversations.json",
+      "sha256": "f38e89f6ee268a844f39d52206b7e7e6d1260aed2283f673b115b549a9f4f234"
+    }
+  ],
+  "preserved": {
+    "inventory": "136 identities including history; 132 current canonical identities; 300 declarations; 23 manifests. Only eight Dnd item checkpoint metadata records change in follow-up docs; all other items/coverage unchanged.",
+    "cmsLegacyCompatibility": "Four replaced legacy identities keep empty first-party currentUses and unchanged requiredCompatibility owner/constraints/advisory/recheck conditions. Payload beta.4 coherent-owner qualification remains OPEN.",
+    "sourceAndPolicy": "No product source, tests, thresholds, scanner classifications, exceptions or floors changed by this release-closeout documentation. Original Skill50 own 50 bytes preserved."
+  },
+  "remaining": [
+    "Broader UI/telemetry/AI tasks 7.1/7.5 and skill task 10.2 remain OPEN.",
+    "CMS-required legacy Dnd and coherent current Payload cohort requalification remain OPEN.",
+    "pg/@types/pg 8.23.1 upgrade remains OPEN; live DocRaptor fidelity remains UNQUALIFIED.",
+    "Whole-Core security/SBOM, other cohorts and combined release package remain OPEN.",
+    "No production execution."
+  ]
+}

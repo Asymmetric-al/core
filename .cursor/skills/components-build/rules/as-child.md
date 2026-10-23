@@ -1,202 +1,84 @@
 ---
-title: asChild Pattern
+title: Base UI render Composition
 impact: MEDIUM
-impactDescription: Prop merging without wrapper elements
-tags: as-child, slot, radix, composition, prop-merging
+impactDescription: Compose one semantic host with preserved behavior
+tags: as-child, render, base-ui, composition, prop-merging
 ---
 
-## asChild Pattern
+## Base UI render Composition
 
-The `asChild` prop allows components to merge their props, behaviors, and event handlers with a custom child element instead of rendering a default DOM element.
+`rules/as-child.md` remains the compatibility index for older `asChild` references. In Core, compose the existing `@asym/ui` Base UI parts with `render`; do not add Radix Slot or an `asChild` API.
 
-### When to Use
-
-Implement `asChild` when:
-
-- Building trigger components (Dialog.Trigger, Tooltip.Trigger)
-- Creating composable components that wrap other elements
-- Allowing users to customize rendered element while preserving functionality
-- Integrating with existing design system components
-
-### Implementation
+### Compose the Existing Trigger
 
 ```tsx
-import { Slot } from "@radix-ui/react-slot";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@asym/ui/components/shadcn/dialog";
 
-interface TriggerProps extends React.ComponentPropsWithoutRef<"button"> {
-  asChild?: boolean;
+<Dialog>
+  <DialogTrigger render={<Button type="button" variant="outline" />}>
+    Open details
+  </DialogTrigger>
+  <DialogContent>
+    <DialogTitle>Details</DialogTitle>
+    Review the details before continuing.
+  </DialogContent>
+</Dialog>;
+```
+
+`render` merges the trigger behavior onto the custom host. Do not put a second button inside a trigger. Keep the shared primitive responsible for keyboard behavior, disabled state, ARIA and focus restoration.
+
+### Forward Props and Ref
+
+A custom render component must spread the received props and forward its ref to the same DOM node. React 19 components can receive `ref` as a prop:
+
+```tsx
+import * as React from "react";
+import { DialogTrigger } from "@asym/ui/components/shadcn/dialog";
+
+function ActionButton({
+  ref,
+  type = "button",
+  ...props
+}: React.ComponentPropsWithRef<"button">) {
+  return <button ref={ref} type={type} {...props} />;
 }
 
-export const Trigger = React.forwardRef<HTMLButtonElement, TriggerProps>(
-  ({ asChild = false, children, ...props }, ref) => {
-    if (asChild) {
-      return (
-        <Slot ref={ref} {...props}>
-          {children}
-        </Slot>
-      );
-    }
-    return (
-      <button ref={ref} {...props}>
-        {children}
-      </button>
-    );
-  },
-);
+<DialogTrigger render={<ActionButton />}>Open details</DialogTrigger>;
 ```
 
-### How It Works
+Preserve the primitive's event handlers, attributes and ref when adding a wrapper. Prefer its existing `render` API to manual element cloning or custom prop-merging logic.
 
-**Without asChild (nested elements):**
+### Preserve Native Semantics
+
+Use a button host for an action. Only set `nativeButton={false}` when deliberately rendering a non-button host and the specific primitive supports that prop; inspect its current public props first. It is not a general composition flag or a fix for an incorrect host.
+
+Navigation remains a link. Apply the shared `buttonVariants` classes to an anchor or Next.js Link:
 
 ```tsx
-<Dialog.Trigger>
-  <button>Open Dialog</button>
-</Dialog.Trigger>
-// Renders: <button><button>Open Dialog</button></button>
+import Link from "next/link";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
+
+<a href="/settings" className={buttonVariants({ variant: "outline" })}>
+  Settings
+</a>;
+
+<Link href="/projects" className={buttonVariants({ variant: "outline" })}>
+  Projects
+</Link>;
 ```
 
-**With asChild (props merge onto child):**
+Do not render an anchor through `Button`: its button role would override native link semantics. Do not substitute a generic div for a native button merely to obtain the same appearance.
 
-```tsx
-<Dialog.Trigger asChild>
-  <button>Open Dialog</button>
-</Dialog.Trigger>
-// Renders: <button data-state="closed">Open Dialog</button>
-```
+### Check the Composed Host
 
-### Common Use Cases
+- Confirm one interactive DOM host, its accessible name and its intended native role.
+- Verify forwarded props/ref, keyboard activation, focus restoration and disabled behavior.
+- Reuse `packages/ui/components/shadcn/button.ts` and the existing primitive export; do not create an app-local primitive fork.
 
-**Custom Trigger Elements:**
-
-```tsx
-<AlertDialog.Trigger asChild>
-  <a href="/delete">Delete Account</a>
-</AlertDialog.Trigger>
-
-<Tooltip.Trigger asChild>
-  <IconButton icon={<InfoIcon />} />
-</Tooltip.Trigger>
-
-<DropdownMenu.Trigger asChild>
-  <Button variant="outline" size="icon">
-    <MoreVertical className="h-4 w-4" />
-  </Button>
-</DropdownMenu.Trigger>
-```
-
-**Semantic HTML:**
-
-```tsx
-<NavigationMenu.Link asChild>
-  <Link href="/products" className="nav-link">
-    Products
-  </Link>
-</NavigationMenu.Link>
-```
-
-**Component Composition:**
-
-```tsx
-<Dialog.Trigger asChild>
-  <Tooltip.Trigger asChild>
-    <button>Open dialog (with tooltip)</button>
-  </Tooltip.Trigger>
-</Dialog.Trigger>
-```
-
-### Best Practices
-
-**1. Child Must Spread Props:**
-
-**Incorrect:**
-
-```tsx
-// Won't receive trigger behavior
-const BadButton = ({ children }) => <button>{children}</button>;
-```
-
-**Correct:**
-
-```tsx
-// Properly receives all props
-const GoodButton = ({ children, ...props }) => (
-  <button {...props}>{children}</button>
-);
-```
-
-**2. Single Child Element Only:**
-
-**Incorrect:**
-
-```tsx
-// Multiple children
-<Trigger asChild>
-  <button>One</button>
-  <button>Two</button>
-</Trigger>
-```
-
-**Correct:**
-
-```tsx
-// Single child
-<Trigger asChild>
-  <button>Single Button</button>
-</Trigger>
-```
-
-**3. Maintain Accessibility:**
-
-**Correct:**
-
-```tsx
-// Maintains button semantics
-<Dialog.Trigger asChild>
-  <button type="button">Open</button>
-</Dialog.Trigger>
-```
-
-**Note (ensure proper ARIA):**
-
-```tsx
-// Ensure proper ARIA when using non-semantic elements
-<Dialog.Trigger asChild>
-  <div role="button" tabIndex={0} aria-label="Open dialog">
-    Open
-  </div>
-</Dialog.Trigger>
-```
-
-### Common Pitfalls
-
-**Don't manually clone elements:**
-
-**Incorrect:**
-
-```tsx
-// Manual cloning misses edge cases
-if (asChild) {
-  return React.cloneElement(children, { ...props });
-}
-```
-
-**Correct:**
-
-```tsx
-// Use Slot for proper merging
-if (asChild) {
-  return <Slot {...props}>{children}</Slot>;
-}
-```
-
-### Integration
-
-The `asChild` pattern is essential for:
-
-- **Composability** - Enables flexible component composition
-- **Customizable** - Allows users to control rendered elements
-- **Transparent** - No hidden wrapper elements in DOM
-- **Accessible** - Maintains semantic HTML structure
-
-Reference: [@radix-ui/react-slot](https://www.radix-ui.com/primitives/docs/utilities/slot)
+References: [Base UI composition](https://base-ui.com/react/handbook/composition), [shadcn Base UI Button](https://ui.shadcn.com/docs/components/base/button).

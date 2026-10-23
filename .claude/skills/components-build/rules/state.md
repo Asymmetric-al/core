@@ -1,173 +1,82 @@
 ---
 title: State Management Patterns
 impact: HIGH
-impactDescription: Flexible component APIs for all use cases
-tags: state, controlled, uncontrolled, useControllableState, radix
+impactDescription: Reuse the shared primitive's controlled and uncontrolled APIs
+tags: state, controlled, uncontrolled, base-ui
 ---
 
 ## State Management Patterns
 
-Build flexible components that work seamlessly in both controlled and uncontrolled modes.
+Use the existing shared primitive's state API before adding state machinery. Core has no shared controllable-state hook to import. Do not add a Radix helper dependency or implement a second abstraction for these recipes.
 
 ### Uncontrolled State
 
-Component manages its own state internally:
+Let the primitive manage state and supply only its initial default:
 
 ```tsx
-export const Stepper = () => {
-  const [value, setValue] = useState(0);
-  return (
-    <div>
-      <p>{value}</p>
-      <button onClick={() => setValue(value + 1)}>Increment</button>
-    </div>
-  );
-};
+import { Switch } from "@asym/ui/components/shadcn/switch";
+
+<Switch aria-label="Email notifications" defaultChecked={false} />;
 ```
 
-**When to use:** Simple components, default behavior, internal state is sufficient.
+`defaultChecked` supplies the initial value; later changes to the prop do not control the current state. Use this mode when the parent does not need to own the value.
 
 ### Controlled State
 
-Parent component manages the state:
+Keep the confirmed value in the parent and pass the primitive's matching change callback:
 
 ```tsx
-type StepperProps = {
-  value: number;
-  setValue: (value: number) => void;
-};
+import * as React from "react";
+import { Switch } from "@asym/ui/components/shadcn/switch";
 
-export const Stepper = ({ value, setValue }: StepperProps) => (
-  <div>
-    <p>{value}</p>
-    <button onClick={() => setValue(value + 1)}>Increment</button>
-  </div>
-);
-```
-
-**When to use:** State coordination, external data sources, form validation, persistence.
-
-### Merging Both Patterns
-
-Use `@radix-ui/react-use-controllable-state` to support both:
-
-```tsx
-import { useControllableState } from "@radix-ui/react-use-controllable-state";
-
-type StepperProps = {
-  value?: number;
-  defaultValue?: number;
-  onValueChange?: (value: number) => void;
-};
-
-export const Stepper = ({
-  value: controlledValue,
-  defaultValue,
-  onValueChange,
-}: StepperProps) => {
-  const [value, setValue] = useControllableState({
-    prop: controlledValue,
-    defaultProp: defaultValue,
-    onChange: onValueChange,
-  });
-
+function NotificationPreference() {
+  const [enabled, setEnabled] = React.useState(false);
   return (
-    <div>
-      <p>{value}</p>
-      <button onClick={() => setValue(value + 1)}>Increment</button>
-    </div>
+    <Switch
+      aria-label="Email notifications"
+      checked={enabled}
+      onCheckedChange={setEnabled}
+    />
   );
-};
+}
 ```
 
-**Usage:**
+Use controlled state for coordination, validation or persistence. Keep a component in the same mode for its lifetime; pass a defined controlled value from its first render.
+
+### Value-Based Primitives
+
+Use the actual primitive's value type and public exports. The shared Accordion uses an array of expanded item values:
 
 ```tsx
-// Uncontrolled
-<Stepper defaultValue={0} />;
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@asym/ui/components/shadcn/accordion";
 
-// Controlled
-const [count, setCount] = useState(5);
-<Stepper value={count} onValueChange={setCount} />;
+<Accordion defaultValue={["details"]}>
+  <AccordionItem value="details">
+    <AccordionTrigger>Details</AccordionTrigger>
+    <AccordionContent>Project details</AccordionContent>
+  </AccordionItem>
+</Accordion>;
 ```
 
-### Prop Naming Conventions
+For controlled expansion, pass `value={expandedItems}` and `onValueChange={setExpandedItems}` with parent state typed to the shared Accordion's value contract. Do not replace that API with a boolean `open`/`setOpen` pair.
 
-| State Type | Value Prop | Default Prop      | Change Callback    |
-| ---------- | ---------- | ----------------- | ------------------ |
-| Generic    | `value`    | `defaultValue`    | `onValueChange`    |
-| Boolean    | `checked`  | `defaultChecked`  | `onCheckedChange`  |
-| Open/Close | `open`     | `defaultOpen`     | `onOpenChange`     |
-| Selection  | `selected` | `defaultSelected` | `onSelectedChange` |
+### Preserve the Primitive Contract
 
-### Complete Example: Toggle
+| Existing primitive | Controlled prop | Initial default  | Change callback   |
+| ------------------ | --------------- | ---------------- | ----------------- |
+| Switch / Checkbox  | `checked`       | `defaultChecked` | `onCheckedChange` |
+| Accordion / Tabs   | `value`         | `defaultValue`   | `onValueChange`   |
+| Dialog / Popover   | `open`          | `defaultOpen`    | `onOpenChange`    |
 
-```tsx
-import { useControllableState } from "@radix-ui/react-use-controllable-state";
+- Inspect the existing component's exported props; value types and callback details vary by primitive.
+- Forward the existing state props, callback arguments and ref when a wrapper is required.
+- Preserve `false`, `0` and empty values; do not use truthiness to decide whether a prop is controlled.
+- Do not combine controlled and default props to create competing state owners, or mirror a controlled prop into another local state variable.
+- Let the shared primitive own keyboard, ARIA, disabled and focus behavior.
 
-type ToggleProps = {
-  checked?: boolean;
-  defaultChecked?: boolean;
-  onCheckedChange?: (checked: boolean) => void;
-  disabled?: boolean;
-};
-
-export const Toggle = ({
-  checked: controlledChecked,
-  defaultChecked,
-  onCheckedChange,
-  disabled,
-}: ToggleProps) => {
-  const [checked, setChecked] = useControllableState({
-    prop: controlledChecked,
-    defaultProp: defaultChecked ?? false,
-    onChange: onCheckedChange,
-  });
-
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      disabled={disabled}
-      onClick={() => !disabled && setChecked(!checked)}
-    >
-      {checked ? "On" : "Off"}
-    </button>
-  );
-};
-```
-
-### Best Practices
-
-**1. Always Make Props Optional:**
-
-```tsx
-// ✅ Supports both patterns
-type Props = {
-  value?: number;
-  defaultValue?: number;
-  onValueChange?: (value: number) => void;
-};
-```
-
-**2. Provide Sensible Defaults:**
-
-```tsx
-const [value, setValue] = useControllableState({
-  prop: controlledValue,
-  defaultProp: defaultValue ?? 0,
-  onChange: onValueChange,
-});
-```
-
-**3. Handle onChange in Both Modes:**
-
-The `onChange` callback should fire regardless of controlled/uncontrolled mode.
-
-### Key Benefits
-
-1. **Flexibility** - Works in both controlled and uncontrolled modes
-2. **Developer Experience** - Simple API for simple cases, powerful for complex
-3. **Consistency** - Matches patterns used by Radix UI and professional libraries
-4. **Backward Compatibility** - Easy to migrate from uncontrolled to controlled
+References: `packages/ui/components/shadcn/switch.tsx`, `packages/ui/components/shadcn/accordion.tsx`, and [Base UI composition](https://base-ui.com/react/handbook/composition).

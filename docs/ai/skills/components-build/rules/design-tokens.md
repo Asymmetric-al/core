@@ -9,7 +9,16 @@ tags: design-tokens, css-variables, theming, dark-mode, oklch
 
 Use semantic design tokens instead of hardcoded colors. Design tokens separate what something is from how it looks.
 
-### Variable Architecture
+### Core Token Ownership
+
+Core consumes the existing Maia/Zinc tokens from
+`packages/ui/styles/globals.css`. Do not copy the generic root/dark/brand theme
+definitions below into an app or replace the approved shared values. New token
+definitions or palette changes require the existing shared owner and review;
+they are not a component-local workaround. Native host examples illustrate token
+mechanics, while feature UI first reuses the existing shared components.
+
+### Generic Variable Architecture (Background)
 
 ```css
 @import "tailwindcss";
@@ -92,7 +101,8 @@ Use semantic design tokens instead of hardcoded colors. Design tokens separate w
 
 ### Dark Mode
 
-Override tokens in `.dark` class:
+Generic theme-authoring background: tokens can be overridden in `.dark`. Core
+already defines its approved shared light/dark values; consume them unchanged:
 
 ```css
 :root {
@@ -109,7 +119,8 @@ Components automatically adapt because they reference tokens.
 
 ### Color Format: OKLCH
 
-Use `oklch()` for better color manipulation:
+For token-authoring background, `oklch()` supports perceptual color manipulation.
+This does not authorize replacing Core's existing semantic token values:
 
 ```css
 /* ✅ OKLCH - perceptually uniform */
@@ -128,7 +139,10 @@ Use `oklch()` for better color manipulation:
 5. **Test theme switching** - Ensure all components work in light/dark
 6. **Maintain contrast** - Ensure WCAG contrast ratios
 
-### Theme Variants
+### Theme Variants (External Authoring Background)
+
+These generic brand examples are not additional Core themes or approved token
+values. Core continues using the exact shared Maia/Zinc source.
 
 ```css
 :root {

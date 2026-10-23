@@ -48,7 +48,7 @@
 ## 7. UI, editors, telemetry and AI
 
 - [ ] 7.1 Upgrade remaining UI/editor families while preserving exact base-maia/Base UI/tokens/ownership, keyboard/focus and reduced motion.
-- [ ] 7.1a Replace the officially legacy dnd-kit public API with its current coordinated React/DOM/helper family, preserving keyboard/pointer sorting, cancellation and mutation rollback; assess required upstream-internal consumers separately.
+- [x] 7.1a Replace the officially legacy dnd-kit public API with its current coordinated React/DOM/helper family, preserving keyboard/pointer sorting, cancellation and mutation rollback; assess required upstream-internal consumers separately.
 - [ ] 7.2 Upgrade Sentry, HTML parser/sanitizer, Resend and browser Stripe; test runtime contracts.
 - [ ] 7.3 Upgrade Eve/Connect/AI SDK together and enforce tenant/session/policy/budget admission before every provider call including children.
 - [ ] 7.4 Prove stable model-attempt identity and exactly-once settlement through streaming, failures, cancellation, restart, replay and concurrency; keep Eve disabled and Guardian read-only.

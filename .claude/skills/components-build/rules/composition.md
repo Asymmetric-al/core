@@ -1,135 +1,61 @@
 ---
 title: Component Composition
 impact: HIGH
-impactDescription: Foundation of component architecture
-tags: composition, patterns, sub-components, context, root, trigger, content
+impactDescription: Compose existing shared parts without duplicating state or behavior
+tags: composition, patterns, sub-components, base-ui, trigger, content
 ---
 
 ## Component Composition
 
-Composition is the foundation of building modern UI components. Instead of cramming all functionality into a single component with dozens of props, break components down into smaller, focused sub-components that work together.
+Compose the existing Core parts before building a new primitive. Shared Base UI components already own state coordination, keyboard navigation, ARIA and focus behavior; do not recreate them with a parallel Context or an inert `asChild` prop.
 
-**Incorrect (monolithic, hard to customize):**
-
-```tsx
-<Accordion data={data} />
-```
-
-**Correct (composable, each layer customizable):**
+### Compose the Shared Parts
 
 ```tsx
-<Accordion.Root open={open} setOpen={setOpen}>
-  {data.map((item) => (
-    <Accordion.Item key={item.title}>
-      <Accordion.Trigger>{item.title}</Accordion.Trigger>
-      <Accordion.Content>{item.content}</Accordion.Content>
-    </Accordion.Item>
-  ))}
-</Accordion.Root>
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@asym/ui/components/shadcn/accordion";
+
+<Accordion defaultValue={["details"]}>
+  <AccordionItem value="details">
+    <AccordionTrigger>Project details</AccordionTrigger>
+    <AccordionContent>Compose the content for this feature.</AccordionContent>
+  </AccordionItem>
+</Accordion>;
 ```
 
-### Building Composable Components
+Import the existing flat exports shown above. Do not invent an `Accordion.Root` namespace or replace `value`/`defaultValue`/`onValueChange` with a custom `open`/`setOpen` state API.
 
-#### 1. Root Component
-
-The main container that holds sub-components and manages shared state using Context:
+### Compose a Trigger Host
 
 ```tsx
-const AccordionContext = createContext<AccordionContextValue>({
-  open: false,
-  setOpen: () => {},
-});
+import { Button } from "@asym/ui/components/shadcn/button";
+import { DialogTrigger } from "@asym/ui/components/shadcn/dialog";
 
-export const Root = ({
-  children,
-  open,
-  setOpen,
-  ...props
-}: AccordionRootProps) => (
-  <AccordionContext.Provider value={{ open, setOpen }}>
-    <div {...props}>{children}</div>
-  </AccordionContext.Provider>
-);
+<DialogTrigger render={<Button type="button" variant="outline" />}>
+  Open details
+</DialogTrigger>;
 ```
 
-#### 2. Item Component
+Use this trigger inside the existing Dialog root. The `render` host receives the primitive's merged props and ref. Custom hosts must forward both to the same DOM node; do not discard them, manually clone the child or nest interactive elements.
 
-A simple wrapper for each item:
+See [Base UI render composition](as-child.md) for native button versus link semantics, and [state management](state.md) for controlled and uncontrolled use.
 
-```tsx
-export const Item = (props: AccordionItemProps) => <div {...props} />;
-```
+### Keep Ownership Clear
 
-#### 3. Trigger Component
+- **Root** owns the existing primitive's state and coordinates its parts.
+- **Item** groups the primitive's related trigger and content.
+- **Trigger** retains the primitive's interaction and accessible state.
+- **Content** retains its visibility, focus and lifecycle behavior.
+- **Title / Description** provide the accessible name and supporting context.
 
-Handles user interaction:
+Feature-specific wrappers may arrange these parts and forward their existing public props/ref. Extend the shared component through `packages/ui` when new reusable behavior is needed; do not introduce an app-local primitive or state abstraction.
 
-```tsx
-export const Trigger = ({ asChild, ...props }: AccordionTriggerProps) => {
-  const { open, setOpen } = useContext(AccordionContext);
-  return (
-    <button onClick={() => setOpen(!open)} aria-expanded={open} {...props} />
-  );
-};
-```
+### Verify the Result
 
-#### 4. Content Component
+Check the actual exported types and rendered host, then verify keyboard navigation, names, focus and disabled behavior at the composed feature boundary. Keep semantic tokens and exact `base-maia` presentation.
 
-Displays the main content:
-
-```tsx
-export const Content = ({ asChild, ...props }: AccordionContentProps) => {
-  const { open } = useContext(AccordionContext);
-  if (!open) return null;
-  return <div {...props} />;
-};
-```
-
-#### 5. Export Pattern
-
-Export components as a namespace:
-
-```tsx
-export const Accordion = { Root, Item, Trigger, Content };
-
-// Usage
-<Accordion.Root open={open} setOpen={setOpen}>
-  <Accordion.Item>
-    <Accordion.Trigger>Title</Accordion.Trigger>
-    <Accordion.Content>Content</Accordion.Content>
-  </Accordion.Item>
-</Accordion.Root>;
-```
-
-### Naming Conventions
-
-- **Root** - Main container component
-- **Trigger** - Element that initiates an action
-- **Content** - Element containing the main content
-- **Header/Body/Footer** - Structured content areas
-- **Title/Description** - Informational components
-
-### Best Practices
-
-1. **Single Responsibility** - Each sub-component should have one clear purpose
-2. **Context for State** - Use React Context to share state between sub-components
-3. **Extend HTML Attributes** - Always extend native HTML element props
-4. **Consistent Naming** - Follow established conventions
-5. **Namespace Exports** - Export components as a namespace for clean API
-6. **Composition Over Configuration** - Prefer multiple components over many props
-
-### When to Use Composition
-
-**Use composition when:**
-
-- A component has multiple responsibilities
-- Customization requires CSS overrides
-- You need flexible layouts or structures
-- Building a component library
-- Components need to work together but remain independent
-
-**Avoid composition for:**
-
-- Simple, single-purpose components
-- Components that don't need customization
-- Over-engineering simple UI elements
+References: [Base UI composition](https://base-ui.com/react/handbook/composition), `packages/ui/components/shadcn/accordion.tsx`, and `packages/ui/components/shadcn/dialog.tsx`.

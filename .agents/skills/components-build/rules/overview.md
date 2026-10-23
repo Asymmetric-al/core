@@ -7,6 +7,21 @@ tags: overview, introduction, philosophy, goals
 
 ## Components.build Overview
 
+<!-- CORE-COMPONENTS-CN-START -->
+
+**Core shared class helper:** consume the existing helper through the shared UI
+boundary:
+
+```tsx
+import { cn } from "@asym/ui/lib/utils";
+```
+
+Do not create a competing local `cn` implementation or add `clsx`/`tailwind-merge`
+for these recipes. The generic npm dependency examples below are retained
+upstream material and are **non-operative in Core**. Current workspace manifests
+and `packages/ui/lib/utils.ts` own the implementation and dependency choices.
+<!-- CORE-COMPONENTS-CN-END -->
+
 The components.build specification is an open-source standard for building modern, composable, and accessible UI components. It provides high-level guidelines, best practices, and common terminology for designing UI components that integrate smoothly into any codebase.
 
 **What This Specification Is:**
@@ -76,32 +91,22 @@ function Button() {
 **Correct:**
 
 ```tsx
-// Composable, accessible, customizable
-import { cn } from "@/lib/utils";
+// Compose the existing shared component and class helper.
+import type * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { cn } from "@asym/ui/lib/utils";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "outline";
-}
-
-export function Button({
+export function ProjectActions({
   className,
-  variant = "default",
-  children,
   ...props
-}: ButtonProps) {
+}: Omit<React.ComponentPropsWithRef<"div">, "children">) {
   return (
-    <button
-      className={cn(
-        "inline-flex items-center justify-center rounded-md px-4 py-2",
-        "focus-visible:outline-none focus-visible:ring-2",
-        variant === "default" && "bg-primary text-primary-foreground",
-        variant === "outline" && "border border-input bg-background",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </button>
+    <div className={cn("flex gap-2", className)} {...props}>
+      <Button type="button">Open project</Button>
+      <Button type="button" variant="outline">
+        Project settings
+      </Button>
+    </div>
   );
 }
 ```

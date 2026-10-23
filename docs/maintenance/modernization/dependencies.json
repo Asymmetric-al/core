@@ -574,16 +574,20 @@
           "target": "6.3.1"
         }
       ],
-      "state": "first-party-replaced-awaiting-checkpoint",
+      "state": "first-party-replaced-checkpoint-merged",
       "disposition": "replaced-in-first-party",
-      "verification": ["dnd-kit-qualification.json"],
-      "note": "Core first-party consumers now use the supported 0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta.4 owner refresh and final checkpoint qualification remain open.",
+      "verification": [
+        "dnd-kit-qualification.json",
+        "dnd-kit-review-feedback.json",
+        "dnd-kit-release-readback.json"
+      ],
+      "note": "First-party replacement merged through PR #2195 as f59331942c6e84ab66bcdd14c3b120025cceecfd from qualified head 89ff719a. No direct first-party declaration/import remains. CMS-required legacy internals retain their separate owner and OPEN coherent Payload beta.4/release/advisory recheck; this first-party checkpoint does not qualify that compatibility work.",
       "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
         "migrationGuide": "https://dndkit.com/react/guides/migration/",
         "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
-        "candidateStatus": "Installed; all local strict/full/browser gates passed. Current-head CI/review, owner compatibility, hosted previews and merge qualification pending."
+        "candidateStatus": "First-party replacement checkpoint merged: normal pre-push, exact-head CI/review/three hosted previews and post-merge workflows passed. CMS owner compatibility remains separately OPEN."
       },
       "requiredCompatibility": {
         "owner": "Core CMS maintainers / official Payload Next and UI",
@@ -601,7 +605,10 @@
           "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
           "sha256": "8d2438c248e8e32100652d1a20bc21a732e9bbb4a767122b70ff566a6a0613e8"
         }
-      }
+      },
+      "refreshedAt": "2026-10-22T22:15:36.461118+00:00",
+      "qualification": "dnd-kit.md",
+      "mergeEvidence": "docs/maintenance/modernization/dnd-kit-release-readback.json"
     },
     {
       "name": "@dnd-kit/modifiers",
@@ -624,16 +631,20 @@
           "target": "9.0.0"
         }
       ],
-      "state": "first-party-replaced-awaiting-checkpoint",
+      "state": "first-party-replaced-checkpoint-merged",
       "disposition": "replaced-in-first-party",
-      "verification": ["dnd-kit-qualification.json"],
-      "note": "Core first-party consumers now use the supported 0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta.4 owner refresh and final checkpoint qualification remain open.",
+      "verification": [
+        "dnd-kit-qualification.json",
+        "dnd-kit-review-feedback.json",
+        "dnd-kit-release-readback.json"
+      ],
+      "note": "First-party replacement merged through PR #2195 as f59331942c6e84ab66bcdd14c3b120025cceecfd from qualified head 89ff719a. No direct first-party declaration/import remains. CMS-required legacy internals retain their separate owner and OPEN coherent Payload beta.4/release/advisory recheck; this first-party checkpoint does not qualify that compatibility work.",
       "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
         "migrationGuide": "https://dndkit.com/react/guides/migration/",
         "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
-        "candidateStatus": "Installed; all local strict/full/browser gates passed. Current-head CI/review, owner compatibility, hosted previews and merge qualification pending."
+        "candidateStatus": "First-party replacement checkpoint merged: normal pre-push, exact-head CI/review/three hosted previews and post-merge workflows passed. CMS owner compatibility remains separately OPEN."
       },
       "requiredCompatibility": {
         "owner": "Core CMS maintainers / official Payload Next and UI",
@@ -651,7 +662,10 @@
           "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
           "sha256": "8d2438c248e8e32100652d1a20bc21a732e9bbb4a767122b70ff566a6a0613e8"
         }
-      }
+      },
+      "refreshedAt": "2026-10-22T22:15:36.461118+00:00",
+      "qualification": "dnd-kit.md",
+      "mergeEvidence": "docs/maintenance/modernization/dnd-kit-release-readback.json"
     },
     {
       "name": "@dnd-kit/sortable",
@@ -681,16 +695,20 @@
           "target": "10.0.0"
         }
       ],
-      "state": "first-party-replaced-awaiting-checkpoint",
+      "state": "first-party-replaced-checkpoint-merged",
       "disposition": "replaced-in-first-party",
-      "verification": ["dnd-kit-qualification.json"],
-      "note": "Core first-party consumers now use the supported 0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta.4 owner refresh and final checkpoint qualification remain open.",
+      "verification": [
+        "dnd-kit-qualification.json",
+        "dnd-kit-review-feedback.json",
+        "dnd-kit-release-readback.json"
+      ],
+      "note": "First-party replacement merged through PR #2195 as f59331942c6e84ab66bcdd14c3b120025cceecfd from qualified head 89ff719a. No direct first-party declaration/import remains. CMS-required legacy internals retain their separate owner and OPEN coherent Payload beta.4/release/advisory recheck; this first-party checkpoint does not qualify that compatibility work.",
       "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
         "migrationGuide": "https://dndkit.com/react/guides/migration/",
         "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
-        "candidateStatus": "Installed; all local strict/full/browser gates passed. Current-head CI/review, owner compatibility, hosted previews and merge qualification pending."
+        "candidateStatus": "First-party replacement checkpoint merged: normal pre-push, exact-head CI/review/three hosted previews and post-merge workflows passed. CMS owner compatibility remains separately OPEN."
       },
       "requiredCompatibility": {
         "owner": "Core CMS maintainers / official Payload Next and UI",
@@ -708,7 +726,10 @@
           "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
           "sha256": "8d2438c248e8e32100652d1a20bc21a732e9bbb4a767122b70ff566a6a0613e8"
         }
-      }
+      },
+      "refreshedAt": "2026-10-22T22:15:36.461118+00:00",
+      "qualification": "dnd-kit.md",
+      "mergeEvidence": "docs/maintenance/modernization/dnd-kit-release-readback.json"
     },
     {
       "name": "@dnd-kit/utilities",
@@ -738,16 +759,20 @@
           "target": "3.2.2"
         }
       ],
-      "state": "first-party-replaced-awaiting-checkpoint",
+      "state": "first-party-replaced-checkpoint-merged",
       "disposition": "replaced-in-first-party",
-      "verification": ["dnd-kit-qualification.json"],
-      "note": "Core first-party consumers now use the supported 0.5.1 React/DOM API. Four unused admin and three old missionary declarations are removed. Official Payload internals still require legacy versions; coherent beta.4 owner refresh and final checkpoint qualification remain open.",
+      "verification": [
+        "dnd-kit-qualification.json",
+        "dnd-kit-review-feedback.json",
+        "dnd-kit-release-readback.json"
+      ],
+      "note": "First-party replacement merged through PR #2195 as f59331942c6e84ab66bcdd14c3b120025cceecfd from qualified head 89ff719a. No direct first-party declaration/import remains. CMS-required legacy internals retain their separate owner and OPEN coherent Payload beta.4/release/advisory recheck; this first-party checkpoint does not qualify that compatibility work.",
       "currentUses": [],
       "replacementResearch": {
         "officialLegacyNotice": "https://dndkit.com/legacy/introduction/installation/",
         "migrationGuide": "https://dndkit.com/react/guides/migration/",
         "candidateFamily": "@dnd-kit/react / @dnd-kit/dom / @dnd-kit/helpers 0.5.1",
-        "candidateStatus": "Installed; all local strict/full/browser gates passed. Current-head CI/review, owner compatibility, hosted previews and merge qualification pending."
+        "candidateStatus": "First-party replacement checkpoint merged: normal pre-push, exact-head CI/review/three hosted previews and post-merge workflows passed. CMS owner compatibility remains separately OPEN."
       },
       "requiredCompatibility": {
         "owner": "Core CMS maintainers / official Payload Next and UI",
@@ -765,7 +790,10 @@
           "path": "/tmp/core-modernization-dnd-payload-owner-beta4-recheck.json",
           "sha256": "8d2438c248e8e32100652d1a20bc21a732e9bbb4a767122b70ff566a6a0613e8"
         }
-      }
+      },
+      "refreshedAt": "2026-10-22T22:15:36.461118+00:00",
+      "qualification": "dnd-kit.md",
+      "mergeEvidence": "docs/maintenance/modernization/dnd-kit-release-readback.json"
     },
     {
       "name": "@fission-ai/openspec",
@@ -7613,10 +7641,18 @@
           "target": "0.5.1"
         }
       ],
-      "state": "local-functional-candidate",
+      "state": "merged-qualified-checkpoint",
       "disposition": "replacement-for-legacy-dnd-api",
-      "verification": ["dnd-kit-qualification.json"],
-      "note": "Exact coordinated current API pin; final current-head gates and merged checkpoint remain required."
+      "verification": [
+        "dnd-kit-qualification.json",
+        "dnd-kit-review-feedback.json",
+        "dnd-kit-release-readback.json"
+      ],
+      "note": "Exact coordinated 0.5.1 replacement merged through PR #2195 as f59331942c6e84ab66bcdd14c3b120025cceecfd from qualified head 89ff719a. Normal pre-push, exact-head CI/review/three hosted previews and both post-merge workflows passed. Wider UI/security/combined release and CMS legacy compatibility remain OPEN.",
+      "refreshedAt": "2026-10-22T22:15:36.461118+00:00",
+      "qualification": "dnd-kit.md",
+      "mergeEvidence": "docs/maintenance/modernization/dnd-kit-release-readback.json",
+      "selectedTarget": "0.5.1"
     },
     {
       "name": "@dnd-kit/dom",
@@ -7639,10 +7675,18 @@
           "target": "0.5.1"
         }
       ],
-      "state": "local-functional-candidate",
+      "state": "merged-qualified-checkpoint",
       "disposition": "replacement-for-legacy-dnd-api",
-      "verification": ["dnd-kit-qualification.json"],
-      "note": "Exact coordinated current API pin; final current-head gates and merged checkpoint remain required."
+      "verification": [
+        "dnd-kit-qualification.json",
+        "dnd-kit-review-feedback.json",
+        "dnd-kit-release-readback.json"
+      ],
+      "note": "Exact coordinated 0.5.1 replacement merged through PR #2195 as f59331942c6e84ab66bcdd14c3b120025cceecfd from qualified head 89ff719a. Normal pre-push, exact-head CI/review/three hosted previews and both post-merge workflows passed. Wider UI/security/combined release and CMS legacy compatibility remain OPEN.",
+      "refreshedAt": "2026-10-22T22:15:36.461118+00:00",
+      "qualification": "dnd-kit.md",
+      "mergeEvidence": "docs/maintenance/modernization/dnd-kit-release-readback.json",
+      "selectedTarget": "0.5.1"
     },
     {
       "name": "@dnd-kit/helpers",
@@ -7665,10 +7709,18 @@
           "target": "0.5.1"
         }
       ],
-      "state": "local-functional-candidate",
+      "state": "merged-qualified-checkpoint",
       "disposition": "replacement-for-legacy-dnd-api",
-      "verification": ["dnd-kit-qualification.json"],
-      "note": "Exact coordinated current API pin; final current-head gates and merged checkpoint remain required."
+      "verification": [
+        "dnd-kit-qualification.json",
+        "dnd-kit-review-feedback.json",
+        "dnd-kit-release-readback.json"
+      ],
+      "note": "Exact coordinated 0.5.1 replacement merged through PR #2195 as f59331942c6e84ab66bcdd14c3b120025cceecfd from qualified head 89ff719a. Normal pre-push, exact-head CI/review/three hosted previews and both post-merge workflows passed. Wider UI/security/combined release and CMS legacy compatibility remain OPEN.",
+      "refreshedAt": "2026-10-22T22:15:36.461118+00:00",
+      "qualification": "dnd-kit.md",
+      "mergeEvidence": "docs/maintenance/modernization/dnd-kit-release-readback.json",
+      "selectedTarget": "0.5.1"
     },
     {
       "name": "@dnd-kit/abstract",
@@ -7691,10 +7743,18 @@
           "target": "0.5.1"
         }
       ],
-      "state": "local-functional-candidate",
+      "state": "merged-qualified-checkpoint",
       "disposition": "replacement-for-legacy-dnd-api",
-      "verification": ["dnd-kit-qualification.json"],
-      "note": "Exact coordinated current API pin; final current-head gates and merged checkpoint remain required."
+      "verification": [
+        "dnd-kit-qualification.json",
+        "dnd-kit-review-feedback.json",
+        "dnd-kit-release-readback.json"
+      ],
+      "note": "Exact coordinated 0.5.1 replacement merged through PR #2195 as f59331942c6e84ab66bcdd14c3b120025cceecfd from qualified head 89ff719a. Normal pre-push, exact-head CI/review/three hosted previews and both post-merge workflows passed. Wider UI/security/combined release and CMS legacy compatibility remain OPEN.",
+      "refreshedAt": "2026-10-22T22:15:36.461118+00:00",
+      "qualification": "dnd-kit.md",
+      "mergeEvidence": "docs/maintenance/modernization/dnd-kit-release-readback.json",
+      "selectedTarget": "0.5.1"
     },
     {
       "name": "pg",

@@ -32,17 +32,17 @@ Five **state** roles:
 
 - `needs-triage`: maintainer needs to evaluate
 - `needs-info`: waiting on reporter for more information
-- `ready-for-agent`: fully specified, ready for an AFK agent
+- `ready-for-agent`: fully specified, ready for an AFK agent (labelled `Ready`)
 - `ready-for-human`: needs human implementation
 - `wontfix`: will not be actioned
 
-For a PR, the same states read against the attached code: `ready-for-agent` means a brief is attached and an agent should take the next step on the diff; `ready-for-human` means it's ready for a human to merge.
+For a PR, the same states read against the attached code: `ready-for-agent` (`Ready`) means a brief is attached and an agent should take the next step on the diff; `ready-for-human` means it's ready for a human to merge.
 
-Every triaged issue should carry exactly one category role and one state role. If state roles conflict, flag it and ask the maintainer before doing anything else.
+Every triaged issue should carry exactly one category role and be in exactly one state role. A state role is shown by its tracker action, never by a retired `status:*` label (see `docs/agents/triage-labels.md`): no readiness label (`needs-triage`), a triage-notes comment (`needs-info`), the `Ready` label (`ready-for-agent`), a human assignee (`ready-for-human`), or closing the issue with a comment (`wontfix`). If state roles conflict, flag it and ask the maintainer before doing anything else.
 
 These are canonical role names. The actual label strings used in the issue tracker may differ. The mapping should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
 
-State transitions: an unlabeled issue normally goes to `needs-triage` first; from there it moves to `needs-info`, `ready-for-agent`, `ready-for-human`, or `wontfix`. `needs-info` returns to `needs-triage` once the reporter replies. The maintainer can override at any time; flag transitions that look unusual and ask before proceeding.
+State transitions: an untriaged issue normally goes to `needs-triage` first; from there it moves to `needs-info`, `ready-for-agent` (`Ready`), `ready-for-human`, or `wontfix`. `needs-info` returns to `needs-triage` once the reporter replies. The maintainer can override at any time; flag transitions that look unusual and ask before proceeding.
 
 ## Invocation
 
@@ -50,16 +50,16 @@ The maintainer invokes `/triage` and describes what they want in natural languag
 
 - "Show me anything that needs my attention"
 - "Let's look at #42" (issue or PR)
-- "Move #42 to ready-for-agent"
+- "Move #42 to ready-for-agent" (apply `Ready`)
 - "What's ready for agents to pick up?"
 
 ## Show what needs attention
 
 Query the issue tracker and present three buckets, oldest first:
 
-1. **Unlabeled**: never triaged.
-2. **`needs-triage`**: evaluation in progress.
-3. **`needs-info` with reporter activity since the last triage notes**: needs re-evaluation.
+1. **Untriaged**: no `Ready` label, no triage notes and no human assignee.
+2. **`needs-triage`**: evaluation in progress; no readiness label.
+3. **`needs-info` with reporter activity since the last triage notes**: needs re-evaluation. A `needs-info` issue is recognized by its triage-notes comment.
 
 When PRs are in scope, include external PRs in these buckets and tag each line `[PR]` or `[issue]`. Discovery surfaces only _external_ PRs (the tracker config defines who counts as external), so a collaborator's in-flight PR is not triage work. This filter is discovery-only; an explicitly named PR is always triaged regardless of author.
 
@@ -76,18 +76,18 @@ Show counts and a one-line summary per item. Let the maintainer pick.
 4. **Grill (if needed).** If the request needs fleshing out, call the Skill tool twice, for "grilling" and "domain-modeling", and grill it into shape a round of questions at a time, sharpening domain terms and updating `CONTEXT.md`/ADRs inline as decisions land.
 
 5. **Apply the outcome:**
-   - `ready-for-agent`: post an agent brief comment ([AGENT-BRIEF.md](AGENT-BRIEF.md)).
-   - `ready-for-human`: same structure as an agent brief, but note why it can't be delegated (judgment calls, external access, design decisions, manual testing).
-   - `needs-info`: post triage notes (template below).
-   - For `wontfix`, close the issue, with the comment depending on _why_:
+   - `ready-for-agent`: apply `Ready` and post an agent brief comment ([AGENT-BRIEF.md](AGENT-BRIEF.md)).
+   - `ready-for-human`: do not apply `Ready` and remove it if present; assign a human owner and post the same structure as an agent brief, but note why it can't be delegated (judgment calls, external access, design decisions, manual testing).
+   - `needs-info`: post triage notes (template below); do not apply `Ready` and remove it if present.
+   - For `wontfix`, close the issue with a comment and no label, the comment depending on _why_:
      - **Already implemented**: the change already exists in the codebase. Point to where it lives; do **not** write to `.out-of-scope/` (that KB is for _rejected_ requests, not built ones).
      - **Rejected (bug)**: give a polite explanation, then close.
      - **Rejected (enhancement)**: write to `.out-of-scope/`, link to it from a comment, then close ([OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)).
-   - `needs-triage`: apply the role. Optional comment if there's partial progress.
+   - `needs-triage`: apply no readiness label and remove `Ready` if present. Optional comment if there's partial progress.
 
 ## Quick state override
 
-If the maintainer says "move #42 to ready-for-agent", trust them and apply the role directly. Confirm what you're about to do (role changes, comment, close), then act. Skip grilling. If moving to `ready-for-agent` without a grilling session, ask whether they want to write an agent brief.
+If the maintainer says "move #42 to ready-for-agent", apply `Ready`; trust them and apply the role directly. When the override moves an issue to any other state, remove `Ready` if present. Confirm what you're about to do (role changes, comment, close), then act. Skip grilling. If moving to `ready-for-agent` without a grilling session, ask whether they want to write an agent brief.
 
 ## Needs-info template
 

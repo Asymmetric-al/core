@@ -1,6 +1,27 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-10-22
+Last updated: 2026-10-23
+
+## Component guidance compatibility review - 2026-10-23 (AL-1965)
+
+Reviewed the complete 22-file `components-build` payload against Core's installed
+shared UI and compiler contracts. Corrected active flat exports, controlled-state
+ownership, native element/ref types, Base UI state attributes, semantic tokens,
+reduced motion, disabled submission, and registry ownership in the canonical
+rules and compiled guidance. Generic authoring examples remain explicitly scoped;
+this local review does not establish a new upstream revision or resolve the
+existing permission gap recorded in `references/upstream.md`.
+
+The owned refresh adapter restores the reviewed guidance across 20 active files,
+rejects drift before publication, and parses static helper imports and exports
+with the pinned TypeScript 6 compiler API. Its fixtures retain the original raw
+capture and identify the additional full previous-Core capture as local evidence.
+All three mirrors and the selected installed payload hashes were regenerated.
+Local qualification passed 124 refresh/parity tests across four files and checked
+15 complete examples with the product TypeScript 7 compiler; seven negative
+controls reject unsupported public props and refs. Partial illustrative snippets
+are outside that compiler proof. These checks do not qualify browser behavior or
+live services.
 
 <!-- AL-2186-AUDIT-START -->
 
@@ -673,3 +694,7 @@ then rerun `bun run skills:sync`.
 ## 2026-10-22 — Payload public-v4 adapters
 
 The canonical Payload application and CMS-import skills now use `payload` and `cms-migration`, matching their installed identities. This supersedes the historical `payloadcms-payload` / `payloadcms-cms-migration` aliases recorded above. Core's OpenSpec, backend, Supabase, data-access, and design-system overlays remain authoritative. The outdated generic v3 manuals are removed from active routing and mirrors; versioned public-v4 guidance and installed declarations replace them. Reviewed upstream commit, removed-file hashes, and migration provenance are recorded in [payload-skill-provenance.json](../maintenance/modernization/payload-skill-provenance.json).
+
+## 2026-10-22 — Canonical `Ready`/`factory:*` labels and Samson as merger (#2154)
+
+Core-local edits to `samson-factory`, `setup-matt-pocock-skills`, `to-spec`, `to-tickets`, `triage` and `wayfinder` adopt the live label model: `Ready` marks a fully specified issue, only the factory applies `factory:*` labels to in-flight work, and the retired `status:*` labels are no longer applied. Samson, acting under Blake's authorization, is named as the protected expected-head merger. For those six records in [skill-source-audit.json](skill-source-audit.json), only `treeHash`, `entrypointHash`, `samson-factory`'s `reviewEvidence[0].entrypointSha256` and the edited files' `adaptedFileHashes` were recomputed from the final installed payload; raw upstream, lock and source-file hashes, statuses and review dates are unchanged. The `to-spec` record's `immutable-upstream-entrypoint` evidence still names the upstream raw entrypoint, which now differs from the installed entrypoint; that record needs a source review rather than a relabel.
