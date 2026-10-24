@@ -7,9 +7,11 @@ import {
 } from "../../../../packages/api/src/stripe/event-store";
 
 describe("Stripe raw event store helpers", () => {
-  it("hashes raw webhook payloads without storing signature values", () => {
+  it("sha256Hex returns the standard SHA-256 hex digest", () => {
     expect(sha256Hex('{"id":"evt_1"}')).toMatch(/^[a-f0-9]{64}$/);
-    expect(sha256Hex('{"id":"evt_1"}')).toBe(sha256Hex('{"id":"evt_1"}'));
+    expect(sha256Hex('{"id":"evt_1"}')).toBe(
+      "40993c639ffb5f13a0a2ef5c93c965f10b405f2b87a379272381da2dbc158dfa",
+    );
   });
 
   it("resolves tenant and donation references from payment intent metadata", async () => {
