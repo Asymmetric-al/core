@@ -91,19 +91,20 @@ for `AuthenticatedContext`, other memberships or a profile role, so hats never
 union. An assignment maps to its subject by Record lookup, never by comparing
 role names.
 
-It validates everything before unioning, then returns the sorted,
-de-duplicated, frozen union of the sources' default bundles. On bad input it
-throws `CapabilityResolutionError`, whose message and only enumerable field is
-the code:
+It reads the context and each source's fields once into plain copies,
+validates everything before unioning, then returns the sorted, de-duplicated,
+frozen union of the sources' default bundles. On bad input it throws
+`CapabilityResolutionError`. Its message is the code, and its only own
+enumerable fields are `code` and `name` (the constant class name):
 
-| Code                       | When                                                                     |
-| -------------------------- | ------------------------------------------------------------------------ |
-| `tenant_overrides_dormant` | `tenantOverrides` is anything but `undefined`                            |
-| `missing_context`          | no context, empty tenant id, non-array sources or an unknown source kind |
-| `foreign_tenant`           | a source's tenant differs from the context's (checked before revocation) |
-| `inactive_source`          | an assignment or named grant is not active                               |
-| `multiple_assignments`     | more than one assignment source                                          |
-| `unknown_subject`          | an unknown role, subrole or named subject                                |
+| Code                       | When                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------ |
+| `tenant_overrides_dormant` | `tenantOverrides` is anything but `undefined`                                        |
+| `missing_context`          | no context, empty tenant id, non-array sources or an unknown source kind             |
+| `foreign_tenant`           | a source's tenant differs from the context's (checked before revocation)             |
+| `inactive_source`          | an assignment or named grant is not active                                           |
+| `multiple_assignments`     | more than one assignment source                                                      |
+| `unknown_subject`          | an unknown role, subrole or named subject, or a subrole that is not null or a string |
 
 ## Dormant overrides
 
