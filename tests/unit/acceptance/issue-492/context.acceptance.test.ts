@@ -84,6 +84,14 @@ const BAD: Record<string, Record<string, unknown>> = {
     "unknown role": H.ctx(A("admin", null)),
     "unknown subrole": H.ctx(A("staff", "ceo-x9")),
     "unknown named subject": H.ctx(N("super_admin")),
+    // Pin (review F1, 6389255491): a non-string staffRole fails closed.
+    "array staffRole": H.ctx(A("staff", null, { staffRole: ["finance"] })),
+    "boxed staffRole": H.ctx(
+      A("staff", null, { staffRole: Object("finance") }),
+    ),
+    "symbol staffRole": H.ctx(
+      A("staff", null, { staffRole: Symbol("finance") }),
+    ),
   },
   missing_context: {
     "empty tenant id": { tenantId: "", sources: [fin] },
