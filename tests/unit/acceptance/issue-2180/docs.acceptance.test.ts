@@ -145,6 +145,11 @@ const CI_BASES = [
     bytes: 35265,
     sha256: "b546066ff785ea4243ee657cc8fb403a2b28124eaf2c2982bbeb19a87efa6d21",
   },
+  {
+    ref: "4b131585",
+    bytes: 39584,
+    sha256: "f4ceeac06f972bd83119bd92624b5ad3481f9db06de2853d5d20e1fdf152406f",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {

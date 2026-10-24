@@ -185,6 +185,7 @@ describe("#2153 criterion 10: nothing else in ci.yml changes", () => {
   it("ci.yml minus the acceptance-tests job and ci-gate needs/CI_RESULTS matches 4e31ff33", () => {
     const d = doc() as W.WorkflowDocument & { jobs: W.WorkflowJobs };
     delete d.jobs[ID];
+    delete d.jobs["ci-gate-comment"];
     delete d.jobs["ci-gate"]!.needs;
     const steps = W.allSteps(d.jobs["ci-gate"]!);
     const step = steps.find((s) => s.name === RESULTS_STEP);
