@@ -44,6 +44,24 @@ function errorOf(run: () => unknown) {
 
 const codeOf = (run: () => unknown) => errorOf(run).code;
 
+/** Counts property reads; keys in `later` return a different value after the first read. */
+function counted<T extends object>(
+  target: T,
+  later: Record<string, unknown> = {},
+) {
+  const reads = new Map<PropertyKey, number>();
+  const proxy = new Proxy(target, {
+    get(object, key, receiver) {
+      const count = (reads.get(key) ?? 0) + 1;
+      reads.set(key, count);
+      if (count > 1 && typeof key === "string" && key in later)
+        return later[key];
+      return Reflect.get(object, key, receiver);
+    },
+  });
+  return { proxy, reads };
+}
+
 describe("resolveEffectiveCapabilities", () => {
   it("unions an assignment with named grants without duplicates", () => {
     const resolved = resolveUntyped(assignment(), named());
@@ -121,6 +139,28 @@ describe("resolveEffectiveCapabilities", () => {
     );
     expect(codeOf(() => resolveUntyped(foreign, revoked))).toBe(
       "foreign_tenant",
+    );
+  });
+
+  // Review r1 F3: each field is read once, so accessors cannot change it between checks.
+  it("reads the context and every source field at most once", () => {
+    const sources = [counted(assignment()), counted(named())];
+    const context = counted({
+      tenantId: TENANT,
+      sources: sources.map(({ proxy }) => proxy),
+    });
+    const resolved = Reflect.apply(resolveEffectiveCapabilities, undefined, [
+      context.proxy,
+    ]);
+    expect(resolved).toEqual(resolveUntyped(assignment(), named()));
+    for (const { reads } of [context, ...sources])
+      expect(Math.max(...reads.values())).toBe(1);
+  });
+
+  it("uses the first read of a source kind that changes afterwards", () => {
+    const flipping = counted(named(), { kind: "assignment" });
+    expect(resolveUntyped(assignment(), flipping.proxy)).toEqual(
+      resolveUntyped(assignment(), named()),
     );
   });
 

@@ -57,10 +57,21 @@ const NAMED_SUBJECTS: Readonly<Record<NamedGrantSubject, GrantSubjectKey>> = {
   platform_admin: "platform_admin",
 };
 
-const SOURCE_KINDS: Readonly<Record<GrantSource["kind"], true>> = {
-  assignment: true,
-  named: true,
-};
+/** A source's fields, each read exactly once into a plain object. */
+type SourceSnapshot =
+  | {
+      readonly kind: "assignment";
+      readonly tenantId: unknown;
+      readonly active: unknown;
+      readonly role: unknown;
+      readonly staffRole: unknown;
+    }
+  | {
+      readonly kind: "named";
+      readonly tenantId: unknown;
+      readonly active: unknown;
+      readonly subject: unknown;
+    };
 
 function fail(code: CapabilityResolutionErrorCode): never {
   throw new CapabilityResolutionError(code);
@@ -77,37 +88,51 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function isGrantContext(context: unknown): context is SelectedGrantContext {
-  return (
-    isRecord(context) &&
-    typeof context.tenantId === "string" &&
-    context.tenantId !== "" &&
-    Array.isArray(context.sources) &&
-    context.sources.every(
-      (source) => isRecord(source) && lookup(SOURCE_KINDS, source.kind),
-    )
-  );
+function snapshotSource(source: unknown): SourceSnapshot {
+  if (!isRecord(source)) fail("missing_context");
+  const { kind, tenantId } = source;
+  if (kind === "assignment") {
+    const { role, staffRole, isActive: active } = source;
+    return { kind, tenantId, active, role, staffRole };
+  }
+  if (kind !== "named") fail("missing_context");
+  const { subject, active } = source;
+  return { kind, tenantId, active, subject };
 }
 
-function assignmentBundles({ role, staffRole }: AssignmentGrantSource) {
+/**
+ * Reads the context and each source once, so accessors cannot change a value
+ * between validation and the union. Malformed input is `missing_context`.
+ */
+function snapshotContext(context: unknown) {
+  if (!isRecord(context)) fail("missing_context");
+  const { tenantId, sources } = context;
+  if (typeof tenantId !== "string" || tenantId === "") fail("missing_context");
+  if (!Array.isArray(sources)) fail("missing_context");
+  const snapshots: SourceSnapshot[] = [];
+  const { length } = sources;
+  for (let index = 0; index < length; index += 1)
+    snapshots.push(snapshotSource(sources[index]));
+  return { tenantId, sources: snapshots };
+}
+
+type AssignmentSnapshot = Extract<SourceSnapshot, { kind: "assignment" }>;
+
+function assignmentBundles({ role, staffRole }: AssignmentSnapshot) {
   // A subrole is null or a primitive string; anything else is never coerced.
-  const subrole: unknown = staffRole;
-  if (subrole !== null && typeof subrole !== "string") return undefined;
+  if (staffRole !== null && typeof staffRole !== "string") return undefined;
   const unspecialized = lookup(UNSPECIALIZED_ASSIGNMENT_BUNDLES, role);
   if (unspecialized === undefined || staffRole === null) return unspecialized;
   return lookup(ROLE_DEFAULT_BUNDLES, `${role}:${staffRole}`);
 }
 
-function bundlesFor(source: GrantSource): readonly BundleKey[] {
+function bundlesFor(source: SourceSnapshot): readonly BundleKey[] {
   const bundles =
     source.kind === "named"
       ? lookup(ROLE_DEFAULT_BUNDLES, lookup(NAMED_SUBJECTS, source.subject))
       : assignmentBundles(source);
   return bundles ?? fail("unknown_subject");
 }
-
-const isActive = (source: GrantSource) =>
-  (source.kind === "assignment" ? source.isActive : source.active) === true;
 
 /**
  * Union of the default bundles of every source in one selected context.
@@ -120,11 +145,11 @@ export function resolveEffectiveCapabilities(
   tenantOverrides?: DormantTenantOverrides,
 ): readonly Capability[] {
   if (tenantOverrides !== undefined) fail("tenant_overrides_dormant");
-  if (!isGrantContext(context)) fail("missing_context");
-  const { tenantId, sources } = context;
+  const { tenantId, sources } = snapshotContext(context);
   if (sources.some((source) => source.tenantId !== tenantId))
     fail("foreign_tenant");
-  if (!sources.every(isActive)) fail("inactive_source");
+  if (!sources.every((source) => source.active === true))
+    fail("inactive_source");
   if (sources.filter((source) => source.kind === "assignment").length > 1)
     fail("multiple_assignments");
 
