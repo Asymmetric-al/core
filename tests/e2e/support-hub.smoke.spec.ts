@@ -99,8 +99,11 @@ test.describe("Support Hub smoke", () => {
     await page.goto(adminPath("/support?status=open"));
     await page.waitForLoadState("domcontentloaded");
     await expect(page.locator("#__next_error__")).toHaveCount(0);
+    // The trigger also holds the aria-hidden chevron; assert the value slot.
     await expect(
-      page.getByRole("combobox", { name: "Status filter" }),
+      page
+        .getByRole("combobox", { name: "Status filter" })
+        .locator('[data-slot="select-value"]'),
     ).toHaveText("Open");
   });
 
