@@ -93,6 +93,10 @@ jobs:
         env:
           DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
         run: bun x vitest run tests/unit/acceptance/issue-2067/reader-role.integration.acceptance.test.ts
+      - name: Verify tenant isolation (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run realstack.acceptance
 
   smoke:
     needs: migrate

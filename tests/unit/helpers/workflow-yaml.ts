@@ -336,6 +336,7 @@ export const MODELLED_KEYS_BY_JOB: Record<
         "env",
         "run",
       ],
+      "name:Verify tenant isolation (real stack)": ["name", "env", "run"],
     },
   },
   smoke: {
@@ -394,9 +395,10 @@ export const MODELLED_KEYS_BY_JOB: Record<
 
 /**
  * Steps pinned beyond their keys: exact position in the job, exact `run:` body
- * (trimmed) and exact step `env` values. The migrate "Verify document-cutover
- * reader role (real stack)" step (from develop #2169) is the only one; its
- * DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL must be exactly `${{ env.DATABASE_URL }}`.
+ * (trimmed) and exact step `env` values. Two migrate steps: "Verify
+ * document-cutover reader role (real stack)" (from develop #2169) and the last
+ * step, "Verify tenant isolation (real stack)" (#2250); each one's admin URL
+ * key must be exactly `${{ env.DATABASE_URL }}`.
  */
 export const PINNED_STEP_BODIES: Record<
   string,
@@ -412,6 +414,11 @@ export const PINNED_STEP_BODIES: Record<
       env: {
         DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}",
       },
+    },
+    "name:Verify tenant isolation (real stack)": {
+      index: 15,
+      run: "bun x vitest run realstack.acceptance",
+      env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
     },
   },
 };
@@ -667,6 +674,9 @@ export const MODELLED_ENV_KEYS_BY_JOB: Record<
     steps: {
       "name:Verify document-cutover reader role (real stack)": [
         "DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL",
+      ],
+      "name:Verify tenant isolation (real stack)": [
+        "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
       ],
     },
   },
