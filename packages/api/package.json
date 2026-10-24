@@ -28,6 +28,7 @@
     "./donate/guest/donor-merge": "./src/donate/guest/donor-merge.ts",
     "./donate/outbox": "./src/donate/outbox.ts",
     "./donations": "./src/donations/index.ts",
+    "./donations/select": "./src/donations/select.ts",
     "./donor-portal": "./src/donor-portal/index.ts",
     "./donor-portal/billing": "./src/donor-portal/billing.ts",
     "./donor-portal/receipts": "./src/donor-portal/receipts.ts",
