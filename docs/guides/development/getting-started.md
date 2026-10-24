@@ -74,7 +74,7 @@ This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `
 | `DEMO_DONOR_EMAIL`                                | Optional                                       | Demo donor email                            | empty                                                     | Demo donor login disabled.                                             |
 | `DEMO_PASSWORD`                                   | Optional                                       | Demo account password (shared)              | empty                                                     | Demo login disabled.                                                   |
 | `PLAYWRIGHT_BASE_URL`                             | Optional                                       | Base URL for Playwright                     | `http://127.0.0.1:3005`                                   | Uses default if unset.                                                 |
-| `VERIFY_E2E_PROJECTS`                             | Optional                                       | Run all Playwright projects                 | `all`                                                     | Only Chromium project runs.                                            |
+| `VERIFY_E2E_PROJECTS`                             | Optional                                       | Run all Playwright projects                 | `all`                                                     | Runs `chromium`, `mobile-chrome`, `chromium-donor`, `chromium-admin`.  |
 
 ## Troubleshooting
 
