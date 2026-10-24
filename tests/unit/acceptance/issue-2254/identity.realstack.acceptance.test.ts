@@ -318,6 +318,7 @@ describe.skipIf(!local)(
     );
     it("criteria 10 + 11: without duplicates it applies; RLS, triggers and tables unchanged, only the two columns added", () => {
       const url = prior();
+      q(CLEAN, url); // drop the duplicate fixtures the Q10 cases left behind
       const before = snapshot(url);
       const r = apply(url);
       expect(r.status, r.stderr).toBe(0);
