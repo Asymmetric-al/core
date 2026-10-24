@@ -1,7 +1,18 @@
 /** #492 done criteria 4, 5: parity with the incumbent resolvers (spec r1). Owned by Acceptance. */
 import { describe, expect, it } from "vitest";
 
-import { CONTRIB, STAFF, SUBROLES, T, load, resolveFor } from "./harness";
+import {
+  BUNDLES,
+  CONTRIB,
+  STAFF,
+  SUBROLES,
+  T,
+  assignment,
+  ctx,
+  load,
+  resolveFor,
+  sorted,
+} from "./harness";
 import { resolveContributionCapabilities } from "../../../../packages/api/src/admin/contribution-operations/permissions";
 import { STAFF_SUBROLE_CAPABILITIES } from "../../../../packages/auth/permissions";
 
@@ -42,6 +53,16 @@ describe("#492 criterion 4: contribution parity for single-hat fixtures", () => 
   it.each(FIXTURES)("criterion 4: %s matches %s", async (_name, a, subject) => {
     const mine = (await resolveFor(subject)).filter((c) => CONTRIB.includes(c));
     expect(new Set(mine)).toEqual(new Set(resolveContributionCapabilities(a)));
+  });
+
+  it("criterion 4 pin (Samson, 6388725367): staff with no subrole resolves to exactly donor_care, as today", async () => {
+    const { resolveEffectiveCapabilities: r } = await load(
+      "effective-capabilities",
+    );
+    const out = r(ctx(assignment("staff", null)));
+    expect(out).toEqual(sorted(BUNDLES.donor_care!));
+    const today = resolveContributionCapabilities(auth("staff", m("staff")));
+    expect(new Set(out)).toEqual(new Set(today));
   });
 });
 

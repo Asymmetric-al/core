@@ -69,6 +69,11 @@ const BAD: Record<string, Record<string, unknown>> = {
     "foreign assignment": H.ctx(A("staff", "finance", F)),
     "foreign named grant": H.ctx(N("platform_admin", F)),
     "valid named + foreign": H.ctx(N("tenant_admin"), A("donor", null, F)),
+    // Pin (Samson, 6388725367): foreign wins over revoked.
+    "foreign + revoked assignment": H.ctx(A("staff", "hr", { ...F, ...off })),
+    "foreign + revoked named grant": H.ctx(
+      N("tenant_admin", { ...F, ...gone }),
+    ),
   },
   inactive_source: {
     "revoked assignment": H.ctx(A("staff", "hr", off)),
@@ -84,6 +89,10 @@ const BAD: Record<string, Record<string, unknown>> = {
     "empty tenant id": { tenantId: "", sources: [fin] },
     "missing tenant id": { sources: [fin] },
     "missing context": undefined,
+    // Pin (Samson, 6388725367): malformed input gets the one validation code.
+    "null context": null,
+    "non-array sources": { tenantId: H.T, sources: "x" },
+    "unknown source kind": H.ctx({ ...fin, kind: "hat" }),
   },
 };
 const CASES = Object.entries(BAD).flatMap(([code, cases]) =>
@@ -93,15 +102,6 @@ const CASES = Object.entries(BAD).flatMap(([code, cases]) =>
 describe("#492 criterion 7: forged, foreign or revoked input throws, no partial result", () => {
   it.each(CASES)("criterion 7: %s", async (_label, c, code) => {
     expect((await H.thrown(c)).code).toBe(code);
-  });
-
-  it("criterion 7: malformed shapes (null context, non-array sources, unknown kind) throw a CapabilityResolutionError", async () => {
-    for (const bad of [
-      null,
-      { tenantId: H.T, sources: "x" },
-      H.ctx({ ...financeHat, kind: "hat" }),
-    ])
-      expect(H.CODES).toContain((await H.thrown(bad)).code);
   });
 });
 

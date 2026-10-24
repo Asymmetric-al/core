@@ -146,11 +146,12 @@ describe("#492 criterion 12: capabilityRegistryRows()", () => {
     const pairs = first.roleGrants.map((g: Record<string, string>) => {
       expect(H.sorted(Object.keys(g))).toEqual(["capability", "subject"]);
       expect(keys.has(g.capability), g.capability).toBe(true);
-      return `${g.subject} ${g.capability}`;
+      return g;
     });
-    const want = H.SUBJECTS.flatMap((s) =>
-      H.expected(s).map((c) => `${s} ${c}`),
-    ).sort();
+    // Pin (Samson, 6388725367): sorted by subject, then capability.
+    const want = H.sorted(H.SUBJECTS).flatMap((subject) =>
+      H.expected(subject).map((capability) => ({ subject, capability })),
+    );
     expect(pairs, "unique, sorted by subject then capability").toEqual(want);
     expect(capabilityRegistryRows()).toEqual(first);
   });
