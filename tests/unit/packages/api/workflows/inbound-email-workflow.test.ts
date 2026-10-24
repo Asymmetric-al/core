@@ -400,12 +400,19 @@ describe("staff inbound retry dispatch (#294)", () => {
     acquireResult: { acquired: boolean; claim_id?: string },
   ) {
     const base = createInboundClientMock(row);
-    (base.rpc as ReturnType<typeof vi.fn>).mockImplementation((fn: string) => {
-      if (fn === "acquire_workflow_work_claim") {
-        return Promise.resolve({ data: acquireResult, error: null });
-      }
-      return Promise.resolve({ data: true, error: null });
-    });
+    // Guarded RPCs echo the tenant they ran for (#2250).
+    (base.rpc as ReturnType<typeof vi.fn>).mockImplementation(
+      (fn: string, args: { p_tenant_id: string }) => {
+        const echo = { tenant_id: args.p_tenant_id };
+        return Promise.resolve({
+          data:
+            fn === "acquire_workflow_work_claim"
+              ? { ...acquireResult, ...echo }
+              : { released: true, ...echo },
+          error: null,
+        });
+      },
+    );
     return base;
   }
 
@@ -447,7 +454,7 @@ describe("staff inbound retry dispatch (#294)", () => {
     );
     expect(mock.rpc).toHaveBeenCalledWith(
       "release_workflow_work_claim",
-      expect.objectContaining({ p_claim_id: CLAIM_ID }),
+      expect.objectContaining({ p_tenant_id: TENANT_ID, p_claim_id: CLAIM_ID }),
     );
 
     const dispatchInput = requestDispatch.mock.calls[0]?.[1] as {
@@ -488,7 +495,7 @@ describe("staff inbound retry dispatch (#294)", () => {
     expect(statusWrites).toHaveLength(0);
     expect(mock.rpc).toHaveBeenCalledWith(
       "release_workflow_work_claim",
-      expect.objectContaining({ p_claim_id: CLAIM_ID }),
+      expect.objectContaining({ p_tenant_id: TENANT_ID, p_claim_id: CLAIM_ID }),
     );
   });
 
