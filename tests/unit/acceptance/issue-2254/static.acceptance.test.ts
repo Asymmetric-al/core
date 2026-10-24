@@ -27,6 +27,18 @@ import {
 } from "../../helpers/workflow-yaml";
 
 const STEP_DOC = "docs/database/email-normalization.md";
+/**
+ * Accepted docs/ci.md prefixes, #2180-style (Samson on #2250 Q11, applied to
+ * #2254): develop at c541b84b. Later develop appends keep passing; extend
+ * this list (as #2246 did for #2180) if develop rewrites earlier bytes.
+ */
+const CI_BASES = [
+  {
+    ref: "c541b84b",
+    bytes: 40058,
+    sha256: "f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b",
+  },
+] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */
 const missing = (text: string, pats: (string | RegExp)[]) =>
@@ -274,12 +286,22 @@ describe("#2254 criterion 8: CI migrate step (Samson clarification)", () => {
       ]),
     ).toEqual([]);
   });
-  it("amendment 6384990496: docs/ci.md is byte-identical to develop c541b84b", () => {
-    const base = spawnSync("git", ["show", "c541b84b:docs/ci.md"], {
-      encoding: "buffer",
-    });
-    expect(base.status, "c541b84b:docs/ci.md readable").toBe(0);
-    expect(sha256(readFileSync("docs/ci.md"))).toBe(sha256(base.stdout));
+  it("amendment 6384990496: docs/ci.md keeps develop's bytes as a prefix; anything after is not #2254's", () => {
+    const bytes = readFileSync("docs/ci.md");
+    const base = CI_BASES.find(
+      (b) => sha256(bytes.subarray(0, b.bytes)) === b.sha256,
+    );
+    expect(
+      base?.ref,
+      `existing docs/ci.md bytes unchanged (prefix of develop ${CI_BASES.map((b) => b.ref).join(" or ")})`,
+    ).toBeDefined();
+    const later = bytes.subarray(base!.bytes).toString("utf8");
+    expect(
+      /2254|email[- _]normali[sz]|normalize_email|email-normalization\.md/i.test(
+        later,
+      ),
+      "bytes after the develop prefix (later develop appends only) must not document #2254",
+    ).toBe(false);
   });
 });
 
