@@ -16,7 +16,6 @@ import {
   V2,
   migrationFile,
   migrationSql,
-  newMigrations,
   read,
   sha256,
 } from "./harness";
@@ -140,12 +139,9 @@ describe("#2254 migration text", () => {
     expect(hits).toEqual([]);
   });
   it("criterion 11 + Q7: no receipt table, no donations trigger, no merged_into_donor_id", () => {
-    for (const f of newMigrations()) {
-      const sql = read(`${MIGRATIONS}/${f}`).replace(/--[^\n]*/g, "");
-      expect(sql, f).not.toMatch(
-        /CREATE\s+TABLE|\breceipt|\bdonations\b|merged_into_donor_id/i,
-      );
-    }
+    expect(migrationSql(), migrationFile()).not.toMatch(
+      /CREATE\s+TABLE|\breceipt|\bdonations\b|merged_into_donor_id/i,
+    );
     expect(migrationSql()).not.toMatch(/donor_merge_(?:redirects|candidates)/i);
     expect(
       sha256(
@@ -157,7 +153,7 @@ describe("#2254 migration text", () => {
   });
   it("criterion 12: grep gate, no lower(email)/toLowerCase email normalization in new identity code", () => {
     const files = [
-      ...newMigrations().map((f) => `${MIGRATIONS}/${f}`),
+      `${MIGRATIONS}/${migrationFile()}`,
       ...spawnSync(
         "git",
         ["ls-files", "-co", "--exclude-standard", "packages/api/src/identity"],

@@ -13,10 +13,13 @@ import { expect } from "vitest";
 
 export const ROOT = process.cwd();
 export const MIGRATIONS = "supabase/migrations";
-/** Last forward migration on develop @ c541b84b; anything after it is "new". */
-export const LAST_DEVELOP_MIGRATION =
-  "20261021064500_document_cutover_reader.sql";
-export const NEW_SUFFIX = "_identity_email_normalizer_and_donor_keys.sql";
+/**
+ * #2254's own migration, by exact file name. Every migration-text scan in
+ * issue-2254 targets this file only (never a date cutoff or glob), so other
+ * issues' migrations landing on develop cannot enter the scan.
+ */
+export const OWN_MIGRATION =
+  "20261024140000_identity_email_normalizer_and_donor_keys.sql";
 export const DOC = "docs/security/identity-email-normalization.md";
 export const FP = "docs/security/field-policies";
 export const V2 = "repository-supplement-v2-donor-identity.json";
@@ -30,15 +33,13 @@ export const forwardMigrations = () =>
   readdirSync(path.join(ROOT, MIGRATIONS))
     .filter((f) => /^\d{14}_.+\.sql$/.test(f))
     .sort();
-export const newMigrations = () =>
-  forwardMigrations().filter((f) => f > LAST_DEVELOP_MIGRATION);
+/** Returns OWN_MIGRATION after asserting it exists, so no scan passes on a missing file. */
 export function migrationFile(): string {
-  const file = forwardMigrations().find((f) => f.endsWith(NEW_SUFFIX));
   expect(
-    file,
-    `${MIGRATIONS}/<ts>${NEW_SUFFIX} must exist (In 1)`,
-  ).toBeDefined();
-  return file!;
+    existsSync(path.join(ROOT, MIGRATIONS, OWN_MIGRATION)),
+    `${MIGRATIONS}/${OWN_MIGRATION} must exist (In 1)`,
+  ).toBe(true);
+  return OWN_MIGRATION;
 }
 /** The new migration with SQL line comments removed. */
 export const migrationSql = () =>
