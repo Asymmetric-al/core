@@ -110,7 +110,7 @@ describe.skipIf(!local)("#2254 real stack (DATABASE_URL)", () => {
       ),
     ).toBe("0");
     expect(
-      q(`SELECT a.attgenerated || '|' || pg_get_expr(d.adbin, d.adrelid) FROM pg_attribute a JOIN pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
+      q(`SELECT a.attgenerated::text || '|' || pg_get_expr(d.adbin, d.adrelid) FROM pg_attribute a JOIN pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
       WHERE a.attrelid = 'public.donors'::regclass AND a.attname = 'email_normalized';`),
     ).toBe("s|normalize_email(email)");
     const id = "'22540000-0000-4000-8000-0000000000d1'";
@@ -318,6 +318,7 @@ describe.skipIf(!local)(
     );
     it("criteria 10 + 11: without duplicates it applies; RLS, triggers and tables unchanged, only the two columns added", () => {
       const url = prior();
+      q(CLEAN, url); // drop the duplicate fixtures the Q10 cases left behind
       const before = snapshot(url);
       const r = apply(url);
       expect(r.status, r.stderr).toBe(0);
