@@ -38,11 +38,13 @@ existing governance gates. Eve's webhook verifier remains required.
 
 ## Native restrictions and renewal
 
-The repository currently restricts issue and PR creation to collaborators and
-uses GitHub's `collaborators_only` interaction limit for comments and other
-public interactions. The interaction limit expires; check its current origin and
-expiration using `gh api repos/Asymmetric-al/core/interaction-limits`. If the
-origin is `repository`, a Core administrator can renew it before expiry with:
+The repository restricts PR creation to collaborators permanently through
+`pull_request_creation_policy=collaborators_only`, which does not expire. It
+also uses GitHub's `collaborators_only` interaction limit for comments, issues
+and other public interactions. The interaction limit expires; check its current
+origin and expiration using `gh api repos/Asymmetric-al/core/interaction-limits`.
+If the origin is `repository`, a Core administrator can renew it before expiry
+with:
 
 ```bash
 gh api -X PUT repos/Asymmetric-al/core/interaction-limits \
@@ -61,6 +63,10 @@ Write, so storing an Administration private key in a Core Actions secret would
 expose a path to that privilege. If the origin is
 `organization`, manage renewal at the organization level instead. The permanent
 agent command boundary remains in effect if the native limit expires.
+
+Self-hosted runner safety does not depend on the interaction limit. The
+permanent PR-creation policy, fork-PR approval and the workflow guard carry it;
+see [Self-hosted runner security](self-hosted-runners.md).
 
 GitHub's documented interaction limit covers commenting, opening issues, and
 creating PRs. Discussions are disabled on Core. Commit comments are disabled

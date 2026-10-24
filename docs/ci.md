@@ -468,3 +468,7 @@ Automatic Git deployment is enabled only for `production` in all three app confi
 The existing same-repository, non-draft, `qa:smoke` gate is retained. The preview helper pins Vercel CLI, checks the selected Core app/team, pulls preview settings from the monorepo root, builds locally, and uploads prebuilt output. It removes local `.vercel` state before each app and in a finalizer, and suppresses raw CLI output that could contain environment values. Build output and downloaded environment files must never become diagnostic artifacts.
 
 Production branch protections and source ancestry checks are unchanged. `release:production` always uses `ci:preflight -- --full`, including when its source is `develop`.
+
+## Self-hosted runner security
+
+Only `ci.yml` and `ci-integration.yml` may reach the self-hosted Proxmox runners. The unit test `tests/unit/scripts/self-hosted-runner-guard.test.ts` enforces rules R1–R3 across every workflow file: the reachability allowlist (R1), the trigger allowlist on reachable workflows (R2) and privileged-trigger hygiene (R3). The threat model, maintainer rule and admin checklist are in [Self-hosted runner security](ops/self-hosted-runners.md).
