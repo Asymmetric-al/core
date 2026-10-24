@@ -5,7 +5,8 @@
  * unless it names a local host. Writes on that database roll back; the Q10
  * failure path (criterion 7) and the catalog diffs (10, 11) run on a
  * disposable database created here with the chain applied up to the prior
- * migration, dropped afterwards. Locally:
+ * migration, dropped afterwards. Criterion 15 (scope amendment 6388667290)
+ * commits real gifts in its own tenant and deletes them afterwards. Locally:
  *   DATABASE_URL=postgresql://postgres@127.0.0.1:5432/<migrated-db> \
  *     bun x vitest run tests/unit/acceptance/issue-2254/
  * Owned by Acceptance; implementers must not edit.
@@ -14,6 +15,7 @@ import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import path from "node:path";
 
+import pg from "pg";
 import { afterAll, describe, expect, it } from "vitest";
 
 import {
@@ -26,6 +28,7 @@ import {
   migrationFile,
   psql,
 } from "./harness";
+import { beginGiftIntake } from "../../../../packages/api/src/donate/begin-gift-intake";
 
 const URL_ = process.env.DATABASE_URL ?? "";
 const local = (() => {
@@ -340,6 +343,132 @@ describe.skipIf(!local)(
         before.cols.filter((c: string) => !after.cols.includes(c)),
       ).toEqual([]);
       expect(after.fn).toBe(1);
+    });
+  },
+);
+
+/**
+ * Criterion 15 (scope amendment, issue comment 6388667290): overlapping first
+ * gifts through `begin_donation_saga`, the RPC behind POST /api/donate. A
+ * third session holds SHARE on donors (blocks INSERT, not SELECT) until both
+ * calls have looked up the donor and wait to insert, then lets them go.
+ */
+const TC = "22540000-0000-4000-8000-00000000000c";
+const ROUNDS = 3;
+const pid = (n: number) =>
+  `22540000-0000-4000-8000-${(0xc00 + n).toString(16).padStart(12, "0")}`;
+const CLEAN_C = `DELETE FROM public.donation_saga_outbox WHERE tenant_id = '${TC}';
+DELETE FROM public.audit_logs WHERE tenant_id = '${TC}'; DELETE FROM public.donations WHERE tenant_id = '${TC}';
+DELETE FROM public.donors WHERE tenant_id = '${TC}'; DELETE FROM public.tenants WHERE id = '${TC}';
+DELETE FROM public.profiles WHERE id::text LIKE '22540000-0000-4000-8000-000000000c%';
+DELETE FROM auth.users WHERE id::text LIKE '22540000-0000-4000-8000-000000000c%';`;
+
+async function firstGiftRace(profile: string, round: number) {
+  const [lock, a, b] = [0, 1, 2].map(
+    () => new pg.Client({ connectionString: URL_ }),
+  );
+  await Promise.all([lock, a, b].map((c) => c!.connect()));
+  try {
+    const pids = await Promise.all(
+      [a, b].map(
+        async (c) => (await c!.query("SELECT pg_backend_pid() p")).rows[0].p,
+      ),
+    );
+    await lock!.query("BEGIN; LOCK TABLE public.donors IN SHARE MODE;");
+    const gifts = [a, b].map((c, i) =>
+      beginGiftIntake({
+        rpc: async (fn, args) => {
+          const named = Object.entries(args);
+          try {
+            const r = await c!.query(
+              `SELECT public.${fn}(${named.map(([n], j) => `${n} => $${j + 1}`).join(", ")}) AS data`,
+              named.map(([, v]) => v),
+            );
+            return { data: r.rows[0].data, error: null };
+          } catch (e) {
+            const err = e as { code?: string; message: string };
+            return {
+              data: null,
+              error: { code: err.code, message: err.message },
+            };
+          }
+        },
+        tenantId: TC,
+        profileId: profile,
+        actorUserId: profile,
+        missionaryId: null,
+        fundId: null,
+        amountCents: 1000 + i,
+        currency: "usd",
+        idempotencyKey: `acc2254-c15-${round}-${i}`,
+        ipAddress: null,
+        userAgent: "acc2254",
+      }),
+    );
+    for (let t = 0; ; t++) {
+      const waiting = await lock!.query(
+        "SELECT count(*)::int n FROM pg_locks WHERE relation = 'public.donors'::regclass AND NOT granted AND pid = ANY($1)",
+        [pids],
+      );
+      if (waiting.rows[0].n === 2) break;
+      expect(t, "both gifts reach the donor insert").toBeLessThan(400);
+      await new Promise((r) => setTimeout(r, 25));
+    }
+    await lock!.query("ROLLBACK");
+    return await Promise.all(gifts);
+  } finally {
+    await Promise.all([lock, a, b].map((c) => c!.end()));
+  }
+}
+
+describe.skipIf(!local)(
+  "#2254 criterion 15 (amendment 6388667290): concurrent first gifts",
+  () => {
+    afterAll(() => {
+      q(CLEAN_C);
+    });
+    it(`criterion 15: two overlapping first gifts for one profile, different idempotency keys, both succeed on one donor (x${ROUNDS})`, async () => {
+      q(
+        `${CLEAN_C} INSERT INTO public.tenants(id,name,slug) VALUES ('${TC}','acc2254 c','acc2254-c');
+        INSERT INTO auth.users(id) SELECT ('22540000-0000-4000-8000-' || lpad(to_hex(3072 + n), 12, '0'))::uuid FROM generate_series(1, ${ROUNDS}) n;`,
+      );
+      for (let round = 1; round <= ROUNDS; round++) {
+        const profile = pid(round);
+        const results = await firstGiftRace(profile, round);
+        // beginGiftIntake "failed" is what POST /api/donate answers with 500.
+        expect(
+          results.map((r) =>
+            r.ok
+              ? `ok replayed=${r.replayed}`
+              : `${r.code}: ${"message" in r ? r.message : ""}`,
+          ),
+          `round ${round}: no 500 / unique violation`,
+        ).toEqual(["ok replayed=false", "ok replayed=false"]);
+        expect(
+          q(`SELECT count(*) || '|' || count(DISTINCT o.donor_id) || '|' || count(DISTINCT d.id)
+          FROM public.donation_saga_outbox o JOIN public.donations d ON d.id = o.donation_id
+          JOIN public.donors r ON r.id = o.donor_id WHERE o.tenant_id = '${TC}' AND r.profile_id = '${profile}';`),
+          `round ${round}: two gifts on one donor`,
+        ).toBe("2|1|2");
+        expect(
+          q(
+            `SELECT count(*) FROM public.donors WHERE tenant_id = '${TC}' AND profile_id = '${profile}';`,
+          ),
+          `round ${round}: exactly one donors row`,
+        ).toBe("1");
+      }
+    }, 60_000);
+    it("criterion 15: the normalized-email key cannot race through the saga (it never writes donors.email)", () => {
+      const src = q(
+        "SELECT string_agg(prosrc, E'\\n') FROM pg_proc WHERE proname = 'begin_donation_saga' AND pronamespace = 'public'::regnamespace;",
+      );
+      expect(src).toMatch(/INSERT INTO public\.donors/i);
+      expect(src, "saga writes no donor email").not.toMatch(/email/i);
+      expect(
+        q(
+          `SELECT count(*) FROM public.donors WHERE tenant_id = '${TC}' AND (email IS NOT NULL OR email_normalized IS NOT NULL);`,
+        ),
+      ).toBe("0");
     });
   },
 );
