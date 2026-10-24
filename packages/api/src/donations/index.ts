@@ -6,6 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { DONATION_WITH_PARTIES_SELECT } from "./select";
 import { beginGiftIntake } from "../donate/begin-gift-intake";
 import { resolveRequiredIdempotencyKey } from "../donate/idempotency";
 import { processDonationSagaOutboxEvent } from "../donate/saga";
@@ -36,29 +37,39 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    const { data: donor } = await supabaseAdmin
+    const { data: donor, error: donorError } = await supabaseAdmin
       .from("donors")
       .select("id")
       .eq("profile_id", ctx.profileId)
       .eq("tenant_id", ctx.tenantId)
-      .single();
+      .maybeSingle();
 
+    if (donorError) {
+      console.error("[donations] Donor lookup failed", donorError);
+      return NextResponse.json(
+        { error: "Failed to load donations" },
+        { status: 500 },
+      );
+    }
     if (!donor?.id) {
       return NextResponse.json({ donations: [] });
     }
 
     const { data, error: queryError } = await supabaseAdmin
       .from("donations")
-      .select(
-        "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
-      )
+      .select(DONATION_WITH_PARTIES_SELECT)
       .eq("donor_id", donor.id)
       .eq("tenant_id", ctx.tenantId)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (queryError)
-      return NextResponse.json({ error: queryError.message }, { status: 500 });
+    if (queryError) {
+      console.error("[donations] Donations query failed", queryError);
+      return NextResponse.json(
+        { error: "Failed to load donations" },
+        { status: 500 },
+      );
+    }
     return NextResponse.json({ donations: data });
   } catch (e) {
     return toErrorResponse(e);
@@ -179,19 +190,26 @@ export async function POST(request: NextRequest) {
 
     const { data: donation, error: donationError } = await supabaseAdmin
       .from("donations")
-      .select(
-        "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
-      )
+      .select(DONATION_WITH_PARTIES_SELECT)
       .eq("id", begin.donationId)
       .single();
+    // The gift already exists here, so a read-back failure must not look like
+    // a failed gift: a client retrying with a new key would give twice.
     if (donationError || !donation) {
+      console.error("[donations] Donation read-back failed", {
+        donationId: begin.donationId,
+        error: donationError,
+      });
       return NextResponse.json(
-        { error: donationError?.message ?? "Donation not found" },
-        { status: 500 },
+        { donation: null, donationId: begin.donationId, readBack: "failed" },
+        { status: 201 },
       );
     }
 
-    return NextResponse.json({ donation }, { status: 201 });
+    return NextResponse.json(
+      { donation, donationId: begin.donationId },
+      { status: 201 },
+    );
   } catch (e) {
     return toErrorResponse(e);
   }
