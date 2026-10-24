@@ -83,7 +83,7 @@ Not built yet, and must use the guard when they are: guest attribution and uncla
 
 ## CI step
 
-`Verify tenant isolation (real stack)` is the last step of the `migrate` job in `.github/workflows/ci-integration.yml`. It sets `TENANT_GUARD_IT_ADMIN_DATABASE_URL` from `DATABASE_URL` (the job's disposable, migrated PG17 database) and runs `bun x vitest run realstack.acceptance`, which runs every `tests/**/*.realstack.acceptance.test.ts` file. When `GITHUB_ACTIONS=true` in the `migrate` job and the URL is empty, the suite fails rather than skips, and the filter cannot pass vacuously: Vitest exits 1 when no file matches. A failure fails the required `migrate` check. Later slices add realstack files without editing the workflow.
+`Verify tenant isolation (real stack)` is the last step of the `migrate` job in `.github/workflows/ci-integration.yml`. It sets `TENANT_GUARD_IT_ADMIN_DATABASE_URL` from `DATABASE_URL` (the job's disposable, migrated PG17 database) and runs `bun x vitest run realstack.acceptance`, which runs every `tests/**/*.realstack.acceptance.test.ts` file. With no URL, it fails only when `GITHUB_JOB` is `migrate` and skips everywhere else, including the `test-unit` and `acceptance-tests` jobs in `ci.yml` and local runs. GitHub sets `GITHUB_JOB` to the job id, so the step needs no other env. When the URL is set, the suite runs in any job. The filter cannot pass vacuously: Vitest exits 1 when no file matches. A failure fails the required `migrate` check. Later slices add realstack files without editing the workflow.
 
 ## Deploy note
 
