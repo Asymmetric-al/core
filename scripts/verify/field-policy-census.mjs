@@ -72,10 +72,18 @@ const receipts = census.relations.find(
 assert.equal(receipts.disposition, "absent/reserved");
 assert.deepEqual(receipts.columns, []);
 assert.equal(receipts.positive_seed_rows, 0);
-assert.equal(census.repository_supplements.length, 1);
-const supplementRef = census.repository_supplements[0];
-assert.equal(supplementRef.artifact, "repository-supplement-v1.json");
-assert.equal(hash(supplementRef.artifact), supplementRef.sha256);
+// Reviewed supplements, in order: v1 is bound to its source at the census base
+// SHA; v2 (#2254) postdates that SHA and is bound to its working-tree hash.
+assert.deepEqual(
+  census.repository_supplements.map((ref) => ref.artifact),
+  [
+    "repository-supplement-v1.json",
+    "repository-supplement-v2-donor-identity.json",
+  ],
+);
+for (const ref of census.repository_supplements)
+  assert.equal(hash(ref.artifact), ref.sha256);
+const [supplementRef, identityRef] = census.repository_supplements;
 const supplement = JSON.parse(
   readFileSync(path.join(artifactRoot, supplementRef.artifact), "utf8"),
 );
@@ -125,11 +133,64 @@ assert.deepEqual(supplement.column, {
     ]),
   ),
 });
-const candidateExpectedColumns = [...columns, supplement.column];
+const identity = JSON.parse(
+  readFileSync(path.join(artifactRoot, identityRef.artifact), "utf8"),
+);
+assert.equal(
+  identity.source_path,
+  "supabase/migrations/20261024140000_identity_email_normalizer_and_donor_keys.sql",
+);
+assert.equal(
+  createHash("sha256")
+    .update(readFileSync(path.join(root, identity.source_path)))
+    .digest("hex"),
+  identity.source_sha256,
+);
+const identityPolicies = (visibleOn) =>
+  Object.fromEntries(
+    census.surfaces.map((surface) => [
+      surface,
+      {
+        visible: visibleOn.includes(surface),
+        editable: false,
+        exportable: false,
+      },
+    ]),
+  );
+const identityColumn = (name, ordinal, type, extra, visibleOn) => ({
+  recordType: "donors",
+  name,
+  ordinal,
+  type,
+  nullable: true,
+  ...extra,
+  semantic_category: "contact",
+  category: "contact",
+  processor_identifier: false,
+  policies: identityPolicies(visibleOn),
+});
+assert.deepEqual(identity.columns, [
+  identityColumn(
+    "email_normalized",
+    43,
+    "text",
+    { generated: "normalize_email(email)" },
+    ["mission_control", "donor", "missionary"],
+  ),
+  identityColumn("email_verified_at", 44, "timestamp with time zone", {}, [
+    "mission_control",
+    "donor",
+  ]),
+]);
+const candidateExpectedColumns = [
+  ...columns,
+  supplement.column,
+  ...identity.columns,
+];
 assert.equal(census.column_count, 171);
-assert.equal(census.candidate_column_count, 172);
-assert.equal(candidateExpectedColumns.length, 172);
-assert.equal(census.baseline_row_count, 860);
+assert.equal(census.candidate_column_count, 174);
+assert.equal(candidateExpectedColumns.length, 174);
+assert.equal(census.baseline_row_count, 870);
 const floors = new Map();
 for (const column of candidateExpectedColumns) {
   const prior = floors.get(column.name);
@@ -203,7 +264,7 @@ const sortRows = (rows) =>
   );
 assert.deepEqual(sortRows(actualRows), sortRows(expectedRows));
 console.log(
-  "PASS: all 860 database seed rows exactly equal the reviewed census categories and explicit flags.",
+  "PASS: all 870 database seed rows exactly equal the reviewed census categories and explicit flags.",
 );
 const names = present.map((relation) => `'${relation.record_type}'`).join(",");
 const candidateColumns = query(
@@ -223,10 +284,10 @@ assert.deepEqual(
       field_key: column.name,
     })),
   ),
-  "Candidate schema must equal the 171 live columns plus the exact single source supplement; arbitrary drift is forbidden.",
+  "Candidate schema must equal the 171 live columns plus the exact reviewed supplements; arbitrary drift is forbidden.",
 );
 console.log(
-  "PASS: exactly 172 candidate columns equal immutable live171 plus the sole source-bound supplement.",
+  "PASS: exactly 174 candidate columns equal immutable live171 plus the reviewed source-bound supplements.",
 );
 
 assert.deepEqual(
@@ -245,4 +306,46 @@ assert.deepEqual(supplement.local_catalog.result, {
 });
 console.log(
   "PASS: supplement base source hash and exact local TEXT[]/NOT NULL/default metadata.",
+);
+
+assert.deepEqual(
+  query(identity.local_catalog.query),
+  identity.local_catalog.result,
+);
+const identityCatalog = (
+  field_key,
+  ordinal,
+  data_type,
+  udt_name,
+  generated,
+) => ({
+  schema: "public",
+  record_type: "donors",
+  field_key,
+  ordinal,
+  data_type,
+  udt_name,
+  nullable: true,
+  default: null,
+  generated: generated ? "ALWAYS" : "NEVER",
+  generation_expression: generated,
+});
+assert.deepEqual(identity.local_catalog.result, [
+  identityCatalog(
+    "email_normalized",
+    43,
+    "text",
+    "text",
+    "normalize_email(email)",
+  ),
+  identityCatalog(
+    "email_verified_at",
+    44,
+    "timestamp with time zone",
+    "timestamptz",
+    null,
+  ),
+]);
+console.log(
+  "PASS: identity supplement working-tree source hash and exact local generated TEXT/TIMESTAMPTZ metadata.",
 );

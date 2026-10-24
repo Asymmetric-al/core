@@ -163,6 +163,17 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     );
     expect(users).toEqual(["release-source.yml"]);
   });
+  /**
+   * Accepted ci-integration.yml fingerprints, CI_BASES-style: one entry per
+   * reviewed file. A later spec'd step (e.g. #2250) adds exactly one entry
+   * after its diff is reviewed; any unlisted fingerprint fails.
+   */
+  const CII_PRINTS = [
+    // develop
+    { ref: "develop c541b84b", hash: "1078832efaff84e6" },
+    // #2254: Builder ea6878ad adds the migrate identity real-stack step
+    { ref: "#2254 Builder ea6878ad", hash: "e72e09b4d720835c" },
+  ] as const;
   it("nothing but on: and test-e2e's if: changes (fingerprint)", () => {
     const prints = [CI, CII].map((file) => {
       const { on: _on, ...rest } = doc(file);
@@ -173,7 +184,11 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
         .digest("hex")
         .slice(0, 16);
     });
-    expect(prints).toEqual(["cd62e4e85c2cc658", "1078832efaff84e6"]);
+    expect(prints[0], "ci.yml fingerprint").toBe("cd62e4e85c2cc658");
+    expect(
+      CII_PRINTS.map((p) => p.hash),
+      `ci-integration.yml fingerprint ${prints[1]} is not reviewed`,
+    ).toContain(prints[1]);
   });
 });
 
