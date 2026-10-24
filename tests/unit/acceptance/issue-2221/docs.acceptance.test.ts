@@ -77,8 +77,9 @@ describe("#2221 criterion 12: `### ci-gate-comment` subsection under Fast-checks
   });
 
   it("negative: does not describe editing the comment in place (ruling 1)", () => {
+    // "edit" ... "in place" within one sentence, any words in between.
     expect(jobSection()).not.toMatch(
-      /edit(s|ed|ing)? (it |the comment )?in place|\bPATCH\b/i,
+      /\bedit(s|ed|ing)?\b[^.\n]{0,80}?\bin[- ]place\b|\bPATCH\b/i,
     );
   });
 });
