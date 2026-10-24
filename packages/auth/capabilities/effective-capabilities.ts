@@ -90,6 +90,9 @@ function isGrantContext(context: unknown): context is SelectedGrantContext {
 }
 
 function assignmentBundles({ role, staffRole }: AssignmentGrantSource) {
+  // A subrole is null or a primitive string; anything else is never coerced.
+  const subrole: unknown = staffRole;
+  if (subrole !== null && typeof subrole !== "string") return undefined;
   const unspecialized = lookup(UNSPECIALIZED_ASSIGNMENT_BUNDLES, role);
   if (unspecialized === undefined || staffRole === null) return unspecialized;
   return lookup(ROLE_DEFAULT_BUNDLES, `${role}:${staffRole}`);

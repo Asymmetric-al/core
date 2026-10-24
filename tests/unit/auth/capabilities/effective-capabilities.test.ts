@@ -32,15 +32,17 @@ function resolveUntyped(...sources: unknown[]) {
   return Reflect.apply(resolveEffectiveCapabilities, undefined, [context]);
 }
 
-function codeOf(run: () => unknown) {
+function errorOf(run: () => unknown) {
   try {
     run();
   } catch (error) {
     expect(error).toBeInstanceOf(CapabilityResolutionError);
-    return (error as CapabilityResolutionError).code;
+    return error as CapabilityResolutionError;
   }
   throw new Error("expected a CapabilityResolutionError");
 }
+
+const codeOf = (run: () => unknown) => errorOf(run).code;
 
 describe("resolveEffectiveCapabilities", () => {
   it("unions an assignment with named grants without duplicates", () => {
@@ -70,6 +72,24 @@ describe("resolveEffectiveCapabilities", () => {
     expect(codeOf(() => resolveUntyped(assignment(fields)))).toBe(
       "unknown_subject",
     );
+  });
+
+  // Review r1 F1/F2: a subrole is null or a primitive string, never coerced.
+  it.each([
+    ["an array", ["finance"]],
+    ["a boxed string", new String("finance")],
+    ["an object with toString", { toString: () => "finance" }],
+    [
+      "an object with Symbol.toPrimitive",
+      { [Symbol.toPrimitive]: () => "finance" },
+    ],
+    ["a symbol", Symbol("finance")],
+    ["a number", 1],
+    ["an unknown string", "finance_lead"],
+  ])("fails closed on a staff subrole that is %s", (_label, staffRole) => {
+    const error = errorOf(() => resolveUntyped(assignment({ staffRole })));
+    expect(error.code).toBe("unknown_subject");
+    expect(Object.keys(error).sort()).toEqual(["code", "name"]);
   });
 
   it.each(["toString", "staff:finance", "member:donor"])(
