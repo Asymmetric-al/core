@@ -23,9 +23,14 @@ const STEP = "Verify tenant isolation (real stack)";
 const REALSTACK =
   "tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts";
 const DOC = "docs/security/tenant-guard.md";
-/** docs/ci.md at develop c541b84b: "<bytes> <sha256>" (pinned by issue-2180). */
-const CI_MD =
-  "40058 f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b";
+/** docs/ci.md develop byte prefixes (issue-2180 CI_BASES shape, as #2254). */
+const CI_BASES = [
+  {
+    ref: "c541b84b",
+    bytes: 40058,
+    sha256: "f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b",
+  },
+] as const;
 /** "label :: regex" lines docs/security/tenant-guard.md must match (criteria 7, 11, 12, 14, 15, 17). */
 const DOC_RULES = String.raw`
 12: route and why: function-call, SECURITY DEFINER, NOLOGIN NOBYPASSRLS, no new credential :: (?=[\s\S]*function-call)(?=[\s\S]*SECURITY DEFINER)(?=[\s\S]*NOLOGIN)(?=[\s\S]*NOBYPASSRLS)(?=[\s\S]*no (new )?credential)
@@ -54,6 +59,12 @@ describe("#2250 migration text (static)", () => {
     expect(sql()).toMatch(
       /ALTER\s+DEFAULT\s+PRIVILEGES\s+IN\s+SCHEMA\s+tenant_guard\s+REVOKE\s+EXECUTE\s+ON\s+FUNCTIONS\s+FROM\s+PUBLIC/i,
     );
+  });
+  it("9: authz.current_tenant_id() is still defined only by 20260226113000_authz_memberships_foundation.sql", () => {
+    const defs = readdirSync(MIG).filter((f) =>
+      /FUNCTION\s+authz\.current_tenant_id\s*\(/i.test(read(`${MIG}/${f}`)),
+    );
+    expect(defs).toEqual(["20260226113000_authz_memberships_foundation.sql"]);
   });
 });
 
@@ -102,13 +113,56 @@ describe("#2250 CI step (criterion 11)", () => {
 });
 
 describe("#2250 docs (criteria 7, 11, 12, 14, 15, 17)", () => {
-  it("12 (amended): docs/ci.md is byte-identical to develop c541b84b", () => {
+  it("12 (amended): docs/ci.md keeps develop's bytes as a prefix; anything after is not #2250's", () => {
     const bytes = readFileSync("docs/ci.md");
-    const hash = createHash("sha256").update(bytes).digest("hex");
-    expect(`${bytes.length} ${hash}`).toBe(CI_MD);
+    const sha256 = (b: Buffer) => createHash("sha256").update(b).digest("hex");
+    const base = CI_BASES.find(
+      (b) => sha256(bytes.subarray(0, b.bytes)) === b.sha256,
+    );
+    expect(
+      base?.ref,
+      `existing docs/ci.md bytes unchanged (prefix of develop ${CI_BASES.map((b) => b.ref).join(" or ")})`,
+    ).toBeDefined();
+    const later = bytes.subarray(base!.bytes).toString("utf8");
+    expect(
+      /2250|tenant_guard|tenant[- ]isolation|tenant-guard\.md|withTenant/i.test(
+        later,
+      ),
+      "bytes after the develop prefix (later develop appends only) must not document #2250",
+    ).toBe(false);
   });
 
   it.each(DOC_RULES)(`${DOC} covers %s`, (_label, re) =>
     expect(read(DOC)).toMatch(new RegExp(re, "i")),
+  );
+});
+
+describe("#2250 routed callers (criterion 10)", () => {
+  it("claims.ts imports withTenant, makes no direct client.rpc(...work_claim...) call, and ReleaseWorkClaimInput has tenantId", () => {
+    const src = read("packages/api/src/workflows/claims.ts");
+    expect(src).toMatch(
+      /import\s*\{[^}]*\bwithTenant\b[^}]*\}\s*from\s*["'][./]*identity(\/tenant-guard|\/index)?["']/,
+    );
+    expect(src).not.toMatch(/\bclient\s*\.\s*rpc\s*\(\s*["'`]\w*work_claim/);
+    expect(src).toMatch(
+      /interface ReleaseWorkClaimInput\s*\{[^}]*\btenantId\s*:\s*string/,
+    );
+  });
+
+  it.each([
+    "workflows/recovery",
+    "workflows/adapters/inbound-email",
+    "admin/support-hub/move-service",
+  ])(
+    "every releaseWorkClaim call in packages/api/src/%s.ts passes tenantId",
+    (file) => {
+      const calls = [
+        ...read(`packages/api/src/${file}.ts`).matchAll(
+          /releaseWorkClaim\(\s*[\w.]+\s*,\s*\{([^}]*)\}/g,
+        ),
+      ];
+      expect(calls.length).toBeGreaterThan(0);
+      for (const c of calls) expect(c[1]).toMatch(/\btenantId\b/);
+    },
   );
 });

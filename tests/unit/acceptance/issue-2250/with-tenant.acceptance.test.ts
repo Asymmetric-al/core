@@ -68,6 +68,13 @@ describe("#2250 withTenant fail-closed (criteria 6, 16(ii))", () => {
     },
   );
 
+  it("an uppercase tenant id is the same tenant: accepted, and the lowercase echo matches (uuid compare, not string)", async () => {
+    const C = "abcdefab-cdef-4abc-8def-abcdefabcdef";
+    answer({ acquired: true, tenant_id: C });
+    await run(C.toUpperCase(), (g) => g.rpc(ACQ, {}));
+    expect(rpc.mock.calls[0]?.[1].p_tenant_id.toLowerCase()).toBe(C);
+  });
+
   it("injects p_tenant_id; a caller-supplied other tenant never reaches the client", async () => {
     await run(A, (g) => g.rpc(ACQ, { p_subject_type: "s" }));
     expect(rpc).toHaveBeenCalledWith(
@@ -96,6 +103,10 @@ describe("#2250 withTenant fail-closed (criteria 6, 16(ii))", () => {
     answer(null, { message: "pg down" });
     await expect(run(A, (g) => g.rpc(ACQ, {}))).rejects.toThrow();
     expect(rpc).toHaveBeenCalledTimes(1);
+  });
+  it("identity/index.ts re-exports withTenant and TenantGuardError", async () => {
+    const index: unknown = await import(/* @vite-ignore */ `${GUARD}/../index`);
+    expect(index).toMatchObject(await guard());
   });
 });
 

@@ -285,16 +285,24 @@ describe.skipIf(!ADMIN_URL)("#2250 tenant_guard on the real stack", () => {
     expect(codes.join()).toBe("22P02,22P02");
   });
 
-  it("8: the GUC is unset on the same connection after COMMIT and after ROLLBACK", async () => {
+  it("8: app.current_tenant_id is transaction-local: a fresh transaction on the same pooled connection sees it unset or empty after the guarded call's COMMIT (and ROLLBACK)", async () => {
     for (const end of ["commit", "rollback"]) {
       const r = await tx("service_role", acq(a, `guc-${end}`), end);
       expect(r.err + r.last?.r?.tenant_id).toBe(A);
-      expect(
-        await v(
-          "select nullif(current_setting('app.current_tenant_id', true), '') v",
-        ),
-      ).toBeNull();
+      const next = await tx(
+        "service_role",
+        "select coalesce(current_setting('app.current_tenant_id', true), '') v",
+      );
+      expect(next.err + next.last?.v).toBe("");
     }
+  });
+
+  it("uppercase tenant id is the same tenant (compared as uuid): echo is A, and re-entering A in upper case is allowed", async () => {
+    const U = `'${A.toUpperCase()}'`;
+    expect(await rpc(acq(U, "upper"), "acquired", "tenant_id")).toBe(
+      `|true|${A}`,
+    );
+    expect((await tg(`${enter(a)}\n${enter(U)}`, "rollback")).err).toBe("");
   });
 
   it("5: enter(B) after enter(A) in one transaction raises; re-entering A is allowed", async () => {
