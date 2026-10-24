@@ -136,3 +136,29 @@ The full record-type ownership table lives in
 - **Defer the decision until Phase 8 unblocks**: rejected — switching costs
   grow the moment the first production write lands in Twenty; deciding
   before the Phase 8 build is the uniquely cheap moment.
+
+## Amendments
+
+### 2026-10-24: Phase 9 re-confirm of the CRM identity-link enum extension (#569 → #2257)
+
+- **Ruling:** Samson (factory lead), under Blake's charter, ruled on
+  2026-10-24 (Q12), re-confirming the #569 amendment's
+  "Re-confirm at the Phase 9 grill" item. #570's party-row provider links
+  are the actual need that Phase 7 C4 requires; this settles #570's
+  "only if/when" wording.
+- **Kept:** of #569's five values, only `household` and `organization` have
+  a consumer: #570 party rows carry provider links via `crm_record_links`.
+  #2257 appends them to `public.crm_link_entity_type` and
+  `CrmIdentityConceptId` (15 → 17), after the original 15.
+- **`daf_sponsor` dropped:** a DAF sponsor is an `org_type` of the org party
+  (Phase 9 A2), so it links as `organization`.
+- **`person` dropped:** the existing `crm_person` is the person party
+  (`persons.id = parties.id`; Phase 9 A1/A2, Phase 1 ownership matrix
+  `:40`). There is no alias, rename or second value.
+- **`gift_credit` dropped:** #570 has no consumer for it; #571 re-proposes
+  it with its own consumer if it needs a provider link.
+- **Lockstep rule:** the DB enum, the `CrmIdentityConceptId` union and
+  `CRM_IDENTITY_CONCEPTS` change together, append-only: no rename, reorder
+  or removal. `tests/unit/packages/api/crm-identity-parity.test.ts` derives
+  the enum from the migration chain and fails the build when the two sides
+  differ. Any later value needs its own consumer and its own amendment here.
