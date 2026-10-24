@@ -280,6 +280,15 @@ Optional focused CMS unit coverage (not a `ci.yml` job today): `bun run test:uni
 - _Why it exists:_ Acceptance criteria get a named check that cannot be skipped. `test-unit` also runs these files as part of `tests/unit/**`, but it is self-hosted and skipped on fork PRs.
 - _Debug locally:_ Run `bun run test:acceptance`, or `bunx vitest run tests/unit/acceptance/issue-<number>` for one issue's suite.
 
+### `ci-gate-comment`
+
+- _What it does:_ Needs `ci-gate` and runs after it settles on a same-repository `pull_request` run. It posts one PR comment as `github-actions[bot]` that starts with the hidden marker `<!-- ci-gate-status -->`, then `ci-gate: <success|failure> on <PR head SHA>, run <run_id>` and a link to the run attempt. A new comment wakes the factory lead.
+- _Delete and re-post:_ Each settled run deletes every earlier `github-actions[bot]` comment whose body starts with the marker, then posts a new comment, so the PR keeps at most one. Comments by other authors, and the bot's comments without the leading marker, are never touched.
+- _When it runs:_ Only for same-repository `pull_request` events where `ci-gate` is `success` or `failure`. It is skipped for fork PRs, `merge_group`, `push`, `workflow_dispatch`, a `skipped` or `cancelled` `ci-gate`, and cancelled runs, so a cancelled run posts nothing.
+- _Permissions and token:_ The job alone has `permissions: pull-requests: write`; the workflow default stays read-only. Its only credential is the run's `GITHUB_TOKEN` (`GH_TOKEN: ${{ github.token }}`). It has no checkout and no actions: one inline step uses the runner's `gh`, with every input passed through step `env`.
+- _Stale guard:_ Before writing, it reads the PR's current head. If the head moved since the run started, it logs a notice and writes nothing.
+- _Failure tolerance:_ Any `gh` or API error (a 403 from a read-only token, a rate limit, a 5xx, or no `gh`) emits a `::warning::` and the job stays green. The step is also `continue-on-error`. `ci-gate` does not depend on this job.
+
 ### Unit feedback report
 
 Run this when you want a structured, actionable unit-test triage report:
@@ -401,6 +410,8 @@ Verified through the GitHub branch-protection API on 2026-09-23:
   required branch-protection context.
 - `acceptance-tests` is not a required status check. It is enforced through
   `ci-gate`, which needs it and fails unless it succeeded.
+- `ci-gate-comment` is not a required status check. It only reports the
+  settled `ci-gate` result as a PR comment.
 - `release-source-gate` is defined in `release-source.yml` for production PRs.
   It runs from the trusted default branch with a read-only token and verifies
   that the PR head is already reachable from `develop` through GitHub's compare
@@ -457,3 +468,7 @@ Automatic Git deployment is enabled only for `production` in all three app confi
 The existing same-repository, non-draft, `qa:smoke` gate is retained. The preview helper pins Vercel CLI, checks the selected Core app/team, pulls preview settings from the monorepo root, builds locally, and uploads prebuilt output. It removes local `.vercel` state before each app and in a finalizer, and suppresses raw CLI output that could contain environment values. Build output and downloaded environment files must never become diagnostic artifacts.
 
 Production branch protections and source ancestry checks are unchanged. `release:production` always uses `ci:preflight -- --full`, including when its source is `develop`.
+
+## Self-hosted runner security
+
+Only `ci.yml` and `ci-integration.yml` may reach the self-hosted Proxmox runners. The unit test `tests/unit/scripts/self-hosted-runner-guard.test.ts` enforces rules R1–R3 across every workflow file: the reachability allowlist (R1), the trigger allowlist on reachable workflows (R2) and privileged-trigger hygiene (R3). The threat model, maintainer rule and admin checklist are in [Self-hosted runner security](ops/self-hosted-runners.md).

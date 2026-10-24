@@ -131,7 +131,7 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
       { contents: "read", "pull-requests": "read" },
       { contents: "read" },
     ]);
-    expect(ids((j) => j.permissions)).toBe("shadscan-report");
+    expect(ids((j) => j.permissions)).toBe("shadscan-report ci-gate-comment");
     expect(ids((j) => j.environment)).toBe("");
     expect(ids(usesSecrets)).toBe(`${MG_SECRET_JOBS} test-e2e`);
   });
@@ -166,6 +166,7 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
   it("nothing but on: and test-e2e's if: changes (fingerprint)", () => {
     const prints = [CI, CII].map((file) => {
       const { on: _on, ...rest } = doc(file);
+      delete (rest.jobs as W.WorkflowJobs)["ci-gate-comment"];
       delete (rest.jobs as W.WorkflowJobs)["test-e2e"]?.if;
       return createHash("sha256")
         .update(JSON.stringify(rest))

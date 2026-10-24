@@ -53,6 +53,7 @@ const EXPECTED_RUNS_ON: Record<
   "test-unit": "self-hosted",
   "acceptance-tests": "ubuntu-latest",
   "ci-gate": "ubuntu-latest",
+  "ci-gate-comment": "ubuntu-latest",
 };
 
 /** Spec rev 3 line 358 — exact timeout-minutes for moved jobs in ci.yml. */
