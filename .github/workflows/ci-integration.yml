@@ -93,6 +93,8 @@ jobs:
         env:
           DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
         run: bun x vitest run tests/unit/acceptance/issue-2067/reader-role.integration.acceptance.test.ts
+      - name: Verify identity email normalizer and donor keys (real stack)
+        run: bun x vitest run tests/unit/acceptance/issue-2254/identity.realstack.acceptance.test.ts
 
   smoke:
     needs: migrate
