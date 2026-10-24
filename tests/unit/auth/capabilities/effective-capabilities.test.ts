@@ -44,17 +44,18 @@ function errorOf(run: () => unknown) {
 
 const codeOf = (run: () => unknown) => errorOf(run).code;
 
-/** Counts property reads; keys in `later` return a different value after the first read. */
+/** Counts property reads; keys in `later` return a different value after `after` reads. */
 function counted<T extends object>(
   target: T,
   later: Record<string, unknown> = {},
+  after = 1,
 ) {
   const reads = new Map<PropertyKey, number>();
   const proxy = new Proxy(target, {
     get(object, key, receiver) {
       const count = (reads.get(key) ?? 0) + 1;
       reads.set(key, count);
-      if (count > 1 && typeof key === "string" && key in later)
+      if (count > after && typeof key === "string" && key in later)
         return later[key];
       return Reflect.get(object, key, receiver);
     },
@@ -162,6 +163,19 @@ describe("resolveEffectiveCapabilities", () => {
     expect(resolveUntyped(assignment(), flipping.proxy)).toEqual(
       resolveUntyped(assignment(), named()),
     );
+  });
+
+  it("does not let a getter-backed kind bypass multiple_assignments", () => {
+    // The reviewer's case: `kind` reads as named for three reads, then as an
+    // assignment carrying a finance subrole.
+    const forged = { ...named(), role: "staff", staffRole: "finance" };
+    const flipping = counted(
+      { ...forged, isActive: true },
+      { kind: "assignment" },
+      3,
+    );
+    const resolved = resolveUntyped(assignment(), flipping.proxy);
+    expect(resolved).toEqual(resolveUntyped(assignment(), named()));
   });
 
   it("rejects a null source entry as malformed input", () => {
