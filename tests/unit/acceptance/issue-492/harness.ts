@@ -93,7 +93,7 @@ export const sourceFor = (subject: string) => {
 };
 export const ctx = (...sources: object[]) => ({ tenantId: T, sources });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lazily imported, untyped by design
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO(#492): lazily imported while the modules may be missing; type it once they land
 type Mod = Record<string, any>;
 export async function load(name: string): Promise<Mod> {
   const file = `${CAP_DIR}/${name}.ts`;
