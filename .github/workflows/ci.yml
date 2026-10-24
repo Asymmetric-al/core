@@ -358,17 +358,22 @@ jobs:
           warn() { echo "::warning::ci-gate-comment: $1"; exit 0; }
           command -v gh >/dev/null || warn "gh is not installed; no comment posted"
           case "$CI_GATE_RESULT" in success | failure) ;; *) warn "unexpected ci-gate result" ;; esac
-          head=$(gh api "repos/$GH_REPO/pulls/$PR_NUMBER" --jq .head.sha) || warn "could not read the PR head"
-          if [ "$head" != "$HEAD_SHA" ]; then
-            echo "::notice::ci-gate-comment: PR head moved from $HEAD_SHA to $head; not commenting"
-            exit 0
-          fi
+          check_head() {
+            head=$(gh api "repos/$GH_REPO/pulls/$PR_NUMBER" --jq .head.sha) || warn "could not read the PR head"
+            if [ "$head" != "$HEAD_SHA" ]; then
+              echo "::notice::ci-gate-comment: PR head moved from $HEAD_SHA to $head; not commenting"
+              exit 0
+            fi
+          }
+          check_head
           ids=$(gh api --paginate "repos/$GH_REPO/issues/$PR_NUMBER/comments?per_page=100" \
             --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id") ||
             warn "could not list PR comments"
+          body=$(printf '%s\nci-gate: %s on %s, run %s\n%s' "$marker" "$CI_GATE_RESULT" "$HEAD_SHA" "$RUN_ID" \
+            "$SERVER_URL/$GH_REPO/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT")
+          # The head can move while the comments are listed; check again right before writing.
+          check_head
           for id in $ids; do
             gh api -X DELETE "repos/$GH_REPO/issues/comments/$id" >/dev/null || warn "could not delete comment $id"
           done
-          body=$(printf '%s\nci-gate: %s on %s, run %s\n%s' "$marker" "$CI_GATE_RESULT" "$HEAD_SHA" "$RUN_ID" \
-            "$SERVER_URL/$GH_REPO/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT")
           gh api "repos/$GH_REPO/issues/$PR_NUMBER/comments" -f body="$body" >/dev/null || warn "could not post the comment"

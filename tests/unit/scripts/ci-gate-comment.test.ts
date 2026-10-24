@@ -1,7 +1,7 @@
 /**
  * Runs the real `ci-gate-comment` step body from ci.yml against a stub `gh`
- * on PATH (#2221): create, delete-then-repost, foreign marker, stale head and
- * a 403 from a read-only token.
+ * on PATH (#2221): create, delete-then-repost, foreign marker, stale head (before
+ * and after the comment list) and a 403 from a read-only token.
  */
 
 import { spawnSync } from "node:child_process";
@@ -31,6 +31,8 @@ const HEAD = "1234567890abcdef1234567890abcdef12345678";
 type Comment = { id: number; login: string; body: string };
 type State = {
   head: string;
+  /** Heads returned by successive pulls/{n} reads before falling back to `head`. */
+  heads?: string[];
   comments: Comment[];
   failMethod?: string;
   calls: string[];
@@ -59,7 +61,7 @@ const done = (out, code = 0) => {
 };
 if (s.failMethod === method) { process.stderr.write("HTTP 403\\n"); done(undefined, 1); }
 if (method === "GET" && endpoint.endsWith("/comments")) done(s.comments.map((c) => ({ id: c.id, user: { login: c.login }, body: c.body })));
-if (method === "GET") done({ head: { sha: s.head } });
+if (method === "GET") done({ head: { sha: (s.heads || []).shift() || s.head } });
 if (method === "DELETE") { const id = Number(endpoint.split("/").pop()); s.comments = s.comments.filter((c) => c.id !== id); done(); }
 s.comments.push({ id: 900 + s.calls.length, login: "${BOT}", body });
 done({});
@@ -115,6 +117,7 @@ describe("ci-gate-comment run body", () => {
     expect(out.calls).toEqual([
       `GET repos/${REPO}/pulls/42`,
       `GET repos/${REPO}/issues/42/comments`,
+      `GET repos/${REPO}/pulls/42`,
       postCall,
     ]);
     expect(out.comments).toEqual([
@@ -127,7 +130,7 @@ describe("ci-gate-comment run body", () => {
     const old = { id: 5, login: BOT, body: `${MARKER}\nci-gate: success` };
     const unmarked = { id: 6, login: BOT, body: `note\n${MARKER}` };
     const out = run({ comments: [old, unmarked] });
-    expect(out.calls.slice(2)).toEqual([
+    expect(out.calls.slice(3)).toEqual([
       `DELETE repos/${REPO}/issues/comments/5`,
       postCall,
     ]);
@@ -149,6 +152,20 @@ describe("ci-gate-comment run body", () => {
     const old = { id: 8, login: BOT, body: `${MARKER}\nold` };
     const out = run({ head: "f".repeat(40), comments: [old] });
     expect(out.calls).toEqual([`GET repos/${REPO}/pulls/42`]);
+    expect(out.comments).toEqual([old]);
+    expect(out.output).toContain("::notice::");
+  });
+
+  it("writes nothing when the PR head moves while the comments are listed", () => {
+    const old = { id: 9, login: BOT, body: `${MARKER}\nold` };
+    const out = run({ heads: [HEAD, "e".repeat(40)], comments: [old] });
+    expect(out.calls).toEqual([
+      `GET repos/${REPO}/pulls/42`,
+      `GET repos/${REPO}/issues/42/comments`,
+      `GET repos/${REPO}/pulls/42`,
+    ]);
+    expect(out.calls.filter((c) => c.startsWith("DELETE"))).toEqual([]);
+    expect(out.calls.filter((c) => c.startsWith("POST"))).toEqual([]);
     expect(out.comments).toEqual([old]);
     expect(out.output).toContain("::notice::");
   });
