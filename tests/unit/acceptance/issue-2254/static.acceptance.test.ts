@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import {
   DOC,
   FP,
+  INLINE,
   MIGRATIONS,
   V2,
   migrationFile,
@@ -33,13 +34,13 @@ const missing = (text: string, pats: (string | RegExp)[]) =>
     .map(String);
 
 describe("#2254 migration text", () => {
-  it("criterion 2 + In 1: UTF8 assertion first, then statements (a)-(h) in order", () => {
+  it("criterion 2 + In 1 + Q1: UTF8 assertion, inlined pre-check, then function and DDL in order", () => {
     const sql = migrationSql();
     let pos = 0;
     const order = [
       /pg_encoding_to_char\s*\(\s*encoding\s*\)/i,
+      INLINE,
       /CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.normalize_email\b/i,
-      /\bDO\s+\$/i,
       /ADD\s+COLUMN\s+(?:IF\s+NOT\s+EXISTS\s+)?email_normalized\b/i,
       /ADD\s+COLUMN\s+(?:IF\s+NOT\s+EXISTS\s+)?email_verified_at\b/i,
       /UNIQUE\s*\(\s*tenant_id\s*,\s*profile_id\s*\)/i,
@@ -49,14 +50,23 @@ describe("#2254 migration text", () => {
       const i = pos < 0 ? -1 : sql.slice(pos).search(re);
       return (pos = i < 0 ? -1 : pos + i + 1);
     });
-    expect(order, "(a)-(h) all present, in this order").not.toContain(-1);
+    expect(order, "all statements present, in this order").not.toContain(-1);
     expect(sql).toMatch(/current_database\s*\(\s*\)/i);
     expect(sql).toMatch(/'UTF8'/);
     expect(sql.slice(0, order[1])).toMatch(/RAISE\s+EXCEPTION/i);
+    const pre = sql.slice(0, order[2]);
     expect(
-      sql.slice(0, order[2]),
-      "no table DDL before the preflight",
-    ).not.toMatch(/ALTER\s+TABLE/i);
+      /ALTER\s+TABLE|CREATE\s/i.test(pre),
+      "no DDL before the pre-check",
+    ).toBe(false);
+    expect(
+      /normalize_email\s*\(/i.test(pre),
+      "pre-check inlines, no normalize_email call",
+    ).toBe(false);
+    expect(
+      /HAVING\s+count\s*\(/i.test(pre),
+      "pre-check groups duplicates",
+    ).toBe(true);
   });
   it("criterion 1 + Q9: normalizer signature, attributes and exact body", () => {
     const sql = flat(migrationSql());
@@ -315,14 +325,12 @@ describe("#2254 criteria 12 + 13: docs", () => {
   ] as const)("%s", (_t, pats) => {
     expect(missing(doc(), [...pats]), `${DOC} (In 5)`).toEqual([]);
   });
-  it("publishes a read-only ```sql Q10 preflight grouping by normalize_email (criterion 7)", () => {
+  it("publishes a read-only ```sql Q10 preflight with the inlined expression (criterion 7, Q2)", () => {
     const q = [...read(DOC).matchAll(/```sql\n([\s\S]*?)```/gi)]
       .map((m) => m[1]!)
-      .find(
-        (b) =>
-          /normalize_email\s*\(/i.test(b) && /HAVING\s+count\s*\(/i.test(b),
-      );
+      .find((b) => INLINE.test(b) && /HAVING\s+count\s*\(/i.test(b));
     expect(q, "preflight block").toBeDefined();
+    expect(/normalize_email/i.test(q!), "no normalize_email call").toBe(false);
     expect(missing(q!, ["profile_id", "tenant_id"])).toEqual([]);
     expect(
       /\b(?:INSERT|UPDATE|DELETE|ALTER|DROP|CREATE|TRUNCATE|MERGE)\b/i.test(q!),

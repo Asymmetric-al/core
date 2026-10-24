@@ -44,6 +44,19 @@ export function migrationFile(): string {
 export const migrationSql = () =>
   read(`${MIGRATIONS}/${migrationFile()}`).replace(/--[^\n]*/g, "");
 
+/** Q1 ruling: the pre-check's inlined `btrim(lower(normalize(<col>, NFKC)), E'…')`. */
+export const INLINE =
+  /btrim\s*\(\s*lower\s*\(\s*normalize\s*\(\s*([\w."]+)\s*,\s*nfkc\s*\)\s*\)\s*,\s*e'[^']*'\s*\)/i;
+/** The migration's inline expression applied to a SQL literal, NULL when blank. */
+export const inlineOf = (literal: string) => {
+  const m = migrationSql().match(INLINE);
+  expect(
+    m,
+    "inlined normalization expression in the pre-check (Q1)",
+  ).not.toBeNull();
+  return `NULLIF(${m![0].replace(m![1]!, literal)}, '')`;
+};
+
 /** Q9 parity fixture: [SQL literal, expected]; expectations follow the rule. */
 export const FIXTURE: [string, string | null][] = [
   ["' Foo@Bar.COM '", "foo@bar.com"],

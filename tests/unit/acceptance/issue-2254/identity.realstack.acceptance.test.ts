@@ -22,6 +22,7 @@ import {
   NEW_ROWS,
   ROOT,
   forwardMigrations,
+  inlineOf,
   migrationFile,
   psql,
 } from "./harness";
@@ -65,6 +66,16 @@ describe.skipIf(!local)("#2254 real stack (DATABASE_URL)", () => {
         `SELECT coalesce(public.normalize_email(${input}), '<NULL>');`,
       );
       expect(out).toBe(expected ?? "<NULL>");
+    },
+  );
+  it.each(FIXTURE)(
+    "Q1: the pre-check's inline expression agrees with normalize_email on %s",
+    (input) => {
+      expect(
+        q(
+          `SELECT ${inlineOf(input)} IS NOT DISTINCT FROM public.normalize_email(${input});`,
+        ),
+      ).toBe("t");
     },
   );
   it('criterion 1: one normalize_email, IMMUTABLE STRICT PARALLEL SAFE, search_path=""', () => {
