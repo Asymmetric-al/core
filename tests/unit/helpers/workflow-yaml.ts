@@ -336,6 +336,10 @@ export const MODELLED_KEYS_BY_JOB: Record<
         "env",
         "run",
       ],
+      "name:Verify identity email normalizer and donor keys (real stack)": [
+        "name",
+        "run",
+      ],
     },
   },
   smoke: {
@@ -395,8 +399,9 @@ export const MODELLED_KEYS_BY_JOB: Record<
 /**
  * Steps pinned beyond their keys: exact position in the job, exact `run:` body
  * (trimmed) and exact step `env` values. The migrate "Verify document-cutover
- * reader role (real stack)" step (from develop #2169) is the only one; its
- * DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL must be exactly `${{ env.DATABASE_URL }}`.
+ * reader role (real stack)" step (from develop #2169) pins
+ * DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL to exactly `${{ env.DATABASE_URL }}`;
+ * the #2254 identity step after it has no step `env` (it uses the job's).
  */
 export const PINNED_STEP_BODIES: Record<
   string,
@@ -412,6 +417,11 @@ export const PINNED_STEP_BODIES: Record<
       env: {
         DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}",
       },
+    },
+    "name:Verify identity email normalizer and donor keys (real stack)": {
+      index: 15,
+      run: "bun x vitest run tests/unit/acceptance/issue-2254/identity.realstack.acceptance.test.ts",
+      env: {},
     },
   },
 };
