@@ -107,6 +107,10 @@ jobs:
         env:
           TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
         run: bun x vitest run tests/unit/acceptance/issue-2251/rls-posture.realstack.acceptance.test.ts
+      - name: Verify claim tables (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/acceptance/issue-2255/claim-tables.realstack.acceptance.test.ts
 
   smoke:
     needs: migrate
