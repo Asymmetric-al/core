@@ -135,3 +135,18 @@ protection against a mis-scoped service-role write.
   fails while these generated columns exist.
 - Once #509/#510 write real rows, the rollback deletes them. Decide before
   running it.
+
+## Deploy: lock timeout
+
+The forward file runs `SET LOCAL lock_timeout = '5s'` right after `BEGIN;`.
+
+- Creating the foreign keys takes `SHARE ROW EXCLUSIVE` locks on
+  `public.tenants`, `public.donors` and `auth.users`, held until `COMMIT`. They
+  block writes to those tables, not plain reads. Without the timeout, a
+  long-running transaction that holds a conflicting lock (for example one that
+  has written to `donors`) would make the migration wait, and every later write
+  to that table, `auth.users` included, would queue behind it.
+- On SQLSTATE `55P03` (`lock_not_available`) the transaction rolls back and
+  nothing is applied. Re-run it in a quiet window.
+- `lock_timeout` bounds only the wait to acquire a lock, not the time spent
+  once the lock is held.

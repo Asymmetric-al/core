@@ -19,8 +19,19 @@
 --
 -- Both tables are new and empty, so constraints are inline and indexes are
 -- plain CREATE INDEX. Re-running the file changes nothing.
+--
+-- Deploy: creating the foreign keys takes SHARE ROW EXCLUSIVE locks on
+-- public.tenants, public.donors and auth.users, held until COMMIT. They block
+-- writes to those tables, not plain reads. SET LOCAL lock_timeout = '5s' stops
+-- a long-running transaction that holds a conflicting lock (for example one
+-- that has written to donors) from making this migration wait with every later
+-- write to that table, auth.users included, queued behind it. On SQLSTATE
+-- 55P03 (lock_not_available) nothing is applied: re-run it in a quiet window.
+-- lock_timeout bounds only the wait to acquire a lock, not the time spent once
+-- the lock is held.
 
 BEGIN;
+SET LOCAL lock_timeout = '5s';
 
 -- 1. Claim requests: one request to claim a donor record.
 CREATE TABLE IF NOT EXISTS public.account_claim_requests (
