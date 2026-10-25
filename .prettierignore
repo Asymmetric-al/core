@@ -93,3 +93,6 @@ tests/fixtures/skills/emil-upstream/
 
 # Verbatim owner release record; refresh from the reviewed upstream commit.
 docs/maintenance/modernization/pdf-owner-release.json
+
+# One reviewed entry per line; shape checked by tests/unit/scripts/rls-deny-by-default-exceptions.test.ts.
+docs/security/rls-deny-by-default-exceptions.json
