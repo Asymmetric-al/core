@@ -187,4 +187,13 @@ WHERE d.tenant_id IS NULL OR dn.tenant_id IS DISTINCT FROM d.tenant_id
 ORDER BY d.id;
 ```
 
-**Deploy step.** Run the query on a preview database, then on production, and stop if it returns any rows; fixing data is a separate issue. Apply in version order, in a quiet window: the transaction holds `SHARE ROW EXCLUSIVE` on `donations` and `donors` through the `VALIDATE` scan, and the final drop of `donations_donor_id_fkey` takes `ACCESS EXCLUSIVE` on both until `COMMIT`. `lock_timeout = '5s'` makes it fail fast instead of queueing. Apply the whole file, and don't reload the PostgREST schema cache mid-apply. The rollback, `rollback_20261025080000_donations_composite_donor_fk.sql`, re-adds and validates `donations_donor_id_fkey` before dropping the composite FK and the CHECK, in one transaction; it needs a quiet window too.
+**Deploy step.** Run the query on a preview database, then on production, and stop if it returns any rows; fixing data is a separate issue. Apply in version order, in a quiet window long enough to cover both full `VALIDATE` scans of `donations`. The migration is one transaction, and each lock below (traced on PostgreSQL 17) is held until `COMMIT`:
+
+| Statement                                       | `donations`              | `donors`              |
+| ----------------------------------------------- | ------------------------ | --------------------- |
+| `ADD … CHECK … NOT VALID`                       | `ACCESS EXCLUSIVE`       | none                  |
+| `ADD … FOREIGN KEY … NOT VALID`                 | `SHARE ROW EXCLUSIVE`    | `SHARE ROW EXCLUSIVE` |
+| `VALIDATE` (the CHECK, then the FK)             | `SHARE UPDATE EXCLUSIVE` | `ROW SHARE` (FK only) |
+| final `DROP CONSTRAINT donations_donor_id_fkey` | `ACCESS EXCLUSIVE`       | `ACCESS EXCLUSIVE`    |
+
+So reads and writes on `donations` block from the `CHECK` add, through both `VALIDATE` scans, until `COMMIT`. Writes on `donors` block from the FK add, and reads on `donors` block after the final drop. `lock_timeout = '5s'` bounds only the wait to acquire each lock, so a busy table makes the migration fail fast instead of queueing; it does not bound the scans once the locks are held. Apply the whole file, and don't reload the PostgREST schema cache mid-apply. The rollback, `rollback_20261025080000_donations_composite_donor_fk.sql`, re-adds and validates `donations_donor_id_fkey` before dropping the composite FK and the CHECK, in one transaction; it needs a quiet window too.

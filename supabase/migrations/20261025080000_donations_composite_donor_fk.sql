@@ -31,10 +31,20 @@
 -- ORDER BY d.id;
 --
 -- Deploy: run the query on preview, then production, and stop if it returns
--- any rows. Apply in a quiet window: SHARE ROW EXCLUSIVE on donations and
--- donors is held through the VALIDATE scan, and the final DROP takes ACCESS
--- EXCLUSIVE on both until COMMIT. lock_timeout = 5s fails fast instead of
--- queueing. Apply the whole file; don't reload the PostgREST schema mid-apply.
+-- any rows. Locks per statement (traced on PostgreSQL 17), each held until
+-- COMMIT:
+--   ADD ... CHECK ... NOT VALID        ACCESS EXCLUSIVE on donations
+--   ADD ... FOREIGN KEY ... NOT VALID  SHARE ROW EXCLUSIVE on donations and donors
+--   VALIDATE (CHECK, then FK)          SHARE UPDATE EXCLUSIVE on donations,
+--                                      plus ROW SHARE on donors for the FK
+--   DROP donations_donor_id_fkey       ACCESS EXCLUSIVE on donations and donors
+-- So reads and writes on donations block from the CHECK add, through both
+-- VALIDATE scans, until COMMIT. Writes on donors block from the FK add, and
+-- reads on donors block after the final DROP. lock_timeout = 5s bounds only
+-- the wait to acquire each lock, so a busy table fails fast instead of
+-- queueing; it does not bound the scans once the locks are held. Apply in a
+-- quiet window long enough to cover both full VALIDATE scans of donations.
+-- Apply the whole file; don't reload the PostgREST schema mid-apply.
 --
 -- Down: supabase/migrations/rollback_20261025080000_donations_composite_donor_fk.sql
 -- re-adds and validates donations_donor_id_fkey, then drops the composite FK
