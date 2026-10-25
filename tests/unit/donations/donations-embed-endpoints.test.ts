@@ -2,7 +2,8 @@
  * #2269 (U): the five donations reads through a real supabase-js client whose
  * fetch is a PostgREST-shaped stub. Covers what runs in every unit job: the
  * select each site sends, the OQ1 donor mapping (profiled and guest), the
- * no-row paths and the success read-backs. The injected error paths live in
+ * no-row paths, the success read-backs and the double-gift guard (a failed
+ * read-back after the gift exists). The other injected error paths live in
  * the Acceptance (P) suite.
  */
 import { createClient } from "@supabase/supabase-js";
@@ -21,6 +22,15 @@ const s = vi.hoisted(() => ({
   auth: null as unknown,
   tables: new Map<string, Row[]>(),
   requests: [] as URL[],
+  methods: [] as string[],
+  /** Makes every donations request fail with develop's real PGRST200 body. */
+  failDonations: false,
+  intake: vi.fn(() => ({
+    donationId: "gift-1",
+    outboxId: "outbox-1",
+    replayed: false,
+  })),
+  saga: vi.fn(() => ({ status: "completed" })),
 }));
 
 vi.mock("@asym/auth/context", async (orig) => ({
@@ -32,6 +42,15 @@ vi.mock("@asym/database/supabase/admin", () => {
   const fetchStub = async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input));
     s.requests.push(url);
+    s.methods.push(init?.method ?? "GET");
+    if (s.failDonations && url.pathname.endsWith("/donations")) {
+      const message =
+        "Could not find a relationship between 'donations' and 'profiles' in the schema cache";
+      return Response.json(
+        { code: "PGRST200", message, details: null },
+        { status: 400 },
+      );
+    }
     const rows = s.tables.get(url.pathname.split("/").pop()!) ?? [];
     const accept = new Headers(init?.headers).get("accept") ?? "";
     const one = accept.includes("vnd.pgrst.object");
@@ -54,22 +73,13 @@ vi.mock("../../../packages/api/src/stripe/tenant-client", () => ({
   resolveTenantStripe: async () => ({ ok: true, stripe: {} }),
 }));
 vi.mock("../../../packages/api/src/donate/saga", () => ({
-  processDonationSagaOutboxEvent: async () => ({ status: "completed" }),
+  processDonationSagaOutboxEvent: async () => s.saga(),
 }));
 vi.mock("../../../packages/api/src/donate/begin-gift-intake", () => ({
-  beginGiftIntake: async () => ({
-    ok: true,
-    donationId: "gift-1",
-    outboxId: "outbox-1",
-    replayed: false,
-  }),
+  beginGiftIntake: async () => ({ ok: true, ...s.intake() }),
 }));
 vi.mock("../../../packages/graphql/gift-intake", () => ({
-  beginGraphQLGiftIntake: async () => ({
-    donationId: "gift-1",
-    outboxId: "outbox-1",
-    replayed: false,
-  }),
+  beginGraphQLGiftIntake: async () => s.intake(),
 }));
 
 const T = "tenant-a";
@@ -153,7 +163,15 @@ const mappedMissionary = { id: missionary.id, profile: { id: "profile-m" } };
 beforeEach(() => {
   s.tables.clear();
   s.requests.length = 0;
+  s.methods.length = 0;
+  s.failDonations = false;
 });
+/** One intake, no write besides it, and the PostgREST error text never sent. */
+function expectSingleGift(body: string) {
+  expect(s.intake).toHaveBeenCalledTimes(1);
+  expect(s.methods.every((m) => m === "GET")).toBe(true);
+  expect(body).not.toMatch(/PGRST|relationship|schema cache/i);
+}
 
 describe("#2269 GraphQL donations reads (U)", () => {
   it("myDonations maps a profiled donor and returns null donor for a guest (C2)", async () => {
@@ -231,6 +249,22 @@ describe("#2269 GraphQL donations reads (U)", () => {
     });
     expect(donationsRequest().searchParams.get("id")).toBe("eq.gift-1");
   });
+
+  it("createDonation with a failed read-back raises DONATION_READBACK_FAILED with the donationId (T1)", async () => {
+    [s.auth, s.failDonations] = [as("profile-d", "donor"), true];
+    const r = await gql(
+      `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: 2500 }) { id } }`,
+    );
+    expect(r.data).toBeNull();
+    expect(r.errors).toEqual([
+      expect.objectContaining({
+        message: "Donation was created but could not be read back",
+        extensions: { code: "DONATION_READBACK_FAILED", donationId: "gift-1" },
+      }),
+    ]);
+    expectSingleGift(JSON.stringify(r));
+    expect(s.saga).not.toHaveBeenCalled();
+  });
 });
 
 describe("#2269 REST /api/donations (U)", () => {
@@ -265,5 +299,21 @@ describe("#2269 REST /api/donations (U)", () => {
       donationId: "gift-1",
     });
     expect(donationsRequest().searchParams.get("id")).toBe("eq.gift-1");
+  });
+
+  it('POST with a failed read-back after the saga still answers 201 { donation: null, donationId, readBack: "failed" } (T1)', async () => {
+    [s.auth, s.failDonations] = [as("profile-d", "donor"), true];
+    const res = await POST(
+      rest("POST", { missionaryId: missionary.id, amount: 2500 }),
+    );
+    const body = await res.text();
+    expect(res.status).toBe(201);
+    expect(JSON.parse(body)).toEqual({
+      donation: null,
+      donationId: "gift-1",
+      readBack: "failed",
+    });
+    expectSingleGift(body);
+    expect(s.saga).toHaveBeenCalledTimes(1);
   });
 });
