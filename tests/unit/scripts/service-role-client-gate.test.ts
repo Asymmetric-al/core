@@ -1,9 +1,15 @@
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
   CEILING,
   ceilingDigest,
   evaluateServiceRoleClientGate,
+  runServiceRoleClientGate,
   scanSource,
 } from "../../../scripts/verify/service-role-client-gate.mjs";
 
@@ -164,5 +170,41 @@ describe("evaluateServiceRoleClientGate", () => {
         /^REEXPORT admin_client .*posts\/index\.ts:1: .*never allowlisted/,
       ),
     ]);
+  });
+});
+
+describe("test-path exclusions are anchored (review F2)", () => {
+  it("skips root tests/ and *.test.* file names only, not nested tests/ dirs or dotted dir names", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "srcg-f2-"));
+    const site = `import { getAdminClient } from "${FACTORY}";\ngetAdminClient();\n`;
+    const files = [
+      "apps/admin/app/api/tests/route.ts",
+      "apps/admin/app/example.test.com/route.ts",
+      "tests/unit/root-fixture.ts",
+      "apps/x/foo.test.ts",
+      "apps/x/foo.spec.tsx",
+    ];
+    for (const f of [
+      ...files,
+      "docs/security/service-role-client-allowlist.json",
+    ]) {
+      mkdirSync(path.dirname(path.join(root, f)), { recursive: true });
+      writeFileSync(
+        path.join(root, f),
+        f.endsWith(".json") ? '{"version":1,"entries":[]}' : site,
+      );
+    }
+    spawnSync("git", ["init", "-q"], { cwd: root });
+    try {
+      const flagged = runServiceRoleClientGate({ root }).found.sites.map(
+        (s: { file: string }) => s.file,
+      );
+      expect(flagged).toEqual([
+        "apps/admin/app/api/tests/route.ts",
+        "apps/admin/app/example.test.com/route.ts",
+      ]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

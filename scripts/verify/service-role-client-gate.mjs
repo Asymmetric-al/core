@@ -53,8 +53,14 @@ const MODULES = [
 ];
 const SCAN_ROOTS = ["apps", "packages", "scripts", "tooling"];
 const SOURCE_RE = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
-const EXCLUDED_RE =
-  /\.d\.ts$|\.(test|spec)\.|(^|\/)(__tests__|e2e|tests|node_modules|\.next|dist)\//;
+// Root tests/ only; *.test.*, *.spec.* and *.d.ts by file name; the
+// directory names below at any depth.
+const EXCLUDED_DIR_RE = /(^|\/)(__tests__|e2e|node_modules|\.next|dist)\//;
+const EXCLUDED_NAME_RE = /\.d\.ts$|\.(test|spec)\./;
+export const isExcluded = (file) =>
+  file.startsWith("tests/") ||
+  EXCLUDED_NAME_RE.test(path.posix.basename(file)) ||
+  EXCLUDED_DIR_RE.test(file);
 export const isExempt = (file) =>
   file === "packages/database/supabase/admin.ts" ||
   file.startsWith("packages/api/src/identity/");
@@ -443,7 +449,7 @@ export function listScannedFiles(root = repoRoot) {
   if (r.status !== 0)
     throw new Error(`git ls-files failed: ${r.stderr || r.error}`);
   return [...new Set(r.stdout.split("\0"))]
-    .filter((f) => SOURCE_RE.test(f) && !EXCLUDED_RE.test(f) && !isExempt(f))
+    .filter((f) => SOURCE_RE.test(f) && !isExcluded(f) && !isExempt(f))
     .filter((f) => existsSync(path.join(root, f)))
     .sort();
 }
