@@ -9,7 +9,7 @@ import { existsSync, readFileSync } from "node:fs";
  * is a reservation (§7); if Samson renumbers it, change only this line.
  */
 export const MIGRATION =
-  "supabase/migrations/20261025040000_donations_composite_donor_fk.sql";
+  "supabase/migrations/20261025080000_donations_composite_donor_fk.sql";
 /** Spec §2 In 2: the rollback is `rollback_` + the migration's file name. */
 export const ROLLBACK = MIGRATION.replace(/([^/]+)$/, "rollback_$1");
 export const DOC = "docs/security/tenant-guard.md";
