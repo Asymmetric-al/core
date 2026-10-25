@@ -235,11 +235,11 @@ describe("#2269 GraphQL donations reads (U)", () => {
     expect(r.errors?.[0]?.extensions?.code).toBe("DONATIONS_QUERY_FAILED");
   });
 
-  it("createDonation returns the read-back donation with its donor (C6)", async () => {
+  it("createDonation (uppercase ids, currency) returns the read-back donation with its donor (C6)", async () => {
     s.auth = as("profile-d", "donor");
     s.tables.set("donations", [donation("gift-1", profiled)]);
     const r = await gql(
-      `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: 2500, currency: "USD" }) { ${FIELDS} } }`,
+      `mutation { createDonation(input: { missionaryId: "${missionary.id.toUpperCase()}", amount: 2500, currency: "USD" }) { ${FIELDS} } }`,
     );
     expect(r.errors).toBeUndefined();
     // The intake gets the currency lowercased, as the saga stores it.
@@ -292,12 +292,12 @@ describe("#2269 REST /api/donations (U)", () => {
     expect(await res.json()).toEqual({ donations: [] });
   });
 
-  it("POST returns 201 { donation, donationId } when the read-back succeeds (C5)", async () => {
+  it("POST (uppercase ids, currency) returns 201 { donation, donationId } when the read-back succeeds (C5)", async () => {
     s.auth = as("profile-d", "donor");
     s.tables.set("donations", [donation("gift-1", profiled)]);
     const res = await POST(
       rest("POST", {
-        missionaryId: missionary.id,
+        missionaryId: missionary.id.toUpperCase(),
         amount: 2500,
         currency: " USD ",
       }),
@@ -404,28 +404,6 @@ describe("#2269 C8: a REST replay is confirmed before its saga runs (U)", () => 
       );
       expect([res.status, await res.json()]).toEqual([status, json]);
       expect(s.saga).not.toHaveBeenCalled();
-    },
-  );
-});
-
-describe("#2269 C8: an uppercase missionaryId is the same missionary (U)", () => {
-  it.each(["REST POST", "GraphQL createDonation"])(
-    "%s answers with the created gift, not 409",
-    async (via) => {
-      s.auth = as("profile-d", "donor");
-      s.tables.set("donations", [donation("gift-1", profiled)]);
-      const id = missionary.id.toUpperCase();
-      if (via === "REST POST") {
-        const res = await POST(
-          rest("POST", { missionaryId: id, amount: 2500 }),
-        );
-        expect(res.status).toBe(201);
-      } else {
-        const r = await gql(
-          `mutation { createDonation(input: { missionaryId: "${id}", amount: 2500 }) { id } }`,
-        );
-        expect(r).toEqual({ data: { createDonation: { id: "gift-1" } } });
-      }
     },
   );
 });
