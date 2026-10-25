@@ -290,6 +290,10 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "#2251 Builder 2039d580", hash: "57928e0ae6a0a428" },
     // #2255: Builder 6446bb59 adds migrate step 19 (claim tables)
     { ref: "#2255 Builder 6446bb59", hash: "52490f9e8ed02dcd" },
+    // #2252: Builder 03a8d5b2 adds migrate step 19 (donor spine composite FKs)
+    { ref: "#2252 Builder 03a8d5b2", hash: "d53818aa481a0738" },
+    // #2252 synced on develop d1f0af94: Builder 70d1497a, donor spine step moves to migrate 20 (after #2255's 19)
+    { ref: "#2252 Builder 70d1497a", hash: "1672e709e8080c86" },
     // #2253: Builder 88aeebc2 adds migrate step 19 (RLS catalog gate)
     { ref: "#2253 Builder 88aeebc2", hash: "ec63a22095a74446" },
     // #2253 sync: Builder c9f11d54 (develop d1f0af94 merged) has both, #2253's step now 20
