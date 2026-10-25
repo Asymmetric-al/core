@@ -138,7 +138,7 @@ Apply to a preview database first. Before each apply, run `select rolname, rolsu
 
 ## Composite tenant FKs
 
-The donor spine cannot reference across tenants. Introduced by #2252 (slice 3 of #505), migration `20261025040000_donations_composite_donor_fk.sql`. Each spine FK is `(tenant_id, <col>) → donors(tenant_id, id)` on the existing `donors_tenant_id_id_uidx`, validated, so the database refuses a donor from another tenant for every writer, `service_role` and BYPASSRLS owners included: FK checks ignore RLS and roles. Reads stay RLS's job.
+The donor spine cannot reference across tenants. Introduced by #2252 (slice 3 of #505), migration `20261025080000_donations_composite_donor_fk.sql`. Each spine FK is `(tenant_id, <col>) → donors(tenant_id, id)` on the existing `donors_tenant_id_id_uidx`, validated, so the database refuses a donor from another tenant for every writer, `service_role` and BYPASSRLS owners included: FK checks ignore RLS and roles. Reads stay RLS's job.
 
 The seven spine FKs:
 
@@ -187,4 +187,4 @@ WHERE d.tenant_id IS NULL OR dn.tenant_id IS DISTINCT FROM d.tenant_id
 ORDER BY d.id;
 ```
 
-**Deploy step.** Run the query on a preview database, then on production, and stop if it returns any rows; fixing data is a separate issue. Apply in version order, in a quiet window: the transaction holds `SHARE ROW EXCLUSIVE` on `donations` and `donors` through the `VALIDATE` scan, and the final drop of `donations_donor_id_fkey` takes `ACCESS EXCLUSIVE` on both until `COMMIT`. `lock_timeout = '5s'` makes it fail fast instead of queueing. Apply the whole file, and don't reload the PostgREST schema cache mid-apply. The rollback, `rollback_20261025040000_donations_composite_donor_fk.sql`, re-adds and validates `donations_donor_id_fkey` before dropping the composite FK and the CHECK, in one transaction; it needs a quiet window too.
+**Deploy step.** Run the query on a preview database, then on production, and stop if it returns any rows; fixing data is a separate issue. Apply in version order, in a quiet window: the transaction holds `SHARE ROW EXCLUSIVE` on `donations` and `donors` through the `VALIDATE` scan, and the final drop of `donations_donor_id_fkey` takes `ACCESS EXCLUSIVE` on both until `COMMIT`. `lock_timeout = '5s'` makes it fail fast instead of queueing. Apply the whole file, and don't reload the PostgREST schema cache mid-apply. The rollback, `rollback_20261025080000_donations_composite_donor_fk.sql`, re-adds and validates `donations_donor_id_fkey` before dropping the composite FK and the CHECK, in one transaction; it needs a quiet window too.

@@ -36,7 +36,7 @@
 -- EXCLUSIVE on both until COMMIT. lock_timeout = 5s fails fast instead of
 -- queueing. Apply the whole file; don't reload the PostgREST schema mid-apply.
 --
--- Down: supabase/migrations/rollback_20261025040000_donations_composite_donor_fk.sql
+-- Down: supabase/migrations/rollback_20261025080000_donations_composite_donor_fk.sql
 -- re-adds and validates donations_donor_id_fkey, then drops the composite FK
 -- and the CHECK, in one transaction. It touches no data.
 --

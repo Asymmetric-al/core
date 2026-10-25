@@ -7,9 +7,9 @@ const read = (name: string) =>
     new URL(`../../../supabase/migrations/${name}`, import.meta.url),
     "utf8",
   );
-const migrationSql = read("20261025040000_donations_composite_donor_fk.sql");
+const migrationSql = read("20261025080000_donations_composite_donor_fk.sql");
 const rollbackSql = read(
-  "rollback_20261025040000_donations_composite_donor_fk.sql",
+  "rollback_20261025080000_donations_composite_donor_fk.sql",
 );
 /** Executable SQL only, whitespace-normalized. */
 const executable = (sql: string) =>
@@ -76,12 +76,12 @@ describe("donations composite donor FK migration (#2252)", () => {
         rollback.indexOf(`DROP CONSTRAINT IF EXISTS ${name}`),
         name,
       ).toBeGreaterThan(revalidated);
-    expect(rollbackSql).toMatch(/^-- Rollback for 20261025040000_/);
+    expect(rollbackSql).toMatch(/^-- Rollback for 20261025080000_/);
   });
 
   it("documents the Down path, the deploy preflight and the lock window", () => {
     const header = migrationSql.split(/^BEGIN;$/m)[0]!;
-    expect(header).toMatch(/^-- Down: .*rollback_20261025040000_/m);
+    expect(header).toMatch(/^-- Down: .*rollback_20261025080000_/m);
     expect(header).toMatch(/quiet window/);
     expect(header).toMatch(/counts only/);
   });
