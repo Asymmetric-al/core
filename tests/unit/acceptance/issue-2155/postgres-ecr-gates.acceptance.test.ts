@@ -292,6 +292,8 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "#2255 Builder 6446bb59", hash: "52490f9e8ed02dcd" },
     // #2253: Builder 88aeebc2 adds migrate step 19 (RLS catalog gate)
     { ref: "#2253 Builder 88aeebc2", hash: "ec63a22095a74446" },
+    // #2253 sync: Builder c9f11d54 (develop d1f0af94 merged) has both, #2253's step now 20
+    { ref: "#2253 Builder c9f11d54", hash: "06b4d8a5c2f60255" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(

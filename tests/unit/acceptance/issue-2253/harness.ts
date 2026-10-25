@@ -35,11 +35,12 @@ export const CI_STEP = {
   env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
   run: `bun x vitest run ${REALSTACK}`,
 };
-/** #2250's, #2270's and #2251's real-stack steps (never absolute indexes). */
+/** #2250's, #2270's, #2251's and (on develop since d1f0af94) #2255's real-stack steps (never absolute indexes). */
 export const AFTER_STEPS = [
   "Verify tenant isolation (real stack)",
   "Verify authz EXECUTE grants (real stack)",
   "Verify tenant table RLS posture (real stack)",
+  "Verify claim tables (real stack)",
 ];
 export const FACTORY = "@asym/database/supabase/admin";
 export const KINDS = [

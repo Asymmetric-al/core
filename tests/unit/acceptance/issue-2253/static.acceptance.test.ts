@@ -102,7 +102,7 @@ describe("#2253 static (1, 12)", () => {
 });
 
 describe("#2253 CI step (lead's ruling: own explicit-path migrate step, relative order only)", () => {
-  it(`migrate has exactly one '${CI_STEP.name}' step, exactly this env and run, after #2250's, #2270's and #2251's real-stack steps`, () => {
+  it(`migrate has exactly one '${CI_STEP.name}' step, exactly this env and run, after #2250's, #2270's, #2251's and #2255's real-stack steps`, () => {
     const steps = workflowJobs(loadWorkflowDocument(CII)).migrate?.steps ?? [];
     const idx = (n: string) => steps.findIndex((s) => s.name === n);
     expect(steps.filter((s) => s.name === CI_STEP.name)).toHaveLength(1);

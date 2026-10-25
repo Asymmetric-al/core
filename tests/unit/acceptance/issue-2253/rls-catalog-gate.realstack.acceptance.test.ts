@@ -149,25 +149,35 @@ it.runIf(IN_MIGRATE_JOB)(
   () => expect(ADMIN_URL).not.toBe(""),
 );
 
+/** Lead's ruling: the spec's tenant tables (public, relkind r/p, live tenant_id) and how many have policies, read from the replayed DB itself (not via the gate). */
+async function catalogCounts() {
+  const db = new pg.Client({ connectionString: ADMIN_URL });
+  await db.connect();
+  const { rows } =
+    await db.query(`select count(*)::int n, count(*) filter (where exists (select 1 from pg_policy p where p.polrelid = c.oid))::int pol
+      from pg_class c join pg_namespace s on s.oid = c.relnamespace where s.nspname = 'public' and c.relkind in ('r', 'p')
+      and exists (select 1 from pg_attribute a where a.attrelid = c.oid and a.attname = 'tenant_id' and a.attnum > 0 and not a.attisdropped)`);
+  await db.end();
+  return rows[0] as { n: number; pol: number };
+}
+const LISTED = 86;
+
 describe.skipIf(!ADMIN_URL)(
   "#2253 tenant RLS catalog gate (real stack)",
   () => {
-    it("6: the clean catalog is green: 143 tenant tables, 57 with policies, 86 listed, 0 stale", async () => {
+    it(`6: the clean catalog is green: every tenant table has a policy or is one of the ${LISTED} listed, 0 stale`, async () => {
       const r = run(shim(""));
       expect(r, JSON.stringify(r)).toMatchObject({ ok: true });
       expect(r.failures).toEqual([]);
-      const db = new pg.Client({ connectionString: ADMIN_URL });
-      await db.connect();
-      const { rows } =
-        await db.query(`select count(*)::int n, count(*) filter (where exists (select 1 from pg_policy p where p.polrelid = c.oid))::int pol
-      from pg_class c join pg_namespace s on s.oid = c.relnamespace where s.nspname = 'public' and c.relkind in ('r', 'p')
-      and exists (select 1 from pg_attribute a where a.attrelid = c.oid and a.attname = 'tenant_id' and a.attnum > 0 and not a.attisdropped)`);
-      await db.end();
-      expect([
-        rows[0].n,
-        rows[0].pol,
-        (JSON.parse(read(EXCEPTIONS)) as { entries: unknown[] }).entries.length,
-      ]).toEqual([143, 57, 86]);
+      const { n, pol } = await catalogCounts();
+      const listed = (JSON.parse(read(EXCEPTIONS)) as { entries: unknown[] })
+        .entries.length;
+      expect(listed).toBe(LISTED);
+      expect(pol).toBeGreaterThan(0);
+      expect(
+        n,
+        `${n} tenant tables = ${pol} with policies + ${listed} listed`,
+      ).toBe(pol + listed);
     });
 
     it.each(CASES)("2-6: %s", (_name, sql, expected) => {
@@ -216,7 +226,8 @@ case "$*" in *"${MARKER}"*) echo gate >> ${log};; *) echo census >> ${log}; exec
       };
     }
 
-    it("1, 6: supabase-migrations.mjs runs the gate once, after the census, then prints a counts line and the success line", () => {
+    it("1, 6: supabase-migrations.mjs runs the gate once, after the census, then prints a counts line and the success line", async () => {
+      const { n, pol } = await catalogCounts();
       const r = verifier("");
       expect(r.status, r.out).toBe(0);
       expect(r.calls[0]).toBe("census");
@@ -226,9 +237,12 @@ case "$*" in *"${MARKER}"*) echo gate >> ${log};; *) echo census >> ${log}; exec
         /Verified \d+ forward Supabase migrations/.test(l),
       );
       expect(done).toBeGreaterThan(0);
+      const word = (k: number) => new RegExp(`(?<![\\d.])${k}(?![\\d.])`);
       expect(
-        lines.slice(0, done).some((l) => /\b143\b/.test(l) && /\b86\b/.test(l)),
-        "gate summary line with the counts",
+        lines
+          .slice(0, done)
+          .some((l) => [n, pol, LISTED].every((k) => word(k).test(l))),
+        `gate summary line with the counts ${n} / ${pol} / ${LISTED}`,
       ).toBe(true);
     });
 
