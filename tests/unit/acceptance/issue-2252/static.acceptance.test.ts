@@ -10,13 +10,16 @@ import { existsSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
+  AFTER_STEPS,
   CHECK_DEF,
+  CI_STEP,
   DOC,
   FOLLOW_UPS,
   MIGRATION,
   NEW_CHECK,
   NEW_FK,
   OLD_FK,
+  PREFLIGHT_PHRASE,
   PREFLIGHT_QUERY,
   ROLLBACK,
   SECTION,
@@ -27,6 +30,10 @@ import {
   read,
   type FkRow,
 } from "./harness";
+import {
+  loadWorkflowDocument,
+  workflowJobs,
+} from "../../helpers/workflow-yaml";
 
 const MIG = "supabase/migrations";
 const ws = (s: string) => s.replace(/\s+/g, " ").trim();
@@ -75,7 +82,7 @@ describe("#2252 C9 + 12.1: forward migration discipline", () => {
     expect(d, "DO block").toBeGreaterThan(0);
     expect(d).toBeLessThan(a);
     expect(s.slice(d, a)).toMatch(/ERRCODE\s*=\s*'23503'/i);
-    expect(s.slice(d, a)).toMatch(/preflight failed/);
+    expect(s.slice(d, a)).toContain(PREFLIGHT_PHRASE);
   });
   it("both ADD CONSTRAINTs are NOT VALID and guarded by pg_constraint scoped to conrelid", () => {
     const s = fwd();
@@ -334,5 +341,21 @@ describe("#2252 C5/C6/12: pure evaluator cases", () => {
     expect(p).toHaveLength(1);
     expect(p[0]).toContain(OLD_FK);
     expect(p[0]).toContain(NEW_FK);
+  });
+});
+
+describe("#2252 CI step (Samson's Q7 ruling: own migrate step, relative order only)", () => {
+  it("ci-integration.yml migrate has exactly one 'Verify donor spine composite FKs (real stack)' step, with exactly this env and run, after #2250's and #2270's real-stack steps", () => {
+    const steps =
+      workflowJobs(loadWorkflowDocument(".github/workflows/ci-integration.yml"))
+        .migrate?.steps ?? [];
+    const idx = (n: string) => steps.findIndex((s) => s.name === n);
+    expect(steps.filter((s) => s.name === CI_STEP.name)).toHaveLength(1);
+    const i = idx(CI_STEP.name);
+    expect(steps[i]).toEqual(CI_STEP);
+    for (const name of AFTER_STEPS) {
+      expect(idx(name), `${name} present`).toBeGreaterThanOrEqual(0);
+      expect(i, `after ${name}`).toBeGreaterThan(idx(name));
+    }
   });
 });

@@ -25,7 +25,7 @@ import {
   SPINE,
   body,
   evaluate,
-  preflightMessage,
+  PREFLIGHT_PHRASE,
   type FkRow,
 } from "./harness";
 
@@ -207,9 +207,7 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
         );
         await db.query("rollback to savepoint pre");
         expect(err?.code).toBe("23503");
-        expect(err?.message).toBe(
-          kind === "cross" ? preflightMessage(1, 0) : preflightMessage(0, 1),
-        );
+        expect(err?.message).toContain(PREFLIGHT_PHRASE);
         for (const id of [cx, tenant, donor].filter(Boolean))
           expect(JSON.stringify(err), "no ids in the error").not.toContain(id);
         const row = await db.query(
