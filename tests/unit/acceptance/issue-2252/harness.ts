@@ -63,9 +63,19 @@ FROM public.donations d
 JOIN public.donors dn ON dn.id = d.donor_id
 WHERE d.tenant_id IS NULL OR dn.tenant_id IS DISTINCT FROM d.tenant_id
 ORDER BY d.id;`;
-/** Spec §2 In 1.2: the preflight's exact message for n cross-tenant, m null-tenant rows. */
-export const preflightMessage = (n: number, m: number) =>
-  `donations composite donor FK preflight failed: ${n} cross-tenant, ${m} null-tenant donation rows; run the preflight query in docs/security/tenant-guard.md`;
+/** Spec §2 In 1.2 message, per Samson's Q3 ruling: only SQLSTATE 23503 and this stable phrase are pinned, not the full wording. */
+export const PREFLIGHT_PHRASE = "preflight failed";
+/** Samson's Q7 ruling: #2252's own migrate step, exactly this; order is pinned only relative to AFTER_STEPS. */
+export const CI_STEP = {
+  name: "Verify donor spine composite FKs (real stack)",
+  env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
+  run: "bun x vitest run tests/unit/acceptance/issue-2252/donor-spine-fk.realstack.acceptance.test.ts",
+};
+/** #2250's and #2270's real-stack steps; no order is pinned against #2251's or #2255's. */
+export const AFTER_STEPS = [
+  "Verify tenant isolation (real stack)",
+  "Verify authz EXECUTE grants (real stack)",
+];
 
 export const read = (f: string) =>
   existsSync(f) ? readFileSync(f, "utf8") : "";
