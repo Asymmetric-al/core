@@ -336,6 +336,10 @@ export const MODELLED_KEYS_BY_JOB: Record<
         "env",
         "run",
       ],
+      "name:Verify identity email normalizer and donor keys (real stack)": [
+        "name",
+        "run",
+      ],
       "name:Verify tenant isolation (real stack)": ["name", "env", "run"],
     },
   },
@@ -395,10 +399,12 @@ export const MODELLED_KEYS_BY_JOB: Record<
 
 /**
  * Steps pinned beyond their keys: exact position in the job, exact `run:` body
- * (trimmed) and exact step `env` values. Two migrate steps: "Verify
- * document-cutover reader role (real stack)" (from develop #2169) and the last
- * step, "Verify tenant isolation (real stack)" (#2250); each one's admin URL
- * key must be exactly `${{ env.DATABASE_URL }}`.
+ * (trimmed) and exact step `env` values. Three migrate steps: "Verify
+ * document-cutover reader role (real stack)" (from develop #2169) pins
+ * DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL to exactly `${{ env.DATABASE_URL }}`;
+ * the #2254 identity step after it has no step `env` (it uses the job's); and
+ * the last step, "Verify tenant isolation (real stack)" (#2250), pins
+ * TENANT_GUARD_IT_ADMIN_DATABASE_URL to exactly `${{ env.DATABASE_URL }}`.
  */
 export const PINNED_STEP_BODIES: Record<
   string,
@@ -415,9 +421,14 @@ export const PINNED_STEP_BODIES: Record<
         DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}",
       },
     },
-    "name:Verify tenant isolation (real stack)": {
+    "name:Verify identity email normalizer and donor keys (real stack)": {
       index: 15,
-      run: "bun x vitest run realstack.acceptance",
+      run: "bun x vitest run tests/unit/acceptance/issue-2254/identity.realstack.acceptance.test.ts",
+      env: {},
+    },
+    "name:Verify tenant isolation (real stack)": {
+      index: 16,
+      run: "bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts",
       env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
     },
   },

@@ -2835,7 +2835,7 @@ describe("repair 9: the migrate 'Verify document-cutover reader role (real stack
         ),
       )
       .map(({ index }) => index);
-    expect(siblings).toEqual([8, 11, 12, 13, 14, 15]);
+    expect(siblings).toEqual([8, 11, 12, 13, 14, 16]);
     expect(job.if).toBeUndefined();
     for (const index of siblings) {
       expect(job.steps![index]!.if, `step ${index}`).toBeUndefined();

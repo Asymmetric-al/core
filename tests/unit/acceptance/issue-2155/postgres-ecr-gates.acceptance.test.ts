@@ -272,8 +272,22 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
       .digest("hex")
       .slice(0, 16);
   };
-  it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match 4e31ff33", () => {
-    expect(surface(doc)).toBe("bc8d57a2be564d61");
+  /**
+   * Accepted surface fingerprints, CI_BASES-style: one entry per reviewed
+   * ci-integration.yml. A later spec'd step (e.g. #2250) adds exactly one
+   * entry after its diff is reviewed; any unlisted surface fails.
+   */
+  const SURFACES = [
+    // develop: 4e31ff33 (= develop c541b84b)
+    { ref: "develop c541b84b", hash: "bc8d57a2be564d61" },
+    // #2254: Builder ea6878ad adds the migrate identity real-stack step
+    { ref: "#2254 Builder ea6878ad", hash: "583578adf0fa92db" },
+  ] as const;
+  it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
+    expect(
+      SURFACES.map((s) => s.hash),
+      `surface ${surface(doc)} is not a reviewed ci-integration.yml`,
+    ).toContain(surface(doc));
   });
   it("integration-gate needs are unchanged", () => {
     expect(W.needsList(jobs["integration-gate"]!)).toEqual(ORDER);
