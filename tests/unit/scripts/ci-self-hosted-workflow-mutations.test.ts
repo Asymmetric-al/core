@@ -1626,10 +1626,10 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
     ]);
     expect([...MODELLED_JOB_KEYS.reject].sort()).toEqual(reject.job);
     // The role lists are only the fallback for unpinned (fixture) jobs. Real
-    // reject-job steps use the exact per-step tables; the two real reject-job
-    // step envs (migrate "Verify document-cutover reader role (real stack)"
-    // and "Verify tenant isolation (real stack)", pinned per step) are
-    // deliberately not in the fallback.
+    // reject-job steps use the exact per-step tables; the three real reject-job
+    // step envs (migrate "Verify document-cutover reader role (real stack)",
+    // "Verify tenant isolation (real stack)" and "Verify authz EXECUTE grants
+    // (real stack)", pinned per step) are deliberately not in the fallback.
     expect([...MODELLED_STEP_KEYS.reject].sort()).toEqual(
       reject.step.filter((key) => key !== "env"),
     );
@@ -1642,6 +1642,7 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
     ).toEqual([
       "migrate name:Verify document-cutover reader role (real stack)",
       "migrate name:Verify tenant isolation (real stack)",
+      "migrate name:Verify authz EXECUTE grants (real stack)",
     ]);
     expect([...MODELLED_JOB_KEYS.gate].sort()).toEqual(gate.job);
     expect([...MODELLED_STEP_KEYS.gate].sort()).toEqual(gate.step);
@@ -2162,6 +2163,7 @@ describe("repair 7: per-job and per-step key allowlists (no union per role)", ()
     expect(envSteps).toEqual([
       "migrate name:Verify document-cutover reader role (real stack)",
       "migrate name:Verify tenant isolation (real stack)",
+      "migrate name:Verify authz EXECUTE grants (real stack)",
       "ci-gate name:Validate correctness checks and requested compilation",
     ]);
   });
@@ -2835,7 +2837,7 @@ describe("repair 9: the migrate 'Verify document-cutover reader role (real stack
         ),
       )
       .map(({ index }) => index);
-    expect(siblings).toEqual([8, 11, 12, 13, 14, 16]);
+    expect(siblings).toEqual([8, 11, 12, 13, 14, 16, 17]);
     expect(job.if).toBeUndefined();
     for (const index of siblings) {
       expect(job.steps![index]!.if, `step ${index}`).toBeUndefined();
