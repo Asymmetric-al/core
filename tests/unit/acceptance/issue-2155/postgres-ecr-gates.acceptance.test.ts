@@ -282,6 +282,8 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "develop c541b84b", hash: "bc8d57a2be564d61" },
     // #2254: Builder ea6878ad adds the migrate identity real-stack step
     { ref: "#2254 Builder ea6878ad", hash: "583578adf0fa92db" },
+    // #2250: Builder 0cdce1bd adds the last migrate step (tenant isolation)
+    { ref: "#2250 Builder 0cdce1bd", hash: "0aa8f1258b667d40" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(

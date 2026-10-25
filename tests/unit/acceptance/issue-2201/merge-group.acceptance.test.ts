@@ -173,6 +173,8 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "develop c541b84b", hash: "1078832efaff84e6" },
     // #2254: Builder ea6878ad adds the migrate identity real-stack step
     { ref: "#2254 Builder ea6878ad", hash: "e72e09b4d720835c" },
+    // #2250: Builder 0cdce1bd adds the last migrate step (tenant isolation)
+    { ref: "#2250 Builder 0cdce1bd", hash: "d49376af6b9ca7e7" },
   ] as const;
   it("nothing but on: and test-e2e's if: changes (fingerprint)", () => {
     const prints = [CI, CII].map((file) => {
