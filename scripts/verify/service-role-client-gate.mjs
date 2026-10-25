@@ -332,8 +332,10 @@ export function scanSource(file, text) {
         module &&
         (!clause ||
           ts.isNamespaceExport(clause) ||
-          clause.elements.some((s) =>
-            module.names.includes((s.propertyName ?? s.name).text),
+          clause.elements.some(
+            (s) =>
+              !s.isTypeOnly &&
+              module.names.includes((s.propertyName ?? s.name).text),
           ))
       )
         reexports.push({ kind: module.kind, line: at(node) });
@@ -407,7 +409,12 @@ export function scanSource(file, text) {
         ts.isImportSpecifier(p) ||
         ts.isQualifiedName(p);
       if (ts.isExportSpecifier(p)) {
-        if (!p.parent.parent.moduleSpecifier)
+        const declaration = p.parent.parent;
+        if (
+          !declaration.moduleSpecifier &&
+          !declaration.isTypeOnly &&
+          !p.isTypeOnly
+        )
           reexports.push({ kind: module.kind, line: at(node) });
       } else if (ts.isExportAssignment(p))
         reexports.push({ kind: module.kind, line: at(node) });

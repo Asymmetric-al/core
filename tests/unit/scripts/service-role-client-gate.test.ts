@@ -212,3 +212,23 @@ describe("test-path exclusions are anchored (review F2)", () => {
     }
   });
 });
+
+describe("type-only re-exports are not sites (review F3)", () => {
+  it.each<[string, number]>([
+    [`export type { getAdminClient } from "${FACTORY}";`, 0],
+    [`export { type getAdminClient } from "${FACTORY}";`, 0],
+    [`export { type getAdminClient, createAdminClient } from "${FACTORY}";`, 1],
+    [
+      `import { getAdminClient } from "${FACTORY}";\nexport type { getAdminClient };`,
+      0,
+    ],
+    [
+      `import { getAdminClient } from "${FACTORY}";\nexport { type getAdminClient };`,
+      0,
+    ],
+  ])("%s -> %i re-export(s)", (text, count) => {
+    expect(scanSource("packages/api/src/x.ts", text).reexports).toHaveLength(
+      count,
+    );
+  });
+});
