@@ -157,9 +157,9 @@ export function pinnedIfProblems(job: WorkflowJob): string[] {
   // DATABASE_URL steps (8, 11, 12, 13), "Verify document-cutover reader role
   // (real stack)" (14), the #2254 identity step (15), "Verify tenant
   // isolation (real stack)" (16), "Verify authz EXECUTE grants (real stack)"
-  // (17) and "Verify donor spine composite FKs (real stack)" (18) — is pinned
-  // to no `if:`, so none can run after the fork reject at step 0 has failed
-  // the job.
+  // (17), "Verify tenant table RLS posture (real stack)" (18) and "Verify
+  // donor spine composite FKs (real stack)" (19) — is pinned to no `if:`, so
+  // none can run after the fork reject at step 0 has failed the job.
   allSteps(job).forEach((step, index) =>
     check(
       `Job '${jobId}' step ${index}`,
@@ -345,6 +345,11 @@ export const MODELLED_KEYS_BY_JOB: Record<
       ],
       "name:Verify tenant isolation (real stack)": ["name", "env", "run"],
       "name:Verify authz EXECUTE grants (real stack)": ["name", "env", "run"],
+      "name:Verify tenant table RLS posture (real stack)": [
+        "name",
+        "env",
+        "run",
+      ],
       "name:Verify donor spine composite FKs (real stack)": [
         "name",
         "env",
@@ -408,14 +413,15 @@ export const MODELLED_KEYS_BY_JOB: Record<
 
 /**
  * Steps pinned beyond their keys: exact position in the job, exact `run:` body
- * (trimmed) and exact step `env` values. Five migrate steps: "Verify
+ * (trimmed) and exact step `env` values. Six migrate steps: "Verify
  * document-cutover reader role (real stack)" (from develop #2169) pins
  * DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL to exactly `${{ env.DATABASE_URL }}`;
  * the #2254 identity step after it has no step `env` (it uses the job's);
  * "Verify tenant isolation (real stack)" (#2250), "Verify authz EXECUTE
- * grants (real stack)" (#2270, one explicit test path) and the last step,
- * "Verify donor spine composite FKs (real stack)" (#2252, one explicit test
- * path), each pin TENANT_GUARD_IT_ADMIN_DATABASE_URL to exactly
+ * grants (real stack)" (#2270, one explicit test path), "Verify tenant table
+ * RLS posture (real stack)" (#2251, one explicit test path) and the last
+ * step, "Verify donor spine composite FKs (real stack)" (#2252, one explicit
+ * test path), each pin TENANT_GUARD_IT_ADMIN_DATABASE_URL to exactly
  * `${{ env.DATABASE_URL }}`.
  */
 export const PINNED_STEP_BODIES: Record<
@@ -448,8 +454,13 @@ export const PINNED_STEP_BODIES: Record<
       run: "bun x vitest run tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts",
       env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
     },
-    "name:Verify donor spine composite FKs (real stack)": {
+    "name:Verify tenant table RLS posture (real stack)": {
       index: 18,
+      run: "bun x vitest run tests/unit/acceptance/issue-2251/rls-posture.realstack.acceptance.test.ts",
+      env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
+    },
+    "name:Verify donor spine composite FKs (real stack)": {
+      index: 19,
       run: "bun x vitest run tests/unit/acceptance/issue-2252/donor-spine-fk.realstack.acceptance.test.ts",
       env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
     },
@@ -724,6 +735,9 @@ export const MODELLED_ENV_KEYS_BY_JOB: Record<
         "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
       ],
       "name:Verify authz EXECUTE grants (real stack)": [
+        "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+      ],
+      "name:Verify tenant table RLS posture (real stack)": [
         "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
       ],
       "name:Verify donor spine composite FKs (real stack)": [

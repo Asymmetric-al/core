@@ -286,6 +286,8 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "#2250 Builder 0cdce1bd", hash: "0aa8f1258b667d40" },
     // #2270: Builder b671a0e3 adds migrate step 17 (authz EXECUTE grants)
     { ref: "#2270 Builder b671a0e3", hash: "a3a581fb1e366a32" },
+    // #2251: Builder 2039d580 adds migrate step 18 (tenant table RLS posture)
+    { ref: "#2251 Builder 2039d580", hash: "57928e0ae6a0a428" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(

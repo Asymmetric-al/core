@@ -65,7 +65,7 @@ The migration also runs `ALTER DEFAULT PRIVILEGES IN SCHEMA tenant_guard REVOKE 
 
 | #   | Path                                              | Why later                                                               |
 | --- | ------------------------------------------------- | ----------------------------------------------------------------------- |
-| P2  | Donation saga outbox worker                       | `donation_saga_outbox` has no RLS yet (#2251/#2253)                     |
+| P2  | Donation saga outbox worker                       | `donation_saga_outbox` has ENABLE + FORCE but no guard policy yet       |
 | P3  | Donation saga recovery (Inngest)                  | as P2; its claims already go through P1                                 |
 | P4  | Stripe webhook intake                             | tenant comes from an untrusted payload; needs the Phase-3 resolver      |
 | P5  | Stripe event processing (Inngest)                 | with P4                                                                 |
@@ -83,11 +83,58 @@ Not built yet, and must use the guard when they are: guest attribution and uncla
 
 ## CI step
 
-`Verify tenant isolation (real stack)` is the last step of the `migrate` job in `.github/workflows/ci-integration.yml`. It sets `TENANT_GUARD_IT_ADMIN_DATABASE_URL` from `DATABASE_URL` (the job's disposable, migrated PG17 database) and runs `bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts`: #2250's own real-stack file plus #2269's donations-embed real-stack file, which reads the same `TENANT_GUARD_IT_ADMIN_DATABASE_URL` (explicit paths, not a substring filter). With no URL, it fails only when `GITHUB_JOB` is `migrate` and skips everywhere else, including the `test-unit` and `acceptance-tests` jobs in `ci.yml` and local runs. GitHub sets `GITHUB_JOB` to the job id, so the step needs no other env. When the URL is set, the suite runs in any job. The filter cannot pass vacuously: Vitest exits 1 when no file matches. A failure fails the required `migrate` check. Other slices run their own real-stack files in their own steps.
+`Verify tenant isolation (real stack)` is a step of the `migrate` job in `.github/workflows/ci-integration.yml`, followed by #2270's `Verify authz EXECUTE grants (real stack)` and then #2251's `Verify tenant table RLS posture (real stack)`. It sets `TENANT_GUARD_IT_ADMIN_DATABASE_URL` from `DATABASE_URL` (the job's disposable, migrated PG17 database) and runs `bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts`: #2250's own real-stack file plus #2269's donations-embed real-stack file, which reads the same `TENANT_GUARD_IT_ADMIN_DATABASE_URL` (explicit paths, not a substring filter). With no URL, it fails only when `GITHUB_JOB` is `migrate` and skips everywhere else, including the `test-unit` and `acceptance-tests` jobs in `ci.yml` and local runs. GitHub sets `GITHUB_JOB` to the job id, so the step needs no other env. When the URL is set, the suite runs in any job. The filter cannot pass vacuously: Vitest exits 1 when no file matches. A failure fails the required `migrate` check. Other slices run their own real-stack files in their own steps.
 
 ## Deploy note
 
 CI's `postgres` is a superuser, so it cannot prove the hosted ownership transfer. Before production, apply the migration to a preview database. If `GRANT tenant_guard TO postgres WITH INHERIT FALSE, SET TRUE` or `ALTER FUNCTION … OWNER TO tenant_guard` fails there, the migration aborts as a whole and a login-role fallback gets its own spec. On hosted Postgres a non-superuser `CREATE ROLE` also auto-grants the creator an ADMIN membership row, so `pg_auth_members` can show an extra `postgres` row for `tenant_guard`.
+
+## Tenant table RLS posture
+
+Introduced by #2251 (slice 2 of #505) in `supabase/migrations/20261025070000_force_rls_tenant_tables.sql`.
+
+### Rule
+
+Every `public` tenant table (a `public` base table, `relkind` `r` or `p`, with a live `tenant_id` column) has row level security **enabled and forced**, and either:
+
+- at least one policy, or
+- a reviewed entry in `docs/security/rls-deny-by-default-exceptions.json`, and then **zero** policies.
+
+A listed table is deny-by-default for every role without BYPASSRLS, including `tenant_guard`. No placeholder or permissive policy is added to satisfy the rule (Samson's Q5 + clash 2 ruling, Oct 24, 2026). A listed table that gains a policy leaves the list.
+
+Each entry has `table`, `outcome`, `reason`, `code_paths` and `reviewed_by`:
+
+- `service_role_needed`: the app reaches the table directly, and every direct site uses the service-role client (BYPASSRLS). `code_paths` lists every non-test file under `apps/` and `packages/` that queries the table, each as `path:line` of its first query. A new query site in another file adds its path.
+- `deny_by_default`: no direct app access. `code_paths` names the postgres-owned SECURITY DEFINER function, the operator script or SQL function (`path:line`) that reaches it, or `"none"` for a dormant table.
+
+### What FORCE changes
+
+`ENABLE` applies policies to everyone except the table owner. `FORCE` applies them to the owner too. Superusers and BYPASSRLS roles skip RLS even under FORCE, and referential-integrity checks always bypass it. Today every tenant table and every app SECURITY DEFINER function is owned by `postgres`: a superuser in CI, NOSUPERUSER but BYPASSRLS on hosted Supabase. So FORCE changes no rows for `anon`, `authenticated`, `service_role`, `document_cutover_reader` or the postgres-owned definer functions. It binds an owner that loses BYPASSRLS, or a future owning role.
+
+### Owner invariant
+
+Never give a tenant table, or a SECURITY DEFINER function in `public`, `authz`, `document_cutover` or `private`, an owner without BYPASSRLS or superuser. Under FORCE that owner is bound by RLS, and these paths break (all work today because the owner bypasses):
+
+- **B1** `public.handle_new_user()` (trigger `on_auth_user_created`) can no longer insert into `public.profiles`: every sign-up fails, and so do `supabase/seed.sql` and the seed-dependent CI steps.
+- **B2** `document_cutover.table_census` and its siblings run with `row_security = off` and raise "query would be affected by row-level security policy" on the PDF and receipt tables.
+- **B3** the unguarded workflow claim path could not insert into `public.workflow_work_claims`. #2250 already routes it through `tenant_guard`.
+- **B4** every other postgres-owned definer function or trigger that touches a forced table, such as the Eve notification RPCs, `save_crm_tenant_table_default`, `enforce_contribution_notification_tenant_refs` and `private.seed_support_hub_defaults`.
+
+The migration checks this first: if any tenant table or app definer function has an owner with neither `rolsuper` nor `rolbypassrls`, it raises, names each one and applies nothing. Work that should run under RLS goes through a `tenant_guard`-owned SECURITY DEFINER function in schema `tenant_guard` (see "Adding a guarded function" above). Those are the only sanctioned RLS-bound definer owners, and they own no table.
+
+### Adding a tenant table
+
+In the migration that creates the table:
+
+1. `ALTER TABLE public.<table> ENABLE ROW LEVEL SECURITY` and `ALTER TABLE public.<table> FORCE ROW LEVEL SECURITY`.
+2. Prefer a real policy for the callers that need the table (JWT staff policies, or `tenant_guard_isolation` for a guarded path).
+3. If no caller needs a policy, add one line to `docs/security/rls-deny-by-default-exceptions.json`, sorted by `table`, with a `reason` and its `code_paths`. Samson reviews the entry in the PR and only then is `reviewed_by` set. Never pre-fill a reviewer.
+
+`tests/unit/scripts/rls-deny-by-default-exceptions.test.ts` checks the list without a database. The `migrate` job step `Verify tenant table RLS posture (real stack)` runs `tests/unit/acceptance/issue-2251/rls-posture.realstack.acceptance.test.ts` against the migrated database, with `TENANT_GUARD_IT_ADMIN_DATABASE_URL` set from `DATABASE_URL`. It checks the catalog against the list both ways, proves a NOBYPASSRLS owner is bound, compares rows with FORCE off, checks the owner invariant and fail-closed precondition, and re-runs the migration. The permanent catalog gate is #2253.
+
+### Deploy and rollback
+
+Apply to a preview database first. Before each apply, run `select rolname, rolsuper, rolbypassrls from pg_roles where rolname = 'postgres'`. Each `ALTER TABLE` takes an ACCESS EXCLUSIVE lock until commit, so apply in a quiet window. The migration sets `lock_timeout` to 5s for its ALTERs: if a long-running query holds a tenant table, it fails with `55P03` (lock not available), applies nothing and does not queue other queries behind it. Re-run it once that query has finished. Rollback is the file's `-- Down:` SQL, run by hand: `NO FORCE` on every target except `crm_notes`, and `DISABLE` on exactly `donation_saga_outbox`, `email_templates` and `email_template_versions`. It touches no data and no policy.
 
 ## Composite tenant FKs
 
