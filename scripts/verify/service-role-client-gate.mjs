@@ -53,12 +53,12 @@ const MODULES = [
 ];
 const SCAN_ROOTS = ["apps", "packages", "scripts", "tooling"];
 const SOURCE_RE = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
-// Root tests/ only; *.test.*, *.spec.* and *.d.ts by file name; the
-// directory names below at any depth.
+// *.test.*, *.spec.* and *.d.ts by file name only; these directory names at
+// any depth. The repo-root tests/ tree is outside SCAN_ROOTS, so a tests/
+// directory inside a scan root is scanned.
 const EXCLUDED_DIR_RE = /(^|\/)(__tests__|e2e|node_modules|\.next|dist)\//;
 const EXCLUDED_NAME_RE = /\.d\.ts$|\.(test|spec)\./;
 export const isExcluded = (file) =>
-  file.startsWith("tests/") ||
   EXCLUDED_NAME_RE.test(path.posix.basename(file)) ||
   EXCLUDED_DIR_RE.test(file);
 export const isExempt = (file) =>

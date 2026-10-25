@@ -174,35 +174,39 @@ describe("evaluateServiceRoleClientGate", () => {
 });
 
 describe("test-path exclusions are anchored (review F2)", () => {
-  it("skips root tests/ and *.test.* file names only, not nested tests/ dirs or dotted dir names", () => {
+  it("flags nested tests/ dirs and dotted dir names; skips only test file names", () => {
     const root = mkdtempSync(path.join(tmpdir(), "srcg-f2-"));
     const site = `import { getAdminClient } from "${FACTORY}";\ngetAdminClient();\n`;
-    const files = [
+    const flaggedFiles = [
       "apps/admin/app/api/tests/route.ts",
       "apps/admin/app/example.test.com/route.ts",
+    ];
+    const skipped = [
       "tests/unit/root-fixture.ts",
       "apps/x/foo.test.ts",
       "apps/x/foo.spec.tsx",
+      "apps/x/types.d.ts",
     ];
-    for (const f of [
-      ...files,
-      "docs/security/service-role-client-allowlist.json",
-    ]) {
+    for (const f of [...flaggedFiles, ...skipped]) {
       mkdirSync(path.dirname(path.join(root, f)), { recursive: true });
-      writeFileSync(
-        path.join(root, f),
-        f.endsWith(".json") ? '{"version":1,"entries":[]}' : site,
-      );
+      writeFileSync(path.join(root, f), site);
     }
+    mkdirSync(path.join(root, "docs/security"), { recursive: true });
+    writeFileSync(
+      path.join(root, "docs/security/service-role-client-allowlist.json"),
+      '{"version":1,"entries":[]}',
+    );
     spawnSync("git", ["init", "-q"], { cwd: root });
     try {
-      const flagged = runServiceRoleClientGate({ root }).found.sites.map(
-        (s: { file: string }) => s.file,
+      const { ok, failures } = runServiceRoleClientGate({ root });
+      expect(ok).toBe(false);
+      expect(failures).toEqual(
+        flaggedFiles.map((f) =>
+          expect.stringMatching(
+            new RegExp(`^NEW_SITE admin_client ${f}: .*\\(sites: ${f}:2\\)$`),
+          ),
+        ),
       );
-      expect(flagged).toEqual([
-        "apps/admin/app/api/tests/route.ts",
-        "apps/admin/app/example.test.com/route.ts",
-      ]);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
