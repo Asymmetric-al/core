@@ -17,6 +17,17 @@ export const MIGRATION =
 export const ROLLBACK = MIGRATION.replace(/([^/]+)$/, "rollback_$1");
 /** Spec §2 In 6. */
 export const DOC = "docs/security/identity-claim-tables.md";
+/** Samson's CI-step ruling: #2255's own migrate step, exactly this; order is pinned only relative to AFTER_STEPS. */
+export const CI_STEP = {
+  name: "Verify claim tables (real stack)",
+  env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
+  run: "bun x vitest run tests/unit/acceptance/issue-2255/claim-tables.realstack.acceptance.test.ts",
+};
+/** #2250's and #2270's real-stack steps; no order is pinned against #2251's or #2252's. */
+export const AFTER_STEPS = [
+  "Verify tenant isolation (real stack)",
+  "Verify authz EXECUTE grants (real stack)",
+];
 export const CLAIMS = "account_claim_requests";
 export const INVITES = "legacy_account_invitations";
 export const TABLES = [CLAIMS, INVITES] as const;

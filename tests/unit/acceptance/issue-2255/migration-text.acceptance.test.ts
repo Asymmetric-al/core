@@ -11,6 +11,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  AFTER_STEPS,
+  CI_STEP,
   CLAIMS,
   DOC,
   INVITES,
@@ -21,6 +23,10 @@ import {
   code,
   sqlFile,
 } from "./harness";
+import {
+  loadWorkflowDocument,
+  workflowJobs,
+} from "../../helpers/workflow-yaml";
 
 const DIR = path.dirname(MIGRATION);
 const OWN = path.basename(MIGRATION);
@@ -229,5 +235,21 @@ describe("#2255 consumers and docs", () => {
     expect(doc, "rollback before #2254").toMatch(/#2254/);
     for (const s of ["42501", "23514"])
       expect(doc, `contract ${s}`).toContain(s);
+  });
+});
+
+describe("#2255 CI step (Samson's ruling: own migrate step, relative order only)", () => {
+  it("ci-integration.yml migrate has exactly one 'Verify claim tables (real stack)' step, with exactly this env and run, after #2250's and #2270's real-stack steps", () => {
+    const steps =
+      workflowJobs(loadWorkflowDocument(".github/workflows/ci-integration.yml"))
+        .migrate?.steps ?? [];
+    const idx = (n: string) => steps.findIndex((s) => s.name === n);
+    expect(steps.filter((s) => s.name === CI_STEP.name)).toHaveLength(1);
+    const i = idx(CI_STEP.name);
+    expect(steps[i]).toEqual(CI_STEP);
+    for (const name of AFTER_STEPS) {
+      expect(idx(name), `${name} present`).toBeGreaterThanOrEqual(0);
+      expect(i, `after ${name}`).toBeGreaterThan(idx(name));
+    }
   });
 });
