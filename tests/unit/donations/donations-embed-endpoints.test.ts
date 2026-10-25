@@ -362,3 +362,58 @@ describe("#2269 C8: a replayed key whose gift is not the caller's request (U)", 
     },
   );
 });
+
+describe("#2269 C8: a REST replay is confirmed before its saga runs (U)", () => {
+  it.each([
+    [
+      "another donor's gift",
+      [donation("gift-1", otherDonor)],
+      409,
+      { error: "Idempotency key already used" },
+    ],
+    [
+      "a gift that can't be read back",
+      [],
+      201,
+      { donation: null, readBack: "failed" },
+    ],
+  ] as const)(
+    "a replay resolving to %s never runs the saga or returns its ids",
+    async (_case, rows, status, json) => {
+      s.auth = as("profile-d", "donor");
+      s.tables.set("donations", [...rows]);
+      s.intake.mockReturnValueOnce({
+        donationId: "gift-1",
+        outboxId: "outbox-1",
+        replayed: true,
+      });
+      const res = await POST(
+        rest("POST", { missionaryId: missionary.id, amount: 2500 }),
+      );
+      expect([res.status, await res.json()]).toEqual([status, json]);
+      expect(s.saga).not.toHaveBeenCalled();
+    },
+  );
+});
+
+describe("#2269 C8: an uppercase missionaryId is the same missionary (U)", () => {
+  it.each(["REST POST", "GraphQL createDonation"])(
+    "%s answers with the created gift, not 409",
+    async (via) => {
+      s.auth = as("profile-d", "donor");
+      s.tables.set("donations", [donation("gift-1", profiled)]);
+      const id = missionary.id.toUpperCase();
+      if (via === "REST POST") {
+        const res = await POST(
+          rest("POST", { missionaryId: id, amount: 2500 }),
+        );
+        expect(res.status).toBe(201);
+      } else {
+        const r = await gql(
+          `mutation { createDonation(input: { missionaryId: "${id}", amount: 2500 }) { id } }`,
+        );
+        expect(r).toEqual({ data: { createDonation: { id: "gift-1" } } });
+      }
+    },
+  );
+});

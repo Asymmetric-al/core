@@ -23,7 +23,8 @@ export type RequestedGift = {
  * empty list means it is the caller's gift. A replayed idempotency key can
  * resolve to another donor's gift, so this must be empty before any row data
  * is returned. Values are compared as the saga stores them: amount in integer
- * cents unchanged, currency trimmed and lowercased, ids as given.
+ * cents unchanged, currency trimmed and lowercased, and ids as canonical UUIDs,
+ * since Postgres accepts any case, braces or hyphenation and stores lowercase.
  */
 export function giftMismatches(
   row: Record<string, unknown>,
@@ -40,8 +41,14 @@ export function giftMismatches(
         .trim()
         .toLowerCase() === gift.currency.trim().toLowerCase(),
     ],
-    ["missionary", (row.missionary_id ?? null) === gift.missionaryId],
-    ["fund", (row.fund_id ?? null) === gift.fundId],
+    ["missionary", uuidKey(row.missionary_id) === uuidKey(gift.missionaryId)],
+    ["fund", uuidKey(row.fund_id) === uuidKey(gift.fundId)],
   ];
   return checks.filter(([, ok]) => !ok).map(([field]) => field);
+}
+
+/** A UUID in one comparable form (lowercase hex, no braces or hyphens). */
+function uuidKey(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  return value.trim().toLowerCase().replace(/[{}-]/g, "");
 }

@@ -169,6 +169,42 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const requested = {
+      profileId: ctx.profileId,
+      amountCents: amount,
+      currency,
+      missionaryId,
+      fundId: null,
+    };
+    const readBack = () =>
+      supabaseAdmin
+        .from("donations")
+        .select(DONATION_WITH_PARTIES_SELECT)
+        .eq("id", begin.donationId)
+        .eq("tenant_id", ctx.tenantId)
+        .single();
+
+    // A replayed key can resolve to another donor's gift. Confirm the gift is
+    // this request before driving its saga or returning anything from it; if
+    // that can't be confirmed, run nothing and return no ids.
+    if (begin.replayed) {
+      const { data: prior, error: priorError } = await readBack();
+      if (priorError || !prior) {
+        console.error("[donations] Replayed gift read-back failed", {
+          donationId: begin.donationId,
+          error: priorError,
+        });
+        return NextResponse.json(
+          { donation: null, readBack: "failed" },
+          { status: 201 },
+        );
+      }
+      const mismatched = giftMismatches(prior, requested);
+      if (mismatched.length > 0) {
+        return keyReused(begin.donationId, ctx.profileId, mismatched);
+      }
+    }
+
     const { stripe } = tenantStripe;
     const sagaResult = await processDonationSagaOutboxEvent({
       supabaseAdmin,
@@ -188,12 +224,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: donation, error: donationError } = await supabaseAdmin
-      .from("donations")
-      .select(DONATION_WITH_PARTIES_SELECT)
-      .eq("id", begin.donationId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: donation, error: donationError } = await readBack();
     // The gift already exists here, so a read-back failure must not look like
     // a failed gift: a client retrying with a new key would give twice.
     if (donationError || !donation) {
@@ -206,28 +237,10 @@ export async function POST(request: NextRequest) {
         { status: 201 },
       );
     }
-    // A replayed idempotency key can resolve to another donor's gift or a
-    // different payload. Return none of its data and don't report it as created.
-    const mismatched = giftMismatches(donation, {
-      profileId: ctx.profileId,
-      amountCents: amount,
-      currency,
-      missionaryId,
-      fundId: null,
-    });
+    // Checked again after the saga: on a first request this is the first check.
+    const mismatched = giftMismatches(donation, requested);
     if (mismatched.length > 0) {
-      console.error(
-        "[donations] Idempotency key replay does not match request",
-        {
-          donationId: begin.donationId,
-          callerProfileId: ctx.profileId,
-          mismatched,
-        },
-      );
-      return NextResponse.json(
-        { error: "Idempotency key already used" },
-        { status: 409 },
-      );
+      return keyReused(begin.donationId, ctx.profileId, mismatched);
     }
 
     return NextResponse.json(
@@ -237,4 +250,21 @@ export async function POST(request: NextRequest) {
   } catch (e) {
     return toErrorResponse(e);
   }
+}
+
+/** A replayed idempotency key whose gift is not this request: no row data. */
+function keyReused(
+  donationId: string,
+  callerProfileId: string,
+  mismatched: string[],
+) {
+  console.error("[donations] Idempotency key replay does not match request", {
+    donationId,
+    callerProfileId,
+    mismatched,
+  });
+  return NextResponse.json(
+    { error: "Idempotency key already used" },
+    { status: 409 },
+  );
 }
