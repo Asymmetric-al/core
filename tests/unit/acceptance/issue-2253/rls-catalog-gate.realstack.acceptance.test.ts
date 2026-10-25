@@ -143,7 +143,8 @@ const CASES: [string, string, string[][]][] = [
   ],
 ];
 
-it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
+// Runs in every migrate-job run: passes in the real step, fails without the URL.
+it.runIf(IN_MIGRATE_JOB)(
   "the migrate job sets TENANT_GUARD_IT_ADMIN_DATABASE_URL (fails, never skips)",
   () => expect(ADMIN_URL).not.toBe(""),
 );

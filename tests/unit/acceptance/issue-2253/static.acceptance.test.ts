@@ -1,6 +1,6 @@
 /**
- * #2253 static acceptance (runs in test:unit): r1 §6 criteria 1 and 12, with
- * the merge-base scope check. Owned by Acceptance.
+ * #2253 static acceptance (runs in test:unit): r1 §6 criteria 1 and 12, the
+ * merge-base scope check and the lead's CI-step ruling. Owned by Acceptance.
  */
 import { spawnSync } from "node:child_process";
 import path from "node:path";
@@ -9,13 +9,21 @@ import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import {
+  loadWorkflowDocument,
+  workflowJobs,
+} from "../../helpers/workflow-yaml";
+import {
+  AFTER_STEPS,
   ALLOWLIST,
   CATALOG,
+  CI_STEP,
+  CII,
   DOC,
   EXCEPTIONS,
   GATE,
   KINDS,
   MARKER,
+  REALSTACK,
   VERIFIER,
   read,
 } from "./harness";
@@ -70,7 +78,7 @@ describe("#2253 static (1, 12)", () => {
   });
 
   it.skipIf(!base)(
-    "1, 12 (scope vs merge-base): no workflow file and docs/ci.md unchanged",
+    "1, 12 (scope vs merge-base): the only .github change is the CI step in ci-integration.yml; docs/ci.md unchanged",
     () => {
       const changed = git(
         "diff",
@@ -80,7 +88,45 @@ describe("#2253 static (1, 12)", () => {
         ".github",
         "docs/ci.md",
       ).stdout.trim();
-      expect(changed).toBe("");
+      expect(changed).toBe(CII);
+      // Removing the one step block must give back the merge-base file exactly.
+      const lines = read(CII).split("\n");
+      const at = lines.indexOf(`      - name: ${CI_STEP.name}`);
+      expect(at, "step block").toBeGreaterThan(-1);
+      let end = at + 1;
+      while (end < lines.length && /^ {8}/.test(lines[end]!)) end++;
+      lines.splice(at, end - at);
+      expect(lines.join("\n")).toBe(git("show", `${base}:${CII}`).stdout);
     },
   );
+});
+
+describe("#2253 CI step (lead's ruling: own explicit-path migrate step, relative order only)", () => {
+  it(`migrate has exactly one '${CI_STEP.name}' step, exactly this env and run, after #2250's, #2270's and #2251's real-stack steps`, () => {
+    const steps = workflowJobs(loadWorkflowDocument(CII)).migrate?.steps ?? [];
+    const idx = (n: string) => steps.findIndex((s) => s.name === n);
+    expect(steps.filter((s) => s.name === CI_STEP.name)).toHaveLength(1);
+    const i = idx(CI_STEP.name);
+    expect(steps[i]).toEqual(CI_STEP);
+    for (const name of AFTER_STEPS) {
+      expect(idx(name), `${name} present`).toBeGreaterThanOrEqual(0);
+      expect(i, `after ${name}`).toBeGreaterThan(idx(name));
+    }
+  });
+
+  it("the real-stack suite fails (not skips) in the migrate job when the URL is empty", () => {
+    const env: NodeJS.ProcessEnv = {
+      ...process.env,
+      GITHUB_ACTIONS: "true",
+      GITHUB_JOB: "migrate",
+    };
+    env.TENANT_GUARD_IT_ADMIN_DATABASE_URL = env.VITEST = "";
+    const r = spawnSync(
+      process.execPath,
+      ["node_modules/vitest/vitest.mjs", "run", REALSTACK],
+      { env, encoding: "utf8" },
+    );
+    expect(r.status).toBe(1);
+    expect(r.stdout + r.stderr).toContain("TENANT_GUARD_IT_ADMIN_DATABASE_URL");
+  }, 120_000);
 });
