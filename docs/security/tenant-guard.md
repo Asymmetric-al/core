@@ -88,3 +88,56 @@ Not built yet, and must use the guard when they are: guest attribution and uncla
 ## Deploy note
 
 CI's `postgres` is a superuser, so it cannot prove the hosted ownership transfer. Before production, apply the migration to a preview database. If `GRANT tenant_guard TO postgres WITH INHERIT FALSE, SET TRUE` or `ALTER FUNCTION … OWNER TO tenant_guard` fails there, the migration aborts as a whole and a login-role fallback gets its own spec. On hosted Postgres a non-superuser `CREATE ROLE` also auto-grants the creator an ADMIN membership row, so `pg_auth_members` can show an extra `postgres` row for `tenant_guard`.
+
+## Composite tenant FKs
+
+The donor spine cannot reference across tenants. Introduced by #2252 (slice 3 of #505), migration `20261025040000_donations_composite_donor_fk.sql`. Each spine FK is `(tenant_id, <col>) → donors(tenant_id, id)` on the existing `donors_tenant_id_id_uidx`, validated, so the database refuses a donor from another tenant for every writer, `service_role` and BYPASSRLS owners included: FK checks ignore RLS and roles. Reads stay RLS's job.
+
+The seven spine FKs:
+
+| Table                    | FK                                                     | Column               | Tenant-complete by                |
+| ------------------------ | ------------------------------------------------------ | -------------------- | --------------------------------- |
+| `donations`              | `donations_donor_same_tenant_fk`                       | `donor_id`           | `donations_donor_requires_tenant` |
+| `donor_merge_candidates` | `donor_merge_candidates_existing_donor_same_tenant_fk` | `existing_donor_id`  | `tenant_id NOT NULL`              |
+| `donor_merge_candidates` | `donor_merge_candidates_incoming_donor_same_tenant_fk` | `incoming_donor_id`  | `tenant_id NOT NULL`              |
+| `donor_merge_redirects`  | `donor_merge_redirects_merged_donor_same_tenant_fk`    | `merged_donor_id`    | `tenant_id NOT NULL`              |
+| `donor_merge_redirects`  | `donor_merge_redirects_surviving_donor_same_tenant_fk` | `surviving_donor_id` | `tenant_id NOT NULL`              |
+| `donor_merge_audit`      | `donor_merge_audit_surviving_donor_same_tenant_fk`     | `surviving_donor_id` | `tenant_id NOT NULL`              |
+| `donor_merge_audit`      | `donor_merge_audit_merged_donor_same_tenant_fk`        | `merged_donor_id`    | `tenant_id NOT NULL`              |
+
+The six `donor_merge_*` FKs come from `20260704140000_donor_matching_merge_candidates.sql` and are asserted, not changed. The migration replaces the single-column `donations_donor_id_fkey` and adds, validates and drops in one transaction, so no committed state has two `donations → donors` FKs (PostgREST would reject the unhinted `donors` embed as ambiguous, PGRST201).
+
+**Rule for new donor references.** A new reference to `donors` must be `(tenant_id, <col>) → donors(tenant_id, id)`, with `tenant_id NOT NULL` on the referencing table or a validated `CHECK (<col> IS NULL OR tenant_id IS NOT NULL)`. A composite FK alone is not enough: under MATCH SIMPLE it is not checked when `tenant_id` is NULL, so a NULL-tenant row could name any donor. `donations.tenant_id` is nullable, which is why `donations_donor_requires_tenant` exists; it also means a donation that names a donor must carry a tenant (`23514`), and a donor that has donations cannot move to another tenant (`23503`).
+
+The real-stack test `tests/unit/acceptance/issue-2252/donor-spine-fk.realstack.acceptance.test.ts` (the `migrate` step `Verify donor spine composite FKs (real stack)`) enforces this. It fails if any spine FK is missing, `NOT VALID`, not composite on `tenant_id` or not tenant-complete, and it ratchets every FK into `donors`: each must be a spine FK, composite on `(tenant_id, x) → (tenant_id, id)`, or on the follow-up list below.
+
+**Follow-ups (shrink-only).** These 14 single-column FKs into `donors(id)` existed before this rule and are not changed yet. Remove an entry when its FK becomes composite; never add one.
+
+- `campaigns_creator_donor_id_fkey`
+- `contribution_notification_events_recipient_donor_id_fkey`
+- `contribution_operation_audit_events_donor_id_fkey`
+- `donation_saga_outbox_donor_id_fkey`
+- `donor_activities_donor_id_fkey`
+- `donor_feed_preferences_donor_id_fkey`
+- `donor_pledges_donor_id_fkey`
+- `follower_requests_donor_id_fkey`
+- `follows_donor_id_fkey`
+- `missionary_tasks_donor_id_fkey`
+- `notification_queue_donor_id_fkey`
+- `notification_queue_recipient_donor_id_fkey`
+- `pledge_charge_attempts_donor_id_fkey`
+- `staged_gifts_donor_id_fkey`
+
+**Preflight.** Existing bad rows are surfaced, never rewritten. Before applying, the migration counts donations that name a donor in another tenant, or name a donor with a NULL `tenant_id`, and aborts with `23503` and counts only (no ids); `VALIDATE` stays as a second guard. This read-only operator query lists the rows (it returns tenant, donor and donation ids, so share counts only outside the database console):
+
+```sql
+SELECT d.id AS donation_id, d.tenant_id AS donation_tenant_id, d.donor_id,
+       dn.tenant_id AS donor_tenant_id,
+       CASE WHEN d.tenant_id IS NULL THEN 'null_tenant' ELSE 'cross_tenant' END AS problem
+FROM public.donations d
+JOIN public.donors dn ON dn.id = d.donor_id
+WHERE d.tenant_id IS NULL OR dn.tenant_id IS DISTINCT FROM d.tenant_id
+ORDER BY d.id;
+```
+
+**Deploy step.** Run the query on a preview database, then on production, and stop if it returns any rows; fixing data is a separate issue. Apply in version order, in a quiet window: the transaction holds `SHARE ROW EXCLUSIVE` on `donations` and `donors` through the `VALIDATE` scan, and the final drop of `donations_donor_id_fkey` takes `ACCESS EXCLUSIVE` on both until `COMMIT`. `lock_timeout = '5s'` makes it fail fast instead of queueing. Apply the whole file, and don't reload the PostgREST schema cache mid-apply. The rollback, `rollback_20261025040000_donations_composite_donor_fk.sql`, re-adds and validates `donations_donor_id_fkey` before dropping the composite FK and the CHECK, in one transaction; it needs a quiet window too.
