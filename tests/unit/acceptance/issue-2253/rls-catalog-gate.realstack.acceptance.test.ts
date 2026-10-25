@@ -7,13 +7,12 @@
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import pg from "pg";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 
 import {
   CATALOG,
@@ -21,13 +20,16 @@ import {
   MARKER,
   VERIFIER,
   read,
+  removeTempDirs,
+  tempDir,
   tempRepo,
 } from "./harness";
 
 const ADMIN_URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
 const IN_MIGRATE_JOB =
   process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_JOB === "migrate";
-const dir = mkdtempSync(path.join(tmpdir(), "acc2253-psql-"));
+const dir = tempDir("psql-");
+afterAll(removeTempDirs);
 let shims = 0;
 /** A psqlBin that runs `sql` then the caller's command in one rolled-back transaction. */
 function shim(sql: string, body?: string) {

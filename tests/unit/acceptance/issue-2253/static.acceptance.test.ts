@@ -36,7 +36,7 @@ describe("#2253 static (1, 12)", () => {
 
   it(`1: ${VERIFIER} runs the gate after the census and before the success line`, () => {
     const src = read(VERIFIER);
-    const [census, gate, done] = [
+    const [census = -1, gate = -1, done = -1] = [
       "field-policy-census.mjs",
       "runTenantRlsCatalogGate(",
       "forward Supabase migrations",

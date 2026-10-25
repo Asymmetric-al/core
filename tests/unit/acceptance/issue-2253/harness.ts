@@ -12,6 +12,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  rmSync,
   symlinkSync,
   writeFileSync,
 } from "node:fs";
@@ -47,6 +48,19 @@ export const KEY_RE =
 export const read = (f: string) =>
   existsSync(f) ? readFileSync(f, "utf8") : "";
 
+/** Every temp dir this suite made, so teardown removes exactly those. */
+const made: string[] = [];
+/** A fresh /tmp/acc2253-<prefix>* dir, tracked for {@link removeTempDirs}. */
+export function tempDir(prefix = "") {
+  const d = mkdtempSync(path.join(tmpdir(), `acc2253-${prefix}`));
+  made.push(d);
+  return d;
+}
+/** Teardown (afterAll): removes only the dirs this suite created. */
+export function removeTempDirs() {
+  for (const d of made.splice(0)) rmSync(d, { recursive: true, force: true });
+}
+
 /** Copies a repo module and every relative module it imports into `root`. */
 function copyModule(rel: string, root: string, seen = new Set<string>()) {
   if (seen.has(rel) || !existsSync(rel)) return;
@@ -64,7 +78,7 @@ function copyModule(rel: string, root: string, seen = new Set<string>()) {
  * root resolution all land here).
  */
 export function tempRepo(modules: string[], files: Record<string, string>) {
-  const root = mkdtempSync(path.join(tmpdir(), "acc2253-"));
+  const root = tempDir();
   for (const m of modules) copyModule(m, root);
   for (const [f, text] of Object.entries(files)) {
     mkdirSync(path.join(root, path.dirname(f)), { recursive: true });

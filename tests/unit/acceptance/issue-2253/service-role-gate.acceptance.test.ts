@@ -7,7 +7,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 
 import {
   ALLOWLIST,
@@ -20,7 +20,10 @@ import {
   gate,
   names,
   read,
+  removeTempDirs,
 } from "./harness";
+
+afterAll(removeTempDirs);
 
 const K = "SUPABASE_SERVICE_ROLE_KEY";
 const OP = 'import { withOperation } from "../shared/with-operation";';
@@ -270,6 +273,27 @@ describe("#2253 service-role gate on fixtures (8, 9, 10)", () => {
     expect(names(r.out, POSTS, "admin_client", lines), r.out).toBe(true);
   });
 
+  it("8: the gate never counts itself, by an exact exemption only: unlisted sites beside it, under a gate-prefixed name or in a nested copy of its name still fail", () => {
+    const dir = GATE.slice(0, GATE.lastIndexOf("/"));
+    const fx = [
+      `${dir}/acc2253-sibling.mjs`,
+      GATE.replace(/\.mjs$/, "-helper.mjs"),
+      `${dir}/nested/${GATE.slice(dir.length + 1)}`,
+    ];
+    const r = gate(
+      {
+        ...CLEAN,
+        ...Object.fromEntries(fx.map((f) => [f, `process.env.${K};`])),
+      },
+      CLEAN_LIST,
+    );
+    expect(r.status, r.out).not.toBe(0);
+    for (const f of fx)
+      expect(names(r.out, f, "service_role_key", [1]), `${f}:1\n${r.out}`).toBe(
+        true,
+      );
+  });
+
   it("9: an allowlist entry that is not in the frozen ceiling fails (growth)", () => {
     const f = "packages/fx/new-site.ts";
     const r = gate({ ...CLEAN, [f]: call(1) }, [
@@ -324,7 +348,7 @@ describe("#2253 service-role gate on the real tree (9, 11)", () => {
     ]).toEqual([117, 111]);
   });
 
-  it("9 (non-vacuous): service_role_key entries equal an independent key-name count over the scanned tree", () => {
+  it("9 (non-vacuous): service_role_key entries equal an independent key-name count over the scanned tree, the gate itself excluded", () => {
     const files = spawnSync(
       "git",
       ["ls-files", "-z", "apps", "packages", "scripts", "tooling"],
@@ -340,6 +364,7 @@ describe("#2253 service-role gate on the real tree (9, 11)", () => {
       )
       .filter(
         (f) =>
+          f !== GATE &&
           f !== "packages/database/supabase/admin.ts" &&
           !f.startsWith("packages/api/src/identity/"),
       );
@@ -357,7 +382,7 @@ describe("#2253 service-role gate on the real tree (9, 11)", () => {
     expect(listed).toEqual(counted);
   });
 
-  it("11: the gate passes on this checkout (stale detection means every listed site was found)", () => {
+  it("11: the gate passes on this checkout without counting itself (stale detection means every listed site was found)", () => {
     const r = spawnSync(process.execPath, [GATE], { encoding: "utf8" });
     expect(r.status, `${r.stdout}${r.stderr}`).toBe(0);
     expect(
