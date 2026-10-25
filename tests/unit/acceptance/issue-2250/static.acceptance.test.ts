@@ -16,9 +16,25 @@ import {
 
 const read = (f: string) => (existsSync(f) ? readFileSync(f, "utf8") : "");
 const MIG = "supabase/migrations";
-const migFile = () =>
-  readdirSync(MIG).find((f) => /^\d{14}_tenant_guard\.sql$/.test(f)) ?? "";
-const sql = () => (migFile() ? read(`${MIG}/${migFile()}`) : "");
+/**
+ * Migrations looked up by EXACT file name (never a glob or date prefix), each
+ * asserted to exist, so other issues' migrations landing on develop cannot be
+ * mistaken for these.
+ */
+const OWN_MIGRATION = "20261024150000_tenant_guard.sql";
+const AUTHZ_FOUNDATION = "20260226113000_authz_memberships_foundation.sql";
+/** Returns `name` after asserting supabase/migrations/<name> exists. */
+const migration = (name: string) => {
+  expect(existsSync(`${MIG}/${name}`), `${MIG}/${name} must exist`).toBe(true);
+  return name;
+};
+const migFile = () => migration(OWN_MIGRATION);
+const sql = () => read(`${MIG}/${migFile()}`);
+const STEP_RUN = [
+  "bun x vitest run",
+  "tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts",
+  "tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts",
+].join(" ");
 const STEP = "Verify tenant isolation (real stack)";
 const REALSTACK =
   "tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts";
@@ -50,7 +66,7 @@ const DOC_RULES = String.raw`
   .map((line) => line.split(" :: ") as [string, string]);
 
 describe("#2250 migration text (static)", () => {
-  it("2: supabase/migrations/<ts>_tenant_guard.sql exists after 20261021064500 with a -- Down: header", () => {
+  it(`2: supabase/migrations/${OWN_MIGRATION} exists after 20261021064500 with a -- Down: header`, () => {
     expect(migFile() > "20261021064500").toBe(true);
     expect(sql()).toMatch(/^-- Down:/m);
   });
@@ -60,11 +76,15 @@ describe("#2250 migration text (static)", () => {
       /ALTER\s+DEFAULT\s+PRIVILEGES\s+IN\s+SCHEMA\s+tenant_guard\s+REVOKE\s+EXECUTE\s+ON\s+FUNCTIONS\s+FROM\s+PUBLIC/i,
     );
   });
-  it("9: authz.current_tenant_id() is still defined only by 20260226113000_authz_memberships_foundation.sql", () => {
-    const defs = readdirSync(MIG).filter((f) =>
-      /FUNCTION\s+authz\.current_tenant_id\s*\(/i.test(read(`${MIG}/${f}`)),
-    );
-    expect(defs).toEqual(["20260226113000_authz_memberships_foundation.sql"]);
+  it(`9: authz.current_tenant_id() is still defined only by ${AUTHZ_FOUNDATION}`, () => {
+    const def = /FUNCTION\s+authz\.current_tenant_id\s*\(/i;
+    migration(OWN_MIGRATION);
+    expect(read(`${MIG}/${migration(AUTHZ_FOUNDATION)}`)).toMatch(def);
+    // All forward migrations: no later one (including #2250's) may redefine it.
+    const defs = readdirSync(MIG)
+      .filter((f) => /^\d{14}_.+\.sql$/.test(f))
+      .filter((f) => def.test(read(`${MIG}/${f}`)));
+    expect(defs).toEqual([AUTHZ_FOUNDATION]);
   });
 });
 
@@ -73,10 +93,19 @@ describe("#2250 CI step (criterion 11)", () => {
     workflowJobs(loadWorkflowDocument(".github/workflows/ci-integration.yml"))
       .migrate?.steps ?? [];
 
-  it(`'${STEP}' is the LAST migrate step (by name, after the reader-role step) with exactly this env and run`, () => {
+  it(`'${STEP}' is the LAST migrate step (index 16, after the reader-role and #2254 steps) with exactly this env and run`, () => {
     const all = steps();
     const i = all.findIndex((s) => s.name === STEP);
+    expect(i).toBe(16);
     expect(i).toBe(all.length - 1);
+    expect(
+      all.findIndex(
+        (s) =>
+          s.name ===
+          "Verify identity email normalizer and donor keys (real stack)",
+      ),
+      "#2254's migrate step stays at index 15",
+    ).toBe(15);
     expect(i).toBeGreaterThan(
       all.findIndex(
         (s) => s.name === "Verify document-cutover reader role (real stack)",
@@ -85,7 +114,7 @@ describe("#2250 CI step (criterion 11)", () => {
     expect(all[i]).toEqual({
       name: STEP,
       env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
-      run: "bun x vitest run realstack.acceptance",
+      run: STEP_RUN,
     });
   });
 
