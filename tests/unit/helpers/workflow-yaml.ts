@@ -154,9 +154,10 @@ export function pinnedIfProblems(job: WorkflowJob): string[] {
   };
   check(`Job '${jobId}'`, job, pin.jobIf);
   // Reject jobs: every step after the reject step — including the migrate
-  // DATABASE_URL steps (8, 11, 12, 13) and "Verify document-cutover reader
-  // role (real stack)" (14) — is pinned to no `if:`, so none can run after the
-  // fork reject at step 0 has failed the job.
+  // DATABASE_URL steps (8, 11, 12, 13), "Verify document-cutover reader role
+  // (real stack)" (14), the #2254 identity step (15) and "Verify tenant
+  // isolation (real stack)" (16) — is pinned to no `if:`, so none can run
+  // after the fork reject at step 0 has failed the job.
   allSteps(job).forEach((step, index) =>
     check(
       `Job '${jobId}' step ${index}`,
@@ -428,7 +429,7 @@ export const PINNED_STEP_BODIES: Record<
     },
     "name:Verify tenant isolation (real stack)": {
       index: 16,
-      run: "bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts",
+      run: "bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts",
       env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
     },
   },
