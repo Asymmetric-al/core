@@ -1,4 +1,8 @@
 import { parseRequiredIdempotencyKey } from "@asym/api/donate/idempotency";
+import {
+  DONATION_WITH_PARTIES_SELECT,
+  giftMismatches,
+} from "@asym/api/donations/select";
 import { CACHE_TAGS, revalidateTags } from "@asym/api/shared/cache-tags";
 import {
   getAuthContext,
@@ -12,7 +16,7 @@ import {
   fetchUserPostInteractions,
   toUserPostInteractionSets,
 } from "@asym/database/supabase/post-interactions";
-import { createSchema, createYoga } from "graphql-yoga";
+import { createGraphQLError, createSchema, createYoga } from "graphql-yoga";
 
 import { beginGraphQLGiftIntake } from "./gift-intake";
 import {
@@ -97,7 +101,7 @@ const typeDefs = /* GraphQL */ `
   type Donation {
     id: ID!
     tenantId: ID!
-    donor: Profile!
+    donor: Profile
     missionary: Missionary!
     amount: Int!
     currency: String!
@@ -344,25 +348,25 @@ const resolvers = {
       const limit = args.limit || 20;
       const offset = args.offset || 0;
 
-      const { data: donor } = await ctx.supabaseAdmin
+      const { data: donor, error: donorError } = await ctx.supabaseAdmin
         .from("donors")
         .select("id")
         .eq("profile_id", auth.profileId)
         .eq("tenant_id", auth.tenantId)
-        .single();
+        .maybeSingle();
+      if (donorError) throw donationsQueryFailed("Donor lookup", donorError);
       if (!donor?.id) return [];
 
-      const { data } = await ctx.supabaseAdmin
+      const { data, error } = await ctx.supabaseAdmin
         .from("donations")
-        .select(
-          "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
-        )
+        .select(DONATION_WITH_PARTIES_SELECT)
         .eq("donor_id", donor.id)
         .eq("tenant_id", auth.tenantId)
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
+      if (error) throw donationsQueryFailed("Donations query", error);
 
-      return (data || []).map(mapDonation);
+      return data.map(mapDonation);
     },
 
     mySupporters: async (
@@ -375,26 +379,29 @@ const resolvers = {
       const limit = args.limit || 20;
       const offset = args.offset || 0;
 
-      const { data: missionary } = await ctx.supabaseAdmin
-        .from("missionaries")
-        .select("id")
-        .eq("profile_id", auth.profileId)
-        .eq("tenant_id", auth.tenantId)
-        .single();
-
+      // More than one missionary row for this profile is an error, not a guess.
+      const { data: missionary, error: missionaryError } =
+        await ctx.supabaseAdmin
+          .from("missionaries")
+          .select("id")
+          .eq("profile_id", auth.profileId)
+          .eq("tenant_id", auth.tenantId)
+          .maybeSingle();
+      if (missionaryError) {
+        throw donationsQueryFailed("Missionary lookup", missionaryError);
+      }
       if (!missionary) return [];
 
-      const { data } = await ctx.supabaseAdmin
+      const { data, error } = await ctx.supabaseAdmin
         .from("donations")
-        .select(
-          "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
-        )
+        .select(DONATION_WITH_PARTIES_SELECT)
         .eq("missionary_id", missionary.id)
         .eq("tenant_id", auth.tenantId)
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
+      if (error) throw donationsQueryFailed("Donations query", error);
 
-      return (data || []).map(mapDonation);
+      return data.map(mapDonation);
     },
 
     auditLogs: async (
@@ -678,6 +685,7 @@ const resolvers = {
         throw new Error("Missing required idempotency-key header");
       }
 
+      const currency = (args.input.currency || "usd").toLowerCase();
       const begin = await beginGraphQLGiftIntake({
         rpc: yogaRpc(ctx.supabaseAdmin),
         tenantId: auth.tenantId,
@@ -685,7 +693,7 @@ const resolvers = {
         actorUserId: auth.userId,
         missionaryId: args.input.missionaryId,
         amountCents: args.input.amount,
-        currency: (args.input.currency || "usd").toLowerCase(),
+        currency,
         idempotencyKey,
         ipAddress: ctx.request.headers.get("x-forwarded-for"),
         userAgent: ctx.request.headers.get("user-agent"),
@@ -693,13 +701,51 @@ const resolvers = {
 
       const { data: donation, error } = await ctx.supabaseAdmin
         .from("donations")
-        .select(
-          "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
-        )
+        .select(DONATION_WITH_PARTIES_SELECT)
         .eq("id", begin.donationId)
+        .eq("tenant_id", auth.tenantId)
         .single();
-      if (error || !donation)
-        throw new Error(error?.message ?? "Donation not found");
+      // The gift already exists, so tell the client it was created rather than
+      // masking this as a failure that invites a retry under a new key. On a
+      // replay the id may be another donor's gift, so it is not returned.
+      if (error || !donation) {
+        console.error("[graphql] Donation read-back failed", {
+          donationId: begin.donationId,
+          replayed: begin.replayed,
+          error,
+        });
+        throw createGraphQLError(
+          "Donation was created but could not be read back",
+          {
+            extensions: {
+              code: "DONATION_READBACK_FAILED",
+              ...(begin.replayed ? {} : { donationId: begin.donationId }),
+            },
+          },
+        );
+      }
+      // A replayed idempotency key can resolve to another donor's gift or a
+      // different payload. Return none of its data.
+      const mismatched = giftMismatches(donation, {
+        profileId: auth.profileId,
+        amountCents: args.input.amount,
+        currency,
+        missionaryId: args.input.missionaryId,
+        fundId: null,
+      });
+      if (mismatched.length > 0) {
+        console.error(
+          "[graphql] Idempotency key replay does not match request",
+          {
+            donationId: begin.donationId,
+            callerProfileId: auth.profileId,
+            mismatched,
+          },
+        );
+        throw createGraphQLError("Idempotency key already used", {
+          extensions: { code: "IDEMPOTENCY_KEY_REUSED" },
+        });
+      }
 
       return mapDonation(donation);
     },
@@ -841,11 +887,21 @@ function mapPost(data: Record<string, unknown>) {
   };
 }
 
+/** Logs the PostgREST error and returns a generic, unmasked GraphQL error. */
+function donationsQueryFailed(step: string, error: unknown) {
+  console.error(`[graphql] ${step} failed`, error);
+  return createGraphQLError("Failed to load donations", {
+    extensions: { code: "DONATIONS_QUERY_FAILED" },
+  });
+}
+
+/** `donor` is the donor's profile, or null for a guest donor without one. */
 function mapDonation(data: Record<string, unknown>) {
+  const donor = data.donor as { profile?: Record<string, unknown> } | null;
   return {
     id: data.id,
     tenantId: data.tenant_id,
-    donor: mapProfile(data.donor as Record<string, unknown>),
+    donor: mapProfile(donor?.profile ?? null),
     missionary: data.missionary
       ? mapMissionary(data.missionary as Record<string, unknown>)
       : null,
