@@ -572,6 +572,9 @@ export async function requestInboundEmailRetryDispatch(
 
     return { status: "retry_dispatched", dispatch: dispatch.outcome };
   } finally {
-    await releaseWorkClaim(deps.client, { claimId: claim.claimId });
+    await releaseWorkClaim(deps.client, {
+      tenantId: input.tenantId,
+      claimId: claim.claimId,
+    });
   }
 }

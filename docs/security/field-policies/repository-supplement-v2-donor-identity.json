@@ -1,0 +1,117 @@
+{
+  "format_version": 2,
+  "disposition": "repository-source/local-catalog supplement; absent from immutable live capture; added after the census base SHA",
+  "issue": "#2254",
+  "approval": "Samson (factory lead), Oct 24, 2026: #2254 Final spec r1 (Q11), In 3 and In 4",
+  "source_path": "supabase/migrations/20261024140000_identity_email_normalizer_and_donor_keys.sql",
+  "source_sha256": "36190ece4a2ad17d24dddbddb0db579f9511c77fda2feed90ce0bf07b16efbfa",
+  "source_binding": "working-tree sha256; the source postdates repository_base_sha, so it is not read with git show",
+  "local_catalog": {
+    "database": "CI migrate job (ci-integration.yml), fresh chain",
+    "postgres_version": "17.11",
+    "query": "select jsonb_agg(jsonb_build_object('schema',table_schema,'record_type',table_name,'field_key',column_name,'ordinal',ordinal_position,'data_type',data_type,'udt_name',udt_name,'nullable',is_nullable='YES','default',column_default,'generated',is_generated,'generation_expression',generation_expression) order by ordinal_position) from information_schema.columns where table_schema='public' and table_name='donors' and column_name in ('email_normalized','email_verified_at');",
+    "result": [
+      {
+        "schema": "public",
+        "record_type": "donors",
+        "field_key": "email_normalized",
+        "ordinal": 43,
+        "data_type": "text",
+        "udt_name": "text",
+        "nullable": true,
+        "default": null,
+        "generated": "ALWAYS",
+        "generation_expression": "normalize_email(email)"
+      },
+      {
+        "schema": "public",
+        "record_type": "donors",
+        "field_key": "email_verified_at",
+        "ordinal": 44,
+        "data_type": "timestamp with time zone",
+        "udt_name": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "generated": "NEVER",
+        "generation_expression": null
+      }
+    ]
+  },
+  "columns": [
+    {
+      "recordType": "donors",
+      "name": "email_normalized",
+      "ordinal": 43,
+      "type": "text",
+      "nullable": true,
+      "generated": "normalize_email(email)",
+      "semantic_category": "contact",
+      "category": "contact",
+      "processor_identifier": false,
+      "policies": {
+        "mission_control": {
+          "visible": true,
+          "editable": false,
+          "exportable": false
+        },
+        "donor": {
+          "visible": true,
+          "editable": false,
+          "exportable": false
+        },
+        "missionary": {
+          "visible": true,
+          "editable": false,
+          "exportable": false
+        },
+        "public": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        },
+        "export": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        }
+      }
+    },
+    {
+      "recordType": "donors",
+      "name": "email_verified_at",
+      "ordinal": 44,
+      "type": "timestamp with time zone",
+      "nullable": true,
+      "semantic_category": "contact",
+      "category": "contact",
+      "processor_identifier": false,
+      "policies": {
+        "mission_control": {
+          "visible": true,
+          "editable": false,
+          "exportable": false
+        },
+        "donor": {
+          "visible": true,
+          "editable": false,
+          "exportable": false
+        },
+        "missionary": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        },
+        "public": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        },
+        "export": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        }
+      }
+    }
+  ]
+}
