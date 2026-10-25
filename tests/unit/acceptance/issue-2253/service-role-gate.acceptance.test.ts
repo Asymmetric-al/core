@@ -316,9 +316,16 @@ type Allow = {
   })[];
 };
 const doc = () => JSON.parse(read(ALLOWLIST) || "null") as Allow | null;
+/** Pinned CEILING totals at c541b84b (lead's ruling): sites, entries, files. */
+const CEILING_TOTALS = [188, 117, 111] as const;
+const live = (d: Allow) => [
+  d.entries.reduce((a, x) => a + x.count, 0),
+  d.entries.length,
+  new Set(d.entries.map((x) => x.file)).size,
+];
 
 describe("#2253 service-role gate on the real tree (9, 11)", () => {
-  it("9: the allowlist is the frozen 117-entry list: 188 sites in 111 files, per-kind totals as specced", () => {
+  it("9: the allowlist is the frozen v1 list, at or under the pinned ceiling: 188 sites, 117 entries, 111 files, per-kind totals as specced (removals pass)", () => {
     const d = doc();
     expect(d, `${ALLOWLIST} exists and is JSON`).not.toBeNull();
     expect([d!.version, d!.ruling, d!.frozen_at]).toEqual([
@@ -335,17 +342,15 @@ describe("#2253 service-role gate on the real tree (9, 11)", () => {
       for (const k of ["lines", "path_ref", "follow_up"] as const)
         expect(x, x.file).toHaveProperty(k);
     }
-    const got = Object.fromEntries(
-      KINDS.map((k) => {
-        const xs = d!.entries.filter((x) => x.kind === k);
-        return [k, [xs.reduce((a, x) => a + x.count, 0), xs.length]];
-      }),
-    );
-    expect(got).toEqual(TOTALS);
-    expect([
-      d!.entries.length,
-      new Set(d!.entries.map((x) => x.file)).size,
-    ]).toEqual([117, 111]);
+    for (const k of KINDS) {
+      const xs = d!.entries.filter((x) => x.kind === k);
+      const got = [xs.reduce((n, x) => n + x.count, 0), xs.length];
+      const ok = got.every((n, i) => n <= TOTALS[k][i]!);
+      expect(ok, `${k} ${got.join("/")} <= ${TOTALS[k].join("/")}`).toBe(true);
+    }
+    const got = live(d!);
+    const ok = got.every((n, i) => n <= CEILING_TOTALS[i]!);
+    expect(ok, `${got.join("/")} <= 188/117/111`).toBe(true);
   });
 
   it("9 (non-vacuous): service_role_key entries equal an independent key-name count over the scanned tree, the gate itself excluded", () => {
@@ -382,9 +387,17 @@ describe("#2253 service-role gate on the real tree (9, 11)", () => {
     expect(listed).toEqual(counted);
   });
 
-  it("11: the gate passes on this checkout without counting itself (stale detection means every listed site was found)", () => {
+  it("11: the gate passes on this checkout without counting itself, and its scan equals the allowlist exactly (sites, files, per kind)", () => {
     const r = spawnSync(process.execPath, [GATE], { encoding: "utf8" });
     expect(r.status, `${r.stdout}${r.stderr}`).toBe(0);
+    const d = doc()!;
+    const per = KINDS.map((k) => {
+      const n = d.entries.filter((x) => x.kind === k);
+      return `${n.reduce((a, x) => a + x.count, 0)} ${k}`;
+    });
+    const [sites, , files] = live(d);
+    const scan = `${sites} sites in ${files} files (${per.join(", ")})`;
+    expect(r.stdout, "the gate's scan equals the allowlist").toContain(scan);
     expect(
       JSON.parse(read("package.json")).scripts["verify:service-role-clients"],
     ).toContain(GATE);
