@@ -189,6 +189,8 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "#2253 Builder 88aeebc2", hash: "edaf3b22c468fb20" },
     // #2253 sync: Builder c9f11d54 (develop d1f0af94 merged) has both, #2253's step now 20
     { ref: "#2253 Builder c9f11d54", hash: "39e8eec12b28c87e" },
+    // #2253 sync2: Builder 18d490e9 (develop c4d4fbc5 merged) has #2252's step 20, #2253's step now 21
+    { ref: "#2253 Builder 18d490e9", hash: "f7866ec7ed2060ae" },
   ] as const;
   it("nothing but on: and test-e2e's if: changes (fingerprint)", () => {
     const prints = [CI, CII].map((file) => {
