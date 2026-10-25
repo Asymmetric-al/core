@@ -31,7 +31,8 @@
 --     FOR r IN SELECT c.oid::regclass AS t FROM pg_class c
 --       JOIN pg_namespace n ON n.oid = c.relnamespace
 --       WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p')
---         AND c.relname <> 'crm_notes' AND EXISTS (SELECT 1 FROM pg_attribute a
+--         AND c.relname NOT IN ('crm_notes')
+--         AND EXISTS (SELECT 1 FROM pg_attribute a
 --           WHERE a.attrelid = c.oid AND a.attname = 'tenant_id'
 --             AND a.attnum > 0 AND NOT a.attisdropped)
 --     LOOP EXECUTE format('ALTER TABLE %s NO FORCE ROW LEVEL SECURITY', r.t);
@@ -39,7 +40,9 @@
 --   ALTER TABLE public.donation_saga_outbox DISABLE ROW LEVEL SECURITY;
 --   ALTER TABLE public.email_templates DISABLE ROW LEVEL SECURITY;
 --   ALTER TABLE public.email_template_versions DISABLE ROW LEVEL SECURITY;
--- A table whose own later migration ships ENABLE + FORCE keeps it.
+-- The loop un-forces every public tenant table present when it runs, not only
+-- the ones this file forced. If a later migration added tenant tables that ship
+-- their own ENABLE + FORCE, add them to the NOT IN list before running it.
 
 -- Precondition: every target table and app definer function is owned by a
 -- role that bypasses RLS.
