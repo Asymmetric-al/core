@@ -46,7 +46,7 @@
 -- quiet window long enough to cover both full VALIDATE scans of donations.
 -- Apply the whole file; don't reload the PostgREST schema mid-apply.
 --
--- Down: supabase/migrations/rollback_20261025080000_donations_composite_donor_fk.sql
+-- Down: supabase/migrations/rollback_20261025100000_donations_composite_donor_fk.sql
 -- re-adds and validates donations_donor_id_fkey, then drops the composite FK
 -- and the CHECK, in one transaction. It touches no data.
 --

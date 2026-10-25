@@ -1,4 +1,4 @@
--- Rollback for 20261025080000_donations_composite_donor_fk.sql
+-- Rollback for 20261025100000_donations_composite_donor_fk.sql
 -- Re-adds and validates the single-column donations_donor_id_fkey first, then
 -- drops the composite FK and the CHECK, so there is never a moment with no
 -- donor FK. One transaction, so no committed state has two donations ->
