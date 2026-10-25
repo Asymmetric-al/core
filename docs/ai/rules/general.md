@@ -27,8 +27,9 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 - Readiness: `Ready` when fully specified (see `docs/agents/triage-labels.md`); the retired `status:*` labels are not used.
 - Factory state: `factory:*`, applied only by the factory and only to in-flight work.
 - Type: `type:bug | type:feature | type:chore | type:refactor | type:docs`
+- Release: `release-blocker` (optional; an open issue with it blocks `bun run release:production`; see `docs/ops/production-release.md`).
 
-**Rule:** Exactly one `type:*` and one `complexity:*` label. Readiness and factory-state labels are not required: an untriaged issue carries neither. Do not mix multiple labels from the same category.
+**Rule:** Exactly one `type:*` and one `complexity:*` label. Readiness and factory-state labels are not required: an untriaged issue carries neither. Release labels are optional and do not count toward the type/complexity rule. Do not mix multiple labels from the same category.
 
 ### CI gate
 
