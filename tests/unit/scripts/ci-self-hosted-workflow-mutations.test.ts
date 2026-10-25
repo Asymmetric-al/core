@@ -1626,11 +1626,11 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
     ]);
     expect([...MODELLED_JOB_KEYS.reject].sort()).toEqual(reject.job);
     // The role lists are only the fallback for unpinned (fixture) jobs. Real
-    // reject-job steps use the exact per-step tables; the three real
-    // reject-job step envs (migrate "Verify document-cutover reader role (real
-    // stack)", "Verify tenant isolation (real stack)" and "Verify tenant table
-    // RLS posture (real stack)", pinned per step) are deliberately not in the
-    // fallback.
+    // reject-job steps use the exact per-step tables; the four real reject-job
+    // step envs (migrate "Verify document-cutover reader role (real stack)",
+    // "Verify tenant isolation (real stack)", "Verify authz EXECUTE grants
+    // (real stack)" and "Verify tenant table RLS posture (real stack)", pinned
+    // per step) are deliberately not in the fallback.
     expect([...MODELLED_STEP_KEYS.reject].sort()).toEqual(
       reject.step.filter((key) => key !== "env"),
     );
@@ -1643,6 +1643,7 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
     ).toEqual([
       "migrate name:Verify document-cutover reader role (real stack)",
       "migrate name:Verify tenant isolation (real stack)",
+      "migrate name:Verify authz EXECUTE grants (real stack)",
       "migrate name:Verify tenant table RLS posture (real stack)",
     ]);
     expect([...MODELLED_JOB_KEYS.gate].sort()).toEqual(gate.job);
@@ -2164,6 +2165,7 @@ describe("repair 7: per-job and per-step key allowlists (no union per role)", ()
     expect(envSteps).toEqual([
       "migrate name:Verify document-cutover reader role (real stack)",
       "migrate name:Verify tenant isolation (real stack)",
+      "migrate name:Verify authz EXECUTE grants (real stack)",
       "migrate name:Verify tenant table RLS posture (real stack)",
       "ci-gate name:Validate correctness checks and requested compilation",
     ]);
@@ -2838,7 +2840,7 @@ describe("repair 9: the migrate 'Verify document-cutover reader role (real stack
         ),
       )
       .map(({ index }) => index);
-    expect(siblings).toEqual([8, 11, 12, 13, 14, 16, 17]);
+    expect(siblings).toEqual([8, 11, 12, 13, 14, 16, 17, 18]);
     expect(job.if).toBeUndefined();
     for (const index of siblings) {
       expect(job.steps![index]!.if, `step ${index}`).toBeUndefined();
@@ -2871,10 +2873,10 @@ describe("#2251: the migrate 'Verify tenant table RLS posture (real stack)' step
       ),
     );
 
-  it("the real step is the last migrate step, pinned exactly: name, position 17, run, env, no if", () => {
+  it("the real step is the last migrate step, pinned exactly: name, position 18, run, env, no if", () => {
     const job = migrateOf(source(CI_INTEGRATION));
     const index = job.steps!.findIndex((step) => step.name === NAME);
-    expect(index).toBe(17);
+    expect(index).toBe(18);
     expect(index).toBe(job.steps!.length - 1);
     const step = job.steps![index]!;
     expect(PINNED_STEP_BODIES.migrate![ID]).toEqual({
@@ -2897,7 +2899,7 @@ describe("#2251: the migrate 'Verify tenant table RLS posture (real stack)' step
   ])("%s instead of the explicit file is not modelled", (_label, run) => {
     const job = editStep(STEP_TEXT.replace(RUN, run));
     expect(modelledKeyProblems(job, "reject").join("\n")).toContain(
-      `Step 17 (reject) "${ID}" of job 'migrate' is not modelled (run differs from the pinned body`,
+      `Step 18 (reject) "${ID}" of job 'migrate' is not modelled (run differs from the pinned body`,
     );
   });
 
@@ -2907,7 +2909,7 @@ describe("#2251: the migrate 'Verify tenant table RLS posture (real stack)' step
   ])("another value (%s) for the key is not allowed", (_label, value) => {
     const job = editStep(STEP_TEXT.replace("${{ env.DATABASE_URL }}", value));
     expect(envKeyProblems(job)).toEqual([
-      `env value not allowed: ${KEY} at step 17 env of job 'migrate' (pinned to "\${{ env.DATABASE_URL }}")`,
+      `env value not allowed: ${KEY} at step 18 env of job 'migrate' (pinned to "\${{ env.DATABASE_URL }}")`,
     ]);
     expect(requiredJobFailsClosedOnFork(job)).toBe(false);
   });
@@ -2917,7 +2919,7 @@ describe("#2251: the migrate 'Verify tenant table RLS posture (real stack)' step
       STEP_TEXT.replace("        env:", "        if: always()\n        env:"),
     );
     expect(pinnedIfProblems(job)).toEqual([
-      `Job 'migrate' step 17 if "always()" is not allowed: pinned to "absent"`,
+      `Job 'migrate' step 18 if "always()" is not allowed: pinned to "absent"`,
     ]);
     expect(requiredJobFailsClosedOnFork(job)).toBe(false);
   });
@@ -2926,7 +2928,7 @@ describe("#2251: the migrate 'Verify tenant table RLS posture (real stack)' step
     const job = editStep("");
     expect(job.steps!.some((step) => step.name === NAME)).toBe(false);
     expect(modelledKeyProblems(job, "reject")).toEqual([
-      `Pinned step "${ID}" of job 'migrate' is missing (pinned to position 17)`,
+      `Pinned step "${ID}" of job 'migrate' is missing (pinned to position 18)`,
     ]);
   });
 });
