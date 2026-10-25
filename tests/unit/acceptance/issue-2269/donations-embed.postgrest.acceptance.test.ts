@@ -574,12 +574,12 @@ describe("A1-C8 replayed idempotency key (in-memory PostgREST, no DB)", () => {
     },
   );
 
-  // Fail closed (ruling 6391991201 item 3): an unverifiable replay does no saga work.
+  // Fail closed (rulings 6391991201 item 3, C8c, C8d): an unconfirmed replay does no saga work and echoes no donationId.
   it.each([
     ["finds nothing (another tenant's gift)", V2, 0],
     ["errors", G1, 400],
   ] as const)(
-    'A1-C8b: REST POST replay whose pre-saga read-back %s → 201 readBack:"failed", no data, saga never run',
+    'A1-C8b/d: replay whose pre-saga read-back %s → REST 201 exactly {donation:null, readBack:"failed"}; GraphQL code-only DONATION_READBACK_FAILED (C8c); no saga, no writes',
     async (_n, id, err) => {
       s.replay = id;
       if (err)
@@ -587,14 +587,20 @@ describe("A1-C8 replayed idempotency key (in-memory PostgREST, no DB)", () => {
           fakePostgrest(u, i),
           Response.json(PGRST200, { status: err })
         );
-      const res = await POST(rest("POST", REQ));
-      const body = { donation: null, donationId: id, readBack: "failed" };
+      const [res, r] = [await POST(rest("POST", REQ)), await gqlCreate(REQ)];
+      const body = { donation: null, readBack: "failed" };
       expect([res.status, await res.json(), s.sagaRuns, s.writes]).toEqual([
         201,
         body,
         0,
         0,
       ]);
+      const ext = [{ code: "DONATION_READBACK_FAILED" }];
+      expect([r.data ?? null, r.errors?.map((e) => e.extensions)]).toEqual([
+        null,
+        ext,
+      ]);
+      expect(JSON.stringify(r)).not.toContain(id);
     },
   );
 });
