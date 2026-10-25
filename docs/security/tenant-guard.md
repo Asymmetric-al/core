@@ -104,8 +104,8 @@ A listed table is deny-by-default for every role without BYPASSRLS, including `t
 
 Each entry has `table`, `outcome`, `reason`, `code_paths` and `reviewed_by`:
 
-- `service_role_needed`: the app reaches the table directly, and every direct site uses the service-role client (BYPASSRLS). `code_paths` lists those sites as `path:line`.
-- `deny_by_default`: no direct app access. `code_paths` names the postgres-owned SECURITY DEFINER function, the maintenance script, or `"none"` for a dormant table.
+- `service_role_needed`: the app reaches the table directly, and every direct site uses the service-role client (BYPASSRLS). `code_paths` lists every non-test file under `apps/` and `packages/` that queries the table, each as `path:line` of its first query. A new query site in another file adds its path.
+- `deny_by_default`: no direct app access. `code_paths` names the postgres-owned SECURITY DEFINER function, the operator script or SQL function (`path:line`) that reaches it, or `"none"` for a dormant table.
 
 ### What FORCE changes
 
