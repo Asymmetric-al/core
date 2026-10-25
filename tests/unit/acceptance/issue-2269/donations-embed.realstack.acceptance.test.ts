@@ -135,6 +135,10 @@ describe("#2269 static (C1, C2, C8)", () => {
       );
     for (const r of [
       grep("profiles!donor_id", "apps", "packages"),
+      // donors!donor_id is narrowed to the in-scope files (donations/index.ts,
+      // graphql/handler.ts, select.ts) per Samson's ruling on #2269, because
+      // follower-requests uses donors!donor_id legitimately; profiles!donor_id
+      // above stays repo-wide.
       grep("donors!donor_id", REST, GQL, SELECT_TS),
     ]) {
       expect(r.stdout).toBe("");

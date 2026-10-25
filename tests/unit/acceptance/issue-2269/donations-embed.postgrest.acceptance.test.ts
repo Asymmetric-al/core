@@ -10,8 +10,14 @@
  * Recipe (spec §0): PostgREST v14.18 static binary,
  *   postgrest-v14.18-linux-static-x86-64.tar.xz
  *   sha256 98de1c0be7787aea5f5e11a25f303ea0077634d6fc1000b687bfa825fd27d299
- * on a disposable PG17 with every migration + supabase/seed.sql (and hosted
- * Supabase grants for service_role), db-schemas=public, db-anon-role=anon, a
+ * on a disposable PG17 with every migration + supabase/seed.sql, then these
+ * hosted-Supabase-style grants (local test setup only, never a migration):
+ *   grant usage on schema public to service_role;
+ *   grant all on all tables in schema public to service_role;
+ *   grant all on all sequences in schema public to service_role;
+ *   grant execute on all functions in schema public to service_role;
+ *   notify pgrst, 'reload schema';
+ * PostgREST: db-schemas=public, db-anon-role=anon, a
  * throwaway jwt-secret and a locally minted HS256 {"role":"service_role"} JWT:
  *   DONATIONS_EMBED_IT_POSTGREST_URL=http://127.0.0.1:3000 \
  *   DONATIONS_EMBED_IT_SERVICE_JWT=<jwt> \
