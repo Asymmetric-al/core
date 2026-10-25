@@ -9,10 +9,6 @@ import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import {
-  loadWorkflowDocument,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
-import {
   AFTER_STEPS,
   ALLOWLIST,
   CATALOG,
@@ -27,6 +23,10 @@ import {
   VERIFIER,
   read,
 } from "./harness";
+import {
+  loadWorkflowDocument,
+  workflowJobs,
+} from "../../helpers/workflow-yaml";
 
 const git = (...args: string[]) => spawnSync("git", args, { encoding: "utf8" });
 const base = git("merge-base", "origin/develop", "HEAD").stdout.trim();
