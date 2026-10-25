@@ -78,15 +78,17 @@ function createMoveClientMock(tables: MoveTables) {
     return proxy;
   }
 
-  const rpc = vi.fn((fn: string) => {
+  // Guarded RPCs echo the tenant they ran for (#2250).
+  const rpc = vi.fn((fn: string, args: { p_tenant_id: string }) => {
+    const echo = { tenant_id: args.p_tenant_id };
     if (fn === "acquire_workflow_work_claim") {
       const next = tables.acquire?.shift() ?? {
         acquired: true,
         claim_id: CLAIM_ID,
       };
-      return Promise.resolve({ data: next, error: null });
+      return Promise.resolve({ data: { ...next, ...echo }, error: null });
     }
-    return Promise.resolve({ data: true, error: null });
+    return Promise.resolve({ data: { released: true, ...echo }, error: null });
   });
 
   const from = vi.fn((table: string) => ({

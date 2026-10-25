@@ -154,9 +154,10 @@ export function pinnedIfProblems(job: WorkflowJob): string[] {
   };
   check(`Job '${jobId}'`, job, pin.jobIf);
   // Reject jobs: every step after the reject step — including the migrate
-  // DATABASE_URL steps (8, 11, 12, 13) and "Verify document-cutover reader
-  // role (real stack)" (14) — is pinned to no `if:`, so none can run after the
-  // fork reject at step 0 has failed the job.
+  // DATABASE_URL steps (8, 11, 12, 13), "Verify document-cutover reader role
+  // (real stack)" (14), the #2254 identity step (15) and "Verify tenant
+  // isolation (real stack)" (16) — is pinned to no `if:`, so none can run
+  // after the fork reject at step 0 has failed the job.
   allSteps(job).forEach((step, index) =>
     check(
       `Job '${jobId}' step ${index}`,
@@ -340,6 +341,7 @@ export const MODELLED_KEYS_BY_JOB: Record<
         "name",
         "run",
       ],
+      "name:Verify tenant isolation (real stack)": ["name", "env", "run"],
     },
   },
   smoke: {
@@ -398,10 +400,12 @@ export const MODELLED_KEYS_BY_JOB: Record<
 
 /**
  * Steps pinned beyond their keys: exact position in the job, exact `run:` body
- * (trimmed) and exact step `env` values. The migrate "Verify document-cutover
- * reader role (real stack)" step (from develop #2169) pins
+ * (trimmed) and exact step `env` values. Three migrate steps: "Verify
+ * document-cutover reader role (real stack)" (from develop #2169) pins
  * DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL to exactly `${{ env.DATABASE_URL }}`;
- * the #2254 identity step after it has no step `env` (it uses the job's).
+ * the #2254 identity step after it has no step `env` (it uses the job's); and
+ * the last step, "Verify tenant isolation (real stack)" (#2250), pins
+ * TENANT_GUARD_IT_ADMIN_DATABASE_URL to exactly `${{ env.DATABASE_URL }}`.
  */
 export const PINNED_STEP_BODIES: Record<
   string,
@@ -422,6 +426,11 @@ export const PINNED_STEP_BODIES: Record<
       index: 15,
       run: "bun x vitest run tests/unit/acceptance/issue-2254/identity.realstack.acceptance.test.ts",
       env: {},
+    },
+    "name:Verify tenant isolation (real stack)": {
+      index: 16,
+      run: "bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts",
+      env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
     },
   },
 };
@@ -677,6 +686,9 @@ export const MODELLED_ENV_KEYS_BY_JOB: Record<
     steps: {
       "name:Verify document-cutover reader role (real stack)": [
         "DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL",
+      ],
+      "name:Verify tenant isolation (real stack)": [
+        "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
       ],
     },
   },
