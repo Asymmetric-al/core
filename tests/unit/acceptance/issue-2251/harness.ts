@@ -16,7 +16,26 @@ export const TENANT_GUARD_MIGRATION =
 export const EXCEPTIONS = "docs/security/rls-deny-by-default-exceptions.json";
 export const DOC = "docs/security/tenant-guard.md";
 export const RULING = "Samson Q5 + clash 2, Oct 24, 2026";
-export const REVIEWED_BY = "Samson (factory lead), 2026-10-24";
+/**
+ * reviewed_by format (Samson, repin): a non-empty reviewer name, then ", " and
+ * a real ISO date YYYY-MM-DD, e.g. "Samson (factory lead), 2026-10-24". Not
+ * pinned to one reviewer or day, so later reviewed entries comply.
+ */
+export function reviewedByProblem(value: unknown): string | null {
+  if (typeof value !== "string") return "not a string";
+  const m = /^(\S(?:.*\S)?), (\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!m) return `"${value}" is not "<reviewer>, YYYY-MM-DD"`;
+  if (!/\p{L}/u.test(m[1]!)) return `"${value}" has no reviewer name`;
+  const [y, mo, d] = [Number(m[2]), Number(m[3]), Number(m[4])];
+  const t = new Date(Date.UTC(y, mo - 1, d));
+  if (
+    t.getUTCFullYear() !== y ||
+    t.getUTCMonth() !== mo - 1 ||
+    t.getUTCDate() !== d
+  )
+    return `"${value}" has no real date`;
+  return null;
+}
 /** §3: tables with RLS off before this slice (Down DISABLEs exactly these). */
 export const RLS_OFF = [
   "donation_saga_outbox",

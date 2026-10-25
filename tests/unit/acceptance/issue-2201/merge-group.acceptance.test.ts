@@ -177,6 +177,8 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "#2250 Builder 0cdce1bd", hash: "d49376af6b9ca7e7" },
     // #2270: Builder b671a0e3 adds migrate step 17 (authz EXECUTE grants)
     { ref: "#2270 Builder b671a0e3", hash: "62f202ecfaca7a3f" },
+    // #2251: Builder 2039d580 adds migrate step 18 (tenant table RLS posture)
+    { ref: "#2251 Builder 2039d580", hash: "4b9f9d19330793f6" },
   ] as const;
   it("nothing but on: and test-e2e's if: changes (fingerprint)", () => {
     const prints = [CI, CII].map((file) => {

@@ -16,7 +16,6 @@ import {
   EXCEPTIONS,
   F,
   MIGRATION,
-  REVIEWED_BY,
   RLS_OFF,
   RULING,
   S,
@@ -25,6 +24,7 @@ import {
   codePathFile,
   exceptions,
   read,
+  reviewedByProblem,
 } from "./harness";
 
 const MIG = "supabase/migrations";
@@ -128,7 +128,7 @@ describe("#2251 In 2: docs/security/rls-deny-by-default-exceptions.json", () => 
       expect(() => JSON.parse(l.trim().replace(/,$/, "")), l).not.toThrow();
   });
 
-  it("entries are sorted by table, unique, exactly shaped, reviewed by Samson", () => {
+  it("entries are sorted by table, unique, exactly shaped, with a named, dated reviewer", () => {
     const e = exceptions();
     expect(e.length).toBeGreaterThan(0);
     const tables = e.map((x) => x.table);
@@ -146,7 +146,7 @@ describe("#2251 In 2: docs/security/rls-deny-by-default-exceptions.json", () => 
         x.outcome,
       );
       expect(x.reason.trim(), x.table).not.toBe("");
-      expect(x.reviewed_by, x.table).toBe(REVIEWED_BY);
+      expect(reviewedByProblem(x.reviewed_by), x.table).toBeNull();
       expect(Array.isArray(x.code_paths), x.table).toBe(true);
       expect(
         x.code_paths.length,
