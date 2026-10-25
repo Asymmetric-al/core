@@ -12,7 +12,7 @@ import { expect } from "vitest";
  * version is a reservation (§7); if Samson renumbers it, change only this line.
  */
 export const MIGRATION =
-  "supabase/migrations/20261025050000_account_claim_and_invitation_tables.sql";
+  "supabase/migrations/20261025090000_account_claim_and_invitation_tables.sql";
 /** Spec §2 In 5: the rollback is `rollback_` + the migration's file name. */
 export const ROLLBACK = MIGRATION.replace(/([^/]+)$/, "rollback_$1");
 /** Spec §2 In 6. */
