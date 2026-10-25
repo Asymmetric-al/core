@@ -93,19 +93,20 @@ describe("#2250 CI step (criterion 11)", () => {
     workflowJobs(loadWorkflowDocument(".github/workflows/ci-integration.yml"))
       .migrate?.steps ?? [];
 
-  it(`'${STEP}' is the LAST migrate step (index 16, after the reader-role and #2254 steps) with exactly this env and run`, () => {
+  it(`'${STEP}' is migrate step 16, immediately after #2254's step 15 (identity), with exactly this env and run`, () => {
     const all = steps();
     const i = all.findIndex((s) => s.name === STEP);
+    // Exact index, not "last step": later spec'd steps (e.g. #2270's step 17)
+    // may follow it.
     expect(i).toBe(16);
-    expect(i).toBe(all.length - 1);
     expect(
       all.findIndex(
         (s) =>
           s.name ===
           "Verify identity email normalizer and donor keys (real stack)",
       ),
-      "#2254's migrate step stays at index 15",
-    ).toBe(15);
+      "#2254's migrate step stays at index 15, immediately before",
+    ).toBe(i - 1);
     expect(i).toBeGreaterThan(
       all.findIndex(
         (s) => s.name === "Verify document-cutover reader role (real stack)",
