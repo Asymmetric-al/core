@@ -31,9 +31,12 @@ export function giftMismatches(
   gift: RequestedGift,
 ): string[] {
   const donor = row.donor as { profile?: { id?: unknown } | null } | null;
-  const ownerProfileId = donor?.profile?.id ?? null;
+  const ownerProfileId = uuidKey(donor?.profile?.id);
   const checks: Array<[string, boolean]> = [
-    ["profile", Boolean(gift.profileId) && ownerProfileId === gift.profileId],
+    [
+      "profile",
+      Boolean(ownerProfileId) && ownerProfileId === uuidKey(gift.profileId),
+    ],
     ["amount", Number(row.amount) === gift.amountCents],
     [
       "currency",

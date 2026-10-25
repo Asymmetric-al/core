@@ -76,10 +76,10 @@ vi.mock("../../../packages/api/src/donate/saga", () => ({
   processDonationSagaOutboxEvent: async () => s.saga(),
 }));
 vi.mock("../../../packages/api/src/donate/begin-gift-intake", () => ({
-  beginGiftIntake: async () => ({ ok: true, ...s.intake() }),
+  beginGiftIntake: async (i: Row) => ({ ok: true, ...s.intake(i) }),
 }));
 vi.mock("../../../packages/graphql/gift-intake", () => ({
-  beginGraphQLGiftIntake: async () => s.intake(),
+  beginGraphQLGiftIntake: async (i: Row) => s.intake(i),
 }));
 
 const T = "tenant-a";
@@ -242,6 +242,10 @@ describe("#2269 GraphQL donations reads (U)", () => {
       `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: 2500, currency: "USD" }) { ${FIELDS} } }`,
     );
     expect(r.errors).toBeUndefined();
+    // The intake gets the currency lowercased, as the saga stores it.
+    expect(s.intake).toHaveBeenCalledWith(
+      expect.objectContaining({ currency: "usd" }),
+    );
     expect(r.data?.createDonation).toEqual({
       id: "gift-1",
       amount: 2500,
@@ -325,15 +329,23 @@ describe("#2269 REST /api/donations (U)", () => {
 
 describe("#2269 C8: a replayed key whose gift is not the caller's request (U)", () => {
   it.each([
-    ["REST POST", "another donor's gift", otherDonor, 2500],
-    ["REST POST", "a different amount", profiled, 99],
-    ["GraphQL createDonation", "another donor's gift", otherDonor, 2500],
-    ["GraphQL createDonation", "a different amount", profiled, 99],
+    ["REST POST", "another donor's gift", otherDonor, 2500, {}],
+    ["REST POST", "a different amount", profiled, 99, {}],
+    ["REST POST", "a fund gift", profiled, 2500, { fund_id: "fund-1" }],
+    ["GraphQL createDonation", "another donor's gift", otherDonor, 2500, {}],
+    ["GraphQL createDonation", "a different amount", profiled, 99, {}],
+    [
+      "GraphQL createDonation",
+      "a fund gift",
+      profiled,
+      2500,
+      { fund_id: "fund-1" },
+    ],
   ] as const)(
     "%s with %s answers IDEMPOTENCY_KEY_REUSED and none of the gift's data",
-    async (via, _case, donor, amount) => {
+    async (via, _case, donor, amount, extra) => {
       s.auth = as("profile-d", "donor");
-      s.tables.set("donations", [donation("gift-1", donor)]);
+      s.tables.set("donations", [{ ...donation("gift-1", donor), ...extra }]);
       let body: string;
       if (via === "REST POST") {
         const res = await POST(
