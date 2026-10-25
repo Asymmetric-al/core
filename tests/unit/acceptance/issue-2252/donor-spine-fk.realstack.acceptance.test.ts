@@ -20,6 +20,7 @@ import {
   NEW_CHECK,
   NEW_FK,
   OLD_FK,
+  OTHER_COMPOSITE,
   PREFLIGHT_QUERY,
   ROLLBACK,
   SPINE,
@@ -284,7 +285,7 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
         ).toEqual([[cx, kind === "cross" ? "cross_tenant" : "null_tenant"]]);
       }));
 
-  it("C5/C6: the evaluator passes: 7 spine FKs, 21 FKs into donors = 7 spine + 14 follow-ups", () =>
+  it("C5/C6: the evaluator passes: 7 spine FKs, 23 FKs into donors = 7 spine + 14 follow-ups + #2255's 2 composite", () =>
     tx(async () => {
       const r = await rows();
       expect(evaluate(r)).toEqual([]);
@@ -292,7 +293,18 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
         .filter((x) => x.refTable === "donors")
         .map((x) => x.name)
         .sort();
-      expect(into).toEqual([...SPINE.map(([, n]) => n), ...FOLLOW_UPS].sort());
+      expect(into).toEqual(
+        [...SPINE.map(([, n]) => n), ...FOLLOW_UPS, ...OTHER_COMPOSITE].sort(),
+      );
+      expect(into).toHaveLength(23);
+      for (const n of OTHER_COMPOSITE) {
+        const x = r.find((y) => y.name === n)!;
+        expect([x.cols, x.refCols, x.validated], n).toEqual([
+          ["tenant_id", "donor_id"],
+          ["tenant_id", "id"],
+          true,
+        ]);
+      }
     }));
 
   /** Each mutation runs under a savepoint and must make the evaluator name `want`. */

@@ -9,7 +9,7 @@ import { existsSync, readFileSync } from "node:fs";
  * is a reservation (§7); if Samson renumbers it, change only this line.
  */
 export const MIGRATION =
-  "supabase/migrations/20261025080000_donations_composite_donor_fk.sql";
+  "supabase/migrations/20261025100000_donations_composite_donor_fk.sql";
 /** Spec §2 In 2: the rollback is `rollback_` + the migration's file name. */
 export const ROLLBACK = MIGRATION.replace(/([^/]+)$/, "rollback_$1");
 export const DOC = "docs/security/tenant-guard.md";
@@ -54,6 +54,15 @@ export const FOLLOW_UPS = `campaigns_creator_donor_id_fkey
   pledge_charge_attempts_donor_id_fkey staged_gifts_donor_id_fkey`
   .split(/\s+/)
   .filter(Boolean);
+/**
+ * Composite donor FKs added by other issues: tenant-safe already, so neither
+ * spine nor follow-up. #2255's claim tables (20261025090000, develop d1f0af94).
+ * Listed so the C5/C6 list of FKs into donors stays exact.
+ */
+export const OTHER_COMPOSITE = [
+  "account_claim_requests_donor_same_tenant_fk",
+  "legacy_account_invitations_donor_same_tenant_fk",
+];
 
 /** Spec §2 In 3, verbatim: the read-only operator preflight query. */
 export const PREFLIGHT_QUERY = `SELECT d.id AS donation_id, d.tenant_id AS donation_tenant_id, d.donor_id,
