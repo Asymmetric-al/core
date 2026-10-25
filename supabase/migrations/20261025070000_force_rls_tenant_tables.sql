@@ -22,7 +22,9 @@
 --
 -- Re-runnable: only tables still missing ENABLE or FORCE are altered. Each
 -- ALTER takes an ACCESS EXCLUSIVE lock until commit; apply in a quiet window,
--- on a preview database first.
+-- on a preview database first. lock_timeout is 5s for the ALTERs, so a table
+-- held by a long reader fails the migration fast (55P03, nothing applied)
+-- instead of queueing every later query behind it; re-run when it is quiet.
 --
 -- Down: run by hand; touches no data and no policy. NO FORCE on every target
 -- except crm_notes (forced since 20260818000000_crm_notes.sql), then DISABLE on
@@ -90,6 +92,7 @@ DO $$
 DECLARE
   r RECORD;
 BEGIN
+  SET LOCAL lock_timeout = '5s';
   FOR r IN
     SELECT c.oid::regclass AS t, c.relrowsecurity, c.relforcerowsecurity
     FROM pg_catalog.pg_class c
