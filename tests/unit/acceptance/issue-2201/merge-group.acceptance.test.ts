@@ -181,6 +181,10 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "#2251 Builder 2039d580", hash: "4b9f9d19330793f6" },
     // #2255: Builder 6446bb59 adds migrate step 19 (claim tables)
     { ref: "#2255 Builder 6446bb59", hash: "d3893a68b1cf0d6e" },
+    // #2252: Builder 03a8d5b2 adds migrate step 19 (donor spine composite FKs)
+    { ref: "#2252 Builder 03a8d5b2", hash: "ab8fec8cfaa6a7d3" },
+    // #2252 synced on develop d1f0af94: Builder 70d1497a, donor spine step moves to migrate 20 (after #2255's 19)
+    { ref: "#2252 Builder 70d1497a", hash: "d6d855999c1bea0b" },
   ] as const;
   it("nothing but on: and test-e2e's if: changes (fingerprint)", () => {
     const prints = [CI, CII].map((file) => {
