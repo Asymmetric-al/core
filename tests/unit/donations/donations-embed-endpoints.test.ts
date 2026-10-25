@@ -270,6 +270,22 @@ describe("#2269 GraphQL donations reads (U)", () => {
     expectSingleGift(JSON.stringify(r));
     expect(s.saga).not.toHaveBeenCalled();
   });
+
+  it("createDonation replay with a failed read-back returns no donationId (C8b)", async () => {
+    [s.auth, s.failDonations] = [as("profile-d", "donor"), true];
+    s.intake.mockReturnValueOnce({
+      donationId: "gift-1",
+      outboxId: "outbox-1",
+      replayed: true,
+    });
+    const r = await gql(
+      `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: 2500 }) { id } }`,
+    );
+    expect(r.errors?.[0]?.extensions).toEqual({
+      code: "DONATION_READBACK_FAILED",
+    });
+    expect(JSON.stringify(r)).not.toContain("gift-1");
+  });
 });
 
 describe("#2269 REST /api/donations (U)", () => {

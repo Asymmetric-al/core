@@ -706,10 +706,12 @@ const resolvers = {
         .eq("tenant_id", auth.tenantId)
         .single();
       // The gift already exists, so tell the client it was created rather than
-      // masking this as a failure that invites a retry under a new key.
+      // masking this as a failure that invites a retry under a new key. On a
+      // replay the id may be another donor's gift, so it is not returned.
       if (error || !donation) {
         console.error("[graphql] Donation read-back failed", {
           donationId: begin.donationId,
+          replayed: begin.replayed,
           error,
         });
         throw createGraphQLError(
@@ -717,7 +719,7 @@ const resolvers = {
           {
             extensions: {
               code: "DONATION_READBACK_FAILED",
-              donationId: begin.donationId,
+              ...(begin.replayed ? {} : { donationId: begin.donationId }),
             },
           },
         );
