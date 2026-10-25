@@ -46,19 +46,24 @@
 -- the ones this file forced. If a later migration added tenant tables that ship
 -- their own ENABLE + FORCE, add them to the NOT IN list before running it.
 
--- Precondition: every target table and app definer function is owned by a
--- role that bypasses RLS.
+-- One DO block = one statement = one transaction, whatever the runner does
+-- (psql per statement, or a batched transaction): a failed precondition, a
+-- lock timeout or a failed postcondition rolls back every ALTER in it.
 DO $$
 DECLARE
   v_violators TEXT;
+  v_missing TEXT;
+  r RECORD;
 BEGIN
+  -- Precondition: every target table and app definer function is owned by a
+  -- role that bypasses RLS.
   SELECT string_agg(violator, ', ' ORDER BY violator)
   INTO v_violators
   FROM (
-    SELECT format('table %I.%I (owner %s)', n.nspname, c.relname, r.rolname) AS violator
+    SELECT format('table %I.%I (owner %s)', n.nspname, c.relname, ro.rolname) AS violator
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-    JOIN pg_catalog.pg_roles r ON r.oid = c.relowner
+    JOIN pg_catalog.pg_roles ro ON ro.oid = c.relowner
     WHERE n.nspname = 'public'
       AND c.relkind IN ('r', 'p')
       AND EXISTS (
@@ -66,32 +71,26 @@ BEGIN
         WHERE a.attrelid = c.oid AND a.attname = 'tenant_id'
           AND a.attnum > 0 AND NOT a.attisdropped
       )
-      AND NOT (r.rolsuper OR r.rolbypassrls)
+      AND NOT (ro.rolsuper OR ro.rolbypassrls)
     UNION ALL
     SELECT format(
       'function %I.%I(%s) (owner %s)',
-      n.nspname, p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid), r.rolname
+      n.nspname, p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid), ro.rolname
     )
     FROM pg_catalog.pg_proc p
     JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
-    JOIN pg_catalog.pg_roles r ON r.oid = p.proowner
+    JOIN pg_catalog.pg_roles ro ON ro.oid = p.proowner
     WHERE p.prosecdef
       AND n.nspname IN ('public', 'authz', 'document_cutover', 'private')
-      AND NOT (r.rolsuper OR r.rolbypassrls)
+      AND NOT (ro.rolsuper OR ro.rolbypassrls)
   ) v;
 
   IF v_violators IS NOT NULL THEN
     RAISE EXCEPTION 'force_rls_tenant_tables: owner lacks rolsuper and rolbypassrls, FORCE would bind it: %', v_violators
       USING HINT = 'Give the object back to a BYPASSRLS owner, or route RLS-bound work through tenant_guard (docs/security/tenant-guard.md).';
   END IF;
-END
-$$;
 
--- ENABLE + FORCE every public tenant table that still lacks either.
-DO $$
-DECLARE
-  r RECORD;
-BEGIN
+  -- ENABLE + FORCE every public tenant table that still lacks either.
   SET LOCAL lock_timeout = '5s';
   FOR r IN
     SELECT c.oid::regclass AS t, c.relrowsecurity, c.relforcerowsecurity
@@ -114,14 +113,8 @@ BEGIN
       EXECUTE format('ALTER TABLE %s FORCE ROW LEVEL SECURITY', r.t);
     END IF;
   END LOOP;
-END
-$$;
 
--- Postcondition: no public tenant table is left without ENABLE or FORCE.
-DO $$
-DECLARE
-  v_missing TEXT;
-BEGIN
+  -- Postcondition: no public tenant table is left without ENABLE or FORCE.
   SELECT string_agg(c.relname, ', ' ORDER BY c.relname)
   INTO v_missing
   FROM pg_catalog.pg_class c
