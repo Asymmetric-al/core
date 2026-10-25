@@ -288,6 +288,8 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "#2270 Builder b671a0e3", hash: "a3a581fb1e366a32" },
     // #2251: Builder 2039d580 adds migrate step 18 (tenant table RLS posture)
     { ref: "#2251 Builder 2039d580", hash: "57928e0ae6a0a428" },
+    // #2255: Builder 6446bb59 adds migrate step 19 (claim tables)
+    { ref: "#2255 Builder 6446bb59", hash: "52490f9e8ed02dcd" },
     // #2253: Builder 88aeebc2 adds migrate step 19 (RLS catalog gate)
     { ref: "#2253 Builder 88aeebc2", hash: "ec63a22095a74446" },
   ] as const;
