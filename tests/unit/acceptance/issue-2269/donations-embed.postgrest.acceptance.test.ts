@@ -84,6 +84,11 @@ const s = vi.hoisted(() => ({
   /** A1-C8: in-memory PostgREST (no DB) and the donation id a replayed key returns. */
   fake: null as ((url: string, init?: RequestInit) => Response) | null,
   replay: null as string | null | undefined,
+  /** A1-C8b: the saga result, saga calls and PostgREST writes; a fresh (not replayed) key. */
+  saga: null as Record<string, unknown> | null,
+  sagaRuns: 0,
+  writes: 0,
+  fresh: false,
 }));
 vi.mock("@asym/auth/context", async (orig) => ({
   ...(await orig<typeof AuthModule>()),
@@ -115,7 +120,10 @@ vi.mock("../../../../packages/api/src/stripe/tenant-client", () => ({
   resolveTenantStripe: async () => ({ ok: true, stripe: {} }),
 }));
 vi.mock("../../../../packages/api/src/donate/saga", () => ({
-  processDonationSagaOutboxEvent: async () => ({ status: "completed" }),
+  processDonationSagaOutboxEvent: async () => (
+    s.sagaRuns++,
+    s.saga ?? { status: "completed" }
+  ),
 }));
 /** Really inserts the donation (from the profiled donor DN1) and returns its id. */
 async function insertGift(input: {
@@ -143,7 +151,7 @@ vi.mock("../../../../packages/graphql/gift-intake", () => ({
 }));
 const replayOr = async (i: { missionaryId: string; amountCents: number }) =>
   s.replay
-    ? { donationId: s.replay, outboxId: randomUUID(), replayed: true }
+    ? { donationId: s.replay, outboxId: randomUUID(), replayed: !s.fresh }
     : insertGift(i);
 
 const as = (profileId: string, role: string): AuthContext =>
@@ -409,16 +417,18 @@ const ROWS: Row[] = [
   [V1, TA, DNV, PV, "victim@example.test"],
   [V2, TB, DNX, PD, "tenantb@example.test"],
   [G1, TA, DN1, PD, "caller@example.test"],
-].map(([id, tenant_id, did, pid, email]) => ({
+  [G2, TA, DN1, PD, "caller@example.test", MI2],
+].map(([id, tenant_id, did, pid, email, fund]) => ({
   id,
   tenant_id,
   missionary_id: MI,
-  fund_id: null,
+  fund_id: fund ?? null,
   amount: 2500,
   currency: "usd",
   donor: { id: did, profile: { id: pid, tenant_id, email } },
 }));
 function fakePostgrest(url: string, init?: RequestInit) {
+  if (!/^(GET|HEAD)?$/.test(init?.method ?? "")) s.writes++;
   const q = new URL(url).searchParams;
   const rows = ROWS.filter((r) =>
     [...q].every(
@@ -443,6 +453,7 @@ const MISMATCH = [
   ["the caller's gift with another amount", G1, { amount: 99 }],
   ["the caller's gift with another currency", G1, { currency: "eur" }],
   ["the caller's gift with another missionary", G1, { missionaryId: MI2 }],
+  ["the caller's gift to a fund (A1-C8b NIT 3)", G2, {}],
 ] as const;
 const gqlCreate = (
   req: typeof REQ,
@@ -456,7 +467,16 @@ describe("A1-C8 replayed idempotency key (in-memory PostgREST, no DB)", () => {
   beforeEach(() =>
     Object.assign(s, { auth: as(PD, "donor"), fake: fakePostgrest }),
   );
-  afterEach(() => Object.assign(s, { fake: null, replay: null }));
+  afterEach(() =>
+    Object.assign(s, {
+      fake: null,
+      replay: null,
+      saga: null,
+      sagaRuns: 0,
+      writes: 0,
+      fresh: false,
+    }),
+  );
 
   it.each(MISMATCH)(
     'A1-C8: REST POST replay resolving to %s → 409 exactly {error:"Idempotency key already used"}',
@@ -506,4 +526,51 @@ describe("A1-C8 replayed idempotency key (in-memory PostgREST, no DB)", () => {
       data: { createDonation: { id: G1, donor: { id: PD } } },
     });
   });
+
+  // A1-C8b (ruling 6391807123): a replay is checked before any saga work, and UUIDs match case-insensitively.
+  it.each([
+    [
+      "processing",
+      { status: "processing", error: "Donation is still processing" },
+    ],
+    [
+      "dead_letter",
+      { status: "dead_letter", error: "card_declined: do not honor" },
+    ],
+    ["not yet started", null],
+  ] as const)(
+    "A1-C8b: REST POST replay of another donor's key, saga %s → 409 with no saga output, saga never run",
+    async (_n, saga) => {
+      Object.assign(s, { replay: V1, saga });
+      const res = await POST(rest("POST", REQ));
+      expect(await res.json()).toEqual({
+        error: "Idempotency key already used",
+      });
+      expect(res.status).toBe(409);
+      expect({ sagaRuns: s.sagaRuns, writes: s.writes }).toEqual({
+        sagaRuns: 0,
+        writes: 0,
+      });
+    },
+  );
+
+  it.each([
+    ["a fresh key", true],
+    ["an own replay", false],
+  ] as const)(
+    "A1-C8b: uppercase missionary UUID (and currency) on %s matches the gift → REST 201 and GraphQL data, no 409 / IDEMPOTENCY_KEY_REUSED",
+    async (_n, fresh) => {
+      Object.assign(s, { replay: G1, fresh });
+      const req = { ...REQ, missionaryId: MI.toUpperCase(), currency: "USD" };
+      const res = await POST(rest("POST", req));
+      expect(await res.json()).toMatchObject({
+        donationId: G1,
+        donation: { id: G1 },
+      });
+      expect(res.status).toBe(201);
+      expect(await gqlCreate(req, "id")).toEqual({
+        data: { createDonation: { id: G1 } },
+      });
+    },
+  );
 });
