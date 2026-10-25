@@ -699,6 +699,7 @@ const resolvers = {
         .from("donations")
         .select(DONATION_WITH_PARTIES_SELECT)
         .eq("id", begin.donationId)
+        .eq("tenant_id", auth.tenantId)
         .single();
       // The gift already exists, so tell the client it was created rather than
       // masking this as a failure that invites a retry under a new key.
@@ -715,6 +716,19 @@ const resolvers = {
               donationId: begin.donationId,
             },
           },
+        );
+      }
+      // A replayed idempotency key can resolve to another donor's gift.
+      const ownerProfileId = donation.donor?.profile?.id ?? null;
+      if (!ownerProfileId || ownerProfileId !== auth.profileId) {
+        console.error("[graphql] Read-back donation belongs to another donor", {
+          donationId: begin.donationId,
+          callerProfileId: auth.profileId,
+          ownerProfileId,
+        });
+        throw createGraphQLError(
+          "Idempotency key was already used for another gift",
+          { extensions: { code: "IDEMPOTENCY_KEY_REUSED" } },
         );
       }
 

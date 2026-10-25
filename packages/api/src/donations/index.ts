@@ -192,6 +192,7 @@ export async function POST(request: NextRequest) {
       .from("donations")
       .select(DONATION_WITH_PARTIES_SELECT)
       .eq("id", begin.donationId)
+      .eq("tenant_id", ctx.tenantId)
       .single();
     // The gift already exists here, so a read-back failure must not look like
     // a failed gift: a client retrying with a new key would give twice.
@@ -203,6 +204,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { donation: null, donationId: begin.donationId, readBack: "failed" },
         { status: 201 },
+      );
+    }
+    // A replayed idempotency key can resolve to another donor's gift. Return
+    // none of its data and don't report it as created for this caller.
+    const ownerProfileId = donation.donor?.profile?.id ?? null;
+    if (!ownerProfileId || ownerProfileId !== ctx.profileId) {
+      console.error("[donations] Read-back donation belongs to another donor", {
+        donationId: begin.donationId,
+        callerProfileId: ctx.profileId,
+        ownerProfileId,
+      });
+      return NextResponse.json(
+        {
+          error: "Idempotency key was already used for another gift",
+          code: "IDEMPOTENCY_KEY_REUSED",
+        },
+        { status: 409 },
       );
     }
 

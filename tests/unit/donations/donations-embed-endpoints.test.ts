@@ -117,6 +117,7 @@ const donation = (id: string, donor: Row) => ({
 });
 const profiled = { id: "donor-1", profile: profile("profile-d", "donor") };
 const guest = { id: "donor-2", profile: null };
+const otherDonor = { id: "donor-9", profile: profile("profile-x", "donor") };
 
 const as = (profileId: string, role: string): AuthContext => ({
   userId: profileId,
@@ -289,13 +290,13 @@ describe("#2269 REST /api/donations (U)", () => {
 
   it("POST returns 201 { donation, donationId } when the read-back succeeds (C5)", async () => {
     s.auth = as("profile-d", "donor");
-    s.tables.set("donations", [donation("gift-1", guest)]);
+    s.tables.set("donations", [donation("gift-1", profiled)]);
     const res = await POST(
       rest("POST", { missionaryId: missionary.id, amount: 2500 }),
     );
     expect(res.status).toBe(201);
     expect(await res.json()).toEqual({
-      donation: donation("gift-1", guest),
+      donation: donation("gift-1", profiled),
       donationId: "gift-1",
     });
     expect(donationsRequest().searchParams.get("id")).toBe("eq.gift-1");
@@ -316,4 +317,31 @@ describe("#2269 REST /api/donations (U)", () => {
     expectSingleGift(body);
     expect(s.saga).toHaveBeenCalledTimes(1);
   });
+});
+
+describe("#2269 C8: a replayed key that resolves to another donor's gift (U)", () => {
+  it.each(["REST POST", "GraphQL createDonation"])(
+    "%s returns a generic IDEMPOTENCY_KEY_REUSED error with none of that gift's data",
+    async (via) => {
+      s.auth = as("profile-d", "donor");
+      s.tables.set("donations", [donation("gift-1", otherDonor)]);
+      let body: string;
+      if (via === "REST POST") {
+        const res = await POST(
+          rest("POST", { missionaryId: missionary.id, amount: 2500 }),
+        );
+        expect(res.status).toBe(409);
+        body = await res.text();
+      } else {
+        const r = await gql(
+          `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: 2500 }) { id } }`,
+        );
+        expect(r.data).toBeNull();
+        body = JSON.stringify(r);
+      }
+      expect(body).toContain("IDEMPOTENCY_KEY_REUSED");
+      expect(body).not.toMatch(/gift-1|donor-9|profile-x/);
+      expect(donationsRequest().searchParams.get("tenant_id")).toBe(`eq.${T}`);
+    },
+  );
 });
