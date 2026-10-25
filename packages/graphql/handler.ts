@@ -1,5 +1,8 @@
 import { parseRequiredIdempotencyKey } from "@asym/api/donate/idempotency";
-import { DONATION_WITH_PARTIES_SELECT } from "@asym/api/donations/select";
+import {
+  DONATION_WITH_PARTIES_SELECT,
+  giftMismatches,
+} from "@asym/api/donations/select";
 import { CACHE_TAGS, revalidateTags } from "@asym/api/shared/cache-tags";
 import {
   getAuthContext,
@@ -682,6 +685,7 @@ const resolvers = {
         throw new Error("Missing required idempotency-key header");
       }
 
+      const currency = (args.input.currency || "usd").toLowerCase();
       const begin = await beginGraphQLGiftIntake({
         rpc: yogaRpc(ctx.supabaseAdmin),
         tenantId: auth.tenantId,
@@ -689,7 +693,7 @@ const resolvers = {
         actorUserId: auth.userId,
         missionaryId: args.input.missionaryId,
         amountCents: args.input.amount,
-        currency: (args.input.currency || "usd").toLowerCase(),
+        currency,
         idempotencyKey,
         ipAddress: ctx.request.headers.get("x-forwarded-for"),
         userAgent: ctx.request.headers.get("user-agent"),
@@ -718,18 +722,27 @@ const resolvers = {
           },
         );
       }
-      // A replayed idempotency key can resolve to another donor's gift.
-      const ownerProfileId = donation.donor?.profile?.id ?? null;
-      if (!ownerProfileId || ownerProfileId !== auth.profileId) {
-        console.error("[graphql] Read-back donation belongs to another donor", {
-          donationId: begin.donationId,
-          callerProfileId: auth.profileId,
-          ownerProfileId,
-        });
-        throw createGraphQLError(
-          "Idempotency key was already used for another gift",
-          { extensions: { code: "IDEMPOTENCY_KEY_REUSED" } },
+      // A replayed idempotency key can resolve to another donor's gift or a
+      // different payload. Return none of its data.
+      const mismatched = giftMismatches(donation, {
+        profileId: auth.profileId,
+        amountCents: args.input.amount,
+        currency,
+        missionaryId: args.input.missionaryId,
+        fundId: null,
+      });
+      if (mismatched.length > 0) {
+        console.error(
+          "[graphql] Idempotency key replay does not match request",
+          {
+            donationId: begin.donationId,
+            callerProfileId: auth.profileId,
+            mismatched,
+          },
         );
+        throw createGraphQLError("Idempotency key already used", {
+          extensions: { code: "IDEMPOTENCY_KEY_REUSED" },
+        });
       }
 
       return mapDonation(donation);

@@ -6,7 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { DONATION_WITH_PARTIES_SELECT } from "./select";
+import { DONATION_WITH_PARTIES_SELECT, giftMismatches } from "./select";
 import { beginGiftIntake } from "../donate/begin-gift-intake";
 import { resolveRequiredIdempotencyKey } from "../donate/idempotency";
 import { processDonationSagaOutboxEvent } from "../donate/saga";
@@ -206,20 +206,26 @@ export async function POST(request: NextRequest) {
         { status: 201 },
       );
     }
-    // A replayed idempotency key can resolve to another donor's gift. Return
-    // none of its data and don't report it as created for this caller.
-    const ownerProfileId = donation.donor?.profile?.id ?? null;
-    if (!ownerProfileId || ownerProfileId !== ctx.profileId) {
-      console.error("[donations] Read-back donation belongs to another donor", {
-        donationId: begin.donationId,
-        callerProfileId: ctx.profileId,
-        ownerProfileId,
-      });
-      return NextResponse.json(
+    // A replayed idempotency key can resolve to another donor's gift or a
+    // different payload. Return none of its data and don't report it as created.
+    const mismatched = giftMismatches(donation, {
+      profileId: ctx.profileId,
+      amountCents: amount,
+      currency,
+      missionaryId,
+      fundId: null,
+    });
+    if (mismatched.length > 0) {
+      console.error(
+        "[donations] Idempotency key replay does not match request",
         {
-          error: "Idempotency key was already used for another gift",
-          code: "IDEMPOTENCY_KEY_REUSED",
+          donationId: begin.donationId,
+          callerProfileId: ctx.profileId,
+          mismatched,
         },
+      );
+      return NextResponse.json(
+        { error: "Idempotency key already used" },
         { status: 409 },
       );
     }

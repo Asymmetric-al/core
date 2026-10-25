@@ -239,7 +239,7 @@ describe("#2269 GraphQL donations reads (U)", () => {
     s.auth = as("profile-d", "donor");
     s.tables.set("donations", [donation("gift-1", profiled)]);
     const r = await gql(
-      `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: 2500 }) { ${FIELDS} } }`,
+      `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: 2500, currency: "USD" }) { ${FIELDS} } }`,
     );
     expect(r.errors).toBeUndefined();
     expect(r.data?.createDonation).toEqual({
@@ -292,7 +292,11 @@ describe("#2269 REST /api/donations (U)", () => {
     s.auth = as("profile-d", "donor");
     s.tables.set("donations", [donation("gift-1", profiled)]);
     const res = await POST(
-      rest("POST", { missionaryId: missionary.id, amount: 2500 }),
+      rest("POST", {
+        missionaryId: missionary.id,
+        amount: 2500,
+        currency: " USD ",
+      }),
     );
     expect(res.status).toBe(201);
     expect(await res.json()).toEqual({
@@ -319,28 +323,41 @@ describe("#2269 REST /api/donations (U)", () => {
   });
 });
 
-describe("#2269 C8: a replayed key that resolves to another donor's gift (U)", () => {
-  it.each(["REST POST", "GraphQL createDonation"])(
-    "%s returns a generic IDEMPOTENCY_KEY_REUSED error with none of that gift's data",
-    async (via) => {
+describe("#2269 C8: a replayed key whose gift is not the caller's request (U)", () => {
+  it.each([
+    ["REST POST", "another donor's gift", otherDonor, 2500],
+    ["REST POST", "a different amount", profiled, 99],
+    ["GraphQL createDonation", "another donor's gift", otherDonor, 2500],
+    ["GraphQL createDonation", "a different amount", profiled, 99],
+  ] as const)(
+    "%s with %s answers IDEMPOTENCY_KEY_REUSED and none of the gift's data",
+    async (via, _case, donor, amount) => {
       s.auth = as("profile-d", "donor");
-      s.tables.set("donations", [donation("gift-1", otherDonor)]);
+      s.tables.set("donations", [donation("gift-1", donor)]);
       let body: string;
       if (via === "REST POST") {
         const res = await POST(
-          rest("POST", { missionaryId: missionary.id, amount: 2500 }),
+          rest("POST", { missionaryId: missionary.id, amount }),
         );
-        expect(res.status).toBe(409);
         body = await res.text();
+        expect([res.status, JSON.parse(body)]).toEqual([
+          409,
+          { error: "Idempotency key already used" },
+        ]);
       } else {
         const r = await gql(
-          `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: 2500 }) { id } }`,
+          `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: ${amount} }) { id } }`,
         );
-        expect(r.data).toBeNull();
         body = JSON.stringify(r);
+        expect(r.data).toBeNull();
+        expect(r.errors).toEqual([
+          expect.objectContaining({
+            message: "Idempotency key already used",
+            extensions: { code: "IDEMPOTENCY_KEY_REUSED" },
+          }),
+        ]);
       }
-      expect(body).toContain("IDEMPOTENCY_KEY_REUSED");
-      expect(body).not.toMatch(/gift-1|donor-9|profile-x/);
+      expect(body).not.toMatch(/gift-1|donor-|profile-|@example/);
       expect(donationsRequest().searchParams.get("tenant_id")).toBe(`eq.${T}`);
     },
   );

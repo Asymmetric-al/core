@@ -145,6 +145,7 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
         id: "donation-a",
         tenant_id: "tenant-a",
         donor: { id: "donor-a", profile },
+        missionary_id: "missionary-a",
         amount: 12_345,
         currency: "usd",
         status: "pending",
