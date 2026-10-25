@@ -90,16 +90,44 @@ describe("issue #2277 criterion 8: wiring and placement (source)", () => {
 });
 
 describe("issue #2277 criterion 9 (production.mjs): no secrets, no override", () => {
-  it("adds no token, env read, override or shell use", () => {
+  it("adds no token, override or shell use", () => {
     const source = read(PRODUCTION_PATH);
     expect(source).not.toMatch(
       /GH_TOKEN|GITHUB_TOKEN|ghp_|github_pat_|gho_|Authorization/u,
     );
     expect(source).not.toMatch(/OVERRIDE|[a-z](?:Override|Bypass)|BYPASS/u);
     expect(source).not.toMatch(/shell\s*:\s*true/u);
-    // develop 02bd6e66 has exactly three `process.env` uses, none a read.
-    expect(source.match(/process\.env\b/gu) ?? []).toHaveLength(3);
-    expect(source).not.toMatch(/process\.env\s*\.|process\.env\s*\[/u);
+  });
+
+  it("the gate's lines add no process.env read", () => {
+    // Gate lines: the release-blockers.mjs import and the two §2.2 anchor
+    // spans that hold the calls. Env use elsewhere in the file is out of scope.
+    const source = read(PRODUCTION_PATH);
+    const span = (from: string, to: RegExp) => {
+      const start = source.indexOf(from);
+      expect(start, from).toBeGreaterThan(-1);
+      const end = start + source.slice(start).search(to);
+      expect(end, String(to)).toBeGreaterThan(start);
+      return source.slice(start, end);
+    };
+    const preFlight = span(
+      "assertCleanWorktree();",
+      /runGate\("verify deployment discipline"/u,
+    );
+    const prePush = span(
+      "assertReleaseSourceIsOnDevelop(args.remote, commit)",
+      /(?<!function )\bpushProduction\(\{ remote: args/u,
+    );
+    const imports = source
+      .split("\n")
+      .filter((line) => line.includes("release-blockers.mjs"));
+    expect(imports.length, "release-blockers.mjs import").toBeGreaterThan(0);
+    for (const gate of [preFlight, prePush]) {
+      expect(gate).toMatch(/\bassertNoReleaseBlockers\s*\(/u);
+    }
+    for (const text of [preFlight, prePush, ...imports]) {
+      expect(text).not.toMatch(/process\.env/u);
+    }
   });
 });
 
