@@ -177,6 +177,13 @@ describe("#2269 static (C1, C2, C8)", () => {
         /\.eq\("tenant_id",/,
       ),
   );
+  it.each(
+    SITES.filter((s) => s.filter === "id").map((s) => [s.name, s] as const),
+  )("A1-C8: %s filters the read-back by tenant_id and id", (_n, site) => {
+    const chain = /\.from\("donations"\)[^;]*/.exec(block(site))?.[0];
+    expect(chain).toMatch(/\.eq\("tenant_id",/);
+    expect(chain).toMatch(/\.eq\("id",/);
+  });
   it.each([
     [REST, 1],
     [GQL, 2],
