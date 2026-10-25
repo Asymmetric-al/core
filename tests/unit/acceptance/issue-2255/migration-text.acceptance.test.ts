@@ -37,6 +37,26 @@ const statements = (sql: string) =>
     .map((s) => s.replace(/\s+/g, " ").trim())
     .filter(Boolean);
 const TARGET = String.raw`(?:public\.)?"?(${TABLES.join("|")})"?`;
+/** Statement 2's form after statements() blanks its literal (rulings (a)/(b)). */
+const LT_STMT = /^SET LOCAL lock_timeout (?:=|TO) ''$/i;
+/** Rulings (a)/(b): statement 2 is the file's only SET, `SET LOCAL lock_timeout = '<n>ms'|'<n>s'` (raw text, literal kept), 1s to 10s. */
+function expectLockTimeout(sql: string) {
+  const st = statements(sql);
+  expect(
+    st.filter((s) => /^SET\b/i.test(s)),
+    "exactly one SET",
+  ).toHaveLength(1);
+  expect(st[1], "statement 2").toMatch(LT_STMT);
+  const m =
+    /^\s*BEGIN\s*;\s*SET\s+LOCAL\s+lock_timeout(?:\s*=\s*|\s+TO\s+)'(\d+)(ms|s)'\s*;/i.exec(
+      code(sql),
+    );
+  expect(m, "BEGIN; SET LOCAL lock_timeout = '<n>ms'|'<n>s';").not.toBeNull();
+  expect(m![2], "unit is lower case, as Postgres requires").toMatch(/^(ms|s)$/);
+  const ms = Number(m![1]) * (m![2] === "s" ? 1000 : 1);
+  expect(ms, "lock_timeout ms").toBeGreaterThanOrEqual(1000);
+  expect(ms, "lock_timeout ms").toBeLessThanOrEqual(10000);
+}
 
 describe("#2255 forward migration text", () => {
   it(`${MIGRATION} exists, is BEGIN; ... COMMIT; and its version is unique and after #2254`, () => {
@@ -52,6 +72,10 @@ describe("#2255 forward migration text", () => {
     expect(
       OWN > "20261024141000_begin_donation_saga_donor_conflict_reuse.sql",
     ).toBe(true);
+  });
+
+  it("rulings (a)/(b): statement 2 is the file's only SET: SET LOCAL lock_timeout = '<n>ms'|'<n>s', 1s to 10s", () => {
+    expectLockTimeout(sqlFile(MIGRATION));
   });
 
   it("6/§1: TEXT + CHECK only: no CREATE TYPE or DOMAIN; brand-new tables need no NOT VALID", () => {
@@ -119,12 +143,12 @@ describe("#2255 forward migration text", () => {
     }
   });
 
-  it("§3: touches only its two tables: no other table, function, default privilege or owner change", () => {
+  it("§3: touches only its two tables: no other table, function, default privilege or owner change; the only SET is statement 2's lock_timeout", () => {
     const sql = code(sqlFile(MIGRATION));
     expect(sql).not.toMatch(
       /\bALTER\s+DEFAULT\s+PRIVILEGES\b|\bOWNER\s+TO\b|\bCREATE\s+(OR\s+REPLACE\s+)?(FUNCTION|PROCEDURE|TRIGGER|VIEW|SCHEMA|ROLE)\b/i,
     );
-    for (const s of statements(sql)) {
+    for (const [i, s] of statements(sql).entries()) {
       const m =
         /^(?:ALTER TABLE(?: IF EXISTS)?(?: ONLY)?|CREATE (?:UNIQUE )?INDEX IF NOT EXISTS \S+ ON|CREATE TABLE IF NOT EXISTS|(?:DROP|CREATE) POLICY(?: IF EXISTS)? \S+ ON|COMMENT ON (?:TABLE|COLUMN)) ([\w."]+)/i.exec(
           s,
@@ -137,7 +161,7 @@ describe("#2255 forward migration text", () => {
             .split(".")[0],
           s,
         ).toMatch(new RegExp(`^(${TABLES.join("|")})$`));
-      else
+      else if (!(i === 1 && LT_STMT.test(s)))
         expect(s, "unexpected statement kind").toMatch(
           /^(BEGIN|COMMIT|REVOKE|GRANT)\b/i,
         );
