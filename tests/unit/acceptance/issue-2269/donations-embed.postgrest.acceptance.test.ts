@@ -5,7 +5,8 @@
  * with a real supabase-js admin client against a live PostgREST; mocked only:
  * getAuthContext, resolveTenantStripe, processDonationSagaOutboxEvent
  * (`completed`) and beginGiftIntake / beginGraphQLGiftIntake, which really
- * insert a donation row. Skips unless all three env vars are set (every CI job).
+ * insert a donation row. Skips unless all three env vars are set (every CI job),
+ * except the A1-C8 block at the end, which needs no DB and always runs.
  *
  * Recipe (spec §0): PostgREST v14.18 static binary,
  *   postgrest-v14.18-linux-static-x86-64.tar.xz
@@ -36,6 +37,7 @@ import {
   afterAll,
   afterEach,
   beforeAll,
+  beforeEach,
   describe,
   expect,
   it,
@@ -79,6 +81,9 @@ const s = vi.hoisted(() => ({
   db: null as unknown as pg.Client,
   /** Fault injection: a request whose URL matches gets develop's real PGRST200 body. */
   fail: null as RegExp | null,
+  /** A1-C8: in-memory PostgREST (no DB) and the donation id a replayed key returns. */
+  fake: null as ((url: string, init?: RequestInit) => Response) | null,
+  replay: null as string | null | undefined,
 }));
 vi.mock("@asym/auth/context", async (orig) => ({
   ...(await orig<typeof AuthModule>()),
@@ -88,16 +93,17 @@ vi.mock("@asym/database/supabase/admin", () => {
   const base = "http://postgrest.invalid";
   let client: ReturnType<typeof createClient> | undefined;
   const getAdminClient = () => {
-    client ??= createClient(base, JWT, {
+    client ??= createClient(base, JWT || "no-db", {
       auth: { persistSession: false, autoRefreshToken: false },
       global: {
         fetch: async (input, init) =>
-          s.fail?.test(String(input))
+          s.fake?.(String(input), init) ??
+          (s.fail?.test(String(input))
             ? new Response(JSON.stringify(PGRST200), {
                 status: 400,
                 headers: { "content-type": "application/json" },
               })
-            : fetch(String(input).replace(`${base}/rest/v1`, URL_), init),
+            : fetch(String(input).replace(`${base}/rest/v1`, URL_), init)),
       },
     });
     return { client, error: null };
@@ -128,13 +134,17 @@ vi.mock("../../../../packages/api/src/donate/begin-gift-intake", () => ({
     amountCents: number;
   }) => ({
     ok: true,
-    ...(await insertGift(i)),
+    ...(await replayOr(i)),
   }),
 }));
 vi.mock("../../../../packages/graphql/gift-intake", () => ({
   beginGraphQLGiftIntake: (i: { missionaryId: string; amountCents: number }) =>
-    insertGift(i),
+    replayOr(i),
 }));
+const replayOr = async (i: { missionaryId: string; amountCents: number }) =>
+  s.replay
+    ? { donationId: s.replay, outboxId: randomUUID(), replayed: true }
+    : insertGift(i);
 
 const as = (profileId: string, role: string): AuthContext =>
   ({
@@ -387,6 +397,113 @@ describe.skipIf(!LIVE)("#2269 live PostgREST (P)", () => {
     expect(r.errors?.[0]?.extensions).toMatchObject({
       code: "DONATION_READBACK_FAILED",
       donationId: rows[0].id,
+    });
+  });
+});
+
+// A1-C8 (final C8 ruling, issue comment 6391426341): a replayed idempotency key
+// resolves to a donation that is not the caller's gift as requested. Runs in CI
+// with no DB: an in-memory PostgREST applies the request's eq. filters to ROWS.
+const [V1, V2, PV, DNV, TB, DNX] = Array.from({ length: 6 }, u);
+const ROWS: Row[] = [
+  [V1, TA, DNV, PV, "victim@example.test"],
+  [V2, TB, DNX, PD, "tenantb@example.test"],
+  [G1, TA, DN1, PD, "caller@example.test"],
+].map(([id, tenant_id, did, pid, email]) => ({
+  id,
+  tenant_id,
+  missionary_id: MI,
+  fund_id: null,
+  amount: 2500,
+  currency: "usd",
+  donor: { id: did, profile: { id: pid, tenant_id, email } },
+}));
+function fakePostgrest(url: string, init?: RequestInit) {
+  const q = new URL(url).searchParams;
+  const rows = ROWS.filter((r) =>
+    [...q].every(
+      ([k, v]) => !v.startsWith("eq.") || String(r[k]) === v.slice(3),
+    ),
+  );
+  const one = new Headers(init?.headers)
+    .get("accept")
+    ?.includes("pgrst.object");
+  if (one && rows.length !== 1)
+    return Response.json(
+      { code: "PGRST116", message: "0 rows" },
+      { status: 406 },
+    );
+  return Response.json(one ? rows[0] : rows);
+}
+const VICTIM = [V1, PV, DNV, "victim@"];
+const REQ = { missionaryId: MI, amount: 2500, currency: "usd" };
+/** [case, replayed donation id, request overrides]: each is a C8 mismatch. */
+const MISMATCH = [
+  ["another donor in the tenant", V1, {}],
+  ["the caller's gift with another amount", G1, { amount: 99 }],
+  ["the caller's gift with another currency", G1, { currency: "eur" }],
+  ["the caller's gift with another missionary", G1, { missionaryId: MI2 }],
+] as const;
+const gqlCreate = (
+  req: typeof REQ,
+  fields = "id tenantId amount donor { id email }",
+) =>
+  gql(
+    `mutation { createDonation(input: { missionaryId: "${req.missionaryId}", amount: ${req.amount}, currency: "${req.currency}" }) { ${fields} } }`,
+  );
+
+describe("A1-C8 replayed idempotency key (in-memory PostgREST, no DB)", () => {
+  beforeEach(() =>
+    Object.assign(s, { auth: as(PD, "donor"), fake: fakePostgrest }),
+  );
+  afterEach(() => Object.assign(s, { fake: null, replay: null }));
+
+  it.each(MISMATCH)(
+    'A1-C8: REST POST replay resolving to %s → 409 exactly {error:"Idempotency key already used"}',
+    async (_n, id, over) => {
+      s.replay = id;
+      const res = await POST(rest("POST", { ...REQ, ...over }));
+      const body: unknown = await res.json();
+      expect(res.status, JSON.stringify(body)).toBe(409);
+      expect(body).toEqual({ error: "Idempotency key already used" });
+    },
+  );
+
+  it.each(MISMATCH)(
+    "A1-C8: GraphQL createDonation replay resolving to %s → data null, unmasked IDEMPOTENCY_KEY_REUSED, nothing leaked",
+    async (_n, id, over) => {
+      s.replay = id;
+      const r = await gqlCreate({ ...REQ, ...over });
+      expect(r.data ?? null, JSON.stringify(r)).toBeNull();
+      expect(r.errors).toHaveLength(1);
+      expect(r.errors![0]!.message).not.toBe("Unexpected error.");
+      expect(r.errors![0]!.extensions?.code).toBe("IDEMPOTENCY_KEY_REUSED");
+      for (const leak of [id, ...VICTIM])
+        expect(JSON.stringify(r)).not.toContain(leak);
+    },
+  );
+
+  it("A1-C8: replay resolving to another tenant's donation → no row data from that tenant (REST and GraphQL)", async () => {
+    s.replay = V2;
+    const res = await POST(rest("POST", REQ));
+    const r = await gqlCreate(REQ);
+    const body = (await res.json()) as Row;
+    expect(body.donation ?? null).toBeNull();
+    expect(r.data ?? null).toBeNull();
+    for (const leak of [TB, DNX, "tenantb@"])
+      expect(JSON.stringify([body, r])).not.toContain(leak);
+  });
+
+  it("A1-C8 control: the caller's own replayed gift, as requested, still reads back (REST 201 + GraphQL data)", async () => {
+    s.replay = G1;
+    const res = await POST(rest("POST", REQ));
+    expect(res.status).toBe(201);
+    expect(await res.json()).toMatchObject({
+      donationId: G1,
+      donation: { id: G1 },
+    });
+    expect(await gqlCreate(REQ, "id donor { id }")).toEqual({
+      data: { createDonation: { id: G1, donor: { id: PD } } },
     });
   });
 });
