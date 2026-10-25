@@ -1,6 +1,6 @@
 /**
  * #2252 real-stack acceptance, spec r2 (approved by Samson Oct 24, 2026):
- * criteria 1-6, 8 (seed rows), 9 (idempotency) and 12.2-12.3. Runs against
+ * criteria 1-6, 8 (seed rows), 9 (idempotency), 12.2-12.3 and OQ6. Runs against
  * the migrated database named by TENANT_GUARD_IT_ADMIN_DATABASE_URL; without
  * it the block skips, except in the CI `migrate` job, where it fails.
  * Every case runs in its own transaction, which is rolled back.
@@ -183,6 +183,61 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
     tx(async () => {
       await expectCriterion3Shape();
       await expectOneDonationFk(NEW_FK);
+    }));
+
+  /** OQ6: NO ACTION on update, so a referenced donor can't change tenant or be deleted. */
+  for (const [what, sql, args] of [
+    [
+      "moving",
+      "update public.donors set tenant_id = $2 where id = $1",
+      () => [DA, TB],
+    ],
+    ["deleting", "delete from public.donors where id = $1", () => [DA]],
+  ] as const)
+    it(`OQ6: ${what} a donor that donations reference is refused at statement time (23503, the composite FK)`, () =>
+      tx(async () => {
+        expect(await attempt(sql, args())).toMatchObject({
+          code: "23503",
+          constraint: NEW_FK,
+        });
+        const d = await db.query(
+          "select x.tenant_id, x.donor_id, dn.tenant_id donor_tenant from public.donations x join public.donors dn on dn.id = x.donor_id where x.id = $1",
+          [XA],
+        );
+        expect(d.rows).toEqual([
+          { tenant_id: TA, donor_id: DA, donor_tenant: TA },
+        ]);
+      }));
+
+  /** C3 + §2 In 1: NO ACTION / NO ACTION; the migration declares no DEFERRABLE. */
+  const SPEC_ACTIONS = { upd: "a", del: "a", deferrable: false };
+  const actions = async () =>
+    (
+      await db.query(
+        "select confupdtype upd, confdeltype del, condeferrable deferrable from pg_constraint where conrelid = 'public.donations'::regclass and conname = $1",
+        [NEW_FK],
+      )
+    ).rows;
+  it("C3 actions: NO ACTION on update and delete, not deferrable; CASCADE / SET NULL / RESTRICT / DEFERRABLE rebuilds are each red", () =>
+    tx(async () => {
+      expect(await actions()).toEqual([SPEC_ACTIONS]);
+      for (const clause of [
+        "on delete cascade",
+        "on update cascade",
+        "on delete set null",
+        "on update set null",
+        "on delete restrict",
+        "on update restrict",
+        "deferrable initially deferred",
+        "deferrable initially immediate",
+      ]) {
+        await db.query("savepoint m");
+        await db.query(
+          `alter table public.donations drop constraint ${NEW_FK}, add constraint ${NEW_FK} foreign key (tenant_id, donor_id) references public.donors (tenant_id, id) ${clause}`,
+        );
+        expect(await actions(), clause).not.toEqual([SPEC_ACTIONS]);
+        await db.query("rollback to savepoint m");
+      }
     }));
 
   it("C8: the operator preflight query returns no rows on the migrated, seeded database", () =>
