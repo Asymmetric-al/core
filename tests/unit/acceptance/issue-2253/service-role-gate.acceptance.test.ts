@@ -6,6 +6,7 @@
  */
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import path from "node:path";
 
 import { afterAll, describe, expect, it } from "vitest";
 
@@ -294,6 +295,22 @@ describe("#2253 service-role gate on fixtures (8, 9, 10)", () => {
       );
   });
 
+  it("8 (F2): a nested tests/ directory or a .test. directory name is not exempt: unlisted admin clients there fail", () => {
+    const fx = [
+      "apps/admin/app/api/tests/route.ts",
+      "apps/admin/app/api/example.test.com/route.ts",
+    ];
+    const r = gate(
+      { ...CLEAN, ...Object.fromEntries(fx.map((f) => [f, call(1)])) },
+      CLEAN_LIST,
+    );
+    expect(r.status, r.out).not.toBe(0);
+    for (const f of fx)
+      expect(names(r.out, f, "admin_client", [2]), `${f}:2\n${r.out}`).toBe(
+        true,
+      );
+  });
+
   it("9: an allowlist entry that is not in the frozen ceiling fails (growth)", () => {
     const f = "packages/fx/new-site.ts";
     const r = gate({ ...CLEAN, [f]: call(1) }, [
@@ -363,9 +380,8 @@ describe("#2253 service-role gate on the real tree (9, 11)", () => {
       .filter(
         (f) =>
           /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/.test(f) &&
-          !/\.d\.ts$|\.(test|spec)\.|(^|\/)(__tests__|e2e|tests|node_modules|\.next|dist)\//.test(
-            f,
-          ),
+          !/\.d\.ts$|\.(test|spec)\./.test(path.posix.basename(f)) &&
+          !/^tests\/|(^|\/)(__tests__|e2e|node_modules|\.next|dist)\//.test(f),
       )
       .filter(
         (f) =>
