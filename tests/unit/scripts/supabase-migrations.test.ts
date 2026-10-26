@@ -110,6 +110,28 @@ function runVerifier(
       return found;
     }),
   );
+  const listed = JSON.parse(
+    readFileSync(
+      path.join(root, "docs/security/rls-deny-by-default-exceptions.json"),
+      "utf8",
+    ),
+  ).entries.map((entry: { table: string }) => entry.table);
+  const tenantTable = (table: string, policies: number) => ({
+    table,
+    tenant: true,
+    rls: true,
+    force: mode !== "rls-gate-drift" || table !== "donors",
+    policies,
+    owner: "postgres",
+    owner_bypass: true,
+  });
+  const gate = {
+    tables: [
+      ...listed.map((table: string) => tenantTable(table, 0)),
+      tenantTable("donors", 2),
+    ],
+    definers: [],
+  };
   const psql = path.join(temporary, "psql.cjs");
   const calls = path.join(temporary, "calls.jsonl");
   writeFileSync(
@@ -119,14 +141,16 @@ const fs = require("node:fs");
 const args = process.argv.slice(2);
 const stdinSql = args.includes("-f") || args.includes("-c") ? null : fs.readFileSync(0, "utf8");
 fs.appendFileSync(${JSON.stringify(calls)}, JSON.stringify({ args, stdinSql }) + "\\n");
-const data = ${JSON.stringify({ rows, schema, catalogs })};
+const data = ${JSON.stringify({ rows, schema, catalogs, gate })};
 const mode = ${JSON.stringify(mode)};
 if (!args.includes("-c")) process.exit(0);
 const sql = args[args.indexOf("-c") + 1];
 if (mode === "query-failure") {
   console.error("Injected census query failure"); process.exit(9);
 }
-if (sql in data.catalogs) console.log(JSON.stringify(data.catalogs[sql]));
+if (sql.startsWith("-- tenant-rls-catalog-gate:v1"))
+  console.log(mode === "rls-gate-malformed" ? "{" : JSON.stringify(data.gate));
+else if (sql in data.catalogs) console.log(JSON.stringify(data.catalogs[sql]));
 else if (sql.includes("public.field_policies")) {
   if (mode === "policy-drift") data.rows.find(row => row.record_type === "donations" && row.field_key === "stripe_refund_ids" && row.surface !== "mission_control").exportable = true;
   const v3 = (row, table, surface) => row.record_type === table && row.field_key === "person_id" && row.surface === surface;
@@ -198,7 +222,13 @@ itPosix(
     expect(result.stdout).toContain("171 exact whole columns");
     expect(result.stdout).toContain("all 880 database seed rows exactly equal");
     expect(result.stdout).toContain("exactly 176 candidate columns");
+    const gateLine = result.stdout.indexOf(
+      "PASS: tenant RLS catalog gate: 87 tenant tables enabled and forced (1 with policies, 86 listed deny-by-default, 0 stale)",
+    );
     expect(result.stdout.indexOf("exactly 176 candidate columns")).toBeLessThan(
+      gateLine,
+    );
+    expect(gateLine).toBeLessThan(
       result.stdout.indexOf("forward Supabase migrations"),
     );
     const probeIndex = result.calls.findIndex(
@@ -239,7 +269,13 @@ itPosix(
   },
 );
 
-itPosix.each(["policy-drift", "column-drift", "query-failure"])(
+itPosix.each([
+  "policy-drift",
+  "column-drift",
+  "query-failure",
+  "rls-gate-drift",
+  "rls-gate-malformed",
+])(
   "fails normal migration verification for %s without reporting success",
   (mode) => {
     const result = runVerifier(mode);
@@ -247,6 +283,10 @@ itPosix.each(["policy-drift", "column-drift", "query-failure"])(
     expect(result.stdout).not.toContain("forward Supabase migrations");
     if (mode === "query-failure")
       expect(result.stderr).toContain("Injected census query failure");
+    if (mode === "rls-gate-drift")
+      expect(result.stderr).toContain("FORCE_MISSING donors");
+    if (mode === "rls-gate-malformed")
+      expect(result.stderr).toContain("printed no snapshot");
   },
 );
 

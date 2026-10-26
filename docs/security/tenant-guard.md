@@ -197,3 +197,43 @@ ORDER BY d.id;
 | final `DROP CONSTRAINT donations_donor_id_fkey` | `ACCESS EXCLUSIVE`       | `ACCESS EXCLUSIVE`    |
 
 So reads and writes on `donations` block from the `CHECK` add, through both `VALIDATE` scans, until `COMMIT`. Writes on `donors` block from the FK add, and reads on `donors` block after the final drop. `lock_timeout = '5s'` bounds only the wait to acquire each lock, so a busy table makes the migration fail fast instead of queueing; it does not bound the scans once the locks are held. Apply the whole file, and don't reload the PostgREST schema cache mid-apply. The rollback, `rollback_20261025100000_donations_composite_donor_fk.sql`, re-adds and validates `donations_donor_id_fkey` before dropping the composite FK and the CHECK, in one transaction; it needs a quiet window too.
+
+## CI gates
+
+Two permanent, blocking checks from #2253 (slice 4 of #505) keep the tenant posture from regressing. #516's tier job reuses both rather than re-implementing them.
+
+### Tenant RLS catalog gate
+
+`scripts/verify/tenant-rls-catalog.mjs` exports the catalog query (`TENANT_RLS_CATALOG_SQL`, marked `-- tenant-rls-catalog-gate:v1`), the pure evaluator `evaluateTenantRlsCatalog` and the runner `runTenantRlsCatalogGate`. `scripts/verify/supabase-migrations.mjs` runs it right after the field-policy census and before its `Verified N forward Supabase migrations` line, so the `Apply migrations` step of `migrate`, `test-e2e-smoke` and `test-e2e` all run it. On a pass it prints one counts line; on a failure it prints each violation as `CODE table: detail` and exits non-zero without the success line.
+
+It fails with a stable code when:
+
+- a tenant table has RLS off (`RLS_DISABLED`) or not forced (`FORCE_MISSING`);
+- a tenant table has no policy and is not in `docs/security/rls-deny-by-default-exceptions.json` (`NO_POLICY_UNLISTED`);
+- a listed table has gained a policy, no longer exists, or no longer has `tenant_id` (`STALE_HAS_POLICY`, `STALE_MISSING_TABLE`, `STALE_NOT_TENANT`);
+- the list is missing, is not JSON, repeats a table or has an entry without `table` (`EXCEPTIONS_MALFORMED`);
+- a tenant table's owner, or the owner of a SECURITY DEFINER function in `public`, `authz`, `document_cutover` or `private`, has neither `rolsuper` nor `rolbypassrls` (`OWNER_NO_BYPASS`, `DEFINER_OWNER_NO_BYPASS`). `tenant_guard`-owned functions are exempt. This re-checks the owner invariant above on every PR, on top of #2251's one-time precondition.
+
+To comply, follow "Adding a tenant table" above. The `migrate` job step `Verify RLS catalog gate (real stack)` runs `tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts` against the migrated database, with `TENANT_GUARD_IT_ADMIN_DATABASE_URL` set from `DATABASE_URL`. It plants each violation in a rolled-back transaction and checks the gate names it.
+
+### Service-role client gate
+
+`scripts/verify/service-role-client-gate.mjs` parses every source file under `apps/`, `packages/`, `scripts/` and `tooling/` with the TypeScript compiler. It skips a file whose name (not a directory name) matches `*.test.*`, `*.spec.*` or `*.d.ts`, and any file under a `__tests__/`, `e2e/`, `dist/`, `.next/` or `node_modules/` directory at any depth. The repo-root `tests/` tree is outside the scan roots; a `tests/` directory inside them, or a directory whose name contains `.test.`, is scanned. It also skips the factory `packages/database/supabase/admin.ts` and the guard `packages/api/src/identity/**`. Nothing else is exempt, including the gate itself. It runs in `test:unit` (the `test-unit` job) through `tests/unit/acceptance/issue-2253/service-role-gate.acceptance.test.ts`, and locally with `bun run verify:service-role-clients`.
+
+It counts four kinds of site:
+
+- `admin_client`: a call to `getAdminClient` or `createAdminClient` bound from the factory (named, aliased, namespace, `await import()`, `require` or a relative path), or any non-call value use of such a binding. `typeof` in a type is not a site.
+- `service_role_key`: every whole-word occurrence of the service-role key's env name (with or without the `SUPABASE_` prefix) in the file text, including string arguments, name lists, regexes and comments.
+- `workflow_admin_wrapper`: a call to, or value use of, `requireWorkflowAdminClient` from `packages/api/src/workflows/admin-client.ts`.
+- `operation_admin_context`: a `withOperation` handler (from `packages/api/src/shared/with-operation.ts`) whose context parameter destructures or reads `supabaseAdmin`, uses a rest element, or is passed on, spread, returned or assigned whole; a handler that is not an inline function; or a non-call value use of `withOperation`. A handler that takes only `{ auth, request }` is not a site.
+
+Re-exporting the factory, `requireWorkflowAdminClient` or `withOperation` from any other file always fails and cannot be allowlisted.
+
+`docs/security/service-role-client-allowlist.json` is the frozen, shrink-only allowlist (Samson's Q4 ruling): one entry per (file, kind) with a `count`, a non-empty `reason`, its `path_ref` and `follow_up` (#2261–#2265), and `lines` for reference only. It was frozen at 117 entries, 188 sites in 111 files. A copy of every frozen count is also kept as a ceiling inside the gate, whose SHA-256 is pinned by `tests/unit/scripts/service-role-client-gate.test.ts`. The gate fails, naming the file, the kind and the real `file:line` of every site of that kind, on:
+
+- a site in an unlisted file, or more sites than the entry allows (`NEW_SITE`);
+- an entry that is not in the ceiling, or a count above it (`ALLOWLIST_GROWTH`);
+- an entry whose count is above the real count, or whose file has none left (`STALE`: shrink or delete it);
+- an entry with an unknown kind, a non-positive count, an empty reason or a duplicate key (`ALLOWLIST_MALFORMED`).
+
+To comply, reach tenant data through `withTenant` (see "Adding a guarded function" above), not a new service-role site. A PR that removes sites lowers or deletes the matching allowlist entry and ceiling row in the same change. Adding an entry or raising a count means editing the pinned ceiling, which needs a new security ruling from Samson. Entries are reviewed like the deny-by-default list: each one needs a specific `reason` and its follow-up. Moving a site within an allowlisted file passes, which is acceptable for a shrink-only ceiling.
