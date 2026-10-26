@@ -1,8 +1,9 @@
 /**
  * #2254 criterion 9 (spec r1 In 3/In 4): the field-policy census against a
  * fake psql whose database is the spec's oracle (171 live + v1 column + the
- * 10 In 4 rows), then mutation-proven: one flag, a dropped v2 supplement and
- * edited migration bytes each fail; v1's source binding still bites.
+ * 10 In 4 rows + #2256's 10 v3 person_id rows), then mutation-proven: one
+ * flag, a dropped v2 supplement and edited migration bytes each fail; v1's
+ * source binding still bites.
  * Runs on a temp copy of the repo files; git objects come from GIT_DIR.
  * Owned by Acceptance; implementers must not edit.
  */
@@ -21,6 +22,7 @@ import path from "node:path";
 
 import { afterAll, describe, expect, it } from "vitest";
 
+import { NEW_ROWS as V3_ROWS } from "../issue-2256/harness";
 import { FP, MIGRATIONS, NEW_ROWS, ROOT, V2, migrationFile } from "./harness";
 
 const temps: string[] = [];
@@ -32,7 +34,7 @@ const GIT_DIR = spawnSync("git", ["rev-parse", "--absolute-git-dir"], {
 }).stdout.trim();
 const json = (file: string) => JSON.parse(readFileSync(file, "utf8"));
 
-/** Oracle DB: live columns + v1 supplement column + In 4 rows (never read from v2). */
+/** Oracle DB: live columns + v1 supplement column + In 4 rows (never read from v2) + #2256 v3 rows (#2256 harness). */
 function oracle() {
   const census = json(path.join(ROOT, FP, "census-v1.json"));
   const v1 = json(path.join(ROOT, FP, "repository-supplement-v1.json")).column;
@@ -55,7 +57,7 @@ function oracle() {
         sensitivity_category: c.category,
       })),
     ),
-    ...NEW_ROWS.map((r) => ({ ...r })),
+    ...[...NEW_ROWS, ...V3_ROWS].map((r) => ({ ...r })),
   ];
   const keys = (rs: { record_type: string; field_key: string }[]) => [
     ...new Map(
@@ -126,12 +128,12 @@ let clean: ReturnType<typeof runCensus> | undefined;
 const cleanRun = () => (clean ??= runCensus());
 
 describe("#2254 criterion 9: census", () => {
-  it("passes on the In 4 oracle and reports 171 live / 174 candidate / 870 rows", () => {
+  it("passes on the In 4 oracle and reports 171 live / 176 candidate / 880 rows", () => {
     const r = cleanRun();
     expect(r.status, r.stderr).toBe(0);
     expect(r.stdout).toContain("171 exact whole columns");
-    expect(r.stdout).toContain("all 870 database seed rows exactly equal");
-    expect(r.stdout).toContain("exactly 174 candidate columns");
+    expect(r.stdout).toContain("all 880 database seed rows exactly equal");
+    expect(r.stdout).toContain("exactly 176 candidate columns");
   });
 
   const flip: Mutate = (_d, db) => {

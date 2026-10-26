@@ -73,17 +73,19 @@ assert.equal(receipts.disposition, "absent/reserved");
 assert.deepEqual(receipts.columns, []);
 assert.equal(receipts.positive_seed_rows, 0);
 // Reviewed supplements, in order: v1 is bound to its source at the census base
-// SHA; v2 (#2254) postdates that SHA and is bound to its working-tree hash.
+// SHA; v2 (#2254) and v3 (#2256) postdate that SHA and are bound to their
+// working-tree hashes.
 assert.deepEqual(
   census.repository_supplements.map((ref) => ref.artifact),
   [
     "repository-supplement-v1.json",
     "repository-supplement-v2-donor-identity.json",
+    "repository-supplement-v3-person-anchor.json",
   ],
 );
 for (const ref of census.repository_supplements)
   assert.equal(hash(ref.artifact), ref.sha256);
-const [supplementRef, identityRef] = census.repository_supplements;
+const [supplementRef, identityRef, personRef] = census.repository_supplements;
 const supplement = JSON.parse(
   readFileSync(path.join(artifactRoot, supplementRef.artifact), "utf8"),
 );
@@ -182,15 +184,45 @@ assert.deepEqual(identity.columns, [
     "donor",
   ]),
 ]);
+const person = JSON.parse(
+  readFileSync(path.join(artifactRoot, personRef.artifact), "utf8"),
+);
+assert.equal(
+  person.source_path,
+  "supabase/migrations/20261025110000_person_anchor.sql",
+);
+assert.equal(
+  createHash("sha256")
+    .update(readFileSync(path.join(root, person.source_path)))
+    .digest("hex"),
+  person.source_sha256,
+);
+// #2256 (Q11, OQ6): both person_id seams are security, denied on every surface.
+const personColumn = (recordType, ordinal) => ({
+  recordType,
+  name: "person_id",
+  ordinal,
+  type: "uuid",
+  nullable: true,
+  semantic_category: "security",
+  category: "security",
+  processor_identifier: false,
+  policies: identityPolicies([]),
+});
+assert.deepEqual(person.columns, [
+  personColumn("missionaries", 22),
+  personColumn("profiles", 14),
+]);
 const candidateExpectedColumns = [
   ...columns,
   supplement.column,
   ...identity.columns,
+  ...person.columns,
 ];
 assert.equal(census.column_count, 171);
-assert.equal(census.candidate_column_count, 174);
-assert.equal(candidateExpectedColumns.length, 174);
-assert.equal(census.baseline_row_count, 870);
+assert.equal(census.candidate_column_count, 176);
+assert.equal(candidateExpectedColumns.length, 176);
+assert.equal(census.baseline_row_count, 880);
 const floors = new Map();
 for (const column of candidateExpectedColumns) {
   const prior = floors.get(column.name);
@@ -264,7 +296,7 @@ const sortRows = (rows) =>
   );
 assert.deepEqual(sortRows(actualRows), sortRows(expectedRows));
 console.log(
-  "PASS: all 870 database seed rows exactly equal the reviewed census categories and explicit flags.",
+  "PASS: all 880 database seed rows exactly equal the reviewed census categories and explicit flags.",
 );
 const names = present.map((relation) => `'${relation.record_type}'`).join(",");
 const candidateColumns = query(
@@ -287,7 +319,7 @@ assert.deepEqual(
   "Candidate schema must equal the 171 live columns plus the exact reviewed supplements; arbitrary drift is forbidden.",
 );
 console.log(
-  "PASS: exactly 174 candidate columns equal immutable live171 plus the reviewed source-bound supplements.",
+  "PASS: exactly 176 candidate columns equal immutable live171 plus the reviewed source-bound supplements.",
 );
 
 assert.deepEqual(
@@ -348,4 +380,27 @@ assert.deepEqual(identity.local_catalog.result, [
 ]);
 console.log(
   "PASS: identity supplement working-tree source hash and exact local generated TEXT/TIMESTAMPTZ metadata.",
+);
+
+assert.deepEqual(
+  query(person.local_catalog.query),
+  person.local_catalog.result,
+);
+assert.deepEqual(
+  person.local_catalog.result,
+  person.columns.map(({ recordType, ordinal }) => ({
+    schema: "public",
+    record_type: recordType,
+    field_key: "person_id",
+    ordinal,
+    data_type: "uuid",
+    udt_name: "uuid",
+    nullable: true,
+    default: null,
+    generated: "NEVER",
+    generation_expression: null,
+  })),
+);
+console.log(
+  "PASS: person anchor supplement working-tree source hash and exact local nullable UUID metadata.",
 );
