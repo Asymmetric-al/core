@@ -1,5 +1,6 @@
 import { CAPABILITY_BUNDLES, ROLE_DEFAULT_BUNDLES } from "./bundles";
 import { CapabilityResolutionError } from "./errors";
+import { deepFreeze } from "./freeze";
 
 import type { BundleKey, GrantSubjectKey, NamedGrantSubject } from "./bundles";
 import type { CapabilityResolutionErrorCode } from "./errors";
@@ -13,6 +14,10 @@ export type AssignmentGrantSource = {
   readonly tenantId: string;
   readonly role: MembershipRole;
   readonly staffRole: StaffSubrole | null;
+  /**
+   * A suspended assignment or grant is issued with this set to `false`, never
+   * omitted. Any inactive source fails the whole context with `inactive_source`.
+   */
   readonly isActive: boolean;
 };
 
@@ -22,6 +27,10 @@ export type NamedGrantSource = {
   readonly grantId: string;
   readonly tenantId: string;
   readonly subject: NamedGrantSubject;
+  /**
+   * A suspended assignment or grant is issued with this set to `false`, never
+   * omitted. Any inactive source fails the whole context with `inactive_source`.
+   */
   readonly active: boolean;
 };
 
@@ -46,16 +55,17 @@ export type DormantTenantOverrides = undefined;
  */
 const UNSPECIALIZED_ASSIGNMENT_BUNDLES: Readonly<
   Record<MembershipRole, readonly BundleKey[]>
-> = {
+> = deepFreeze({
   donor: ROLE_DEFAULT_BUNDLES["member:donor"],
   missionary: ROLE_DEFAULT_BUNDLES["member:missionary"],
   staff: ["donor_care"],
-};
+});
 
-const NAMED_SUBJECTS: Readonly<Record<NamedGrantSubject, GrantSubjectKey>> = {
-  tenant_admin: "tenant_admin",
-  platform_admin: "platform_admin",
-};
+const NAMED_SUBJECTS: Readonly<Record<NamedGrantSubject, GrantSubjectKey>> =
+  deepFreeze({
+    tenant_admin: "tenant_admin",
+    platform_admin: "platform_admin",
+  });
 
 /** A source's fields, each read exactly once into a plain object. */
 type SourceSnapshot =
