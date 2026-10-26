@@ -1,3 +1,5 @@
+import { deepFreeze } from "./freeze";
+
 import type { Capability } from "./registry";
 import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 
@@ -33,7 +35,7 @@ const PERMISSIONS_PROPOSER = [
   "permissions.propose_widening",
 ] as const;
 
-export const CAPABILITY_BUNDLES = {
+export const CAPABILITY_BUNDLES = deepFreeze({
   staff_base: [
     "admin.dashboard.access",
     "admin.crm.manage",
@@ -54,7 +56,7 @@ export const CAPABILITY_BUNDLES = {
     ...PERMISSIONS_PROPOSER,
     "permissions.approve_widening",
   ],
-} as const satisfies Record<string, readonly Capability[]>;
+} as const satisfies Record<string, readonly Capability[]>);
 
 export type BundleKey = keyof typeof CAPABILITY_BUNDLES;
 
@@ -79,7 +81,7 @@ const STAFF_DEFAULTS = ["staff_base", "donor_care"] as const;
  */
 export const ROLE_DEFAULT_BUNDLES: Readonly<
   Record<GrantSubjectKey, readonly BundleKey[]>
-> = {
+> = deepFreeze({
   "member:donor": [],
   "member:missionary": [],
   "staff:finance": ["staff_base", "finance_staff"],
@@ -89,4 +91,4 @@ export const ROLE_DEFAULT_BUNDLES: Readonly<
   "staff:member_care": STAFF_DEFAULTS,
   tenant_admin: ["staff_base", "finance_approver", "permissions_proposer"],
   platform_admin: ["staff_base", "contribution_admin", "permissions_approver"],
-};
+});

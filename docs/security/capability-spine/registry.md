@@ -106,6 +106,12 @@ enumerable fields are `code` and `name` (the constant class name):
 | `multiple_assignments`     | more than one assignment source                                                      |
 | `unknown_subject`          | an unknown role, subrole or named subject, or a subrole that is not null or a string |
 
+Suspension has no state of its own. A suspended assignment or grant is issued
+with `isActive: false` (assignment) or `active: false` (named grant), never
+omitted. Any inactive source fails the whole context with `inactive_source`.
+
+The registry, bundle and default-bundle tables are deep-frozen at module load.
+
 ## Dormant overrides
 
 `tenantOverrides` is typed `DormantTenantOverrides = undefined`. Omitting it or
