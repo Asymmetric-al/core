@@ -161,9 +161,9 @@ itPosix(
   () => {
     const result = runVerifier("clean");
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain("all 870 database seed rows exactly equal");
-    expect(result.stdout).toContain("exactly 174 candidate columns");
-    expect(result.stdout.indexOf("exactly 174 candidate columns")).toBeLessThan(
+    expect(result.stdout).toContain("all 880 database seed rows exactly equal");
+    expect(result.stdout).toContain("exactly 176 candidate columns");
+    expect(result.stdout.indexOf("exactly 176 candidate columns")).toBeLessThan(
       result.stdout.indexOf("forward Supabase migrations"),
     );
     const probeIndex = result.calls.findIndex(
@@ -235,5 +235,5 @@ itPosix("accepts IPv6 loopback under the same census locality contract", () => {
     "postgresql://postgres@[::1]:5432/disposable_test",
   );
   expect(result.status).toBe(0);
-  expect(result.stdout).toContain("all 870 database seed rows exactly equal");
+  expect(result.stdout).toContain("all 880 database seed rows exactly equal");
 });

@@ -12,7 +12,7 @@ import { expect } from "vitest";
  * version is a reservation (§7; Samson renumbers at handback to keep merge
  * order). If it is renumbered, change only this line.
  */
-export const MIGRATION = "supabase/migrations/20261025060000_person_anchor.sql";
+export const MIGRATION = "supabase/migrations/20261025110000_person_anchor.sql";
 /** Spec §2 In 8: the rollback is `rollback_` + the migration's file name. */
 export const ROLLBACK = MIGRATION.replace(/([^/]+)$/, "rollback_$1");
 /** #2254's migration (hard dependency, §9): this slice sorts after it. */

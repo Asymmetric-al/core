@@ -126,12 +126,12 @@ let clean: ReturnType<typeof runCensus> | undefined;
 const cleanRun = () => (clean ??= runCensus());
 
 describe("#2254 criterion 9: census", () => {
-  it("passes on the In 4 oracle and reports 171 live / 174 candidate / 870 rows", () => {
+  it("passes on the In 4 oracle and reports 171 live / 176 candidate / 880 rows", () => {
     const r = cleanRun();
     expect(r.status, r.stderr).toBe(0);
     expect(r.stdout).toContain("171 exact whole columns");
-    expect(r.stdout).toContain("all 870 database seed rows exactly equal");
-    expect(r.stdout).toContain("exactly 174 candidate columns");
+    expect(r.stdout).toContain("all 880 database seed rows exactly equal");
+    expect(r.stdout).toContain("exactly 176 candidate columns");
   });
 
   const flip: Mutate = (_d, db) => {
