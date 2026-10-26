@@ -433,7 +433,9 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
     )
       .map((r) => r.v as string)
       .sort();
-  const ours = (v: string) => /persons|person_id|_person_/.test(v);
+  /** #2256 objects only: persons, person_id, and the 4 spec §1.2 constraint names (not e.g. `in_person_visit`). */
+  const OURS = new RegExp(["persons", "person_id", ...CONSTRAINTS].join("|"));
+  const ours = (v: string) => OURS.test(v);
 
   tx(
     "11: re-applying the forward file succeeds twice and changes no catalog or field_policies row",
