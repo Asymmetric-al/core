@@ -50,7 +50,7 @@ function unfrozen(
   return Object.isFrozen(value) ? own : [path, ...own];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- tables are imported lazily while #2303 is unbuilt; writes are deliberate
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- tables are imported lazily while #2303 is unbuilt; writes are deliberate -- TODO(#2303)
 type Tables = Record<"REG" | "B" | "RDB", any> & {
   resolve: (...args: unknown[]) => unknown;
 };
