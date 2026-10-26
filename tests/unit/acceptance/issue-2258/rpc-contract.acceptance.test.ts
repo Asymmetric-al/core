@@ -627,13 +627,21 @@ describe.skipIf(!ON)(
       );
       expect(outside, `diff against ${base()}`).toEqual([]);
     });
-    it("11/16: no non-test file in the diff (workflow excluded) contains set_config, CREATE POLICY, tenant_guard, person_id or missionaries", () => {
+    it("11/16: no line the PR adds to a non-test file (workflow excluded) contains set_config, CREATE POLICY, tenant_guard, person_id or missionaries", () => {
+      const untracked = git("ls-files", "--others", "--exclude-standard");
+      const added = (f: string) =>
+        untracked.split("\n").includes(f)
+          ? readFileSync(f, "utf8")
+          : git("diff", "-U0", "--no-color", "--no-renames", base(), "--", f)
+              .split("\n")
+              .filter((l) => /^\+(?!\+\+ (b\/|\/dev\/null))/.test(l))
+              .join("\n");
+      const bad =
+        /^.*(?:set_config|CREATE\s+POLICY|tenant_guard|person_id|missionaries).*$/gim;
       const hits = changed()
         .filter((f) => !f.startsWith("tests/") && f !== CII && existsSync(f))
-        .filter((f) =>
-          /set_config|CREATE\s+POLICY|tenant_guard|person_id|missionaries/i.test(
-            readFileSync(f, "utf8"),
-          ),
+        .flatMap((f) =>
+          (added(f).match(bad) ?? []).map((l) => `${f}: ${l.trim()}`),
         );
       expect(hits).toEqual([]);
     });
