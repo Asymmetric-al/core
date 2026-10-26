@@ -8,14 +8,19 @@
  * block skips, except in the CI `migrate` job, where it fails.
  *
  * Every check is one transaction, always rolled back, with the fixture created
- * inside it. Calls emulate PostgREST: SET LOCAL ROLE plus request.jwt.claims
+ * inside it. Checks that drop and recreate policies on the five tables and
+ * re-run the migration (criterion 1's develop-state replay, criterion 3 and the
+ * FORCE check) run on a throwaway database instead, as #2254's criterion 7
+ * does, so their held locks never meet the other files of CI's parallel step
+ * (40P01). Calls emulate PostgREST: SET LOCAL ROLE plus request.jwt.claims
  * and request.jwt.claim.sub. R-5: every user-JWT case also sets the
  * app.current_tenant_id GUC to the same value, so the file holds across #2298.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
-import { randomUUID } from "node:crypto";
-import { existsSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { randomBytes, randomUUID } from "node:crypto";
+import { existsSync, readdirSync } from "node:fs";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -34,7 +39,8 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 describe.skipIf(!ADMIN_URL)(
   "#2312 public reads closed, tenant floor (R)",
   () => {
-    const db = new pg.Client({ connectionString: ADMIN_URL });
+    const main = new pg.Client({ connectionString: ADMIN_URL });
+    let db = main;
     const id: Record<string, string> = {};
     const KEYS =
       "A B UD1 UD2 UD3 SA SB M1 M2 D1 D2 D3 MA MB MN FA FB FN AA AB AN CA CB F1 F2 F3 FX FN2";
@@ -71,8 +77,62 @@ describe.skipIf(!ADMIN_URL)(
     };
     const FOLLOWS = ["F1", "F2", "F3", "FX", "FN2"];
 
-    beforeAll(() => db.connect());
-    afterAll(() => db.end());
+    /**
+     * Throwaway database (the #2254 criterion 7 pattern): created on first use
+     * with the bootstrap and every forward migration applied as CI's "Apply
+     * migrations" does, dropped after the file. onThrowaway() points `db` at it
+     * for the enclosing describe.
+     */
+    const SCRATCH = `acc2312_c3_${randomBytes(4).toString("hex")}`;
+    const psql = (url: string, sql: string, args: string[] = []) =>
+      spawnSync(
+        process.env.PSQL_BIN?.trim() || "psql",
+        [url, "-X", "-q", "-v", "ON_ERROR_STOP=1", ...args],
+        { encoding: "utf8", input: sql },
+      );
+    let scratch: pg.Client | undefined;
+    function onThrowaway() {
+      beforeAll(async () => {
+        if (!scratch) {
+          const c = psql(ADMIN_URL, `create database ${SCRATCH};`);
+          expect(c.status, c.stderr).toBe(0);
+          const url = Object.assign(new URL(ADMIN_URL), {
+            pathname: `/${SCRATCH}`,
+          }).toString();
+          const files = readdirSync(H.MIG)
+            .filter((f) => /^\d{14}_.+\.sql$/.test(f))
+            .sort();
+          for (const f of [
+            "scripts/sql/supabase-compat-bootstrap.sql",
+            ...files,
+          ]) {
+            const r = psql(url, "", [
+              ...(f.startsWith("20260214090000_")
+                ? ["--single-transaction"]
+                : []),
+              "-f",
+              f.endsWith("bootstrap.sql") ? f : `${H.MIG}/${f}`,
+            ]);
+            expect(r.status, `${f}: ${r.stderr}`).toBe(0);
+          }
+          scratch = new pg.Client({ connectionString: url });
+          await scratch.connect();
+        }
+        db = scratch;
+      }, 600_000);
+      afterAll(() => {
+        db = main;
+      });
+    }
+
+    beforeAll(() => main.connect());
+    afterAll(async () => {
+      await main.end();
+      if (scratch) {
+        await scratch.end();
+        psql(ADMIN_URL, `drop database if exists ${SCRATCH} with (force);`);
+      }
+    });
 
     async function tx(fn: () => Promise<void>) {
       await db.query("begin");
@@ -266,18 +326,21 @@ describe.skipIf(!ADMIN_URL)(
           }),
       );
 
-      it("1: service_role's privileges are equal before and after the migration (develop-state replay)", () =>
-        tx(async () => {
-          await prepare(DEVELOP());
-          const before = await Promise.all(
-            H.TABLES.map(async (t) => (await acl(t)).service_role ?? []),
-          );
-          expect(await rerun()).toBeNull();
-          const after = await Promise.all(
-            H.TABLES.map(async (t) => (await acl(t)).service_role ?? []),
-          );
-          expect(after).toEqual(before);
-        }));
+      describe("throwaway database", () => {
+        onThrowaway();
+        it("1: service_role's privileges are equal before and after the migration (develop-state replay)", () =>
+          tx(async () => {
+            await prepare(DEVELOP());
+            const before = await Promise.all(
+              H.TABLES.map(async (t) => (await acl(t)).service_role ?? []),
+            );
+            expect(await rerun()).toBeNull();
+            const after = await Promise.all(
+              H.TABLES.map(async (t) => (await acl(t)).service_role ?? []),
+            );
+            expect(after).toEqual(before);
+          }));
+      });
 
       it("1: supabase_realtime still carries funds only, of the five tables", () =>
         tx(async () => {
@@ -387,6 +450,7 @@ describe.skipIf(!ADMIN_URL)(
     });
 
     describe("criterion 3: live-name tolerance (migration re-run in a rolled-back transaction)", () => {
+      onThrowaway();
       const postState = async () => {
         for (const t of H.TABLES)
           expect(
