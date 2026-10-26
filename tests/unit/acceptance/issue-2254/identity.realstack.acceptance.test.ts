@@ -202,7 +202,7 @@ describe.skipIf(!local)("#2254 real stack (DATABASE_URL)", () => {
       UNION ALL SELECT 1 FROM public.donors WHERE profile_id IS NOT NULL GROUP BY tenant_id, profile_id HAVING count(*) > 1) d;`),
     ).toBe("0");
   });
-  it("criterion 9: the 10 new field_policies rows match In 4 exactly; 870 rows in total", () => {
+  it("criterion 9: the 10 new field_policies rows match In 4 exactly; 880 rows in total", () => {
     const rows = JSON.parse(
       q(`SELECT coalesce(json_agg(to_jsonb(p)), '[]') FROM public.field_policies p
       WHERE p.record_type = 'donors' AND p.field_key IN ('email_normalized','email_verified_at');`),
@@ -212,7 +212,7 @@ describe.skipIf(!local)("#2254 real stack (DATABASE_URL)", () => {
     const sort = <T extends { field_key: string; surface: string }>(rs: T[]) =>
       [...rs].sort((a, b) => (key(a) < key(b) ? -1 : 1));
     expect(sort(rows)).toEqual(sort(NEW_ROWS));
-    expect(q("SELECT count(*) FROM public.field_policies;")).toBe("870");
+    expect(q("SELECT count(*) FROM public.field_policies;")).toBe("880");
   });
   it("criterion 9: the census and supabase/tests/field_policies*.sql pass on this database", () => {
     const census = spawnSync(
@@ -221,7 +221,7 @@ describe.skipIf(!local)("#2254 real stack (DATABASE_URL)", () => {
       { cwd: ROOT, encoding: "utf8" },
     );
     expect(census.status, census.stderr).toBe(0);
-    expect(census.stdout).toContain("exactly 174 candidate columns");
+    expect(census.stdout).toContain("exactly 176 candidate columns");
     for (const f of [
       "field_policies_foundation.sql",
       "field_policies_rls.sql",

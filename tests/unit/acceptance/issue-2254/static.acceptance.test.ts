@@ -177,16 +177,20 @@ describe("#2254 migration text", () => {
 
 describe("#2254 criterion 9: census evidence", () => {
   const census = () => JSON.parse(read(`${FP}/census-v1.json`));
-  it("census-v1.json: 171 live / 174 candidate / 870 rows, v1 then v2 supplement", () => {
+  it("census-v1.json: 171 live / 176 candidate / 880 rows, v1, v2 then v3 supplement", () => {
     const c = census();
     expect([
       c.column_count,
       c.candidate_column_count,
       c.baseline_row_count,
-    ]).toEqual([171, 174, 870]);
+    ]).toEqual([171, 176, 880]);
     expect(
       c.repository_supplements.map((s: { artifact: string }) => s.artifact),
-    ).toEqual(["repository-supplement-v1.json", V2]);
+    ).toEqual([
+      "repository-supplement-v1.json",
+      V2,
+      "repository-supplement-v3-person-anchor.json",
+    ]);
     expect(c.repository_supplements[0].sha256).toBe(
       "ca922ac896858c16597826e3f81e30f1c74f6903e466b5e053c891fd4b8b3296",
     );
@@ -228,10 +232,10 @@ describe("#2254 criterion 9: census evidence", () => {
       V2,
     ).toEqual([]);
   });
-  it("supabase/tests/field_policies_foundation.sql expects 174 columns and 870 rows", () => {
+  it("supabase/tests/field_policies_foundation.sql expects 176 columns and 880 rows", () => {
     const sql = read("supabase/tests/field_policies_foundation.sql");
-    expect(sql).toMatch(/<>\s*174\b/);
-    expect(sql).toMatch(/<>\s*870\b/);
+    expect(sql).toMatch(/<>\s*176\b/);
+    expect(sql).toMatch(/<>\s*880\b/);
     expect(sql).not.toMatch(/<>\s*(?:172|860)\b/);
   });
 });
@@ -374,9 +378,9 @@ describe("#2254 criteria 12 + 13: docs", () => {
       "read-only",
     ).toBe(false);
   });
-  it("README states 174 candidate columns / 870 rows and the v2 supplement", () => {
+  it("README states 176 candidate columns / 880 rows and the v2 supplement", () => {
     const readme = flat(read(`${FP}/README.md`));
-    expect(missing(readme, ["174 candidate columns", "870 rows", V2])).toEqual(
+    expect(missing(readme, ["176 candidate columns", "880 rows", V2])).toEqual(
       [],
     );
     expect(/172 candidate columns|860 rows/.test(readme), "stale counts").toBe(
