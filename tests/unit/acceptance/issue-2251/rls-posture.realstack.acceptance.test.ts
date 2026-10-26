@@ -185,7 +185,7 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       tx(async () => {
         const live = new Map((await targets()).map((x) => [x.t, x]));
         const e = exceptions();
-        expect(e.length).toBeGreaterThanOrEqual(86);
+        expect(e.length).toBeGreaterThanOrEqual(85);
         const bad = e
           .map((x) => [x.table, live.get(x.table)] as const)
           .filter(([, l]) => !l || !l.rls || !l.force || l.policies !== 0)

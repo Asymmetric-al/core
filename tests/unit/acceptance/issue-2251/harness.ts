@@ -88,7 +88,8 @@ const words = (s: string) => s.split(/\s+/).filter(Boolean);
 /**
  * §3, all 143 tables. S = service_role_needed with its §3 code-path files
  * (relative to packages/api/src/); D = deny_by_default; F = FORCE only
- * (56 + workflow_work_claims, F† after #2250).
+ * (56 + workflow_work_claims, F† after #2250, + donor_feed_preferences after
+ * #2260, which gives it own-row policies: S 68 -> 67, F 57 -> 58).
  */
 const S_PATHS: Record<string, string> = {
   contribution_adjustments:
@@ -125,7 +126,6 @@ const S_PATHS: Record<string, string> = {
   crm_table_user_preferences: "admin/crm/table-preferences/service.ts",
   donation_saga_outbox:
     "workflows/adapters/donations.ts workflows/summaries.ts",
-  donor_feed_preferences: "donor-portal/service.ts feed-preferences/index.ts",
   email_events: "email/webhooks/resend.ts",
   email_inbound_messages:
     "workflows/adapters/inbound-routing.ts workflows/summaries.ts",
@@ -201,7 +201,8 @@ export const D = words(`
 `);
 export const F = words(`
   assets audit_logs campaigns crm_command_logs crm_merge_candidates crm_notes
-  crm_record_links donation_crm_links donations donor_pledges donors
+  crm_record_links donation_crm_links donations donor_feed_preferences
+  donor_pledges donors
   field_policies follows funds giving_reconciliation_runs locations
   member_care_activities member_care_goals member_care_private_notes
   member_care_requirements missionaries notification_queue

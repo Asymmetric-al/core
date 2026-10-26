@@ -160,7 +160,7 @@ async function catalogCounts() {
   await db.end();
   return rows[0] as { n: number; pol: number };
 }
-const LISTED = 86;
+const LISTED = 85;
 
 describe.skipIf(!ADMIN_URL)(
   "#2253 tenant RLS catalog gate (real stack)",
