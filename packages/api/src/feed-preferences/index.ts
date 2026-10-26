@@ -4,7 +4,12 @@ import { z } from "zod";
 
 import type { DonorFeedPreferences } from "@asym/database/types";
 
-const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
+/**
+ * Same shape check as authz.current_tenant_id(): a tenant claim that the
+ * database would read as NULL is refused here before any query.
+ */
+const TENANT_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const feedPreferencesUpdateSchema = z.object({
   showOrgPosts: z.boolean().optional(),
@@ -41,9 +46,22 @@ interface DonorIdentity {
 
 type AuthenticatedDonorLookup =
   | { status: "unauthenticated" }
+  | { status: "missing-tenant" }
   | { status: "missing-donor" }
-  | { status: "found"; donor: DonorIdentity };
+  | { status: "multiple-donors" }
+  | { status: "found"; donor: DonorIdentity; tenantId: string };
 
+function tenantIdFromClaim(value: unknown): string | null {
+  return typeof value === "string" && TENANT_ID_PATTERN.test(value)
+    ? value
+    : null;
+}
+
+/**
+ * Resolves the caller's donor in their JWT tenant by profile ownership, with
+ * the user-JWT client, mirroring the donor_feed_preferences own-row policies
+ * (docs/security/donor-feed-preferences-rls.md). Lookup errors throw.
+ */
 async function findDonorByAuthenticatedUser(
   supabase: SupabaseServerClient,
 ): Promise<AuthenticatedDonorLookup> {
@@ -55,17 +73,69 @@ async function findDonorByAuthenticatedUser(
     return { status: "unauthenticated" };
   }
 
-  const { data: donor } = await supabase
+  const tenantId = tenantIdFromClaim(user.app_metadata?.tenant_id);
+
+  if (!tenantId) {
+    return { status: "missing-tenant" };
+  }
+
+  const { data: profiles, error: profilesError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("user_id", user.id);
+
+  if (profilesError) {
+    throw profilesError;
+  }
+
+  const profileIds = (profiles ?? []).map((profile) => profile.id);
+
+  if (profileIds.length === 0) {
+    return { status: "missing-donor" };
+  }
+
+  const { data: donors, error: donorsError } = await supabase
     .from("donors")
     .select("id")
-    .eq("email", user.email)
-    .single();
+    .eq("tenant_id", tenantId)
+    .in("profile_id", profileIds)
+    .limit(2);
+
+  if (donorsError) {
+    throw donorsError;
+  }
+
+  const [donor, ...otherDonors] = donors ?? [];
 
   if (!donor) {
     return { status: "missing-donor" };
   }
 
-  return { status: "found", donor };
+  if (otherDonors.length > 0) {
+    return { status: "multiple-donors" };
+  }
+
+  return { status: "found", donor, tenantId };
+}
+
+/** The response for every lookup outcome both handlers treat the same way. */
+function donorLookupFailure(lookup: AuthenticatedDonorLookup) {
+  switch (lookup.status) {
+    case "unauthenticated":
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    case "missing-tenant":
+      return NextResponse.json(
+        { error: "Tenant context required" },
+        { status: 403 },
+      );
+    case "multiple-donors":
+      return NextResponse.json(
+        { error: "Multiple donor records for this account" },
+        { status: 409 },
+      );
+    default:
+      return null;
+  }
 }
 
 async function readRequestBody(request: Request) {
@@ -103,11 +173,12 @@ function toFeedPreferencesResponse(
 
 function toFeedPreferencesUpsert(
   donorId: string,
+  tenantId: string,
   preferences: FeedPreferencesUpdate,
 ): FeedPreferencesUpsert {
   const payload: FeedPreferencesUpsert = {
     donor_id: donorId,
-    tenant_id: DEFAULT_TENANT_ID,
+    tenant_id: tenantId,
     updated_at: new Date().toISOString(),
   };
 
@@ -138,21 +209,30 @@ export async function GET() {
   try {
     const supabase = await createClient();
     const donorLookup = await findDonorByAuthenticatedUser(supabase);
+    const failure = donorLookupFailure(donorLookup);
 
-    if (donorLookup.status === "unauthenticated") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (failure) {
+      return failure;
     }
 
-    if (donorLookup.status === "missing-donor") {
+    if (donorLookup.status !== "found") {
       return NextResponse.json(defaultFeedPreferencesResponse);
     }
 
-    const { data: preferences } = await supabase
+    const { data: preferences, error } = await supabase
       .from("donor_feed_preferences")
       .select("*")
       .eq("donor_id", donorLookup.donor.id)
-      .eq("tenant_id", DEFAULT_TENANT_ID)
+      .eq("tenant_id", donorLookup.tenantId)
       .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching feed preferences:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch preferences" },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json(toFeedPreferencesResponse(preferences));
   } catch (error) {
@@ -168,12 +248,13 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     const donorLookup = await findDonorByAuthenticatedUser(supabase);
+    const failure = donorLookupFailure(donorLookup);
 
-    if (donorLookup.status === "unauthenticated") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (failure) {
+      return failure;
     }
 
-    if (donorLookup.status === "missing-donor") {
+    if (donorLookup.status !== "found") {
       return NextResponse.json({ error: "Donor not found" }, { status: 404 });
     }
 
@@ -188,9 +269,14 @@ export async function POST(request: Request) {
 
     const { data: updated, error } = await supabase
       .from("donor_feed_preferences")
-      .upsert(toFeedPreferencesUpsert(donorLookup.donor.id, parsed.data), {
-        onConflict: "donor_id,tenant_id",
-      })
+      .upsert(
+        toFeedPreferencesUpsert(
+          donorLookup.donor.id,
+          donorLookup.tenantId,
+          parsed.data,
+        ),
+        { onConflict: "donor_id,tenant_id" },
+      )
       .select()
       .single();
 
