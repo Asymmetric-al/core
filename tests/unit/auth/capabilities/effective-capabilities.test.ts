@@ -203,7 +203,6 @@ describe("resolveEffectiveCapabilities", () => {
 
   // #2303: the indexed loop reads a hole as undefined; for…in or forEach would skip it.
   it.each([
-    // eslint-disable-next-line no-sparse-arrays -- the leading hole is the case under test
     ["a leading hole", [, named()]],
     ["a trailing hole", Object.assign([named()], { length: 2 })],
   ])("rejects sources with %s as missing_context", (_label, sources) => {
