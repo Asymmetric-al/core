@@ -223,7 +223,7 @@ itPosix(
     expect(result.stdout).toContain("all 880 database seed rows exactly equal");
     expect(result.stdout).toContain("exactly 176 candidate columns");
     const gateLine = result.stdout.indexOf(
-      "PASS: tenant RLS catalog gate: 87 tenant tables enabled and forced (1 with policies, 86 listed deny-by-default, 0 stale)",
+      "PASS: tenant RLS catalog gate: 86 tenant tables enabled and forced (1 with policies, 85 listed deny-by-default, 0 stale)",
     );
     expect(result.stdout.indexOf("exactly 176 candidate columns")).toBeLessThan(
       gateLine,
