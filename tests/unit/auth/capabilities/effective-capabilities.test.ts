@@ -1,8 +1,15 @@
+import { createHash } from "node:crypto";
+
 import { describe, expect, it } from "vitest";
 
-import { CAPABILITY_BUNDLES } from "../../../../packages/auth/capabilities/bundles";
+import {
+  CAPABILITY_BUNDLES,
+  ROLE_DEFAULT_BUNDLES,
+} from "../../../../packages/auth/capabilities/bundles";
 import { resolveEffectiveCapabilities } from "../../../../packages/auth/capabilities/effective-capabilities";
 import { CapabilityResolutionError } from "../../../../packages/auth/capabilities/errors";
+import { deepFreeze } from "../../../../packages/auth/capabilities/freeze";
+import { CAPABILITY_REGISTRY } from "../../../../packages/auth/capabilities/registry";
 import { capabilityRegistryRows } from "../../../../packages/auth/capabilities/rows";
 
 const TENANT = "tenant-1";
@@ -43,6 +50,18 @@ function errorOf(run: () => unknown) {
 }
 
 const codeOf = (run: () => unknown) => errorOf(run).code;
+
+/** Paths of every object or array node under `value` that is not frozen. */
+function unfrozenPaths(value: unknown, path: string): string[] {
+  if (typeof value !== "object" || value === null) return [];
+  const nested = Reflect.ownKeys(value).flatMap((key) =>
+    unfrozenPaths(
+      (value as Record<PropertyKey, unknown>)[key],
+      `${path}.${String(key)}`,
+    ),
+  );
+  return Object.isFrozen(value) ? nested : [path, ...nested];
+}
 
 /** Counts property reads; keys in `later` return a different value after `after` reads. */
 function counted<T extends object>(
@@ -181,9 +200,82 @@ describe("resolveEffectiveCapabilities", () => {
   it("rejects a null source entry as malformed input", () => {
     expect(codeOf(() => resolveUntyped(null))).toBe("missing_context");
   });
+
+  // #2303: the indexed loop reads a hole as undefined; for…in or forEach would skip it.
+  it.each([
+    ["a leading hole", [, named()]],
+    ["a trailing hole", Object.assign([named()], { length: 2 })],
+  ])("rejects sources with %s as missing_context", (_label, sources) => {
+    expect(Object.keys(sources)).toHaveLength(sources.length - 1);
+    const context = { tenantId: TENANT, sources };
+    expect(
+      codeOf(() =>
+        Reflect.apply(resolveEffectiveCapabilities, undefined, [context]),
+      ),
+    ).toBe("missing_context");
+  });
+});
+
+describe("static capability tables", () => {
+  it.each([
+    ["CAPABILITY_REGISTRY", CAPABILITY_REGISTRY],
+    ["CAPABILITY_BUNDLES", CAPABILITY_BUNDLES],
+    ["ROLE_DEFAULT_BUNDLES", ROLE_DEFAULT_BUNDLES],
+  ])("deep-freezes %s at module load", (name, table) => {
+    expect(Object.isFrozen(table)).toBe(true);
+    expect(unfrozenPaths(table, name)).toEqual([]);
+  });
+
+  it("throws TypeError on writes and leaves resolution unchanged", () => {
+    const before = resolveUntyped(assignment(), named());
+    const registry = CAPABILITY_REGISTRY as Record<string, { label: string }>;
+    const bundles = CAPABILITY_BUNDLES as unknown as Record<string, string[]>;
+    const defaults = ROLE_DEFAULT_BUNDLES as unknown as Record<
+      string,
+      string[]
+    >;
+    expect(() => {
+      registry["permissions.view"]!.label = "x";
+    }).toThrow(TypeError);
+    expect(() =>
+      bundles.donor_care!.push("permissions.approve_widening"),
+    ).toThrow(TypeError);
+    expect(() => {
+      defaults["member:donor"] = ["contribution_admin"];
+    }).toThrow(TypeError);
+    expect(() => delete defaults.tenant_admin).toThrow(TypeError);
+    expect(resolveUntyped(assignment(), named())).toEqual(before);
+  });
+});
+
+describe("deepFreeze", () => {
+  it("freezes nested arrays, objects and symbol keys in place", () => {
+    const hidden = Symbol("hidden");
+    const value = { list: [{ deep: ["x"] }], [hidden]: { more: [[]] } };
+    expect(deepFreeze(value)).toBe(value);
+    expect(unfrozenPaths(value, "value")).toEqual([]);
+  });
+
+  it("walks into a frozen parent and leaves non-plain objects alone", () => {
+    const inner = { list: [1] };
+    const date = new Date(0);
+    deepFreeze({ outer: Object.freeze({ inner }), date });
+    expect(Object.isFrozen(inner.list)).toBe(true);
+    expect(Object.isFrozen(date)).toBe(false);
+  });
 });
 
 describe("capabilityRegistryRows", () => {
+  it("is byte-identical to the pre-freeze output", () => {
+    // sha256 of JSON.stringify(capabilityRegistryRows()) at develop 88eefbd9.
+    const digest = createHash("sha256")
+      .update(JSON.stringify(capabilityRegistryRows()))
+      .digest("hex");
+    expect(digest).toBe(
+      "33cad873dfc95994e65d030bc75d6102600b3e65d4dea4745901a9a4a8409b71",
+    );
+  });
+
   it("seeds no grant row for staff without a subrole", () => {
     const { roleGrants } = capabilityRegistryRows();
     const subjects = new Set(roleGrants.map((row) => row.subject));

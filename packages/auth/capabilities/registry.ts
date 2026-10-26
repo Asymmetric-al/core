@@ -5,6 +5,8 @@
  * capability table: Phase 12 (#671) seeds its generated tables 1:1 from
  * `capabilityRegistryRows()`. #667(a) extends `CapabilityMeta` additively.
  */
+import { deepFreeze } from "./freeze";
+
 export type CapabilityMeta = {
   readonly label: string;
   readonly description: string;
@@ -15,7 +17,7 @@ export type CapabilityMeta = {
 /** Lowercase dotted segments, at least two: `domain.action` or deeper. */
 export const CAPABILITY_KEY_PATTERN = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
 
-export const CAPABILITY_REGISTRY = {
+export const CAPABILITY_REGISTRY = deepFreeze({
   "contributions.view_detail": {
     label: "View contribution detail",
     description: "Open a contribution and read its detail and history.",
@@ -124,6 +126,6 @@ export const CAPABILITY_REGISTRY = {
     domain: "permissions",
     source: "code",
   },
-} as const satisfies Record<string, CapabilityMeta>;
+} as const satisfies Record<string, CapabilityMeta>);
 
 export type Capability = keyof typeof CAPABILITY_REGISTRY;
