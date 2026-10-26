@@ -15,7 +15,7 @@
   },
   "surfaces": ["mission_control", "donor", "missionary", "public", "export"],
   "column_count": 171,
-  "baseline_row_count": 870,
+  "baseline_row_count": 880,
   "relations": [
     {
       "record_type": "donations",
@@ -6258,7 +6258,7 @@
       "evidence": "live-schema-response.json + live-tables-response.json"
     }
   ],
-  "candidate_column_count": 174,
+  "candidate_column_count": 176,
   "repository_supplements": [
     {
       "artifact": "repository-supplement-v1.json",
@@ -6267,6 +6267,10 @@
     {
       "artifact": "repository-supplement-v2-donor-identity.json",
       "sha256": "b0cc2cf835d9682f4d8e8f7184f8a27d084946aadc17f5b3c68276e576d48ab6"
+    },
+    {
+      "artifact": "repository-supplement-v3-person-anchor.json",
+      "sha256": "205b6704f05b4a3a385eb279695afb807cb933e158283e05609f8c72a60c35f2"
     }
   ]
 }

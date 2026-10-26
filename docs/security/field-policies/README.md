@@ -4,7 +4,8 @@
 category and explicit visibility/editability/exportability on all five surfaces.
 The foundation migration contains 855 rows for the 171 live columns plus five rows for the
 separately source-bound repository supplement v1; the #2254 migration adds ten rows for
-the two columns of supplement v2: 174 candidate columns / 870 rows. The two
+the two columns of supplement v2, and the #2256 migration ten rows for the two columns
+of supplement v3: 176 candidate columns / 880 rows. The two
 unaltered read-only metadata responses bind the census to project
 `pnmlrbgjiqzzsthsoikm`, capture `2026-10-05 04:51:45.072671+00`, PostgreSQL 17.6,
 latest live migration `20261001061717`, and base repository revision
@@ -143,11 +144,22 @@ mission_control, donor and missionary; `email_verified_at` only on mission_contr
 and donor. The source migration
 `supabase/migrations/20261024140000_identity_email_normalizer_and_donor_keys.sql`
 postdates the census base SHA, so v2 binds it by working-tree SHA-256 instead of
-`git show`. Its local catalog result is also exact. Supplements are an ordered
-list (v1, then v2), each pinned by digest in `census-v1.json`. The verifier
-requires exact 171-live-plus-three-supplement column parity (174 candidate
-columns) and exact 870-row flag/category parity; it allows no arbitrary drift
-exemption. See `docs/security/identity-email-normalization.md`.
+`git show`. Its local catalog result is also exact. See
+`docs/security/identity-email-normalization.md`.
+
+**Reviewed supplement v3 (#2256):** `repository-supplement-v3-person-anchor.json`
+adds the inert seams `missionaries.person_id` (ordinal 22) and `profiles.person_id`
+(ordinal 14), both nullable `uuid` with no default, category `security` (#2256 Q11,
+approved by Samson). Each is denied on every surface, Mission Control included:
+`(F,F,F)` everywhere, because nothing reads or writes them in Phase 4. The source
+migration `supabase/migrations/20261025110000_person_anchor.sql` is bound by
+working-tree SHA-256, and its local catalog result is exact. See
+`docs/security/identity-person-anchor.md`.
+
+Supplements are an ordered list (v1, v2, then v3), each pinned by digest in
+`census-v1.json`. The verifier requires exact 171-live-plus-five-supplement column
+parity (176 candidate columns) and exact 880-row flag/category parity; it allows no
+arbitrary drift exemption.
 
 Only canonical `public.receipts` must be physically absent in the candidate.
 The noncanonical prototype source migrations remain unchanged:

@@ -1,0 +1,116 @@
+{
+  "format_version": 2,
+  "disposition": "repository-source/local-catalog supplement; absent from immutable live capture; added after the census base SHA",
+  "issue": "#2256",
+  "approval": "Samson (factory lead), Oct 24-25, 2026: #2256 spec r2 (Q11, OQ6), In 5; census file and counts per Samson ruling 4",
+  "source_path": "supabase/migrations/20261025110000_person_anchor.sql",
+  "source_sha256": "b9d7b5ef5569d35ee198ac6264a8fca91c4fd5b5e349b1da91375cf68029a875",
+  "source_binding": "working-tree sha256; the source postdates repository_base_sha, so it is not read with git show",
+  "local_catalog": {
+    "database": "fresh migration chain on a local PGlite replay; the CI migrate job (ci-integration.yml) census re-checks this exact result",
+    "postgres_version": "18.6 (PGlite)",
+    "query": "select jsonb_agg(jsonb_build_object('schema',table_schema,'record_type',table_name,'field_key',column_name,'ordinal',ordinal_position,'data_type',data_type,'udt_name',udt_name,'nullable',is_nullable='YES','default',column_default,'generated',is_generated,'generation_expression',generation_expression) order by table_name, ordinal_position) from information_schema.columns where table_schema='public' and table_name in ('missionaries','profiles') and column_name='person_id';",
+    "result": [
+      {
+        "schema": "public",
+        "record_type": "missionaries",
+        "field_key": "person_id",
+        "ordinal": 22,
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "nullable": true,
+        "default": null,
+        "generated": "NEVER",
+        "generation_expression": null
+      },
+      {
+        "schema": "public",
+        "record_type": "profiles",
+        "field_key": "person_id",
+        "ordinal": 14,
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "nullable": true,
+        "default": null,
+        "generated": "NEVER",
+        "generation_expression": null
+      }
+    ]
+  },
+  "columns": [
+    {
+      "recordType": "missionaries",
+      "name": "person_id",
+      "ordinal": 22,
+      "type": "uuid",
+      "nullable": true,
+      "semantic_category": "security",
+      "category": "security",
+      "processor_identifier": false,
+      "policies": {
+        "mission_control": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        },
+        "donor": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        },
+        "missionary": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        },
+        "public": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        },
+        "export": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        }
+      }
+    },
+    {
+      "recordType": "profiles",
+      "name": "person_id",
+      "ordinal": 14,
+      "type": "uuid",
+      "nullable": true,
+      "semantic_category": "security",
+      "category": "security",
+      "processor_identifier": false,
+      "policies": {
+        "mission_control": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        },
+        "donor": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        },
+        "missionary": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        },
+        "public": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        },
+        "export": {
+          "visible": false,
+          "editable": false,
+          "exportable": false
+        }
+      }
+    }
+  ]
+}
