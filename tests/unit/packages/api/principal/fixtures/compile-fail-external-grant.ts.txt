@@ -1,0 +1,9 @@
+// Must NOT compile (criterion 1a): an ExternalPrincipal cannot carry a grant.
+import type { ExternalPrincipal } from "__API__/principal/types";
+
+declare const external: ExternalPrincipal;
+
+export const forged: ExternalPrincipal = {
+  ...external,
+  grants: ["finance.read"], // type error expected
+};
