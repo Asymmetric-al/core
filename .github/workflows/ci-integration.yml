@@ -115,6 +115,10 @@ jobs:
         env:
           TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
         run: bun x vitest run tests/unit/acceptance/issue-2252/donor-spine-fk.realstack.acceptance.test.ts
+      - name: Verify RLS catalog gate (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts
 
   smoke:
     needs: migrate

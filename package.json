@@ -82,6 +82,7 @@
     "verify:supabase-money": "bun run setup:verify && bun run verify:money-units",
     "verify:supabase-env": "node scripts/supabase-env-smoke.mjs",
     "verify:supabase-migrations": "node scripts/verify/supabase-migrations.mjs",
+    "verify:service-role-clients": "node scripts/verify/service-role-client-gate.mjs",
     "verify:email-studio-legacy": "node scripts/verify/email-studio-legacy-allowlist.mjs",
     "supabase": "node scripts/supabase-cli.mjs",
     "sync:vercel-production-env": "node scripts/sync-vercel-production-env.mjs",
