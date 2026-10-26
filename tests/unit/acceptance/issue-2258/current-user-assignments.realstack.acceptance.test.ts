@@ -3,8 +3,11 @@
  * addendum 1 = 6419311427, approved 6419380148): criteria 7 (R rows, R grants
  * incl. addendum 1 item 3's hosted-defaults case), 9 (R) and 17 (R). Runs in CI
  * `migrate` step "Verify tenant isolation (real stack)" through that step's
- * explicit path list (addendum 1 item 4), against the migrated PG17 superuser
- * URL TENANT_GUARD_IT_ADMIN_DATABASE_URL. Without the URL the DB block skips,
+ * explicit path list (addendum 1 item 4). The PG17 superuser URL
+ * TENANT_GUARD_IT_ADMIN_DATABASE_URL creates a private database for this file,
+ * with CI's compatibility bootstrap, full forward migration chain and seed.
+ * Other files re-apply DDL in the shared database; UUID fixtures alone cannot
+ * isolate table locks. Without the URL the DB block skips,
  * except in the CI `migrate` job, where it fails.
  *
  * Every check is one transaction, always rolled back, with the fixture created
@@ -14,8 +17,9 @@
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
+import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -32,7 +36,13 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)("#2258 current_user_assignments() (R)", () => {
-  const db = new pg.Client({ connectionString: ADMIN_URL });
+  const admin = new pg.Client({ connectionString: ADMIN_URL });
+  // Generated identifier contains only ASCII letters, digits and underscores.
+  const database = `acc2258_${randomUUID().replaceAll("-", "")}`;
+  const url = new URL(ADMIN_URL || "postgresql://localhost/postgres");
+  url.pathname = `/${database}`;
+  const db = new pg.Client({ connectionString: url.toString() });
+  let created = false;
   const id: Record<string, string> = {};
   for (const k of "TA TB U1 U2 U3 U4 m1 m2 m3 m4 m5 m6 m7 m8 m9".split(" "))
     id[k] = randomUUID();
@@ -69,8 +79,54 @@ describe.skipIf(!ADMIN_URL)("#2258 current_user_assignments() (R)", () => {
   const keyOf = (v: unknown) =>
     Object.keys(id).find((k) => id[k] === v) ?? String(v);
 
-  beforeAll(() => db.connect());
-  afterAll(() => db.end());
+  beforeAll(async () => {
+    await admin.connect();
+    // Never clone the busy shared database: CREATE DATABASE ... TEMPLATE needs
+    // its other sessions disconnected. Build the same schema from template0.
+    await admin.query(`CREATE DATABASE ${database} TEMPLATE template0`);
+    created = true;
+    const files = [
+      "scripts/sql/supabase-compat-bootstrap.sql",
+      ...readdirSync(H.MIG)
+        .filter((f) => /^\d{14}_.+\.sql$/.test(f))
+        .sort()
+        .map((f) => `${H.MIG}/${f}`),
+      "supabase/seed.sql",
+    ];
+    for (const file of files) {
+      // Same foundation transaction boundary as CI's supabase-migrations.mjs.
+      const r = spawnSync(
+        process.env.PSQL_BIN?.trim() || "psql",
+        [
+          url.toString(),
+          "-X",
+          "-q",
+          "-v",
+          "ON_ERROR_STOP=1",
+          ...(file.endsWith("/20260214090000_foundation_1_schema.sql")
+            ? ["--single-transaction"]
+            : []),
+          "-f",
+          file,
+        ],
+        { encoding: "utf8", timeout: 30_000 },
+      );
+      expect(r.status, `${file}: ${r.error?.message ?? r.stderr}`).toBe(0);
+    }
+    await db.connect();
+  });
+  afterAll(async () => {
+    try {
+      await db.end();
+    } finally {
+      try {
+        if (created)
+          await admin.query(`DROP DATABASE ${database} WITH (FORCE)`);
+      } finally {
+        await admin.end();
+      }
+    }
+  });
 
   async function tx(fn: () => Promise<void>) {
     await db.query("begin");
