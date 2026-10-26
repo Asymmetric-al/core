@@ -11,8 +11,8 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { D, S } from "../issue-2251/harness";
 import * as H from "./harness";
+import { D, S } from "../issue-2251/harness";
 
 const sha256 = (b: string | Buffer) =>
   createHash("sha256").update(b).digest("hex");
