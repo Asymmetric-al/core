@@ -21,6 +21,7 @@ import {
   ensureJsonBody,
   toErrorResponse,
 } from "../../../shared/http-errors";
+import { createRequestSessionClient } from "../../../shared/request-session-client";
 import {
   withOperation,
   type OperationRouteContext,
@@ -209,7 +210,7 @@ export const GET = withOperation(
 );
 
 export const PUT = withOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+  async ({ auth, request, requestId }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.write",
       resourceType: "record",
@@ -217,10 +218,10 @@ export const PUT = withOperation(
 
     try {
       const body = savePreferenceSchema.parse(await ensureJsonBody(request));
+      requireProfileId(actor.profileId);
       const user = await saveCrmUserTablePreference({
-        supabaseAdmin,
+        sessionClient: await createRequestSessionClient(request),
         tenantId: actor.tenantId,
-        profileId: requireProfileId(actor.profileId),
         tableId: body.tableId,
         pinnedActionId: body.pinnedActionId,
         settingsPatch: settingsPatchFromBody(body),
@@ -289,14 +290,14 @@ export const PUT_TENANT_DEFAULT = withOperation(
         );
       }
 
+      // These pre-checks shape the HTTP error; the RPC re-derives the actor
+      // and its authority from the session and has the final say.
       const tenantDefault = await saveCrmTenantTableDefault({
-        supabaseAdmin,
+        sessionClient: await createRequestSessionClient(request),
         tenantId: actor.tenantId,
         tableId: body.tableId,
         pinnedActionId: body.pinnedActionId,
         settingsPatch: settingsPatchFromBody(body),
-        actorProfileId: profileId,
-        actorCanManageDefaults,
       });
 
       return NextResponse.json({ tenantDefault, requestId });
@@ -340,7 +341,7 @@ export const GET_NAMED_VIEWS = withOperation(
 );
 
 export const POST_NAMED_VIEW = withOperation(
-  async ({ auth, request, requestId, supabaseAdmin }) => {
+  async ({ auth, request, requestId }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.write",
       resourceType: "record",
@@ -348,10 +349,10 @@ export const POST_NAMED_VIEW = withOperation(
 
     try {
       const body = namedViewCreateSchema.parse(await ensureJsonBody(request));
+      requireProfileId(actor.profileId);
       const view = await createCrmNamedView({
-        supabaseAdmin,
+        sessionClient: await createRequestSessionClient(request),
         tenantId: actor.tenantId,
-        profileId: requireProfileId(actor.profileId),
         tableId: body.tableId,
         name: body.name,
         isDefault: body.isDefault,
@@ -374,7 +375,7 @@ export const POST_NAMED_VIEW = withOperation(
 );
 
 export const PUT_NAMED_VIEW = withOperation(
-  async ({ auth, request, requestId, routeContext, supabaseAdmin }) => {
+  async ({ auth, request, requestId, routeContext }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.write",
       resourceType: "record",
@@ -383,10 +384,10 @@ export const PUT_NAMED_VIEW = withOperation(
     try {
       const viewId = await getViewIdFromRouteContext(routeContext);
       const body = namedViewUpdateSchema.parse(await ensureJsonBody(request));
+      requireProfileId(actor.profileId);
       const view = await updateCrmNamedView({
-        supabaseAdmin,
+        sessionClient: await createRequestSessionClient(request),
         tenantId: actor.tenantId,
-        profileId: requireProfileId(actor.profileId),
         tableId: body.tableId,
         viewId,
         name: body.name,
@@ -413,7 +414,7 @@ export const PUT_NAMED_VIEW = withOperation(
 );
 
 export const DELETE_NAMED_VIEW = withOperation(
-  async ({ auth, request, requestId, routeContext, supabaseAdmin }) => {
+  async ({ auth, request, requestId, routeContext }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.table_preferences.write",
       resourceType: "record",
@@ -425,11 +426,12 @@ export const DELETE_NAMED_VIEW = withOperation(
       const nextDefaultViewId = optionalViewIdSchema.parse(
         url.searchParams.get("nextDefaultViewId"),
       );
+      requireProfileId(actor.profileId);
+      const tableId = resolveTableId(request);
       await deleteCrmNamedView({
-        supabaseAdmin,
+        sessionClient: await createRequestSessionClient(request),
         tenantId: actor.tenantId,
-        profileId: requireProfileId(actor.profileId),
-        tableId: resolveTableId(request),
+        tableId,
         viewId,
         nextDefaultViewId,
       });

@@ -308,6 +308,7 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "#2258 Builder c3f71ffe", hash: "ba8686b43db76750" },
     // #2312: Builder e518a845 (develop f8ef44f8 merged, after #2258) appends the issue-2312 real-stack path to tenant isolation
     { ref: "#2312 Builder e518a845", hash: "52e534b2e20a3ae2" },
+    { ref: "#2402 Builder 28ac3c13", hash: "999bf6013d1b18ca" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(

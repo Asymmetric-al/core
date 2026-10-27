@@ -141,3 +141,113 @@ describe("authz SECURITY DEFINER EXECUTE grants (#2270)", () => {
     }
   });
 });
+
+/**
+ * #2402: the CRM table-preference writes. Each public wrapper is EXECUTE for
+ * `authenticated` only (besides the owner); the original bodies, moved to
+ * `private`, and the private actor helper are owner-only. Every role is
+ * revoked by name, never PUBLIC alone.
+ */
+const CRM_SESSION_IDENTITY =
+  "20261025125700_crm_table_preference_session_identity.sql";
+
+/** Wrapper (session identity) and private body (original) argument lists. */
+const CRM_FUNCTIONS: Record<string, { wrapper: string; body: string }> = {
+  create_crm_table_named_view: {
+    wrapper: "UUID, TEXT, TEXT, BOOLEAN, INTEGER, TEXT, JSONB",
+    body: "UUID, UUID, TEXT, TEXT, BOOLEAN, INTEGER, TEXT, JSONB",
+  },
+  update_crm_table_named_view: {
+    wrapper:
+      "UUID, TEXT, TEXT, TEXT, BOOLEAN, BOOLEAN, BOOLEAN, INTEGER, TEXT, BOOLEAN, JSONB, BOOLEAN",
+    body: "UUID, UUID, TEXT, TEXT, TEXT, BOOLEAN, BOOLEAN, BOOLEAN, INTEGER, TEXT, BOOLEAN, JSONB, BOOLEAN",
+  },
+  delete_crm_table_named_view: {
+    wrapper: "UUID, TEXT, TEXT, TEXT",
+    body: "UUID, UUID, TEXT, TEXT, TEXT",
+  },
+  save_crm_user_table_preference: {
+    wrapper: "UUID, TEXT, TEXT, BOOLEAN, INTEGER, JSONB",
+    body: "UUID, UUID, TEXT, TEXT, BOOLEAN, INTEGER, JSONB",
+  },
+  save_crm_tenant_table_default: {
+    wrapper: "UUID, TEXT, TEXT, BOOLEAN, INTEGER, JSONB",
+    body: "UUID, TEXT, TEXT, BOOLEAN, INTEGER, JSONB, UUID, BOOLEAN",
+  },
+};
+
+const CRM = Object.entries(CRM_FUNCTIONS);
+
+const EXPECTED_CRM_GRANTS = [
+  "REVOKE ALL ON SCHEMA private FROM PUBLIC, anon, authenticated",
+  ...CRM.map(
+    ([name, { body }]) =>
+      `REVOKE ALL ON FUNCTION private.${name}(${body}) FROM PUBLIC, anon, authenticated, service_role`,
+  ),
+  "REVOKE ALL ON FUNCTION private.crm_table_preference_actor(UUID, TEXT) FROM PUBLIC, anon, authenticated, service_role",
+  ...CRM.map(
+    ([name, { wrapper }]) =>
+      `REVOKE ALL ON FUNCTION public.${name}(${wrapper}) FROM PUBLIC, anon, service_role`,
+  ),
+  ...CRM.map(
+    ([name, { wrapper }]) =>
+      `GRANT EXECUTE ON FUNCTION public.${name}(${wrapper}) TO authenticated`,
+  ),
+];
+
+describe("CRM table-preference EXECUTE grants (#2402)", () => {
+  it("never grants the CRM table-preference functions to PUBLIC or anon", () => {
+    const names = [...Object.keys(CRM_FUNCTIONS), "crm_table_preference_actor"];
+    const offending: string[] = [];
+    for (const { filename, sql } of forwardMigrations()) {
+      for (const statement of statements(sql)) {
+        if (!/^GRANT\b/i.test(statement)) {
+          continue;
+        }
+        const target = /\bON\s+FUNCTION\s+(?:\w+\.)?(\w+)\s*\(/i.exec(
+          statement,
+        )?.[1];
+        const grantees = /\bTO\s+(.*)$/i.exec(statement)?.[1] ?? "";
+        if (
+          target &&
+          names.includes(target) &&
+          /\b(PUBLIC|anon)\b/i.test(grantees)
+        ) {
+          offending.push(`${filename}: ${statement}`);
+        }
+      }
+    }
+
+    expect(offending).toEqual([]);
+  });
+
+  it("revokes by name and grants exactly the approved list", () => {
+    const migration = forwardMigrations().find(
+      ({ filename }) => filename === CRM_SESSION_IDENTITY,
+    );
+
+    expect(migration, CRM_SESSION_IDENTITY).toBeDefined();
+    expect(
+      statements(migration!.sql).filter((statement) =>
+        /^(?:GRANT|REVOKE)\b/i.test(statement),
+      ),
+    ).toEqual(EXPECTED_CRM_GRANTS);
+  });
+
+  it("keeps every wrapper and the actor helper owned by postgres", () => {
+    const migration = forwardMigrations().find(
+      ({ filename }) => filename === CRM_SESSION_IDENTITY,
+    );
+    const owners = statements(migration!.sql).filter((statement) =>
+      /^ALTER FUNCTION\b.*\bOWNER TO\b/i.test(statement),
+    );
+
+    expect(owners).toEqual([
+      "ALTER FUNCTION private.crm_table_preference_actor(UUID, TEXT) OWNER TO postgres",
+      ...CRM.map(
+        ([name, { wrapper }]) =>
+          `ALTER FUNCTION public.${name}(${wrapper}) OWNER TO postgres`,
+      ),
+    ]);
+  });
+});
