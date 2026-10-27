@@ -138,10 +138,10 @@ describe("#2402 static contract", () => {
     ).migrate!.steps![16]!;
     expect(step.name).toBe("Verify tenant isolation (real stack)");
     expect(String(step.run).split(/\s+/).at(-1)).toBe(REAL);
-    expect(step).toEqual({
-      name: step.name,
-      ...PINNED_STEP_BODIES.migrate![`name:${step.name}`],
-    });
+    const { index, ...rest } =
+      PINNED_STEP_BODIES.migrate![`name:${step.name}`]!;
+    expect(index).toBe(16);
+    expect(step).toEqual({ name: step.name, ...rest });
   });
   // Pinned bytes from a1375d46; one file per row for review.
   it.each(
@@ -169,6 +169,7 @@ describe("#2402 static contract", () => {
       ..."service named-views route".split(" ").map((n) => `${ROOT}/${n}.ts`),
       ...`packages/api/src/shared/request-session-client.ts
  docs/security/function-execute-grants.md
+ docs/security/service-role-client-allowlist.json
  docs/security/tenant-guard.md
  .github/workflows/ci-integration.yml
  tests/unit/helpers/workflow-yaml.ts

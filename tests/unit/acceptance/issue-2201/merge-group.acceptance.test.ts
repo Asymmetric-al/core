@@ -195,6 +195,8 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "#2256 Builder 157724da", hash: "a41d2f366062b967" },
     // #2260: Builder e1657b68 (develop e25d7727 merged, after #2256) appends the issue-2260 real-stack path to tenant isolation
     { ref: "#2260 Builder e1657b68", hash: "534cbcf817506336" },
+    // #2402: Builder d99a1fc4 appends the CRM table-preferences real-stack path
+    { ref: "#2402 Builder d99a1fc4", hash: "6f8e094740bf9f1d" },
   ] as const;
   it("nothing but on: and test-e2e's if: changes (fingerprint)", () => {
     const prints = [CI, CII].map((file) => {
