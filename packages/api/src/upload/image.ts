@@ -10,8 +10,20 @@ import { ApiHttpError, toErrorResponse } from "../shared/http-errors";
 
 /** Cap on the cropped upload the control sends, not the source photo (#2308 OQ1). */
 export const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
+/**
+ * Multipart framing on top of the file: boundary lines, part headers (with the
+ * client's filename) and the small `path`/`bucket` fields. A real crop form
+ * needs well under 1 KiB; 64 KiB leaves room for long encoded filenames while
+ * keeping the buffered body bounded. The file part itself is still capped at
+ * exactly MAX_PROFILE_IMAGE_BYTES by validateImageFile.
+ */
+export const MULTIPART_OVERHEAD_ALLOWANCE_BYTES = 64 * 1024;
+/** Most request-body bytes read before the multipart form is parsed. */
+export const MAX_UPLOAD_BODY_BYTES =
+  MAX_PROFILE_IMAGE_BYTES + MULTIPART_OVERHEAD_ALLOWANCE_BYTES;
 const PROFILES_BUCKET = "profiles";
 const UPLOAD_FAILED = "Image upload failed.";
+const TOO_LARGE = "Image file must be 5 MB or smaller.";
 
 const EXTENSION_BY_TYPE = {
   "image/jpeg": "jpg",
@@ -104,7 +116,7 @@ async function validateImageFile(
     throw new ApiHttpError(415, "Unsupported image type.");
   }
   if (value.size > MAX_PROFILE_IMAGE_BYTES) {
-    throw new ApiHttpError(413, "Image file must be 5 MB or smaller.");
+    throw new ApiHttpError(413, TOO_LARGE);
   }
   const head = new Uint8Array(await value.slice(0, 12).arrayBuffer());
   if (!matchesImageSignature(head, value.type)) {
@@ -113,9 +125,62 @@ async function validateImageFile(
   return value as File & { type: ProfileImageType };
 }
 
-async function readForm(request: Request): Promise<FormData> {
+/** Rejects a declared oversize body before any of it is read. */
+function assertDeclaredLengthWithinCap(request: Request) {
+  const declared = request.headers.get("content-length")?.trim();
+  if (
+    declared &&
+    /^\d+$/.test(declared) &&
+    Number(declared) > MAX_UPLOAD_BODY_BYTES
+  ) {
+    throw new ApiHttpError(413, TOO_LARGE);
+  }
+}
+
+/**
+ * Reads at most MAX_UPLOAD_BODY_BYTES, whatever Content-Length says, and
+ * cancels the stream once a chunk pushes the total past the cap.
+ */
+async function readCappedBody(
+  request: Request,
+): Promise<Uint8Array<ArrayBuffer>> {
+  if (!request.body) return new Uint8Array(0);
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
   try {
-    return await request.formData();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_UPLOAD_BODY_BYTES) {
+        await reader.cancel().catch(() => undefined);
+        throw new ApiHttpError(413, TOO_LARGE);
+      }
+      chunks.push(value);
+    }
+  } catch (error) {
+    if (error instanceof ApiHttpError) throw error;
+    throw new ApiHttpError(400, "Invalid form data.");
+  } finally {
+    reader.releaseLock();
+  }
+  const joined = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    joined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return joined;
+}
+
+async function readForm(request: Request): Promise<FormData> {
+  assertDeclaredLengthWithinCap(request);
+  const body = await readCappedBody(request);
+  try {
+    return await new Response(body, {
+      headers: { "content-type": request.headers.get("content-type") ?? "" },
+    }).formData();
   } catch {
     throw new ApiHttpError(400, "Invalid form data.");
   }
