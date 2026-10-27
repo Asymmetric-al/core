@@ -159,9 +159,13 @@ describe("#2402 static contract", () => {
     expect(createHash("sha256").update(bytes).digest("hex")).toBe(hash);
   });
   it("§6/9: diff contains only declared edits", () => {
-    const r = spawnSync("git", ["diff", "--name-only", H.BASE], {
-      encoding: "utf8",
-    });
+    const r = spawnSync(
+      "git",
+      ["diff", "--name-only", "f8ef44f89e0f9a4572e93b07247e114fbc15ade5"],
+      {
+        encoding: "utf8",
+      },
+    );
     expect(r.status).toBe(0);
     const allowed = new Set([
       H.FORWARD,
