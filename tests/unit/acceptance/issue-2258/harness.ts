@@ -38,8 +38,9 @@ export const UNEDITED: Record<string, string> = {
     "6553ce80839e496930b425679ad659e3e56e68c6",
   "tests/unit/packages/api/auth/get-auth-context-request-propagation.test.ts":
     "83cc87dcfb0af9840e8bde281a62fc04a357262e",
+  // #2402 commit 531cf5847 adds CRM table-preference EXECUTE grant assertions.
   "tests/unit/security/authz-definer-execute-grants.test.ts":
-    "845da5b2d5dced135d98c9286bb989d1fc35f468",
+    "e1d784fce22e611bfa11f4dabe293d16f1771815",
   "tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts":
     "3cb0512009db80f11c5043c63727e601d909ebe0",
   "tests/unit/acceptance/issue-2270/harness.ts":

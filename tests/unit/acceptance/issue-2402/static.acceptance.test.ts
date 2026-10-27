@@ -170,6 +170,8 @@ describe("#2402 static contract", () => {
     const allowed = new Set([
       H.FORWARD,
       H.ROLLBACK,
+      // Recorded test-only departure for the #2258 12/2 re-freeze (#2402 531cf5847).
+      "tests/unit/acceptance/issue-2258/harness.ts",
       ..."service named-views route".split(" ").map((n) => `${ROOT}/${n}.ts`),
       ...`packages/api/src/shared/request-session-client.ts
  docs/security/function-execute-grants.md
