@@ -71,11 +71,12 @@ describe("#2308 static contracts (A)", () => {
     expect(result.error).toBeUndefined();
     expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
   });
-  it("C12: frozen service-role allowlist is byte-unchanged from f8ef44f8", () => {
+  // Re-frozen after develop d99a1fc4 shrank the table-preferences entry.
+  it("C12: frozen service-role allowlist is byte-unchanged from develop d99a1fc4", () => {
     expect(
       createHash("sha256")
         .update(read("docs/security/service-role-client-allowlist.json"))
         .digest("hex"),
-    ).toBe("dd80772d20df9b1c1bbf9d422538e9dfbe39231a7fc23474747fc4c2059a412b");
+    ).toBe("9c9875a789cb33d8b1b80d35428773c3cab8599b0ef4805e4e65d0241e060233");
   });
 });
