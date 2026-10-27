@@ -179,6 +179,7 @@ const CRM_FUNCTIONS: Record<string, { wrapper: string; body: string }> = {
 const CRM = Object.entries(CRM_FUNCTIONS);
 
 const EXPECTED_CRM_GRANTS = [
+  "REVOKE ALL ON SCHEMA private FROM PUBLIC, anon, authenticated",
   ...CRM.map(
     ([name, { body }]) =>
       `REVOKE ALL ON FUNCTION private.${name}(${body}) FROM PUBLIC, anon, authenticated, service_role`,
