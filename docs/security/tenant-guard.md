@@ -118,7 +118,7 @@ Never give a tenant table, or a SECURITY DEFINER function in `public`, `authz`, 
 - **B1** `public.handle_new_user()` (trigger `on_auth_user_created`) can no longer insert into `public.profiles`: every sign-up fails, and so do `supabase/seed.sql` and the seed-dependent CI steps.
 - **B2** `document_cutover.table_census` and its siblings run with `row_security = off` and raise "query would be affected by row-level security policy" on the PDF and receipt tables.
 - **B3** the unguarded workflow claim path could not insert into `public.workflow_work_claims`. #2250 already routes it through `tenant_guard`.
-- **B4** every other postgres-owned definer function or trigger that touches a forced table, such as the Eve notification RPCs, `save_crm_tenant_table_default`, `enforce_contribution_notification_tenant_refs` and `private.seed_support_hub_defaults`.
+- **B4** every other postgres-owned definer function or trigger that touches a forced table, such as the Eve notification RPCs, `save_crm_tenant_table_default` (its body is `private.save_crm_tenant_table_default` since #2402), `enforce_contribution_notification_tenant_refs` and `private.seed_support_hub_defaults`.
 
 The migration checks this first: if any tenant table or app definer function has an owner with neither `rolsuper` nor `rolbypassrls`, it raises, names each one and applies nothing. Work that should run under RLS goes through a `tenant_guard`-owned SECURITY DEFINER function in schema `tenant_guard` (see "Adding a guarded function" above). Those are the only sanctioned RLS-bound definer owners, and they own no table.
 

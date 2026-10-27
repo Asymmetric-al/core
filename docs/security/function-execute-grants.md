@@ -131,21 +131,91 @@ SELECT pg_notify('pgrst', 'reload schema');
 COMMIT;
 ```
 
+## CRM table-preference functions (#2402)
+
+`supabase/migrations/20261025125700_crm_table_preference_session_identity.sql`
+replaces the five CRM table-view and table-preference writes. They used to be
+SECURITY DEFINER functions for `service_role` that trusted the tenant, profile
+and "can manage defaults" flag passed as arguments. Their bodies move
+unchanged to `private`, and thin `public` wrappers take their place. The
+wrappers have no profile or actor arguments: they take the acting user from
+`auth.uid()` and the acting profile from `public.profiles` where
+`user_id = auth.uid()`.
+
+| Function                                                                                                                        | Security | EXECUTE grantees (exact)            |
+| ------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------- |
+| `public.create_crm_table_named_view(uuid, text, text, boolean, integer, text, jsonb)`                                           | DEFINER  | `postgres` (owner), `authenticated` |
+| `public.update_crm_table_named_view(uuid, text, text, text, boolean, boolean, boolean, integer, text, boolean, jsonb, boolean)` | DEFINER  | `postgres` (owner), `authenticated` |
+| `public.delete_crm_table_named_view(uuid, text, text, text)`                                                                    | DEFINER  | `postgres` (owner), `authenticated` |
+| `public.save_crm_user_table_preference(uuid, text, text, boolean, integer, jsonb)`                                              | DEFINER  | `postgres` (owner), `authenticated` |
+| `public.save_crm_tenant_table_default(uuid, text, text, boolean, integer, jsonb)`                                               | DEFINER  | `postgres` (owner), `authenticated` |
+
+- Each wrapper is owned by `postgres` and uses `SET search_path = ''`. The
+  migration revokes `PUBLIC`, `anon` and `service_role` by name, then grants
+  `authenticated`.
+- The original bodies (`private.<name>` with the old argument lists) and the
+  helper `private.crm_table_preference_actor(uuid, text)` are EXECUTE for
+  `postgres` only. `PUBLIC`, `anon`, `authenticated` and `service_role` are
+  revoked by name, because `ALTER FUNCTION … SET SCHEMA` keeps the old ACL.
+- Tenant rule. A super admin (`profiles.role = 'super_admin'`) may act in any
+  existing tenant it passes. Anyone else must pass its profile's `tenant_id`
+  and hold a CRM role there: `profiles.role` staff, admin or super_admin, or an
+  active `staff` membership in `authz.memberships`. No `auth.uid()`, no
+  profile, a different tenant or no CRM role fails with `42501` before the
+  body runs, so nothing is written.
+- Tenant defaults. Super admins may save them and change
+  `delegatedManagerProfileIds`. A profile listed there may save but not change
+  the list. Anyone else gets `42501`. The audit row's `actor_profile_id` and
+  the record's `updated_by` are the caller's profile.
+- `authenticated` can now call these through the Data API without the route's
+  zod checks, so the wrappers also reject a table id other than
+  `crm.giftHistory` and a view name outside 1–80 characters after trimming
+  (`22023`).
+- Callers: the admin CRM table-preference routes
+  (`packages/api/src/admin/crm/table-preferences/route.ts`) make these calls
+  with the request's session client
+  (`packages/api/src/shared/request-session-client.ts`: bearer header, else
+  cookies), never `supabaseAdmin`. Reads still use the service-role client.
+  E2E auth-bypass requests have no Supabase session, so these writes fail with
+  `42501` there; no e2e spec uses these routes.
+- `tests/unit/security/authz-definer-execute-grants.test.ts` pins the
+  migration's revoke and grant statements and fails the build if any
+  migration grants these functions to `PUBLIC` or `anon`. The #2402 real-stack
+  acceptance test checks the grantee sets, including after simulating the
+  hosted defaults.
+
+### Deploy
+
+Applying migrations to a hosted project is a release step owned by the project
+owner, not part of the PR.
+
+- Production has none of `20260611160000`, `20260611170000` or this migration
+  yet. When it is next released, all three ship **in the same release** as
+  the app code that calls the wrappers with the session client.
+- Development project: apply the migration and deploy the matching app build
+  together, in one window. If the migration lands first, the old app's
+  service-role writes get `42501`. If the app lands first, its calls don't
+  match the old signatures. Either way table-preference writes return 500
+  until both are in place. Reads are not affected.
+
+### Rollback
+
+`supabase/migrations/rollback_20261025125700_crm_table_preference_session_identity.sql`
+drops the wrappers and the actor helper, moves the bodies back to `public`
+under their original signatures and grants EXECUTE to `service_role` only
+(nothing to `anon` or `authenticated`). It touches no rows. Always revert the
+app commit together with it: the restored bodies trust their arguments and
+need the service-role caller.
+
 ## Same pattern, not fixed here
 
-Under hosted default privileges, 25 of the `public` functions gain EXECUTE for
+Under hosted default privileges, 20 of the `public` functions gain EXECUTE for
 `anon` and/or `service_role` because their migrations revoke only `PUBLIC` (or
-`PUBLIC`, `anon` and `authenticated`). They are outside #2270.
+`PUBLIC`, `anon` and `authenticated`). They are outside #2270. (#2402 fixed
+the five SECURITY DEFINER CRM table-preference writes; see above.)
 
 `anon` widened, beyond `current_user_memberships`:
 
-- SECURITY DEFINER, and they trust their `p_tenant_id` / `p_profile_id`
-  arguments (written for `service_role` only). These need their own security
-  fix:
-  - `create_crm_table_named_view`, `update_crm_table_named_view`,
-    `delete_crm_table_named_view` (`20260611170000_crm_table_named_views.sql`)
-  - `save_crm_user_table_preference`, `save_crm_tenant_table_default`
-    (`20260611160000_crm_table_preferences.sql`)
 - SECURITY INVOKER: `apply_crm_view_settings_patch`
   (`20260611160000_crm_table_preferences.sql`), `normalize_currency_code`,
   `normalize_money_currency` (`20261003051630_currency_foundation.sql`).
