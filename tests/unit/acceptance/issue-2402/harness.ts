@@ -114,6 +114,7 @@ export class Stack {
         const r = spawnSync(
           process.env.PSQL_BIN?.trim() || "psql",
           [
+            this.url.toString(),
             "-X",
             "-q",
             "-v",
@@ -127,7 +128,6 @@ export class Stack {
           {
             encoding: "utf8",
             timeout: 30_000,
-            env: { ...process.env, PGDATABASE: this.url.toString() },
           },
         );
         // Do not echo stderr: connection failures may contain credentials.
