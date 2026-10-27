@@ -38,6 +38,7 @@ const STEP_RUN = [
   "tests/unit/acceptance/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts",
   "tests/unit/acceptance/issue-2258/current-user-assignments.realstack.acceptance.test.ts",
   "tests/unit/acceptance/issue-2312/public-reads.realstack.acceptance.test.ts",
+  "tests/unit/acceptance/issue-2402/crm-table-preferences.realstack.acceptance.test.ts",
 ].join(" ");
 const STEP = "Verify tenant isolation (real stack)";
 const REALSTACK =

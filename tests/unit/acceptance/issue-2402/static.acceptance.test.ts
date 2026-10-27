@@ -161,7 +161,7 @@ describe("#2402 static contract", () => {
   it("§6/9: diff contains only declared edits", () => {
     const r = spawnSync(
       "git",
-      ["diff", "--name-only", "f8ef44f89e0f9a4572e93b07247e114fbc15ade5"],
+      ["diff", "--name-only", "9b52112df3301c72089fb7c554a3d23a9b593ec1"],
       {
         encoding: "utf8",
       },
