@@ -8,6 +8,7 @@ import {
 import { ApiHttpError } from "../../../shared/http-errors";
 import { isRecord } from "../../../shared/json-coerce";
 
+import type { RequestSessionClient } from "../../../shared/request-session-client";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type {
   CrmNamedView,
@@ -88,6 +89,16 @@ interface ViewScope {
   tableId: string;
 }
 
+/**
+ * Writes go through the caller's session: the RPCs take the acting profile
+ * from auth.uid() and check the tenant against it (#2402).
+ */
+interface ViewWriteScope {
+  sessionClient: RequestSessionClient;
+  tenantId: string;
+  tableId: string;
+}
+
 export async function listCrmNamedViews(
   input: ViewScope,
 ): Promise<CrmNamedView[]> {
@@ -107,7 +118,7 @@ export async function listCrmNamedViews(
 }
 
 export async function createCrmNamedView(
-  input: ViewScope & {
+  input: ViewWriteScope & {
     name: string;
     isDefault?: boolean;
     pinnedActionId?: string | null;
@@ -124,11 +135,10 @@ export async function createCrmNamedView(
       ? null
       : normalizeCrmPinnedActionId(input.pinnedActionId);
   const settings = applyCrmViewSettingsPatch(null, input.settings ?? {});
-  const { data, error } = await input.supabaseAdmin.rpc(
+  const { data, error } = await input.sessionClient.rpc(
     "create_crm_table_named_view",
     {
       p_tenant_id: input.tenantId,
-      p_profile_id: input.profileId,
       p_table_id: input.tableId,
       p_name: name,
       p_is_default: input.isDefault ?? false,
@@ -154,7 +164,7 @@ export async function createCrmNamedView(
 }
 
 export async function updateCrmNamedView(
-  input: ViewScope & {
+  input: ViewWriteScope & {
     viewId: string;
     name?: string;
     isDefault?: boolean;
@@ -180,11 +190,10 @@ export async function updateCrmNamedView(
   const settingsIsSet = input.settings !== undefined;
   const settings = settingsIsSet ? (input.settings ?? {}) : null;
 
-  const { data, error } = await input.supabaseAdmin.rpc(
+  const { data, error } = await input.sessionClient.rpc(
     "update_crm_table_named_view",
     {
       p_tenant_id: input.tenantId,
-      p_profile_id: input.profileId,
       p_table_id: input.tableId,
       p_view_id: input.viewId,
       p_name: name,
@@ -221,16 +230,15 @@ export async function updateCrmNamedView(
  * default (no named default remains).
  */
 export async function deleteCrmNamedView(
-  input: ViewScope & {
+  input: ViewWriteScope & {
     viewId: string;
     nextDefaultViewId?: string | null;
   },
 ): Promise<void> {
-  const { data, error } = await input.supabaseAdmin.rpc(
+  const { data, error } = await input.sessionClient.rpc(
     "delete_crm_table_named_view",
     {
       p_tenant_id: input.tenantId,
-      p_profile_id: input.profileId,
       p_table_id: input.tableId,
       p_view_id: input.viewId,
       p_next_default_view_id: input.nextDefaultViewId ?? null,

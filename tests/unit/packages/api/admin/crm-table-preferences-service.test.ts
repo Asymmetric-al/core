@@ -9,10 +9,13 @@ import {
   saveCrmUserTablePreference,
 } from "../../../../../packages/api/src/admin/crm/table-preferences/service";
 
+import type { RequestSessionClient } from "../../../../../packages/api/src/shared/request-session-client";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 interface StubState {
   dropActiveViewBeforeUserPreferenceRpc?: boolean;
+  /** Who the session client is signed in as; the RPCs derive the actor from it (#2402). */
+  session?: { profileId: string; isSuperAdmin?: boolean };
   namedViews?: Array<Record<string, unknown>>;
   rowsByTable?: Record<string, Record<string, unknown> | null>;
 }
@@ -47,6 +50,11 @@ function createSupabaseStub(state: StubState = {}) {
     params: Record<string, unknown>;
   }> = [];
   const auditEvents: Array<Record<string, unknown>> = [];
+  const session = {
+    profileId: "profile-1",
+    isSuperAdmin: false,
+    ...state.session,
+  };
 
   const stub = {
     async rpc(name: string, params: Record<string, unknown>) {
@@ -77,7 +85,7 @@ function createSupabaseStub(state: StubState = {}) {
             (row) =>
               row.id === activeViewId &&
               row.tenant_id === params.p_tenant_id &&
-              row.profile_id === params.p_profile_id &&
+              row.profile_id === session.profileId &&
               row.table_id === params.p_table_id,
           );
 
@@ -113,12 +121,8 @@ function createSupabaseStub(state: StubState = {}) {
         const existing = rowsByTable.crm_table_tenant_defaults ?? null;
         const settingsPatch =
           (params.p_settings_patch as Record<string, unknown>) ?? {};
-        const actorCanManageDefaults =
-          params.p_actor_can_manage_defaults === true;
-        const actorProfileId =
-          typeof params.p_actor_profile_id === "string"
-            ? params.p_actor_profile_id
-            : null;
+        const actorCanManageDefaults = session.isSuperAdmin;
+        const actorProfileId = session.profileId;
 
         if (!actorCanManageDefaults) {
           if (
@@ -138,7 +142,7 @@ function createSupabaseStub(state: StubState = {}) {
           }
 
           const delegatedIds = delegatedManagerProfileIds(existing);
-          if (!actorProfileId || !delegatedIds.includes(actorProfileId)) {
+          if (!delegatedIds.includes(actorProfileId)) {
             return {
               data: null,
               error: {
@@ -165,7 +169,7 @@ function createSupabaseStub(state: StubState = {}) {
         rowsByTable.crm_table_tenant_defaults = row;
         auditEvents.push({
           tenant_id: params.p_tenant_id,
-          actor_profile_id: params.p_actor_profile_id,
+          actor_profile_id: actorProfileId,
           table_id: params.p_table_id,
           before_snapshot: {
             pinnedActionId: existing?.pinned_action_id ?? null,
@@ -235,6 +239,7 @@ function createSupabaseStub(state: StubState = {}) {
 
   return {
     supabaseAdmin: stub as unknown as AdminSupabaseClient,
+    sessionClient: stub as unknown as RequestSessionClient,
     auditEvents,
     namedViews,
     upserts,
@@ -279,22 +284,28 @@ describe("admin/crm/table-preferences/service", () => {
   });
 
   it("migrates renamed operation ids forward before persisting a pin", async () => {
-    const { rpcCalls, supabaseAdmin } = createSupabaseStub();
+    const { rpcCalls, sessionClient } = createSupabaseStub();
 
     const saved = await saveCrmUserRowActionPin({
-      supabaseAdmin,
+      sessionClient,
       tenantId: "tenant-1",
-      profileId: "profile-1",
       tableId: "crm.giftHistory",
       pinnedActionId: "send_receipt",
     });
 
     expect(saved.actionId).toBe("resend_receipt");
+    expect(Object.keys(rpcCalls[0]!.params)).toEqual([
+      "p_tenant_id",
+      "p_table_id",
+      "p_pinned_action_id",
+      "p_pinned_action_id_is_set",
+      "p_schema_version",
+      "p_settings_patch",
+    ]);
     expect(rpcCalls[0]).toMatchObject({
       name: "save_crm_user_table_preference",
       params: {
         p_tenant_id: "tenant-1",
-        p_profile_id: "profile-1",
         p_table_id: "crm.giftHistory",
         p_pinned_action_id: "resend_receipt",
         p_pinned_action_id_is_set: true,
@@ -304,13 +315,12 @@ describe("admin/crm/table-preferences/service", () => {
   });
 
   it("rejects unknown operation ids instead of storing garbage", async () => {
-    const { supabaseAdmin } = createSupabaseStub();
+    const { sessionClient } = createSupabaseStub();
 
     await expect(
       saveCrmUserRowActionPin({
-        supabaseAdmin,
+        sessionClient,
         tenantId: "tenant-1",
-        profileId: "profile-1",
         tableId: "crm.giftHistory",
         pinnedActionId: "made_up_operation",
       }),
@@ -318,7 +328,7 @@ describe("admin/crm/table-preferences/service", () => {
   });
 
   it("persists view-settings scopes and clears them on scoped reset", async () => {
-    const { rowsByTable, rpcCalls, supabaseAdmin } = createSupabaseStub({
+    const { rowsByTable, rpcCalls, sessionClient } = createSupabaseStub({
       rowsByTable: {
         crm_table_user_preferences: {
           pinned_action_id: "amount_correction",
@@ -333,9 +343,8 @@ describe("admin/crm/table-preferences/service", () => {
 
     // Update one scope; the other scope and the pin stay untouched.
     await saveCrmUserTablePreference({
-      supabaseAdmin,
+      sessionClient,
       tenantId: "tenant-1",
-      profileId: "profile-1",
       tableId: "crm.giftHistory",
       settingsPatch: { columns: { designation: true, statusLine: false } },
     });
@@ -356,9 +365,8 @@ describe("admin/crm/table-preferences/service", () => {
 
     // Scoped reset (null) removes only the selected scope.
     await saveCrmUserTablePreference({
-      supabaseAdmin,
+      sessionClient,
       tenantId: "tenant-1",
-      profileId: "profile-1",
       tableId: "crm.giftHistory",
       settingsPatch: { filtersSort: null },
     });
@@ -369,7 +377,7 @@ describe("admin/crm/table-preferences/service", () => {
 
   it("lets the save RPC validate active named views atomically", async () => {
     const activeViewId = "9f4d1a80-a772-4df3-b3d0-9f8a89301bb8";
-    const { rowsByTable, rpcCalls, supabaseAdmin } = createSupabaseStub({
+    const { rowsByTable, rpcCalls, sessionClient } = createSupabaseStub({
       namedViews: [
         {
           id: activeViewId,
@@ -381,9 +389,8 @@ describe("admin/crm/table-preferences/service", () => {
     });
 
     await saveCrmUserTablePreference({
-      supabaseAdmin,
+      sessionClient,
       tenantId: "tenant-1",
-      profileId: "profile-1",
       tableId: "crm.giftHistory",
       settingsPatch: { activeViewId },
     });
@@ -400,13 +407,12 @@ describe("admin/crm/table-preferences/service", () => {
   });
 
   it("rejects orphan active named views returned by the save RPC", async () => {
-    const { rpcCalls, supabaseAdmin } = createSupabaseStub();
+    const { rpcCalls, sessionClient } = createSupabaseStub();
 
     await expect(
       saveCrmUserTablePreference({
-        supabaseAdmin,
+        sessionClient,
         tenantId: "tenant-1",
-        profileId: "profile-1",
         tableId: "crm.giftHistory",
         settingsPatch: {
           activeViewId: "bcb23c24-76a1-49be-96fa-a75db164e3d5",
@@ -421,7 +427,7 @@ describe("admin/crm/table-preferences/service", () => {
 
   it("rejects active named views deleted before the save RPC validates them", async () => {
     const activeViewId = "9f4d1a80-a772-4df3-b3d0-9f8a89301bb8";
-    const { rpcCalls, supabaseAdmin } = createSupabaseStub({
+    const { rpcCalls, sessionClient } = createSupabaseStub({
       dropActiveViewBeforeUserPreferenceRpc: true,
       namedViews: [
         {
@@ -435,9 +441,8 @@ describe("admin/crm/table-preferences/service", () => {
 
     await expect(
       saveCrmUserTablePreference({
-        supabaseAdmin,
+        sessionClient,
         tenantId: "tenant-1",
-        profileId: "profile-1",
         tableId: "crm.giftHistory",
         settingsPatch: { activeViewId },
       }),
@@ -449,13 +454,12 @@ describe("admin/crm/table-preferences/service", () => {
   });
 
   it("rejects malformed active named view ids returned by the save RPC", async () => {
-    const { rpcCalls, supabaseAdmin } = createSupabaseStub();
+    const { rpcCalls, sessionClient } = createSupabaseStub();
 
     await expect(
       saveCrmUserTablePreference({
-        supabaseAdmin,
+        sessionClient,
         tenantId: "tenant-1",
-        profileId: "profile-1",
         tableId: "crm.giftHistory",
         settingsPatch: { activeViewId: "not-a-uuid" },
       }),
@@ -467,22 +471,29 @@ describe("admin/crm/table-preferences/service", () => {
   });
 
   it("stores delegated default managers on the tenant default record", async () => {
-    const { rowsByTable, rpcCalls, supabaseAdmin } = createSupabaseStub();
+    const { rowsByTable, rpcCalls, sessionClient } = createSupabaseStub({
+      session: { profileId: "super-admin-1", isSuperAdmin: true },
+    });
 
     await saveCrmTenantTableDefault({
-      supabaseAdmin,
+      sessionClient,
       tenantId: "tenant-1",
       tableId: "crm.giftHistory",
-      actorProfileId: "super-admin-1",
-      actorCanManageDefaults: true,
       settingsPatch: { delegatedManagerProfileIds: ["lead-1", "lead-2"] },
     });
 
+    // The actor and its authority come from the session, not arguments.
+    expect(Object.keys(rpcCalls[0]!.params)).toEqual([
+      "p_tenant_id",
+      "p_table_id",
+      "p_pinned_action_id",
+      "p_pinned_action_id_is_set",
+      "p_schema_version",
+      "p_settings_patch",
+    ]);
     expect(rpcCalls[0]).toMatchObject({
       name: "save_crm_tenant_table_default",
       params: {
-        p_actor_profile_id: "super-admin-1",
-        p_actor_can_manage_defaults: true,
         p_settings_patch: {
           delegatedManagerProfileIds: ["lead-1", "lead-2"],
         },
@@ -494,7 +505,8 @@ describe("admin/crm/table-preferences/service", () => {
   });
 
   it("delegates tenant default changes and audit to one atomic RPC", async () => {
-    const { auditEvents, rpcCalls, supabaseAdmin } = createSupabaseStub({
+    const { auditEvents, rpcCalls, sessionClient } = createSupabaseStub({
+      session: { profileId: "admin-1" },
       rowsByTable: {
         crm_table_tenant_defaults: {
           pinned_action_id: "resend_receipt",
@@ -507,12 +519,10 @@ describe("admin/crm/table-preferences/service", () => {
     });
 
     await saveCrmTenantRowActionDefault({
-      supabaseAdmin,
+      sessionClient,
       tenantId: "tenant-1",
       tableId: "crm.giftHistory",
       pinnedActionId: "fund_correction",
-      actorCanManageDefaults: false,
-      actorProfileId: "admin-1",
     });
 
     expect(rpcCalls[0]).toMatchObject({
@@ -520,8 +530,6 @@ describe("admin/crm/table-preferences/service", () => {
       params: {
         p_pinned_action_id: "fund_correction",
         p_pinned_action_id_is_set: true,
-        p_actor_profile_id: "admin-1",
-        p_actor_can_manage_defaults: false,
       },
     });
     expect(auditEvents).toHaveLength(1);
@@ -535,7 +543,8 @@ describe("admin/crm/table-preferences/service", () => {
   });
 
   it("rejects stale delegated tenant default writes inside the RPC", async () => {
-    const { auditEvents, supabaseAdmin } = createSupabaseStub({
+    const { auditEvents, sessionClient } = createSupabaseStub({
+      session: { profileId: "admin-1" },
       rowsByTable: {
         crm_table_tenant_defaults: {
           pinned_action_id: "resend_receipt",
@@ -549,12 +558,10 @@ describe("admin/crm/table-preferences/service", () => {
 
     await expect(
       saveCrmTenantRowActionDefault({
-        supabaseAdmin,
+        sessionClient,
         tenantId: "tenant-1",
         tableId: "crm.giftHistory",
         pinnedActionId: "fund_correction",
-        actorCanManageDefaults: false,
-        actorProfileId: "admin-1",
       }),
     ).rejects.toMatchObject({
       status: 403,
@@ -564,7 +571,8 @@ describe("admin/crm/table-preferences/service", () => {
   });
 
   it("keeps delegate-list edits restricted to global tenant-default managers", async () => {
-    const { auditEvents, supabaseAdmin } = createSupabaseStub({
+    const { auditEvents, sessionClient } = createSupabaseStub({
+      session: { profileId: "admin-1" },
       rowsByTable: {
         crm_table_tenant_defaults: {
           pinned_action_id: "resend_receipt",
@@ -578,11 +586,9 @@ describe("admin/crm/table-preferences/service", () => {
 
     await expect(
       saveCrmTenantTableDefault({
-        supabaseAdmin,
+        sessionClient,
         tenantId: "tenant-1",
         tableId: "crm.giftHistory",
-        actorCanManageDefaults: false,
-        actorProfileId: "admin-1",
         settingsPatch: { delegatedManagerProfileIds: ["admin-2"] },
       }),
     ).rejects.toMatchObject({
