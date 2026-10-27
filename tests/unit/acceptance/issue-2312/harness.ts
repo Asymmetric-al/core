@@ -12,7 +12,7 @@ export const MIG = "supabase/migrations";
  * renumbers it at handback, change only this line.
  */
 export const MIGRATION_NAME =
-  "20261025120500_close_public_reads_tenant_scope.sql";
+  "20261025120800_close_public_reads_tenant_scope.sql";
 export const MIGRATION = `${MIG}/${MIGRATION_NAME}`;
 /** Newest forward migration on develop 88eefbd9 (addendum 1 header). */
 export const DEVELOP_LATEST = "20261025120000";
