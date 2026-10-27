@@ -1,0 +1,33 @@
+// Must compile: the exhaustive switch and the mapper's exact projection type.
+import type { HumanProjectionContext } from "__API__/projection/types";
+import { toHumanProjectionAssignment } from "__API__/principal/projection";
+import type {
+  ActiveAssignment,
+  ExternalPrincipal,
+  Principal,
+} from "__API__/principal/types";
+
+declare const a: ActiveAssignment;
+declare const external: ExternalPrincipal;
+
+export const mapped = toHumanProjectionAssignment(
+  a,
+) satisfies HumanProjectionContext["assignment"];
+export const asPrincipal: Principal = external;
+
+export function label(p: Principal): string {
+  switch (p.kind) {
+    case "human":
+      return p.activeAssignment.tenantId;
+    case "external":
+      return p.publicContext.hostRef;
+    case "service_account":
+      return p.ownerAssignmentId;
+    case "platform_operator":
+      return p.operatorId;
+    default: {
+      const unreachable: never = p;
+      return unreachable;
+    }
+  }
+}

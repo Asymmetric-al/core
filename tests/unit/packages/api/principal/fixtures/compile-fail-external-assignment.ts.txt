@@ -1,0 +1,7 @@
+// Must NOT compile (criterion 1a): an ExternalPrincipal cannot carry an assignment.
+import type { ActiveAssignment, ExternalPrincipal } from "__API__/principal/types";
+
+declare const external: ExternalPrincipal;
+declare const a: ActiveAssignment;
+
+export const forged: ExternalPrincipal = { ...external, activeAssignment: a }; // type error expected

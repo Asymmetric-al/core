@@ -1,0 +1,5 @@
+// POISON (Gate 4): a profile role name authorizes. The scan must report it.
+export function poison(x: { profileRole: string }) {
+  if (x.profileRole === "super_admin") return { ok: true };
+  return { ok: false };
+}
