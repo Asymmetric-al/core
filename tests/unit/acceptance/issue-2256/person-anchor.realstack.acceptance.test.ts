@@ -1,14 +1,17 @@
 /**
  * #2256 real-stack acceptance (spec r2 §4, the (R) parts of criteria 1-6, 8-12
- * and 16) on the CI `migrate` job's database (migrations + seed applied,
- * superuser URL in TENANT_GUARD_IT_ADMIN_DATABASE_URL). Every case runs in a
- * transaction that is rolled back; RLS cases use SET LOCAL ROLE +
+ * and 16) on a private database created through the CI `migrate` job's
+ * superuser URL in TENANT_GUARD_IT_ADMIN_DATABASE_URL, with CI's compatibility
+ * bootstrap, full forward migration chain and seed applied. Forward re-apply
+ * and rollback DDL must never lock tables in the shared database. Every case
+ * runs in a transaction that is rolled back; RLS cases use SET LOCAL ROLE +
  * request.jwt.claim(s). Fails (never skips) in the `migrate` job without the
  * URL (OQ9); skips everywhere else. Owned by Acceptance; implementers must not
  * edit.
  */
+import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -44,7 +47,13 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
-  const db = new pg.Client({ connectionString: ADMIN_URL });
+  const admin = new pg.Client({ connectionString: ADMIN_URL });
+  // Generated identifier contains only ASCII letters, digits and underscores.
+  const database = `acc2256_${randomUUID().replaceAll("-", "")}`;
+  const url = new URL(ADMIN_URL || "postgresql://localhost/postgres");
+  url.pathname = `/${database}`;
+  const db = new pg.Client({ connectionString: url.toString() });
+  let created = false;
   const id = () => randomUUID();
   const [A, B, PA, PB, MA, M0] = [id(), id(), id(), id(), id(), id()];
   const [DA1, DA2, DB] = [id(), id(), id()];
@@ -131,8 +140,54 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
       }
     });
 
-  beforeAll(() => db.connect());
-  afterAll(() => db.end());
+  beforeAll(async () => {
+    await admin.connect();
+    // Never clone the busy shared database: CREATE DATABASE ... TEMPLATE needs
+    // its other sessions disconnected. Build the same schema from template0.
+    await admin.query(`CREATE DATABASE ${database} TEMPLATE template0`);
+    created = true;
+    const files = [
+      "scripts/sql/supabase-compat-bootstrap.sql",
+      ...readdirSync("supabase/migrations")
+        .filter((f) => /^\d{14}_.+\.sql$/.test(f))
+        .sort()
+        .map((f) => `supabase/migrations/${f}`),
+      "supabase/seed.sql",
+    ];
+    for (const file of files) {
+      // Same foundation transaction boundary as CI's supabase-migrations.mjs.
+      const r = spawnSync(
+        process.env.PSQL_BIN?.trim() || "psql",
+        [
+          url.toString(),
+          "-X",
+          "-q",
+          "-v",
+          "ON_ERROR_STOP=1",
+          ...(file.endsWith("/20260214090000_foundation_1_schema.sql")
+            ? ["--single-transaction"]
+            : []),
+          "-f",
+          file,
+        ],
+        { encoding: "utf8", timeout: 30_000 },
+      );
+      expect(r.status, `${file}: ${r.error?.message ?? r.stderr}`).toBe(0);
+    }
+    await db.connect();
+  });
+  afterAll(async () => {
+    try {
+      await db.end();
+    } finally {
+      try {
+        if (created)
+          await admin.query(`DROP DATABASE ${database} WITH (FORCE)`);
+      } finally {
+        await admin.end();
+      }
+    }
+  });
 
   it("1/16: after migrate + seed, persons has 0 rows and no missionaries row has a person_id", async () => {
     expect(

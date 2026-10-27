@@ -1,0 +1,5 @@
+// POISON (Gate 4 carve-out): a second default-selection marker that ranks a staff sub-role.
+export function poisonPick(c: { staffRole: string | null }) {
+  if (c.staffRole === "finance") return c; // authz-exempt: default-selection
+  return null;
+}

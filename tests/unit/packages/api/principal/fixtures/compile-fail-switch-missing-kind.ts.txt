@@ -1,0 +1,17 @@
+// Must NOT compile (criterion 1b): a switch that omits a principal kind.
+import type { Principal } from "__API__/principal/types";
+
+export function label(p: Principal): string {
+  switch (p.kind) {
+    case "human":
+      return p.userId;
+    case "external":
+      return p.publicContext.hostRef;
+    case "service_account":
+      return p.nhiId;
+    default: {
+      const unreachable: never = p; // type error expected
+      return unreachable;
+    }
+  }
+}
