@@ -231,7 +231,13 @@ describe("#2308 missionary avatar and cover uploads (A)", () => {
     await stored(request({ file: image(type) }), "avatars", ext);
   });
   it("C9: the 5 MB cap applies to the cropped upload: exactly 5 MB succeeds", async () => {
-    await stored(request({ file: image("image/webp", 5 * 1024 * 1024) }));
+    const { MAX_PROFILE_IMAGE_BYTES } = await import(
+      /* @vite-ignore */ handler
+    );
+    const file = image("image/webp", MAX_PROFILE_IMAGE_BYTES);
+    expect(file.size).toBe(5 * 1024 * 1024);
+    await stored(request({ file }));
+    expect(h.upload.mock.calls[0]![1].size).toBe(MAX_PROFILE_IMAGE_BYTES);
   });
   it("C9: a cropped upload of 5 MB + 1 byte returns 413", async () => {
     await rejected(
@@ -265,4 +271,91 @@ describe("#2308 missionary avatar and cover uploads (A)", () => {
       await rejected(request(), 503);
     },
   );
+});
+
+// Acceptance r1: valid multipart with a small image and excessive text padding
+// separates the whole-body budget from the existing per-file size contract.
+const BODY_CAP = 5 * 1024 * 1024 + 64 * 1024;
+const CHUNK_BYTES = 16 * 1024;
+async function observedBody(declaredLength?: string) {
+  const form = await request().formData();
+  form.set("padding", "x".repeat(BODY_CAP + 3 * CHUNK_BYTES));
+  const encoded = new Response(form);
+  const bytes = new Uint8Array(await encoded.arrayBuffer());
+  const observed = { reads: 0, bytes: 0, cancelled: false };
+  const body = new ReadableStream<Uint8Array>(
+    {
+      pull(controller) {
+        observed.reads++;
+        if (observed.bytes === bytes.length) return controller.close();
+        const end = Math.min(observed.bytes + CHUNK_BYTES, bytes.length);
+        controller.enqueue(bytes.subarray(observed.bytes, end));
+        observed.bytes = end;
+      },
+      cancel() {
+        observed.cancelled = true;
+      },
+    },
+    // Prevent speculative pulls: only the handler can initiate a read.
+    { highWaterMark: 0 },
+  );
+  const headers = new Headers({
+    authorization: `Bearer ${TOKEN}`,
+    "content-type": encoded.headers.get("content-type")!,
+  });
+  if (declaredLength !== undefined)
+    headers.set("content-length", declaredLength);
+  const req = new Request("http://localhost:4000/api/upload/image", {
+    method: "POST",
+    headers,
+    body,
+    duplex: "half",
+  } as RequestInit);
+  return { req, observed };
+}
+
+describe("#2308 body-cap acceptance (A)", () => {
+  it("pins the body budget to 5 MiB plus 64 KiB of multipart overhead", async () => {
+    const limits = await import(/* @vite-ignore */ handler);
+    expect(limits.MULTIPART_OVERHEAD_ALLOWANCE_BYTES).toBe(64 * 1024);
+    expect(limits.MAX_UPLOAD_BODY_BYTES).toBe(BODY_CAP);
+  });
+
+  it("rejects declared cap + 1 with 413 before any pull or storage access", async () => {
+    const { req, observed } = await observedBody(String(BODY_CAP + 1));
+    const response = await post(req);
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({
+      error: "Image file must be 5 MB or smaller.",
+    });
+    expect(observed.reads).toBe(0);
+    expect(observed.bytes).toBe(0);
+    expect(h.from).not.toHaveBeenCalled();
+    expect(h.upload).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["missing", undefined],
+    ["understated", "1000"],
+  ])(
+    "caps valid multipart when Content-Length is %s",
+    async (_label, length) => {
+      const { req, observed } = await observedBody(length);
+      await rejected(req, 413);
+      expect(observed.bytes).toBeGreaterThan(BODY_CAP);
+      expect(observed.bytes).toBeLessThanOrEqual(BODY_CAP + CHUNK_BYTES);
+      expect(observed.cancelled).toBe(true);
+      expect(h.from).not.toHaveBeenCalled();
+    },
+  );
+
+  it("returns 401 for rejected auth before checking an oversized declaration", async () => {
+    context.isAuthenticated = false;
+    const { req, observed } = await observedBody(String(BODY_CAP + 1));
+    await rejected(req, 401);
+    expect(h.auth).toHaveBeenCalledWith(req);
+    expect(observed.reads).toBe(0);
+    expect(observed.bytes).toBe(0);
+    expect(h.from).not.toHaveBeenCalled();
+  });
 });
