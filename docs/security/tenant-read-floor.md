@@ -1,6 +1,6 @@
 # Tenant read floor: missionaries, funds, follows, assets, campaigns (#2312)
 
-None of these five tables is public. Before #2312, the public anon key could read every row of every tenant through `USING (true)` policies. Migration: `supabase/migrations/20261025120500_close_public_reads_tenant_scope.sql`.
+None of these five tables is public. Before #2312, the public anon key could read every row of every tenant through `USING (true)` policies. Migration: `supabase/migrations/20261025120800_close_public_reads_tenant_scope.sql`.
 
 ## Rulings
 
@@ -79,11 +79,11 @@ The post-assert raises unless each table has exactly its one new policy, anon an
 
 ## Forward rule
 
-No later migration may create a policy on these five tables `TO anon`, `TO public` or `USING (true)`, or grant any of them to `anon`. The #2312 static acceptance test enforces this on every migration above `20261025120500`.
+No later migration may create a policy on these five tables `TO anon`, `TO public` or `USING (true)`, or grant any of them to `anon`. The #2312 static acceptance test enforces this on every migration above `20261025120800`.
 
 ## Deploy order
 
-Production is behind develop. Apply the backlog first, as its own deploy: every develop migration below `20261025120500`, in version order, from a develop commit before #2312's merge. That backlog runs `20260625002117`, which re-opens `USING (true)` for anon on four of these tables, so this migration follows promptly. Then take the read-only preflight (applied versions, policies, privileges, realtime publication) and keep the policy and privilege rows as the rollback record. Then deploy `20261025120500` by the normal in-order migration deploy.
+Production is behind develop. Apply the backlog first, as its own deploy: every develop migration below `20261025120800`, in version order, from a develop commit before #2312's merge. That backlog runs `20260625002117`, which re-opens `USING (true)` for anon on four of these tables, so this migration follows promptly. Then take the read-only preflight (applied versions, policies, privileges, realtime publication) and keep the policy and privilege rows as the rollback record. Then deploy `20261025120800` by the normal in-order migration deploy.
 
 Never apply this migration before the backlog: a later run of `20260625002117` would recreate `USING (true)` and the anon grant. On the development project, reconcile its out-of-order versions first so the backlog neither re-runs nor skips files by number.
 
