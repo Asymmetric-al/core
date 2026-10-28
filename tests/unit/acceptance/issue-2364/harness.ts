@@ -104,11 +104,16 @@ export class Stack {
   }
   async fixture() {
     const q = (k: string) => this.q(k);
+    const actors = ["donor", "missionary", "other", "staff", "foreign"];
+    // profiles.id references auth.users(id) (profiles_id_fkey), so the distinct
+    // profile ids must exist in auth.users too; the handle_new_user trigger then
+    // auto-creates a profile per inserted user, which we remove before seeding ours.
+    const users = [...actors, "pD", "pM", "pO", "pS", "pB"];
     await this.db.query(`insert into public.tenants(id,name,slug) values
       (${q("A")},'acc2364 A',${q("A")}),(${q("B")},'acc2364 B',${q("B")});
-      insert into auth.users(id) values ${["donor", "missionary", "other", "staff", "foreign"].map((k) => `(${q(k)})`).join(",")};
-      delete from public.profiles where id in (${["donor", "missionary", "other", "staff", "foreign"].map(q).join(",")});
-      delete from authz.memberships where user_id in (${["donor", "missionary", "other", "staff", "foreign"].map(q).join(",")});`);
+      insert into auth.users(id) values ${users.map((k) => `(${q(k)})`).join(",")};
+      delete from public.profiles where id in (${users.map(q).join(",")});
+      delete from authz.memberships where user_id in (${users.map(q).join(",")});`);
     for (const [p, user, tenant] of [
       ["pD", "donor", "A"],
       ["pM", "missionary", "A"],
