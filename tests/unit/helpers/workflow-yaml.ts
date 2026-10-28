@@ -452,7 +452,7 @@ export const PINNED_STEP_BODIES: Record<
     },
     "name:Verify tenant isolation (real stack)": {
       index: 16,
-      run: "bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts tests/unit/acceptance/issue-2256/person-anchor.realstack.acceptance.test.ts tests/unit/acceptance/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2258/current-user-assignments.realstack.acceptance.test.ts tests/unit/acceptance/issue-2312/public-reads.realstack.acceptance.test.ts tests/unit/acceptance/issue-2402/crm-table-preferences.realstack.acceptance.test.ts",
+      run: "bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts tests/unit/acceptance/issue-2256/person-anchor.realstack.acceptance.test.ts tests/unit/acceptance/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2258/current-user-assignments.realstack.acceptance.test.ts tests/unit/acceptance/issue-2312/public-reads.realstack.acceptance.test.ts tests/unit/acceptance/issue-2402/crm-table-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2364/missionaries-reads.realstack.acceptance.test.ts",
       env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
     },
     "name:Verify authz EXECUTE grants (real stack)": {
