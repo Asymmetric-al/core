@@ -38,6 +38,7 @@
     "./donor-portal/pledge-view": "./src/donor-portal/pledge-view.ts",
     "./stripe/webhooks": "./src/stripe/webhooks.ts",
     "./profile": "./src/profile/index.ts",
+    "./upload/image": "./src/upload/image.ts",
     "./public-giving": "./src/public-giving/index.ts",
     "./feed-preferences": "./src/feed-preferences/index.ts",
     "./admin/org-settings": "./src/admin/org-settings.ts",

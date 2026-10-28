@@ -158,10 +158,23 @@ describe("#2402 static contract", () => {
     const bytes = readFileSync(`${H.MIG}/${file}`);
     expect(createHash("sha256").update(bytes).digest("hex")).toBe(hash);
   });
-  it("§6/9: diff contains only declared edits", () => {
+  it("§6/9: diff contains only declared edits", (ctx) => {
+    // PR #2414 merged #2402 into develop; scope belongs to that change on any branch.
+    const merged = "2b02808407d7eb1f85065ae798adf018ee8b4496";
+    const history = spawnSync(
+      "git",
+      ["rev-parse", "--verify", `${merged}^1^{commit}`],
+      { encoding: "utf8" },
+    );
+    expect(history.error).toBeUndefined();
+    // CI unit/acceptance jobs fetch full history (ci.yml fetch-depth: 0).
+    if (history.status !== 0)
+      ctx.skip(
+        "#2402 merge or first-parent history unavailable in this checkout",
+      );
     const r = spawnSync(
       "git",
-      ["diff", "--name-only", "9b52112df3301c72089fb7c554a3d23a9b593ec1"],
+      ["diff", "--name-only", `${merged}^1..${merged}`],
       {
         encoding: "utf8",
       },

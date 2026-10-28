@@ -149,6 +149,17 @@ Pass `outputFormat` and `quality` to `ImageCropper` (or modify defaults in `getC
 
 Extend `validateImageFile()` in `image-utils.ts`.
 
+## Server Route
+
+Both the missionary and donor apps mount `POST /api/upload/image` as a one-line re-export of the shared handler in `@asym/api/upload/image` (`packages/api/src/upload/image.ts`). It accepts the request `ImageUpload` already sends (`multipart/form-data` with `file`, `bucket`, `path`, plus `Authorization: Bearer <session token>`):
+
+- **Auth**: a missing bearer, or one that does not resolve to an authenticated profile, gets `401`. The write uses a Supabase client scoped to the caller's token, never the service role.
+- **Purpose**: `path` must be `avatars` or `covers` (otherwise `400`). Only a missionary may upload a cover (`403`).
+- **Bucket**: `bucket` must be absent or `profiles` (otherwise `400`).
+- **File**: required (`400`); JPEG, PNG, WebP or GIF whose leading bytes match the declared type (`415`); at most 5 MB, measured on the cropped upload (`413`).
+- **Storage key**: chosen by the server as `{purpose}/{tenantId}/{userId}/{uuid}.{ext}` from the caller's auth context, written once (`upsert: false`). Replaced photos are left in place.
+- **Response**: `201 { url, path }`. Errors are JSON `{ error }`, including `503` when the public Supabase config is missing and `502` (`"Image upload failed."`) when storage rejects the write.
+
 ## Supabase Storage Setup
 
 The system expects a `profiles` bucket with these policies:
