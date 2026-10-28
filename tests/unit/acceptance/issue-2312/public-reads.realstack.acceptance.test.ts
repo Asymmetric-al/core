@@ -345,7 +345,7 @@ describe.skipIf(!ADMIN_URL)(
             );
             expect(r.rows[0]).toEqual({
               relrowsecurity: true,
-              relforcerowsecurity: !serverOnlyMissionaries(t),
+              relforcerowsecurity: true,
             });
           }),
       );

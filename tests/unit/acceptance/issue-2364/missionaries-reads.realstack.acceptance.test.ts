@@ -179,7 +179,7 @@ describe.skipIf(!URL)("#2364 [A] realstack", () => {
       await s.apply();
       const clean = await s.catalog();
       expect(clean.rls).toEqual([
-        { relrowsecurity: true, relforcerowsecurity: false },
+        { relrowsecurity: true, relforcerowsecurity: true },
       ]);
       expect(clean.realtime).toEqual([]);
       await s.db.query("rollback to savepoint predecessor");

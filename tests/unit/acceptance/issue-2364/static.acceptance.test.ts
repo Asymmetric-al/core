@@ -148,6 +148,16 @@ describe("#2364 static [A][S]", () => {
       DOC,
       BUILDER,
       "tests/unit/acceptance/issue-2312/public-reads.realstack.acceptance.test.ts",
+      // Builder 0cf86552: 2364 real-stack path joins the tenant-isolation step;
+      // compat bootstrap grants service_role SELECT (hosted default privilege).
+      ".github/workflows/ci-integration.yml",
+      "scripts/sql/supabase-compat-bootstrap.sql",
+      "tests/unit/helpers/workflow-yaml.ts",
+      // Shared acceptance pins re-pinned for that workflow change.
+      "tests/unit/acceptance/issue-2155/postgres-ecr-gates.acceptance.test.ts",
+      "tests/unit/acceptance/issue-2201/merge-group.acceptance.test.ts",
+      "tests/unit/acceptance/issue-2250/static.acceptance.test.ts",
+      "tests/unit/acceptance/issue-2402/static.acceptance.test.ts",
     ]);
     expect(
       files.filter(
