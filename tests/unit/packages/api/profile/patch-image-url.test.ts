@@ -42,10 +42,7 @@ vi.mock("@asym/auth/context", () => ({
 vi.mock(
   "../../../../../packages/api/src/profile/image-url",
   async (importOriginal) => {
-    const actual =
-      await importOriginal<
-        typeof import("../../../../../packages/api/src/profile/image-url")
-      >();
+    const actual = await importOriginal<typeof ImageUrl>();
     return {
       ...actual,
       checkProfileImageUrl: vi.fn(actual.checkProfileImageUrl),
@@ -55,6 +52,8 @@ vi.mock(
 
 import { PATCH } from "../../../../../packages/api/src/profile";
 import { checkProfileImageUrl } from "../../../../../packages/api/src/profile/image-url";
+
+import type * as ImageUrl from "../../../../../packages/api/src/profile/image-url";
 
 const ORIGIN = "https://proj.supabase.co";
 const T = "aaaaaaaa-0000-4000-8000-00000000000a";
