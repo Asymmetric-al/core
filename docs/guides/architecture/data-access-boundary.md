@@ -51,6 +51,22 @@ Asym Postgres owns all CRM truth. Remaining Twenty client code is not a valid
 product path; do not restore it. Remove it through the accepted retirement
 change rather than wrapping it as a generic provider adapter.
 
+## Missionaries reads
+
+`public.missionaries` is server-only (#2364,
+`supabase/migrations/20261026105000_missionaries_server_only_reads.sql`).
+Every read goes through `packages/api/src/*` or the GraphQL handler using the
+service-role admin client: `GET /api/missionaries`, the admin directory, the
+donor and missionary portals, dashboard and metrics reads, and GraphQL
+`missionaries`/`missionary`. `anon` holds no privilege on the table. The
+`authenticated` role keeps column SELECT on `id` and `profile_id` for its own
+row only, so the own-missionary branch of the `donations` and `donor_pledges`
+read policies keeps working. No browser or user-key code reads it, and
+`missionariesCollection` must not be instantiated for browser sync.
+
+`GET /api/donate` returns checkout config only, `{ "publishableKey": "<pk>" }`.
+It no longer returns designations or donor rows.
+
 ## Approved Exceptions
 
 | File                                                    | Allowed import                   | Justification                                                                                                                                                                                                                                                                                     |
