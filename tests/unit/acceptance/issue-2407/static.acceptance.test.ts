@@ -38,9 +38,9 @@ const git = (...args: string[]) => spawnSync("git", args, { encoding: "utf8" });
 const MIG_2406 = readdirSync(H.MIG).find((f) =>
   f.startsWith("20261027100000_"),
 );
-/** Pinned from #2406's final head when builder/2406 carries the migration;
- * null because builder/2406 @1647b739 (Oct 28, 2026) has no 20261027100000
- * migration yet. Re-point when #2406 merges. */
+/** Fallback when #2406's migration is not on this tree: null, so criterion
+ * 22 skips rather than pinning text that may still move before #2406 merges.
+ * Re-point if a verbatim pin is ever preferred over the extractor. */
 const TENANT_EXPR_2406: string | null = null;
 
 /**
@@ -133,9 +133,15 @@ const swapsTogether = (sql: string) =>
   [H.OLD_POLICIES[0], H.OLD_POLICIES[2]].every((n) => drops(sql, n!)) &&
   [H.NEW_POLICIES[0], H.NEW_POLICIES[2]].every((n) => policy(sql, n!)) &&
   !policy(sql, H.OLD_POLICIES[2]!);
-/** Balanced-paren tenant expression after `split_part(name, '/', 2) =`. */
+/** #2406's tenant check, from the second-segment accessor through its
+ * balanced-paren operand: `(string_to_array(name, '/'))[2] IN (...)` (the
+ * #2406 text at builder/2406 @9563beea) or `split_part(name, '/', 2) = (...)`.
+ * Null when neither form is present (criterion 22 then skips). */
 function tenantExpr(sql: string) {
-  const m = /split_part\(\s*name\s*,\s*'\/'\s*,\s*2\s*\)\s*=\s*/i.exec(sql);
+  const m =
+    /(?:\(\s*string_to_array\(\s*name\s*,\s*'\/'\s*\)\s*\)\s*\[\s*2\s*\]|split_part\(\s*name\s*,\s*'\/'\s*,\s*2\s*\))\s*(?:IN|=)\s*(?=\()/i.exec(
+      sql,
+    );
   if (!m) return null;
   const start = m.index + m[0].length;
   let i = start;
@@ -144,7 +150,8 @@ function tenantExpr(sql: string) {
     depth += sql[i] === "(" ? 1 : sql[i] === ")" ? -1 : 0;
     i++;
   } while (depth > 0 && i < sql.length);
-  return sql.slice(start, i);
+  if (depth !== 0) return null;
+  return sql.slice(m.index, i);
 }
 
 describe("#2407a static contract [A]", () => {
@@ -391,7 +398,7 @@ describe("#2407a static contract [A]", () => {
       ctx.skip(
         "#2406 tenant expression not on base; re-point when #2406 merges",
       );
-    const n1 = policy(H.read(H.FORWARD), H.NEW_POLICIES[0]!) ?? "";
+    const n1 = policy(fwd(), H.NEW_POLICIES[0]!) ?? "";
     expect(n1, "N1").not.toBe("");
     expect(n1).toContain(H.squash(expected!));
   });
