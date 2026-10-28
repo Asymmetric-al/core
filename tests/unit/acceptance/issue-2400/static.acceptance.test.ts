@@ -167,11 +167,13 @@ describe("#2400 criteria 3-4: migration and rollback text", () => {
 const DEPLOY = `ADD COLUMN and the CHECK NOT VALID adds take ACCESS EXCLUSIVE on missionaries and profiles; the FKs take SHARE ROW EXCLUSIVE, including on \`persons\`, and the first apply takes it on \`tenants\`. Every lock is held until COMMIT. \`lock_timeout\` bounds only the wait; on 55P03 nothing is applied. A live re-run can fail with 40P01.`;
 const ATTNUM =
   "After rollback then re-apply, person_id lands at ordinals 23 and 15, so the census v3 local_catalog check fails on that database.";
+/** Base `Rollback and order` text without the ordinal sentence, so M9 can remove it from GOOD_DOC. */
+const ORDER = `\`rollback_20261025110000_person_anchor.sql\` deletes the ten \`person_id\` \`field_policies\` rows, drops the four seam constraints, drops both \`person_id\` columns, then drops \`persons\`, in that order and without CASCADE. Run it before #2254's rollback.`;
 // prettier-ignore
 const GOOD_DOC = (md: string) =>
   md
     .replace(/^## Deploy: lock timeout\n[\s\S]*?(?=^## |(?![\s\S]))/m, `## Deploy: lock timeout\n\n${DEPLOY}\n\n`)
-    .replace(/^## Rollback and order\n/m, `## Rollback and order\n\n${ATTNUM}\n`);
+    .replace(/^## Rollback and order\n[\s\S]*?(?=^## |(?![\s\S]))/m, `## Rollback and order\n\n${ORDER}\n${ATTNUM}\n\n`);
 
 describe("#2400 criteria 5-6: doc and census chain", () => {
   it("#2400 criterion 5: 'Deploy: lock timeout' and 'Rollback and order' carry the corrected facts", () =>
