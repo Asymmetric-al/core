@@ -4,7 +4,7 @@
   "issue": "#2256",
   "approval": "Samson (factory lead), Oct 24-25, 2026: #2256 spec r2 (Q11, OQ6), In 5; census file and counts per Samson ruling 4",
   "source_path": "supabase/migrations/20261025110000_person_anchor.sql",
-  "source_sha256": "b9d7b5ef5569d35ee198ac6264a8fca91c4fd5b5e349b1da91375cf68029a875",
+  "source_sha256": "f97ea5de4d44be60fcdecb64274e0cd749d18c1d17aa81b34e5531becd00c558",
   "source_binding": "working-tree sha256; the source postdates repository_base_sha, so it is not read with git show",
   "local_catalog": {
     "database": "fresh migration chain on a local PGlite replay; the CI migrate job (ci-integration.yml) census re-checks this exact result",
