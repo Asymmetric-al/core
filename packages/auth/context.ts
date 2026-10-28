@@ -75,6 +75,32 @@ function getBearerToken(request?: Request): string | null {
   return token || null;
 }
 
+/**
+ * Supabase client that acts with the caller's own bearer token (RLS applies),
+ * never the service role. Returns `null` when the public config is missing.
+ */
+export function createBearerSupabaseClient(
+  token: string,
+): SupabaseClient | null {
+  const { url, key } = getSupabasePublicConfig();
+
+  if (!url || !key) {
+    return null;
+  }
+
+  return createClient(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+    global: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  });
+}
+
 async function createAuthContextClient(
   request?: Request,
 ): Promise<SupabaseClient | null> {
@@ -86,17 +112,7 @@ async function createAuthContextClient(
 
   const bearerToken = getBearerToken(request);
   if (bearerToken) {
-    return createClient(url, key, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-      global: {
-        headers: {
-          Authorization: `Bearer ${bearerToken}`,
-        },
-      },
-    });
+    return createBearerSupabaseClient(bearerToken);
   }
 
   // Prefer the mutable Next.js cookie store whenever it is available so
