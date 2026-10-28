@@ -35,6 +35,11 @@ END $$;
 
 GRANT anon, authenticated, service_role TO authenticator;
 
+-- Hosted Supabase's default privileges give service_role access to tables that
+-- later migrations create in public; mirror the SELECT, without anon or
+-- authenticated table access.
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO service_role;
+
 -- Supabase's migration history (applied versions), read by the
 -- document_cutover.schema_version() function.
 CREATE SCHEMA IF NOT EXISTS supabase_migrations;
