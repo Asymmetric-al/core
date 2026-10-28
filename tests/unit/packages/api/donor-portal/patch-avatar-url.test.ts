@@ -107,18 +107,22 @@ describe("PATCH /api/donor/portal avatarUrl (#2406)", () => {
     expect(m.writes).toEqual([]);
   });
 
+  const X = "https://images.unsplash.com/photo-1?w=400";
   it.each([
-    ["profiles.avatar_url", "profile"],
-    ["donors.avatar_url", "donor"],
+    ["donors X, profiles NULL", { profile: null, donor: X }, { profiles: X }],
+    ["profiles X, donors NULL", { profile: X, donor: null }, { donors: X }],
+    ["both X", { profile: X, donor: X }, {}],
   ] as const)(
-    "does not rewrite a value equal to the stored %s (OQ2)",
-    async (_label, key) => {
-      const stored = "https://images.unsplash.com/photo-1?w=400";
-      m.stored = { profile: null, donor: null, [key]: stored };
-      const r = await patch({ phone: "555-0100", avatarUrl: stored });
+    "%s, resend X: only a column that differs gets X (OQ2, criterion 8)",
+    async (_label, stored, expected) => {
+      m.stored = { ...stored };
+      const r = await patch({ phone: "555-0100", avatarUrl: X });
       expect(r.status).toBe(200);
       expect(m.writes.length).toBeGreaterThan(0);
-      expect(avatarWrites()).toEqual([]);
+      const avatars = m.writes
+        .filter((w) => "avatar_url" in w.values)
+        .map((w) => [w.table, w.values.avatar_url]);
+      expect(Object.fromEntries(avatars)).toEqual(expected);
     },
   );
 
@@ -128,6 +132,6 @@ describe("PATCH /api/donor/portal avatarUrl (#2406)", () => {
     expect(r.status).toBe(503);
     expect(m.writes).toEqual([]);
     expect((await patch({ avatarUrl: null })).status).toBe(200);
-    expect(avatarWrites()).toEqual(["profiles", "donors"]);
+    expect(avatarWrites()).toEqual(["profiles"]);
   });
 });

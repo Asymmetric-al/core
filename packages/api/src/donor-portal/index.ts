@@ -77,8 +77,9 @@ export const PATCH = withOperation(
       ctx.profileId,
       ctx.tenantId,
     );
-    // #2406: validated before any write; unchanged stored values are skipped.
-    const writeAvatar = checkProfileImageUrl(patch.avatarUrl, {
+    // #2406: validated before any write. Each column takes the accepted value
+    // unless it already holds it (OQ2), so a resent value still backfills.
+    checkProfileImageUrl(patch.avatarUrl, {
       purpose: "avatars",
       tenantId: ctx.tenantId,
       userId: ctx.userId,
@@ -103,9 +104,14 @@ export const PATCH = withOperation(
       profileUpdate.phone = patch.phone || null;
       donorUpdate.phone = patch.phone || null;
     }
-    if (writeAvatar) {
-      profileUpdate.avatar_url = patch.avatarUrl || null;
-      donorUpdate.avatar_url = patch.avatarUrl || null;
+    if (patch.avatarUrl !== undefined) {
+      const avatarUrl = patch.avatarUrl || null;
+      if (profile.avatar_url !== avatarUrl) {
+        profileUpdate.avatar_url = avatarUrl;
+      }
+      if (donor.avatar_url !== avatarUrl) {
+        donorUpdate.avatar_url = avatarUrl;
+      }
     }
     if (patch.preferredContact !== undefined) {
       donorUpdate.preferred_contact = patch.preferredContact;
