@@ -58,6 +58,8 @@ has none.
   into their own folder, but not update them in place.
 - The bucket stays `public`, so public object URLs are served without any
   SELECT policy. Listing, signed URLs and downloads go through RLS.
+- The two folder policies read `profiles.tenant_id`, so they are in the
+  sanctioned reader set in `docs/security/identity-person-anchor.md` (#2267).
 
 ## Bucket limits
 
