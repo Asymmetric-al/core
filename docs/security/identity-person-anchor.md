@@ -149,12 +149,23 @@ the Asym donor-pair store (Q8, clash 3). This slice changes no schema there.
 columns, then drops `persons`, in that order and without CASCADE. It removes
 nothing else; #2254's `normalize_email` and donor keys survive. Run it before
 #2254's rollback. The migration runner skips `rollback_` files. Once a later
-phase writes persons, rolling back deletes them.
+phase writes persons, rolling back deletes them. After rollback then
+re-apply on a persistent database, `person_id` lands at ordinals 23
+(`missionaries`) and 15 (`profiles`) instead of 22 and 14 (PostgreSQL doesn't
+reuse a dropped column's attnum), so the census v3 `local_catalog` check fails
+on that database; CI always migrates a fresh one, so nothing changes in CI.
 
 ## Deploy: lock timeout
 
-Adding the columns and constraints takes brief ACCESS EXCLUSIVE locks on
-`missionaries` and `profiles`, and the FKs take SHARE ROW EXCLUSIVE on
-`tenants` and `persons`. Constraints are added NOT VALID and then validated, so
-no lock is held for a full scan. `SET LOCAL lock_timeout = '5s'` bounds the
-wait. On SQLSTATE 55P03 nothing is applied: re-run in a quiet window.
+`ADD COLUMN` and the `CHECK … NOT VALID` adds take ACCESS EXCLUSIVE on
+`missionaries` and `profiles`. The FK adds take SHARE ROW EXCLUSIVE on the
+altered table and on `persons`, and on a first apply the `persons` FK takes it
+on `tenants`. Every lock is held until COMMIT, so through the VALIDATE scans;
+adding NOT VALID and then validating in the same transaction doesn't shorten
+the hold. Both tables are small, so the hold is brief in practice.
+`SET LOCAL lock_timeout = '5s'` bounds only the wait to acquire each lock. On
+SQLSTATE 55P03 nothing is applied: re-run in a quiet window.
+
+Re-running the file on a live database takes `persons` before `missionaries`,
+so it can fail with SQLSTATE 40P01 (deadlock) against concurrent writes. The
+transaction is atomic, so nothing is applied; re-run it in a quiet window.

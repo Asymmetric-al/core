@@ -2,9 +2,12 @@
  * #2260 real-stack acceptance (spec r2 = issue comment 6386169035, edited in
  * place with addendum 6407195511; r1 approved with all defaults in 6386178623):
  * criteria 1-16. Runs in CI `migrate` step "Verify tenant isolation (real
- * stack)" through that step's explicit path list (In 6), against the migrated
- * PG17 superuser URL TENANT_GUARD_IT_ADMIN_DATABASE_URL. Without the URL the
- * DB block skips, except in the CI `migrate` job, where it fails.
+ * stack)" through that step's explicit path list (In 6). The PG17 superuser
+ * URL TENANT_GUARD_IT_ADMIN_DATABASE_URL only creates and drops a private
+ * database (#2400 OQ2), built like CI with the compatibility bootstrap, every
+ * forward migration and the seed; the migration re-runs (12, 13, 15) never
+ * lock tables in the shared database. Without the URL the DB block skips,
+ * except in the CI `migrate` job, where it fails.
  *
  * Every check is one transaction, always rolled back, with the fixture created
  * inside it. Calls emulate PostgREST: SET LOCAL ROLE plus request.jwt.claims
@@ -12,8 +15,9 @@
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
+import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -46,7 +50,13 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
-  const db = new pg.Client({ connectionString: ADMIN_URL });
+  const admin = new pg.Client({ connectionString: ADMIN_URL });
+  // Generated identifier contains only ASCII letters, digits and underscores.
+  const database = `acc2260_${randomUUID().replaceAll("-", "")}`;
+  const url = new URL(ADMIN_URL || "postgresql://localhost/postgres");
+  url.pathname = `/${database}`;
+  const db = new pg.Client({ connectionString: url.toString() });
+  let created = false;
   const u = () => randomUUID();
   /** Tenants A/B; U1, U2 donors in A; U3 donor in B; S staff in A (no donor); one row per donor. */
   const id: Record<string, string> = {};
@@ -64,8 +74,58 @@ describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
       (_m, k: string) => q(k),
     );
 
-  beforeAll(() => db.connect());
-  afterAll(() => db.end());
+  beforeAll(async () => {
+    await admin.connect();
+    // Never clone the busy shared database: CREATE DATABASE ... TEMPLATE needs
+    // its other sessions disconnected. Build the same schema from template0.
+    await admin.query(`CREATE DATABASE ${database} TEMPLATE template0`);
+    created = true;
+    const files = [
+      "scripts/sql/supabase-compat-bootstrap.sql",
+      ...readdirSync("supabase/migrations")
+        .filter((f) => /^\d{14}_.+\.sql$/.test(f))
+        .sort()
+        .map((f) => `supabase/migrations/${f}`),
+      "supabase/seed.sql",
+    ];
+    for (const file of files) {
+      // Same foundation transaction boundary as CI's supabase-migrations.mjs.
+      const r = spawnSync(
+        process.env.PSQL_BIN?.trim() || "psql",
+        [
+          url.toString(),
+          "-X",
+          "-q",
+          "-v",
+          "ON_ERROR_STOP=1",
+          ...(file.endsWith("/20260214090000_foundation_1_schema.sql")
+            ? ["--single-transaction"]
+            : []),
+          "-f",
+          file,
+        ],
+        { encoding: "utf8", timeout: 30_000 },
+      );
+      // Do not echo stderr: connection failures may contain credentials.
+      expect(
+        r.status,
+        `migration/bootstrap failed: ${file} (${r.error?.name ?? "psql"})`,
+      ).toBe(0);
+    }
+    await db.connect();
+  });
+  afterAll(async () => {
+    try {
+      await db.end();
+    } finally {
+      try {
+        if (created)
+          await admin.query(`DROP DATABASE ${database} WITH (FORCE)`);
+      } finally {
+        await admin.end();
+      }
+    }
+  });
 
   async function tx(fn: () => Promise<void>) {
     await db.query("begin");
