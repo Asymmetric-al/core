@@ -257,6 +257,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/pdf-templates/native/preview`                            | Node.js (no `runtime` segment export) | Native PDF Studio browser preview                  |
 | admin      | `/api/pdf-templates/native/render`                             | Node.js (no `runtime` segment export) | Native PDF Studio server render adapter            |
 | admin      | `/api/playwright-ready`                                        | Node.js (no `runtime` segment export) | DB-independent Playwright readiness probe          |
+| admin      | `/api/upload/editor-image`                                     | Node.js (no `runtime` segment export) | Shared editor-image upload, request-scoped client  |
 | admin      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                           |
 | donor      | `/api/auth/cleanup-demo-users`                                 | Node.js (no `runtime` segment export) | Admin client                                       |
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                            |
@@ -303,6 +304,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | missionary | `/api/posts/[postId]/like`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | missionary | `/api/posts/[postId]/prayer`                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | missionary | `/api/profile`                                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
+| missionary | `/api/upload/editor-image`                                     | Node.js (no `runtime` segment export) | Shared editor-image upload, request-scoped client  |
 | missionary | `/api/upload/image`                                            | Node.js (no `runtime` segment export) | Shared profile-photo upload, request-scoped client |
 | missionary | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                           |
 
