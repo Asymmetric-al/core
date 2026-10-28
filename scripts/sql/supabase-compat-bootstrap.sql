@@ -130,9 +130,15 @@ CREATE TABLE IF NOT EXISTS storage.buckets (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   public BOOLEAN DEFAULT false,
+  file_size_limit BIGINT,
+  allowed_mime_types TEXT[],
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE storage.buckets
+  ADD COLUMN IF NOT EXISTS file_size_limit BIGINT,
+  ADD COLUMN IF NOT EXISTS allowed_mime_types TEXT[];
 
 CREATE TABLE IF NOT EXISTS storage.objects (
   id UUID PRIMARY KEY DEFAULT extensions.gen_random_uuid(),
