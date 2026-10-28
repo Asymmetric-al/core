@@ -5,53 +5,13 @@
  * round trips and the mutant probes run on the first stack only, last.
  * Mutants: M1-M4 c3, M5 c4, M6 c2, M7 c5/c10, M18 c11, M19 c2/c11.
  */
-import { randomUUID } from "node:crypto";
-
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import * as H from "./harness";
 
 const URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
-type Case = [label: string, role: H.Role, actor: string | null, name: string];
-/** "label|role|actor|name" rows; `name` may use {editor:T:A} (own folder) and {demo}. */
-const table = (s: H.Stack, rows: string): Case[] =>
-  rows
-    .trim()
-    .split("\n")
-    .map((line) => {
-      const [label, role, actor, name] = line.split("|") as [
-        string,
-        H.Role,
-        string,
-        string,
-      ];
-      const resolved = name
-        .replace(/\{(\w+):(\w+):(\w+)\}/g, (_, p, t, u) => s.path(p, t, u))
-        .replace("{demo}", H.DEMO)
-        .replace("{file}", `${randomUUID()}.webp`)
-        .replace(/\{id:(\w+)\}/g, (_, k) => s.ids[k]!);
-      return [label, role, actor || null, resolved];
-    });
-const ALLOW3 = `
-M own folder|authenticated|M|{editor:T:M}/{file}
-A own folder|authenticated|A|{editor:T:A}/{file}
-A RETURNING id|authenticated|A|{editor:T:A}/{file}
-S2 own tenant|authenticated|S2|{editor:T:S2}/{file}
-S into demo|authenticated|S|{editor:{demo}:S}/{file}`;
-const DENY3 = `
-uid segment != A|authenticated|A|{editor:T:X}/{file}
-tenant segment != T|authenticated|A|{editor:T2:A}/{file}
-purpose care-note|authenticated|A|{care-note:T:A}/{file}
-three segments|authenticated|A|{editor:T:A}
-empty remainder|authenticated|A|{editor:T:A}/
-legacy shape|authenticated|A|editor/x-1.png
-bucket root|authenticated|A|x.webp
-role anon|anon||{editor:T:A}/{file}
-no sub|authenticated||{editor:T:A}/{file}
-sub without profile|authenticated|Z|{editor:T:Z}/{file}
-S2 into demo|authenticated|S2|{editor:{demo}:S2}/{file}
-S into tenant T|authenticated|S|{editor:T:S}/{file}
-X into tenant T|authenticated|X|{editor:T:X}/{file}`;
+const { ALLOW3, DENY3, table } = H;
+type Case = H.Case;
 
 /** Runs allow/deny cases; returns the labels that did not behave. */
 async function inserts(s: H.Stack, allow: Case[], deny: Case[]) {

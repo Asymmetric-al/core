@@ -50,6 +50,62 @@ export const read = (p: string) =>
 /** SQL text without comments, so commented-out statements never count. */
 export const code = (s: string) => s.replace(/--[^\n]*|\/\*[\s\S]*?\*\//g, " ");
 export const squash = (s: string) => s.replace(/\s+/g, " ").trim();
+/** Realstack case rows "label|role|actor|name" (criterion 3, M1-M4, M2 demo).
+ * `name` tokens: {editor:T:A} (purpose:tenant:user via Stack.path), {demo}
+ * (DEMO tenant id, usable inside a compound token), {file}, {id:K}. */
+export type Case = [
+  label: string,
+  role: Role,
+  actor: string | null,
+  name: string,
+];
+export const ALLOW3 = `
+M own folder|authenticated|M|{editor:T:M}/{file}
+A own folder|authenticated|A|{editor:T:A}/{file}
+A RETURNING id|authenticated|A|{editor:T:A}/{file}
+S2 own tenant|authenticated|S2|{editor:T:S2}/{file}
+S into demo|authenticated|S|{editor:{demo}:S}/{file}`;
+export const DENY3 = `
+uid segment != A|authenticated|A|{editor:T:X}/{file}
+tenant segment != T|authenticated|A|{editor:T2:A}/{file}
+purpose care-note|authenticated|A|{care-note:T:A}/{file}
+three segments|authenticated|A|{editor:T:A}
+empty remainder|authenticated|A|{editor:T:A}/
+legacy shape|authenticated|A|editor/x-1.png
+bucket root|authenticated|A|x.webp
+role anon|anon||{editor:T:A}/{file}
+no sub|authenticated||{editor:T:A}/{file}
+sub without profile|authenticated|Z|{editor:T:Z}/{file}
+S2 into demo|authenticated|S2|{editor:{demo}:S2}/{file}
+S into tenant T|authenticated|S|{editor:T:S}/{file}
+X into tenant T|authenticated|X|{editor:T:X}/{file}`;
+/** Expands case rows. Inner tokens ({demo}, {id:K}) resolve BEFORE the compound
+ * {purpose:tenant:user} token, whose segments may then be uuids (reviewer fix
+ * on PR #2427: {editor:{demo}:S} used to survive as a braced literal). */
+export const table = (
+  s: Pick<Stack, "path" | "ids">,
+  rows: string,
+  file: () => string = () => `${randomUUID()}.webp`,
+): Case[] =>
+  rows
+    .trim()
+    .split("\n")
+    .map((line) => {
+      const [label, role, actor, name] = line.split("|") as [
+        string,
+        Role,
+        string,
+        string,
+      ];
+      const resolved = name
+        .replaceAll("{demo}", DEMO)
+        .replace(/\{id:(\w+)\}/g, (_, k) => s.ids[k]!)
+        .replace(/\{([\w-]+):([\w-]+):([\w-]+)\}/g, (_, p, t, u) =>
+          s.path(p, t, u),
+        )
+        .replaceAll("{file}", file());
+      return [label, role, actor || null, resolved];
+    });
 export const migrated = () =>
   expect(existsSync(FORWARD), `${FORWARD} missing: #2407a not built`).toBe(
     true,

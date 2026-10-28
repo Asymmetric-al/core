@@ -426,6 +426,60 @@ describe("#2407a static contract [A]", () => {
       .filter((p) => p && !declared.has(p) && !p.startsWith("tests/unit/"));
     expect(outside, `diff against ${base}`).toEqual([]);
   });
+  describe("#2407a realstack harness: case rows expand to concrete names (PR #2427 review; no database)", () => {
+    // Stack's constructor only builds pg clients; nothing connects.
+    const s = new H.Stack(
+      "postgresql://unused:unused@127.0.0.1:1/unused",
+      false,
+    );
+    const id = s.ids;
+    const allow = H.table(s, H.ALLOW3, () => "f.webp");
+    const deny = H.table(s, H.DENY3, () => "f.webp");
+    const name = (cases: H.Case[], label: string) =>
+      cases.find((c) => c[0] === label)?.[3];
+    it("no expanded name keeps a '{' or '}' placeholder token", () => {
+      const left = [...allow, ...deny]
+        .filter((c) => /[{}]/.test(c[3]))
+        .map((c) => `${c[0]}: ${c[3]}`);
+      expect(left).toEqual([]);
+      expect(allow).toHaveLength(5);
+      expect(deny).toHaveLength(13);
+    });
+    it("the five RS allow cases resolve to editor/<tenant uuid>/<uid>/f.webp; S's tenant is DEMO", () => {
+      expect(Object.fromEntries(allow.map((c) => [c[0], c[3]]))).toEqual({
+        "M own folder": `editor/${id.T}/${id.M}/f.webp`,
+        "A own folder": `editor/${id.T}/${id.A}/f.webp`,
+        "A RETURNING id": `editor/${id.T}/${id.A}/f.webp`,
+        "S2 own tenant": `editor/${id.T}/${id.S2}/f.webp`,
+        "S into demo": `editor/${H.DEMO}/${id.S}/f.webp`,
+      });
+      expect(id.T).toMatch(/^[0-9a-f-]{36}$/);
+    });
+    it("the M2 probe cases are on-layout (only the tenant segment is off): S2 into demo, S into T, purpose care-note", () => {
+      expect(name(deny, "S2 into demo")).toBe(
+        `editor/${H.DEMO}/${id.S2}/f.webp`,
+      );
+      expect(name(deny, "S into tenant T")).toBe(
+        `editor/${id.T}/${id.S}/f.webp`,
+      );
+      expect(name(deny, "tenant segment != T")).toBe(
+        `editor/${id.T2}/${id.A}/f.webp`,
+      );
+      expect(name(deny, "purpose care-note")).toBe(
+        `care-note/${id.T}/${id.A}/f.webp`,
+      );
+      expect(name(deny, "three segments")).toBe(`editor/${id.T}/${id.A}`);
+      expect(name(deny, "role anon")).toBe(`editor/${id.T}/${id.A}/f.webp`);
+    });
+    it("self-check: the pre-fix order (compound before {demo}) is what the brace assertion rejects", () => {
+      const old = "{editor:{demo}:S}/{file}"
+        .replace(/\{(\w+):(\w+):(\w+)\}/g, (_, p, t, u) => s.path(p, t, u))
+        .replace("{demo}", H.DEMO)
+        .replace("{file}", "f.webp");
+      expect(old).toBe(`{editor:${H.DEMO}:S}/f.webp`);
+      expect(old).toMatch(/[{}]/);
+    });
+  });
   it("#2407a harness: DEMO matches packages/auth/constants DEMO_TENANT_ID", () => {
     expect(H.DEMO).toBe(DEMO_TENANT_ID);
   });
