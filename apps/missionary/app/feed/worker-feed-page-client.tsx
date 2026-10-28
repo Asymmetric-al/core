@@ -1003,6 +1003,7 @@ function PostComposerCard({
           >
             <RichTextEditor
               aria-label="Ministry post content"
+              imagePurpose="feed"
               value={postContent}
               onChange={setPostContent}
               placeholder={`What's happening? Share a ${postType.toLowerCase()}…`}
