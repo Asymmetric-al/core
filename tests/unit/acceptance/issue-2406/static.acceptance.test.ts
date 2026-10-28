@@ -100,16 +100,17 @@ const setsLimits = (sql: string) => {
     return false;
   const size =
     u.match(/file_size_limit\s*=\s*(\d+(?:\s*\*\s*\d+)*)/i)?.[1] ?? "";
-  const types = [
-    ...(
-      u.match(/allowed_mime_types\s*=\s*(ARRAY\s*\[[^\]]*\]|'[^']*')/i)?.[1] ??
-      ""
-    ).matchAll(/image\/[a-z+.-]+/g),
-  ].map((t) => t[0]);
+  // Addendum 1: every ARRAY entry must be one of the four quoted image types;
+  // any other entry of any kind (e.g. 'application/pdf') fails the predicate.
+  const entries = (
+    u.match(/allowed_mime_types\s*=\s*ARRAY\s*\[([^\]]*)\]/i)?.[1] ?? ""
+  )
+    .split(",")
+    .map((e) => e.trim().match(/^'(image\/[a-z+.-]+)'$/)?.[1] ?? "<other>");
   return (
     size.split("*").reduce((n, f) => n * Number(f), 1) === H.LIMIT &&
-    [...new Set(types)].sort().join() === H.TYPES.join() &&
-    types.length === 4
+    [...new Set(entries)].sort().join() === H.TYPES.join() &&
+    entries.length === 4
   );
 };
 /** M15 predicate: the record INSERT keeps the first row on re-apply. */
@@ -125,9 +126,25 @@ const recordsFirst = (sql: string) => {
     !/DO\s+UPDATE/i.test(ins),
   );
 };
-/** M10 predicate: rollback restores from the backup and never NULLs the limits. */
+/** M10 predicate: rollback restores from the backup and never NULLs the limits.
+ * Addendum 1: an UPDATE storage.buckets must read both limit columns from the
+ * backup table (alias form `col = r.col ... FROM backup AS r`). */
 const restoresRecorded = (sql: string) =>
   new RegExp(`\\b${H.BACKUP.replace(".", "\\.")}\\b`).test(sql) &&
+  statements(sql, /^UPDATE\s+storage\.buckets\b/i).some((u) => {
+    const r = u.match(
+      new RegExp(
+        `FROM\\s+${H.BACKUP.replace(".", "\\.")}\\s+(?:AS\\s+)?(\\w+)\\b`,
+        "i",
+      ),
+    )?.[1];
+    return (
+      !!r &&
+      ["file_size_limit", "allowed_mime_types"].every((c) =>
+        new RegExp(`\\b${c}\\s*=\\s*${r}\\.${c}\\b`, "i").test(u),
+      )
+    );
+  }) &&
   /RAISE\s+EXCEPTION/i.test(sql) &&
   !/(file_size_limit|allowed_mime_types)\s*=\s*NULL\b/i.test(sql) &&
   new RegExp(
@@ -225,6 +242,10 @@ describe("#2406 static contract", () => {
     expect(
       setsLimits(ok.replace("'image/gif'", "'image/gif','image/svg+xml'")),
     ).toBe(false);
+    // Addendum 1: a non-image entry of any kind must fail, not be ignored.
+    expect(
+      setsLimits(ok.replace("'image/gif'", "'image/gif','application/pdf'")),
+    ).toBe(false);
   });
   it("#2406 criterion 9 / §2.1: drops the three originals, creates the three named policies TO authenticated, leaves delete alone (M14)", () => {
     const sql = fwd();
@@ -287,6 +308,11 @@ describe("#2406 static contract", () => {
       restoresRecorded(
         `${sql}\nUPDATE storage.buckets SET file_size_limit = NULL WHERE id = 'profiles';`,
       ),
+    ).toBe(false);
+    // Addendum 1: without the restoring UPDATE the rollback must fail the predicate.
+    expect(sql).toMatch(/UPDATE\s+storage\.buckets\b/i);
+    expect(
+      restoresRecorded(sql.replace(/UPDATE\s+storage\.buckets\b[^;]*;/i, "")),
     ).toBe(false);
     expect(statements(sql, /\bGRANT\b/i)).toEqual([]);
   });

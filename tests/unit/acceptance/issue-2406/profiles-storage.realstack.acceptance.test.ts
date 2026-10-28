@@ -6,7 +6,8 @@
  * the first stack only, after the read-only criteria.
  * Mutants: M1 c4 "uid", M2 c4 "tenant", M3 c4 "purpose", M4 c4 "three
  * segments", M5 c6 "rename outside", M6 c2, M10 c10, M14 c7/c9, M15 c2 backup
- * row, M16 c2/c8 privileges, M17 c5 "S2 into demo".
+ * row, M16 c2/c8 privileges, M17 c5 "S2 into demo". Addendum 1 criterion 5:
+ * Z (donor, NULL tenant) has no folder at all, not even the demo one.
  */
 import { randomUUID } from "node:crypto";
 
@@ -125,6 +126,43 @@ const deny5 = (s: H.Stack): Case[] => [
     `${s.path("avatars", H.DEMO, "S2")}/${file()}`,
   ],
 ];
+/** Addendum 1 criterion 5: a tenant-less non-super_admin has no folder. */
+const denyZ = (s: H.Stack): Case[] => [
+  [
+    "Z into tenant T",
+    "authenticated",
+    "Z",
+    `${s.path("avatars", "T", "Z")}/${file()}`,
+  ],
+  [
+    "Z into demo avatars",
+    "authenticated",
+    "Z",
+    `${s.path("avatars", H.DEMO, "Z")}/${file()}`,
+  ],
+  [
+    "Z into demo covers",
+    "authenticated",
+    "Z",
+    `${s.path("covers", H.DEMO, "Z")}/${file("jpg")}`,
+  ],
+];
+/** Addendum 1 criterion 5: Z's owned legacy object cannot move into demo. */
+async function zUpdate(s: H.Stack) {
+  const issues: string[] = [];
+  const legacy = `avatars/${s.ids.Z}-123.webp`;
+  const to = `${s.path("avatars", H.DEMO, "Z")}/moved.webp`;
+  const r = await s.update("Z", legacy, { name: to });
+  if (r.code !== "42501")
+    issues.push(`Z legacy into demo: ${r.code ?? "allowed"}`);
+  const [kept] = await s.rows(
+    "select count(*)::int as n from storage.objects where bucket_id='profiles' and name=$1 and owner=$2",
+    [legacy, s.ids.Z],
+  );
+  if (kept!.n !== 1 || (await s.objects()) !== 6)
+    issues.push("Z legacy changed");
+  return issues;
+}
 
 /** Criterion 6 (OQ5): returns the cases that did not behave. */
 async function updates(s: H.Stack) {
@@ -237,6 +275,13 @@ function criteria(hosted: boolean) {
       "5: super_admin without tenant uses demo only; super_admin with tenant never demo (OQ4, M17)",
       async () => {
         expect(await inserts(s, allow5(s), deny5(s))).toEqual([]);
+      },
+    );
+    check(
+      "5 (addendum 1): donor Z with NULL tenant: INSERT into avatars/T/Z, avatars/demo/Z and covers/demo/Z refused 42501, no row; legacy UPDATE into avatars/demo/Z refused, unchanged",
+      async () => {
+        expect(await inserts(s, [], denyZ(s))).toEqual([]);
+        expect(await zUpdate(s)).toEqual([]);
       },
     );
     check(

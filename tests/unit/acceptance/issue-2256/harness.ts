@@ -71,8 +71,13 @@ export const READER_FUNCTIONS: Record<string, boolean> = {
   expire_eve_retention_records: true,
   handle_new_user: true,
 };
-/** §1.3: the one RLS policy reader, "schema.table policy". */
-export const READER_POLICIES = ["public.profiles profiles staff tenant select"];
+/** §1.3 RLS policy readers, "schema.table policy", sorted. #2406 addendum 1
+ * adds the two storage.objects folder policies (they read profiles.tenant_id). */
+export const READER_POLICIES = [
+  "public.profiles profiles staff tenant select",
+  "storage.objects profiles owner folder insert",
+  "storage.objects profiles owner folder update",
+];
 /** §1.3 app rows (files). */
 export const READER_APPS = [
   "apps/admin/src/cms/auth/supabase-strategy.ts",

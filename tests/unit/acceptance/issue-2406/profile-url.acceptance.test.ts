@@ -251,11 +251,26 @@ describe("#2406 PATCH /api/profile", () => {
     await accepted("profile", "M", { coverUrl: url });
     expect(row("missionaries", "profile_id", PROFILE.M).cover_url).toBe(url);
   });
+  // Follow-up: 'Profile API: super_admin with no tenant can't save PATCH /api/profile' (addendum 1: criterion 11 third bullet is validator-only).
   it("#2406 criterion 11: super_admin without a tenant may use avatars/<DEMO_TENANT_ID>/U/", async () => {
     await accepted("profile", "SA", { avatarUrl: own("avatars", "SA") });
     expect(row("profiles", "id", PROFILE.SA).avatar_url).toBe(
       own("avatars", "SA"),
     );
+  });
+  it("#2406 criterion 11 (addendum 1, validator-only): isOwnProfileImageUrl accepts avatars/<DEMO_TENANT_ID>/U/ for a tenant-less super_admin resolved to DEMO", async () => {
+    const { isOwnProfileImageUrl } =
+      await import("../../../../packages/api/src/profile/image-url");
+    const expected = {
+      purpose: "avatars",
+      tenantId: DEMO,
+      userId: A.SA.userId,
+      origin: ORIGIN,
+    } as const;
+    expect(isOwnProfileImageUrl(own("avatars", "SA"), expected)).toBe(true);
+    expect(
+      isOwnProfileImageUrl(own("avatars", "SA"), { ...expected, tenantId: T }),
+    ).toBe(false);
   });
   it("#2406 criterion 11: supabase-js getPublicUrl for #2308-layout keys is accepted (avatar and cover)", async () => {
     const bucket = createClient(ORIGIN, "anon-key").storage.from("profiles");
@@ -568,6 +583,27 @@ describe("#2406 criterion 18: PATCH /api/donor/portal avatarUrl (OQ3)", () => {
     (_l, value) =>
       rejected("donor", "D", { firstName: "Changed", avatarUrl: value }),
   );
+  // Addendum 1 criterion 8: a value stored in only one of the two columns is
+  // backfilled into the other; stored in both, neither column is written.
+  const backfill = async (profiles: string | null, donors: string | null) => {
+    row("profiles", "id", PROFILE.D).avatar_url = profiles;
+    row("donors", "profile_id", PROFILE.D).avatar_url = donors;
+    await accepted("donor", "D", { avatarUrl: own("avatars", "D") });
+    expect(row("profiles", "id", PROFILE.D).avatar_url).toBe(
+      own("avatars", "D"),
+    );
+    expect(row("donors", "profile_id", PROFILE.D).avatar_url).toBe(
+      own("avatars", "D"),
+    );
+  };
+  it("#2406 criterion 8 (addendum 1): donors X and profiles NULL, send X: both become X", () =>
+    backfill(null, own("avatars", "D")));
+  it("#2406 criterion 8 (addendum 1): profiles X and donors NULL, send X: both become X", () =>
+    backfill(own("avatars", "D"), null));
+  it("#2406 criterion 8 (addendum 1): both X, send X: avatar_url is in neither update payload", async () => {
+    await backfill(own("avatars", "D"), own("avatars", "D"));
+    expect(wrote("avatar_url")).toBe(false);
+  });
   it("#2406 criterion 18 (c16): NEXT_PUBLIC_SUPABASE_URL unset: changed URL 503 with no write, null 200", async () => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", undefined);
     await rejected("donor", "D", { avatarUrl: own("avatars", "D") }, 503);

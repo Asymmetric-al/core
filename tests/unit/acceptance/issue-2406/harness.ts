@@ -57,8 +57,9 @@ export type Role = "anon" | "authenticated";
 export type Snapshot = { policies: Row[]; buckets: Row[] };
 
 /** Actors: tenants T/T2; U donor and M missionary in T; X in T2; S super
- * admin without tenant; S2 super admin in T; N has auth.users but no profile. */
-const ACTORS = "T T2 U M X S S2 N".split(" ");
+ * admin without tenant; S2 super admin in T; N has auth.users but no profile;
+ * Z (addendum 1) donor whose profiles.tenant_id is NULL. */
+const ACTORS = "T T2 U M X S S2 N Z".split(" ");
 
 export class Stack {
   readonly database = `acc2406_${randomUUID().replaceAll("-", "")}`;
@@ -252,6 +253,7 @@ export class Stack {
       ["X", id.T2!, "donor"],
       ["S", null, "super_admin"],
       ["S2", id.T!, "super_admin"],
+      ["Z", null, "donor"],
     ];
     for (const [actor, tenant, role] of roles)
       await this.db.query(
@@ -260,7 +262,8 @@ export class Stack {
       );
     await this.db.query(
       `insert into storage.objects(bucket_id,name,owner) values
-       ('profiles',$1,$5),('profiles',$2,$5),('profiles',$3,$6),('profiles',$4,$6),('profiles','legacy/orphan.webp',null)`,
+       ('profiles',$1,$5),('profiles',$2,$5),('profiles',$3,$6),('profiles',$4,$6),('profiles','legacy/orphan.webp',null),
+       ('profiles',$7,$8)`,
       [
         `${this.path("avatars", "T", "U")}/seed.webp`,
         `avatars/${id.U}-123.webp`,
@@ -268,6 +271,8 @@ export class Stack {
         `avatars/${id.X}-123.webp`,
         id.U,
         id.X,
+        `avatars/${id.Z}-123.webp`,
+        id.Z,
       ],
     );
   }
