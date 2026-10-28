@@ -44,6 +44,8 @@ has none.
   SELECT policy. Listing, signed URLs and downloads go through RLS.
 - Direct browser uploads (the dormant `useBackendProcessing={false}` branch
   of `ImageUpload`) must use this layout and `upsert: false`.
+- The two folder policies read `profiles.tenant_id`, so they are in the
+  sanctioned reader set in `docs/security/identity-person-anchor.md` (#2267).
 
 ## Bucket limits
 
