@@ -77,7 +77,7 @@ export const collectionRegistry = [
     rls: "demo-review-required",
     mutationPolicy: "read-only",
     notes:
-      "Missionary profile data is browser-visible in product UI; production tenant RLS still needs explicit verification.",
+      "Missionaries rows are server-only; product UI reads them through server routes using the service role, never browser sync (#2364).",
   }),
   supabaseEntry("donorsCollection", donorsCollection, {
     rls: "demo-review-required",

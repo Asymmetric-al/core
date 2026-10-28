@@ -27,6 +27,13 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import * as H from "./harness";
 
 const ADMIN_URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
+// #2364 §7/OQ2 supersedes only missionaries' post-state expectations. Keep
+// #2312's original contract while #2364 is still an acceptance-only branch.
+const serverOnlyMissionaries = (t: string) =>
+  t === "missionaries" &&
+  existsSync(
+    "supabase/migrations/20261026105000_missionaries_server_only_reads.sql",
+  );
 const IN_MIGRATE_JOB =
   process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_JOB === "migrate";
 
@@ -229,6 +236,13 @@ describe.skipIf(!ADMIN_URL)(
      * 20260625002117) and re-grant the pre-state SELECT to anon/authenticated.
      */
     async function prepare(state: Record<string, string[]>) {
+      if (serverOnlyMissionaries("missionaries")) {
+        // Replaying #2312 itself needs its original predecessor, including
+        // #2251's FORCE and no #2364 column ACLs. Both changes roll back.
+        await db.query(
+          "revoke all (id, profile_id) on public.missionaries from authenticated; alter table public.missionaries force row level security",
+        );
+      }
       await db.query(`do $$ declare r record; begin
       for r in select policyname, tablename from pg_policies where schemaname = 'public' and tablename = any(array['${H.TABLES.join("','")}']) loop
         execute format('drop policy %I on public.%I', r.policyname, r.tablename);
@@ -271,7 +285,9 @@ describe.skipIf(!ADMIN_URL)(
               ]),
             ).toEqual([
               [
-                H.policyName(t),
+                serverOnlyMissionaries(t)
+                  ? "missionaries own row key read"
+                  : H.policyName(t),
                 "PERMISSIVE",
                 "SELECT",
                 ["authenticated"],
@@ -279,7 +295,11 @@ describe.skipIf(!ADMIN_URL)(
               ],
             ]);
             await db.query(
-              `create policy acc2312_ref on public.${t} as permissive for select to authenticated using (${H.qualFor(t)})`,
+              `create policy acc2312_ref on public.${t} as permissive for select to authenticated using (${
+                serverOnlyMissionaries(t)
+                  ? "EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = missionaries.profile_id AND (p.user_id = (SELECT auth.uid()) OR p.id = (SELECT auth.uid())))"
+                  : H.qualFor(t)
+              })`,
             );
             const ref = (await policies(t)).find(
               (x) => x.policyname === "acc2312_ref",
@@ -289,13 +309,23 @@ describe.skipIf(!ADMIN_URL)(
       );
 
       it.each(H.TABLES)(
-        "1: public.%s grants: anon and PUBLIC none, authenticated exactly SELECT, no column grants",
+        "1: public.%s grants match the owning contract (#2364 join keys supersede missionaries SELECT)",
         (t) =>
           tx(async () => {
             const a = await acl(t);
             expect(a.anon ?? []).toEqual([]);
             expect(a.PUBLIC ?? []).toEqual([]);
-            expect(a.authenticated ?? []).toEqual(["SELECT"]);
+            expect(a.authenticated ?? []).toEqual(
+              serverOnlyMissionaries(t) ? [] : ["SELECT"],
+            );
+            if (serverOnlyMissionaries(t)) {
+              const keys = await db.query(
+                "select attname from pg_attribute where attrelid='public.missionaries'::regclass and attnum>0 and not attisdropped and has_column_privilege('authenticated',attrelid,attnum,'SELECT') order by attname",
+              );
+              expect(
+                keys.rows.map((r: { attname: string }) => r.attname),
+              ).toEqual(["id", "profile_id"]);
+            }
             const col = await db.query(
               `select has_any_column_privilege('anon', $1, 'SELECT, INSERT, UPDATE, REFERENCES') as anon,
                     has_any_column_privilege('authenticated', $1, 'INSERT, UPDATE, REFERENCES') as auth`,
@@ -306,7 +336,7 @@ describe.skipIf(!ADMIN_URL)(
       );
 
       it.each(H.TABLES)(
-        "1 (addendum 1 item 2): public.%s keeps RLS enabled and FORCED",
+        "1 (addendum 1 item 2; #2364 missionaries supersession): public.%s keeps its owning RLS state",
         (t) =>
           tx(async () => {
             const r = await db.query(
@@ -357,15 +387,22 @@ describe.skipIf(!ADMIN_URL)(
         ),
       );
       it.each(H.FLOOR_TABLES)(
-        "2: on public.%s tenant A sees exactly A's row, tenant B exactly B's; never the NULL-tenant row",
+        "2: public.%s tenant-floor rows; #2364 missionaries join keys show only the caller's own record",
         (t) =>
           tx(async () => {
-            expect(await sees(user("UD1", "A"), t, keys(t))).toEqual([
-              ROWS[t]![0],
-            ]);
-            expect(await sees(user("UD3", "B"), t, keys(t))).toEqual([
-              ROWS[t]![1],
-            ]);
+            expect(await sees(user("UD1", "A"), t, keys(t))).toEqual(
+              serverOnlyMissionaries(t) ? [] : [ROWS[t]![0]],
+            );
+            expect(await sees(user("UD3", "B"), t, keys(t))).toEqual(
+              serverOnlyMissionaries(t) ? [] : [ROWS[t]![1]],
+            );
+            if (serverOnlyMissionaries(t)) {
+              expect(await sees(user("M1", "A"), t, keys(t))).toEqual([
+                "MA",
+                "MN",
+              ]);
+              expect(await sees(user("M2", "B"), t, keys(t))).toEqual(["MB"]);
+            }
           }),
       );
       it.each(H.FLOOR_TABLES)(

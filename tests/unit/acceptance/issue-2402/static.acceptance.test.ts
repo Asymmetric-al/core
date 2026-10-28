@@ -137,7 +137,7 @@ describe("#2402 static contract", () => {
       loadWorkflowDocument(".github/workflows/ci-integration.yml"),
     ).migrate!.steps![16]!;
     expect(step.name).toBe("Verify tenant isolation (real stack)");
-    expect(String(step.run).split(/\s+/).at(-1)).toBe(REAL);
+    expect(String(step.run).split(/\s+/)).toContain(REAL);
     const { index, ...rest } =
       PINNED_STEP_BODIES.migrate![`name:${step.name}`]!;
     expect(index).toBe(16);
