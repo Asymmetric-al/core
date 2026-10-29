@@ -1130,3 +1130,14 @@ normative volumes, owner reconciliation and active OpenSpec projection govern th
 intended scope. The [feature entry](../../features/missionary-workspace-depth/README.md)
 routes the specification, research and publication record. This is specification
 publication, not feature implementation, live source qualification or activation.
+
+## Phase 29 formal specification — 2026-10-29
+
+The [Files and Documents specification](phase-29-files-documents.md) formalizes
+the complete Q01–Q67 session and full founder scope under the explicit
+`/to-spec` instruction and confirmed testing seams. Its six canonical volumes,
+exact source/consumer trace, owner reconciliation and active OpenSpec package
+are published through [AL-2429](https://github.com/Asymmetric-al/core/issues/2429).
+Tenant policy flexibility, existing specialist owners and all source/native/
+provider/user qualification gates remain explicit. This is specification
+publication, not implementation, policy approval or activation.

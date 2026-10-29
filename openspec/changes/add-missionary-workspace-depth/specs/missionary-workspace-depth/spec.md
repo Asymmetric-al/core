@@ -4600,7 +4600,7 @@ Story: US28-C37. Source: coaching-resources.md. Decision basis: D26 task occurre
 
 The system SHALL satisfy this contract and the common safeguards in the canonical specification.
 
-Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-0778cfa0155a3c05f721` MUST apply without exception.
+Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-4c2fdabae8fc909eb143` MUST apply without exception.
 
 #### Scenario: AC28-C38-01
 
@@ -4626,11 +4626,27 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-0778c
 
 - **THEN** Reading or opening a resource creates no completion record, course credit, coaching disclosure, subscription or automatic task. Ordinary missionaries are readers rather than content submitters.
 
+#### Scenario: AC28-C38-07
+
+- **THEN** Staff Resources uses the current qualified staff-resource purpose in the existing staff experience; missionary readership remains independent. No curator, missionary profile, fabricated Party, Support ticket or Support-read privilege is required solely for qualified staff resource reading. Dual-context people receive only current-context results. Support D27-C authored Staff guides retain their distinct owner and ticket-free Support-read consultation.
+
+#### Scenario: AC28-C38-08
+
+- **THEN** Eligible resources remain available after an advisory review target passes, with truthful Review due/current-plan/applicable-actual-review/unknown states. Actual rights, safety and withdrawal still govern. Record review, Change review date and factual correction follow REQ29-C80–C86; no generic Publish/Save invents review or recurring cadence.
+
+#### Scenario: AC28-C38-09
+
+- **THEN** Report a problem and Your reports follow REQ29-C95–C102 and the explicit staff report-purpose adoption in REQ29-C107. Body failure need not block a source-qualified metadata-based report. Own report-purpose return is distinct from resource access; Open/Handled/Withdrawn, editor/restoration and curator correction/handling require their actual current powers, without chat, new notice or other-reader disclosure.
+
+#### Scenario: AC28-C38-10
+
+- **THEN** Optional Save for later/Remove from saved follows REQ29-C110–C115. A private reference resolves only the same publication's current authorized head; it is not a byte copy, hold, subscription or completion fact. Known unavailable resource, unknown evaluation and denied own-purpose are distinct; permitted own Remove remains independent of resource reading, and removed preferences do not revive through restore.
+
 ### Requirement: REQ28-C39 — Curate and publish resources intentionally
 
 The system SHALL satisfy this contract and the common safeguards in the canonical specification.
 
-Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-d3659d8d23f1d182d8c0` MUST apply without exception.
+Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-7b2e01be35c8928d5572` MUST apply without exception.
 
 #### Scenario: AC28-C39-01
 
@@ -4656,13 +4672,19 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-d3659
 
 - **THEN** Accessible source content is part of acceptance: unusable reading order, missing required captions or absent necessary alternatives are not cured merely by accessible library chrome.
 
+#### Scenario: AC28-C39-07
+
+- **THEN** Audience changes require review of the complete affected scope and one deliberate current command; no implicit Both, hidden-family omission, membership enumeration or broad role grant. Draft may have no audience; published empty declared set is not allowed. Zero currently eligible people in a declared family does not automatically withdraw the publication.
+
+#### Scenario: AC28-C39-08
+
+- **THEN** Separate preparation may reuse only actual permitted fields/exact content, never reviews/reports/approval/grants/history. New publication and old narrowing are separate deliberate recoverable acts, without atomic Split, synchronization or delay of urgent restriction. Shared replacement applies to the one shared edition; review applicability is reevaluated against content/audience/purpose, without false inherited Last reviewed or forced new review target.
+
 ### Requirement: REQ28-C40 — Withdraw resources through current custody and audience controls
 
 The system SHALL satisfy this contract and the common safeguards in the canonical specification.
 
-Withdrawal shall fence this library's new discovery and retrieval without deleting independently held/shared bytes, unrelated lawful uses or required evidence. Already delivered bytes cannot be recalled.
-
-Story: US28-C40. Source: coaching-resources.md. Decision basis: D12 reviewed withdrawal/current-delivery design; document custody and permission boundaries.
+Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-81f23f3d6cf4da086968` MUST apply without exception.
 
 #### Scenario: AC28-C40-01
 
@@ -4687,6 +4709,14 @@ Story: US28-C40. Source: coaching-resources.md. Decision basis: D12 reviewed wit
 #### Scenario: AC28-C40-06
 
 - **THEN** The solution reuses resource publication and custody owners without introducing another storage system, CMS, content-policy engine or speculative full-body/AI search service.
+
+#### Scenario: AC28-C40-07
+
+- **THEN** Removing the final declared family offers explicit whole-publication Withdraw and leaves current publication unchanged until that act commits. Withdraw validates its own current authority/basis independently of unrelated invalid or unsaved draft fields, preserving draft safely. Removing one family, whole withdrawal, temporary reader denial and byte deletion remain distinct.
+
+#### Scenario: AC28-C40-08
+
+- **THEN** Re-add/reoffer is fresh current admission, never stale retry/backup revival. Independent report-purpose maintenance and permitted personal-reference cleanup remain separately governed. Real scoped protection/stewardship recovery remains available without a full-scope editing bypass, automatic old-audience restoration or compulsory re-upload of lawful retained content.
 
 ### Requirement: REQ28-C41 — Discover, skip and return to an optional starting guide
 
@@ -4799,6 +4829,10 @@ Story: US28-C44. Source: coaching-resources.md. Decision basis: D37 bounded reso
 #### Scenario: AC28-C44-05
 
 - **THEN** The guide and its dependencies are checked on new protected release; a cached rendered revision cannot continue exposing a destination after its current source permission is lost.
+
+#### Scenario: AC28-C44-06
+
+- **THEN** Advisory Review due alone neither invalidates a guide reference nor produces a maintenance notice. Actual source-invalid references retain the existing maintenance contract. A separate publication/successor hint never silently moves a personal save or grants new resource/report access.
 
 ### Requirement: REQ28-C45 — Disable and re-offer guidance without losing independent work
 

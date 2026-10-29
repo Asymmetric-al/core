@@ -1,0 +1,445 @@
+/grill-with-docs
+
+\# Phase 29: File Manager & Document Management
+
+\*\*Repository:\*\* \`Asymmetric-al/core\`    
+\*\*Primary surface:\*\* Mission Control File Manager and embedded document controls.    
+\*\*Stable slug:\*\* \`files-documents\`
+
+\#\# 1\. Purpose and complete product outcome
+
+Run a deeply researched founder-grooming session that resolves everything needed to fully deliver Phase 29\.
+
+Give staff one dependable place to find, request, organize, inspect, review, and appropriately share the documents used throughout Asym. Public images, confidential evidence, generated donor documents, ministry resources, and development artifacts must be easy to work with without confusing their different authority, access, retention, and publication requirements.
+
+“One place” means a coherent experience and shared custody capabilities, not that everyone sees every file or that all document types become one interchangeable business object. Embedded controls must work directly inside the Party, application, expense, conversation, event, or publishing task so staff do not repeatedly download and re-upload the same document.
+
+Preserve the founder's supplied outcomes as the proposed Phase 29 baseline. Reconcile them with accepted source-owner contracts explicitly. Research and recommendations may fill gaps, but must not quietly replace the requested product or declare unbuilt capabilities complete.
+
+The product should make the next action obvious: what this document is, which version matters, whether it is usable, who may receive it, where it is used, and what remains unresolved. It is not a second CMS, office suite, generic workflow platform, or disconnected organizational drive.
+
+\#\# 2\. Session and authorization boundaries
+
+Research and grill only. Do not implement, mutate GitHub, provision storage, change permissions, purchase licenses, upload private material to third parties, activate integrations, or send real messages during grooming.
+
+Do not create a PRD or formal specification until I explicitly invoke \`/to-prd\`. Do not draft or publish implementation issues, tickets, epics, or a ticket dependency graph until I explicitly invoke \`/to-issues\`.
+
+Read the current \`/grill-with-docs\` skill and its supporting instructions. If installed stage skills use \`/to-spec\` or \`/to-tickets\`, explain the mapping before transition and obtain explicit authorization. Approval for an earlier phase does not carry over.
+
+Ask one meaningful decision at a time. Choose the questions dynamically from research, dependencies, and my answers. The sections below are a coverage map, not a questionnaire, prescribed schema, or predetermined sequence. Any examples are suggestions only.
+
+Investigate engineering details yourself. Present genuine founder-level product choices with sufficient context, practical alternatives, and your recommendation. Maintain research and decisions without disguising a full specification as a grooming summary.
+
+\#\# 3\. Establish current program and repository truth
+
+Read root and relevant scoped \`AGENTS.md\`, \`CONTEXT.md\`, ADR-0001, \`docs/ai/document-authority.md\`, the ownership matrix, and relevant OpenSpec product-intent, principles, boundaries, surfaces, and active changes.
+
+Read the current SiteStacker parity roadmap, phase map, README, and parity matrix, together with the program-roadmap integration guide, delivery contract, owner constraints, decisions/gates, and GitHub-impact records. The inspected roadmap is v3 with 45 phases; verify the current revision instead of relying on an older uploaded snapshot or phase prompt.
+
+Review predecessor PRDs/specifications through Phase 28 and trace the exact document capabilities they consume. Read the complete Phase 29 roadmap section and its retained owner constraints. Discover any newer Phase 28/29 specification, active branch, issue, or ratification; the previous Phase 28 prompt is not itself a completed specification.
+
+Keep founder-ratified intent, specification publication, adoption into another branch, implementation, qualification, and live release separate. Original PR merge status does not establish whether its contracts were subsequently adopted elsewhere. Conversely, integrated documentation is not runtime proof.
+
+Prioritize these established boundaries:
+
+\- \*\*Phases 3/4/9/10/11/12:\*\* authenticated identity, Party/record relationships, Files socket, shared tasks/views, classification, field metadata, restricted-data policy, and exact capabilities.  
+\- \*\*Phases 6/17:\*\* communication attachment purposes, governed document-request messages, notifications, approved content, dispatch, and delivery history.  
+\- \*\*Phases 7/18/19/25:\*\* official facts, Logical Documents, Generated Document Versions, canonical accessible artifacts, correction lineage, and donor retrieval.  
+\- \*\*Phases 15/20/21:\*\* scanned remittances, accounting exports, receipt evidence, prospective expense evidence, collaboration, records packages, travel/location evidence, and financial-source retention.  
+\- \*\*Phases 22/23/24:\*\* specialized public ministry media, logical Media catalog, exact Site/locale placements, rights, public generation activation, preview, withdrawal, and domain context.  
+\- \*\*Phases 26/27/28:\*\* private conversation attachments, development artifacts, shared-context restrictions, and authorized missionary resource/request surfaces.
+
+Trace future document consumers in Phases 30/31/34/37/38/39/40/41/42 and qualified Phase 43/44 extensions. Their exact integration needs matter; whole future products must not become prerequisites for their own file foundation.
+
+\#\#\# Mandatory concrete predecessor reads
+
+Read \`docs/prds/program-roadmap/owner-constraints.md\`, especially its detailed Phase 29 section, and:
+
+\- \`docs/adr/0171-tenant-wide-public-media-catalog-and-immutable-custody.md\`.  
+\- \`docs/adr/0126-release-bound-public-ministry-media-assets.md\`.  
+\- \`docs/adr/0165-asym-owned-reference-aware-recoverable-trash.md\`.  
+\- The current Phase 18 document/access/storage contract and its implementation publication.  
+\- Phase 21's exact private-evidence, collaborator retrieval, records-package, and disposition contracts, not only its summary.  
+\- \`docs/features/support-hub/docs/adr/0032-broader-attachment-previews-and-source-owned-renditions.md\`, its linked format/data/proof documents, and the final Phase 26 specification \#1656. Ratification and later publication may supersede historical grooming headers; follow the actual adoption chain.
+
+Read relevant issue bodies, blockers, amendments, and proof obligations. Useful starting points are Phase 23 \#1387–\#1389, \#1391, \#1393, \#1398–\#1399, and \#1401–\#1403 under \#1339; Phase 22 \#1301–\#1302 under \#1281; and the exact Phase 18/21/26 custody consumers. Locate the Phase 9 Files socket and Phase 34 file-request contract. Do not fabricate Phase 29 ticket numbers or infer completion from a closed issue title.
+
+Build a compact evidence map identifying what was actually read, accepted meaning, implementation state, unresolved gate, and Phase 29 responsibility.
+
+\#\# 4\. Inspect all current file paths, not just the future File Manager
+
+Census actual source, schemas, provider configuration, callers, serializers, migrations, jobs, and tests across all three applications and shared packages.
+
+Start with the following verified investigation leads, then discover their current replacements and reachability:
+
+\- \`supabase/schema.sql\`, storage migrations/policies, and actual environment bucket visibility when authorized read-only access is available.  
+\- \`packages/lib/cloudinary-client.ts\`, \`cloudinary-server.ts\`, \`assets.ts\`, their callers, the upload-signature route, and any duplicates.  
+\- \`packages/ui/components/shadcn/rich-text-editor/legacy-rich-text-editor.tsx\` and callers that upload to \`document-uploads\` or obtain public URLs.  
+\- Payload upload collections, storage adapters, \`assets\` records, media readers, image transformations, email assets, profile images, PDF/Document Studio outputs, import staging, Support attachments, and expense evidence.  
+\- Direct bucket access, \`getPublicUrl\`, signed URL serialization, overwrites/upserts, raw provider URLs, local-file fallbacks, temporary files, and deletion scripts.
+
+The inspected schema initializes a public \`document-uploads\` bucket. The inspected legacy editor uses that bucket, and \`packages/lib/assets.ts\` writes Cloudinary-returned metadata through a browser database client. These are census and boundary-review leads, not proof that every path is active or that hosted environments match a historical migration.
+
+Identify the current safe private seams already pulled forward by predecessor phases. Do not discard them merely because their implementations originated before Phase 29\. Equally, do not grandfather legacy URLs or mutable objects into certified custody.
+
+For each reached file family, record source owner, stable identity, accepted byte versions, storage copies, access path, applicable classification/retention, usages, processing, recovery, and tests. Distinguish retained user data from disposable fixtures. “No File Manager screen” does not mean “no files to migrate.”
+
+\#\# 5\. Current external research and benchmark discipline
+
+Use official product documentation and current source/release information. Record source date, edition, demonstrated capability, limitation, and the lesson for Asym. Do not claim authenticated product testing, licensed-source inspection, provider verification, or a passed spike unless it actually occurred.
+
+Research:
+
+\- \*\*Box and SharePoint:\*\* upload-only document requests, exact-version review, collaboration, controlled sharing, retention/holds, departure, and disposition. Learn the useful collection/review experience without adopting permissive link or folder behavior automatically. \[B1\]\[B2\]\[MS1\]\[MS2\]  
+\- \*\*Bynder and Cloudinary:\*\* metadata, renditions, version comparison, rights, usage discovery, restricted media, and duplicate detection. A duplicate-warning button itself can reveal a protected file; comparisons must be authorized before even announcing a match. \[BY1\]\[BY2\]\[C1\]  
+\- \*\*Salesforce Files and nonprofit CRM practices:\*\* separate document identity, versions, and record links. Use the distinction, not Salesforce's permission model or schema as an automatic design. Add current CiviCRM, Raiser's Edge, and SiteStacker documentation where it clarifies real ministry record/attachment workflows. \[SF1\]  
+\- \*\*Strapi/Payload:\*\* content review and publishing as separate domain responsibilities. An editorial stage is not malware clearance, evidence acceptance, a signature, or permission to expose bytes. \[ST1\]  
+\- \*\*Supabase Storage, Vercel Blob, Cloudinary, and S3-class storage:\*\* current access, multipart/resumable transfer, integrity, conditional operations, private serving, versions, retention enforcement, deletion, backups, region/egress, and exit. Recheck changelogs where older docs conflict. \[S1\]\[S2\]\[S3\]\[V1\]\[C1\]\[A1\]\[A2\]  
+\- \*\*OWASP and W3C:\*\* hostile-file handling, isolated previews, external-fetch restrictions, authorization, accessible upload/list/tree/dialog behavior, and non-drag alternatives. \[O1\]\[W1\]
+
+Important distinctions to verify against the chosen adapter: Supabase signed URLs survive Auth signing-key changes until expiry; Cloudinary \`private\` originals can have publicly accessible derived assets; private object-store authentication is not current Asym user authorization; and Supabase database backups exclude stored object bytes. Provider names such as private, signed, versioned, or deleted do not establish the complete product guarantee.
+
+Provider selection remains an engineering decision supported by compatibility and realistic workload evidence. Explain material cost, residency, license, reliability, and privacy tradeoffs to me, but do not ask me to choose unexplained storage APIs or make vendor choice the first product question.
+
+\#\# 6\. Required ReUI and shadcn direction
+
+Use these directly as design inspiration \*\*and as intended source material for direct UI reuse\*\*, choosing the exact composition and adaptation during implementation:
+
+\- https\://reui.io/components/file-type  
+\- https\://reui.io/components/table/c-table-13  
+\- https\://reui.io/blocks/solutions/files  
+\- https\://reui.io/components/file-upload
+
+Always use \*\*Base UI and exact \`base-maia\`\*\*, with Core's shared semantic tokens and \`packages/ui\` ownership. Never substitute Radix, another preset, a local component system, or a second application shell.
+
+Use available ReUI and shadcn \*\*MCP servers and CLI\*\* to inspect current source, variants, dependencies, and installation guidance. Read-only discovery belongs in grooming; changes/installations belong to later authorized implementation. Verify license entitlement for paid blocks and retain required notices. Do not assume source was obtained merely because a public preview is visible. \[UI5\]
+
+Apply the references purposefully: File Type for recognition; Table 13 for a clear file list; Files/Drive Explorer for navigation and list/grid composition; File Upload for selection and transfer feedback. Choose only the variants that serve the accepted journeys. Adapt the explorer to Mission Control's existing bounded layout rather than nesting another full-screen shell.
+
+Treat examples as UI, not product truth. ReUI's upload examples retain selected files locally until a server request is added. Replace simulated progress, fixture permissions, fake storage meters, and local-only success with qualified source state. File icons inferred from extensions do not validate content. A sharing badge or avatar does not determine authority.
+
+Inspect dependency compatibility rather than upgrading Core to whatever a current demo imports. Prefer shared components and existing TanStack patterns; do not overwrite repository primitives through a CLI default. If a block conflicts with Core's source or safety model, reuse its suitable UI parts and explain the adaptation instead of copying the conflict.
+
+\#\# 7\. Authority model to resolve and preserve
+
+Explain the difference between a business document, a version, the exact stored bytes, a rendition, a provider copy, and a use of that document.
+
+Phase 29 owns generic custody: immutable byte identity and integrity, private intake, processing/quarantine, qualified reading renditions, physical-copy inventory, authorized delivery, access evidence, owner-directed holds, and physical disposition.
+
+A consuming domain owns what its document means, how it relates to a business record, which version is current or accepted, who may use it for that purpose, and its retention/disposition authority. For general resources or documents not already owned elsewhere, explicitly define the narrow owner rather than leaving them ownerless or appropriating existing domains.
+
+Preserve these contracts:
+
+\- \*\*Phase 18:\*\* Logical Document and Generated Document Version identity, canonical accessible PDF, official currentness, issuance/correction, and evidence-only revisions. File Manager cannot expose old receipts as donor-selectable alternatives or regenerate/replace them through a generic upload.  
+\- \*\*Phase 21:\*\* receipt/plan/travel/card/opening evidence, exact claim/item/version coverage, collaborator access, records-package content/completeness, retention, and financial decisions. Adopting custody preserves existing opaque byte IDs; storing or losing a file cannot certify an expense, settle a case, or prove payment.  
+\- \*\*Phase 22:\*\* specialized ministry media identity, sanitized masters, placements, exact page-release references, and withdrawal. Preserve its discarded-source-name and restricted-worker rules; do not retain forbidden provenance just because a generic metadata field exists.  
+\- \*\*Phase 23:\*\* logical tenant-wide Media catalog, revision lineage, Site qualification, rights/safety evidence, placements, and Used in. D1 alone activates a public generation. Phase 29 does not build a competing Media library or decide public eligibility.  
+\- \*\*Phase 26:\*\* attachment occurrences, conversation restrictions, and exact reader purpose. Technical previews are not official Phase 18 artifacts, shared CRM copies, reusable email assets, or a new search corpus.
+
+“One document across uses” must not become one universal mutable record that overwrites these identities. One byte object can support several typed source references without collapsing their distinct business meaning.
+
+Keep Mission Control, Public Website, Donor Portal, and Missionary Workspace distinct. Storage administration, staff rank, folder membership, a document link, or a coaching relationship must not grant otherwise prohibited domain access.
+
+\#\# 8\. Coverage: identity, organization, and discovery
+
+\#\#\# Identity and links
+
+Resolve stable opaque identities, append-only byte versions, source attribution, provider-copy identity, exact-version versus owner-qualified current-version references, and correction lineage.
+
+Rename/move must preserve identity and references. A new storage provider or object key does not create a new business document. A newly uploaded file with the same name does not automatically replace another document.
+
+A matching digest proves byte equality, not identical provenance, rights, purpose, authority, or business significance. Separate same-tenant duplicate suggestions from physical deduplication. Avoid cross-tenant discovery and ensure deduplication cannot erase independently required retention or consent evidence.
+
+Link creation/removal must use valid source commands and same-scope references. Attaching a document to a public or less restricted record must not enlarge its audience. Seeing one permitted use must not expose every other use. Unlinking one use does not delete the bytes or discharge other obligations.
+
+\#\#\# Organization and search
+
+Provide folders, labels, typed metadata, sorting, saved views, filters, recent work, and practical list/grid selection. Separate uploader, document steward, business owner, and person described by the document.
+
+Folder hierarchy and metadata are organization, not automatic authorization or retention. Preserve Phase 23's already-decided Media-only folder contract rather than replacing it with a generic inherited-permission tree.
+
+Define filename normalization, long/international names, collisions, breadcrumbs, Unfiled, moves, and personal/shared saved views. Reuse the shared metadata/view capability where appropriate instead of inventing an unrestricted schema designer.
+
+Enforce authorization before search, facets, counts, autocomplete, ordering, duplicate warnings, pagination, and serialization. Sensitive titles, thumbnails, protected associations, and the mere existence of a hold/case can be confidential.
+
+Bulk actions must bind a finite selection, distinguish selected rows from all matching results, and recheck each item's current permission/version. Show an impact preview for consequential changes and report succeeded, blocked, failed, and not-started items honestly. Do not claim an atomic batch while some remote effects succeeded; resume only the unresolved intended work.
+
+Full-text extraction is separately purpose-qualified. Bind each index entry to exact source/version/coverage and current access; remove stale or revoked entries without exposing cached snippets. A partially indexed library cannot claim a complete no-results answer. Restricted content does not enter a broad search or AI corpus just because a user may download it.
+
+\#\# 9\. Coverage: reliable upload, processing, and previews
+
+\#\#\# Upload and replacement
+
+Define purpose-specific accepted formats and byte/count limits, camera sources, multi-file batches, progress, pause/resume/retry/cancel, abandonment, duplicate handling, and browser/navigation recovery.
+
+Use server-authorized upload sessions bound to actor, tenant, purpose, expected document/version, immutable target key, size/type bounds, expiry, and semantic retry identity. Do not let the client choose classification, tenant, public visibility, readiness, or overwrite behavior.
+
+Direct-to-storage transfer is permitted only through the qualified narrow grant; it is not blanket bucket access. Bind and verify completion independently. Provider callbacks and browser success are signals, not proof that correct bytes were received and accepted.
+
+Finalize using exact object identity, verified size/type/integrity, and source permission. Reconcile incomplete transfers, unknown outcomes, duplicate callbacks, cancellation/finalization races, orphans, and expired grants. A successful transfer can still need processing or business review.
+
+Replacement creates a candidate immutable version and preserves the current accepted version until its owner deliberately adopts the successor. Interrupted replacement must not remove the usable predecessor.
+
+\#\#\# Safety and processing
+
+Apply a small code-owned, versioned profile per purpose. Intake is private. Validate actual content, not extension or browser MIME alone; bound archive expansion, frame/pixel/page counts, nesting, memory, CPU, time, storage, and retries.
+
+Handle infected, suspicious, unscannable, encrypted, unsupported, malformed, and timed-out input distinctly. Scanner unavailability does not mean clean. Define safe operator recovery without a generic override that exposes known malicious content.
+
+Isolate parsers/converters with minimum privileges, no ambient credentials, and no unapproved network access. Prevent path traversal, archive/symlink escapes, external references, scripts/macros, embedded executables, decompression bombs, and remote-resource fetching. Do not submit private documents to public malware-analysis services.
+
+Qualify OCR or other extraction separately, including permitted input, provider egress, retention, language/coverage, and correction. Extracted text or an AI suggestion is not verified evidence or financial truth. Treat embedded document instructions as untrusted data, never authority to invoke tools, change policy, or expose other records.
+
+Keep custody state, processing state, usable preview, domain review, business acceptance, rights, and publication separate. A clean scan does not mean authentic evidence, a valid signature, financial acceptance, or permission to publish.
+
+Preserve originals where the source requires evidence fidelity. Metadata stripping, cropping, OCR, compression, redaction, conversion, and accessibility repair create separately identified outputs; they must not silently mutate signed or evidentiary originals. Apply stricter source-discard rules where already required.
+
+\#\#\# Read-only preview and comparison
+
+Carry forward Phase 26 D32's qualified images, static PDF, DOCX/PPTX reading renditions, XLSX saved-value view, and literal TXT/CSV contract. Reuse the narrow capability with current source access, not the Support conversation authority itself.
+
+Its Office reader does not execute macros, recalculate formulas, refresh external data, accept revisions, or show omitted content as though it were absent from the original. Missing saved spreadsheet results are unavailable, not zero. Keep its declared coverage, limits, expiry, concurrency, and qualification requirements unless explicitly amended.
+
+Define additional Phase 29 format/compare scope deliberately. A side-by-side view, extracted-text difference, visual difference, and legally meaningful agreement comparison are different products. Do not promise every-format fidelity or full comparison from a partial conversion.
+
+Preview and Download original are separate actions. Unsupported or failed preview does not automatically download the file, open an external viewer, or share a private URL with an office service.
+
+Bind derivatives to exact input digest, processor/profile version, options, restrictions, and coverage. Promotion and cleanup must have one winner; stale cleanup cannot delete an accepted rendition, and deletion-claimed bytes cannot become Ready. Reads cannot silently extend source or derivative retention.
+
+\#\# 10\. Coverage: reviews, comments, and document requests
+
+\#\#\# Exact-version collaboration
+
+Provide useful version history and review comments anchored to the intended version, page/location where supported, and business purpose. Clearly distinguish candidate, accepted, superseded, unavailable, and evidence-only versions using source meanings.
+
+A newer upload must not inherit approval of an older version. Resolve stale review, concurrent edits, replacement during review, correction, and re-review. Preserve who reviewed what without pretending that viewing equals approval.
+
+Comments, annotations, mentions, and notifications obey applicable confidentiality. Mentioning someone must not grant access; a filename in an email can itself leak a protected record. Generic comments must not become another Support inbox or repository of private care notes.
+
+\#\#\# Requests and fulfillment
+
+Define a practical bounded request: requesting owner/record, purpose, recipient, requested type and instructions, due date, responsible reviewer, permitted submissions, and exact request revision. Support replacement requests, multiple required items where justified, reminders, and visible missing work.
+
+Applicants and other limited-access participants may submit only to their authorized request. Upload-only access is not folder browsing, access to other submissions, an applicant account, or permission to read existing evidence. Claimed names/email addresses and possession of a link do not prove a legal identity.
+
+Resolve link/session assurance, expiry, revocation, forwarded links, replay, interrupted submission, recipient change, and recovery without requiring unnecessary full accounts or weakening sensitive-purpose assurance.
+
+Keep upload received, safe to inspect, reviewer decision, and source requirement satisfaction separate. A requirement can be satisfied only by its owning domain's accepted command/evidence. Rejection, needs-information, waiver, or replacement must not be invented by file-state changes.
+
+Capture request definitions/versioned instructions so an edit during upload cannot silently discard required metadata or reinterpret the submission. Preserve idempotent handoff and exact version reviewed.
+
+Native requests and shared review tasks must work without installing a configurable workflow. Reuse Phase 9 tasks and Phase 6/17 messages; Phase 34 coordinates later without creating duplicate requests, reminders, or acceptance effects.
+
+\#\# 11\. Coverage: private retrieval, sharing, and access evidence
+
+Define capabilities separately for discovery, source-original read, preview, download, upload, link, request, comment, review, share, restrict, export, hold, and authorized disposition. File Manager must consume the current Phase 12/source decision, not implement a second permission brain.
+
+A share identifies exact tenant, document/version or specifically qualified current-version resolution, recipient/audience, purpose, allowed action, expiry, and revocation. Default to the narrowest practical audience; an ordinary Copy link action must not make a document public.
+
+Distinguish a reference link that still requires authorization from a bearer link that itself carries authority. Short expiry is not immediate revocation. Preserve source contracts that prohibit reusable bearer URLs, including private expense collaboration and protected preview. Use current requester-authorized application retrieval for those lanes.
+
+Recheck the relevant source/permission on metadata, generation, promotion, full reads, range requests, conditional responses, print/export, and result recovery. Prevent an authorized initial request from opening unlimited later access after revocation.
+
+Protect every rendition, thumbnail, OCR/text output, manifest, and original consistently. Headers, filenames, cached errors, browser storage, analytics, and download URLs must not provide alternate disclosure paths. Strict private delivery is non-public and non-cacheable as required by its owner; public caching belongs only to independently qualified released media.
+
+A preview-only viewer can still photograph or capture displayed information. Watermarks and disabled download buttons are deterrents, not proof that copies cannot leave. Revocation blocks future authorized delivery; it does not erase bytes already received or retract an email attachment.
+
+Record protected access evidence accurately: authorization attempt, allowed/denied retrieval, selected version/purpose, stream outcome, and relevant actor/context. A URL grant is not a download, completed transport is not proof of human reading, and a print dialog is not proof of physical custody. Sensitive audit records require their own access and retention.
+
+\#\# 12\. Coverage: public media and internal resources
+
+\#\#\# Public assets and rights
+
+Reuse Phase 23's logical Media experience and Phase 22's specialized ministry assets. Phase 29 general document support must not silently expand either owner's accepted public format profile.
+
+Maintain immutable source/rendition lineage and qualified public outputs. Original camera metadata, private originals, inspection evidence, and raw provider URLs must not escape through a public derivative or alternate transformation URL.
+
+Rights, consent, safeguarding, purpose, territories/Sites, required credit, expiry, and review are current owner evidence. A storage visibility flag or clean scan cannot replace that evidence. Uncertainty remains reviewable, not automatically allowed.
+
+Keep alt text, captions, displayed credit, crop/art direction, locale, and accessibility meaning on their exact placements. A shared asset description is a suggestion, not automatically correct text for every use.
+
+Show permitted usage impact before replacement, withdrawal, or disposition. Released pages retain exact versions until their owner activates a successor. Prepare candidates privately; File Manager cannot publish by uploading or toggling Share publicly.
+
+Preserve active-generation versus bounded delivery-retained versus recovery-retained distinctions. Retention for recovery alone never grants anonymous access. Rights/safety withdrawal blocks current origin delivery before asynchronous cache cleanup; rights expiry constrains allowed caching. Report remaining external-cache/copy uncertainty honestly.
+
+\#\#\# Resource libraries
+
+Deliver a useful searchable internal library with qualified audiences, categories, language, owner, revision, review date, and successor guidance. Resolve who curates, reviews, withdraws, and replaces resources, including who owns any general-purpose resource record not already assigned elsewhere.
+
+Workers should know whether guidance is current and find its replacement. Region/category/folder membership must not grant access or reveal a restricted worker's location. A newer revision should not silently rewrite proof of what someone previously received.
+
+Keep the initial resource product distinct from a full learning-management system, office editor, public knowledge base, or mandatory acknowledgment program. Any required acknowledgment needs an explicit source-owned requirement, not an inferred read receipt.
+
+\#\# 13\. Coverage: generated and specialist artifacts
+
+Register custody references for receipts, statements, expense evidence, agreements, accounting/records exports, import sources, and development artifacts through their existing domain identities. Give users coherent navigation without exposing forbidden generic actions.
+
+Official artifacts retain exact facts/template/version lineage and their source's canonical-access and correction rules. A preview PDF is not an official generated document. A file restore cannot reinstate a voided receipt, accepted agreement, or revoked qualification.
+
+Phase 21 evidence families keep their exact purpose boundaries, including GPS/travel and sensitive card-related sources. Generic search/export or a staff role cannot turn these into ordinary shared attachments.
+
+Treat agreements and signature evidence as source-owned. Do not build e-signing or declare authenticity/legal validity from a filename, PDF signature indicator, or checksum. Never run transformations that invalidate the source original while continuing to label it signed.
+
+Phase 30 owns import transport/session meaning; Phase 29 holds exact source bytes under the correct lifecycle. Uploading a CSV does not import its rows, certify financial coverage, or replay historical effects.
+
+Phase 42 may retain source archives, manifests, fonts, packages, and build artifacts through qualified private profiles. File preview must not execute code, install dependencies, unpack unsafely, render active HTML/SVG in the app's authority, or trigger a build/deployment. General media selectors cannot enumerate private build artifacts.
+
+\#\# 14\. Coverage: retention, holds, usage, and disposition
+
+Apply owner-supplied versioned retention/disposition rules with their actual start event, purpose, scope, date precision, and hold authority. Do not invent a universal seven-year policy, restart a retention clock on download, or treat indefinite retention as automatically safest.
+
+Distinguish removal from a view, unlinking, withdrawal, Trash, recovery retention, expiry, deletion eligibility, deletion claimed/in progress, partial deletion, and verified physical disposition. These need not become one enormous status enum; keep independent facts and clear user labels.
+
+“Used in” needs complete coverage of registered owner/version families: business records, issued artifacts, drafts, live releases, schedules, private previews, reusable content, retained-delivery/recovery references, shares, communication preparation, and in-progress processing where applicable.
+
+An empty visible use list is not proof of no use. Validate completeness with registered owner coverage and reconciliation. Missing/stale adapters block destructive conclusions. Reveal only permitted use details; an authorized records operator may need a protected explanation while an ordinary user sees a safe cannot-delete reason.
+
+Prevent races between deletion and a new reference, hold, share, publication, upload finalization, or rendition promotion. Re-prove current authority and reference/hold state at the destructive admission point, not only when the confirmation dialog opened. Outbox cleanup alone cannot repair bytes already wrongly destroyed.
+
+Execute authorized disposition across originals, versions, renditions, staging, indexes, provider copies, and applicable backups under exact source policy. Use provider APIs and verified outcomes; deleting a metadata row or adding a storage delete marker is not proof all bytes disappeared.
+
+Keep an actionable partial-failure record and retry the same intended operation safely. Do not show Deleted while one required copy remains unresolved. Define lawful audit/tombstone retention without preserving unnecessary sensitive content.
+
+Holds preserve necessary evidence but do not grant ordinary viewing, revive public access, or authorize indefinite unrelated data retention. Releasing one hold cannot bypass another. Any legal-policy conflict requires the designated records/legal owner; the agent must not invent compliance guarantees.
+
+Restore cannot revive withdrawn rights, disposed-source eligibility, public generations, old shares, or expired requests. Apply disposal/revocation history before restored bytes are served. A clean backup is not permission to restore old access.
+
+\#\# 15\. Providers, portability, backup, and operations
+
+Choose the smallest qualified adapter set that meets the accepted purpose contracts. Multiple storage providers may be justified; multiple competing access authorities are not.
+
+Evaluate private/public delivery, per-purpose residency, scanner/converter processing location, encryption/key custody, range serving, maximum objects, resumable transfer, rate limits, lifecycle/version support, immutable copies, egress costs, procurement, and recovery. Keep provider-specific details behind the shared custody interface, not throughout domain code.
+
+Use current official documentation and isolated synthetic tests. Supabase, Vercel, or Cloudinary examples do not establish production compatibility with Core. Do not rely on a beta label from an older page when a newer release changes the state. No real credentials in examples, logs, URLs, or source control.
+
+Plan backup and restore for actual bytes, metadata, reference manifests, integrity, configuration, holds, and current revocations. Test a recovery-point and recovery-time target with representative data; do not infer recovery from database backups alone.
+
+Inventory all copies. Verify content with appropriate digests; provider ETags are not universally interchangeable with the chosen content hash. Provider exit must preserve product identities, version lineage, permissions, retention, and source references before old copies are removed.
+
+Authorized bulk download/exit uses a finite selected scope, current per-item authority, exact versions, a manifest, completeness labels, integrity evidence, short-lived private staging, and truthful partial results. A browser download or external upload acknowledgment does not establish verified destination custody or authorize deleting the source.
+
+External Drive/Box/SharePoint/S3/SFTP destinations, if genuinely required, use Phase 31's separately qualified connection and transfer contract. Do not make a connector marketplace or office coauthoring integration a hidden prerequisite for complete native browser workflows.
+
+Provide operator visibility for stuck uploads, scan/preview failures, unknown provider outcomes, integrity mismatches, orphans, stale usage coverage, pending holds/deletions, quota pressure, and restore/exit failures. Ordinary expected recovery must not require raw SQL or provider-console edits.
+
+Apply fair per-tenant work queues, byte/processing limits, cancellation, budgets, and alerts so one large archive or bulk upload does not starve document requests or receipts. Security cannot degrade into public delivery under load or during an outage.
+
+\#\# 16\. Design, implementation, and cross-phase delivery standards
+
+Build one complete private request-to-review-to-authorized-share journey and one complete public asset-to-placement-to-withdrawal journey. Then deepen organization, libraries, versions, and bulk operations on the same contracts. Do not equate a polished explorer with a completed custody product.
+
+Use Core's current Bun/Turborepo/Next.js stack, shared \`packages/ui\`, and appropriate TanStack Table/Virtual/Query/Form/Store/DB patterns. App routes remain thin; business database logic and authorization stay in the established shared server boundary. Read the installed framework documentation before assuming APIs.
+
+Keep the File Manager and embedded picker/viewer/upload/review controls consistent while adapting their density to the task. A donor viewing a receipt and an applicant submitting a passport do not need the staff drive UI.
+
+Provide accessible folder navigation, selection, sorting, list/grid controls, dialogs, and review context. Every drag action needs a non-drag pointer and keyboard alternative. Support focus restoration, long names, localization, mobile reflow, readable errors, persistent upload status, and assistive-technology progress announcements without excessive noise.
+
+Resumable online transfer is not blanket offline synchronization. Phase 39 may qualify specific device-persistence and replay behavior later; do not cache restricted files on devices or queue unapproved sharing, publication, or deletion for silent execution after reconnect.
+
+Saved, uploaded, processed, accepted, shared, downloaded, and deleted must correspond to real acknowledged states. Preserve permitted drafts and selections after recoverable errors. Reconcile a lost response using the same operation identity; do not create duplicate versions or show a successful action as failed because a later refresh failed.
+
+Recheck authority and expected revision on writes. Use same-scope foreign keys/typed references, uniqueness, appropriate transactions, durable operations, and exact cleanup/recovery fences. Privileged service paths need their own narrow checks; passing an authenticated role or owning a provider token is insufficient.
+
+Clear unsafe client caches and reject late results after user/tenant/purpose changes or revocation. Keep filenames, tokens, bodies, and restricted association data out of analytics, crash reports, queue labels, and general logs.
+
+Migration requires a retained-data census, integrity comparison, source-preserving mapping, and one authority cutover across readers, writers, jobs, previews, downloads, and scripts. Do not restore Twenty or preserve old public URLs as a private fallback. Do not destroy customer-relied-upon bytes based on a fresh-build assumption.
+
+Map every promised consumer to an exact producer, source ticket, current gate, qualification, safe unavailable state, and repair path. Reuse narrowly pulled-forward custody components; do not back-gate them on the entire File Manager or require all future workflows before native document requests can work.
+
+\#\# 17\. First-principles and plain-language standards
+
+Use the repo as evidence, not unquestioned authority. Evaluate the actual user need, real product problem, correct surface, clean source of truth, necessary data, visibility/edit rights, leak risks, duplicate logic, unnecessary complexity, five-year maintainability, and avoidable future refactors.
+
+Do not assume current packages, routes, naming, models, integrations, or implementation are long-term decisions. Check whether the pattern is supported by accepted OpenSpec/ADRs, intended to be durable, still appropriate after newer phases, and something we would choose again from a clean sheet.
+
+Before relying on a material pattern, classify it and explain why:
+
+\- \*\*Durable pattern:\*\* intentional, documented, and aligned; prefer preservation.  
+\- \*\*Useful precedent:\*\* helpful, potentially needing refinement.  
+\- \*\*Temporary bridge:\*\* served earlier work but is not automatically permanent.  
+\- \*\*Implementation accident:\*\* shaped by past constraints, speed, or incomplete work.  
+\- \*\*Conflict with first principles:\*\* technically possible but wrong for product, safety, ownership, or usability.
+
+Preserve accepted source boundaries; genuine changes need explicit owner amendments. Challenge accidental implementation and unnecessarily elaborate replacements. Modern SiteStacker parity means useful ministry capability with better current patterns, not copying an old file browser or another vendor's permission system.
+
+Explain each founder question as though I have zero technical experience but strong product judgment. Begin with a recognizable situation and the big picture. Explain what we are deciding, why it matters, what users experience, what could go wrong, and which later features it affects.
+
+Then explain the implementation consequences in normal language: records, APIs, permissions, services, screens, workflows, tests, and eventual tickets. Define terms such as immutable version, rendition, quarantine, bearer link, retention, and hold when used. Do not ask me to choose between unexplained technical labels.
+
+Give reasonable alternatives, practical tradeoffs, and a recommendation. Make clear which path is simpler, safer, more flexible, more costly, easier to operate, or more likely to require rework. Keep explanations clean and complete without hiding complexity.
+
+Consider donors, missionaries, applicants, public visitors, editors, administrators, finance, support, care, records operators, and organizational leaders. Explain how a decision affects one coherent Asym platform rather than only the current screen.
+
+\#\# 18\. Adversarial check after every answer
+
+Use these exact headings with brief, specific findings:
+
+\#\# Adversarial check  
+\#\#\# What could go wrong with this answer?  
+\#\#\# What hidden assumptions are we making?  
+\#\#\# How does this affect the whole product?  
+\#\#\# How does this affect the end-user experience?  
+\#\#\# Does this follow modern best practices?  
+\#\#\# Does this fit Asym’s existing repo and product direction?  
+\#\#\# Should we adjust the recommendation?
+
+Pressure-test source ownership, confidentiality, financial/legal meaning, unsafe parsing, stale authorization, duplicate effects, retention, publication, recovery, confusing UX, and future rework. Do not merely check whether the answer matches current code or a competitor.
+
+When necessary, say: “I would push back on that. The reason is...” Explain the questionable assumption, resulting risk, cleaner alternative, and decision to reconsider.
+
+For example, explain that replacing a file in the library must not change a receipt a donor already received, or that sharing a preview can disclose the same sensitive information as sharing an original. Do not stop at “this violates architecture boundaries.” These are explanation examples, not questions you must ask.
+
+Bring material findings back before ratification. Incorporate and briefly record minor safeguards that preserve my intent. A scope, access, ownership, retention, or approval change is not minor hardening.
+
+\#\# 19\. Completion and release evidence
+
+Maintain a compact decision log, vocabulary map, source register, outcome coverage checklist, and dependency/conflict register. Separate confirmed choices, research, proposals, assumptions, explicit deferrals, and evidence not obtained.
+
+Resolve enough for a complete implementation-ready specification: user journeys, exact custody/source contracts, supported formats, versioning, request/review semantics, permissions, disclosure, publication integration, retention, operations, migration, failure/recovery, and measurable acceptance.
+
+Required proof must cover:
+
+\- A staff member requests a private document; a limited participant uploads it; the correct version is inspected and reviewed; its owner accepts or rejects it; it is linked and shared only for the authorized purpose.  
+\- A public asset is safely processed, qualified by its source, placed with exact version/accessibility metadata, released through the owning publication path, and withdrawn without exposing its private original.  
+\- Unauthorized tenant/domain discovery through filenames, thumbnails, duplicates, counts, search snippets, stale caches, share links, prior versions, and alternate/range/conditional downloads is prevented.  
+\- Malicious, oversized, encrypted, unsupported, malformed, and interrupted inputs; duplicate callbacks; expired grants; replacement races; scanner outage; late processor output; and cleanup-versus-promotion races converge safely.  
+\- Held records, concurrent new uses, stale usage evidence, partial provider deletion, multiple versions/copies, and restore cannot permit premature destruction or resurrect old access.  
+\- Receipts, expense evidence, Support previews, resources, imports, and Phase 42 artifacts retain distinct meaning and exact source authority across reuse and migration.  
+\- Real database roles/policies, same-scope references, transactions, uniqueness, concurrency, workers, storage, and provider-contract behavior support end-to-end browser evidence. Service-role-only tests and mocks cannot prove authorization.  
+\- Keyboard, screen reader, non-drag pointer, mobile, long/international names, poor-network, repeated-submit, and lost-response journeys are usable. ReUI reuse does not itself certify accessibility.  
+\- Backup/restore and provider exit recover actual bytes and metadata with integrity and source references. Revocation/disposal suppression is applied before restored content can be served.
+
+Carry forward exact predecessor budgets where consumed, including Phase 23's catalog/intake workload and Phase 26's preview limits, performance, and expiry rules. Establish new workloads from representative document families, users, file sizes, and concurrent requests rather than inventing marketing numbers.
+
+Require a staff/missionary or participant pilot for the appropriate journeys, with task success, understandable state, recovery, and practical time/interaction measurements. A storage adapter, integration settings card, checklist, or polished screenshot is not delivered functionality.
+
+Do not declare readiness while material behavior is unresolved. Missing retention authority, unknown usage completeness, unqualified private retrieval, absent byte backups, or a conflicting predecessor must remain explicit blockers for the affected capability. Resolve engineering questions through research; bring genuine product choices to me. Do not silently remove core outcomes or invent placeholder success.
+
+Only after \`/to-prd\`, write the formal specification. Only after \`/to-issues\`, publish granular, nonduplicative, independently verifiable tickets with exact owner/predecessor references, native blockers, acceptance, migration, and proof. Verify the actual published GitHub records by readback.
+
+Begin with a short plain-language orientation, the important inherited decisions, and the single highest-leverage unresolved question you choose.
+
+\#\# Research starting points
+
+\[B1\]: https\://support.box.com/hc/en-us/articles/360044783734-Box-File-Request-FAQ  
+\[B2\]: https\://support.box.com/hc/en-us/articles/360044193773-About-Legal-Hold-Policies  
+\[MS1\]: https\://support.microsoft.com/en-gb/onedrive/create-a-file-request  
+\[MS2\]: https\://learn.microsoft.com/en-us/purview/retention-policies-sharepoint  
+\[BY1\]: https\://support.bynder.com/hc/en-us/articles/360013932879-Asset-Workflow-Assets  
+\[BY2\]: https\://support.bynder.com/hc/en-us/articles/13812491746194-Duplicate-Finder-during-Upload  
+\[C1\]: https\://cloudinary.com/documentation/control\_access\_to\_media  
+\[SF1\]: https\://developer.salesforce.com/docs/platform/mobile-offline/guide/use-images-upload-file-representation.html  
+\[ST1\]: https\://docs.strapi.io/cms/features/review-workflows  
+\[S1\]: https\://supabase.com/docs/guides/storage/serving/downloads  
+\[S2\]: https\://supabase.com/docs/guides/storage/uploads/resumable-uploads  
+\[S3\]: https\://supabase.com/docs/guides/platform/backups  
+\[V1\]: https\://vercel.com/docs/vercel-blob/private-storage  
+\[A1\]: https\://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html  
+\[A2\]: https\://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html  
+\[O1\]: https\://cheatsheetseries.owasp.org/cheatsheets/File\_Upload\_Cheat\_Sheet.html  
+\[W1\]: https\://www\.w3.org/WAI/WCAG22/Understanding/dragging-movements.html  
+\[UI5\]: https\://reui.io/docs/mcp  
+[https\://reui.io/components/table/c-table-13](https://reui.io/components/table/c-table-13)  
+[https\://reui.io/blocks/solutions/files](https://reui.io/blocks/solutions/files)  
+[https\://reui.io/components/file-upload](https://reui.io/components/file-upload)   
+[https\://reui.io/components/file-type](https://reui.io/components/file-type) 

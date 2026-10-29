@@ -2322,15 +2322,13 @@ remains subject to current permissions and required reviews. It is distinct from
 permanent access, automatic renewal and the dates of shared financial history.
 _Avoid_: forever access, missing expiry as permission, ongoing as automatic renewal
 
-**Organization-managed missionary resource library** (Phase 28 D12):
-A collection of useful materials prepared and published by authorized organization
-curators for missionaries who are permitted to use them. The initial ordinary
-missionary experience is to find and use resources, without submitting material
-for publication. Managing the library is a separate responsibility; publishing
-internally does not make a resource public, and removing it from the library is
-distinct from deleting the underlying material.
-_Avoid_: every staff member as publisher, upload as publication, internal as public,
-library withdrawal as deletion, resource use as completed training
+**Organization-managed resource library** (Phase 28 D12; Phase 29 Q58):
+A collection of useful materials prepared and published by authorized organization curators for staff or missionaries who are currently permitted to use them. Reading resources does not grant permission to submit or publish material or manage the library; internal publication does not make a resource public, and library withdrawal is distinct from deleting the underlying material.
+_Avoid_: every staff member as publisher, upload as publication, internal as public, library withdrawal as deletion, resource use as completed training
+
+Alias/provenance: Organization-managed missionary resource library is the former name of this P28 concept. Earlier records retain their original audience scope; an alias never retrospectively widens their grants or decisions.
+
+**Resource Problem Report:** A source-owned record of a reader's reported problem with a specified organization resource publication. It is distinct from changing or reviewing the resource, requesting access and starting a support conversation.
 
 **Regional ministry discovery** (Phase 28 D13):
 An organization-controlled way for missionaries to explore eligible public ministry

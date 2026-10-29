@@ -4,14 +4,14 @@
   "counts": {
     "stories": 205,
     "requirements": 205,
-    "acceptance": 768
+    "acceptance": 777
   },
   "sourceSha256": {
     "proof.md": "87caf57a3ecb4f574d8fe2102ac6a8dc55319c4153babe55a8d4534702c6bc29",
     "relationships.md": "230065e3ff2b69ddbd6adee8191f68532e898116584554ab3745d3514c064272",
     "finance-stewardship.md": "b8383fe32ef3c794f950f770f6342627c5217551a70e0d51d0e43b29b93db35c",
     "communications.md": "dfcc2e7ca0adfd59906954536d90eec637e622d732fafd0476f7d4726a9eaa36",
-    "coaching-resources.md": "5248b6c6ad2c9a6bf43fb3aec02c3d6e49006e0ee9ea33451434b9c4d1656615"
+    "coaching-resources.md": "6841684d3a4f8aa561690bdb1196f09115d08ea6478a7e95fc3d57655bbb81b3"
   },
   "decisions": {
     "D1": [
@@ -5357,8 +5357,8 @@
       "requirement": "REQ28-C38",
       "story": "US28-C38",
       "title": "Find useful organization resources",
-      "text": "As a missionary, I want a simple resource library, so that I can quickly find material my organization has approved for me.",
-      "basis": "Selected D12 organization-managed resource library; D37 resource reuse; reviewed source/audience safeguards reconciled in this specification.",
+      "text": "As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.",
+      "basis": "Selected D12 organization-managed resource library; D37 resource reuse; Phase29 Q55/Q57–Q59 ratified review, reporting, staff-reader and personal-return amendments.",
       "source": "coaching-resources.md",
       "acceptance": [
         {
@@ -5384,6 +5384,22 @@
         {
           "id": "AC28-C38-06",
           "text": "Reading or opening a resource creates no completion record, course credit, coaching disclosure, subscription or automatic task. Ordinary missionaries are readers rather than content submitters."
+        },
+        {
+          "id": "AC28-C38-07",
+          "text": "Staff Resources uses the current qualified staff-resource purpose in the existing staff experience; missionary readership remains independent. No curator, missionary profile, fabricated Party, Support ticket or Support-read privilege is required solely for qualified staff resource reading. Dual-context people receive only current-context results. Support D27-C authored Staff guides retain their distinct owner and ticket-free Support-read consultation."
+        },
+        {
+          "id": "AC28-C38-08",
+          "text": "Eligible resources remain available after an advisory review target passes, with truthful Review due/current-plan/applicable-actual-review/unknown states. Actual rights, safety and withdrawal still govern. Record review, Change review date and factual correction follow REQ29-C80–C86; no generic Publish/Save invents review or recurring cadence."
+        },
+        {
+          "id": "AC28-C38-09",
+          "text": "Report a problem and Your reports follow REQ29-C95–C102 and the explicit staff report-purpose adoption in REQ29-C107. Body failure need not block a source-qualified metadata-based report. Own report-purpose return is distinct from resource access; Open/Handled/Withdrawn, editor/restoration and curator correction/handling require their actual current powers, without chat, new notice or other-reader disclosure."
+        },
+        {
+          "id": "AC28-C38-10",
+          "text": "Optional Save for later/Remove from saved follows REQ29-C110–C115. A private reference resolves only the same publication's current authorized head; it is not a byte copy, hold, subscription or completion fact. Known unavailable resource, unknown evaluation and denied own-purpose are distinct; permitted own Remove remains independent of resource reading, and removed preferences do not revive through restore."
         }
       ]
     },
@@ -5392,7 +5408,7 @@
       "story": "US28-C39",
       "title": "Curate and publish resources intentionally",
       "text": "As an authorized resource curator, I want to prepare, review and publish material, so that the library contains intentional and current guidance.",
-      "basis": "D12 selected staff-managed library and reviewed publication/custody safeguards; existing content/document owners.",
+      "basis": "D12 selected staff-managed library and reviewed publication/custody safeguards; Phase29 Q58 shared-publication amendment and Q55 exact review applicability; existing content/document owners.",
       "source": "coaching-resources.md",
       "acceptance": [
         {
@@ -5418,6 +5434,14 @@
         {
           "id": "AC28-C39-06",
           "text": "Accessible source content is part of acceptance: unusable reading order, missing required captions or absent necessary alternatives are not cured merely by accessible library chrome."
+        },
+        {
+          "id": "AC28-C39-07",
+          "text": "Audience changes require review of the complete affected scope and one deliberate current command; no implicit Both, hidden-family omission, membership enumeration or broad role grant. Draft may have no audience; published empty declared set is not allowed. Zero currently eligible people in a declared family does not automatically withdraw the publication."
+        },
+        {
+          "id": "AC28-C39-08",
+          "text": "Separate preparation may reuse only actual permitted fields/exact content, never reviews/reports/approval/grants/history. New publication and old narrowing are separate deliberate recoverable acts, without atomic Split, synchronization or delay of urgent restriction. Shared replacement applies to the one shared edition; review applicability is reevaluated against content/audience/purpose, without false inherited Last reviewed or forced new review target."
         }
       ]
     },
@@ -5426,7 +5450,7 @@
       "story": "US28-C40",
       "title": "Withdraw resources through current custody and audience controls",
       "text": "As a curator, I want withdrawal to stop new library access reliably, so that outdated or unsafe material cannot remain available through stale navigation or download paths.",
-      "basis": "D12 reviewed withdrawal/current-delivery design; document custody and permission boundaries.",
+      "basis": "D12 reviewed withdrawal/current-delivery design; Phase29 Q58 audience/withdrawal/recovery refinements; document custody and permission boundaries.",
       "source": "coaching-resources.md",
       "acceptance": [
         {
@@ -5452,6 +5476,14 @@
         {
           "id": "AC28-C40-06",
           "text": "The solution reuses resource publication and custody owners without introducing another storage system, CMS, content-policy engine or speculative full-body/AI search service."
+        },
+        {
+          "id": "AC28-C40-07",
+          "text": "Removing the final declared family offers explicit whole-publication Withdraw and leaves current publication unchanged until that act commits. Withdraw validates its own current authority/basis independently of unrelated invalid or unsaved draft fields, preserving draft safely. Removing one family, whole withdrawal, temporary reader denial and byte deletion remain distinct."
+        },
+        {
+          "id": "AC28-C40-08",
+          "text": "Re-add/reoffer is fresh current admission, never stale retry/backup revival. Independent report-purpose maintenance and permitted personal-reference cleanup remain separately governed. Real scoped protection/stewardship recovery remains available without a full-scope editing bypass, automatic old-audience restoration or compulsory re-upload of lawful retained content."
         }
       ]
     },
@@ -5572,6 +5604,10 @@
         {
           "id": "AC28-C44-05",
           "text": "The guide and its dependencies are checked on new protected release; a cached rendered revision cannot continue exposing a destination after its current source permission is lost."
+        },
+        {
+          "id": "AC28-C44-06",
+          "text": "Advisory Review due alone neither invalidates a guide reference nor produces a maintenance notice. Actual source-invalid references retain the existing maintenance contract. A separate publication/successor hint never silently moves a personal save or grants new resource/report access."
         }
       ]
     },

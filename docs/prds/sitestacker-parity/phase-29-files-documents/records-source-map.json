@@ -1,0 +1,2610 @@
+{
+  "version": 1,
+  "authority": "Exact current clauses and proof groups; no runtime evidence claimed.",
+  "mappings": [
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 11,
+      "source_id": "Q62-C01",
+      "text_sha256": "02548cd407e88e9dac8177e154dafc0ccd036b54aa2aba7fb2ce0f2e6d543a0e",
+      "requirement_ids": ["REQ29-E01"],
+      "acceptance_ids": ["AC29-E01-01", "AC29-E01-02", "AC29-E01-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 13,
+      "source_id": "Q62-C02",
+      "text_sha256": "c034e9d4adf782e0e3c5404af4d505d9d472a659b304b4f27bf46c287db705ad",
+      "requirement_ids": ["REQ29-E01"],
+      "acceptance_ids": ["AC29-E01-01", "AC29-E01-02", "AC29-E01-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 15,
+      "source_id": "Q62-C03",
+      "text_sha256": "cdcc18f51e1f39be80aa9a37b5413e9a76d523972bfb55c10f79b7c8121cc3b3",
+      "requirement_ids": ["REQ29-E01"],
+      "acceptance_ids": ["AC29-E01-01", "AC29-E01-02", "AC29-E01-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 17,
+      "source_id": "Q62-C04",
+      "text_sha256": "ccaafc4cb7bea9d5162e2bf5fc54c586d431ac3f89d92a9555eaa32c1e2bcf0e",
+      "requirement_ids": ["REQ29-E02"],
+      "acceptance_ids": ["AC29-E02-01", "AC29-E02-02", "AC29-E02-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 19,
+      "source_id": "Q62-C05",
+      "text_sha256": "b465ca912d92a0f13a1821517db0511f7d4fbbcedc4fca40e974aa66ad7f0ed2",
+      "requirement_ids": ["REQ29-E02"],
+      "acceptance_ids": ["AC29-E02-01", "AC29-E02-02", "AC29-E02-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 21,
+      "source_id": "Q62-C06",
+      "text_sha256": "02b4140d634de5a34422c13b2de40ba4659c01062ec25bc644bf9da684fbf462",
+      "requirement_ids": ["REQ29-E02"],
+      "acceptance_ids": ["AC29-E02-01", "AC29-E02-02", "AC29-E02-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 23,
+      "source_id": "Q62-C07",
+      "text_sha256": "6b40ad54cd6137980e470bb8acfff30e0d2da19df219fb0183fd44b709da2bb8",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": [
+        "AC29-E03-01",
+        "AC29-E03-02",
+        "AC29-E03-03",
+        "AC29-E03-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 25,
+      "source_id": "Q62-C08",
+      "text_sha256": "3462830d1af5aa29186176a0b510b1e708ce7d51b9698b0ba52b7faa9fb73c9b",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": [
+        "AC29-E03-01",
+        "AC29-E03-02",
+        "AC29-E03-03",
+        "AC29-E03-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 27,
+      "source_id": "Q62-C09",
+      "text_sha256": "8261bcc2400985d10808650529a41df32ccc2937ab362bf389e0798ee1ec423e",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": [
+        "AC29-E03-01",
+        "AC29-E03-02",
+        "AC29-E03-03",
+        "AC29-E03-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 29,
+      "source_id": "Q62-C10",
+      "text_sha256": "8e6daa844cd83e68a3415df87a53825bd4dad38f7765e61f09b34fe10c4ad0c9",
+      "requirement_ids": ["REQ29-E04"],
+      "acceptance_ids": ["AC29-E04-01", "AC29-E04-02", "AC29-E04-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 31,
+      "source_id": "Q62-C11",
+      "text_sha256": "439f56e9318f4b7171d264793ad48764533eeca063c3419e6f27ff2b60fc18c7",
+      "requirement_ids": ["REQ29-E04"],
+      "acceptance_ids": ["AC29-E04-01", "AC29-E04-02", "AC29-E04-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 33,
+      "source_id": "Q62-C12",
+      "text_sha256": "969483bdee264ae372d035309bad1287d3bc0a244a31cc7659760e4393db9e5b",
+      "requirement_ids": ["REQ29-E04"],
+      "acceptance_ids": ["AC29-E04-01", "AC29-E04-02", "AC29-E04-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 35,
+      "source_id": "Q62-C13",
+      "text_sha256": "1956b468752ad60b0884c89812ecb4da54d6e1e6c60584d974ff199eee31fc5d",
+      "requirement_ids": ["REQ29-E05"],
+      "acceptance_ids": ["AC29-E05-01", "AC29-E05-02", "AC29-E05-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 37,
+      "source_id": "Q62-C14",
+      "text_sha256": "24c7b39b51257ae18722bea7666a43638e41aaded8415fad3e982e32e96aacb5",
+      "requirement_ids": ["REQ29-E05"],
+      "acceptance_ids": ["AC29-E05-01", "AC29-E05-02", "AC29-E05-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 39,
+      "source_id": "Q62-C15",
+      "text_sha256": "22d26242ee4abd757ea89269c778fc9fef5d40870e66a3d2a2eac037ffe6e160",
+      "requirement_ids": ["REQ29-E05"],
+      "acceptance_ids": ["AC29-E05-01", "AC29-E05-02", "AC29-E05-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 41,
+      "source_id": "Q62-C16",
+      "text_sha256": "295a8548c2724301f0a0c3bdf659f530977b7ceca4775fa9f6dda25a2e48dcc3",
+      "requirement_ids": ["REQ29-E05"],
+      "acceptance_ids": ["AC29-E05-01", "AC29-E05-02", "AC29-E05-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0062-approved-policy-application-for-ordinary-requests.md",
+      "source_sha256": "5d9880123b27ae922a5c697e4958c706159ce80387a9d3204916d1108203b06f",
+      "source_line": 43,
+      "source_id": "Q62-C17",
+      "text_sha256": "5eb201b996b47edd558397e6e066996ec2125566f4d8745ab13abb9e13651441",
+      "requirement_ids": ["REQ29-E05"],
+      "acceptance_ids": ["AC29-E05-01", "AC29-E05-02", "AC29-E05-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 13,
+      "source_id": "Q63-C01",
+      "text_sha256": "b41784463648b94270a20b1852d4765dc9ae496044064b7ca131c80dba16e397",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-01", "AC29-E06-02", "AC29-E06-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 15,
+      "source_id": "Q63-C02",
+      "text_sha256": "58a8a7e4cf2cc5b061cc65bc17c68584727a34f60fb11ebae409d32e895af523",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-01", "AC29-E06-02", "AC29-E06-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 17,
+      "source_id": "Q63-C03",
+      "text_sha256": "4bdc44bb633c860a26d1a7b0859b5b5becae2274a83cfb0c22feaaab012bb3aa",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-01", "AC29-E06-02", "AC29-E06-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 19,
+      "source_id": "Q63-C04",
+      "text_sha256": "59e857d09fb3405ceaa67bd3eeafb34edda07e8a175df765f90657f9297143a9",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-01", "AC29-E06-02", "AC29-E06-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 21,
+      "source_id": "Q63-C05",
+      "text_sha256": "e5d75183e0dca6254211f9d81cb3a5765a52632640451fc79cb07ea0ce69c1ac",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-01", "AC29-E06-02", "AC29-E06-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 23,
+      "source_id": "Q63-C06",
+      "text_sha256": "113e2a16814b02022a81b5464b0ec76b7579983028160766c047afd43ed7b352",
+      "requirement_ids": ["REQ29-E07"],
+      "acceptance_ids": ["AC29-E07-01", "AC29-E07-02", "AC29-E07-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 25,
+      "source_id": "Q63-C07",
+      "text_sha256": "763953f9a8d45dd3ca125b753e010420f47b0349294fe051b22cde104b07cba3",
+      "requirement_ids": ["REQ29-E07"],
+      "acceptance_ids": ["AC29-E07-01", "AC29-E07-02", "AC29-E07-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 27,
+      "source_id": "Q63-C08",
+      "text_sha256": "625ff5cbe8a78f2d4aab6b77ab400d19689e409aaec67a45442b84d8edcd72db",
+      "requirement_ids": ["REQ29-E07"],
+      "acceptance_ids": ["AC29-E07-01", "AC29-E07-02", "AC29-E07-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 29,
+      "source_id": "Q63-C09",
+      "text_sha256": "d4997665cfef451e24abe3d3d98af7ae2acf914ae407e9f134cf6d933d6af3ac",
+      "requirement_ids": ["REQ29-E08"],
+      "acceptance_ids": ["AC29-E08-01", "AC29-E08-02", "AC29-E08-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 31,
+      "source_id": "Q63-C10",
+      "text_sha256": "0595c6ece6f48990f83d94a69659da0ee6aa723d0883cafccc01624be493c36a",
+      "requirement_ids": ["REQ29-E08"],
+      "acceptance_ids": ["AC29-E08-01", "AC29-E08-02", "AC29-E08-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 33,
+      "source_id": "Q63-C11",
+      "text_sha256": "75d594c2e9df20ceba70ad9546e28e73434e3bb16b1fe305daf27d2c3e5f5e3a",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": [
+        "AC29-E09-01",
+        "AC29-E09-02",
+        "AC29-E09-03",
+        "AC29-E09-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 35,
+      "source_id": "Q63-C12",
+      "text_sha256": "6c8670c336522797e22f7b7932ee331a8906a6a25db1d6fb213caf57bf22997f",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": [
+        "AC29-E09-01",
+        "AC29-E09-02",
+        "AC29-E09-03",
+        "AC29-E09-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 37,
+      "source_id": "Q63-C13",
+      "text_sha256": "2de59278579dcefb88fc057e6a4a99ad3ce4a394287b828aa239dcf0c45a3a13",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": [
+        "AC29-E09-01",
+        "AC29-E09-02",
+        "AC29-E09-03",
+        "AC29-E09-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 39,
+      "source_id": "Q63-C14",
+      "text_sha256": "e2974e45fd767967046752241abb80737904b55265feedd5a52a97e22be5ecce",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": [
+        "AC29-E09-01",
+        "AC29-E09-02",
+        "AC29-E09-03",
+        "AC29-E09-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 41,
+      "source_id": "Q63-C15",
+      "text_sha256": "9cd45ad014704de8479757d1c1e608f99b3b3ff27e09b590941b6c45fa4f47e9",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-01", "AC29-E10-02", "AC29-E10-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 43,
+      "source_id": "Q63-C16",
+      "text_sha256": "e633cbda398f0cf49223ae0df004acc7222ebc9dc65205f5849f0d9ecc953b8a",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-01", "AC29-E10-02", "AC29-E10-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 45,
+      "source_id": "Q63-C17",
+      "text_sha256": "4dce27660e2be3c766f5f72fcc5e87fcc9e95297769f37ed41e2cfbf9c43d969",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-01", "AC29-E10-02", "AC29-E10-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 47,
+      "source_id": "Q63-C18",
+      "text_sha256": "0afc09a1dc925a4808f9e360b2dc7aaea5367dac8c66dde3a24a5ae108e61449",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-01", "AC29-E10-02", "AC29-E10-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0063-policy-authorized-automatic-ordinary-disposal.md",
+      "source_sha256": "c8bd48a675c370e60ecc50def55d3774efafe85e554489c9ee9b36f39c237532",
+      "source_line": 49,
+      "source_id": "Q63-C19",
+      "text_sha256": "ee9fa9348360f359c2bbc0ebfc668338784039090ded22f7f14a1ad1de8cdbae",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-01", "AC29-E10-02", "AC29-E10-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 13,
+      "source_id": "Q65-C01",
+      "text_sha256": "eb5ec23e71e3d4e234916fc51c87cc61abef17ba47f58a25f24d331ecec58c9b",
+      "requirement_ids": ["REQ29-E11"],
+      "acceptance_ids": ["AC29-E11-01", "AC29-E11-02", "AC29-E11-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 15,
+      "source_id": "Q65-C02",
+      "text_sha256": "b71be255f868d2b2e88ade5bb07426d36cbd60f1a84f91958755e5c92fe2462b",
+      "requirement_ids": ["REQ29-E11"],
+      "acceptance_ids": ["AC29-E11-01", "AC29-E11-02", "AC29-E11-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 17,
+      "source_id": "Q65-C03",
+      "text_sha256": "fb8f3717df06e910a0d6825a28a630c2a60a0090aed731929624167d7274405e",
+      "requirement_ids": ["REQ29-E11"],
+      "acceptance_ids": ["AC29-E11-01", "AC29-E11-02", "AC29-E11-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 19,
+      "source_id": "Q65-C04",
+      "text_sha256": "8867475add1cac65f4b2503135cc132619912db7afbf7ad8c3e8b22b159514f7",
+      "requirement_ids": ["REQ29-E11"],
+      "acceptance_ids": ["AC29-E11-01", "AC29-E11-02", "AC29-E11-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 21,
+      "source_id": "Q65-C05",
+      "text_sha256": "2892d928a29b842f98ad2980dcf942d7ab8fc1f8907761c4fbd680d003072c5a",
+      "requirement_ids": ["REQ29-E12"],
+      "acceptance_ids": ["AC29-E12-01", "AC29-E12-02", "AC29-E12-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 23,
+      "source_id": "Q65-C06",
+      "text_sha256": "cc7f5220ed5cc5ddfc9bba359e1ec4632a7184ff88f160c3e7a2c545019db0be",
+      "requirement_ids": ["REQ29-E12"],
+      "acceptance_ids": ["AC29-E12-01", "AC29-E12-02", "AC29-E12-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 25,
+      "source_id": "Q65-C07",
+      "text_sha256": "67293a5b9f9c387c570ef97285d8f73d11596364b77d18bd5702f7472d1f7b5a",
+      "requirement_ids": ["REQ29-E12"],
+      "acceptance_ids": ["AC29-E12-01", "AC29-E12-02", "AC29-E12-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 27,
+      "source_id": "Q65-C08",
+      "text_sha256": "efcbf1cee54d686a05cc4fe5d2a1458df53a8d364fe17554141a7498986bdbe1",
+      "requirement_ids": ["REQ29-E12"],
+      "acceptance_ids": ["AC29-E12-01", "AC29-E12-02", "AC29-E12-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 29,
+      "source_id": "Q65-C09",
+      "text_sha256": "3b96f3c89ba82e14a3132570c5d62d05c374c7f4e152426e45f8a478ba0f0d82",
+      "requirement_ids": ["REQ29-E12"],
+      "acceptance_ids": ["AC29-E12-01", "AC29-E12-02", "AC29-E12-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 31,
+      "source_id": "Q65-C10",
+      "text_sha256": "e1d4bd0809d768e562fc013dc5c39ae31d9a8baf589cadae903a8e8fbd94072c",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": [
+        "AC29-E13-01",
+        "AC29-E13-02",
+        "AC29-E13-03",
+        "AC29-E13-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 33,
+      "source_id": "Q65-C11",
+      "text_sha256": "5d44f25bbef0f331f58c222cbba7ea8ebbcda6991fced205bb5520b6498a2c0e",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": [
+        "AC29-E13-01",
+        "AC29-E13-02",
+        "AC29-E13-03",
+        "AC29-E13-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 35,
+      "source_id": "Q65-C12",
+      "text_sha256": "e8e1cf38b0efc74a7de82ab0693f0ffcf5ac514eaf6be90b8e5b1bcb8488f06f",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": [
+        "AC29-E13-01",
+        "AC29-E13-02",
+        "AC29-E13-03",
+        "AC29-E13-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 37,
+      "source_id": "Q65-C13",
+      "text_sha256": "4a66c860f1c3acac76f74bd134c7e03bdcf72d1a93fa01316eb71a682b99575d",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": [
+        "AC29-E13-01",
+        "AC29-E13-02",
+        "AC29-E13-03",
+        "AC29-E13-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 39,
+      "source_id": "Q65-C14",
+      "text_sha256": "e959ac13775f8473214fc3f6d3cbaf70c4b99688a50f433556f6c59925622a58",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": [
+        "AC29-E13-01",
+        "AC29-E13-02",
+        "AC29-E13-03",
+        "AC29-E13-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 41,
+      "source_id": "Q65-C15",
+      "text_sha256": "feef3039db7f1942ea74a9b9e18327fdf115e8c14fba5a861f2d32a17336eabb",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-01", "AC29-E14-02", "AC29-E14-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 43,
+      "source_id": "Q65-C16",
+      "text_sha256": "048b210267478154c020d2d72368e99f1e2f6a1bafebb626bca212abf23f22fe",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-01", "AC29-E14-02", "AC29-E14-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 45,
+      "source_id": "Q65-C17",
+      "text_sha256": "34e342840e33dcfe84fe287825225441e4ff46c278d9c44fd22cd184c43ded4f",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-01", "AC29-E14-02", "AC29-E14-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 47,
+      "source_id": "Q65-C18",
+      "text_sha256": "b1934904f2cd1de8241cb84a2b8ee0b249e7777c2cabfec98e48a12a5f9b4c1e",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-01", "AC29-E14-02", "AC29-E14-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 49,
+      "source_id": "Q65-C19",
+      "text_sha256": "6ff8479394b8bd0d3ab5e707cadcfca78a7fc8eb291f822f9968903ab7631e22",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-01", "AC29-E14-02", "AC29-E14-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 51,
+      "source_id": "Q65-C20",
+      "text_sha256": "e4956417929652c2e763625d4fbe7da73e9bc1ccdd636243785d4fd1b7ca1a8d",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-01", "AC29-E14-02", "AC29-E14-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0065-optional-source-owned-partner-document-reference.md",
+      "source_sha256": "0c2a74377c3883c289b2e3de3c16971b5b32b52fc1afa6b9295210ed2ae03404",
+      "source_line": 53,
+      "source_id": "Q65-C21",
+      "text_sha256": "47b99a054266be662cc7b977fc88e374f21e6ca653cb9b893fc3c0c0443f8e8c",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-01", "AC29-E14-02", "AC29-E14-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 13,
+      "source_id": "Q66-C01",
+      "text_sha256": "193203040cfa63425fc210ba81d24df42897238f603497670b4b3c8b99a6c199",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-01", "AC29-E15-02", "AC29-E15-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 15,
+      "source_id": "Q66-C02",
+      "text_sha256": "fe9030b7e33a7334e018c30b19a7354c133c0a1d54c0aa63ea15d0398928e04e",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-01", "AC29-E15-02", "AC29-E15-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 17,
+      "source_id": "Q66-C03",
+      "text_sha256": "5a92b4a56593506f65dec63a47d5ced554103ab45c667937e0930ba4e0a12fb3",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-01", "AC29-E15-02", "AC29-E15-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 19,
+      "source_id": "Q66-C04",
+      "text_sha256": "6c2f8b6631e580a842bcefe4ff74d7023d260af6065bde14fdbf8ff95ecfd9c9",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-01", "AC29-E15-02", "AC29-E15-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 21,
+      "source_id": "Q66-C05",
+      "text_sha256": "bd7bbee399b3b17c0ccf4b30ed07e0822fdb04b6cb39a9e9438de62d80821e71",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-01", "AC29-E15-02", "AC29-E15-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 23,
+      "source_id": "Q66-C06",
+      "text_sha256": "bd30b572f8b737437f6946d62a6f623539df302b6458e40849b828211b8ace61",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-01", "AC29-E15-02", "AC29-E15-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 25,
+      "source_id": "Q66-C07",
+      "text_sha256": "4f1e0358eef89c94b94916ed4a8748a54611b34d4286adfe4c939082742be92f",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-01", "AC29-E15-02", "AC29-E15-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 27,
+      "source_id": "Q66-C08",
+      "text_sha256": "be2b2477baad64d298947f8ae9491c77d3c087f92a2025fe302a0212afba1638",
+      "requirement_ids": ["REQ29-E16"],
+      "acceptance_ids": [
+        "AC29-E16-01",
+        "AC29-E16-02",
+        "AC29-E16-03",
+        "AC29-E16-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 29,
+      "source_id": "Q66-C09",
+      "text_sha256": "df42568ee4b667e71dcb1cd824542e8c952843853e045c176341fdf552f03f5f",
+      "requirement_ids": ["REQ29-E16"],
+      "acceptance_ids": [
+        "AC29-E16-01",
+        "AC29-E16-02",
+        "AC29-E16-03",
+        "AC29-E16-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 31,
+      "source_id": "Q66-C10",
+      "text_sha256": "9f7268c6afb6f7fab860f5df4b8284de7b2950dd583968ecca8852ff857657cc",
+      "requirement_ids": ["REQ29-E17"],
+      "acceptance_ids": [
+        "AC29-E17-01",
+        "AC29-E17-02",
+        "AC29-E17-03",
+        "AC29-E17-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 33,
+      "source_id": "Q66-C11",
+      "text_sha256": "b88dc98baf7cf08765aa1eccc3a68c42f6ad366566776ab61d4f07de2588f366",
+      "requirement_ids": ["REQ29-E17"],
+      "acceptance_ids": [
+        "AC29-E17-01",
+        "AC29-E17-02",
+        "AC29-E17-03",
+        "AC29-E17-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 35,
+      "source_id": "Q66-C12",
+      "text_sha256": "08352cfd2765d557d8345c974ab6211831076af0a227ab90f9f968b89c8dce8a",
+      "requirement_ids": ["REQ29-E17"],
+      "acceptance_ids": [
+        "AC29-E17-01",
+        "AC29-E17-02",
+        "AC29-E17-03",
+        "AC29-E17-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 37,
+      "source_id": "Q66-C13",
+      "text_sha256": "80fa7733057d29834e912bff0bfb61fe3392dd497cc635d49ea01f24f63e7350",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-01", "AC29-E18-02", "AC29-E18-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 39,
+      "source_id": "Q66-C14",
+      "text_sha256": "f4265aa5ebe2da74b522dc4bf0087e5ed32285bbe566573eba00072132692cff",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-01", "AC29-E18-02", "AC29-E18-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 41,
+      "source_id": "Q66-C15",
+      "text_sha256": "13867b821730c81915568e7ac8f988b0992159b30e9f35813dea8b44e8cce648",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-01", "AC29-E18-02", "AC29-E18-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 43,
+      "source_id": "Q66-C16",
+      "text_sha256": "79cb5cfa9c905504a8a4e4a630b84fab769b666070507c99f446742450b43f1f",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-01", "AC29-E18-02", "AC29-E18-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 45,
+      "source_id": "Q66-C17",
+      "text_sha256": "5c046a6998ab98a6b812f8298f16f8b627b623220c38ade21045c9ac82bb81cb",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-01", "AC29-E19-02", "AC29-E19-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 47,
+      "source_id": "Q66-C18",
+      "text_sha256": "b0c8e694830b1602defde8be95c2d6a658e4ff0a9b06880037f54916ee71c621",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-01", "AC29-E19-02", "AC29-E19-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 49,
+      "source_id": "Q66-C19",
+      "text_sha256": "a1aa684cd5b77cc2801c247b7ee34086cea2efdf2f90ee4b391d97e599f39739",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-01", "AC29-E19-02", "AC29-E19-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 51,
+      "source_id": "Q66-C20",
+      "text_sha256": "6617bee5fa395032cdc2e541b3e8526661031c3e84448bb021a9ecbeab6f5c83",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-01", "AC29-E19-02", "AC29-E19-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0066-tenant-controlled-ordinary-document-records-policies.md",
+      "source_sha256": "114a9951c1f069a3a8335922290bc42a5237ab011df0cf9f8c6b81155e16d2e9",
+      "source_line": 53,
+      "source_id": "Q66-C21",
+      "text_sha256": "7019afdd13845dacc6f0a473e4b25084d3085cd8afa0e5b963b933b6ce4b012b",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-01", "AC29-E19-02", "AC29-E19-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 15,
+      "source_id": "Q67-C01",
+      "text_sha256": "014f53b1f6f3ec5eb6db54f7668cb4d5d5fd6a2e665fea145fd6fb77c79085f9",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": [
+        "AC29-E20-01",
+        "AC29-E20-02",
+        "AC29-E20-03",
+        "AC29-E20-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 17,
+      "source_id": "Q67-C02",
+      "text_sha256": "9e59ded4f11dcbfe6e1533a828dc159e31ee44b633cac55701a0e9a1882c757e",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": [
+        "AC29-E20-01",
+        "AC29-E20-02",
+        "AC29-E20-03",
+        "AC29-E20-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 19,
+      "source_id": "Q67-C03",
+      "text_sha256": "cfdb5f3d671cc9c33aa1ec0ceab485a4d0a759bcf21c22002b96384027cc4556",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": [
+        "AC29-E20-01",
+        "AC29-E20-02",
+        "AC29-E20-03",
+        "AC29-E20-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 21,
+      "source_id": "Q67-C04",
+      "text_sha256": "a7835ffa639b77a56d77aee6376371efa0ebd18b73bfd16fb1d92fc92064627a",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": [
+        "AC29-E20-01",
+        "AC29-E20-02",
+        "AC29-E20-03",
+        "AC29-E20-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 23,
+      "source_id": "Q67-C05",
+      "text_sha256": "05a591b3d4c5ff4e6b81bbebd4f956a8a2802d7ff0c00701b012959b295c1df2",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": [
+        "AC29-E20-01",
+        "AC29-E20-02",
+        "AC29-E20-03",
+        "AC29-E20-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 25,
+      "source_id": "Q67-C06",
+      "text_sha256": "05084cffd08c154057118201e75e49bf2f0ad8c46d616e8150a6876b7a7b75e8",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": [
+        "AC29-E20-01",
+        "AC29-E20-02",
+        "AC29-E20-03",
+        "AC29-E20-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 27,
+      "source_id": "Q67-C07",
+      "text_sha256": "9ce16bea1dff0cb91befda6b7dd2592a12ef42ed7a1e7dfeeb72681861717d1b",
+      "requirement_ids": ["REQ29-E21"],
+      "acceptance_ids": ["AC29-E21-01", "AC29-E21-02", "AC29-E21-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 29,
+      "source_id": "Q67-C08",
+      "text_sha256": "957c3fc4dfc2ae4a62ea9bb87347daf7fda8c34aa899177127ebe22a345c3543",
+      "requirement_ids": ["REQ29-E21"],
+      "acceptance_ids": ["AC29-E21-01", "AC29-E21-02", "AC29-E21-03"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 31,
+      "source_id": "Q67-C09",
+      "text_sha256": "f36d7667f62ff602a594de0673fc2b714bb66ce02bf85ebec13c5b95c3cdcd3e",
+      "requirement_ids": ["REQ29-E22"],
+      "acceptance_ids": [
+        "AC29-E22-01",
+        "AC29-E22-02",
+        "AC29-E22-03",
+        "AC29-E22-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 33,
+      "source_id": "Q67-C10",
+      "text_sha256": "244cbc6c40f804bd2dd03197d53fe1203de0be8ff0bd7bbdeec287442f537eb7",
+      "requirement_ids": ["REQ29-E22"],
+      "acceptance_ids": [
+        "AC29-E22-01",
+        "AC29-E22-02",
+        "AC29-E22-03",
+        "AC29-E22-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 35,
+      "source_id": "Q67-C11",
+      "text_sha256": "61fbc67fab56cf030aa40adf14eb875b386192d6afe4789d6d608d561d485254",
+      "requirement_ids": ["REQ29-E22"],
+      "acceptance_ids": [
+        "AC29-E22-01",
+        "AC29-E22-02",
+        "AC29-E22-03",
+        "AC29-E22-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 37,
+      "source_id": "Q67-C12",
+      "text_sha256": "413da2bd78b2aa89417dc1f5ad2dd7eb06ec56655dffe1b008affe754c42ddd8",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": [
+        "AC29-E23-01",
+        "AC29-E23-02",
+        "AC29-E23-03",
+        "AC29-E23-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 39,
+      "source_id": "Q67-C13",
+      "text_sha256": "caec90857da9d4bef20f535bb4241e3cec0ab5a4e6523298dbe54d34cdb5eef6",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": [
+        "AC29-E23-01",
+        "AC29-E23-02",
+        "AC29-E23-03",
+        "AC29-E23-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 41,
+      "source_id": "Q67-C14",
+      "text_sha256": "70bc8a4a08ff0650027b20aa8a7caa4d98ac7556da17ca501790d5db6f0eba9a",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": [
+        "AC29-E23-01",
+        "AC29-E23-02",
+        "AC29-E23-03",
+        "AC29-E23-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 43,
+      "source_id": "Q67-C15",
+      "text_sha256": "754b5823ef9706c1562f0ba17110e4804a8ead17e2e00fce8b5a9fd056127239",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": [
+        "AC29-E23-01",
+        "AC29-E23-02",
+        "AC29-E23-03",
+        "AC29-E23-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 45,
+      "source_id": "Q67-C16",
+      "text_sha256": "6e1898d7c709ec7920026ba0fceb272cf62d0b509660fcdaaf7b16481996c777",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": [
+        "AC29-E23-01",
+        "AC29-E23-02",
+        "AC29-E23-03",
+        "AC29-E23-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 47,
+      "source_id": "Q67-C17",
+      "text_sha256": "0a75b253ada063efa05d6e4f789c6429456285f20df1ec864099bc3aea8fcfd7",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": [
+        "AC29-E23-01",
+        "AC29-E23-02",
+        "AC29-E23-03",
+        "AC29-E23-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/docs/adr/0067-authorized-recording-of-supported-external-events.md",
+      "source_sha256": "540fe22ac4c75a6c232545608d7985e273cf65c20661f79a9b7b9000b4778842",
+      "source_line": 49,
+      "source_id": "Q67-C18",
+      "text_sha256": "9b99100ab277bf7577d01abe8333c5bda65287672cbd34f9a509d74fed0d6b65",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": [
+        "AC29-E23-01",
+        "AC29-E23-02",
+        "AC29-E23-03",
+        "AC29-E23-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 67,
+      "source_id": "Q64-C01",
+      "text_sha256": "5d03f7110bc7192398a2f8493573d5c2e166b6b86e1cd9a0d9dbb0e8575d86e0",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 69,
+      "source_id": "Q64-C02",
+      "text_sha256": "d073c1213d840968f42d672a3c7d9a06cfabd3af7779b709ef307c585d4ab5eb",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 71,
+      "source_id": "Q64-C03",
+      "text_sha256": "2ff9e2e15b46c58f4a8c8a830fd83e1487656f0a5cf05433ed1c5fc15eebc244",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 73,
+      "source_id": "Q64-C04",
+      "text_sha256": "2a6d8cd29df8d0f887bf356eef20097236d0c3b05334289b3dcad00f6658b0a1",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 75,
+      "source_id": "Q64-C05",
+      "text_sha256": "b4d86f7b63c4e7eb9b28d43594cad91f5ae79a81bcaeba0a2f46c8eda963a14f",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 77,
+      "source_id": "Q64-C06",
+      "text_sha256": "d58b1a13056b80cc8392d8b4ef10a65602d2f6d6cedf8d5235526c8d9099d0ef",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 79,
+      "source_id": "Q64-C07",
+      "text_sha256": "92100668a4710463c1338d97d1255dea1478711c82289d93f5f0fad9fbf38dfb",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 81,
+      "source_id": "Q64-C08",
+      "text_sha256": "9fa2d1a9afe23577419cf691e1f6ec9341deeb9127737352ac1a0e03bf85818f",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 83,
+      "source_id": "Q64-C09",
+      "text_sha256": "0f210156d018fe0df753bc253a78230c30ee9fa1119f8bca4b7d69a3ef20ffa0",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 85,
+      "source_id": "Q64-C10",
+      "text_sha256": "5e61558ce8936916cfb52078650d96336742a171039787bab8f262e9f161326f",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 87,
+      "source_id": "Q64-C11",
+      "text_sha256": "3e836cb046850f7110508778b9ed70c52bf1b4a3d8473838100c78342f2099ec",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 89,
+      "source_id": "Q64-C12",
+      "text_sha256": "137b94908797fb17c1728ae618e62bbad5d88a5f9a0aa5bc1557b368c2bc94be",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 91,
+      "source_id": "Q64-C13",
+      "text_sha256": "018eb722e79126483e1257c904d20b2b9ce9907f996b1e3436f17f24728a5c37",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 93,
+      "source_id": "Q64-C14",
+      "text_sha256": "2232b4173d832bc5ce2c3492c27ae9177a564791cdc2e778e86b18319264cde3",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 95,
+      "source_id": "Q64-C15",
+      "text_sha256": "f4908da28369fcdfa021d58762792439a0876396672dc6a79ce07619aa3c7eb0",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 97,
+      "source_id": "Q64-C16",
+      "text_sha256": "2f0a5ed3f9256325cc8f7ae20e5c4cc0e16bc2ac1af56fb3fe97873b461b2dd0",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_clause",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 99,
+      "source_id": "Q64-C17",
+      "text_sha256": "70ac2004937b8cf1faa0b8fa1660ed8b05e7e0f1918b8aed39cd1ef04cd60b9e",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": [
+        "AC29-E24-01",
+        "AC29-E24-02",
+        "AC29-E24-03",
+        "AC29-E24-04"
+      ],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 148,
+      "source_id": "Q62-P01",
+      "text_sha256": "81b29bf14844d198aa5b00ac58bd1d13d897608048ff8b997bda1923eacbc624",
+      "requirement_ids": ["REQ29-E01"],
+      "acceptance_ids": ["AC29-E01-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 149,
+      "source_id": "Q62-P02",
+      "text_sha256": "f26ad4968ef82842ccdaecb825e04f6fb03ae00ca325cb332d60dc466aaf6913",
+      "requirement_ids": ["REQ29-E01"],
+      "acceptance_ids": ["AC29-E01-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 150,
+      "source_id": "Q62-P03",
+      "text_sha256": "31347481597b7f25f82a5681bd6a16deb24f4b565972334a343431d59912bf2a",
+      "requirement_ids": ["REQ29-E01"],
+      "acceptance_ids": ["AC29-E01-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 151,
+      "source_id": "Q62-P04",
+      "text_sha256": "5495da31b4ac89a6ca62c73041d3417d41e976b7ec2bec042a8443a621600c0b",
+      "requirement_ids": ["REQ29-E02"],
+      "acceptance_ids": ["AC29-E02-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 152,
+      "source_id": "Q62-P05",
+      "text_sha256": "e70935a7a8803b076b7e7de014bbaab5af09c34b2a9885ea3b32ab8e8d63a061",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": ["AC29-E03-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 153,
+      "source_id": "Q62-P06",
+      "text_sha256": "f8fdcf272e7330ca8fb30691760b75df3a6adda6aa4ec4f51a32ed6224e2caa9",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": ["AC29-E03-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 154,
+      "source_id": "Q62-P07",
+      "text_sha256": "b9b69f7acd0f59cc086a1691c316a00c229a30962ce83fe77bb07aed973955fd",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": ["AC29-E03-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 155,
+      "source_id": "Q62-P08",
+      "text_sha256": "91b7ae70e18558ba513a150e6aec758d5ca9f6e6c8f11fa4cd4c8762787010fc",
+      "requirement_ids": ["REQ29-E02"],
+      "acceptance_ids": ["AC29-E02-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 156,
+      "source_id": "Q62-P09",
+      "text_sha256": "2936cab3b6b568f6241dfa3305ea3263ea01acfb0f6d13112041d93e51dfb868",
+      "requirement_ids": ["REQ29-E04"],
+      "acceptance_ids": ["AC29-E04-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 157,
+      "source_id": "Q62-P10",
+      "text_sha256": "ea0a256997c5e2ad57e354beea1f0464aa105e0108279e75da449c3379e5c755",
+      "requirement_ids": ["REQ29-E02"],
+      "acceptance_ids": ["AC29-E02-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 158,
+      "source_id": "Q62-P11",
+      "text_sha256": "37a5c5cc7d377051d31ca6b56ba5d97bafc0e6ab9de5c5f164afa98e17c0ce5e",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": ["AC29-E03-08"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 159,
+      "source_id": "Q62-P12",
+      "text_sha256": "54459555b34304ffac4894a72ee0cb74cf2dfb92cb66a00c4db59271163d56f1",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": ["AC29-E03-09"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 160,
+      "source_id": "Q62-P13",
+      "text_sha256": "9abfe2bd3c19a85620b30b7346e3b66e99e02ef8f03d1dbcda43c8515d3a8774",
+      "requirement_ids": ["REQ29-E05"],
+      "acceptance_ids": ["AC29-E05-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 161,
+      "source_id": "Q62-P14",
+      "text_sha256": "a595940d05f8c4c733c5f485d96c35d2d23fb6d868c45200980c0bb569ff2030",
+      "requirement_ids": ["REQ29-E02"],
+      "acceptance_ids": ["AC29-E02-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 162,
+      "source_id": "Q62-P15",
+      "text_sha256": "88ee052bd97be19499338bfc1eaae7e688db9dc9c7feb56b72c80c55910857c1",
+      "requirement_ids": ["REQ29-E01"],
+      "acceptance_ids": ["AC29-E01-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 174,
+      "source_id": "Q63-P01",
+      "text_sha256": "4f7416d3bd976c56d72a793a6d8f5ddf260a1ed2fc7dc2d4cea79e386c9eb862",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 175,
+      "source_id": "Q63-P02",
+      "text_sha256": "92f3199bf8883fbdb12d1152af9b6bd6d7a62b685fce14917b3cc185c1ec4d0f",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 176,
+      "source_id": "Q63-P03",
+      "text_sha256": "fbbee1686eef62bea75bc894cb92c037242716e1eab63f6bf3c4360331ab9d9a",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 177,
+      "source_id": "Q63-P04",
+      "text_sha256": "1945e94f9ec36317fa0889e16fc6b60830ecb7f209898937d8e8d4cdf1f8bf89",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 178,
+      "source_id": "Q63-P05",
+      "text_sha256": "857db509ed7c129f480520b4e401d552f65a97bb69789ffcadad2ff1f9dcc03c",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-08"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 179,
+      "source_id": "Q63-P06",
+      "text_sha256": "07043165fce6ca8dd2cea422506aa437e4ef9110558a9147d2304f845f10f85b",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 180,
+      "source_id": "Q63-P07",
+      "text_sha256": "45b3e20c96327e6815f3da6ca8ef1a3065346354f44e68ba2b79740c23f089da",
+      "requirement_ids": ["REQ29-E07"],
+      "acceptance_ids": ["AC29-E07-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 181,
+      "source_id": "Q63-P08",
+      "text_sha256": "0df8023aaf3bae3203496a0d1d3ad5c15a6831afff64de51c8adeb9a3e4ccf69",
+      "requirement_ids": ["REQ29-E07"],
+      "acceptance_ids": ["AC29-E07-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 182,
+      "source_id": "Q63-P09",
+      "text_sha256": "6cd39fba6a15ce5d8dc698444882596b73705389eb533694a5924bc127fd4de2",
+      "requirement_ids": ["REQ29-E08"],
+      "acceptance_ids": ["AC29-E08-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 183,
+      "source_id": "Q63-P10",
+      "text_sha256": "037ce16eccdeb298429ec4734992160176a7a3a8fd4294d9d5f7a6567e7ecf51",
+      "requirement_ids": ["REQ29-E08"],
+      "acceptance_ids": ["AC29-E08-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 184,
+      "source_id": "Q63-P11",
+      "text_sha256": "8f47608b669648537438c96e80f1d4c1f9ac8c3807feeea50c32c137b969ac42",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": ["AC29-E09-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 185,
+      "source_id": "Q63-P12",
+      "text_sha256": "5cb35c95dc43b0d0ada255766e5b83dbd4326120643e4127c85a4898b6c532f9",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": ["AC29-E09-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 186,
+      "source_id": "Q63-P13",
+      "text_sha256": "00fce8b87dc887dfa248dae308193729e025176f3142a455cfae6582a14bfb7c",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": ["AC29-E09-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 187,
+      "source_id": "Q63-P14",
+      "text_sha256": "6f36a0f38223e54e016ee2e8bcc12e06353cc29abe8bf321f852f04567e5dee7",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 188,
+      "source_id": "Q63-P15",
+      "text_sha256": "c3bf15a416eb3a58a7334ea187f49d85cd181b0e69840eb6ec8d7e8c18fd7338",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 189,
+      "source_id": "Q63-P16",
+      "text_sha256": "00cd79b54dbf28736ec942ffd786a969873f2d16c349ed36141707a0d5bd6825",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 190,
+      "source_id": "Q63-P17",
+      "text_sha256": "f7bc9ca1c1e8533aa996f22c94c4f86b0ab66b2feb618791babe5e8ad010842f",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-08"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 191,
+      "source_id": "Q63-P18",
+      "text_sha256": "8324c6f5c98f88ae5d07352c75d3fc3956b37bf5223649fcca56cb6cbf22a2c8",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-09"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 194,
+      "source_id": "Q64-P01",
+      "text_sha256": "f3c74b3eb503efac07ba84881b36809efbac91b52b4a4561f48114da0554365f",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 195,
+      "source_id": "Q64-P02",
+      "text_sha256": "09f93d176634313f7d60b1b26d7d539ba6547adbb4c1d9528839aded4ebe2a31",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 196,
+      "source_id": "Q64-P03",
+      "text_sha256": "82fa21dd10ae3a3f4bda933d1fcd605668436bfdfac2b86dffc18286e757e76a",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 197,
+      "source_id": "Q64-P04",
+      "text_sha256": "144cb7cdc612b1f8a56735d8aa57d2014d6f5498cf59bada021024f9204c66fa",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-08"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 198,
+      "source_id": "Q64-P05",
+      "text_sha256": "9242932c9756fd6a919f1f2b0a76f4054c01b61f93ff838dcfec6591934cfc2a",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-09"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 199,
+      "source_id": "Q64-P06",
+      "text_sha256": "1caeadca5d1529ced06d277bb7deb0efff40c03981c8ded4d09ea1a42dc7ed1b",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-10"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 200,
+      "source_id": "Q64-P07",
+      "text_sha256": "de4b91fbed3e0dc6f8355121d4be35eabe74c51f31803685c14b7e647d98f5eb",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-11"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 201,
+      "source_id": "Q64-P08",
+      "text_sha256": "e8c2daef0072a288bb53552ef5338fa58f66b4c874edc66e8f1ea248e69041da",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-12"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 202,
+      "source_id": "Q64-P09",
+      "text_sha256": "05a06314846f688f744c2b687cdb860b95fbcc538c62f6734c3dc32fd9ee6486",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-13"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 203,
+      "source_id": "Q64-P10",
+      "text_sha256": "8687f758da07fafb2c0df26734256054151410e9557e463e1883149594815fa3",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-14"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 204,
+      "source_id": "Q64-P11",
+      "text_sha256": "e1c537634dc7640df59a75d6a3ececa30e8d9e1831f7a870f936457fdd00374e",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-15"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 205,
+      "source_id": "Q64-P12",
+      "text_sha256": "715e4c2c96df64342d872b63a4ee4f96c46b0781fd8176942fcdaaf78cd489e6",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-16"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 206,
+      "source_id": "Q64-P13",
+      "text_sha256": "b9e5737d06421b99c83b1400a3793280289c1cb5e6376f89a88f6d277f35c01a",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-17"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 207,
+      "source_id": "Q64-P14",
+      "text_sha256": "08623e04aaba7f7b1d2dc5f8bcf8c532663e5f12a26a457547390ff60c24f1d6",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-18"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 208,
+      "source_id": "Q64-P15",
+      "text_sha256": "cf0533ce5ef6102eed639e1ed64ad85dd75f98ef05d8a004a35ad6191f5e53cd",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-19"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 209,
+      "source_id": "Q64-P16",
+      "text_sha256": "e78b9031705a3b5a31cb6c113631c499c09e272aa4c9eca85b8b208a34600ef9",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-20"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 195,
+      "source_id": "Q65-P01",
+      "text_sha256": "2208d3464856bd6cd22e03fa4931186b734b6d433e48aebd2797da7d51ef05e5",
+      "requirement_ids": ["REQ29-E11"],
+      "acceptance_ids": ["AC29-E11-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 196,
+      "source_id": "Q65-P02",
+      "text_sha256": "fa42974e8f3a250571eeb2338043fa411c3fbc9eec4e05260f683009166b03bd",
+      "requirement_ids": ["REQ29-E11"],
+      "acceptance_ids": ["AC29-E11-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 197,
+      "source_id": "Q65-P03",
+      "text_sha256": "af169e5be7b9a2cb089897fcb64d91b3b9e69f19c94d45b3b605fe4f1fe09e45",
+      "requirement_ids": ["REQ29-E11"],
+      "acceptance_ids": ["AC29-E11-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 198,
+      "source_id": "Q65-P04",
+      "text_sha256": "e65c88452125dea800751f74f0d7ca8eb6ba471d8384b7429527ed7dfa700bf1",
+      "requirement_ids": ["REQ29-E12"],
+      "acceptance_ids": ["AC29-E12-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 199,
+      "source_id": "Q65-P05",
+      "text_sha256": "a35106da0b8bb960ede124d8a871d8438f4287fe95b176b511a52bd829dce6bb",
+      "requirement_ids": ["REQ29-E12"],
+      "acceptance_ids": ["AC29-E12-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 200,
+      "source_id": "Q65-P06",
+      "text_sha256": "dba5efc3453fcacb1b4bdef43fb793ddbd7160413a03fabd6670450f83ae4c3c",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 201,
+      "source_id": "Q65-P07",
+      "text_sha256": "1136d0cd6bd5a22985ccd8adb46624771a94d7ca7e54caeb4d0fda58cc43ae3b",
+      "requirement_ids": ["REQ29-E12"],
+      "acceptance_ids": ["AC29-E12-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 202,
+      "source_id": "Q65-P08",
+      "text_sha256": "cfa4fd8e73f48d92e99e9eb4fd96f123c9d3fd40cda4e931f68662df75383013",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 203,
+      "source_id": "Q65-P09",
+      "text_sha256": "7b3d21bfd5d86b9daa32d1422a676dee231430caf7d5dc7261c17c937749335a",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 204,
+      "source_id": "Q65-P10",
+      "text_sha256": "3c81526a826822dd67942863fbfffad23735d4efa53057f16df2b0b255bcf80f",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 205,
+      "source_id": "Q65-P11",
+      "text_sha256": "86a324316a9a6d68c4fc901ea40efe149bd4bb5e2e12a76d3d8580b6186a733c",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 206,
+      "source_id": "Q65-P12",
+      "text_sha256": "e856799534367396081c105b3252e8e197e8a5b0476d4cac724e6201d89c69a2",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 207,
+      "source_id": "Q65-P13",
+      "text_sha256": "a91237cfa2d694a89b4596776a1b1a0350bc247135789d62d7e39f938f0e3023",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-08"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 208,
+      "source_id": "Q65-P14",
+      "text_sha256": "e91b4ae3ea1de52b6857fb678829408c6cae789d403770ef85110e64d261496c",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-09"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 209,
+      "source_id": "Q65-P15",
+      "text_sha256": "b55ba67e77dc60238338453c8d075ed0da81f52e42e1e0cf2c09ba3cf4056920",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 210,
+      "source_id": "Q65-P16",
+      "text_sha256": "c2f20e2a865306d542bf95f4966ba7d595e6871a4ec4e69f26b59f1e89932631",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-08"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 211,
+      "source_id": "Q65-P17",
+      "text_sha256": "f3987a2f8349dad73bd7cbf8b9759c29f24f39fba538b1f3dc4c74986329e27b",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-09"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 212,
+      "source_id": "Q65-P18",
+      "text_sha256": "3c72dd71f58cad27eb142a80006d56249149060e63c2266d71935cebf636abeb",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-10"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 224,
+      "source_id": "Q66-P01",
+      "text_sha256": "4bd33d54d24b1a54ed84b38f94b82042b9754d64c461bd26db0a65231ee7dc83",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 225,
+      "source_id": "Q66-P02",
+      "text_sha256": "154661098a961024d4208f0e23d9e4a27ce77cb46e7ce62f1ade82a523e0479b",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 226,
+      "source_id": "Q66-P03",
+      "text_sha256": "104d5574f5c35b076614ea47dc5897d97ab231ddd7461c9059bf282477086ff5",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 227,
+      "source_id": "Q66-P04",
+      "text_sha256": "d797dfd80d0239b287fff35ec17071e5861fafbe8c54c9099e422b8b57e90ecf",
+      "requirement_ids": ["REQ29-E16"],
+      "acceptance_ids": ["AC29-E16-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 228,
+      "source_id": "Q66-P05",
+      "text_sha256": "cf4ff1d8a888a4ccddf78e8adce6d95489e7a8d38d1e8b2e780b217c483a3bad",
+      "requirement_ids": ["REQ29-E16"],
+      "acceptance_ids": ["AC29-E16-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 229,
+      "source_id": "Q66-P06",
+      "text_sha256": "681365e468614f3e978803cfba555e2bbe9d000820c79e989117e22925916656",
+      "requirement_ids": ["REQ29-E17"],
+      "acceptance_ids": ["AC29-E17-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 230,
+      "source_id": "Q66-P07",
+      "text_sha256": "7efbb8fd1e1f20f6a4da18f1a696ea6165b38feacfadc97460cb9a8d5897b252",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 231,
+      "source_id": "Q66-P08",
+      "text_sha256": "6af58e4e9c839033fbc9cb49639e16c41b5c03a01c48108462e4312b2224dfa6",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 232,
+      "source_id": "Q66-P09",
+      "text_sha256": "9c52ef040109b4ecf0dcd603f3eaecab9407be72d712ed741db8205aee43092c",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 233,
+      "source_id": "Q66-P10",
+      "text_sha256": "d6c26077acd1a45ce0cea98952e4487bd6552191040003d496a9def492ba8c16",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 234,
+      "source_id": "Q66-P11",
+      "text_sha256": "64cf715ad0164a6a6d30baf706df73a71c3d981a94baa35ddcf8e76c94daf770",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-08"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 235,
+      "source_id": "Q66-P12",
+      "text_sha256": "dcccce66bb2efd3773dcb5e6e4a40b25e0e57ff55bfb392099a58a597bd52b3a",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 236,
+      "source_id": "Q66-P13",
+      "text_sha256": "cb740c2201b6891206b5834729334d5c56b00ea9361fbed8c9d8915458938fe7",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 237,
+      "source_id": "Q66-P14",
+      "text_sha256": "906a6884336fb95323c86d8d5e1b9553931680645938180c4f2adb2f7155a838",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-09"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 238,
+      "source_id": "Q66-P15",
+      "text_sha256": "c8c4dadefc80abd6c387495581c3ab075faca9596abf8a440843f39a77112ebe",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 239,
+      "source_id": "Q66-P16",
+      "text_sha256": "b0045f380476df954cfb78d08afa48bd3a1c3e2d20a7d6a1fbd8fa89c817a59d",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 240,
+      "source_id": "Q66-P17",
+      "text_sha256": "89424da45c7fdbf4a2a55866a9b5b508fcde0df24a5635552d56b6c6f99d18fb",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-08"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 241,
+      "source_id": "Q66-P18",
+      "text_sha256": "bdd3030ca15701d707c86206a43b95ee3e6827085877a8e641d8e78612b5273a",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-09"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 179,
+      "source_id": "Q67-P01",
+      "text_sha256": "cc8ad022e949060740f9da0efa28cd57f9efcc772a7258e9e60acca215496da4",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": ["AC29-E20-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 180,
+      "source_id": "Q67-P02",
+      "text_sha256": "3a5a8e4bc3544638ad00920e9fe3a072e7654f2d2993a5ecbfeece55cb44bcd3",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": ["AC29-E20-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 181,
+      "source_id": "Q67-P03",
+      "text_sha256": "8074d34b38ad8b1cbdccbde81a526281d0283b51c3b17ed7469b85b6b3d84ca7",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": ["AC29-E23-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 182,
+      "source_id": "Q67-P04",
+      "text_sha256": "a6723f5b9514709fbb18611b3b228c3a77016d304604007bf85f16302a0a107e",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": ["AC29-E20-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 183,
+      "source_id": "Q67-P05",
+      "text_sha256": "c8d075c119d108befbce8e84879da32b572213da9d831b4abdfc1757bdb6bbe7",
+      "requirement_ids": ["REQ29-E21"],
+      "acceptance_ids": ["AC29-E21-04"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 184,
+      "source_id": "Q67-P06",
+      "text_sha256": "8b911d486883418cc940ebb70a5431c4ae036959d28cdf705ed77aa7314a0613",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": ["AC29-E20-08"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 185,
+      "source_id": "Q67-P07",
+      "text_sha256": "659774c0e2d3f07437010ec73f659008837c15ef3252dec7043ef6297c3b2c69",
+      "requirement_ids": ["REQ29-E21"],
+      "acceptance_ids": ["AC29-E21-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 186,
+      "source_id": "Q67-P08",
+      "text_sha256": "b9cd6441f40c5989756ac4d8e97e1305338320e78fa79556249ceaceab0f18bf",
+      "requirement_ids": ["REQ29-E22"],
+      "acceptance_ids": ["AC29-E22-05"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 187,
+      "source_id": "Q67-P09",
+      "text_sha256": "e25f2146601a91eba7e7357e7634a104161f52394431aa9eec42d08a80f7a0a2",
+      "requirement_ids": ["REQ29-E22"],
+      "acceptance_ids": ["AC29-E22-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 188,
+      "source_id": "Q67-P10",
+      "text_sha256": "234eced301157c67cbe161b468b52c01277e5cfd7c3c535a3953d094d966cd3a",
+      "requirement_ids": ["REQ29-E21"],
+      "acceptance_ids": ["AC29-E21-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 189,
+      "source_id": "Q67-P11",
+      "text_sha256": "95a322ed65058383353724ab9af9403c517b9015091da7e64d751e09b700a4ec",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": ["AC29-E23-06"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 190,
+      "source_id": "Q67-P12",
+      "text_sha256": "14058fa712d9edf4dc6996e0ff0b8c6e6622507ea3a0ccac9db51f9fe6baccc1",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": ["AC29-E20-09"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 191,
+      "source_id": "Q67-P13",
+      "text_sha256": "06a4eac2f1685005ea3bad601098ab4097e49ab666de91908283e9abcee0c6b4",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": ["AC29-E20-10"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 192,
+      "source_id": "Q67-P14",
+      "text_sha256": "0ea5fab7e6a1933762c0dab834cd376001dbd6abfaaadf7ab33bb2f1cba2c723",
+      "requirement_ids": ["REQ29-E21"],
+      "acceptance_ids": ["AC29-E21-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 193,
+      "source_id": "Q67-P15",
+      "text_sha256": "9ff9f60e2c44772e05d6117bea950aeb863c93791a6c1dd5e2686028f41e7324",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": ["AC29-E23-07"],
+      "disposition": "normative"
+    },
+    {
+      "source_kind": "ratified_proof",
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 194,
+      "source_id": "Q67-P16",
+      "text_sha256": "e728eed20e7bda10e020ee2de1e215b3698860e47d7685f8aac687f7362417e2",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": ["AC29-E23-08"],
+      "disposition": "normative"
+    }
+  ]
+}

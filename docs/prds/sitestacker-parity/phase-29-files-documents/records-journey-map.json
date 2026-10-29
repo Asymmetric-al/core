@@ -1,0 +1,2715 @@
+{
+  "schema_version": 1,
+  "status": "Specification source trace; runtime and user qualification unperformed",
+  "source_head": "629cb71dc206dd9aa7b2d5ed15aaf57914eee071",
+  "census_path": "docs/prds/sitestacker-parity/phase-29-files-documents/source-census.json",
+  "census_sha256": "9646a18a0ca541a0b4ccbde46849489a402c57afcdf41e1d8fc93162fcfe7af5",
+  "records_sha256": "1a2df01ee680dd3a3bffcec5f465ae7ac61f8f4e0e05138290992aa2dd0d5b4a",
+  "proof_sha256": "3930372448034c91c288079d86abcaf0f76285b4ca5f13081a3478a2494ff513",
+  "review_scope": "All 158 journey rows for Q62–Q67 read in full and mapped by outcome to specific existing E/P acceptance criteria. All 113 operative source clauses are independently checked against the source map; current bodies and new ACs were reviewed. References do not narrow incorporated normative clauses.",
+  "counts": {
+    "questions": 6,
+    "per_question": {
+      "Q64": 24,
+      "Q66": 28,
+      "Q65": 26,
+      "Q62": 28,
+      "Q63": 32,
+      "Q67": 20
+    },
+    "journeys": 158
+  },
+  "mappings": [
+    {
+      "source_id": "Q62-J01",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 113,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J01",
+        "Staff starts a request with one approved current default",
+        "Readable policy/scope/start in normal review; one normal Issue action; no extra policy confirmation. P01/P02/P14."
+      ],
+      "source_cells_sha256": "3f3392101611a2e643359a30632c8cbdebcb2e1c5942a1b7e17a96199d48bf1f",
+      "requirement_ids": ["REQ29-E01", "REQ29-E02"],
+      "acceptance_ids": ["AC29-E01-01", "AC29-E02-01"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J02",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 114,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J02",
+        "Staff has several genuinely permitted alternatives",
+        "Show meaningful differences and authorized choices, preserve draft; no arbitrary duration editor. P02/P14."
+      ],
+      "source_cells_sha256": "cb49462a88d6f9bbd63a72a4b14ad1e5be8183ff1471e8170d843ac2116e4af8",
+      "requirement_ids": ["REQ29-E01", "REQ29-E02"],
+      "acceptance_ids": ["AC29-E02-02", "AC29-E01-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J03",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 115,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J03",
+        "Source explicitly requires selection and has no default",
+        "Ask one deliberate source-defined choice; A remains usable without pretending unknown policy is valid. P02."
+      ],
+      "source_cells_sha256": "d405478f26ee8b253c4e2a549f889c3df8a34a47b6582e84262d161d6301d431",
+      "requirement_ids": ["REQ29-E01"],
+      "acceptance_ids": ["AC29-E01-01", "AC29-E01-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J04",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 116,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J04",
+        "Issuer lacks policy-management/choice power",
+        "Valid fixed rule applies; no administration/alternative controls or hidden field leakage. P04/P14."
+      ],
+      "source_cells_sha256": "f32f6afcadf293e9c69db7020849ff493d1d0e29a849ab95c8d6ef624f643fad",
+      "requirement_ids": ["REQ29-E01", "REQ29-E02"],
+      "acceptance_ids": ["AC29-E02-04", "AC29-E01-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J05",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 117,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J05",
+        "Necessary purpose fact is missing",
+        "Ask only the actual permitted fact; no filename/locale inference or speculative questionnaire. P01/P02."
+      ],
+      "source_cells_sha256": "6222f23a636aff6debfea6b39326108e4f5449eaa4641cb1675c1d9969db7ca3",
+      "requirement_ids": ["REQ29-E01"],
+      "acceptance_ids": ["AC29-E01-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J06",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 118,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J06",
+        "Policy absent/incompatible versus temporarily unverifiable",
+        "Distinct safe messages; independently lawful draft retained; real owner repair or safe retry. No auto-issue after repair. P06/P14."
+      ],
+      "source_cells_sha256": "923d647d10486d1478f890fe755991deff9ba32b052e64fcdf5aefa710276f86",
+      "requirement_ids": ["REQ29-E01", "REQ29-E03"],
+      "acceptance_ids": ["AC29-E01-02", "AC29-E03-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J07",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 119,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J07",
+        "Earlier draft/staging acts while final issuance is blocked",
+        "Only independently admitted preparation persists; late issuance cannot bless unqualified stored bytes/prose. P03/P09."
+      ],
+      "source_cells_sha256": "75b2a41115ac9722b39a6231fcf32ebd99b3d6d467b14b6d34ea33dbfbe0279b",
+      "requirement_ids": ["REQ29-E01", "REQ29-E02"],
+      "acceptance_ids": ["AC29-E02-03", "AC29-E01-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J08",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 120,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J08",
+        "Staff inspects details, changes choice, backs out or cancels",
+        "Safe input/focus remain; no new issue/send/delete from navigation/blur/IME. P02/P14."
+      ],
+      "source_cells_sha256": "c7427b775fe678a721dfa58d164cacdfeb110e835ad7470e58357bc12c3bff63",
+      "requirement_ids": ["REQ29-E02"],
+      "acceptance_ids": ["AC29-E02-02", "AC29-E02-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J09",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 121,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J09",
+        "Policy/purpose changes materially while review is open",
+        "Current basis wins; explain meaningful change before new deliberate act. Unrelated/identical refresh adds no ritual. P05."
+      ],
+      "source_cells_sha256": "de0ec5b0812986e7267f7864718c02fe7c565f15fbc46e7bb3b45873d5939ede",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": ["AC29-E03-03", "AC29-E03-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J10",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 122,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J10",
+        "Membership/capability/context changes mid-request",
+        "Current actor/Tenant/environment/source checks and cache rejection; no stale submission or old-tenant details. P04/P05."
+      ],
+      "source_cells_sha256": "d1dc996be6f2b82943667a75dfa8406fee9219d370f1fb4d2dc020f050d20db5",
+      "requirement_ids": ["REQ29-E02", "REQ29-P02"],
+      "acceptance_ids": ["AC29-E02-04", "AC29-P02-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J11",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 123,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J11",
+        "Another staff member edits concurrently",
+        "One coherent current result; stale actor gets truthful conflict with retained permitted input, no overwrite. P05/P10."
+      ],
+      "source_cells_sha256": "a2cf3d067482cc1a1eb84d74d908ed659cafd1f0f4ff1c1c3d9374f33ebb0fd7",
+      "requirement_ids": ["REQ29-E03", "REQ29-E05"],
+      "acceptance_ids": ["AC29-E03-05", "AC29-E05-01"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J12",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 124,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J12",
+        "Issue committed; response or refresh is lost",
+        "Recover original request/policy/actor/time before any new attempt; show known success even if projection refresh failed. P06."
+      ],
+      "source_cells_sha256": "0dfacafbbb354063a636a021c2652d2f56a0663da64ecd43865ba1468f6ebbc6",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": ["AC29-E03-01", "AC29-E03-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J13",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 125,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J13",
+        "Same operation retried with different choice/context",
+        "Conflict rather than reinterpret old operation; no cross-context result disclosure. P05/P06."
+      ],
+      "source_cells_sha256": "dae0973a34fef5f64c1e6486735fd532989d5eca3b8f314322c6de37abd8e7f5",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": ["AC29-E03-04", "AC29-E03-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J14",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 126,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J14",
+        "Template or previous request copied",
+        "Definitions only; current new-instance source binding, no cloned authority or historic clock reset. P03/P08."
+      ],
+      "source_cells_sha256": "79fe28ae4f2858d8eb22ab0b52d5dce77b1b5f481504341f223ed6ccf1a8771e",
+      "requirement_ids": ["REQ29-E01"],
+      "acceptance_ids": ["AC29-E01-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J15",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 127,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J15",
+        "Default changes after issuance",
+        "Historical admitted basis stays; only actual approved successor-impact rules alter current applicability. P07/P12."
+      ],
+      "source_cells_sha256": "89952512d9e8c57826358a26ed43b04a2b64c60e505e243bc396db5204439013",
+      "requirement_ids": ["REQ29-E03"],
+      "acceptance_ids": ["AC29-E03-02", "AC29-E03-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J16",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 128,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J16",
+        "Later upload or replacement arrives on an issued request",
+        "Actual source's qualified class/successor rules determine policy; no universal latest-or-frozen guess. P03/P07/P08."
+      ],
+      "source_cells_sha256": "05af7f28adae46cea94146caab22aa2c798ec93ad52e486f75919476ac27dc53",
+      "requirement_ids": ["REQ29-E01", "REQ29-E03"],
+      "acceptance_ids": ["AC29-E01-06", "AC29-E03-02"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J17",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 129,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J17",
+        "Wrong assignment discovered before versus after admission",
+        "Draft change remains ordinary; admitted correction needs real separate current authority, exact target and preserved original history. P07/P14."
+      ],
+      "source_cells_sha256": "9790c2183cf419f6316af7dbf8f4b341c23e58c0d1c5059d09d88c4848cf6a14",
+      "requirement_ids": ["REQ29-E03", "REQ29-E04"],
+      "acceptance_ids": ["AC29-E04-01", "AC29-E03-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J18",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 130,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J18",
+        "Mistaken correction, unavailable target policy or urgent privacy risk",
+        "Attributed current correction/repair; no history deletion or fabricated dates; independent containment is not delayed. Already-lost bytes require separately lawful qualified recovery or truthful irrecoverable-loss incident/source remediation, not a restoration claim from the correction. P07/P09/P11."
+      ],
+      "source_cells_sha256": "8ab59a243bd92fd0a29f9e0279ac275d97d776a18219a4c6de2e0cc7b26a7c4e",
+      "requirement_ids": ["REQ29-E03", "REQ29-E04", "REQ29-P10"],
+      "acceptance_ids": ["AC29-E03-07", "AC29-E04-02", "AC29-P10-03"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J19",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 131,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J19",
+        "Request includes originals, selected photos and assembled PDF",
+        "Actual class/copy coverage; no false single timer or disposed original assumption. P08/P09."
+      ],
+      "source_cells_sha256": "c91e4077ceadd3ad952545d745b8ca4faccff7389cdccd239764b691e5625543",
+      "requirement_ids": ["REQ29-E04"],
+      "acceptance_ids": ["AC29-E04-03"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J20",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 132,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J20",
+        "Same bytes reused elsewhere; Q28/Q53 origins differ",
+        "Independent admitted use, provenance, access and retention; default assignment neither impersonates participant action nor destroys another use. P08/P10."
+      ],
+      "source_cells_sha256": "f606d1845e91a3742ea4805f3e948bc51f4372c47c92a978af0a8386074be6b4",
+      "requirement_ids": ["REQ29-E04", "REQ29-P08"],
+      "acceptance_ids": ["AC29-E04-03", "AC29-P08-01"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J21",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 133,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J21",
+        "Access/Requested by/review date changes; actual trigger not reached",
+        "Clearly separate dates and not-yet-triggered versus unknown; no inferred retention renewal or deletion. P08/P14."
+      ],
+      "source_cells_sha256": "b1393f0e624dfe7898b041ab8376a3f094717ad6b103b68f3fffdccf764e281d",
+      "requirement_ids": ["REQ29-E01", "REQ29-E02"],
+      "acceptance_ids": ["AC29-E01-03", "AC29-E02-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J22",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 134,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J22",
+        "Checking/acceptance/F/cancellation/withdrawal/reoffer",
+        "Source outcomes/history remain; only the real declared event affects retention. No universal delete-on-close. P08."
+      ],
+      "source_cells_sha256": "9d107680024e04b0290dd2b636f5013e515335e661ab18430a6e38d9558f5ddb",
+      "requirement_ids": ["REQ29-E02", "REQ29-E04"],
+      "acceptance_ids": ["AC29-E02-05", "AC29-E04-03"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J23",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 135,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J23",
+        "New hold/reference races disposition; hold is later released",
+        "Current fence protects required bytes; release alone is not deletion authority; physical outcomes truthful. P09."
+      ],
+      "source_cells_sha256": "b6b18b2ba0ca6e50c092cd844471eb7c83660f9c198dce18cfa01ba8ebe1661d",
+      "requirement_ids": ["REQ29-E04"],
+      "acceptance_ids": ["AC29-E04-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J24",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 136,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J24",
+        "Provider partially deletes or loses response; backup restored",
+        "Same intended operation and known/unknown evidence; adverse state before serve, no expired-access revival or DB-only byte-recovery claim. P09/P11/P12."
+      ],
+      "source_cells_sha256": "b404138431747dd4b4f87b067d787f83f1635801fe737373c770298ac90bc0e0",
+      "requirement_ids": ["REQ29-E03", "REQ29-E04"],
+      "acceptance_ids": ["AC29-E04-04", "AC29-E03-09"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J25",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 137,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J25",
+        "Participant sees a request explanation or downloads a copy",
+        "Safe authorized explanation; no internal case facts, new records duty or all-external-copy deletion promise. P04/P08/P14."
+      ],
+      "source_cells_sha256": "fb9a3053e979d28fbf268a35d51cb98267714f61d53fffea36d486d8c0aebb98",
+      "requirement_ids": ["REQ29-E02", "REQ29-E05"],
+      "acceptance_ids": ["AC29-E02-04", "AC29-E05-02"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J26",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 138,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J26",
+        "Staff uses keyboard/AT/touch/zoom/RTL/long names or poor connectivity",
+        "Legible non-hover summary, predictable focus/status and original-result recovery; no accidental action or silent offline replay. P06/P14."
+      ],
+      "source_cells_sha256": "2c980fb53cb9d2f614dbf97bccf369fe35faebf503bab503f2eb7003ddc30235",
+      "requirement_ids": ["REQ29-E02", "REQ29-E03"],
+      "acceptance_ids": ["AC29-E02-07", "AC29-E03-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J27",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 139,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J27",
+        "A large tenant has many records/impact work",
+        "Finite source options, bounded history/impact pages, measured indexed operations and fair work; no scale-based auth relaxation. P13."
+      ],
+      "source_cells_sha256": "fc81ee4eae0cca98ff95c6c290ad430b6f8ace44490b19d05d3d8232596f79ef",
+      "requirement_ids": ["REQ29-E05"],
+      "acceptance_ids": ["AC29-E05-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q62-J28",
+      "question": 62,
+      "source_path": "docs/features/files-documents/grill/phase29-q62-adversarial-review.md",
+      "source_sha256": "3b780c9d169265bc33ee6bf12a443e4d7df6f9e561d7605ad3dc1621508bc886",
+      "source_line": 140,
+      "source_section": "Composed user journeys and acceptance outcomes",
+      "source_cells": [
+        "J28",
+        "Old clients/backfill/restore coexist with new policy behavior",
+        "All effective paths preserve scope/provenance; unsupported rows not guessed; kill switch/rollback retains protections. P10/P12/P15."
+      ],
+      "source_cells_sha256": "0d4307e5a0d7ebb1877e93adbe621607ba2610eaaa6202d60d80d74a53c47199",
+      "requirement_ids": ["REQ29-E03", "REQ29-E05"],
+      "acceptance_ids": ["AC29-E03-09", "AC29-E05-03"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J01",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 135,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J01",
+        "Routine record under expressly automatic approved policy",
+        "No fresh routine release; exact current admission and truthful physical result."
+      ],
+      "source_cells_sha256": "2c802f8225ac4fc8a7522d188365c0eb0026d79117bbce77df8a86728b9ebe1d",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-01", "AC29-E06-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J02",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 136,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J02",
+        "Source policy requires human decision",
+        "Actual bounded review remains; silence never approves."
+      ],
+      "source_cells_sha256": "a51515d24dbd78b67f7f322b85da0a782286438aa302f6c36c0f911e6bbe46d3",
+      "requirement_ids": ["REQ29-E06", "REQ29-E09"],
+      "acceptance_ids": ["AC29-E06-02", "AC29-E06-05", "AC29-E09-03"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J03",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 137,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J03",
+        "Missing/unqualified policy or mode",
+        "Affected destructive path unavailable; current capable owner repair, no timer fallback."
+      ],
+      "source_cells_sha256": "e0ede6bb71211fdb9eb3fa91cce4a2a82253fd5e1f72631bb68ce05871d54b7e",
+      "requirement_ids": ["REQ29-E06", "REQ29-E10"],
+      "acceptance_ids": ["AC29-E06-02", "AC29-E06-04", "AC29-E10-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J04",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 138,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J04",
+        "Policy activation/change with existing records",
+        "Exact qualified affected cohort/impact; no silent backlog sweep or invented prior approval."
+      ],
+      "source_cells_sha256": "f0b224dd254bf09e435e31e9a8f99f344bb07c4676e60459a38f62afd3701d2f",
+      "requirement_ids": ["REQ29-E06", "REQ29-E07"],
+      "acceptance_ids": ["AC29-E06-06", "AC29-E07-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J05",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 139,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J05",
+        "Qualified author leaves or worker delegation changes",
+        "Current execution authority independently resolved; historical authorship is not a stored credential."
+      ],
+      "source_cells_sha256": "8775993f950217e28ba3527abe0c984a828f44ad2c040485a7ddd9c7d3ca5489",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J06",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 140,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J06",
+        "Candidate list or claim is stale after a hold",
+        "Final dispatch gate refuses the newly forbidden target; old preview/lease is not permission."
+      ],
+      "source_cells_sha256": "2f701531d705be42548b30932af8516252880addadf49e651401f5f29c6df57c",
+      "requirement_ids": ["REQ29-E07"],
+      "acceptance_ids": ["AC29-E07-01", "AC29-E07-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J07",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 141,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J07",
+        "Hold/use/stop wins before final dispatch admission",
+        "No provider request authorized for that prohibited target."
+      ],
+      "source_cells_sha256": "87ebb9774815294fe0493b6178e2f9fb1880b9879712d712970e7db5d9eb0d9b",
+      "requirement_ids": ["REQ29-E07"],
+      "acceptance_ids": ["AC29-E07-01"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J08",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 142,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J08",
+        "Hold/stop arrives after durable dispatch admission",
+        "Possible attempt reconciles; prevent remaining work without promising preservation of affected copy."
+      ],
+      "source_cells_sha256": "d32bc3c41f60e1ab8004915455e3f064c354ad552c0feae9291da75122aafb6b",
+      "requirement_ids": ["REQ29-E07", "REQ29-E08"],
+      "acceptance_ids": ["AC29-E07-03", "AC29-E08-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J09",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 143,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J09",
+        "New upload/finalization/reference/promotion races deletion",
+        "Current fencing orders the acts; no successful new use of an uncertain/retiring target."
+      ],
+      "source_cells_sha256": "866fc7e80ed436f10ebc04add40a25ad1465405cf1c094e7af4cb2e49b8338d2",
+      "requirement_ids": ["REQ29-E07", "REQ29-E08"],
+      "acceptance_ids": ["AC29-E07-04", "AC29-E08-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J10",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 144,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J10",
+        "Same target appears in two jobs or batches",
+        "One semantic physical effect/current attempt lineage, no target substitution or double attribution."
+      ],
+      "source_cells_sha256": "373baaba4e4946e2462314bd09736a5b47dd28fea079d773e9ca1013eda895ba",
+      "requirement_ids": ["REQ29-E07", "REQ29-E08"],
+      "acceptance_ids": ["AC29-E07-05", "AC29-E08-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J11",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 145,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J11",
+        "Exact batch has one newly blocked target",
+        "Unrelated qualified targets may proceed where source permits; scope and partial result remain truthful."
+      ],
+      "source_cells_sha256": "2871ad5d86f77481958b10eeb8eb81c1500e1a435fdfdf09cdbbf552cb89995c",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-03", "AC29-E06-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J12",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 146,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J12",
+        "Source-declared indivisible group spans copies",
+        "Full group eligibility before authorization; physical partial failures reported rather than fictional rollback."
+      ],
+      "source_cells_sha256": "e3590dd5db93ec71624f0cdb443ff30f75e48d412aa7bdbd86cd0f0be209d434",
+      "requirement_ids": ["REQ29-E06", "REQ29-E08"],
+      "acceptance_ids": ["AC29-E06-07", "AC29-E08-01"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J13",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 147,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J13",
+        "Provider confirms some copies, rejects or omits others",
+        "Per-copy known/unknown results; aggregate cannot claim full deletion."
+      ],
+      "source_cells_sha256": "4ecf7b4161c0f5429eecb2c406710c0314ba8f3b3eaa4ad21d08d4134f10d092",
+      "requirement_ids": ["REQ29-E08"],
+      "acceptance_ids": ["AC29-E08-01", "AC29-E08-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J14",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 148,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J14",
+        "Delete reached provider but response is lost",
+        "Original attempt remains possible; safe reconciliation, no new key or cleared fence."
+      ],
+      "source_cells_sha256": "ce45223d097b74a5d474fc9acf4692d9e27fba8c357e7dbc9ecfd9588a662d44",
+      "requirement_ids": ["REQ29-E07", "REQ29-E08"],
+      "acceptance_ids": ["AC29-E07-05", "AC29-E08-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J15",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 149,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J15",
+        "Lease expires or worker crashes after admission",
+        "Takeover reconciles original; elapsed time alone does not reopen source admission."
+      ],
+      "source_cells_sha256": "fc24dc479cd1a60c38702a7a2e8d5c647d7f045a3a1827abed25e21048cbf46c",
+      "requirement_ids": ["REQ29-E07", "REQ29-E08"],
+      "acceptance_ids": ["AC29-E07-02", "AC29-E08-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J16",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 150,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J16",
+        "Object is reported absent",
+        "Verify exact target and qualified meaning; no invented new-deletion attribution or success from denied access."
+      ],
+      "source_cells_sha256": "7cc9a3f3675b31de5d3a15d013a7eeb5cad4ee1d3598b763eb692e08fcf481c1",
+      "requirement_ids": ["REQ29-E08"],
+      "acceptance_ids": ["AC29-E08-01", "AC29-E08-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J17",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 151,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J17",
+        "Old delete/put could complete against a reused path",
+        "Immutable generation/locator and writer control prevent new bytes from being targeted by old work."
+      ],
+      "source_cells_sha256": "cb8cb494c06f77d00759ff70ec88d5c4582028daec5f0f3d8a8ba9e55e9b6f43",
+      "requirement_ids": ["REQ29-E08"],
+      "acceptance_ids": ["AC29-E08-03", "AC29-E08-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J18",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 152,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J18",
+        "Stop remaining work on an active operation",
+        "Prevent every still-preventable authorized target and block rediscovery of stopped scope; disclose possible/complete effects honestly."
+      ],
+      "source_cells_sha256": "0bdb922cb74ab6b39f09797596efee94b76c1ef3cb2205e81eec3fca36f807e7",
+      "requirement_ids": ["REQ29-E07", "REQ29-E09"],
+      "acceptance_ids": ["AC29-E09-01", "AC29-E07-03"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J19",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 153,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J19",
+        "Next scan or different key finds stopped target",
+        "Unresolved intervention continues to fence it; no rekey bypass."
+      ],
+      "source_cells_sha256": "f4bb0e8d6e7b3b7bad6cb7c21a317886adcf9b9882cc848b7b46846c92a3990b",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": ["AC29-E09-01", "AC29-E09-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J20",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 154,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J20",
+        "Stop cause is resolved, remaining targets are safely unstarted",
+        "Fresh current authorization may be automatic; stopped intent and uncertain old effect never restart."
+      ],
+      "source_cells_sha256": "59acd82fb9db8ec61b5d36ab08971b5da9b928aafa64e876488263d559d2d881",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": ["AC29-E09-02", "AC29-E09-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J21",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 155,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J21",
+        "Stop or hold conflicts with a required disposition deadline",
+        "Actual qualified records/privacy owner resolves timely; no arbitrary extension or automatic override."
+      ],
+      "source_cells_sha256": "45789f0f82f695249b45becfd5a1df0fdc708b8da2798046acb7f3785113a694",
+      "requirement_ids": ["REQ29-E09", "REQ29-E10"],
+      "acceptance_ids": ["AC29-E09-02", "AC29-E10-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J22",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 156,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J22",
+        "One source use ends while another still requires the bytes",
+        "End only authorized source facts; report physically retained for other use without leaking its details."
+      ],
+      "source_cells_sha256": "13f247e7697d8db5d9c6b9334d5bc6286947d82f4746be016e54003ba132de70",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": ["AC29-E09-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J23",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 157,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J23",
+        "Assembly inputs/output or history/message/backup rules differ",
+        "Preserve actual separate classes and complete required copy scope; no single-date fiction."
+      ],
+      "source_cells_sha256": "2cdb6c9b25e80c4a40eef3084b9a10067d4a528a6b7bf738097469971fba5f5b",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": ["AC29-E09-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J24",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 158,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J24",
+        "Required manual reviewer lacks file-body permission",
+        "Safe sufficient source evidence or actual capable handoff; no forced preview or blind approval."
+      ],
+      "source_cells_sha256": "f1e1dc9ef503856f084e77a089b5122c44a2ac4026ca3ad9662fefce843860b3",
+      "requirement_ids": ["REQ29-E09", "REQ29-E10"],
+      "acceptance_ids": ["AC29-E09-03", "AC29-E10-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J25",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 159,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J25",
+        "Operator stop/release loses its response or actor switches Tenant",
+        "Original-result recovery under current rights, late-result rejection and no cross-context action."
+      ],
+      "source_cells_sha256": "0fe0661c6ff4cc95bbb24c2ef41a8949547c91084b5540903905872a6cef1c95",
+      "requirement_ids": ["REQ29-E09", "REQ29-E10"],
+      "acceptance_ids": ["AC29-E09-05", "AC29-E10-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J26",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 160,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J26",
+        "Ordinary participant sees a disposed or still-retained record",
+        "Truthful independently authorized history/availability; no early rights loss, new duty or full external-copy claim."
+      ],
+      "source_cells_sha256": "5c023cb638ee139a3cebd4a5964e603994315204db5952d662e3cb79e83715ef",
+      "requirement_ids": ["REQ29-E09", "REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-04", "AC29-E09-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J27",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 161,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J27",
+        "Disposal is mistaken and required bytes may be gone",
+        "Stop remaining scope, reconcile exact loss and use only lawful qualified recovery; no fictitious Undo or forced reupload."
+      ],
+      "source_cells_sha256": "caacf9dbf5623bf69bf7b94f5fb00462ff4351479ace6c320993a09a700ef0e3",
+      "requirement_ids": ["REQ29-E09"],
+      "acceptance_ids": ["AC29-E09-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J28",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 162,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J28",
+        "Backup restored after disposal/correction/stop",
+        "Adverse facts first; bytes separately recovered/qualified, no revoked access or worker effect revival."
+      ],
+      "source_cells_sha256": "8f6bd167c6f89e19f0c37a6e65ff3129e76e5ba7ee586939868e326ab232e988",
+      "requirement_ids": ["REQ29-E09", "REQ29-E10"],
+      "acceptance_ids": ["AC29-E09-06", "AC29-E10-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J29",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 163,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J29",
+        "P23 Media, receipts or temporary cleanup share nearby UI",
+        "Their source modes remain untouched; no ordinary bulk laundering or added transient-copy approval."
+      ],
+      "source_cells_sha256": "be0ff9668c24bb3e79cb35c5f51fd44347a8a6fb515747e16fc5c18fe47baa13",
+      "requirement_ids": ["REQ29-E06"],
+      "acceptance_ids": ["AC29-E06-02", "AC29-E06-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J30",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 164,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J30",
+        "Keyboard/AT/mobile/RTL/weak-network use",
+        "Plain safe scope/status, deliberate focused controls, preserved input/focus and no accidental destructive submit."
+      ],
+      "source_cells_sha256": "9a8aade4599c8f1a48ebd7c0c226053bd5f69683af268891db8469e0a37d5df9",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J31",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 165,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J31",
+        "Large tenant, provider throttling and repeated exceptions",
+        "Fair bounded work and actual deadlines; no security reduction, retry storm or false complete."
+      ],
+      "source_cells_sha256": "d4339691962c2dee59115dd6ed25b423b746c7a5836ae02da0e86bdabc60d8f6",
+      "requirement_ids": ["REQ29-E09", "REQ29-E10"],
+      "acceptance_ids": ["AC29-E09-07", "AC29-E10-02"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q63-J32",
+      "question": 63,
+      "source_path": "docs/features/files-documents/grill/phase29-q63-adversarial-review.md",
+      "source_sha256": "98ddc23b78a5e84b2a90ac0814ab5ea678aecb18b797352d10b3d4d7a123f91e",
+      "source_line": 166,
+      "source_section": "Complete composed user journeys",
+      "source_cells": [
+        "J32",
+        "Mixed versions, legacy rows, kill switch and rollback",
+        "Old doors cannot clear protections; unqualified data stays unqualified; lawful recovery remains available."
+      ],
+      "source_cells_sha256": "9c9ab5a05e90e23eb84531ebf8620f7466874bee230a4fc442320c60abdcd470",
+      "requirement_ids": ["REQ29-E10"],
+      "acceptance_ids": ["AC29-E10-03", "AC29-E10-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J01",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 167,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J01",
+        "Staff prepares the reference from correct partner context",
+        "Current permitted source, intended contact, item and reviewer are clear; no auto-issue or inferred organization authority."
+      ],
+      "source_cells_sha256": "fa43b164124d49efe8c4013e668da30e844bffc44ce8a142bdc460a69016be3f",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-05", "AC29-E24-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J02",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 168,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J02",
+        "Staff uses a reusable definition or preexisting evidence",
+        "New preparation and exact source authorization/provenance; no copied grants, recipients, acceptance or policy history."
+      ],
+      "source_cells_sha256": "226aa563eb9b33f9ef5d2b8deffe1ec0054fbe33a162ddf351b51646ae6d1383",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-06", "AC29-E24-14"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J03",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 169,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J03",
+        "Policy missing or changed during preparation",
+        "No guessed assignment/collection authority; capable staff recovery, preserved permitted input and exact current review."
+      ],
+      "source_cells_sha256": "6e9b88cad1dbb090239162ea745404edaa76f7be0afb3306fdd8a5426561f417",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-06", "AC29-E24-17"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J04",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 170,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J04",
+        "Staff issues with valid policy",
+        "One deliberate normal action; correct summary and no extra routine policy dialog."
+      ],
+      "source_cells_sha256": "89c0145cf704ee8c7aef51425ad3472df31db045979dade7cadba6edbcc01827",
+      "requirement_ids": ["REQ29-E01", "REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-06", "AC29-E01-01"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J05",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 171,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J05",
+        "Recipient is correct, forwarded, wrong-account, shared-mailbox or expired",
+        "Only qualified intended-person access; neutral appropriate recovery, no tenant membership or hidden-data disclosure."
+      ],
+      "source_cells_sha256": "e159eb1e54c8492aa866788ca5ba9b8bbd3054936752f12c946bbbd368e48782",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J06",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 172,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J06",
+        "Staff contact/reviewer leaves or loses permission",
+        "Current source authority wins; qualified backup/remedy works without copied old-session authority."
+      ],
+      "source_cells_sha256": "fa6f2cd34c5878d70228cdac32ff8eefe70c91a35d902e4ce21de494d91b0b5b",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-08", "AC29-E24-17"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J07",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 173,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J07",
+        "Participant supplies PDF or photos",
+        "Qualified type/profile choices, clear selection/progress, original fidelity and no implied e-sign service."
+      ],
+      "source_cells_sha256": "8a0d20139d36d9d716ea7bdae14e5a7c15b76080156f77ac95b1a4bb2c540403",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-09"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J08",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 174,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J08",
+        "Participant combines photos or reorders pages",
+        "Deliberate ratified assembly with keyboard/touch equivalent, visible order and preserved source originals/lineage."
+      ],
+      "source_cells_sha256": "a83b44447955f382f37e047573540f23a4bf5d2c7a785398fde2fb014846c116",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-02", "AC29-E24-09", "AC29-E24-19"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J09",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 175,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J09",
+        "Upload interrupts or browser response is lost",
+        "Exact permitted resume/original-outcome recovery; no duplicate contribution or cross-request fingerprint reuse."
+      ],
+      "source_cells_sha256": "a2ba5b463621e48afe6ddc5f023b64a2a227462a743ec3355bf9f5412396ff2e",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-09", "AC29-E24-12"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J10",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 176,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J10",
+        "Scanner/preview is delayed, unsafe, unsupported or fails",
+        "Distinct status and real correction/help; no unsafe “clean,” automatic external viewer or acceptance fallback."
+      ],
+      "source_cells_sha256": "87d2ffedea881be2a15c4f3c0aec2a22b7edde1d2ddd23a96732716e9edaff2d",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-09", "AC29-E24-17"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J11",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 177,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J11",
+        "Staff supplies/reuses evidence for the contact",
+        "Honest staff provenance; no participant signature/attestation or unqualified historic read authority."
+      ],
+      "source_cells_sha256": "bce92e29445b9e178d6e91d4fba1edf2e218b99f2a448db8b7c0f6cd6b9e8662",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-11", "AC29-E24-14"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J12",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 178,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J12",
+        "Staff requests clarification or changes",
+        "Exact item context and approved notice purpose; message does not satisfy the requirement."
+      ],
+      "source_cells_sha256": "3dabcb7b17be046d0a54b815be8b5ed62f05d8c0f1599541fc442604423f5e43",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-02", "AC29-E24-11"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J13",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 179,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J13",
+        "Correction or withdrawal races review",
+        "One valid expected-basis outcome; immutable received history and no stale acceptance."
+      ],
+      "source_cells_sha256": "36df952dd1e1119b6216da197b1beb7e81b578164b9c209498ca56c62aa6230f",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-10"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J14",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 180,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J14",
+        "Staff accepts selected items or another reviewer already accepted",
+        "Exact Q52 semantics and original attribution; Q22 whole predicate still required."
+      ],
+      "source_cells_sha256": "01691f886eb7413c3c692b40c453c07d69b329f8e6911bd45afb0d01ca53f7be",
+      "requirement_ids": ["REQ29-E24", "REQ29-P06"],
+      "acceptance_ids": ["AC29-E24-10", "AC29-P06-02"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J15",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 181,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J15",
+        "The document requirement is satisfied but other work remains",
+        "Scoped “document accepted” result; no false request/partner/handoff completion."
+      ],
+      "source_cells_sha256": "d77d77119694071210ccdf244e25e004de3cc74c737ca5d73fba3c571b18c10f",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J16",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 182,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J16",
+        "Source acceptance succeeds but message/handoff fails",
+        "Source truth remains; durable pending/unknown follow-through and replay-safe repair."
+      ],
+      "source_cells_sha256": "cf5a2b1df078fbca1ce207882eda36d9203d11fb504acedc5752475761f92a3b",
+      "requirement_ids": ["REQ29-E24", "REQ29-P09"],
+      "acceptance_ids": ["AC29-E24-12", "AC29-P09-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J17",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 183,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J17",
+        "Wrong intended person or changed legitimate need",
+        "Q49 linked replacement/current source remedies; no silent transfer of evidence, transcript or grants."
+      ],
+      "source_cells_sha256": "24e1d450e8ae818a5cfe251d32186be42f866c20b15eac48d7b9c6b3a233ae88",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-11"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J18",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 184,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J18",
+        "Request completes/cancels/access ends",
+        "Correct terminal and read-only/access behavior; retention is separately governed."
+      ],
+      "source_cells_sha256": "f424ef5a9cd5f1800a83d127be89bd2e1d5ea3b60b3d0c7eb1b34f646db2857d",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-11", "AC29-E24-14"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J19",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 185,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J19",
+        "Another source use, hold or policy successor exists",
+        "Current independent obligations prevail; permitted view does not reveal all hidden uses."
+      ],
+      "source_cells_sha256": "6344a9ee5314aa2dd79b6c2768d3278d81d42aee7e969cddb22308649fafc58c",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-14", "AC29-E24-16"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J20",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 186,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J20",
+        "Automatic disposal is eligible, stopped, partial or uncertain",
+        "Full Q63 admission/Stop/result truth; no simulated Undo or lease-based permission."
+      ],
+      "source_cells_sha256": "dee2843e657f48119f332d63291682e325b733480e98f1139dd204981951dba9",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-16"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J21",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 187,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J21",
+        "Legacy files/mixed versions/restore are involved",
+        "Supported inventory and current adverse fences before serving; actual byte recovery independently proved."
+      ],
+      "source_cells_sha256": "8a7d491b45f9f23a1bf9dd9dc5982becfd823184b06ebfb50e8473494efc66ab",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-18"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J22",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 188,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J22",
+        "Keyboard/AT/mobile/RTL/long name/weak connection",
+        "Recognizable action/status/error and complete qualified recovery without drag-only or desktop-only dependency."
+      ],
+      "source_cells_sha256": "e00850a1bdc94feb0168686f182ff6a93739fcbba8360128b4fda669cbd3271a",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-19"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J23",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 189,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J23",
+        "Tenant or account is switched in another tab",
+        "Current identity/scope rechecked; no stale cached data, mutation, resume or recovered-result leak."
+      ],
+      "source_cells_sha256": "b51d7e722bfecdf72ea7da4f0eb1191c58b50cc457943db6addb34a0b9066666",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-08", "AC29-E24-15"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q64-J24",
+      "question": 64,
+      "source_path": "docs/features/files-documents/grill/phase29-q64-adversarial-review.md",
+      "source_sha256": "f17748cc3db92febc9014d69b587fe82fc9352006b048b93e16f9a93ee5497d6",
+      "source_line": 190,
+      "source_section": "Composed journeys and falsifiable acceptance",
+      "source_cells": [
+        "J24",
+        "Product is tested without Studio/mobilization/e-sign",
+        "Native reference remains complete; unavailable optional coordination is truthful; other agreed families retain their own tests."
+      ],
+      "source_cells_sha256": "e8e53faa827b796148abfd2fb508ebe99ce33ac078968cf8c342280082e636dc",
+      "requirement_ids": ["REQ29-E24"],
+      "acceptance_ids": ["AC29-E24-01", "AC29-E24-04", "AC29-E24-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J01",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 164,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J01",
+        "Staff completes collection without ongoing need",
+        "Ordinary collection/review/handoff remains complete; no compulsory reference step."
+      ],
+      "source_cells_sha256": "2866622e0fbf48cde97cf6b217fc82ae4bdc242e905273f27374f6ad56007f3d",
+      "requirement_ids": ["REQ29-E11"],
+      "acceptance_ids": ["AC29-E11-01", "AC29-E11-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J02",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 165,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J02",
+        "Staff prepares a reference from accepted evidence",
+        "Known permitted target/unit and actual added purpose shown; preparation is inert."
+      ],
+      "source_cells_sha256": "22435023e8c4bbf9fa01eb75f70d07d3514c8b0829252664fde4e213310a860a",
+      "requirement_ids": ["REQ29-E11", "REQ29-E14"],
+      "acceptance_ids": ["AC29-E11-02", "AC29-E14-01"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J03",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 166,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J03",
+        "Source read allowed but reuse or target admission denied",
+        "No new reference; safe reason/recovery only where disclosure permits."
+      ],
+      "source_cells_sha256": "45189123930e159f9d747c844bbd8266b777ddf5bbccf025a5d74826c407c3f8",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-04", "AC29-E14-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J04",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 167,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J04",
+        "Accepted multi-file set or Document Assembly",
+        "Exact unit/coverage retained; no silently omitted component or fabricated approval."
+      ],
+      "source_cells_sha256": "bd2d086c4f2793503051c27c58239fc97ab30e887b05c0f4e069a942f07623b7",
+      "requirement_ids": ["REQ29-E11"],
+      "acceptance_ids": ["AC29-E11-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J05",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 168,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J05",
+        "Another legitimate reference exists",
+        "Equivalent duplicate returns truthful current/original result; distinct needs/versions may coexist under source policy."
+      ],
+      "source_cells_sha256": "2e7cbc1ea435486fe50b1e5d792bad934c90f0dfbf4c28afbaa2d62076f95968",
+      "requirement_ids": ["REQ29-E12"],
+      "acceptance_ids": ["AC29-E12-02", "AC29-E12-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J06",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 169,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J06",
+        "Add races original source correction or disposition",
+        "One authoritative valid outcome; no active unprotected use."
+      ],
+      "source_cells_sha256": "b2ecb7ded2747000c6fc00d4fb2e3c0bd44e746b3ddc47799c2e5c460dffa7f8",
+      "requirement_ids": ["REQ29-E12"],
+      "acceptance_ids": ["AC29-E12-03", "AC29-E12-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J07",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 170,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J07",
+        "Add response lost or duplicate event arrives",
+        "Original semantic result recovered; no new date/actor or duplicate admission."
+      ],
+      "source_cells_sha256": "59b09f99431f7b12f7ca50e1baa501b18cdcc3ac8be510036c4b3bd40a0f93d8",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J08",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 171,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J08",
+        "Target reader lacks original request access",
+        "Permitted reference is readable through its own purpose without exposing source transcript/history."
+      ],
+      "source_cells_sha256": "689916496b7441a18618e97f69ddc647dcc9331783ccdc1d35a0c26dd373d6df",
+      "requirement_ids": ["REQ29-E12", "REQ29-E14"],
+      "acceptance_ids": ["AC29-E12-01", "AC29-E14-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J09",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 172,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J09",
+        "Original participant access ends",
+        "No automatic target grant loss or renewed participant access; each source keeps its own rule."
+      ],
+      "source_cells_sha256": "efd288a299784c8d617667f260b6bf208baa226577a04784064a5d6e09a748f8",
+      "requirement_ids": ["REQ29-E12", "REQ29-E14"],
+      "acceptance_ids": ["AC29-E12-01", "AC29-E14-03"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J10",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 173,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J10",
+        "A newer upload appears",
+        "Existing reference stays on its adopted basis; no automatic latest/legal-current label."
+      ],
+      "source_cells_sha256": "f1ddfdb0f2eebcc61ee1d1f85b7481850c31c9b1bca2530e71b159e9ec5224f3",
+      "requirement_ids": ["REQ29-E12"],
+      "acceptance_ids": ["AC29-E12-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J11",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 174,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J11",
+        "Staff deliberately replaces reference",
+        "Exact old/new summary, qualified successor and preserved historical lineage."
+      ],
+      "source_cells_sha256": "338c83a34caa853a300acd971616f33420169d73a9c652fb6c7be3311ecd9fab",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-01", "AC29-E13-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J12",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 175,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J12",
+        "Same bytes receive a genuinely new acceptance",
+        "Deliberate new basis adoption; not collapsed as harmless no-op."
+      ],
+      "source_cells_sha256": "eefe5be0f00de6c3191f8174d326386d0eef0ac1f9df2ac76ea39f4feab5f7dc",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-04", "AC29-E13-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J13",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 176,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J13",
+        "Replacement fails, loses response or races End",
+        "Preserve actual permitted predecessor/ended state and recover original result; no invented partial success."
+      ],
+      "source_cells_sha256": "a290d82ac98528894133fa1388f9ceb14d09886d032aae4420c07690535769b4",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-05", "AC29-E13-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J14",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 177,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J14",
+        "Original acceptance is corrected",
+        "Current unsupported reliance stops; accurate permitted explanation and source repair, history retained."
+      ],
+      "source_cells_sha256": "e7949919cea18d2bfe2aa255d8e0574d5f8538ac423f5a2efe513baeb084ae31",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J15",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 178,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J15",
+        "Mistaken blocker is cleared for same basis",
+        "Eligibility may return under current proof if the use was not ended/replaced; no other blocker is ignored."
+      ],
+      "source_cells_sha256": "581c8e3c1f2dc9b4e1d57138636ece51ee9d4103416e59445b89b8f11f048707",
+      "requirement_ids": ["REQ29-E12", "REQ29-E13"],
+      "acceptance_ids": ["AC29-E12-04", "AC29-E13-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J16",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 179,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J16",
+        "Byte reading unavailable but manager must End",
+        "Sufficient permitted metadata and current management authority allow supported ending."
+      ],
+      "source_cells_sha256": "a08b5a853b5073bb45b2baef2cf358b62b6535de545644c8ddd95174344cd4d6",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-02", "AC29-E13-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J17",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 180,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J17",
+        "Reference was added to wrong partner",
+        "End mistaken use, contain actual exposure, separately admit correct target if authorized; no retargeted history."
+      ],
+      "source_cells_sha256": "32a99583f20e52dbe24085ec3ced341473761da3f58111e5ffe0071f41e69a07",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-02", "AC29-E13-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J18",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 181,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J18",
+        "Continuing/new lawful need or accidental-End correction follows a prior End",
+        "Fresh independent admission with current policy/proof after any operative end cause is resolved; preserve old end and original command history, without forced reupload or a fabricated new business need."
+      ],
+      "source_cells_sha256": "20b3f775f605720400c6382168ce97beeb9390b57f3e59f1d22ad471b59b6438",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-03", "AC29-E13-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J19",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 182,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J19",
+        "Another source/hold still needs bytes",
+        "Ending this use does not destroy shared material or expose the hidden use."
+      ],
+      "source_cells_sha256": "28b4cabc959b1bfd7dc63f103bfd15a7ef02ea06f6d846b91d35441d46652661",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J20",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 183,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J20",
+        "Partner context/role/account/Tenant changes",
+        "Current source checks and scoped caches/late responses prevent stale access or wrong-tenant action."
+      ],
+      "source_cells_sha256": "8b8d087533864cb44338bd72f415960b177464acd0d994e6a8ba4e1d9103e0a1",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-02", "AC29-E14-04", "AC29-E14-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J21",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 184,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J21",
+        "Policy successor or privacy obligation changes",
+        "Actual current source consequences, original assignments and independent conflicts preserved; no invented clock."
+      ],
+      "source_cells_sha256": "6cc2b7c8f0bfbc5521ba8eff373ba619be678ff73edc323bbc487a150b4ea805",
+      "requirement_ids": ["REQ29-E13"],
+      "acceptance_ids": ["AC29-E13-07", "AC29-E13-09"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J22",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 185,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J22",
+        "Missing native binding, reviewer or operator",
+        "Truthful unavailable/unknown state and capable source repair, no fictitious queue completion."
+      ],
+      "source_cells_sha256": "c3401e20fac3edd470ebd27bcfc2bd080547b4f19a8237e88d392a62f5bf751a",
+      "requirement_ids": ["REQ29-E13", "REQ29-E14"],
+      "acceptance_ids": ["AC29-E13-08", "AC29-E14-03"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J23",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 186,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J23",
+        "Legacy assets or restored snapshot appear",
+        "Evidence-backed migration/restore; no historical ongoing use inferred from location/name."
+      ],
+      "source_cells_sha256": "e9cdad3660bd37f3a1622675ba2ef760420d98a1e551ef98b5fcf5d3c09ba47a",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-07", "AC29-E14-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J24",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 187,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J24",
+        "Keyboard/AT/mobile/RTL/long labels/weak network",
+        "Complete deliberate Add/Read/Replace/End/recovery flow with meaningful status and focus."
+      ],
+      "source_cells_sha256": "30a4aca67aeba4eb7e02bb75957662431af5eec8c19395024b6d3f167839d7a2",
+      "requirement_ids": ["REQ29-E14"],
+      "acceptance_ids": ["AC29-E14-09"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J25",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 188,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J25",
+        "Optional Workflow unavailable or duplicates an event",
+        "Native use lifecycle works; coordination consumes the same source effect once."
+      ],
+      "source_cells_sha256": "636bae2402871b2b15d168b978ab597ac31b26f401a4cb189938c386dfb313e0",
+      "requirement_ids": ["REQ29-E11", "REQ29-E13"],
+      "acceptance_ids": ["AC29-E11-05", "AC29-E13-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q65-J26",
+      "question": 65,
+      "source_path": "docs/features/files-documents/grill/phase29-q65-adversarial-review.md",
+      "source_sha256": "3394fe743b23325187fbbfb03b1956c5a21b6281d3812a9970691de3e3b561f7",
+      "source_line": 189,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J26",
+        "Donor/participant/public surface or share link is used",
+        "No new access, invitation, notification, renewal or public publication is inferred."
+      ],
+      "source_cells_sha256": "9b038ee5ac4d5781c5bd0565fcb70cb2b1f3fb10aeec89aa360b8555993365c2",
+      "requirement_ids": ["REQ29-E11", "REQ29-E14"],
+      "acceptance_ids": ["AC29-E11-04", "AC29-E14-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J01",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 191,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J01",
+        "Tenant wants rules unlike GF/Asym examples",
+        "Blank/custom supported policy works without developer/support intervention."
+      ],
+      "source_cells_sha256": "7f047c24b7689ccd24ddfbbf45b4418ca690ac708f163858de9b6aa67b5bb72b",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-01", "AC29-E15-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J02",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 192,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J02",
+        "Copy an authorized definition",
+        "Editable inert draft, no copied approval/assignment/private content beyond actual permission."
+      ],
+      "source_cells_sha256": "77bbbeff9ac17820cfce4f6c0e49a9ce2889ab0a93731f84a15c9d61409c04b0",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-01"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J03",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 193,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J03",
+        "Save incomplete draft",
+        "Preserve permitted input and errors; effective policy stays unchanged."
+      ],
+      "source_cells_sha256": "93df6b7b6543af772d068cd9d1c3c8cd3fa9e4cfe11b3df0059b835c0c1d8364",
+      "requirement_ids": ["REQ29-E15", "REQ29-E19"],
+      "acceptance_ids": ["AC29-E15-01", "AC29-E19-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J04",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 194,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J04",
+        "Discard unused draft",
+        "Lawful scoped cleanup without deleting operative/history records."
+      ],
+      "source_cells_sha256": "749eaf8235338f4e4f25110b747d1a252a51f4c97210b56da3d1d9e20c5c246f",
+      "requirement_ids": ["REQ29-E16", "REQ29-P03"],
+      "acceptance_ids": ["AC29-E16-05", "AC29-P03-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J05",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 195,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J05",
+        "Activate a compatible policy",
+        "Clear scope and actual qualified version/result, no hidden disposal."
+      ],
+      "source_cells_sha256": "3b967affcbdbedfb7f1104aecc257ab8e2f4a80e034094377d453a54d9cbd53f",
+      "requirement_ids": ["REQ29-E16"],
+      "acceptance_ids": ["AC29-E16-04", "AC29-E16-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J06",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 196,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J06",
+        "Frontline staff issues request",
+        "Approved summary and normal Issue; no policy authoring duty."
+      ],
+      "source_cells_sha256": "f6cb699c1ddc4b251ce60bfe1b69a0df9c9a0b55033c35288bc0a57b4a09ac6c",
+      "requirement_ids": ["REQ29-E01", "REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-01", "AC29-E01-01"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J07",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 197,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J07",
+        "Edit active policy or correct its label",
+        "Governing changes prepare a successor; source-proved non-operative metadata correction avoids a needless semantic version while preserving attribution and historical displays."
+      ],
+      "source_cells_sha256": "644d5316da9d1f57523669e5c6c8c495f34761d5724eb3deb5d21d084394dcc8",
+      "requirement_ids": ["REQ29-E16"],
+      "acceptance_ids": ["AC29-E16-01", "AC29-E16-02"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J08",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 198,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J08",
+        "Shorten or lengthen a permitted rule",
+        "Real supported change, actual impact/constraints explained; no arbitrary preset lock."
+      ],
+      "source_cells_sha256": "2490ac3c298ee28b246cc3d64c60bbc06cd8fac4a89f5d71e2d87dfd438028a6",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-02", "AC29-E15-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J09",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 199,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J09",
+        "Change finite versus continuing/review treatment",
+        "Supported lawful successor; unknown does not become forever or irreversible vendor mode."
+      ],
+      "source_cells_sha256": "4c5b2903ed16c07c5d5a00c4d1406086cec95dbad07c8918194b9bd519195c67",
+      "requirement_ids": ["REQ29-E15"],
+      "acceptance_ids": ["AC29-E15-02", "AC29-E15-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J10",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 200,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J10",
+        "Apply change to eligible existing records",
+        "Deliberate exact scope/current proof; preserved original facts and truthful progress."
+      ],
+      "source_cells_sha256": "18a05e339ac71a0eadd43a99d27dcff502e7630a7fcb84a7580253cff0b23118",
+      "requirement_ids": ["REQ29-E17"],
+      "acceptance_ids": ["AC29-E17-01", "AC29-E17-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J11",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 201,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J11",
+        "Some targets conflict or become unknown",
+        "No silent success/skipping; explicitly permitted subset plus fenced required work and capable repair."
+      ],
+      "source_cells_sha256": "04a4c87e57e9f4ba4d4b9e5484007a199bef287fe3d52474b594cbdfea19a5c9",
+      "requirement_ids": ["REQ29-E17"],
+      "acceptance_ids": ["AC29-E17-02", "AC29-E17-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J12",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 202,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J12",
+        "Mandatory current restriction affects older records",
+        "Unsafe consequences fenced before async reconciliation."
+      ],
+      "source_cells_sha256": "c60f588e552d1094c822b5884e1c8d46bdefd0bf867cce0c355e685a9e2e8d3e",
+      "requirement_ids": ["REQ29-E16"],
+      "acceptance_ids": ["AC29-E16-04", "AC29-E16-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J13",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 203,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J13",
+        "Two managers edit/activate concurrently",
+        "Relevant conflict and preserved draft; no lost active meaning or false success."
+      ],
+      "source_cells_sha256": "91d42696cb83ba3be7d77b1eea979be31ca52a2725070ca0be9a90d8d2238ba1",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J14",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 204,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J14",
+        "Lost response or repeated event/chunk",
+        "Recover exact original effect under current disclosure."
+      ],
+      "source_cells_sha256": "bae7316c27b1114737b80c7c43cb4b558a0dcc100d9c1522d2be70a0c17e1bdb",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J15",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 205,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J15",
+        "Correct mistaken assignment/trigger",
+        "Actual attributed current correction, including equal-display material change."
+      ],
+      "source_cells_sha256": "af72d7df700c3193083722ceeea10ead3304479fc5308f538408cfa77dafa4b7",
+      "requirement_ids": ["REQ29-E03", "REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-04", "AC29-E18-09", "AC29-E03-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J16",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 206,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J16",
+        "Pause with invalid unsaved draft",
+        "Immediate qualified independent Stop action; no form-validation obstruction."
+      ],
+      "source_cells_sha256": "3516aeef01e90cc9b89fe26f320578cf9fa7e32cfa60a8de3593e04dabcfb833",
+      "requirement_ids": ["REQ29-E17"],
+      "acceptance_ids": ["AC29-E17-03"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J17",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 207,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J17",
+        "Resume after pause",
+        "Fresh current qualification, no release of unresolved external-effect fences."
+      ],
+      "source_cells_sha256": "22d71b6aac7b926b742e175fd0d21cc0e25e5306730fe0b18c06b71d03dd9f79",
+      "requirement_ids": ["REQ29-E17"],
+      "acceptance_ids": ["AC29-E17-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J18",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 208,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J18",
+        "Retire policy",
+        "New assignment stops; existing obligations/history remain."
+      ],
+      "source_cells_sha256": "19a595b931c38ec4110966ca9a2109bf3a75401552892431af2fb0b687832a89",
+      "requirement_ids": ["REQ29-E16"],
+      "acceptance_ids": ["AC29-E16-03"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J19",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 209,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J19",
+        "Retirement was accidental",
+        "Reactivate unchanged qualified version with new actual activation history, no forced duplicate definition."
+      ],
+      "source_cells_sha256": "25d3599c0de870fc47dcbeb92f6147e8dbb3cf5a54917a55e8033723b2356df4",
+      "requirement_ids": ["REQ29-E16"],
+      "acceptance_ids": ["AC29-E16-03", "AC29-E16-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J20",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 210,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J20",
+        "Previous configuration is desired again",
+        "Current qualified activation/successor/application; old destructive/history facts are not rolled back."
+      ],
+      "source_cells_sha256": "3e431de4d4036282ce3f453643f88b173ebf67e14e485b953dc9dce858c62b28",
+      "requirement_ids": ["REQ29-E16", "REQ29-E18"],
+      "acceptance_ids": ["AC29-E16-05", "AC29-E18-09"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J21",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 211,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J21",
+        "A hold or signed obligation conflicts",
+        "Authorized source remedy, no toggle bypass or universal longest-rule guess."
+      ],
+      "source_cells_sha256": "783cbe4585eaf3d86b2d3cc4bdf921294d05d1262e8badd33069188d65399a6d",
+      "requirement_ids": ["REQ29-E15", "REQ29-E19"],
+      "acceptance_ids": ["AC29-E15-03", "AC29-E19-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J22",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 212,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J22",
+        "Later correction appears after case end",
+        "Later record mapped correctly without resetting old evidence."
+      ],
+      "source_cells_sha256": "93d22a5bac614ebb8621ebacdc3b9653de76d2e5ac871a8c169c0496c09a0a1c",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-09"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J23",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 213,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J23",
+        "Tenant/account/role changes mid-form or response",
+        "Current checks and scoped cache/late-response handling prevent cross-scope effects."
+      ],
+      "source_cells_sha256": "1c7797f43918e22848e0a44158620f256141a3180fae1cbab4f5b3f46ecb0bc7",
+      "requirement_ids": ["REQ29-E18", "REQ29-E19"],
+      "acceptance_ids": ["AC29-E18-06", "AC29-E19-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J24",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 214,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J24",
+        "Policy manager cannot read private bodies",
+        "Sufficient permitted policy/impact work without obtaining document access."
+      ],
+      "source_cells_sha256": "11bc5b1da3eeef2a2cad71e30293a8654020cf811024bbb38ea53078f5ff9b41",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J25",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 215,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J25",
+        "Worker/provider outcome becomes ambiguous",
+        "Preserve possible-effect fence and truthful recovery; policy change does not claim recall."
+      ],
+      "source_cells_sha256": "4218ff2e034364286978e7a659ca0705fc3c1f2a59bddb4c7dc7a2b0a8cbea93",
+      "requirement_ids": ["REQ29-E18"],
+      "acceptance_ids": ["AC29-E18-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J26",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 216,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J26",
+        "Legacy record or restored policy is encountered",
+        "Proved mapping and adverse-first control restoration, no invented prior approval."
+      ],
+      "source_cells_sha256": "190b8863fd983970e638d1eacba6744391d1d7416605cac600cfc109c50f4adb",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-03", "AC29-E19-06", "AC29-E19-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J27",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 217,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J27",
+        "Keyboard/AT/mobile/RTL/low bandwidth",
+        "Complete create/change/apply/Stop/recover flow with clear status, focus and units."
+      ],
+      "source_cells_sha256": "7b3ca317c7837eaffd45c4d95781411add1e6aadf33bd1531aa0abaedc2c4016",
+      "requirement_ids": ["REQ29-E19"],
+      "acceptance_ids": ["AC29-E19-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q66-J28",
+      "question": 66,
+      "source_path": "docs/features/files-documents/grill/phase29-q66-adversarial-review.md",
+      "source_sha256": "a401e8cd94f6e6c3fca433c69288f78a27bfdf1ca0d78728f8ce01ee8df55817",
+      "source_line": 218,
+      "source_section": "Complete composed journeys",
+      "source_cells": [
+        "J28",
+        "Responsible staff leaves",
+        "Current eligible tenant responsibility/delegation and capable operator path, not creator-only dead end."
+      ],
+      "source_cells_sha256": "ddb6a9cb13dd2efb87e3c3c228bfbf871b0d822d6b29e8344a556faeac8681a8",
+      "requirement_ids": ["REQ29-E19", "REQ29-P10"],
+      "acceptance_ids": ["AC29-E19-05", "AC29-P10-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J01",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 135,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J01",
+        "Tenant staff records a known supported event",
+        "Context is already known; necessary date/reference and concise consequences lead to one specific action. No policy editing required."
+      ],
+      "source_cells_sha256": "c9cfdeea55ecb4594b657871bb5feea1593fe4615e464436324b6df7c1852d9c",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": ["AC29-E20-01", "AC29-E20-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J02",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 136,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J02",
+        "Qualified native source already has the event",
+        "Show/use the permitted existing fact; do not ask staff to record it again."
+      ],
+      "source_cells_sha256": "ce15363932a72fd8e84d12c1c6db3a7db64fb659905f9867a5197e81172398ae",
+      "requirement_ids": ["REQ29-E20", "REQ29-E21"],
+      "acceptance_ids": ["AC29-E21-01", "AC29-E20-08"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J03",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 137,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J03",
+        "Policy administrator lacks event authority",
+        "Policy controls still work; no accidental event permission. Safe explanation or eligible owner route only."
+      ],
+      "source_cells_sha256": "66791a49c3016f4bd285c286c1ddb640f91c10a785092c2168bb737725b853a3",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": ["AC29-E20-04", "AC29-E20-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J04",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 138,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J04",
+        "Event date is old, or date-only in another zone",
+        "Preserve actual date/source semantics and show separate recorded time; explain already-due impact where relevant."
+      ],
+      "source_cells_sha256": "40cdf3772151cef4588511555aeab7ddc1c428c296e5292f607aa27146392ea4",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": ["AC29-E20-03", "AC29-E20-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J05",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 139,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J05",
+        "Date is unknown, approximate, ambiguous or future-planned",
+        "Specific repair/information route; no forced guess, magic today default or false completed fact."
+      ],
+      "source_cells_sha256": "8ce79ff2c6a80a50b2caf1258f1efbc3f098e2bc6a2c16b4375da4167db0ef61",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": ["AC29-E20-03", "AC29-E20-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J06",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 140,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J06",
+        "Evidence already exists or is restricted",
+        "Reuse sufficient qualified reference; show permitted summary and no redundant upload or hidden evidence leak."
+      ],
+      "source_cells_sha256": "09dfe5c77b15eb97b7680ceb4bfc00539b364cf2cbec01c681d50452ef9935b0",
+      "requirement_ids": ["REQ29-E23"],
+      "acceptance_ids": ["AC29-E23-03", "AC29-E23-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J07",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 141,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J07",
+        "User notices wrong subject before submit",
+        "Clear subject summary; cancel/return to correct record without a hidden global selector or changed existing history."
+      ],
+      "source_cells_sha256": "bb7df34b16c171c660af68e7e55ea3581e7393717080bd785901a3d675b5190b",
+      "requirement_ids": ["REQ29-E20", "REQ29-P11"],
+      "acceptance_ids": ["AC29-E20-01", "AC29-P11-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J08",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 142,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J08",
+        "Integration or another staff member records during entry",
+        "Recover/reconcile actual occurrence; explain safe current result and preserve unsent input if useful. No duplicate clock."
+      ],
+      "source_cells_sha256": "65141e14bc5aa8bf2aeeda7962a41bfb2cd262e1ec6fff2daf9bd7c39c968bd9",
+      "requirement_ids": ["REQ29-E20", "REQ29-E21"],
+      "acceptance_ids": ["AC29-E20-08", "AC29-E21-02"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J09",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 143,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J09",
+        "Connection drops after final action",
+        "Outcome unknown is honest; check original result without duplicate submission. Login does not auto-replay."
+      ],
+      "source_cells_sha256": "f3f11e2df541b6d5357357203510db09d6ca451fd1d1e35e4835787b0328102b",
+      "requirement_ids": ["REQ29-E21", "REQ29-E23"],
+      "acceptance_ids": ["AC29-E21-04", "AC29-E23-02"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J10",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 144,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J10",
+        "Policy/authority changes while form is open",
+        "Revalidate, explain only permitted change and require review when material; preserve only still-authorized input."
+      ],
+      "source_cells_sha256": "42390138df05a29d2f50a8b46d35efeda474ef2ac0b73cf2892e84e4e8910b17",
+      "requirement_ids": ["REQ29-E20", "REQ29-E21"],
+      "acceptance_ids": ["AC29-E20-06", "AC29-E21-04"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J11",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 145,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J11",
+        "Staff corrects date/evidence after acceptance",
+        "Clearly labelled correction with current-versus-proposed facts and attributable history. No generic edit-in-place."
+      ],
+      "source_cells_sha256": "8fc7f0f7a25bfd913eea0bed6f8cbf50de6f078918054fa4ed7713966923649d",
+      "requirement_ids": ["REQ29-E22"],
+      "acceptance_ids": ["AC29-E22-01", "AC29-E22-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J12",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 146,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J12",
+        "Staff retracts the wrong report; another valid report remains",
+        "Source shows the current supported interpretation; retraction does not erase the other report or reset the deadline."
+      ],
+      "source_cells_sha256": "d1b1a7d0398887e64bec0f8d13605ecc15c0003365597a6502eb2504bd02032f",
+      "requirement_ids": ["REQ29-E22"],
+      "acceptance_ids": ["AC29-E22-01", "AC29-E22-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J13",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 147,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J13",
+        "Retraction itself was mistaken",
+        "Capable source route accepts the same occurrence afresh with history; ordinary staff do not need SQL or a duplicate event."
+      ],
+      "source_cells_sha256": "f652954779e3e3c4dc62d96070173d56e79b038b3a6c794872b61fb660b37fcf",
+      "requirement_ids": ["REQ29-E22"],
+      "acceptance_ids": ["AC29-E22-02", "AC29-E22-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J14",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 148,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J14",
+        "Wrong-subject acceptance needs repair",
+        "Both scopes have honest outcomes; partial repair is explicit and routed, not silently marked done."
+      ],
+      "source_cells_sha256": "82c0d3516e8f845b96223039d6a555102ff9f15771a452ad6b9a5957631e07d3",
+      "requirement_ids": ["REQ29-E22", "REQ29-P10"],
+      "acceptance_ids": ["AC29-E22-02", "AC29-E22-05", "AC29-P10-03"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J15",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 149,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J15",
+        "An old event makes records due while a hold/Stop exists",
+        "Event can be truthfully recorded; disposition remains controlled and required uncertainty is visible to the capable owner."
+      ],
+      "source_cells_sha256": "c5ffc3af0dc90a6e410c1ef3b014d9a91a7eabd85ed5fa6142e09733955a359a",
+      "requirement_ids": ["REQ29-E21"],
+      "acceptance_ids": ["AC29-E21-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J16",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 150,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J16",
+        "A later record arrives or an earlier snapshot is restored",
+        "Current applicability/control checks reuse the real occurrence; no duplicate event or revived historical automation."
+      ],
+      "source_cells_sha256": "af9c5d11d1b58ad2786cfbf329865be8e248b2c4438395d4cbeb0b6647f91be6",
+      "requirement_ids": ["REQ29-E22", "REQ29-E23"],
+      "acceptance_ids": ["AC29-E22-04", "AC29-E22-06", "AC29-E23-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J17",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 151,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J17",
+        "Donor/missionary/public user or dual-role staff views related content",
+        "Only current role/purpose-qualified information/actions. No new administrative form on narrow surfaces. Dual-role staff use their actual eligible context."
+      ],
+      "source_cells_sha256": "f3dd01822564e86839f77b0d1d49810388b8a40c7e426b2759121ea74e7b8fc5",
+      "requirement_ids": ["REQ29-E20", "REQ29-E23"],
+      "acceptance_ids": ["AC29-E20-06", "AC29-E23-06"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J18",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 152,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J18",
+        "Keyboard, screen reader, mobile, RTL, zoom or weak connection",
+        "Specific labels, visible focus, unambiguous source dates, stable error focus/status and accessible review; no hover/color-only meaning or calendar-only historical input."
+      ],
+      "source_cells_sha256": "69a67d9b006fb4a64f929277fc0929828308b380ff250fa3a47c99866567d9f9",
+      "requirement_ids": ["REQ29-E20"],
+      "acceptance_ids": ["AC29-E20-09"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J19",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 153,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J19",
+        "Original recorder departs or account is deleted",
+        "Lawful attributable history remains; authorized successors can resolve current work without impersonating the departed actor."
+      ],
+      "source_cells_sha256": "00142fb9b354fe8af7beb601ff3d5b6d99202d2443614e0bbcb07060529fb38c",
+      "requirement_ids": ["REQ29-E23", "REQ29-P10"],
+      "acceptance_ids": ["AC29-E23-07", "AC29-P10-05"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    },
+    {
+      "source_id": "Q67-J20",
+      "question": 67,
+      "source_path": "docs/features/files-documents/grill/phase29-q67-adversarial-review.md",
+      "source_sha256": "50ad57f3789cf4e0c8b92ca463e7222a2943fdfefaad9d70c9881125b0758b9d",
+      "source_line": 154,
+      "source_section": "User journeys and interface acceptance",
+      "source_cells": [
+        "J20",
+        "Large affected cohort with partial background progress",
+        "Small recording flow completes truthfully; safe impact status reports permitted per-scope completion/errors without blocking the UI on a full scan."
+      ],
+      "source_cells_sha256": "343a94d0d7ea8e0a649576e40ac2c81fd7d131d6dcab967bb9088d487d1d2aac",
+      "requirement_ids": ["REQ29-E21"],
+      "acceptance_ids": ["AC29-E21-03", "AC29-E21-07"],
+      "disposition": "Covered by these existing behavioral acceptance criteria and their complete normative requirement bodies; no duplicated journey-specific acceptance criterion or native proof is claimed."
+    }
+  ],
+  "limits": [
+    "Documentary source coverage only; no feature implementation or native tests.",
+    "A broad source journey can legitimately map to multiple existing behavioral acceptance criteria.",
+    "Actual source-policy values, runtime adapters, real-role concurrency/provider evidence and intended-user gates remain open as specified."
+  ]
+}
