@@ -310,6 +310,8 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "#2312 Builder e518a845", hash: "52e534b2e20a3ae2" },
     { ref: "#2402 Builder 28ac3c13", hash: "999bf6013d1b18ca" },
     { ref: "#2364 Builder 0cf86552", hash: "4ac6a6bcd2006149" },
+    // #2407 PR (a) r1.1 §10: develop 629cb71d + the issue-2407 real-stack path appended to tenant isolation
+    { ref: "#2407a Acceptance on 629cb71d", hash: "be749c96a1c8b13f" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(

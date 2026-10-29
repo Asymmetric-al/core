@@ -22,8 +22,12 @@ export interface LegacyRichTextEditorProps {
   toolbarPosition?: "top" | "bottom";
   actions?: React.ReactNode;
   onImageClick?: () => void;
+  /** Turns on inline image upload through /api/upload/editor-image (#2407). */
+  imagePurpose?: EditorImagePurpose;
   proseInvert?: boolean;
 }
+
+export type EditorImagePurpose = "feed" | "care-thread" | "care-note";
 
 /**
  * Back-compat wrapper: same props as the old single-file editor, built on the
@@ -41,30 +45,41 @@ export function LegacyRichTextEditor({
   toolbarPosition = "top",
   actions,
   onImageClick,
+  imagePurpose,
   proseInvert = true,
 }: LegacyRichTextEditorProps) {
   const onImageUpload = React.useMemo(() => {
-    if (onImageClick) return undefined;
+    if (onImageClick || !imagePurpose) return undefined;
     return async (file: File) => {
-      const supabase = createBrowserClient();
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `editor/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("document-uploads")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
       const {
-        data: { publicUrl },
-      } = supabase.storage.from("document-uploads").getPublicUrl(filePath);
+        data: { session },
+      } = await createBrowserClient().auth.getSession();
+      if (!session?.access_token) throw new Error("No session token");
+
+      const body = new FormData();
+      body.append("file", file);
+      body.append("purpose", imagePurpose);
+      const response = await fetch("/api/upload/editor-image", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body,
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        url?: unknown;
+        error?: unknown;
+      };
+      if (!response.ok || typeof data.url !== "string") {
+        throw new Error(
+          typeof data.error === "string"
+            ? data.error
+            : "Failed to upload image",
+        );
+      }
 
       toast.success("Image uploaded successfully");
-      return publicUrl;
+      return data.url;
     };
-  }, [onImageClick]);
+  }, [onImageClick, imagePurpose]);
 
   return (
     <div
