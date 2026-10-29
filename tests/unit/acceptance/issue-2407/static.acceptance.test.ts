@@ -416,7 +416,7 @@ describe("#2407a static contract [A]", () => {
         apps/admin/app/api/upload/editor-image/route.ts apps/missionary/app/api/upload/editor-image/route.ts packages/api/package.json
         packages/ui/components/shadcn/rich-text-editor/legacy-rich-text-editor.tsx
         apps/admin/features/mission-control/care/components/PersonnelProfile.tsx apps/admin/app/(app)/feed/org-updates/page-client.tsx
-        apps/missionary/app/feed/worker-feed-page-client.tsx .github/workflows/ci-integration.yml`.split(
+        apps/missionary/app/feed/worker-feed-page-client.tsx .github/workflows/ci-integration.yml docs/security/identity-person-anchor.md`.split(
         /\s+/,
       ),
     ]);
