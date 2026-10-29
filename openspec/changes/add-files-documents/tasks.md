@@ -307,8 +307,8 @@ For each behavior task, use red–green–refactor at the confirmed source-comma
 - [ ] 7.4 Implement actual byte restore and provider exit.
   - **REQ slice:** REQ29-D15, REQ29-D16, REQ29-P16.
   - **AC slice:** AC29-D15-01 through AC29-D15-05; AC29-D16-01 through AC29-D16-05; AC29-P16-01 through AC29-P16-06.
-  - **Dependencies:** 7.1,7.3.
-  - **Verification:** Prove byte/key/metadata/reference recovery and adverse-first serving with isolated fixtures. Copy-verify-register-switch-observe precedes independent old-copy disposal; a database probe or acknowledgment is insufficient.
+  - **Dependencies:** 1.3,1.4,1.6,7.1 and the actual source's required physical-attempt/control contract.
+  - **Verification:** Prove byte/key/metadata/reference recovery and adverse-first serving with isolated fixtures. Copy-verify-register-switch-observe precedes independent old-copy disposal; a database probe or acknowledgment is insufficient. Required current source-specific dispatch and possible-effect fences remain mandatory. Ordinary policy authoring or automatic-disposal adoption is not a prerequisite for an independently qualified specialist lane.
 
 - [ ] 7.5 Integrate P22 specialized ministry-media custody.
   - **REQ slice:** REQ29-D18.
@@ -319,8 +319,8 @@ For each behavior task, use red–green–refactor at the confirmed source-comma
 - [ ] 7.6 Integrate P23 public Media and distinct Trash.
   - **REQ slice:** REQ29-D19.
   - **AC slice:** AC29-D19-01 through AC29-D19-07.
-  - **Dependencies:** 7.5,7.3,7.4.
-  - **Verification:** Test exact manifest/current origin cutoff, active/delivery/recovery classes, Media versus Page Trash and no auto purge. Preserve adopted 25k/50-item workloads and pilot gate without claiming observed success.
+  - **Dependencies:** 2.3,2.6,7.4 and P23's exact D1, Phase10, Site/locale, presentation and disposition/recovery prerequisites.
+  - **Verification:** Test exact manifest/current origin cutoff, active/delivery/recovery classes, Media versus Page Trash and no auto purge. Preserve adopted 25k/50-item workloads and pilot gate without claiming observed success. Shared custody and processing may be reused, but P22's specialized raw/source-name-discard and editorial profile is not a prerequisite or policy default for P23. P23's own current rights, references, dispatch and possible-effect fences, and retain-until-review/no-auto-purge rules remain mandatory; ordinary policy authoring or automatic-disposal adoption is not a prerequisite.
 
 - [ ] 8.1 Census retained data and execute guarded cutovers.
   - **REQ slice:** REQ29-D17, REQ29-P15.
@@ -364,7 +364,7 @@ For each behavior task, use red–green–refactor at the confirmed source-comma
   - **Dependencies:** 2.2,2.6,7.1, 1.1; the exact source row determines additional source prerequisites.
   - **Verification:** Exercise this complete consumer row, its source-owned content/authority/clocks, current producer and capable repair. Preserve independently lawful baseline behavior when a conditional artifact lane is unqualified. Record actual native/provider evidence for offered behavior; custody success cannot create financial, legal or publication facts.
 
-- [ ] 9.5 Qualify E05 — Expense helper prepare/submit modes.
+- [ ] 9.5 Qualify E05 — P21 D24 collaborator evidence with claimant confirmation.
   - **REQ slice:** REQ29-D21, REQ29-D24.
   - **AC slice:** AC29-D21-05; AC29-D24-01, AC29-D24-09, AC29-D24-10.
   - **Dependencies:** 1.2,2.6, 1.1; the exact source row determines additional source prerequisites.
@@ -400,7 +400,7 @@ For each behavior task, use red–green–refactor at the confirmed source-comma
   - **Dependencies:** 1.1,2.2, 1.1; the exact source row determines additional source prerequisites.
   - **Verification:** Exercise this complete consumer row, its source-owned content/authority/clocks, current producer and capable repair. Preserve independently lawful baseline behavior when a conditional artifact lane is unqualified. Record actual native/provider evidence for offered behavior; custody success cannot create financial, legal or publication facts.
 
-- [ ] 9.11 Qualify E11 — Payment/bank artifact submission.
+- [ ] 9.11 Qualify E11 — P21 compensation/reimbursement handoff artifacts.
   - **REQ slice:** REQ29-D21, REQ29-D24.
   - **AC slice:** AC29-D21-11; AC29-D24-01, AC29-D24-09, AC29-D24-10.
   - **Dependencies:** 2.6,7.1, 1.1; the exact source row determines additional source prerequisites.
@@ -466,7 +466,7 @@ For each behavior task, use red–green–refactor at the confirmed source-comma
   - **Dependencies:** 8.1, 1.1; the exact source row determines additional source prerequisites.
   - **Verification:** Exercise this complete consumer row, its source-owned content/authority/clocks, current producer and capable repair. Preserve independently lawful baseline behavior when a conditional artifact lane is unqualified. Record actual native/provider evidence for offered behavior; custody success cannot create financial, legal or publication facts.
 
-- [ ] 9.22 Qualify E22 — P15 manual disbursement and reserved scan/slip lanes.
+- [ ] 9.22 Qualify E22 — P15 offline gift entry and reserved scan/slip lanes.
   - **REQ slice:** REQ29-D21, REQ29-D24.
   - **AC slice:** AC29-D21-22; AC29-D24-01, AC29-D24-09, AC29-D24-10.
   - **Dependencies:** 1.1,2.2, 1.1; the exact source row determines additional source prerequisites.

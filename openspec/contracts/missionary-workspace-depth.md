@@ -2704,6 +2704,24 @@ Story: US28-C04. Source: coaching-resources.md. Decision basis: D8 organization 
 
 <!-- prettier-ignore-start -->
 
+<a id="contract-952c4fb9e03d1153da84"></a>
+
+## REQ28-C38 — Find useful organization resources
+
+<!-- BEGIN CONTRACT {"id":"952c4fb9e03d1153da84","name":"REQ28-C38 — Find useful organization resources"} -->
+
+The system SHALL satisfy this contract and the common safeguards in the canonical specification.
+
+Resources from the organization shall provide text-first browsing with practical descriptions and honest format, language and known file-size information. Categories organize content; they do not grant access. The P28 owner adopts the complete Phase29 resource contracts at repository-root path `docs/prds/sitestacker-parity/phase-29-files-documents/organization-and-review-tools.md`, REQ29-C80–C86 and C95–C115, with their shared proof requirements. This repository-root reference applies equally from the canonical volume and generated contract companion. These add advisory review planning, actual review/correction, private problem reporting and handling, independently qualified staff readership/shared publications, and optional personal Save for later; they are source-owned extensions, not a competing library.
+
+Story: US28-C38. Source: coaching-resources.md. Decision basis: Selected D12 organization-managed resource library; D37 resource reuse; Phase29 Q55/Q57–Q59 ratified review, reporting, staff-reader and personal-return amendments.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
 <a id="contract-967b886374de48f5a56d"></a>
 
 ## REQ28-C01 — Enter coaching with an individual identity and explicit organization

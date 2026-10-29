@@ -4600,7 +4600,7 @@ Story: US28-C37. Source: coaching-resources.md. Decision basis: D26 task occurre
 
 The system SHALL satisfy this contract and the common safeguards in the canonical specification.
 
-Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-4c2fdabae8fc909eb143` MUST apply without exception.
+Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-952c4fb9e03d1153da84` MUST apply without exception.
 
 #### Scenario: AC28-C38-01
 
