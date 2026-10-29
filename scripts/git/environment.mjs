@@ -20,6 +20,10 @@ export function repositoryGitEnvironment(env = process.env) {
     "GIT_COMMON_DIR",
   ]);
   return Object.fromEntries(
-    Object.entries(env).filter(([name]) => !localVariables.has(name)),
+    Object.entries(env).filter(
+      ([name]) =>
+        !localVariables.has(name) &&
+        !/^GIT_CONFIG_(?:KEY|VALUE)_\d+$/.test(name),
+    ),
   );
 }

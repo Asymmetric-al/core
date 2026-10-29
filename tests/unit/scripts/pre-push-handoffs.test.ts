@@ -1,5 +1,11 @@
-import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync, type SpawnSyncOptions } from "node:child_process";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -55,6 +61,105 @@ describe("feature branch handoffs", () => {
       ["run", "ci:preflight", "--", "--full"],
       expect.objectContaining({ env }),
     );
+  });
+
+  it("keeps inherited hook GIT_DIR from redirecting preflight fixture initialization", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "core-push-environment-"));
+    created.push(root);
+    const parent = path.join(root, "parent");
+    const child = path.join(root, "child.git");
+    mkdirSync(parent);
+    mkdirSync(child);
+    git(parent, ["init", "-q"]);
+    const configPath = path.join(parent, ".git", "config");
+    const configBefore = readFileSync(configPath, "utf8");
+    const env = Object.freeze({
+      ...process.env,
+      GIT_DIR: path.join(parent, ".git"),
+    });
+    const runCommand = vi.fn(
+      (_command: string, _args: string[], options: SpawnSyncOptions) =>
+        // Exercise the child environment with real Git, never a full preflight.
+        spawnSync("git", ["init", "--bare", "-q"], {
+          ...options,
+          cwd: child,
+          stdio: "pipe",
+        }),
+    );
+
+    expect(
+      runPrePush({
+        input: `refs/heads/fixture ${"a".repeat(40)} refs/heads/fixture ${"0".repeat(40)}\n`,
+        env,
+        runCommand,
+      }),
+    ).toBe(0);
+    expect(readFileSync(configPath, "utf8")).toBe(configBefore);
+    expect(git(parent, ["config", "--local", "--get", "core.bare"])).toBe(
+      "false",
+    );
+    expect(git(child, ["rev-parse", "--is-bare-repository"])).toBe("true");
+    expect(env.GIT_DIR).toBe(path.join(parent, ".git"));
+  });
+
+  it("isolates repository-local variables and config overrides while preserving release controls", () => {
+    const cwd = mkdtempSync(path.join(os.tmpdir(), "core-push-controls-"));
+    created.push(cwd);
+    git(cwd, ["init", "-q"]);
+    const localVariables = git(cwd, ["rev-parse", "--local-env-vars"]).split(
+      "\n",
+    );
+    const env = Object.freeze({
+      ...Object.fromEntries(localVariables.map((name) => [name, "hook-local"])),
+      GIT_CONFIG_COUNT: "2",
+      GIT_CONFIG_KEY_0: "core.bare",
+      GIT_CONFIG_VALUE_0: "true",
+      GIT_CONFIG_KEY_42: "core.hooksPath",
+      GIT_CONFIG_VALUE_42: "/unused-fixture-hooks",
+      GIT_TERMINAL_PROMPT: "0",
+      PATH: "/fixture-bin",
+      ASYM_RELEASE_PRODUCTION_PUSH: "1",
+      ASYM_RELEASE_PRODUCTION_REASON: "isolated release fixture",
+    });
+    const runCommand = vi.fn(
+      (_command: string, _args: string[], _options: SpawnSyncOptions) => ({
+        status: 0,
+      }),
+    );
+
+    expect(
+      runPrePush({
+        input: `refs/heads/develop ${"a".repeat(40)} refs/heads/production ${"b".repeat(40)}\n`,
+        env,
+        runCommand,
+      }),
+    ).toBe(0);
+    expect(runCommand).toHaveBeenCalledWith(
+      "bun",
+      ["run", "ci:preflight", "--", "--full"],
+      expect.objectContaining({
+        env: {
+          GIT_TERMINAL_PROMPT: "0",
+          PATH: "/fixture-bin",
+          ASYM_RELEASE_PRODUCTION_PUSH: "1",
+          ASYM_RELEASE_PRODUCTION_REASON: "isolated release fixture",
+        },
+      }),
+    );
+    expect(env.GIT_CONFIG_COUNT).toBe("2");
+    expect(env.GIT_CONFIG_KEY_42).toBe("core.hooksPath");
+  });
+
+  it("still blocks unauthorized production pushes before spawning preflight", () => {
+    const runCommand = vi.fn(() => ({ status: 0 }));
+    expect(
+      runPrePush({
+        input: `refs/heads/develop ${"a".repeat(40)} refs/heads/production ${"b".repeat(40)}\n`,
+        env: { GIT_DIR: "/unused-hook-repository" },
+        runCommand,
+      }),
+    ).toBe(1);
+    expect(runCommand).not.toHaveBeenCalled();
   });
 
   it("accepts unsigned mixed human and agent history without identity repair", () => {
