@@ -535,11 +535,11 @@ Task completion, cancellation and any permitted reopening remain source-owned. S
 
 ## REQ28-C38 — Find useful organization resources
 
-**Story US28-C38:** As a missionary, I want a simple resource library, so that I can quickly find material my organization has approved for me.
+**Story US28-C38:** As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
 
-**Decision basis:** Selected D12 organization-managed resource library; D37 resource reuse; reviewed source/audience safeguards reconciled in this specification.
+**Decision basis:** Selected D12 organization-managed resource library; D37 resource reuse; Phase29 Q55/Q57–Q59 ratified review, reporting, staff-reader and personal-return amendments.
 
-Resources from the organization shall provide text-first browsing with practical descriptions and honest format, language and known file-size information. Categories organize content; they do not grant access.
+Resources from the organization shall provide text-first browsing with practical descriptions and honest format, language and known file-size information. Categories organize content; they do not grant access. The P28 owner adopts the complete Phase29 resource contracts at repository-root path `docs/prds/sitestacker-parity/phase-29-files-documents/organization-and-review-tools.md`, REQ29-C80–C86 and C95–C115, with their shared proof requirements. This repository-root reference applies equally from the canonical volume and generated contract companion. These add advisory review planning, actual review/correction, private problem reporting and handling, independently qualified staff readership/shared publications, and optional personal Save for later; they are source-owned extensions, not a competing library.
 
 - **AC28-C38-01:** Search, filters, counts, thumbnails and pagination include only current authorized publications before enumeration, including when a saved search or old link is reopened.
 - **AC28-C38-02:** Open and Download accurately identify their effects and their resource. No forced preview dialog, autoplay or whole-file prefetch is required to browse the library.
@@ -547,14 +547,18 @@ Resources from the organization shall provide text-first browsing with practical
 - **AC28-C38-04:** No available resources, no matching results, a load failure with Retry and an unavailable old link have distinct safe states. Hidden resource names are not disclosed, and the flow does not invent a request-access queue.
 - **AC28-C38-05:** External resources use the qualified resource destination contract and identify the destination honestly. Library removal does not claim to erase an external site or recall a public URL.
 - **AC28-C38-06:** Reading or opening a resource creates no completion record, course credit, coaching disclosure, subscription or automatic task. Ordinary missionaries are readers rather than content submitters.
+- **AC28-C38-07:** Staff Resources uses the current qualified staff-resource purpose in the existing staff experience; missionary readership remains independent. No curator, missionary profile, fabricated Party, Support ticket or Support-read privilege is required solely for qualified staff resource reading. Dual-context people receive only current-context results. Support D27-C authored Staff guides retain their distinct owner and ticket-free Support-read consultation.
+- **AC28-C38-08:** Eligible resources remain available after an advisory review target passes, with truthful Review due/current-plan/applicable-actual-review/unknown states. Actual rights, safety and withdrawal still govern. Record review, Change review date and factual correction follow REQ29-C80–C86; no generic Publish/Save invents review or recurring cadence.
+- **AC28-C38-09:** Report a problem and Your reports follow REQ29-C95–C102 and the explicit staff report-purpose adoption in REQ29-C107. Body failure need not block a source-qualified metadata-based report. Own report-purpose return is distinct from resource access; Open/Handled/Withdrawn, editor/restoration and curator correction/handling require their actual current powers, without chat, new notice or other-reader disclosure.
+- **AC28-C38-10:** Optional Save for later/Remove from saved follows REQ29-C110–C115. A private reference resolves only the same publication's current authorized head; it is not a byte copy, hold, subscription or completion fact. Known unavailable resource, unknown evaluation and denied own-purpose are distinct; permitted own Remove remains independent of resource reading, and removed preferences do not revive through restore.
 
 ## REQ28-C39 — Curate and publish resources intentionally
 
 **Story US28-C39:** As an authorized resource curator, I want to prepare, review and publish material, so that the library contains intentional and current guidance.
 
-**Decision basis:** D12 selected staff-managed library and reviewed publication/custody safeguards; existing content/document owners.
+**Decision basis:** D12 selected staff-managed library and reviewed publication/custody safeguards; Phase29 Q58 shared-publication amendment and Q55 exact review applicability; existing content/document owners.
 
-Curatorial capability shall be explicit within authorized staff context, not universal staff power or a new missionary submission queue. Resource-purpose publication owns audience and meaning; document custody owns bytes, versions, integrity, scanning and retention.
+Curatorial capability shall be explicit within authorized staff context, not universal staff power or a new missionary submission queue. Resource-purpose publication owns audience and meaning; document custody owns bytes, versions, integrity, scanning and retention. REQ29-C103–C109 governs one suitable publication deliberately serving Staff, Missionaries or both within exact organization/Tenant/environment; actual source/P12 eligibility narrows every read. One shared publication has one content/language/meaning/lifecycle/review plan, while separate publications remain available when these differ.
 
 - **AC28-C39-01:** Prepare, unpublished, published and withdrawn publication states remain distinct from file processing or quarantine. Uploading, scanning or placing a file in a folder does not publish it.
 - **AC28-C39-02:** Publish/correct/replace validates current authority, exact organization/audience, approved immutable content version, content safety and applicable rights before accepting the reviewed publication.
@@ -562,12 +566,14 @@ Curatorial capability shall be explicit within authorized staff context, not uni
 - **AC28-C39-04:** A failed replacement leaves the earlier publication available only if it independently remains safe and authorized. Failure does not silently publish an unreviewed alternate version.
 - **AC28-C39-05:** Ordinary qualified curation adds no routine extra moderator. Existing actual safety, policy and rights approvals retain their owning requirements.
 - **AC28-C39-06:** Accessible source content is part of acceptance: unusable reading order, missing required captions or absent necessary alternatives are not cured merely by accessible library chrome.
+- **AC28-C39-07:** Audience changes require review of the complete affected scope and one deliberate current command; no implicit Both, hidden-family omission, membership enumeration or broad role grant. Draft may have no audience; published empty declared set is not allowed. Zero currently eligible people in a declared family does not automatically withdraw the publication.
+- **AC28-C39-08:** Separate preparation may reuse only actual permitted fields/exact content, never reviews/reports/approval/grants/history. New publication and old narrowing are separate deliberate recoverable acts, without atomic Split, synchronization or delay of urgent restriction. Shared replacement applies to the one shared edition; review applicability is reevaluated against content/audience/purpose, without false inherited Last reviewed or forced new review target.
 
 ## REQ28-C40 — Withdraw resources through current custody and audience controls
 
 **Story US28-C40:** As a curator, I want withdrawal to stop new library access reliably, so that outdated or unsafe material cannot remain available through stale navigation or download paths.
 
-**Decision basis:** D12 reviewed withdrawal/current-delivery design; document custody and permission boundaries.
+**Decision basis:** D12 reviewed withdrawal/current-delivery design; Phase29 Q58 audience/withdrawal/recovery refinements; document custody and permission boundaries.
 
 Withdrawal shall fence this library's new discovery and retrieval without deleting independently held/shared bytes, unrelated lawful uses or required evidence. Already delivered bytes cannot be recalled.
 
@@ -577,6 +583,8 @@ Withdrawal shall fence this library's new discovery and retrieval without deleti
 - **AC28-C40-04:** Unknown legacy ownership, classification or publication state remains unadmitted until qualified. A content import cannot manufacture publication authority.
 - **AC28-C40-05:** Search results, thumbnails, accessible labels, caches, byte delivery and deferred work cannot disclose withdrawn content through a broader path.
 - **AC28-C40-06:** The solution reuses resource publication and custody owners without introducing another storage system, CMS, content-policy engine or speculative full-body/AI search service.
+- **AC28-C40-07:** Removing the final declared family offers explicit whole-publication Withdraw and leaves current publication unchanged until that act commits. Withdraw validates its own current authority/basis independently of unrelated invalid or unsaved draft fields, preserving draft safely. Removing one family, whole withdrawal, temporary reader denial and byte deletion remain distinct.
+- **AC28-C40-08:** Re-add/reoffer is fresh current admission, never stale retry/backup revival. Independent report-purpose maintenance and permitted personal-reference cleanup remain separately governed. Real scoped protection/stewardship recovery remains available without a full-scope editing bypass, automatic old-audience restoration or compulsory re-upload of lawful retained content.
 
 ## REQ28-C41 — Discover, skip and return to an optional starting guide
 
@@ -633,6 +641,7 @@ Each reference shall resolve against the current resource or registered workspac
 - **AC28-C44-03:** Following a workspace entry opens its ordinary authorized journey. Rendering, prefetching or opening the guide does not execute the destination's mutation or communication.
 - **AC28-C44-04:** Withdrawn/invalid references produce one actionable maintenance notice for an authorized curator in existing management. They do not generate missionary nags, fabricated replacement links or a new support queue.
 - **AC28-C44-05:** The guide and its dependencies are checked on new protected release; a cached rendered revision cannot continue exposing a destination after its current source permission is lost.
+- **AC28-C44-06:** Advisory Review due alone neither invalidates a guide reference nor produces a maintenance notice. Actual source-invalid references retain the existing maintenance contract. A separate publication/successor hint never silently moves a personal save or grants new resource/report access.
 
 ## REQ28-C45 — Disable and re-offer guidance without losing independent work
 

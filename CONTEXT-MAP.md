@@ -14,3 +14,7 @@ domain language, ADRs, or product decisions outside the OpenSpec tree.
 
 When adding another feature-level glossary or ADR set, add a row here in the
 same commit so agent routing never points at an unmapped context.
+
+## Files and Documents
+
+Context ID: `files-documents`. Domain terms: `docs/features/files-documents/CONTEXT.md`. Ratified feature ADRs: `docs/features/files-documents/docs/adr/` (Q61 and Q64 intentionally have no ADR). The complete Phase 29 formal source is `docs/prds/sitestacker-parity/phase-29-files-documents.md` and its six canonical volumes; `openspec/changes/add-files-documents/` is its generated behavioral view and implementation design/checklist. AL-2429 publishes the scope. Source owners retain business truth; custody, references, records policies and resource publications do not create a generic drive or permission authority. The preserved grill corpus records provenance, not implemented or activated behavior.

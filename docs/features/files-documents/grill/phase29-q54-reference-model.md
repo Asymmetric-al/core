@@ -1,0 +1,11 @@
+# Q54 isolated logical exercise and limits
+
+2026-10-26. The script `work/q54_reference_model.py` was executed once with Python3.14 in the task workspace. It imports no Core implementation and accesses no database, network, provider or private file.
+
+Observed output: **5,040 serial orderings, six grouped logical checks and two deliberately unsafe counterexamples detected**; process exit0. The seven events are query response, upload action, reuse action, replay, helper Off, authority revocation and context switch. Additional assertions cover helper Off preserving independently lawful upload, committed history surviving later restriction, a late suggestion after upload, stale context, and two deliberately separate intentions remaining possible.
+
+The safe branch assumes one atomic source-admission gate shared by both routes. It checks that at most one effect occurs for that modeled intention. The unsafe independent-route-key example creates two effects and is detected. A second unsafe example renders a late candidate after helper Off, unlike the guarded model. Lookup/read-only and replay/no-effect behavior are stipulated by the model; the trivial replay branch does not implement or prove real durable result retrieval. The modeled revocation and context are current inputs, not a proof of obtaining them reliably. Context generation is checked for rendering the query response only; source admission checks a Boolean authority input and the shared choice, so this exercise does not test rejection of stale target/context bases at admission.
+
+This exercise tests the logical consequence of the proposed boundary and illustrates two counterexamples. It does **not** establish SQL isolation, locks, transaction composition, operation identity lifetime, actual concurrent network scheduling, P12 freshness, effective grants/RLS, source correctness, browser cancellation, uploads/deletes, provider settlement, accessibility, user benefit or cost. All native P01–P30 evidence remains required. The serial-order count is not a native concurrency-test count, and no mathematical exactly-once physical transfer guarantee follows.
+
+The exact script remains in the task workspace for inspection; it is a research artifact, not a proposed production module, repository test or new source entity. No runtime implementation or deployment is authorized by this result.

@@ -1411,6 +1411,24 @@ Story: US28-F34. Source: finance-stewardship.md. Decision basis: D40; P17/P6 not
 
 <!-- prettier-ignore-start -->
 
+<a id="contract-4c2fdabae8fc909eb143"></a>
+
+## REQ28-C38 — Find useful organization resources
+
+<!-- BEGIN CONTRACT {"id":"4c2fdabae8fc909eb143","name":"REQ28-C38 — Find useful organization resources"} -->
+
+The system SHALL satisfy this contract and the common safeguards in the canonical specification.
+
+Resources from the organization shall provide text-first browsing with practical descriptions and honest format, language and known file-size information. Categories organize content; they do not grant access. The P28 owner adopts the complete [Phase29 resource contracts](../phase-29-files-documents/organization-and-review-tools.md#req29-c80--read-resources-with-honest-advisory-review-status), REQ29-C80–C86 and C95–C115, with their shared proof requirements. These add advisory review planning, actual review/correction, private problem reporting and handling, independently qualified staff readership/shared publications, and optional personal Save for later; they are source-owned extensions, not a competing library.
+
+Story: US28-C38. Source: coaching-resources.md. Decision basis: Selected D12 organization-managed resource library; D37 resource reuse; Phase29 Q55/Q57–Q59 ratified review, reporting, staff-reader and personal-return amendments.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
 <a id="contract-4c7bdd73a0c7ac9e821d"></a>
 
 ## REQ28-M35 — Request one of six precise edits
@@ -2333,6 +2351,24 @@ Story: US28-F14. Source: finance-stewardship.md. Decision basis: D21; D22; D29�
 
 <!-- prettier-ignore-start -->
 
+<a id="contract-7b2e01be35c8928d5572"></a>
+
+## REQ28-C39 — Curate and publish resources intentionally
+
+<!-- BEGIN CONTRACT {"id":"7b2e01be35c8928d5572","name":"REQ28-C39 — Curate and publish resources intentionally"} -->
+
+The system SHALL satisfy this contract and the common safeguards in the canonical specification.
+
+Curatorial capability shall be explicit within authorized staff context, not universal staff power or a new missionary submission queue. Resource-purpose publication owns audience and meaning; document custody owns bytes, versions, integrity, scanning and retention. REQ29-C103–C109 governs one suitable publication deliberately serving Staff, Missionaries or both within exact organization/Tenant/environment; actual source/P12 eligibility narrows every read. One shared publication has one content/language/meaning/lifecycle/review plan, while separate publications remain available when these differ.
+
+Story: US28-C39. Source: coaching-resources.md. Decision basis: D12 selected staff-managed library and reviewed publication/custody safeguards; Phase29 Q58 shared-publication amendment and Q55 exact review applicability; existing content/document owners.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
 <a id="contract-7b34c8f5bf5748452c8d"></a>
 
 ## REQ28-R21 — Recover and repeat imports safely
@@ -2410,6 +2446,24 @@ The following behavior is required.
   destination, authority and reconciled exact retained copy without new identity.
 
 Story: US28-M26. Source: communications.md. Decision basis: D14 C11/C15; Phase 31 connection/grant and bounded teardown authority.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-81f23f3d6cf4da086968"></a>
+
+## REQ28-C40 — Withdraw resources through current custody and audience controls
+
+<!-- BEGIN CONTRACT {"id":"81f23f3d6cf4da086968","name":"REQ28-C40 — Withdraw resources through current custody and audience controls"} -->
+
+The system SHALL satisfy this contract and the common safeguards in the canonical specification.
+
+Withdrawal shall fence this library's new discovery and retrieval without deleting independently held/shared bytes, unrelated lawful uses or required evidence. Already delivered bytes cannot be recalled.
+
+Story: US28-C40. Source: coaching-resources.md. Decision basis: D12 reviewed withdrawal/current-delivery design; Phase29 Q58 audience/withdrawal/recovery refinements; document custody and permission boundaries.
 
 <!-- END CONTRACT -->
 
@@ -2643,6 +2697,24 @@ The system SHALL satisfy this contract and the common safeguards in the canonica
 Existing owner controls shall govern external-coach eligibility and the qualified optional sharing modules. A saved availability preference shall not substitute for current source qualification or actor authority. The interface shall not add a master Phase 28 switch or a matrix of per-person exceptions.
 
 Story: US28-C04. Source: coaching-resources.md. Decision basis: D8 organization ceilings; D24–D26 module availability; completeness configuration amendments.
+
+<!-- END CONTRACT -->
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<a id="contract-952c4fb9e03d1153da84"></a>
+
+## REQ28-C38 — Find useful organization resources
+
+<!-- BEGIN CONTRACT {"id":"952c4fb9e03d1153da84","name":"REQ28-C38 — Find useful organization resources"} -->
+
+The system SHALL satisfy this contract and the common safeguards in the canonical specification.
+
+Resources from the organization shall provide text-first browsing with practical descriptions and honest format, language and known file-size information. Categories organize content; they do not grant access. The P28 owner adopts the complete Phase29 resource contracts at repository-root path `docs/prds/sitestacker-parity/phase-29-files-documents/organization-and-review-tools.md`, REQ29-C80–C86 and C95–C115, with their shared proof requirements. This repository-root reference applies equally from the canonical volume and generated contract companion. These add advisory review planning, actual review/correction, private problem reporting and handling, independently qualified staff readership/shared publications, and optional personal Save for later; they are source-owned extensions, not a competing library.
+
+Story: US28-C38. Source: coaching-resources.md. Decision basis: Selected D12 organization-managed resource library; D37 resource reuse; Phase29 Q55/Q57–Q59 ratified review, reporting, staff-reader and personal-return amendments.
 
 <!-- END CONTRACT -->
 

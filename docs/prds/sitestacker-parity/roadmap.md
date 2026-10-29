@@ -87,7 +87,7 @@ consumers are never whole-phase prerequisites of their own foundations.
 | **26** | `support-hub` | Support Hub & Conversation Management | 6, 3, 4, 9, 17; 23 (selected lanes) | — | Support Hub, communication services, `packages/api` | `PRD exists` — [ratified specification #1656](https://github.com/Asymmetric-al/core/issues/1656); D1–D40 complete, including D27-C and D29-X01; 4 native index issues #1658–#1661 and 199 implementation leaves #1662–#1860 under #1656; implementation and release proof outstanding |
 | **27** | `donor-development` | [Donor Development & Portfolio Management](#phase-27) | **9**, 3, 6, 13 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
 | **28** | `missionary-workspace-depth` | [Missionary Workspace Depth & Support-Raising CRM](#phase-28) | 9, 13, 16, 6, 3, 27 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | formal Phase 28 specification; source qualification and implementation pending |
-| **29** | `files-documents` | [File Manager & Document Management](#phase-29) | 3, 9 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **29** | `files-documents` | [File Manager & Document Management](#phase-29) | 3, 9 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | PRD exists ([full specification](phase-29-files-documents.md), AL-2429; Q01–Q67 fully ratified; implementation and source/native/provider/user qualification pending) |
 | **30** | `imports-migration` | [Imports & Migration Tools](#phase-30) | 9, 13, 11, 29, 4, 3 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
 | **31** | `platform-api` | [Platform API, Webhooks & Connector Framework](#phase-31) | 1, 3, 4, 6 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
 | **32** | `newsletter-sync` | [Mailchimp / Newsletter Sync with Suppression Handling](#phase-32) | 6, 3, 28, 4, 31 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
@@ -4230,6 +4230,12 @@ Read the [complete retained Phase 28 owner obligations](../program-roadmap/owner
 
 ### Phase 29 — File Manager & Document Management (`files-documents`)
 
+The [full Phase 29 specification](phase-29-files-documents.md), published through
+[AL-2429](https://github.com/Asymmetric-al/core/issues/2429), formalizes ratified
+Q01–Q67 and the complete founder scope. Its source-owned contracts, exact
+acceptance and qualification gates govern implementation; this chapter is the
+orientation summary. No feature implementation or activation is claimed.
+
 <a id="phase-29-what-this-phase-is"></a>
 
 #### What this phase is
@@ -4263,7 +4269,7 @@ store substitutes for this private custody seam.
 
 **Public media custody.** Produce qualified renditions, preserve asset lineage and support privacy-safe public delivery. Apply worker-linked metadata and EXIF/geolocation hygiene and required safety review. Phase 23's logical public-media catalog and Site-use qualification remain separate from generalized physical custody. Placement-local alt text, caption and crop are not global file metadata.
 
-**Private document access.** Require current user/purpose authorization before issuing expiring access. Protect originals, previews, filenames, metadata and confidential download audit. Support revocation, attachment removal and source-specific access requirements without exposing a reusable public URL.
+**Private document access.** Require current user/purpose authorization through the exact source-qualified delivery profile. Use a current authenticated gateway where an owner prohibits reusable bearer delivery; signed access alone does not satisfy that contract. Protect originals, previews, filenames, metadata and confidential download audit. Support revocation, attachment removal and source-specific access requirements without exposing a reusable public URL.
 
 **Generated and imported records.** Register receipts, statements and other generated artifacts with their source/version lineage; the registry does not create their legal or financial meaning. Preserve Phase 21's private-byte and record-custody contracts, including qualified opening-source evidence, and Phase 30's staging-only role.
 
@@ -4307,7 +4313,7 @@ Prove required artifact retention across active, preview, scheduled, recovery an
 
 #### Open decisions
 
-Select the storage/provider allocation, scanning service, per-purpose size/type limits, preview formats, public delivery profile, resource-library scope and retention schedules with the owning teams. Qualify the exact source/build-artifact profiles and current access behavior. Legal or records-policy questions remain owner decisions; this roadmap does not supply universal disposal periods or a compliance certificate.
+Q01–Q67 now settle the ordinary request/review and recovery journeys, source-qualified processing and photo/PDF assembly, organization/resource scope, optional partner reference, tenant-owned ordinary policy lifecycle and expressly authorized automatic disposal. Preserve those choices and the inherited exact specialist format/budget profiles. Implementation still qualifies actual provider allocation and scanning adapters, measured finite profiles, real per-purpose policy values and source/build-artifact bindings through the named owner gates in the full specification. These gates do not reopen ratified product choices or supply universal disposal periods, GF approval or a compliance certificate.
 
 #### Existing owner requirements
 
