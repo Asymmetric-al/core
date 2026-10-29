@@ -431,6 +431,7 @@ describe("#2406 static contract", () => {
       H.BOOTSTRAP,
       H.DOC,
       ALLOWLIST,
+      "docs/security/identity-person-anchor.md",
       ...`packages/api/src/profile/image-url.ts packages/api/src/profile/index.ts
         packages/api/src/donor-portal/settings-patch.ts packages/api/src/donor-portal/index.ts
         .github/workflows/ci-integration.yml tests/unit/helpers/workflow-yaml.ts`.split(
@@ -446,6 +447,7 @@ describe("#2406 static contract", () => {
     ]);
     const prefixes = [
       `${H.DIR}/`,
+      "tests/unit/acceptance/issue-2256/",
       "tests/unit/packages/api/profile/",
       "tests/unit/packages/api/donor-portal/",
     ];
