@@ -1932,6 +1932,80 @@
       }
     },
     {
+      "filePath": "features/mission-control/care/components/UI.tsx",
+      "plugin": "react-doctor",
+      "rule": "jsx-props-no-spreading",
+      "severity": "warning",
+      "title": "Props spread onto element",
+      "message": "You can't tell what props reach this element when you spread them.",
+      "help": "List each prop explicitly so consumers can see the component API instead of receiving hidden spread props.",
+      "line": 103,
+      "column": 9,
+      "offset": 3926,
+      "length": 10,
+      "endLine": 103,
+      "category": "Maintainability",
+      "fingerprint": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
+      "id": "features/mission-control/care/components/UI.tsx::103:9::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
+      "normalizedFilePath": "features/mission-control/care/components/UI.tsx",
+      "tags": [],
+      "target": "apps/admin",
+      "reason": "This exact site implements typed prop forwarding at a shared component or framework adapter boundary. Enumerating a fixed subset would narrow the existing event/ref/render/ARIA/native or framework prop contract.",
+      "evidence": [
+        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/UI.tsx:44-81: typed forwarding callback accepts { className, variant = \"default\", size = \"default\", ...props }; ref; HTMLButtonElement; ButtonProps and forwards `props` to `button`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
+        "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
+        "SUPPORTING SOURCE: apps/admin/features/mission-control/care/components/UI.tsx contains the typed forwarding declaration or complete lifetime/sequencing owner described above, outside the narrow diagnostic span; this complete source is now explicitly hash-bound.",
+        "INDEPENDENT COMPLETE-OWNER SOURCE REVIEW: the same owner contains the typed native/framework declarations or out-of-line disposal/sequencing cited above. Its complete-file evidence hash locks those supporting lines, not just the diagnostic span; this is source proof, not a claim of test execution.",
+        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/UI.tsx:102; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/UI.tsx:103. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+      ],
+      "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
+      "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
+      "sourceFileHash": "97a41551291632462618830ae9c1c9ddbc15a4f74c3296b644546ddce89360dd",
+      "evidenceFileHashes": {
+        "apps/admin/features/mission-control/care/components/UI.tsx": "97a41551291632462618830ae9c1c9ddbc15a4f74c3296b644546ddce89360dd"
+      }
+    },
+    {
+      "filePath": "features/mission-control/care/components/UI.tsx",
+      "plugin": "react-doctor",
+      "rule": "no-ungated-tailwind-animation",
+      "severity": "warning",
+      "title": "Tailwind animation ignores reduced motion",
+      "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
+      "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
+      "line": 205,
+      "column": 9,
+      "offset": 7073,
+      "length": 248,
+      "endLine": 208,
+      "category": "Accessibility",
+      "matchByOccurrence": true,
+      "fingerprint": "46af3ce4e0f605f12101cf1d9e2f8812b7a196db00f4b59482f8482d61a4b471",
+      "id": "features/mission-control/care/components/UI.tsx::205:9::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
+      "normalizedFilePath": "features/mission-control/care/components/UI.tsx",
+      "tags": [],
+      "target": "apps/admin",
+      "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
+      "evidence": [
+        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/UI.tsx:183: exact animation utility from this diagnostic.",
+        "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
+        "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
+        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/UI.tsx:204; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/UI.tsx:205. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+      ],
+      "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
+      "sourceContextHash": "056b7975f134fc7f4c41dd0bc3239e9f74717266e5003d3969862b5b4cb3475d",
+      "sourceFileHash": "97a41551291632462618830ae9c1c9ddbc15a4f74c3296b644546ddce89360dd",
+      "evidenceFileHashes": {
+        "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
+        "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
+        "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
+        "apps/missionary/app/globals.css": "d485b63268c150354ceb803a7ec4194be2b15efe44d9018d1df0b5797171190f",
+        "packages/missionary/styles.css": "3ca5d4c35aaabc57dadc0f65f32176aaedbe1c2130824078275b56b4ed630d55"
+      }
+    },
+    {
       "filePath": "features/mission-control/care/components/CareDashboard.tsx",
       "plugin": "react-doctor",
       "rule": "no-ungated-tailwind-animation",
@@ -2004,42 +2078,6 @@
       "sourceFileHash": "8a86a4ca324415d4ba96c03684c7bd336e6f98bef4bbfb95c386462411133847",
       "evidenceFileHashes": {
         "packages/ui/components/shadcn/kbd.tsx": "18a41f27e84f79bba58bdace8dc820d6d2165a3690dfcc8d60517d23cf515b15"
-      }
-    },
-    {
-      "filePath": "features/mission-control/care/components/UI.tsx",
-      "plugin": "react-doctor",
-      "rule": "jsx-props-no-spreading",
-      "severity": "warning",
-      "title": "Props spread onto element",
-      "message": "You can't tell what props reach this element when you spread them.",
-      "help": "List each prop explicitly so consumers can see the component API instead of receiving hidden spread props.",
-      "line": 89,
-      "column": 11,
-      "offset": 2705,
-      "length": 10,
-      "endLine": 89,
-      "category": "Maintainability",
-      "fingerprint": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "id": "features/mission-control/care/components/UI.tsx::89:11::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
-      "normalizedFilePath": "features/mission-control/care/components/UI.tsx",
-      "tags": [],
-      "target": "apps/admin",
-      "reason": "This exact site implements typed prop forwarding at a shared component or framework adapter boundary. Enumerating a fixed subset would narrow the existing event/ref/render/ARIA/native or framework prop contract.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/UI.tsx:44-81: typed forwarding callback accepts { className, variant = \"default\", size = \"default\", ...props }; ref; HTMLButtonElement; ButtonProps and forwards `props` to `button`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
-        "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
-        "SUPPORTING SOURCE: apps/admin/features/mission-control/care/components/UI.tsx contains the typed forwarding declaration or complete lifetime/sequencing owner described above, outside the narrow diagnostic span; this complete source is now explicitly hash-bound.",
-        "INDEPENDENT COMPLETE-OWNER SOURCE REVIEW: the same owner contains the typed native/framework declarations or out-of-line disposal/sequencing cited above. Its complete-file evidence hash locks those supporting lines, not just the diagnostic span; this is source proof, not a claim of test execution.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/UI.tsx:102; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/UI.tsx:103. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup), OWNER CHANGE: the local care Button described by the earlier snapshot was deleted with the other unused primitives, and DialogHeader/DialogTitle no longer spread. React Doctor reports one jsx-props-no-spreading diagnostic per file, and it now lands on Checkbox (UI.tsx:89): a React.forwardRef wrapper typed as InputHTMLAttributes<HTMLInputElement> that consumes className, label and id, then forwards the remaining native input props with its ref onto <input type=\"checkbox\">. That is the same typed native-forwarding contract the original reason covers. The earlier Button snapshot lines are historical. Context, whole-file and supporting hashes are rebound after review."
-      ],
-      "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
-      "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "sourceFileHash": "db3cde804e7dc668e25e338081373c268e34effa996c521171c74827abdb27a9",
-      "evidenceFileHashes": {
-        "apps/admin/features/mission-control/care/components/UI.tsx": "db3cde804e7dc668e25e338081373c268e34effa996c521171c74827abdb27a9"
       }
     },
     {

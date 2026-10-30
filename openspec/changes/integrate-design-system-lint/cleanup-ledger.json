@@ -2006,7 +2006,7 @@
         "shadcn/no-unknown-classes": 1
       },
       "initialSourceSha256": "cc2de9f3e7ab93f19063c500f706b9a07cd048ebfc3cffc9d8ca4f3e22289cf5",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -2017,15 +2017,12 @@
           "batch": "undefined-scrollbar-classes-2026-09-23",
           "verifiedSourceSha256": "aa0d36696b6d75e06df0fd953ac2dddca3d081aaeee20cb8fb34e6a8149af2f4",
           "supportsFileCompletion": false
-        },
-        {
-          "batch": "admin-care-2026-10-30",
-          "verifiedSourceSha256": "db3cde804e7dc668e25e338081373c268e34effa996c521171c74827abdb27a9",
-          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {},
-      "latestSourceSha256": "db3cde804e7dc668e25e338081373c268e34effa996c521171c74827abdb27a9",
+      "currentFindings": {
+        "shadcn/no-arbitrary-values": 7
+      },
+      "latestSourceSha256": "aa0d36696b6d75e06df0fd953ac2dddca3d081aaeee20cb8fb34e6a8149af2f4",
       "includedInLatestScan": true
     },
     {
@@ -9673,7 +9670,7 @@
       ]
     },
     "admin-care-2026-10-30": {
-      "summary": "Member Care retires 300 findings in 9 files; 84 before/after route runs plus profile width checks remove two contrast failures and a pre-existing 390px profile overflow, with no new axe violations.",
+      "summary": "Member Care retires 292 findings in 8 files (unused UI.tsx is left to the unused-module removal batch); 84 before/after route runs plus profile width checks remove two contrast failures and a pre-existing 390px profile overflow, with no new axe violations.",
       "evidence": [
         {
           "path": ".tmp/admin-lint-5-4/care/care__care-profile.results.json",

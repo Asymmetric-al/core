@@ -427,6 +427,14 @@
       "count": 6
     }
   },
+  "apps/admin/features/mission-control/care/components/UI.tsx": {
+    "shadcn/no-arbitrary-values": {
+      "count": 4
+    },
+    "shadcn/no-restyle": {
+      "count": 4
+    }
+  },
   "apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx": {
     "shadcn/no-raw-colors": {
       "count": 1
