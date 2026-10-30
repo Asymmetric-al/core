@@ -29,7 +29,25 @@ See `proposal.md` for the motivation. Current state that shapes the approach:
 - Native ESLint count-based suppressions already exist. They live in
   `tooling/eslint-config/suppressions.json` and are driven by
   `tooling/eslint-config/lint.mjs`. `validateSuppressions` currently allows
-  only the six `@shadcn/lint` rules there.
+  only the six `@shadcn/lint` rules there. Counts cannot tell a repaired
+  violation from a new one of the same rule in the same file;
+  `tests/unit/scripts/design-system-suppressions.test.ts` documents that this
+  same-count swap passes lint.
+- No lint config sets `reportUnusedDisableDirectives`, and lint does not fail
+  on warnings. First-party `apps/**` and `packages/**` sources hold 4 inline
+  disable directives.
+- Two first-party files import shared components under aliases:
+  `Button as SharedButton` in
+  `apps/admin/features/mission-control/care/components/UI.tsx` and
+  `Label as UiLabel` in
+  `apps/admin/features/support-hub/components/labels/LabelForm.tsx`.
+- Per-category scores are computed by `categoryScores` in
+  `scripts/verify/shadscan-policy.mjs`. The publish test fixture has no
+  category data.
+- Two active changes still require Shadscan floors: `modernize-shadscan-readiness`
+  (its gate requirements and tasks 5.2, 5.5, 5.7, 5.8) and
+  `add-public-ministry-pages` (open task 9.6, which runs the scanner before
+  and after every `packages/ui` slice and rejects below-floor output).
 - Several tests began as Shadscan proof but assert real behavior. They cover
   pending states, names, focus and composition, and live under
   `tests/unit/{apps,packages}/**/shadscan-*.test.tsx` and the
@@ -90,6 +108,10 @@ limit; CI uses a 10-minute limit instead. Exit codes:
 
 The summary still lists the three expected applications. An application the
 scanner did not discover is shown as "not discovered", not silently omitted.
+For each application it reports the overall score, every category score and
+the IDs of failing rules. The category calculation (`categoryScores`) moves
+from `shadscan-policy.mjs` into the summary module, under red-first tests,
+before the policy file is deleted.
 `scripts/verify/shadscan-publish.mjs` and `shadscan-summary.mjs` move beside
 the audit script. They lose floor and classification columns and keep the
 `<!-- shadscan-report -->` comment marker, so the existing comment updates in
@@ -150,29 +172,62 @@ native element to that element, for example `Button` to `button`, `Input` to
 and Next `Image` to `img`. The exact names come from the `packages/ui`
 exports during apply.
 
+The plugin matches components by their JSX name, so an import alias such as
+`Button as SharedButton` would bypass the mapping. `no-restricted-syntax`
+rejects any import of a mapped component under another local name: named
+imports from its shared module (the `@asym/ui` path, or a relative path
+inside `packages/ui`) and default imports of `next/link` and `next/image`.
+Aliases of unrelated exports, such as `Link as LinkIcon` from an icon set,
+are not affected because the selector matches the import source. The two
+existing aliases are renamed during apply.
+
+- **Rejected: listing every alias in the mapping.** Each new alias would
+  silently bypass lint until someone added it.
+
 Base UI's `render={<element />}` composition cannot be expressed through
 `polymorphicPropName`. Those cases rely on the rendered axe checks, and are
 recorded as a limitation in the guide.
 
-### D6. Repair first; shrink-only suppression only for residual debt
+### D6. Repair first; line-anchored exceptions for what remains
 
 1. Run the enabled rules over the full scope and produce an inventory.
 2. Repair real violations at their owning component, with focused tests where
    behavior changes.
-3. For a false positive caused by the static rule, use an inline disable that
-   names the rule and gives a `-- reason`.
-4. Record only what cannot be repaired safely in this change. Use native
-   ESLint `--suppress-rule` for that, widen `validateSuppressions` to allow
-   `jsx-a11y/*` rules under the existing first-party path checks, and open a
-   tracked issue listing the residual entries.
+3. For a false positive caused by the static rule, use an
+   `eslint-disable-next-line` directive that names the rule and gives a
+   `-- reason`.
+4. Record only what cannot be repaired safely in this change, using the same
+   directive form with a reason that cites a tracked issue. Open that issue
+   with the residual list.
 
-Native suppressions are count-based. Unpruned suppressions already fail lint,
-which gives the spec's shrink-only behavior without new tooling.
+Each directive covers one line and one rule. That gives the spec's
+shrink-only behavior:
 
-### D7. Amend the sibling change only after ratification
+- A new violation on any other line fails lint, even in a file with
+  exceptions.
+- First-party UI configs set `linterOptions.reportUnusedDisableDirectives` to
+  `"error"`, so a directive whose violation was repaired fails lint until it
+  is deleted. That also applies to the 4 existing directives, and any that
+  are stale are removed during apply.
+- A focused test scans first-party sources and fails when a `jsx-a11y`
+  directive names no rule or has no `--` reason.
 
-After the owner ratifies this proposal, `modernize-shadscan-readiness` is
-amended:
+`validateSuppressions` stays limited to `@shadcn/lint` rules, so
+accessibility debt cannot move into the count-based file.
+
+- **Rejected: native count-based suppressions for `jsx-a11y`.** Counts cannot
+  detect a same-count swap: repairing one violation and adding another of the
+  same rule in the same file passes. Core's own suppression test documents
+  this. It would break the spec's guarantee that a new violation fails.
+- **Residual limit:** a different violation of the same rule on the same
+  excepted line stays hidden. Review covers that narrow case.
+
+### D7. Amend other active changes only after ratification
+
+After the owner ratifies this proposal, every active change whose open work
+still requires a Shadscan floor or an extra scan is amended.
+
+**`modernize-shadscan-readiness`:**
 
 - Withdraw these four ADDED requirements:
   - "Workspace UI Audits Are Reproducible And Complete"
@@ -181,13 +236,26 @@ amended:
   - "Audit Classifications Preserve Evidence"
 - Turn open tasks 5.2, 5.5, 5.7 and 5.8 into untracked bullets under a dated
   "Superseded 2026-10-30 by `make-shadscan-advisory`" heading.
+- In open task 4.9, mark only the "review affected finding proofs" clause as
+  superseded, because it serves the retired ledger. Its other work stays.
 - Add the same dated note to its proposal and design.
 
 Its UI-repair, component-review and browser-evidence requirements stay
-unchanged. The contract section
+unchanged, and so do open tasks 3.5, 5.3, 5.4 and 5.6 and the rest of 4.9.
+That change stays active until those tasks are complete; it is not archived
+just because this change merges.
+
+**`add-public-ministry-pages`:** in open task 9.6, replace the before-and-after
+Shadscan runs, floor recording and below-floor rejection with a review of the
+advisory report on the slice's pull request. The rest of the task, including
+its accessibility and browser proof, is unchanged.
+
+Completed changes that mention Shadscan floors only in verification records
+or workflow notes, such as `modernize-openspec-current-contracts`, stay as
+history. The contract section
 `openspec/contracts/ui-quality-audits.md#contract-7aab1c5a8227bf2da9b4`
-stays in place as history. Per `openspec/contracts/README.md`, an
-unreferenced section imposes no present behavior.
+also stays as history. Per `openspec/contracts/README.md`, an unreferenced
+section imposes no present behavior.
 
 ## Risks / Trade-offs
 
@@ -199,8 +267,11 @@ unreferenced section imposes no present behavior.
   regressions that matter. A drop seen in review is triaged under the
   "Triaged By Review" requirement.
 - **[Risk]** The jsx-a11y inventory is larger than expected. → D6's
-  shrink-only suppression and tracked issue keep the change bounded without
-  accepting new debt.
+  line-anchored exceptions and tracked issue keep the change bounded without
+  accepting new debt, at the cost of one directive per residual line.
+- **[Risk]** Unused-disable reporting at error also covers the 4 existing
+  directives for other rules. → Any stale ones are deleted during apply.
+  Deleting an unused directive cannot change behavior.
 - **[Trade-off]** Static lint cannot see through Base UI `render` composition.
   The existing axe browser checks remain the authority for those cases.
 - **[Risk]** A worktree commit runs the main checkout's hook file. → Hook
@@ -214,11 +285,11 @@ Land the work in two commits on one branch, so each is revertible:
 
 1. **Retire the gate.** Change the hook, preflight, CI, scripts, tests and
    docs (D1–D3).
-2. **Add a11y lint.** Change the lint config, the inventory, repairs and any
-   suppressions (D4–D6).
+2. **Add a11y lint.** Change the lint config, the inventory, repairs, alias
+   renames and any inline exceptions (D4–D6).
 
-The sibling-change amendment (D7) lands with commit 1, since both describe
-the same authority change.
+The amendments to other active changes (D7) land with commit 1, since they
+describe the same authority change.
 
 **Rollback:** revert either commit independently. Reverting commit 1 restores
 the gate exactly as it was. The restored ledger must then be re-reviewed
@@ -228,5 +299,5 @@ other work has landed.
 ## Open Questions
 
 - How many jsx-a11y recommended violations exist today? This decides
-  whether D6 ends with zero suppressions or a tracked residual. It does not
-  change the tasks.
+  whether D6 ends with zero residual exceptions or a tracked residual. It
+  does not change the tasks.

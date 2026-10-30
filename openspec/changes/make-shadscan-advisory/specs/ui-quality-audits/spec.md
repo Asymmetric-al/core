@@ -80,6 +80,8 @@ order. A violation SHALL fail local lint and the required CI lint check.
 When first-party code uses a shared UI component that renders a native control,
 image or link, accessibility lint SHALL apply the rules for that native element.
 A shared wrapper SHALL NOT hide a violation that the native element would report.
+First-party code SHALL use mapped shared components under their exported
+names, so an import alias cannot bypass the mapping.
 
 #### Scenario: A shared component wraps a native element
 
@@ -87,23 +89,40 @@ A shared wrapper SHALL NOT hide a violation that the native element would report
 - **THEN** accessibility lint evaluates that usage as the native element
 - **AND** a violation the native element would report is reported for the shared component usage
 
+#### Scenario: A mapped shared component is imported under another name
+
+- **WHEN** first-party code imports a mapped shared component under a different local name
+- **THEN** lint fails and names the file, line and the component's exported name
+
 ### Requirement: Existing Accessibility Debt Can Only Shrink
 
-Accessibility lint violations present when enforcement is adopted SHALL be
-recorded as file-scoped and rule-scoped counts that can only decrease. A new
-violation SHALL fail lint even in a file with recorded debt. Recorded debt
-SHALL NOT be widened to accept new violations.
+Existing accessibility lint violations and static false positives SHALL be
+recorded only as line-anchored exceptions that name the rule and give a
+reason; residual debt SHALL also cite a tracked issue. They SHALL NOT be
+recorded as file-scoped or count-based suppressions. An exception that no
+longer suppresses a violation SHALL fail lint, so recorded debt can only
+shrink.
 
 #### Scenario: A new violation lands in a file with recorded debt
 
-- **WHEN** a change adds a violation of a rule that already has recorded debt in that file
-- **THEN** lint fails because the recorded count is exceeded
+- **WHEN** a change adds a violation on a line without an exception, in a file that has exceptions for the same rule
+- **THEN** lint fails and names the file, line and rule
+
+#### Scenario: A recorded violation is replaced by a new one
+
+- **WHEN** a change repairs a violation that has an exception and adds a different violation of the same rule elsewhere in that file
+- **THEN** lint fails for the new violation
+- **AND** lint fails for the exception that no longer suppresses anything
 
 #### Scenario: Recorded debt is repaired
 
-- **WHEN** a change removes a recorded violation
-- **THEN** the recorded count can be pruned to the lower value
-- **AND** no other file or rule gains recorded debt
+- **WHEN** a change removes a violation that has an exception
+- **THEN** lint fails until the same change deletes that exception
+
+#### Scenario: An exception omits its rule or reason
+
+- **WHEN** first-party code adds an accessibility lint exception that names no rule or gives no reason
+- **THEN** the repository's verification fails and names the file and line
 
 ### Requirement: Rendered And Behavioral Accessibility Evidence Is Retained
 

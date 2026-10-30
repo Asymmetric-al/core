@@ -34,14 +34,20 @@ its rules. The existing axe-based Playwright checks cover rendered behavior.
   target. Reviewers triage reported findings: confirmed defects are repaired
   with behavior tests or tracked as issues.
 - Enforce the full `jsx-a11y` recommended rule set in first-party web UI lint.
-  Map shared `packages/ui` components to their native semantics. Capture
-  existing violations as shrink-only native ESLint suppressions.
+  Map shared `packages/ui` components to their native semantics, and reject
+  import aliases that would bypass that mapping. Record any violation left
+  after repair as a line-anchored, rule-named exception that fails lint once
+  it is unused, so debt can only shrink.
 - Keep every behavioral, Playwright and axe test written as Shadscan proof.
   They are ordinary regression tests now.
 - When this change is ratified, amend the active `modernize-shadscan-readiness`
   change. Withdraw its superseded gate, floor and classification requirements
   and its 100/100 tasks, and label them as dated history. Its UI-repair,
-  component-review and browser-evidence requirements stay as they are.
+  component-review and browser-evidence requirements and their open tasks
+  stay as they are.
+- In the same step, amend open task 9.6 of the active
+  `add-public-ministry-pages` change, which still requires Shadscan runs
+  before and after every `packages/ui` slice and rejects below-floor output.
 
 ## Non-goals
 
@@ -57,7 +63,7 @@ its rules. The existing axe-based Playwright checks cover rendered behavior.
 The owner approved official scanner scores and the 100/100 target on
 2026-10-04 in `modernize-shadscan-readiness`. That approval stays the governing
 intent until the owner ratifies this proposal. Implementation SHALL NOT start,
-and the sibling change SHALL NOT be amended, before that ratification.
+and no other active change SHALL be amended, before that ratification.
 
 ## Capabilities
 
@@ -88,12 +94,13 @@ None. No durable spec requirement changes.
     policy, perfect-score and staged tests are removed; the publish test is
     rewritten.
 - **Lint:** `tooling/eslint-config` (Next, library and design-system entry
-  points), its suppression validator and the native suppressions file.
-  `eslint-plugin-jsx-a11y@6.10.2` is already locked.
+  points), including unused-disable reporting for first-party UI files.
+  `eslint-plugin-jsx-a11y@6.10.2` is already locked. The count-based
+  suppression file stays limited to `@shadcn/lint` rules.
 - **Docs:** `docs/guides/development/shadscan.md`, `docs/ci.md`,
   `CONTRIBUTING.md`, `README.md` and `docs/ai/rules/frontend.md`.
 - **Planning:** the `modernize-shadscan-readiness` delta, tasks and history
-  note, after ratification.
+  note, and task 9.6 of `add-public-ministry-pages`, after ratification.
 - **Untouched:** product routes, data, authorization, tenancy, money and
   deployments.
 
@@ -102,4 +109,4 @@ None. No durable spec requirement changes.
 Revert the implementation commits. That restores the hook, gate, policy,
 ledger and floors exactly from git history. A restored ledger must be
 re-reviewed against current source before the gate can pass again. Lint
-rollback removes the added rules and their suppression entries together.
+rollback removes the added rules and their inline exceptions together.
