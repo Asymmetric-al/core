@@ -6,12 +6,14 @@ args = [
 ]
 
 [mcp_servers.shadcn]
-command = "npx"
+command = "bun"
 args = [
-    "--yes",
-    "shadcn@4.22.1",
-    "mcp",
+    "scripts/shadcn/mcp.mjs",
 ]
+# Before `bun install`, the launcher falls back to `bun x`, whose first start
+# on a machine installs shadcn (~1 minute). Keep equal to Claude Code's
+# env.MCP_TIMEOUT in .claude/settings.json.
+startup_timeout_sec = 120
 
 [mcp_servers.reui]
 url = "https://mcp.reui.io"

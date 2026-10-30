@@ -8,11 +8,9 @@
       ]
     },
     "shadcn": {
-      "command": "npx",
+      "command": "bun",
       "args": [
-        "--yes",
-        "shadcn@4.22.1",
-        "mcp"
+        "${workspaceFolder}/scripts/shadcn/mcp.mjs"
       ]
     },
     "inngest-dev": {

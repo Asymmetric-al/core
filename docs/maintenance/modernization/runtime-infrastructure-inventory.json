@@ -847,6 +847,8 @@
         ".mcp.json",
         ".cursor/mcp.json",
         ".codex/config.toml",
+        "package.json",
+        "scripts/shadcn/mcp.mjs",
         "scripts/shadcn/add-shadcnuikit.ts",
         "scripts/verify/shadcn-registry-smoke.mjs"
       ],
