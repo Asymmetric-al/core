@@ -41,6 +41,12 @@ import {
   DropdownMenuCheckboxItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
 import {
@@ -268,7 +274,7 @@ function ModerationQueueDialogs({
         open={actionDialogOpen}
         onOpenChange={onActionDialogOpenChange}
       >
-        <AlertDialogContent className="rounded-2xl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
               {pendingAction?.action === "delete"
@@ -282,29 +288,22 @@ function ModerationQueueDialogs({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
-            <Label
-              htmlFor="moderation-action-reason"
-              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-            >
-              Reason (optional)
-            </Label>
+            <Label htmlFor="moderation-action-reason">Reason (optional)</Label>
             <Input
               id="moderation-action-reason"
               value={actionReason}
               onChange={(e) => onActionReasonChange(e.target.value)}
               placeholder="Add a reason for this action…"
-              className="mt-2 rounded-xl"
+              className="mt-2"
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={onConfirmAction}
-              className={cn(
-                "rounded-xl",
-                pendingAction?.action === "delete" &&
-                  "bg-destructive hover:bg-destructive/90",
-              )}
+              variant={
+                pendingAction?.action === "delete" ? "destructive" : "default"
+              }
             >
               {pendingAction?.action === "delete" ? "Delete" : "Hide"}
             </AlertDialogAction>
@@ -318,7 +317,7 @@ function ModerationQueueDialogs({
           onSelectedPostChange(null);
         }}
       >
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl">
+        <DialogContent className="max-w-2xl" scrollable>
           <DialogHeader>
             <DialogTitle>Post Details</DialogTitle>
             <DialogDescription>Review and manage this post</DialogDescription>
@@ -330,9 +329,9 @@ function ModerationQueueDialogs({
               className="space-y-4"
             >
               <div className="flex items-center gap-3">
-                <Avatar className="size-12 border-2 border-background shadow-md">
+                <Avatar className="size-12">
                   <AvatarImage src={selectedPost.author.avatar_url} />
-                  <AvatarFallback className="font-semibold">
+                  <AvatarFallback>
                     {selectedPost.author.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
@@ -402,7 +401,6 @@ function ModerationQueueDialogs({
             <Button
               variant="outline"
               onClick={() => onSelectedPostChange(null)}
-              className="rounded-xl"
             >
               Close
             </Button>
@@ -413,7 +411,6 @@ function ModerationQueueDialogs({
                 }
                 onSelectedPostChange(null);
               }}
-              className="rounded-xl"
             >
               <Check className="size-4 mr-2" /> Approve
             </Button>
@@ -569,7 +566,7 @@ function AllPostsFeedPostCard({
         whileHover={{ y: -2 }}
         transition={springTransition}
         className={cn(
-          "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-[box-shadow,border-color,opacity] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
+          "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
           post.status === "hidden" && "opacity-60",
           post.isFlagged && "border-warning/25",
         )}
@@ -583,11 +580,9 @@ function AllPostsFeedPostCard({
               {post.author.role === "organization" ? (
                 <BrandAvatar size="md" />
               ) : (
-                <Avatar className="size-10 sm:h-12 sm:w-12 shrink-0 border-2 border-background shadow-md ring-1 ring-border">
+                <Avatar className="size-10 shrink-0 sm:size-12">
                   <AvatarImage src={post.author.avatar_url} />
-                  <AvatarFallback className="text-xs font-semibold bg-muted text-muted-foreground">
-                    {post.author.name.charAt(0)}
-                  </AvatarFallback>
+                  <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}
             </motion.div>
@@ -600,37 +595,21 @@ function AllPostsFeedPostCard({
                       {post.author.name}
                     </span>
                     {post.author.role === "organization" && (
-                      <Badge className="h-5 bg-primary/10 text-primary shrink-0 font-semibold uppercase tracking-wider border-0">
-                        Official
-                      </Badge>
+                      <Badge>Official</Badge>
                     )}
-                    <Badge
-                      variant="secondary"
-                      className="h-5 shrink-0 font-semibold uppercase tracking-wider"
-                    >
-                      {post.post_type}
-                    </Badge>
+                    <Badge variant="secondary">{post.post_type}</Badge>
                     {post.status === "hidden" && (
-                      <Badge
-                        variant="outline"
-                        className="h-5 shrink-0 font-semibold uppercase tracking-wider"
-                      >
+                      <Badge variant="outline">
                         <EyeOff className="size-2.5" /> Hidden
                       </Badge>
                     )}
                     {post.isFlagged && (
-                      <Badge
-                        variant="destructive"
-                        className="h-5 shrink-0 font-semibold uppercase tracking-wider"
-                      >
+                      <Badge variant="destructive">
                         <Flag className="size-2.5" /> Flagged
                       </Badge>
                     )}
                     {post.isPinned && (
-                      <Badge
-                        variant="outline"
-                        className="h-5 shrink-0 font-semibold uppercase tracking-wider"
-                      >
+                      <Badge variant="outline">
                         <Pin className="size-2.5" /> Pinned
                       </Badge>
                     )}
@@ -642,7 +621,7 @@ function AllPostsFeedPostCard({
                     {post.author.location && (
                       <>
                         <span className="text-border">•</span>
-                        <span className="text-xs text-muted-foreground font-medium hidden xs:inline">
+                        <span className="text-xs text-muted-foreground font-medium hidden sm:inline">
                           {post.author.location}
                         </span>
                       </>
@@ -660,38 +639,32 @@ function AllPostsFeedPostCard({
                       render={
                         <Button
                           variant="ghost"
-                          size="icon"
-                          className="size-8 sm:h-9 sm:w-9 shrink-0 rounded-xl"
+                          size="icon-sm"
+                          className="shrink-0"
                         >
                           <MoreHorizontal className="size-4" />
                         </Button>
                       }
                     />
                   </motion.div>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-52 rounded-xl p-1.5"
-                  >
+                  <DropdownMenuContent align="end">
                     <DropdownMenuGroup>
-                      <DropdownMenuLabel className="text-xs uppercase tracking-wider font-semibold text-muted-foreground px-2">
-                        Quick Actions
-                      </DropdownMenuLabel>
+                      <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
 
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={() => onAction(post.id, "edit")}
-                        className="rounded-lg py-2.5 cursor-pointer gap-2.5"
                       >
                         <Edit3 className="size-4 text-muted-foreground" /> Edit
                         Post
                       </DropdownMenuItem>
                       {post.isPinned ? (
-                        <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                        <DropdownMenuItem>
                           <Pin className="size-4 text-muted-foreground" /> Unpin
                           Post
                         </DropdownMenuItem>
                       ) : (
-                        <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                        <DropdownMenuItem>
                           <Pin className="size-4 text-muted-foreground" /> Pin
                           to Top
                         </DropdownMenuItem>
@@ -699,7 +672,6 @@ function AllPostsFeedPostCard({
                       {post.status === "hidden" ? (
                         <DropdownMenuItem
                           onClick={() => onAction(post.id, "approve")}
-                          className="rounded-lg py-2.5 cursor-pointer gap-2.5"
                         >
                           <Eye className="size-4 text-muted-foreground" />{" "}
                           Restore Post
@@ -707,24 +679,23 @@ function AllPostsFeedPostCard({
                       ) : (
                         <DropdownMenuItem
                           onClick={() => onAction(post.id, "hide")}
-                          className="rounded-lg py-2.5 cursor-pointer gap-2.5"
                         >
                           <EyeOff className="size-4 text-muted-foreground" />{" "}
                           Hide Post
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                      <DropdownMenuItem>
                         <ExternalLink className="size-4 text-muted-foreground" />{" "}
                         View Public Post
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                      <DropdownMenuItem>
                         <UserX className="size-4 text-muted-foreground" /> View
                         Author
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        className="text-destructive rounded-lg py-2.5 cursor-pointer gap-2.5"
+                        variant="destructive"
                         onClick={() => onAction(post.id, "delete")}
                       >
                         <Trash2 className="size-4" /> Delete Post
@@ -736,8 +707,8 @@ function AllPostsFeedPostCard({
 
               <PostContent
                 value={post.content}
-                richTextClassName="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-3"
-                htmlClassName="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-3"
+                richTextClassName="prose prose-sm max-w-none text-sm line-clamp-3"
+                htmlClassName="prose prose-sm max-w-none text-sm line-clamp-3"
               />
 
               {post.media && post.media.length > 0 && (
@@ -778,7 +749,7 @@ function AllPostsFeedPostCard({
                   ) : (
                     <Lock className="size-3.5" />
                   )}
-                  <span className="capitalize hidden xs:inline">
+                  <span className="capitalize hidden sm:inline">
                     {post.visibility}
                   </span>
                 </span>
@@ -946,15 +917,15 @@ function FlaggedCommentsPanel({
             exit={{ opacity: 0, x: 20, scale: 0.95 }}
             transition={{ ...smoothTransition, delay: index * 0.05 }}
           >
-            <Card className="rounded-xl border-warning/25 hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]">
+            <Card>
               <CardContent className="p-4">
                 <div className="flex gap-3">
                   <motion.div
                     whileHover={{ scale: 1.1 }}
                     transition={springTransition}
                   >
-                    <Avatar className="size-8 sm:h-9 sm:w-9 shrink-0 border border-background shadow-sm">
-                      <AvatarFallback className="text-xs font-semibold bg-muted">
+                    <Avatar className="size-8 shrink-0 sm:size-9">
+                      <AvatarFallback>
                         {comment.author.name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
@@ -979,10 +950,10 @@ function FlaggedCommentsPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-success hover:bg-success/10 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "approve")}
                         >
-                          <Check className="size-3 mr-1.5" /> Approve
+                          <Check className="size-3 mr-1.5 text-success" />{" "}
+                          Approve
                         </Button>
                       </motion.div>
                       <motion.div
@@ -992,10 +963,10 @@ function FlaggedCommentsPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-destructive hover:bg-destructive/10 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "delete")}
                         >
-                          <Trash2 className="size-3 mr-1.5" /> Delete
+                          <Trash2 className="size-3 mr-1.5 text-destructive" />{" "}
+                          Delete
                         </Button>
                       </motion.div>
                     </div>
@@ -1020,7 +991,7 @@ function RecentActivityPanel() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ ...smoothTransition, delay: idx * 0.08 }}
           whileHover={{ x: 4 }}
-          className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/50 transition-[color,background-color,border-color,box-shadow,transform,opacity] cursor-pointer"
+          className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
         >
           <motion.div
             whileHover={{ scale: 1.1, rotate: 5 }}
@@ -1138,13 +1109,10 @@ export function ContentModerationTabsSection({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6"
+        className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6"
       >
-        <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border backdrop-blur-sm">
-          <TabsTrigger
-            value="moderation"
-            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
-          >
+        <TabsList>
+          <TabsTrigger value="moderation">
             <ShieldAlert className="size-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             Queue
             <AnimatePresence>
@@ -1162,10 +1130,7 @@ export function ContentModerationTabsSection({
               )}
             </AnimatePresence>
           </TabsTrigger>
-          <TabsTrigger
-            value="all"
-            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
-          >
+          <TabsTrigger value="all">
             <Globe className="size-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             All Posts
           </TabsTrigger>
@@ -1179,75 +1144,69 @@ export function ContentModerationTabsSection({
               exit={{ opacity: 0, x: 20 }}
               className="flex items-center gap-2 w-full sm:w-auto"
             >
-              <div className="relative flex-1 sm:flex-none">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input
-                  aria-label="Search posts"
-                  placeholder="Search posts…"
-                  value={searchQuery}
-                  onChange={(e) =>
-                    dispatchUi({
-                      type: "set_search_query",
-                      value: e.target.value,
-                    })
-                  }
-                  className="pl-9 sm:h-10 w-full sm:w-56 lg:w-64 rounded-xl"
-                />
-                {searchQuery && (
-                  <motion.button
-                    type="button"
-                    aria-label="Clear search"
-                    initial={{ scale: 0.95, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.95, opacity: 0 }}
-                    onClick={() =>
-                      dispatchUi({ type: "set_search_query", value: "" })
+              <div className="flex-1 sm:w-56 sm:flex-none lg:w-64">
+                <InputGroup>
+                  <InputGroupAddon>
+                    <Search className="size-4" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    aria-label="Search posts"
+                    placeholder="Search posts…"
+                    value={searchQuery}
+                    onChange={(e) =>
+                      dispatchUi({
+                        type: "set_search_query",
+                        value: e.target.value,
+                      })
                     }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="size-3.5" />
-                  </motion.button>
-                )}
+                  />
+                  {searchQuery && (
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        size="icon-xs"
+                        aria-label="Clear search"
+                        onClick={() =>
+                          dispatchUi({ type: "set_search_query", value: "" })
+                        }
+                      >
+                        <X className="size-3.5" />
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  )}
+                </InputGroup>
               </div>
               <ModerationFiltersMenu
                 filterVisibility={filterVisibility}
                 dispatchUi={dispatchUi}
                 filterType={filterType}
               />
-              <Select<SortOption>
-                items={[
-                  { value: "newest", label: "Newest" },
-                  { value: "oldest", label: "Oldest" },
-                  { value: "engagement", label: "Engagement" },
-                ]}
-                value={sortBy}
-                onValueChange={(value) => {
-                  if (value === null) return;
-                  dispatchUi({
-                    type: "set_sort_by",
-                    value,
-                  });
-                }}
-              >
-                <SelectTrigger
-                  aria-label="Sort content"
-                  className="h-9 sm:h-10 w-28 sm:w-36 rounded-xl"
+              <div className="w-28 sm:w-36">
+                <Select<SortOption>
+                  items={[
+                    { value: "newest", label: "Newest" },
+                    { value: "oldest", label: "Oldest" },
+                    { value: "engagement", label: "Engagement" },
+                  ]}
+                  value={sortBy}
+                  onValueChange={(value) => {
+                    if (value === null) return;
+                    dispatchUi({
+                      type: "set_sort_by",
+                      value,
+                    });
+                  }}
                 >
-                  <ArrowUpDown className="size-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="newest" className="rounded-lg">
-                    Newest
-                  </SelectItem>
-                  <SelectItem value="oldest" className="rounded-lg">
-                    Oldest
-                  </SelectItem>
-                  <SelectItem value="engagement" className="rounded-lg">
-                    Engagement
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                  <SelectTrigger aria-label="Sort content" className="w-full">
+                    <ArrowUpDown className="size-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="oldest">Oldest</SelectItem>
+                    <SelectItem value="engagement">Engagement</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1373,11 +1332,7 @@ export function ContentModerationSidebarSection({
                 violations will be queued for review.
               </p>
               <motion.div whileHover={{ x: 4 }}>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0 text-xs font-semibold"
-                >
+                <Button variant="link" size="xs">
                   Configure Settings <ChevronRight className="size-3 ml-1" />
                 </Button>
               </motion.div>
@@ -1412,7 +1367,7 @@ function ModerationQueuePostCard({
         whileHover={{ y: -2 }}
         transition={springTransition}
         className={cn(
-          "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-[box-shadow,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
+          "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
           post.isFlagged && "border-warning/25",
         )}
       >
@@ -1425,11 +1380,9 @@ function ModerationQueuePostCard({
               {post.author.role === "organization" ? (
                 <BrandAvatar size="md" />
               ) : (
-                <Avatar className="size-10 sm:h-12 sm:w-12 shrink-0 border-2 border-background shadow-md ring-1 ring-border">
+                <Avatar className="size-10 shrink-0 sm:size-12">
                   <AvatarImage src={post.author.avatar_url} />
-                  <AvatarFallback className="text-xs font-semibold bg-muted text-muted-foreground">
-                    {post.author.name.charAt(0)}
-                  </AvatarFallback>
+                  <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}
             </motion.div>
@@ -1441,31 +1394,20 @@ function ModerationQueuePostCard({
                     <span className="font-semibold text-sm sm:text-base text-foreground truncate">
                       {post.author.name}
                     </span>
-                    <Badge
-                      variant="secondary"
-                      className="h-5 shrink-0 font-semibold uppercase tracking-wider"
-                    >
-                      {post.post_type}
-                    </Badge>
+                    <Badge variant="secondary">{post.post_type}</Badge>
                     {post.isFlagged && (
                       <motion.div
                         initial={{ scale: 0.95, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={springTransition}
                       >
-                        <Badge
-                          variant="destructive"
-                          className="h-5 shrink-0 font-semibold uppercase tracking-wider"
-                        >
+                        <Badge variant="destructive">
                           <Flag className="size-2.5" /> Flagged
                         </Badge>
                       </motion.div>
                     )}
                     {post.isPinned && (
-                      <Badge
-                        variant="outline"
-                        className="h-5 shrink-0 font-semibold uppercase tracking-wider"
-                      >
+                      <Badge variant="outline">
                         <Pin className="size-2.5" /> Pinned
                       </Badge>
                     )}
@@ -1483,7 +1425,7 @@ function ModerationQueuePostCard({
                       ) : (
                         <Lock className="size-3" />
                       )}
-                      <span className="capitalize hidden xs:inline">
+                      <span className="capitalize hidden sm:inline">
                         {post.visibility}
                       </span>
                     </span>
@@ -1502,18 +1444,15 @@ function ModerationQueuePostCard({
                           render={
                             <Button
                               variant="ghost"
-                              size="icon"
-                              className="size-8 sm:h-9 sm:w-9 text-success hover:bg-success/10 rounded-xl"
+                              size="icon-sm"
                               onClick={() => onActionClick(post.id, "approve")}
                             >
-                              <Check className="size-4" />
+                              <Check className="size-4 text-success" />
                             </Button>
                           }
                         />
                       </motion.div>
-                      <TooltipContent className="rounded-lg">
-                        Approve
-                      </TooltipContent>
+                      <TooltipContent>Approve</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
 
@@ -1528,18 +1467,15 @@ function ModerationQueuePostCard({
                           render={
                             <Button
                               variant="ghost"
-                              size="icon"
-                              className="size-8 sm:h-9 sm:w-9 text-warning hover:bg-warning/10 rounded-xl"
+                              size="icon-sm"
                               onClick={() => onActionClick(post.id, "hide")}
                             >
-                              <EyeOff className="size-4" />
+                              <EyeOff className="size-4 text-warning" />
                             </Button>
                           }
                         />
                       </motion.div>
-                      <TooltipContent className="rounded-lg">
-                        Hide Post
-                      </TooltipContent>
+                      <TooltipContent>Hide Post</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
 
@@ -1554,18 +1490,15 @@ function ModerationQueuePostCard({
                           render={
                             <Button
                               variant="ghost"
-                              size="icon"
-                              className="size-8 sm:h-9 sm:w-9 text-destructive hover:bg-destructive/10 rounded-xl"
+                              size="icon-sm"
                               onClick={() => onActionClick(post.id, "delete")}
                             >
-                              <Trash2 className="size-4" />
+                              <Trash2 className="size-4 text-destructive" />
                             </Button>
                           }
                         />
                       </motion.div>
-                      <TooltipContent className="rounded-lg">
-                        Delete Post
-                      </TooltipContent>
+                      <TooltipContent>Delete Post</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
 
@@ -1577,38 +1510,29 @@ function ModerationQueuePostCard({
                       <DropdownMenuTrigger
                         aria-label="Open actions"
                         render={
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 sm:h-9 sm:w-9 rounded-xl"
-                          >
+                          <Button variant="ghost" size="icon-sm">
                             <MoreHorizontal className="size-4" />
                           </Button>
                         }
                       />
                     </motion.div>
-                    <DropdownMenuContent
-                      align="end"
-                      className="w-48 rounded-xl p-1.5"
-                    >
-                      <DropdownMenuItem
-                        onClick={() => onSelectPost(post)}
-                        className="rounded-lg py-2.5 cursor-pointer gap-2.5"
-                      >
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onSelectPost(post)}>
                         <Eye className="size-4 text-muted-foreground" /> View
                         Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                      <DropdownMenuItem>
                         <Edit3 className="size-4 text-muted-foreground" /> Edit
                         Post
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                      <DropdownMenuItem>
                         <UserX className="size-4 text-muted-foreground" /> View
                         Author
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-warning rounded-lg py-2.5 cursor-pointer gap-2.5">
-                        <AlertTriangle className="size-4" /> Warn Author
+                      <DropdownMenuItem>
+                        <AlertTriangle className="size-4 text-warning" /> Warn
+                        Author
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -1633,8 +1557,8 @@ function ModerationQueuePostCard({
 
               <PostContent
                 value={post.content}
-                richTextClassName="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-2"
-                htmlClassName="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-2"
+                richTextClassName="prose prose-sm max-w-none text-sm line-clamp-2"
+                htmlClassName="prose prose-sm max-w-none text-sm line-clamp-2"
               />
 
               {post.media && post.media.length > 0 && (
@@ -1696,22 +1620,16 @@ function ModerationFiltersMenu({
         <DropdownMenuTrigger
           aria-label="Filter posts"
           render={
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 sm:h-10 gap-2 rounded-xl"
-            >
+            <Button variant="outline">
               <Filter className="size-4" />
               <span className="hidden sm:inline">Filter</span>
             </Button>
           }
         />
       </motion.div>
-      <DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5">
+      <DropdownMenuContent align="end">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs uppercase tracking-wider font-semibold px-2">
-            Visibility
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Visibility</DropdownMenuLabel>
           <DropdownMenuCheckboxItem
             checked={filterVisibility === "all"}
             onCheckedChange={() =>
@@ -1720,7 +1638,6 @@ function ModerationFiltersMenu({
                 value: "all",
               })
             }
-            className="rounded-lg"
           >
             All
           </DropdownMenuCheckboxItem>
@@ -1732,7 +1649,6 @@ function ModerationFiltersMenu({
                 value: "public",
               })
             }
-            className="rounded-lg"
           >
             Public
           </DropdownMenuCheckboxItem>
@@ -1744,7 +1660,6 @@ function ModerationFiltersMenu({
                 value: "partners",
               })
             }
-            className="rounded-lg"
           >
             Partners
           </DropdownMenuCheckboxItem>
@@ -1756,16 +1671,13 @@ function ModerationFiltersMenu({
                 value: "private",
               })
             }
-            className="rounded-lg"
           >
             Private
           </DropdownMenuCheckboxItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs uppercase tracking-wider font-semibold px-2">
-            Type
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Type</DropdownMenuLabel>
           <DropdownMenuCheckboxItem
             checked={filterType === "all"}
             onCheckedChange={() =>
@@ -1774,7 +1686,6 @@ function ModerationFiltersMenu({
                 value: "all",
               })
             }
-            className="rounded-lg"
           >
             All Types
           </DropdownMenuCheckboxItem>
@@ -1786,7 +1697,6 @@ function ModerationFiltersMenu({
                 value: "update",
               })
             }
-            className="rounded-lg"
           >
             Updates
           </DropdownMenuCheckboxItem>
@@ -1798,7 +1708,6 @@ function ModerationFiltersMenu({
                 value: "prayer request",
               })
             }
-            className="rounded-lg"
           >
             Prayer Requests
           </DropdownMenuCheckboxItem>
@@ -1810,7 +1719,6 @@ function ModerationFiltersMenu({
                 value: "story",
               })
             }
-            className="rounded-lg"
           >
             Stories
           </DropdownMenuCheckboxItem>
@@ -1822,7 +1730,6 @@ function ModerationFiltersMenu({
                 value: "announcement",
               })
             }
-            className="rounded-lg"
           >
             Announcements
           </DropdownMenuCheckboxItem>
