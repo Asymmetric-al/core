@@ -59,12 +59,17 @@
   `packages/ui/components.json` is the only `components.json`. Do not switch
   back to `npx`: inside Core it fails with npm `EOVERRIDE` because of the root
   `overrides`.
+- Start Claude Code and Codex from the repository (or worktree) root. Their
+  entries pass the launcher as a repository-relative path, and neither client
+  documents a project-root variable for project-scoped stdio servers. Cursor
+  passes `${workspaceFolder}`.
 - Paid registries resolve the `${VAR}` placeholders in `components.json` from
   the server's environment: `SHADCN_STUDIO_EMAIL`, `SHADCN_STUDIO_LICENSE_KEY`,
   `SHADCNBLOCKS_API_KEY`, `SHADCNUIKIT_API_KEY`, `EFFERD_REGISTRY_TOKEN`,
   `REACTBITS_LICENSE_KEY` and `REUI_LICENSE_KEY`. Real environment variables
-  win; Bun loads a git-ignored root `.env.local` as the fallback. Never put key
-  values in a client config.
+  win. For any of those names that is missing, the launcher reads the
+  git-ignored root `.env.local`, wherever the client starts, and copies nothing
+  else from it. Never put key values in a client config.
 - Agents can start the MCP before dependencies are installed; fresh
   `.claude/worktrees` checkouts have no `node_modules`. In that case the launcher
   falls back to `bun x` with the same pin. That fallback's first start on a
