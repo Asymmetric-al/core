@@ -220,7 +220,7 @@ describe("shadcn registry smoke helpers", () => {
     ]);
   });
 
-  it("uses cmd.exe on Windows to launch read-only npx CLI checks", () => {
+  it("uses cmd.exe on Windows to launch read-only bunx CLI checks", () => {
     expect(
       shadcnViewSpawnSpec("button", {
         platform: "win32",
@@ -232,7 +232,7 @@ describe("shadcn registry smoke helpers", () => {
         "/d",
         "/s",
         "/c",
-        "npx --yes shadcn@4.22.1 view button --cwd packages/ui",
+        "bunx shadcn@4.22.1 view button --cwd packages/ui",
       ],
     });
     expect(
@@ -241,15 +241,8 @@ describe("shadcn registry smoke helpers", () => {
         comspec: "cmd.exe",
       }),
     ).toEqual({
-      command: "npx",
-      args: [
-        "--yes",
-        "shadcn@4.22.1",
-        "view",
-        "button",
-        "--cwd",
-        "packages/ui",
-      ],
+      command: "bunx",
+      args: ["shadcn@4.22.1", "view", "button", "--cwd", "packages/ui"],
     });
   });
 });

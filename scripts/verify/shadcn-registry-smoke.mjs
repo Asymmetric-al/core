@@ -23,12 +23,14 @@ function readComponentsConfig() {
   );
 }
 
+// bunx, not npx: npm 11 rejects every npx run inside Core with EOVERRIDE
+// because the root `overrides.sharp` pin conflicts with the direct dependency.
 function commandArgs(item) {
-  return ["--yes", "shadcn@4.22.1", "view", item, "--cwd", SHADCN_CWD];
+  return ["shadcn@4.22.1", "view", item, "--cwd", SHADCN_CWD];
 }
 
 function commandText(item) {
-  return `npx ${commandArgs(item).join(" ")}`;
+  return `bunx ${commandArgs(item).join(" ")}`;
 }
 
 export function shadcnViewSpawnSpec(
@@ -42,12 +44,12 @@ export function shadcnViewSpawnSpec(
   if (platform === "win32") {
     return {
       command: comspec,
-      args: ["/d", "/s", "/c", `npx ${args.join(" ")}`],
+      args: ["/d", "/s", "/c", `bunx ${args.join(" ")}`],
     };
   }
 
   return {
-    command: "npx",
+    command: "bunx",
     args,
   };
 }
