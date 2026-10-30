@@ -191,6 +191,18 @@ describe("registry environment", () => {
     expect(section?.[1].replace(/\s+/g, "")).toContain(`args=["${launcher}",]`);
     expect(section?.[1]).not.toMatch(/npx/);
   });
+
+  it("gives Claude Code the same startup allowance as Codex for a cold bun x", () => {
+    const codexSeconds = Number(
+      read(".codex/config.toml")
+        .match(/^\[mcp_servers\.shadcn\]\r?\n([\s\S]*?)(?=^\[)/m)?.[1]
+        .match(/^startup_timeout_sec = (\d+)$/m)?.[1],
+    );
+    const claude = JSON.parse(read(".claude/settings.json"));
+
+    expect(codexSeconds).toBeGreaterThanOrEqual(120);
+    expect(Number(claude.env?.MCP_TIMEOUT)).toBe(codexSeconds * 1000);
+  });
 });
 
 describe("shadcn Studio registries", () => {

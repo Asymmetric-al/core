@@ -73,10 +73,11 @@
 - Agents can start the MCP before dependencies are installed; fresh
   `.claude/worktrees` checkouts have no `node_modules`. In that case the launcher
   falls back to `bun x` with the same pin. That fallback's first start on a
-  machine installs shadcn into Bun's cache, which takes about a minute. Codex
-  allows 120 seconds for it. Claude Code's default startup timeout
-  (`MCP_TIMEOUT`) is shorter, so reconnect the server once if it times out, or
-  run `bun install` first.
+  machine installs shadcn into Bun's cache, which takes about a minute. Both
+  clients allow 120 seconds for it: Codex through `startup_timeout_sec`, and
+  Claude Code through `env.MCP_TIMEOUT` in the shared `.claude/settings.json`,
+  which applies once the folder is trusted and raises the startup timeout for
+  every project MCP server. Running `bun install` first avoids the fallback.
 
 ## ReUI agent tooling
 
