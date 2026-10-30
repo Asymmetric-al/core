@@ -922,7 +922,7 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "20e1c7f18493a3d944797b9854b21220811fdb1a991fa675b566c578d1a0e845",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -933,15 +933,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "72cdfe376d60811ff4e0c365386ce208e7619cbf7e33c16e417ae0eaee38e848",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-events-mobilize-2026-10-30",
+          "verifiedSourceSha256": "6d41af44ba384fa04eab64bc68a7eeaf6977fae404676e4ea03a775f70ea307a",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-raw-colors": 95,
-        "shadcn/no-restyle": 194,
-        "shadcn/require-static-classes": 2
-      },
-      "latestSourceSha256": "72cdfe376d60811ff4e0c365386ce208e7619cbf7e33c16e417ae0eaee38e848",
+      "currentFindings": {},
+      "latestSourceSha256": "6d41af44ba384fa04eab64bc68a7eeaf6977fae404676e4ea03a775f70ea307a",
       "includedInLatestScan": true
     },
     {
@@ -952,19 +952,21 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "34760e12df5e3147efb2569319a1d071f965ac1dcee162fa44256d251b3c3811",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "4342ab4823f681432b81756e5f5ae6390c5b8cef21929cfa1f86f19c45e31d4d",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-events-mobilize-2026-10-30",
+          "verifiedSourceSha256": "6d3d867925389972b225b4561247ec29bdd292e76efcf9cee4b69f20c48afc7d",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-raw-colors": 8,
-        "shadcn/no-restyle": 6
-      },
-      "latestSourceSha256": "4342ab4823f681432b81756e5f5ae6390c5b8cef21929cfa1f86f19c45e31d4d",
+      "currentFindings": {},
+      "latestSourceSha256": "6d3d867925389972b225b4561247ec29bdd292e76efcf9cee4b69f20c48afc7d",
       "includedInLatestScan": true
     },
     {
@@ -1075,20 +1077,21 @@
         "shadcn/no-restyle": 40
       },
       "initialSourceSha256": "1a7d050f217898a3df7a0be5000c7cfa8bab7636a8e874b7ede5fa9bbe20f309",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "34a988adc2538863a136275eef8ecd2f790e7ab993bf4e6a6e3f6494c3b6b0e1",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-events-mobilize-2026-10-30",
+          "verifiedSourceSha256": "d6bcffb7eaf001f9fae840322629e0f85bcc92de187039a24116c73f89def11f",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 13,
-        "shadcn/no-restyle": 40
-      },
-      "latestSourceSha256": "34a988adc2538863a136275eef8ecd2f790e7ab993bf4e6a6e3f6494c3b6b0e1",
+      "currentFindings": {},
+      "latestSourceSha256": "d6bcffb7eaf001f9fae840322629e0f85bcc92de187039a24116c73f89def11f",
       "includedInLatestScan": true
     },
     {
@@ -1100,15 +1103,16 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "82b67942178fff4efcb667b8511f1df72506963be248a8abd8a5574fede09d38",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 11,
-        "shadcn/no-raw-colors": 76,
-        "shadcn/no-restyle": 204,
-        "shadcn/require-static-classes": 2
-      },
-      "latestSourceSha256": "82b67942178fff4efcb667b8511f1df72506963be248a8abd8a5574fede09d38",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-events-mobilize-2026-10-30",
+          "verifiedSourceSha256": "0743a3a3a3e8f5b35741dee10e899018e4cb4a5eeb1fd16b1b288f7b27da355d",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "0743a3a3a3e8f5b35741dee10e899018e4cb4a5eeb1fd16b1b288f7b27da355d",
       "includedInLatestScan": true
     },
     {
@@ -2228,20 +2232,21 @@
         "shadcn/no-restyle": 42
       },
       "initialSourceSha256": "00dec6f299b99a4a77f9d7ec5c4075df59c7da17409e38e82c8edda6665033a4",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "3e00c7b171ab0c8317c5d677ba117a263a587264cf93c39a9b4773913997fa5e",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-events-mobilize-2026-10-30",
+          "verifiedSourceSha256": "3d24328c2ec64013cb0b7392094105250566ede1c5e9f3709c253b3abcdfdc57",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 10,
-        "shadcn/no-raw-colors": 22,
-        "shadcn/no-restyle": 41
-      },
-      "latestSourceSha256": "3e00c7b171ab0c8317c5d677ba117a263a587264cf93c39a9b4773913997fa5e",
+      "currentFindings": {},
+      "latestSourceSha256": "3d24328c2ec64013cb0b7392094105250566ede1c5e9f3709c253b3abcdfdc57",
       "includedInLatestScan": true
     },
     {
@@ -2252,14 +2257,16 @@
         "shadcn/no-restyle": 30
       },
       "initialSourceSha256": "41388506126d69a23c40c1a263b21680786739a1b8e8ff98e009d6cf887cf805",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 16,
-        "shadcn/no-restyle": 30
-      },
-      "latestSourceSha256": "41388506126d69a23c40c1a263b21680786739a1b8e8ff98e009d6cf887cf805",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-events-mobilize-2026-10-30",
+          "verifiedSourceSha256": "dcd0f232effc8f17155820b0517c67e1044f55a972d98ee6bc83e29e77d87a35",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "dcd0f232effc8f17155820b0517c67e1044f55a972d98ee6bc83e29e77d87a35",
       "includedInLatestScan": true
     },
     {
@@ -9655,6 +9662,43 @@
         "Axe incompletes retained; no full accessibility conformance claim. Console-error collection covers16 core contexts; all final focused contexts assert page errors and external requests.",
         "Narrow table uses a local horizontal scroller; all columns are not claimed to fit simultaneously at320px.",
         "Normal lint earlier returned1 solely for obsolete suppressions; root owns full baseline prune and combined gates. No suppression/policy/shared primitive changes by this batch."
+      ]
+    },
+    "admin-events-mobilize-2026-10-30": {
+      "summary": "Events, Mobilize and Locations retire 326 findings in 6 files; before/after route scenarios at 1280/768/390 fix the config nav alignment, mobile tab overflow and off-screen Mobilize header actions, with no new axe violations.",
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/events-mobilize/events-mobilize__events-mobilize-events.results.json",
+          "sha256": "5342f432a001d659cad33d65852f11929fa3f553847538c0b1b5a88b335c48e3"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/events-mobilize/events-mobilize__events-mobilize-locations.results.json",
+          "sha256": "49fbb5b293c27eaa50eca11fab94e898fa9cef32509592cf7a42897382ed5240"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/events-mobilize/events-mobilize__events-mobilize-mobilize.results.json",
+          "sha256": "8b0d4d8a4d825ae1f972d49668e78daf8ac94354999d80f7453acba26adc4943"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/events-mobilize/harness.mjs",
+          "sha256": "76d711b167cf697db8eb9b4770badea912cc7f42b126020acf006e920c2b77cc"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/events-mobilize/scenario__events-mobilize-events.mjs",
+          "sha256": "1057bba86b5c6554669b748242c9c326eeb73a277078a7cb5ab5e2cbfd4a363a"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/events-mobilize/scenario__events-mobilize-locations.mjs",
+          "sha256": "893b002eecb46773d5acc5bb662142cad21ef85a0a4c77eeb33fb7b2427c7843"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/events-mobilize/scenario__events-mobilize-mobilize.mjs",
+          "sha256": "edf2f45a42cc6f5bd17064f4df61456865a6cc0284e189b3dc6b17164dd81d3f"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/events-mobilize/screenshots-manifest.json",
+          "sha256": "03c5d0e78ebd8fb88f3fe6277fa5ee07092505b8a050d547e5a90d85119f787c"
+        }
       ]
     }
   },

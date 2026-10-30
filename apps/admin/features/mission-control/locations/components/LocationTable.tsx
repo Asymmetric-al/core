@@ -140,7 +140,7 @@ export function LocationTable({
                 </Button>
               }
             />
-            <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(row.original)}>
                 <Edit2 /> Edit
               </DropdownMenuItem>

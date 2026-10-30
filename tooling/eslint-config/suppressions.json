@@ -197,25 +197,6 @@
       "count": 1
     }
   },
-  "apps/admin/app/(app)/events/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 162
-    },
-    "shadcn/require-static-classes": {
-      "count": 2
-    }
-  },
-  "apps/admin/app/(app)/events/registration-trends-chart.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 2
-    },
-    "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
   "apps/admin/app/(app)/feed/content-moderation-page-client.tsx": {
     "shadcn/no-restyle": {
       "count": 5
@@ -246,19 +227,6 @@
   "apps/admin/app/(app)/help/about/page.tsx": {
     "shadcn/no-restyle": {
       "count": 5
-    }
-  },
-  "apps/admin/app/(app)/mobilize/locations/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 12
-    }
-  },
-  "apps/admin/app/(app)/mobilize/mobilize-sections.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
-    "shadcn/no-restyle": {
-      "count": 128
     }
   },
   "apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx": {
@@ -543,16 +511,6 @@
   "apps/admin/features/mission-control/components/tiles/workflows-panel.tsx": {
     "shadcn/no-restyle": {
       "count": 7
-    }
-  },
-  "apps/admin/features/mission-control/locations/components/LocationEditor.tsx": {
-    "shadcn/no-restyle": {
-      "count": 9
-    }
-  },
-  "apps/admin/features/mission-control/locations/components/LocationTable.tsx": {
-    "shadcn/no-restyle": {
-      "count": 1
     }
   },
   "apps/admin/features/support-hub/components/SupportFailureBanner.tsx": {

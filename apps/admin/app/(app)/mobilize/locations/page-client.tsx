@@ -72,7 +72,6 @@ export default function LocationsPage() {
       onClick={() => setIsAdding(!isAdding)}
       aria-pressed={isAdding}
       variant={isAdding ? "secondary" : "default"}
-      className="h-auto min-h-9 whitespace-normal text-left"
     >
       <Plus className="mr-2 size-4" />
       {isAdding ? "Click on Map to Drop Marker" : "Add Location"}
@@ -99,52 +98,54 @@ export default function LocationsPage() {
         </div>
 
         <TabsContent value="map" className="m-0">
-          <Card className="relative h-150 overflow-hidden rounded-2xl border-border bg-muted shadow-sm">
-            <Map
-              initialViewState={{
-                longitude: 0,
-                latitude: 20,
-                zoom: 1.5,
-              }}
-              onClick={handleMapClick}
-            >
-              <MapControls />
-              {locations?.map((loc) => (
-                <MapMarker
-                  key={loc.id}
-                  longitude={loc.lng}
-                  latitude={loc.lat}
-                  onClick={() => handleEdit(loc)}
-                >
-                  <MarkerContent>
-                    <div
-                      className={`size-6 rounded-full border-4 border-background shadow-xl flex items-center justify-center transition-transform [@media(hover:hover)_and_(pointer:fine)]:hover:scale-110 ${
-                        loc.type === "missionary"
-                          ? "bg-primary"
-                          : loc.type === "project"
-                            ? "bg-info"
-                            : "bg-muted-foreground"
-                      }`}
-                    >
-                      <MapPin className="size-3 text-primary-foreground" />
-                    </div>
-                  </MarkerContent>
-                </MapMarker>
-              ))}
-            </Map>
+          <Card className="h-150 overflow-hidden py-0">
+            <div className="relative h-full">
+              <Map
+                initialViewState={{
+                  longitude: 0,
+                  latitude: 20,
+                  zoom: 1.5,
+                }}
+                onClick={handleMapClick}
+              >
+                <MapControls />
+                {locations?.map((loc) => (
+                  <MapMarker
+                    key={loc.id}
+                    longitude={loc.lng}
+                    latitude={loc.lat}
+                    onClick={() => handleEdit(loc)}
+                  >
+                    <MarkerContent>
+                      <div
+                        className={`size-6 rounded-full border-4 border-background shadow-xl flex items-center justify-center transition-transform [@media(hover:hover)_and_(pointer:fine)]:hover:scale-110 ${
+                          loc.type === "missionary"
+                            ? "bg-primary"
+                            : loc.type === "project"
+                              ? "bg-info"
+                              : "bg-muted-foreground"
+                        }`}
+                      >
+                        <MapPin className="size-3 text-primary-foreground" />
+                      </div>
+                    </MarkerContent>
+                  </MapMarker>
+                ))}
+              </Map>
 
-            {isAdding && (
-              <div className="pointer-events-none absolute inset-x-4 top-4 z-20 flex justify-center">
-                <div className="rounded-xl border border-warning/25 bg-background px-4 py-3 text-center text-sm font-medium text-warning shadow-sm">
-                  Add Mode Active: Click anywhere on map
+              {isAdding && (
+                <div className="pointer-events-none absolute inset-x-4 top-4 z-20 flex justify-center">
+                  <div className="rounded-xl border border-warning/25 bg-background px-4 py-3 text-center text-sm font-medium text-warning shadow-sm">
+                    Add Mode Active: Click anywhere on map
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </Card>
         </TabsContent>
 
         <TabsContent value="table" className="m-0">
-          <Card className="rounded-2xl border-border shadow-sm">
+          <Card>
             <div className="p-4">
               <LocationTable
                 data={locations || []}
