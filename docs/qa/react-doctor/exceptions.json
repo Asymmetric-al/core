@@ -2014,14 +2014,14 @@
       "title": "Props spread onto element",
       "message": "You can't tell what props reach this element when you spread them.",
       "help": "List each prop explicitly so consumers can see the component API instead of receiving hidden spread props.",
-      "line": 60,
-      "column": 45,
-      "offset": 1652,
+      "line": 89,
+      "column": 11,
+      "offset": 2705,
       "length": 10,
-      "endLine": 60,
+      "endLine": 89,
       "category": "Maintainability",
       "fingerprint": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "id": "features/mission-control/care/components/UI.tsx::60:45::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
+      "id": "features/mission-control/care/components/UI.tsx::89:11::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
       "normalizedFilePath": "features/mission-control/care/components/UI.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -2033,13 +2033,13 @@
         "INDEPENDENT COMPLETE-OWNER SOURCE REVIEW: the same owner contains the typed native/framework declarations or out-of-line disposal/sequencing cited above. Its complete-file evidence hash locks those supporting lines, not just the diagnostic span; this is source proof, not a claim of test execution.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/UI.tsx:102; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/UI.tsx:103. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup), OWNER CHANGE: the local care Button described by the earlier snapshot was deleted with the other unused primitives, and DialogHeader/DialogTitle no longer spread. React Doctor reports one jsx-props-no-spreading diagnostic per file, and it now lands on Checkbox (UI.tsx:89): a React.forwardRef wrapper typed as InputHTMLAttributes<HTMLInputElement> that consumes className, label and id, then forwards the remaining native input props with its ref onto <input type=\"checkbox\">. That is the same typed native-forwarding contract the original reason covers. The earlier Button snapshot lines are historical. Context, whole-file and supporting hashes are rebound after review."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "sourceFileHash": "411d98358c0bd131bc3fd35ee1f179c9f5f6219d37b9b3af4a05a9921131a8f6",
+      "sourceFileHash": "db3cde804e7dc668e25e338081373c268e34effa996c521171c74827abdb27a9",
       "evidenceFileHashes": {
-        "apps/admin/features/mission-control/care/components/UI.tsx": "411d98358c0bd131bc3fd35ee1f179c9f5f6219d37b9b3af4a05a9921131a8f6"
+        "apps/admin/features/mission-control/care/components/UI.tsx": "db3cde804e7dc668e25e338081373c268e34effa996c521171c74827abdb27a9"
       }
     },
     {

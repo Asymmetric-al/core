@@ -52,25 +52,17 @@ export const Dialog: React.FC<DialogProps> = ({
   </SharedDialog>
 );
 
-export const DialogHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
-  className,
-  children,
-  ...props
-}) => (
-  <SharedDialogHeader className={className} {...props}>
-    {children}
-  </SharedDialogHeader>
-);
+export const DialogHeader = SharedDialogHeader;
 
-export const DialogTitle: React.FC<
-  React.HTMLAttributes<HTMLHeadingElement>
-> = ({ className, children, ...props }) => (
+export const DialogTitle: React.FC<{
+  className?: string;
+  children?: React.ReactNode;
+}> = ({ className, children }) => (
   <SharedDialogTitle
     className={cn(
       "text-xl font-semibold leading-none tracking-tight",
       className,
     )}
-    {...props}
   >
     {children}
   </SharedDialogTitle>

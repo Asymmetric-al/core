@@ -2020,12 +2020,12 @@
         },
         {
           "batch": "admin-care-2026-10-30",
-          "verifiedSourceSha256": "411d98358c0bd131bc3fd35ee1f179c9f5f6219d37b9b3af4a05a9921131a8f6",
+          "verifiedSourceSha256": "db3cde804e7dc668e25e338081373c268e34effa996c521171c74827abdb27a9",
           "supportsFileCompletion": true
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "411d98358c0bd131bc3fd35ee1f179c9f5f6219d37b9b3af4a05a9921131a8f6",
+      "latestSourceSha256": "db3cde804e7dc668e25e338081373c268e34effa996c521171c74827abdb27a9",
       "includedInLatestScan": true
     },
     {

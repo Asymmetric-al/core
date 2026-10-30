@@ -28,7 +28,8 @@ or suppression count was added or widened.
 - `UI.tsx` no longer carries unused app-local copies of Button, Input,
   Textarea, Select, Card, Badge, Avatar, Alert, Tabs and ScrollArea. The
   remaining exports are the ones still imported. Its Dialog wrapper passes
-  `className` straight to the shared component.
+  `className` straight to the shared component, and `DialogHeader` is the
+  shared `DialogHeader` itself.
 - Heatmap cells are buttons passed to `TooltipTrigger` through `render`, so
   tooltips open on hover and keyboard focus.
 - Settings uses `ButtonLink` for its external link; form labels are plain
@@ -77,6 +78,18 @@ or suppression count was added or widened.
   - the shared command dialog's close button overlaps its search input.
 - Six React Doctor exceptions are retired because their diagnostics are no
   longer emitted: five ungated tab fade-in animations removed from
-  `PersonnelProfile` and one in the deleted local `UI.tsx` primitives.
+  `PersonnelProfile`, and one animation in the deleted local `UI.tsx`
+  primitives.
+- Review caught one hash-only rebind with the wrong owner. The `UI.tsx`
+  props-spread exception (written for the deleted local Button) had moved
+  onto `DialogHeader`'s identical `{...props}` span.
+  - `DialogHeader` is now the shared component and `DialogTitle` no longer
+    spreads.
+  - React Doctor reports one spread diagnostic per file, so it now lands on
+    `Checkbox`: a typed `forwardRef` wrapper forwarding native input props.
+    The exception was rebound there after review, with an explicit
+    owner-change note.
+  - Rebinding now also requires the same enclosing declaration. A check of
+    all 58 moved rebinds found no other owner change.
 
 Evidence (ignored, hashed in the ledger): `.tmp/admin-lint-5-4/care/`.
