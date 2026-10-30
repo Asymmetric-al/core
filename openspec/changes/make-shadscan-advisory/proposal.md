@@ -27,8 +27,11 @@ its rules. The existing axe-based Playwright checks cover rendered behavior.
   preflight or required CI check. The pre-commit hook stops running it.
 - CI still runs the exact locked scanner once, in a non-required job. It
   publishes per-application and per-category raw scores and failing rules to
-  the job summary and one updated PR comment. A failed or missing scan is
-  reported as unavailable evidence, never as a pass.
+  the job summary, and to one updated PR comment for pull requests from this
+  repository. Fork pull requests keep job-summary-only reporting, because
+  their token is read-only. A failed or missing scan is reported as
+  unavailable evidence, never as a pass, and it replaces any earlier scores
+  in the comment.
 - Retire the per-application and per-category floors, the hashed findings
   ledger, the policy file and the gate-mechanics tests. Retire the 100/100
   target. Reviewers triage reported findings: confirmed defects are repaired

@@ -17,8 +17,15 @@ check, and SHALL NOT impose score floors or score targets.
 #### Scenario: A change lowers an application's score
 
 - **WHEN** a pull request's scan reports a lower score or a new failing rule
-- **THEN** the job summary and one updated pull request comment show each application's raw overall and category scores and its failing rules
+- **THEN** the job summary shows each application's raw overall and category scores and its failing rules
+- **AND** for a pull request from this repository, one updated pull request comment shows the same
 - **AND** no required check fails because of a score or finding
+
+#### Scenario: A pull request comes from a fork
+
+- **WHEN** a pull request from a fork is scanned
+- **THEN** the job summary shows the scores and failing rules
+- **AND** no pull request comment is written, and no privileged workflow or write token is used to write one
 
 #### Scenario: A developer commits or pushes locally
 
@@ -29,7 +36,8 @@ check, and SHALL NOT impose score floors or score targets.
 #### Scenario: The scan cannot complete
 
 - **WHEN** the scanner errors, times out or returns a report the published contract cannot read
-- **THEN** the report states that audit evidence is unavailable
+- **THEN** the job summary states that audit evidence is unavailable for that head commit
+- **AND** for a pull request from this repository, the existing report comment is replaced with the same statement, so an earlier head's scores are no longer shown as current
 - **AND** no score is presented as current or passing
 - **AND** required checks are unaffected
 
@@ -92,6 +100,7 @@ lint check.
 When first-party code uses a shared UI component that renders a native control,
 image or link, accessibility lint SHALL apply the rules for that native element.
 A shared wrapper SHALL NOT hide a violation that the native element would report.
+Every shared export that renders a native element by default SHALL be mapped.
 First-party code SHALL use mapped shared components under their exported
 names, so an import alias or a namespace import cannot bypass the mapping.
 
@@ -106,12 +115,23 @@ names, so an import alias or a namespace import cannot bypass the mapping.
 - **WHEN** first-party code imports a mapped shared component under a different local name, or imports its module as a namespace
 - **THEN** lint fails and names the file, line and the component's exported name or module
 
+#### Scenario: A shared export renders a native element but is not mapped
+
+- **WHEN** a shared UI export renders a native control, image or link by default, such as a link-styled button that renders an anchor, and the accessibility mapping omits it
+- **THEN** the repository's verification fails and names the export and its native element
+
+#### Scenario: A new shared export is added
+
+- **WHEN** a change adds an export to the shared UI package without classifying the native element it renders by default
+- **THEN** the repository's verification fails and names the unclassified export
+
 ### Requirement: Existing Accessibility Debt Can Only Shrink
 
 Existing accessibility lint violations and static false positives SHALL be
 recorded only as next-line exceptions that each name exactly one rule and give
 a reason; residual debt SHALL also cite a tracked issue. File-scoped, block,
-multi-rule, rule-less or count-based suppressions SHALL NOT cover these rules.
+multi-rule, rule-less or count-based suppressions and inline rule
+configuration SHALL NOT cover these rules.
 An exception that no longer suppresses a violation SHALL fail lint, so
 recorded debt can only shrink.
 
@@ -133,7 +153,7 @@ recorded debt can only shrink.
 
 #### Scenario: An exception is broader than one line and one rule
 
-- **WHEN** first-party code adds a file-scoped or block disable that covers an accessibility rule, a rule-less disable, or a next-line exception naming more than one rule
+- **WHEN** first-party code adds a file-scoped or block disable that covers an accessibility rule, a rule-less disable, a next-line exception naming more than one rule, or an inline configuration comment such as `/* eslint jsx-a11y/alt-text: "off" */` that sets an accessibility rule
 - **THEN** the repository's verification fails and names the file and line
 
 #### Scenario: An exception lacks a valid reason

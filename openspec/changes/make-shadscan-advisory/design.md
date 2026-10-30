@@ -35,7 +35,16 @@ See `proposal.md` for the motivation. Current state that shapes the approach:
   same-count swap passes lint.
 - No lint config sets `reportUnusedDisableDirectives`, and lint does not fail
   on warnings. First-party `apps/**` and `packages/**` sources hold 4 inline
-  disable directives. Each names its rules, and none covers `jsx-a11y`.
+  disable directives and one inline configuration comment
+  (`/* eslint react-hooks/refs: "error" */`). Each names its rules, and none
+  covers `jsx-a11y`.
+- The publisher skips commenting on fork pull requests
+  (`scripts/verify/shadscan-publish.mjs`, tested in
+  `shadscan-publish.test.ts`), and it updates the marker comment only from a
+  readable summary. If the scan fails, the workflow writes only a job-summary
+  line, so the previous comment remains.
+- `packages/ui` exports `ButtonLink`, which renders a native `a` by default
+  through `useRender`. It is used in the admin app.
 - The design-system scope (`uiWorkspaces` in
   `tooling/eslint-config/design-system.mjs`) lists the three apps,
   `packages/ui` and `packages/missionary`. Two more packages have production
@@ -123,8 +132,29 @@ before the policy file is deleted.
 `scripts/verify/shadscan-publish.mjs` and `shadscan-summary.mjs` move beside
 the audit script. They lose floor and classification columns and keep the
 `<!-- shadscan-report -->` comment marker, so the existing comment updates in
-place. When the audit step fails, the job writes the existing "evidence
-unavailable" message, and the job's own red status is the visible signal.
+place.
+
+When the audit step fails, the publisher still runs, in an explicit
+unavailable mode:
+
+- It writes the "evidence unavailable" statement, naming the head commit, to
+  the job summary.
+- For a pull request from this repository, it replaces the marker comment
+  with the same statement. Today a failed scan leaves the previous head's
+  scores in the comment, where they read as current.
+
+The job's own red status remains the primary signal. A test covers the
+transition from a successful comment to a failed scan.
+
+Pull requests from forks keep the current security model. The
+`pull_request` token is read-only for forks, so the publisher already
+returns `published: false` and comments nothing. Their scores, and their
+unavailable statement, appear only in the job summary.
+
+- **Rejected: a `pull_request_target` or `workflow_run` follow-up that
+  comments on fork PRs.** It would hand a write token to a workflow
+  processing fork-controlled output, and an advisory comment does not
+  justify that risk.
 
 ### D3. Retire gate files outright; keep behavior tests unchanged
 
@@ -188,10 +218,24 @@ Config tests, written red first, prove two things:
 ### D5. Map shared components to native elements
 
 `settings["jsx-a11y"].components` maps each shared component that renders a
-native element to that element, for example `Button` to `button`, `Input` to
-`input`, `Textarea` to `textarea`, `Label` to `label`, Next `Link` to `a`,
-and Next `Image` to `img`. The exact names come from the `packages/ui`
-exports during apply.
+native element to that element, for example `Button` to `button`,
+`ButtonLink` to `a`, `Input` to `input`, `Textarea` to `textarea`, `Label` to
+`label`, Next `Link` to `a`, and Next `Image` to `img`.
+
+The mapping is not a hand-picked list. During apply, a committed
+classification file in `tooling/eslint-config` records, for every component
+export of `packages/ui`, the native element it renders by default, or
+`composite` if it renders none. It is reviewed once. `ButtonLink`, for
+example, uses `useRender` with `defaultTagName: "a"`, so it is classified as
+`a`. A completeness test then asserts that:
+
+- every current `packages/ui` component export is classified, so a new export
+  fails until someone classifies it;
+- every export classified as a native element appears in the mapping with
+  that element;
+- for each mapped export that renders without required context, a
+  server-render check confirms that the root element matches its
+  classification.
 
 The plugin matches components by their JSX name, so an import alias such as
 `Button as SharedButton` would bypass the mapping. `no-restricted-syntax`
@@ -245,10 +289,20 @@ behavior:
   - a next-line directive that names a `jsx-a11y` rule together with any
     other rule;
   - a `jsx-a11y` exception whose reason does not start with
-    `false positive:` or `debt #<issue>:`.
+    `false positive:` or `debt #<issue>:`;
+  - an inline configuration comment (`/* eslint <rule>: … */`) that sets any
+    `jsx-a11y` rule at any severity. Such a comment reconfigures the rule for
+    the whole file, and `reportUnusedDisableDirectives` does not cover it.
+    Core already uses this syntax for another rule in
+    `apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx`, and that
+    use stays allowed.
 
-  Directives for other rules that name their rules stay allowed, so the 4
-  existing directives are unaffected.
+  Directives and configuration comments for other rules that name their
+  rules stay allowed, so the 4 existing directives and the one existing
+  configuration comment are unaffected.
+
+- **Rejected: `linterOptions.noInlineConfig`.** It would also disable the
+  next-line exceptions this decision relies on.
 
 `validateSuppressions` stays limited to `@shadcn/lint` rules, so
 accessibility debt cannot move into the count-based file.
