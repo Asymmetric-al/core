@@ -6,7 +6,6 @@ import {
   EditorToolbar,
   type Extensions,
 } from "@asym/ui/components/shadcn/rich-text-editor";
-import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
 
 import {
@@ -97,13 +96,7 @@ export function SupportTipTapEditor({
       placeholder={placeholder}
       proseInvert={false}
       extraExtensions={extraExtensions}
-      className={cn(
-        "border border-border bg-card shadow-sm",
-        tone === "note" && "border-warning/30 bg-warning/5",
-      )}
-      editorClassName={cn(
-        "min-h-35 text-[13px] leading-relaxed text-foreground",
-      )}
+      editorClassName="min-h-35"
     >
       {beforeToolbar ? (
         <div className="border-b border-border bg-muted/40 px-3 py-1.5">

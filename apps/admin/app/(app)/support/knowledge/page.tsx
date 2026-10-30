@@ -1,5 +1,6 @@
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
+import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -7,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { cn } from "@asym/ui/lib/utils";
 import Link from "next/link";
 
 import { supportHubDemoModel } from "../support-hub.data";
@@ -41,43 +43,46 @@ export default async function SupportKnowledgePage({
       title="Support Knowledge"
       description="Internal playbooks support agents can attach to replies."
       actions={
-        <Link
-          href={supportHubRoutes.home}
-          className={buttonVariants({ variant: "outline" })}
-        >
-          Back to Support Hub
-        </Link>
+        <ButtonLink
+          variant="outline"
+          render={<Link href={supportHubRoutes.home}>Back to Support Hub</Link>}
+        />
       }
     >
       <div className="space-y-4">
         {!selectedArticleExists ? (
-          <Card className="rounded-3xl border-dashed">
-            <CardContent className="p-4 text-sm text-muted-foreground">
+          <Alert>
+            <AlertDescription>
               Article {selectedArticleId} was not found. Showing all support
               knowledge entries.
-            </CardContent>
-          </Card>
+            </AlertDescription>
+          </Alert>
         ) : null}
         {supportHubDemoModel.knowledge.map((entry) => (
-          <Card
-            className={`rounded-3xl ${
-              entry.id === selectedArticleId ? "ring-2 ring-ring" : ""
-            }`}
+          <div
+            className={cn(
+              "rounded-xl",
+              entry.id === selectedArticleId && "ring-2 ring-ring",
+            )}
             key={entry.id}
           >
-            <CardHeader>
-              <CardTitle>{entry.title}</CardTitle>
-              <CardDescription>
-                {entry.category} · Updated{" "}
-                {DATE_TIME_FORMATTER_1.format(makeDisplayDate(entry.updatedAt))}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-6 text-muted-foreground">
-                {entry.summary}
-              </p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>{entry.title}</CardTitle>
+                <CardDescription>
+                  {entry.category} · Updated{" "}
+                  {DATE_TIME_FORMATTER_1.format(
+                    makeDisplayDate(entry.updatedAt),
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {entry.summary}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         ))}
       </div>
     </PageShell>

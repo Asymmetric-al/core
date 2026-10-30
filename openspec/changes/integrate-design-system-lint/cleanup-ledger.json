@@ -1277,12 +1277,16 @@
         "shadcn/no-restyle": 3
       },
       "initialSourceSha256": "14e3a690cc02de1f763136fa7100c3fa06a44588f4dc8ba0db21c280ad8ab382",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 3
-      },
-      "latestSourceSha256": "14e3a690cc02de1f763136fa7100c3fa06a44588f4dc8ba0db21c280ad8ab382",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "78d42d61d8b3e912bba3c3d7f9b082a5ce76f7076e2d925877d48527ee876b8c",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "78d42d61d8b3e912bba3c3d7f9b082a5ce76f7076e2d925877d48527ee876b8c",
       "includedInLatestScan": true
     },
     {
@@ -1291,12 +1295,16 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "8db9d9755879e4435ab4f0c261d0d6cb3597314e41f10e1c664161c148e95840",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 7
-      },
-      "latestSourceSha256": "8db9d9755879e4435ab4f0c261d0d6cb3597314e41f10e1c664161c148e95840",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "3eb2ef4c72c16d9d46943d07998914fb3bd3d046d9224f1debe176579b0d1da8",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "3eb2ef4c72c16d9d46943d07998914fb3bd3d046d9224f1debe176579b0d1da8",
       "includedInLatestScan": true
     },
     {
@@ -1305,12 +1313,16 @@
         "shadcn/no-arbitrary-values": 1
       },
       "initialSourceSha256": "1af9cd4c57d8513316e5728577ed2501bd4f76e535159de6494c191a34982054",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1
-      },
-      "latestSourceSha256": "1af9cd4c57d8513316e5728577ed2501bd4f76e535159de6494c191a34982054",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "e5e64321b0639e0d515ab38a1e7605f1cd3473c6f031514f0a7c1c5ca0f72609",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "e5e64321b0639e0d515ab38a1e7605f1cd3473c6f031514f0a7c1c5ca0f72609",
       "includedInLatestScan": true
     },
     {
@@ -1319,12 +1331,16 @@
         "shadcn/no-restyle": 1
       },
       "initialSourceSha256": "7b7d03258320162a5735421f3b6b2ca873b66a43a42f08efab60094ddd3d8d0e",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 1
-      },
-      "latestSourceSha256": "7b7d03258320162a5735421f3b6b2ca873b66a43a42f08efab60094ddd3d8d0e",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "60520dad8587dde8aed769147e4982c2d331982a0dc6dc1f694fba89d0a43a2c",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "60520dad8587dde8aed769147e4982c2d331982a0dc6dc1f694fba89d0a43a2c",
       "includedInLatestScan": true
     },
     {
@@ -1384,13 +1400,34 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "028563e8cd1a1c2101acda923beb5a302b005549a5eb08c9081cac6688f02f56",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-restyle": 6
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "7548b05c159260b24f873cd979f985a8ec3f17f7adaaed19cdee4c87fc43a45b",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "7548b05c159260b24f873cd979f985a8ec3f17f7adaaed19cdee4c87fc43a45b",
+      "includedInLatestScan": true
+    },
+    {
+      "file": "apps/admin/app/(app)/support/tickets/new/new-ticket-form.tsx",
+      "initialFindings": {
+        "shadcn/no-restyle": 13
       },
-      "latestSourceSha256": "028563e8cd1a1c2101acda923beb5a302b005549a5eb08c9081cac6688f02f56",
+      "initialSourceSha256": "9b0dd5173e7eb929ceacf01893701562da92162d4731ab06308a576878f240c0",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "f4c1068f6a67b438c9e6544e58bf9d6cbd2c1e94d8252bf60fffd86b51b079aa",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "f4c1068f6a67b438c9e6544e58bf9d6cbd2c1e94d8252bf60fffd86b51b079aa",
       "includedInLatestScan": true
     },
     {
@@ -1400,13 +1437,16 @@
         "shadcn/no-restyle": 2
       },
       "initialSourceSha256": "639ed597498fad5153f0f6b80e7eb8c564763531f5c6ee788882de0c4208d1be",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-restyle": 2
-      },
-      "latestSourceSha256": "639ed597498fad5153f0f6b80e7eb8c564763531f5c6ee788882de0c4208d1be",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "a893011c370f7dddd354c68c92ade26904aa49f6300c8460b559f3f3ec1845dc",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "a893011c370f7dddd354c68c92ade26904aa49f6300c8460b559f3f3ec1845dc",
       "includedInLatestScan": true
     },
     {
@@ -1416,13 +1456,16 @@
         "shadcn/no-restyle": 4
       },
       "initialSourceSha256": "cbaa28faf260c2acd91162791281e3cc3783c19f4a6c20cec2d00bdf1ce49495",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-restyle": 4
-      },
-      "latestSourceSha256": "cbaa28faf260c2acd91162791281e3cc3783c19f4a6c20cec2d00bdf1ce49495",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "74d1642a2cb242dd7de9aa896b7c6ff8dfee130cbac785d91a41efb989394be8",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "74d1642a2cb242dd7de9aa896b7c6ff8dfee130cbac785d91a41efb989394be8",
       "includedInLatestScan": true
     },
     {
@@ -2270,20 +2313,21 @@
         "shadcn/no-restyle": 13
       },
       "initialSourceSha256": "d2b337b524b9a8df7aa81b78672f7c53ea7c200fdbfd6f0b98057b71f27259c8",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "a418a1ac9f0428265733634190b08fa13bb3182adb46f9cba1a50bc9da44910e",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "d9eac873d7159dd2ca722785564156c52b409f9009ae2f2c03cb87fab31aed49",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 8,
-        "shadcn/no-restyle": 10
-      },
-      "latestSourceSha256": "a418a1ac9f0428265733634190b08fa13bb3182adb46f9cba1a50bc9da44910e",
+      "currentFindings": {},
+      "latestSourceSha256": "d9eac873d7159dd2ca722785564156c52b409f9009ae2f2c03cb87fab31aed49",
       "includedInLatestScan": true
     },
     {
@@ -2330,14 +2374,16 @@
         "shadcn/no-restyle": 17
       },
       "initialSourceSha256": "c2edef809d2dc1a7eef7f10f164b39af51ecc9be499e65f676847ee87102f652",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-raw-colors": 25,
-        "shadcn/no-restyle": 17
-      },
-      "latestSourceSha256": "c2edef809d2dc1a7eef7f10f164b39af51ecc9be499e65f676847ee87102f652",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "03b3c69302f4056f2f8e37c4501f9f84da31569798361d70702e24df6eaf8330",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "03b3c69302f4056f2f8e37c4501f9f84da31569798361d70702e24df6eaf8330",
       "includedInLatestScan": true
     },
     {
@@ -2348,7 +2394,7 @@
         "shadcn/no-restyle": 10
       },
       "initialSourceSha256": "7114220ab24a5210a00f1dfb108faeff2b42bd9c07762b9d106db20524ee70f5",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -2359,14 +2405,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "088c92250b9bca47c239113070d85a4ab89afb0dd87bcc1ff5dd4215b59b5e9d",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "2522829ff0349065126a57a98f0f8320644be48ee2889d4e22e68f91783fa47b",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 5,
-        "shadcn/no-raw-colors": 10,
-        "shadcn/no-restyle": 8
-      },
-      "latestSourceSha256": "088c92250b9bca47c239113070d85a4ab89afb0dd87bcc1ff5dd4215b59b5e9d",
+      "currentFindings": {},
+      "latestSourceSha256": "2522829ff0349065126a57a98f0f8320644be48ee2889d4e22e68f91783fa47b",
       "includedInLatestScan": true
     },
     {
@@ -2399,14 +2446,16 @@
         "shadcn/no-restyle": 2
       },
       "initialSourceSha256": "3afcabf2cc362011388f77504e1125075b42cff7886132e2bf834f0751a215cf",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-raw-colors": 3,
-        "shadcn/no-restyle": 2
-      },
-      "latestSourceSha256": "3afcabf2cc362011388f77504e1125075b42cff7886132e2bf834f0751a215cf",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "d81e6fea7cdd3e3544356cc0aa2be6f623b11cd660a480d1c810ff7e94e46ee8",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "d81e6fea7cdd3e3544356cc0aa2be6f623b11cd660a480d1c810ff7e94e46ee8",
       "includedInLatestScan": true
     },
     {
@@ -2416,13 +2465,16 @@
         "shadcn/no-restyle": 1
       },
       "initialSourceSha256": "dd909c57eb42aabe9d4e2bb5ef7e779117aee2668b6075d222118fe5fe847037",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-raw-colors": 18,
-        "shadcn/no-restyle": 1
-      },
-      "latestSourceSha256": "dd909c57eb42aabe9d4e2bb5ef7e779117aee2668b6075d222118fe5fe847037",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "c898a900952b157e6d1f889a187afad68ce61bfa732fad57afa255c81dffc4be",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "c898a900952b157e6d1f889a187afad68ce61bfa732fad57afa255c81dffc4be",
       "includedInLatestScan": true
     },
     {
@@ -2433,20 +2485,21 @@
         "shadcn/no-restyle": 26
       },
       "initialSourceSha256": "81a5569cbf8cc954b93529adf1a944f774adcddcd6affa97df1cb9fd86e3be44",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "b5549ed1534e3dfa4081258c0d99d7d7a6b156687ef332a1245a0cc339ea2852",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "9d0a74116a4238b98d0cd661989ed59f7fa0955cc87c8f5e36e60a6680650a20",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 8,
-        "shadcn/no-raw-colors": 9,
-        "shadcn/no-restyle": 24
-      },
-      "latestSourceSha256": "b5549ed1534e3dfa4081258c0d99d7d7a6b156687ef332a1245a0cc339ea2852",
+      "currentFindings": {},
+      "latestSourceSha256": "9d0a74116a4238b98d0cd661989ed59f7fa0955cc87c8f5e36e60a6680650a20",
       "includedInLatestScan": true
     },
     {
@@ -2457,14 +2510,16 @@
         "shadcn/no-restyle": 5
       },
       "initialSourceSha256": "9beb3953307c6f1b5db46ae5a98bec7cb0e0139316b3eb6a89a4eee53c69f2a5",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 6,
-        "shadcn/no-restyle": 5
-      },
-      "latestSourceSha256": "9beb3953307c6f1b5db46ae5a98bec7cb0e0139316b3eb6a89a4eee53c69f2a5",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "b7fe7c1440f5e675e547ba629451710b8286adce3414b83b0a8663d41446d412",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "b7fe7c1440f5e675e547ba629451710b8286adce3414b83b0a8663d41446d412",
       "includedInLatestScan": true
     },
     {
@@ -2491,7 +2546,7 @@
         "shadcn/no-restyle": 16
       },
       "initialSourceSha256": "2a2f153068b11df7c10f754f61397f4e48823023044825610497ab86c1b7b671",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -2502,14 +2557,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "bdadaf4ed937426db0cfc298fadc106cca6f1d21a41c3e2b388b0c04837ecc15",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "aeaf3e539a5f7405468fa0a79c446d35bf0259fec942c0bc7bdf275b6b48f90d",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 11,
-        "shadcn/no-restyle": 11
-      },
-      "latestSourceSha256": "bdadaf4ed937426db0cfc298fadc106cca6f1d21a41c3e2b388b0c04837ecc15",
+      "currentFindings": {},
+      "latestSourceSha256": "aeaf3e539a5f7405468fa0a79c446d35bf0259fec942c0bc7bdf275b6b48f90d",
       "includedInLatestScan": true
     },
     {
@@ -2562,20 +2618,21 @@
         "shadcn/no-restyle": 26
       },
       "initialSourceSha256": "1e01fffcae625dbb229d365bffee6d8dc12459a0c982ed601288ed000a0215d6",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "d7b3d8bef78256d97fd6de35f575fe955c56b444f9168ccebaaddfa54e7ba78e",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "693b098ecadd6badbec5645b38cde86aa1b76d68ce63d05c3ca832d1b118b1bd",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-raw-colors": 7,
-        "shadcn/no-restyle": 23
-      },
-      "latestSourceSha256": "d7b3d8bef78256d97fd6de35f575fe955c56b444f9168ccebaaddfa54e7ba78e",
+      "currentFindings": {},
+      "latestSourceSha256": "693b098ecadd6badbec5645b38cde86aa1b76d68ce63d05c3ca832d1b118b1bd",
       "includedInLatestScan": true
     },
     {
@@ -2586,20 +2643,21 @@
         "shadcn/no-restyle": 17
       },
       "initialSourceSha256": "c6dfeb4ceb8297fe32711f6e6ebd7568ba8dad16ced920dd5771ae416eb12033",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "e6a86cb647124a33af60b13f7aee424082ca5bd5ef62f67384d9feeb02f6c523",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "4ae133355b58e2738e9b20c55bea39ac530ddc4fab83d8d18b79f6b4076d8f55",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 4,
-        "shadcn/no-restyle": 15
-      },
-      "latestSourceSha256": "e6a86cb647124a33af60b13f7aee424082ca5bd5ef62f67384d9feeb02f6c523",
+      "currentFindings": {},
+      "latestSourceSha256": "4ae133355b58e2738e9b20c55bea39ac530ddc4fab83d8d18b79f6b4076d8f55",
       "includedInLatestScan": true
     },
     {
@@ -2608,12 +2666,16 @@
         "shadcn/no-arbitrary-values": 1
       },
       "initialSourceSha256": "31929786a5f76acbf3c15b532bd2bd950b68feefb8844953f6c93b1dc683b64d",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1
-      },
-      "latestSourceSha256": "31929786a5f76acbf3c15b532bd2bd950b68feefb8844953f6c93b1dc683b64d",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "0d7c630df79f8079c604a47c8145962980b50422583dea07563322a1ec0ecff8",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "0d7c630df79f8079c604a47c8145962980b50422583dea07563322a1ec0ecff8",
       "includedInLatestScan": true
     },
     {
@@ -2624,20 +2686,21 @@
         "shadcn/no-restyle": 18
       },
       "initialSourceSha256": "306d62d60fd478e349191c384a5a5cd534915197d0a94156c7e7d5d0a9686233",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "7072dd8f74673f10f5f139b3267405dff29d428f046bf85ac0715b83f621ab7d",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "1bee36eaf81e4d9064a7b1335606482f474434dce6d39fb260c351e657899f7a",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-raw-colors": 5,
-        "shadcn/no-restyle": 16
-      },
-      "latestSourceSha256": "7072dd8f74673f10f5f139b3267405dff29d428f046bf85ac0715b83f621ab7d",
+      "currentFindings": {},
+      "latestSourceSha256": "1bee36eaf81e4d9064a7b1335606482f474434dce6d39fb260c351e657899f7a",
       "includedInLatestScan": true
     },
     {
@@ -2649,15 +2712,16 @@
         "shadcn/require-static-classes": 1
       },
       "initialSourceSha256": "64401c8e1a457bcbef4a8a568212ef9cbed15f9fe14b7e12a30dcdb9bde1c96b",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 2,
-        "shadcn/no-restyle": 15,
-        "shadcn/require-static-classes": 1
-      },
-      "latestSourceSha256": "64401c8e1a457bcbef4a8a568212ef9cbed15f9fe14b7e12a30dcdb9bde1c96b",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "4336563e7fd93267b29be23bf0d9800fa20697a5695b1e61c7bfe74031f4d240",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "4336563e7fd93267b29be23bf0d9800fa20697a5695b1e61c7bfe74031f4d240",
       "includedInLatestScan": true
     },
     {
@@ -2739,14 +2803,16 @@
         "shadcn/no-restyle": 1
       },
       "initialSourceSha256": "83ad798556369eb17d3134846efc3b113cd67dfa20f15a800b1f2a5f39bbf062",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 6,
-        "shadcn/no-restyle": 1
-      },
-      "latestSourceSha256": "83ad798556369eb17d3134846efc3b113cd67dfa20f15a800b1f2a5f39bbf062",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "c5a85adcfea1c96dd38349f8580bba287fddbff3e65f6a50795c1f60df779d39",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "c5a85adcfea1c96dd38349f8580bba287fddbff3e65f6a50795c1f60df779d39",
       "includedInLatestScan": true
     },
     {
@@ -2757,20 +2823,21 @@
         "shadcn/no-restyle": 10
       },
       "initialSourceSha256": "f89d84d041a344ec91f6344d1efa6342adec3f6d88e2844bb309c78a121affab",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "12c482d21397cbc7068486bc1b539d550763fa7b761fbe28d191efe98c2963d5",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "4701f4e2ab2a29601488ecc9b86e5bcbd7b8ea60d9976a8fe9329f7f8a302a8a",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 9,
-        "shadcn/no-restyle": 10
-      },
-      "latestSourceSha256": "12c482d21397cbc7068486bc1b539d550763fa7b761fbe28d191efe98c2963d5",
+      "currentFindings": {},
+      "latestSourceSha256": "4701f4e2ab2a29601488ecc9b86e5bcbd7b8ea60d9976a8fe9329f7f8a302a8a",
       "includedInLatestScan": true
     },
     {
@@ -2780,19 +2847,21 @@
         "shadcn/no-raw-colors": 13
       },
       "initialSourceSha256": "067aeec42210ae995629abc46c4540a5f1041f012ac9f6a61a927cc20701cdc4",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "16301fb0d46192fd291b27839793a7e9105d1bc2210a8d9de2291d7d6b5dd4fd",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "c7503fd59fe2f98d1a0882f40b9ccf29158fe16e26cc1b1e5172072762c87b50",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-raw-colors": 13
-      },
-      "latestSourceSha256": "16301fb0d46192fd291b27839793a7e9105d1bc2210a8d9de2291d7d6b5dd4fd",
+      "currentFindings": {},
+      "latestSourceSha256": "c7503fd59fe2f98d1a0882f40b9ccf29158fe16e26cc1b1e5172072762c87b50",
       "includedInLatestScan": true
     },
     {
@@ -2820,7 +2889,7 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "3e3c515336d577ef66d4b2be0789628d66809e414ce6d88a8d6646a8915a0489",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -2831,15 +2900,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "e24a8b08a1cbd3c7eec335e2a4ef2a18e433d894881282d2540d575a238c1a82",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "27edfabcf449c60a667e473b2f7ca327a58f2e1f78f3eab65c0b73968f6a6438",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 10,
-        "shadcn/no-raw-colors": 21,
-        "shadcn/no-restyle": 37,
-        "shadcn/require-static-classes": 2
-      },
-      "latestSourceSha256": "e24a8b08a1cbd3c7eec335e2a4ef2a18e433d894881282d2540d575a238c1a82",
+      "currentFindings": {},
+      "latestSourceSha256": "27edfabcf449c60a667e473b2f7ca327a58f2e1f78f3eab65c0b73968f6a6438",
       "includedInLatestScan": true
     },
     {
@@ -2866,20 +2935,21 @@
         "shadcn/no-restyle": 15
       },
       "initialSourceSha256": "98bcb91183cddde198f3a84c08e0234a5626cba071c7d7ebb1b940d29de0f731",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "453f0613f5f7b63cf85bbc4f1a979c58964ff4f90fd72e237fb159c085d2172a",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "653927bb4af78c7cd707d5dbbf8e366d57fc64175e949b8115f1d80126384a60",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 5,
-        "shadcn/no-raw-colors": 10,
-        "shadcn/no-restyle": 14
-      },
-      "latestSourceSha256": "453f0613f5f7b63cf85bbc4f1a979c58964ff4f90fd72e237fb159c085d2172a",
+      "currentFindings": {},
+      "latestSourceSha256": "653927bb4af78c7cd707d5dbbf8e366d57fc64175e949b8115f1d80126384a60",
       "includedInLatestScan": true
     },
     {
@@ -2889,13 +2959,16 @@
         "shadcn/no-raw-colors": 3
       },
       "initialSourceSha256": "83aaeb61d177eb14300b2c1799ee3887feca5c0ea74dfec0f526b0e387eaba4a",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 3
-      },
-      "latestSourceSha256": "83aaeb61d177eb14300b2c1799ee3887feca5c0ea74dfec0f526b0e387eaba4a",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "8c30128965328bfcba21ccc6e5f670a240ae57464494fa40b3e6d95319fe0056",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "8c30128965328bfcba21ccc6e5f670a240ae57464494fa40b3e6d95319fe0056",
       "includedInLatestScan": true
     },
     {
@@ -2906,20 +2979,21 @@
         "shadcn/no-restyle": 10
       },
       "initialSourceSha256": "87b75b818ff073df8430383f1138af2d70234752a3f42899109a171528f740aa",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "7aca606c12727a1416bda01ef5bd13f8c7ac66f059c25ff6b332d79e922f18a0",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "8cc91a6df3167418b5e6081669ec8ca7f9a0076ed8a65caa4684f04a44975cb0",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 5,
-        "shadcn/no-restyle": 6
-      },
-      "latestSourceSha256": "7aca606c12727a1416bda01ef5bd13f8c7ac66f059c25ff6b332d79e922f18a0",
+      "currentFindings": {},
+      "latestSourceSha256": "8cc91a6df3167418b5e6081669ec8ca7f9a0076ed8a65caa4684f04a44975cb0",
       "includedInLatestScan": true
     },
     {
@@ -2930,20 +3004,21 @@
         "shadcn/no-restyle": 17
       },
       "initialSourceSha256": "dea448b75c282322875afdf9fa5607c5b668de6bfc709ee02f958deedc34a076",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "ffb979eb68dadb793d7262dd44fc6f9bae6dcd396ba28e985b310d75f24e8127",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "436cdd341513a6818f40e263f829de5c8eb85353a7666ed3858760eecc56cb8d",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-raw-colors": 14,
-        "shadcn/no-restyle": 11
-      },
-      "latestSourceSha256": "ffb979eb68dadb793d7262dd44fc6f9bae6dcd396ba28e985b310d75f24e8127",
+      "currentFindings": {},
+      "latestSourceSha256": "436cdd341513a6818f40e263f829de5c8eb85353a7666ed3858760eecc56cb8d",
       "includedInLatestScan": true
     },
     {
@@ -2954,14 +3029,16 @@
         "shadcn/no-restyle": 15
       },
       "initialSourceSha256": "05286172bb96571aa02149bef437fa7a9db03e58997b2466e2090f0ae1aa5df3",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 3,
-        "shadcn/no-restyle": 14
-      },
-      "latestSourceSha256": "05286172bb96571aa02149bef437fa7a9db03e58997b2466e2090f0ae1aa5df3",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "2a98a0f947a9db88736a067f1b348125d01d662e143753e4d7dbcabb50c7f6f0",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "2a98a0f947a9db88736a067f1b348125d01d662e143753e4d7dbcabb50c7f6f0",
       "includedInLatestScan": true
     },
     {
@@ -2971,13 +3048,16 @@
         "shadcn/no-raw-colors": 12
       },
       "initialSourceSha256": "20894b7db647adbc0a9b4454d719eddb27cbfe1fc9c84a7913b651d16552ab9f",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 12
-      },
-      "latestSourceSha256": "20894b7db647adbc0a9b4454d719eddb27cbfe1fc9c84a7913b651d16552ab9f",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "b5b9e9eb786fb90f286667bf645e8729b30da141ddb727057e6c08be582a9bcb",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "b5b9e9eb786fb90f286667bf645e8729b30da141ddb727057e6c08be582a9bcb",
       "includedInLatestScan": true
     },
     {
@@ -2988,14 +3068,16 @@
         "shadcn/no-restyle": 5
       },
       "initialSourceSha256": "87270bb59738ae0b1118181ff992b695bee4c9e5706266a27129f3706cdef6e1",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 3,
-        "shadcn/no-restyle": 5
-      },
-      "latestSourceSha256": "87270bb59738ae0b1118181ff992b695bee4c9e5706266a27129f3706cdef6e1",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "eecb575ea0a929837f3f9f0b323f43e3c9eddd6ad400f2ac4e7e98b25446498b",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "eecb575ea0a929837f3f9f0b323f43e3c9eddd6ad400f2ac4e7e98b25446498b",
       "includedInLatestScan": true
     },
     {
@@ -3029,19 +3111,21 @@
         "shadcn/no-restyle": 9
       },
       "initialSourceSha256": "1d247bb99a319ad1d711edb496e615cbedf5ad17598fac67f12416dffb21b9e6",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "06859ead32ae69a67c32ac021c830ea35d5b9bbd1fe05b57b119fa4b968f2fc1",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "71512e11e7923f09cc115d431993b7e17f3bb279dcde987191407c2058678d7a",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-restyle": 7
-      },
-      "latestSourceSha256": "06859ead32ae69a67c32ac021c830ea35d5b9bbd1fe05b57b119fa4b968f2fc1",
+      "currentFindings": {},
+      "latestSourceSha256": "71512e11e7923f09cc115d431993b7e17f3bb279dcde987191407c2058678d7a",
       "includedInLatestScan": true
     },
     {
@@ -3052,7 +3136,7 @@
         "shadcn/no-restyle": 42
       },
       "initialSourceSha256": "f35af31ce7580b7be15f7d13589d513b4b6250337764451d529640a9043e6fe7",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -3063,14 +3147,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "ba05bab10824a47add5a031441541c68f10e3616860fb6bbeacc33c19878a6f8",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "cab79de44324a8f93d34f704b1a3977ee12ca384bcfe72676e5d5fb47102c867",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 13,
-        "shadcn/no-raw-colors": 11,
-        "shadcn/no-restyle": 38
-      },
-      "latestSourceSha256": "ba05bab10824a47add5a031441541c68f10e3616860fb6bbeacc33c19878a6f8",
+      "currentFindings": {},
+      "latestSourceSha256": "cab79de44324a8f93d34f704b1a3977ee12ca384bcfe72676e5d5fb47102c867",
       "includedInLatestScan": true
     },
     {
@@ -3105,20 +3190,21 @@
         "shadcn/no-restyle": 16
       },
       "initialSourceSha256": "8be4c932c80719da61603274a1bfc84b9f0b6e1d2e75e4013237c003075b1f7e",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "767ee9f28e5729179d9c6069a09db87dad106cff763b778e3e551d244ac695ca",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "b23dba0d58838ae1e230bb45bbdd1eb8ab452eb55787217b754aeb5e2867bcb3",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-raw-colors": 2,
-        "shadcn/no-restyle": 16
-      },
-      "latestSourceSha256": "767ee9f28e5729179d9c6069a09db87dad106cff763b778e3e551d244ac695ca",
+      "currentFindings": {},
+      "latestSourceSha256": "b23dba0d58838ae1e230bb45bbdd1eb8ab452eb55787217b754aeb5e2867bcb3",
       "includedInLatestScan": true
     },
     {
@@ -3804,14 +3890,16 @@
         "shadcn/no-restyle": 5
       },
       "initialSourceSha256": "7a42c0736c1826427f9406cb84ee9f901b67f9ca38700643490cd5a8083914b2",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 1,
-        "shadcn/no-restyle": 4
-      },
-      "latestSourceSha256": "7a42c0736c1826427f9406cb84ee9f901b67f9ca38700643490cd5a8083914b2",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "073455fb42dbb3f5afa9c578d454aa45c81f7a293a6d351a611399ed008ec346",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "073455fb42dbb3f5afa9c578d454aa45c81f7a293a6d351a611399ed008ec346",
       "includedInLatestScan": true
     },
     {
@@ -3823,15 +3911,16 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "79144715aef5554e1b5a1c9af7885f70d6410e389bfa7649f299cbae1574c8ea",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 18,
-        "shadcn/no-raw-colors": 21,
-        "shadcn/no-restyle": 22,
-        "shadcn/require-static-classes": 2
-      },
-      "latestSourceSha256": "79144715aef5554e1b5a1c9af7885f70d6410e389bfa7649f299cbae1574c8ea",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "613c1c6879e5b47a657a965bb5447216acc801e96c6e6739b2d845e9c57b7084",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "613c1c6879e5b47a657a965bb5447216acc801e96c6e6739b2d845e9c57b7084",
       "includedInLatestScan": true
     },
     {
@@ -3858,14 +3947,16 @@
         "shadcn/no-restyle": 29
       },
       "initialSourceSha256": "b0021508d4e26d99876e957be7bc3c4e2a05ccb679c43f0adf265726771565b4",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 6,
-        "shadcn/no-restyle": 29
-      },
-      "latestSourceSha256": "b0021508d4e26d99876e957be7bc3c4e2a05ccb679c43f0adf265726771565b4",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "9c08d846424a51c12219321984e23a5b4fbce127b15c1f6ee18fe29ca31ee746",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "9c08d846424a51c12219321984e23a5b4fbce127b15c1f6ee18fe29ca31ee746",
       "includedInLatestScan": true
     },
     {
@@ -3876,20 +3967,21 @@
         "shadcn/no-restyle": 9
       },
       "initialSourceSha256": "316db66e6141a9d742ef0684458a29e8f6754d1b89d9eb2fe1e79eaaf4910f30",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "59999f48372913d6a5a878a30fddf8e51f8fa14237a1d2d7cee0ec7190e53183",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "64529b3127a4192442711047dae7e70b9b10d518272469e055e6d49dad4da49c",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 2,
-        "shadcn/no-restyle": 9
-      },
-      "latestSourceSha256": "59999f48372913d6a5a878a30fddf8e51f8fa14237a1d2d7cee0ec7190e53183",
+      "currentFindings": {},
+      "latestSourceSha256": "64529b3127a4192442711047dae7e70b9b10d518272469e055e6d49dad4da49c",
       "includedInLatestScan": true
     },
     {
@@ -3900,14 +3992,16 @@
         "shadcn/no-restyle": 14
       },
       "initialSourceSha256": "75d3dc9ec81a600b9b6b505dd8b8213fe746621c61c4de10cf731c4e9763193b",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 4,
-        "shadcn/no-restyle": 14
-      },
-      "latestSourceSha256": "75d3dc9ec81a600b9b6b505dd8b8213fe746621c61c4de10cf731c4e9763193b",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "b004362ac35adea7f3c38d8409d28f981260b6aae43f38d0e42781892f200bc0",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "b004362ac35adea7f3c38d8409d28f981260b6aae43f38d0e42781892f200bc0",
       "includedInLatestScan": true
     },
     {
@@ -3918,20 +4012,21 @@
         "shadcn/no-restyle": 38
       },
       "initialSourceSha256": "12db1a13826391b916812b382b48fc344f5635a4e1fc1b0be221ef23d6fc762a",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "dc6a07d848c0a21277f6583f4e597564e0584f2166bff4b0a350a97a4e1e702b",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "546cde081d4003497289ec2c358db9c7a23a20c4c8cc4d11fc590256922ef19c",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-raw-colors": 13,
-        "shadcn/no-restyle": 28
-      },
-      "latestSourceSha256": "dc6a07d848c0a21277f6583f4e597564e0584f2166bff4b0a350a97a4e1e702b",
+      "currentFindings": {},
+      "latestSourceSha256": "546cde081d4003497289ec2c358db9c7a23a20c4c8cc4d11fc590256922ef19c",
       "includedInLatestScan": true
     },
     {
@@ -3941,13 +4036,16 @@
         "shadcn/no-restyle": 14
       },
       "initialSourceSha256": "35351e868cd8e881daaed998d96b9a5bb9a44547022fd20525f561bbf0d6d988",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-raw-colors": 5,
-        "shadcn/no-restyle": 14
-      },
-      "latestSourceSha256": "35351e868cd8e881daaed998d96b9a5bb9a44547022fd20525f561bbf0d6d988",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "0426369fb4b3e298fc3fe34786f0bc2d51b970ce7ab0e219fc5dbbde9ce7a702",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "0426369fb4b3e298fc3fe34786f0bc2d51b970ce7ab0e219fc5dbbde9ce7a702",
       "includedInLatestScan": true
     },
     {
@@ -3958,20 +4056,21 @@
         "shadcn/no-restyle": 8
       },
       "initialSourceSha256": "f196fa1f4ffaec15e47334042e60e576982c9703585572d8dd77d795dcf812dd",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "12fdeb15c77449534bcb1075484c47df2602d264003a8616377b36796b3b3ad6",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "b48d74361f31bda017deef6ce5f29582faeb98ddf3c5a883d75809de36b1e97c",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 2,
-        "shadcn/no-restyle": 8
-      },
-      "latestSourceSha256": "12fdeb15c77449534bcb1075484c47df2602d264003a8616377b36796b3b3ad6",
+      "currentFindings": {},
+      "latestSourceSha256": "b48d74361f31bda017deef6ce5f29582faeb98ddf3c5a883d75809de36b1e97c",
       "includedInLatestScan": true
     },
     {
@@ -3981,13 +4080,16 @@
         "shadcn/no-restyle": 8
       },
       "initialSourceSha256": "3bb3291386ac4cd3c658d91690e931c0e524ca03defd3cc8a4d42f5729c7ef00",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-restyle": 7
-      },
-      "latestSourceSha256": "3bb3291386ac4cd3c658d91690e931c0e524ca03defd3cc8a4d42f5729c7ef00",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "14ab69e244fb8fe0b5b2d5a9abe52dc937230d234dedefd19805389cf37cd694",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "14ab69e244fb8fe0b5b2d5a9abe52dc937230d234dedefd19805389cf37cd694",
       "includedInLatestScan": true
     },
     {
@@ -3998,7 +4100,7 @@
         "shadcn/no-restyle": 9
       },
       "initialSourceSha256": "01c3c7e685f4ff952b4b87cf27232b19ca1ac8906afee72b6a54f3c45704cf0d",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -4009,14 +4111,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "fb8cb4f4972d7ae0faf42fa8cf1b181217af5a169bc737d2c64c8cfdf359a2b0",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "45f9dfd7b3648e70456470e44248904d03476ce6151e43cb1280763ca2f16f58",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 13,
-        "shadcn/no-restyle": 8
-      },
-      "latestSourceSha256": "fb8cb4f4972d7ae0faf42fa8cf1b181217af5a169bc737d2c64c8cfdf359a2b0",
+      "currentFindings": {},
+      "latestSourceSha256": "45f9dfd7b3648e70456470e44248904d03476ce6151e43cb1280763ca2f16f58",
       "includedInLatestScan": true
     },
     {
@@ -4027,14 +4130,16 @@
         "shadcn/no-restyle": 11
       },
       "initialSourceSha256": "e78f9149fa244caf7d6754dc836365133f60e7e4ce03cae56cf4deffea775717",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-raw-colors": 5,
-        "shadcn/no-restyle": 11
-      },
-      "latestSourceSha256": "e78f9149fa244caf7d6754dc836365133f60e7e4ce03cae56cf4deffea775717",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-inbox-2026-10-30",
+          "verifiedSourceSha256": "8d31d35db90b91cb0a11e647759cf43252b00800296196fcf107970f7647a874",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "8d31d35db90b91cb0a11e647759cf43252b00800296196fcf107970f7647a874",
       "includedInLatestScan": true
     },
     {
@@ -9655,6 +9760,55 @@
         "Axe incompletes retained; no full accessibility conformance claim. Console-error collection covers16 core contexts; all final focused contexts assert page errors and external requests.",
         "Narrow table uses a local horizontal scroller; all columns are not claimed to fit simultaneously at320px.",
         "Normal lint earlier returned1 solely for obsolete suppressions; root owns full baseline prune and combined gates. No suppression/policy/shared primitive changes by this batch."
+      ]
+    },
+    "admin-support-inbox-2026-10-30": {
+      "summary": "Support Hub inbox, reports and routes retire 292 findings in 46 files; 174 stubbed before/after route records at 1280/768/390 fix four regressions found in review, confirm named ButtonLink anchors, and show no new axe violations.",
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/buttonlink__buttonlink-names.results.json",
+          "sha256": "807bd209ae3559e2da2fb9b422bf93d819828b278cfbf17ecf482d8c330d5dbf"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/harness.mjs",
+          "sha256": "76d711b167cf697db8eb9b4770badea912cc7f42b126020acf006e920c2b77cc"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/scenario__buttonlink-names.mjs",
+          "sha256": "560886901dc3ece798d3d4b1544df8a1574d2aade6ecd7c25715c2f92cec8281"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/scenario__support-inbox-fixtures.mjs",
+          "sha256": "cb851ac59508f018380fab5707add9f2214024d7e0fa9276c2130b713ba18408"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/scenario__support-inbox-hub.mjs",
+          "sha256": "69109360463ab221de35f976c243edc63c542dd715c1b0abd6d4564f3c441e19"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/scenario__support-inbox-reports.mjs",
+          "sha256": "dd4fa00afdfc241906985ce2fc39d8824c60b9299fc26706fd006814a1455cbf"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/scenario__support-inbox-routes.mjs",
+          "sha256": "c02c286702e6a629b5e781b08d51593749de67535ce546217595b2e48c28bf7a"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/screenshots-manifest.json",
+          "sha256": "4032f034fff6bf2f2228fc800e7fbc4ff0d1b1fda435be3220178acd49526cc0"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/support-inbox__support-inbox-hub.results.json",
+          "sha256": "e0f9bad84ed05ef3d6567f78778cfb6b00f363ac9484e9dc219f5284a5bf1d78"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/support-inbox__support-inbox-reports.results.json",
+          "sha256": "47b2a1f87d4a1b5b3b16cbb676636ee77ea465223fd4657fc0bf745f3f20e01b"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/support-inbox__support-inbox-routes.results.json",
+          "sha256": "e68aee15313e111af2109f5547344781882b0d14564ec861b2e20ef482f72a8d"
+        }
       ]
     }
   },

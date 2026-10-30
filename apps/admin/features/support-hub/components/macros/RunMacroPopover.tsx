@@ -84,7 +84,7 @@ export function RunMacroPopover({
 
   return (
     <Command>
-      <CommandInput placeholder="Search macros..." className="h-9" />
+      <CommandInput popoverChrome placeholder="Search macros..." />
       <CommandList>
         <CommandEmpty>
           No macros yet. Create one from the macros settings (coming in Phase
@@ -96,23 +96,24 @@ export function RunMacroPopover({
               key={macro.id}
               value={`${macro.name} ${macro.description ?? ""}`}
               onSelect={() => void handleRun(macro)}
-              className="flex flex-col items-start gap-1"
               disabled={busyMacroId !== null}
             >
-              <div className="flex w-full items-center justify-between gap-2">
-                <span className="text-xs font-medium text-foreground">
-                  {macro.name}
-                </span>
-                {busyMacroId === macro.id ? (
-                  <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
+              <div className="flex w-full min-w-0 flex-col items-start gap-1">
+                <div className="flex w-full items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-foreground">
+                    {macro.name}
+                  </span>
+                  {busyMacroId === macro.id ? (
+                    <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
+                  ) : null}
+                </div>
+                {macro.description ? (
+                  <p className="text-xs text-muted-foreground">
+                    {macro.description}
+                  </p>
                 ) : null}
+                <MacroPreviewLine actions={macro.actions} />
               </div>
-              {macro.description ? (
-                <p className="text-xs text-muted-foreground">
-                  {macro.description}
-                </p>
-              ) : null}
-              <MacroPreviewLine actions={macro.actions} />
             </CommandItem>
           ))}
         </CommandGroup>

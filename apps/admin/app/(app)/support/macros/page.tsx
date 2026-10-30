@@ -17,7 +17,7 @@ export default function SupportMacrosPage() {
     >
       <div className="grid gap-4 md:grid-cols-3">
         {supportHubDemoModel.macros.map((macro) => (
-          <Card className="rounded-3xl" key={macro.id}>
+          <Card key={macro.id}>
             <CardHeader>
               <CardTitle>{macro.title}</CardTitle>
               <CardDescription>{macro.queueId}</CardDescription>

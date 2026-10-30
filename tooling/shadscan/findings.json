@@ -645,7 +645,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/support/tickets/new/new-ticket-form.tsx",
-          "sha256": "9b0dd5173e7eb929ceacf01893701562da92162d4731ab06308a576878f240c0"
+          "sha256": "f4c1068f6a67b438c9e6544e58bf9d6cbd2c1e94d8252bf60fffd86b51b079aa"
         },
         {
           "path": "tests/unit/apps/admin/support-ticket-validation.test.tsx",

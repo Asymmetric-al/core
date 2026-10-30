@@ -132,19 +132,14 @@ function SaveViewForm({
             aria-label="Scope"
             value={scope}
             onValueChange={(next) => setScope(next as "personal" | "workspace")}
-            className="flex flex-col gap-2"
           >
             <div className="flex items-center gap-2">
               <RadioGroupItem value="personal" id="scope-personal" />
-              <Label htmlFor="scope-personal" className="text-xs font-medium">
-                Just me
-              </Label>
+              <Label htmlFor="scope-personal">Just me</Label>
             </div>
             <div className="flex items-center gap-2">
               <RadioGroupItem value="workspace" id="scope-workspace" />
-              <Label htmlFor="scope-workspace" className="text-xs font-medium">
-                Whole workspace
-              </Label>
+              <Label htmlFor="scope-workspace">Whole workspace</Label>
             </div>
           </RadioGroup>
         </div>

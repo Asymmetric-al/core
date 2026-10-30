@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   Sheet,
   SheetContent,
@@ -87,21 +88,25 @@ export function ConversationDetail({
     >
       <SheetContent
         side="right"
-        className="flex w-full max-w-xl flex-col gap-0 overflow-hidden p-0 sm:max-w-xl"
+        className="w-full max-w-xl sm:max-w-xl"
+        showCloseButton={false}
       >
-        <SheetHeader className="border-b border-border px-4 py-3">
-          <SheetTitle className="text-sm font-semibold text-foreground">
-            Conversation
-          </SheetTitle>
-          <SheetDescription className="sr-only">
-            Donor email thread, internal notes, and reply composer.
-          </SheetDescription>
-        </SheetHeader>
-        <DetailBody
-          conversation={conversation}
-          isLoading={isLoading}
-          onClose={onClose}
-        />
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <SheetHeader className="px-4 py-3">
+            <SheetTitle className="text-sm font-semibold">
+              Conversation
+            </SheetTitle>
+            <SheetDescription className="sr-only">
+              Donor email thread, internal notes, and reply composer.
+            </SheetDescription>
+          </SheetHeader>
+          <Separator />
+          <DetailBody
+            conversation={conversation}
+            isLoading={isLoading}
+            onClose={onClose}
+          />
+        </div>
       </SheetContent>
     </Sheet>
   );

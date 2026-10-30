@@ -21,8 +21,8 @@ export default function Loading() {
           ))}
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)_340px]">
-          <div className="space-y-2">
+        <div className="flex flex-col gap-6 xl:flex-row">
+          <div className="space-y-2 xl:w-65 xl:shrink-0">
             {Array.from({ length: 5 }).map((_, index) => (
               <div
                 className="h-20 animate-pulse rounded-2xl bg-muted"
@@ -30,8 +30,8 @@ export default function Loading() {
               />
             ))}
           </div>
-          <div className="h-96 animate-pulse rounded-3xl border border-border bg-card" />
-          <div className="space-y-4">
+          <div className="h-96 animate-pulse rounded-3xl border border-border bg-card xl:min-w-0 xl:flex-1" />
+          <div className="space-y-4 xl:w-85 xl:shrink-0">
             <div className="h-64 animate-pulse rounded-3xl border border-border bg-card" />
             <div className="h-48 animate-pulse rounded-3xl border border-border bg-card" />
           </div>

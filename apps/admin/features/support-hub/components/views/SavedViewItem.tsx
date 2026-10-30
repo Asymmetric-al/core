@@ -59,32 +59,30 @@ export function SavedViewItem({
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="size-6 text-muted-foreground hover:text-foreground"
+              size="icon-xs"
               aria-label={`Saved view actions for ${view.name}`}
             >
               <MoreHorizontal className="size-3" />
             </Button>
           }
         />
-        <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuContent align="end">
           <DropdownMenuItem
             closeOnClick={false}
             onClick={() => {
               onRename();
             }}
-            className="text-xs"
           >
             <Pencil className="size-3.5 text-muted-foreground" />
             Rename / scope
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
+            variant="destructive"
             closeOnClick={false}
             onClick={() => {
               onDelete();
             }}
-            className="text-xs text-destructive focus:text-destructive"
           >
             <Trash2 className="size-3.5" />
             Delete

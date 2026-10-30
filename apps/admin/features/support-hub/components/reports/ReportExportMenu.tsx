@@ -44,16 +44,14 @@ export function ReportExportMenu({ series, disabled }: ReportExportMenuProps) {
           <Button
             type="button"
             variant="outline"
-            size="sm"
             disabled={disabled || series.buckets.length === 0}
-            className="h-9 rounded-lg font-bold uppercase tracking-wider"
           >
             <Download className="size-3.5" />
             Export
           </Button>
         }
       />
-      <DropdownMenuContent align="end" className="w-40">
+      <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => handle("csv")}>
           Export as CSV
         </DropdownMenuItem>

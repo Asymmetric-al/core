@@ -20,6 +20,9 @@ import type {
   SupportLabel,
   SupportPriority,
 } from "../../types";
+import type { ComponentProps } from "react";
+
+type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 
 const STATUS_LABELS: Record<SupportConversationStatus, string> = {
   open: "Open",
@@ -28,34 +31,30 @@ const STATUS_LABELS: Record<SupportConversationStatus, string> = {
   resolved: "Resolved",
 };
 
-const STATUS_TONES: Record<SupportConversationStatus, string> = {
-  open: "bg-warning/10 text-warning ring-warning/30",
-  pending: "bg-muted text-foreground ring-border",
-  snoozed: "bg-chart-3/10 text-foreground ring-chart-3/30",
-  resolved: "bg-success/10 text-success ring-success/30",
+const STATUS_BADGE_VARIANTS: Record<SupportConversationStatus, BadgeVariant> = {
+  open: "warning",
+  pending: "secondary",
+  snoozed: "accent",
+  resolved: "success",
 };
 
-const PRIORITY_TONES: Record<SupportPriority, string> = {
-  urgent: "bg-destructive/10 text-destructive ring-destructive/30",
-  high: "bg-warning/10 text-warning ring-warning/30",
-  normal: "bg-muted text-muted-foreground ring-border",
-  low: "bg-muted/40 text-muted-foreground ring-border",
+const PRIORITY_BADGE_VARIANTS: Record<SupportPriority, BadgeVariant> = {
+  urgent: "destructive-subtle",
+  high: "warning",
+  normal: "secondary",
+  low: "outline",
 };
 
 export function StatusCell({ status }: { status: SupportConversationStatus }) {
   return (
-    <Badge variant="outline" className={STATUS_TONES[status]}>
+    <Badge variant={STATUS_BADGE_VARIANTS[status]}>
       {STATUS_LABELS[status]}
     </Badge>
   );
 }
 
 export function PriorityCell({ priority }: { priority: SupportPriority }) {
-  return (
-    <Badge variant="outline" className={PRIORITY_TONES[priority]}>
-      {priority}
-    </Badge>
-  );
+  return <Badge variant={PRIORITY_BADGE_VARIANTS[priority]}>{priority}</Badge>;
 }
 
 export function DonorCell({ row }: { row: SupportConversation }) {
@@ -121,14 +120,12 @@ export function AssigneeCell({
   }
   return (
     <span className="inline-flex items-center gap-2">
-      <Avatar className="size-6 border border-border">
+      <Avatar size="sm">
         <AvatarImage
           src={assignee.avatarUrl ?? undefined}
           alt={assignee.name}
         />
-        <AvatarFallback className="text-xs font-semibold">
-          {assignee.name.charAt(0)}
-        </AvatarFallback>
+        <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
       </Avatar>
       <span className="truncate text-xs text-foreground">{assignee.name}</span>
     </span>

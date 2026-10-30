@@ -84,11 +84,7 @@ export function ViewTabs({ value, onValueChange, baseFilter }: ViewTabsProps) {
             return (
               <TabsTrigger key={tab.view} value={tab.view}>
                 {tab.label}
-                <Badge
-                  variant={isActive ? "default" : "secondary"}
-                  aria-hidden
-                  className="min-w-6 tabular-nums"
-                >
+                <Badge variant={isActive ? "default" : "secondary"} aria-hidden>
                   {count}
                 </Badge>
               </TabsTrigger>

@@ -84,7 +84,7 @@ function Chip({ tone, icon, label }: ChipProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ring-inset ring-transparent",
+        "inline-flex items-center gap-1.5 rounded-md border px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider ring-1 ring-inset ring-transparent",
         TONE_CLASSES[tone],
       )}
     >

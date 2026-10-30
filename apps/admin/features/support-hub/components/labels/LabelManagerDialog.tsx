@@ -132,22 +132,20 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
                   <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
+                    size="icon-sm"
                     onClick={() => setEditing(label)}
                     aria-label={`Edit ${label.name}`}
-                    className="size-7 text-muted-foreground hover:text-foreground"
                   >
                     <Pencil className="size-3.5" />
                   </Button>
                   <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
+                    size="icon-sm"
                     onClick={() => void handleDelete(label)}
                     aria-label={`Delete ${label.name}`}
-                    className="size-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
                   >
-                    <Trash2 className="size-3.5" />
+                    <Trash2 className="size-3.5 text-destructive" />
                   </Button>
                 </span>
               </li>
@@ -169,7 +167,6 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
           variant="outline"
           size="sm"
           onClick={() => setEditing("new")}
-          className="h-8 gap-1.5 rounded-lg px-3 text-xs"
         >
           <Plus className="size-3.5" />
           New label
@@ -179,7 +176,6 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
           size="sm"
           aria-label="Close label manager"
           onClick={onDone}
-          className="h-8 rounded-lg px-3 text-xs"
         >
           Close
         </Button>

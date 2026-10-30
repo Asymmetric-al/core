@@ -1,6 +1,6 @@
 import { loadSupportTicketDetail } from "@asym/api/admin/support/loaders";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -30,7 +30,7 @@ function SupportTicketNotFoundPage({ id }: { id: string }) {
       title="Support Ticket Not Found"
       description="The requested support ticket could not be found."
     >
-      <Card className="rounded-3xl">
+      <Card>
         <CardHeader>
           <CardTitle>Missing ticket</CardTitle>
           <CardDescription>
@@ -38,12 +38,12 @@ function SupportTicketNotFoundPage({ id }: { id: string }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Link
-            href={supportHubRoutes.tickets}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Back to tickets
-          </Link>
+          <ButtonLink
+            variant="outline"
+            render={
+              <Link href={supportHubRoutes.tickets}>Back to tickets</Link>
+            }
+          />
         </CardContent>
       </Card>
     </PageShell>
@@ -73,7 +73,7 @@ function SupportTicketMetrics({
         ],
       ].map(([label, value]) => (
         <div className="rounded-2xl bg-muted p-3" key={label}>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
             {label}
           </p>
           <p className="mt-1 font-semibold">{value}</p>
@@ -91,25 +91,29 @@ function SupportTicketContactCard({
   ticket: SupportTicket;
 }) {
   return (
-    <Card className="rounded-3xl">
+    <Card>
       <CardHeader>
         <CardTitle>Contact context</CardTitle>
         <CardDescription>
           {contact?.relationship ?? "No linked contact"}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2 text-sm text-muted-foreground">
-        <p className="font-semibold text-foreground">
-          {contact?.name ??
-            ticket.contactName ??
-            ticket.contactNameSnapshot ??
-            "Unknown contact"}
-        </p>
-        <p>
-          {contact?.email ?? ticket.contactEmail ?? ticket.contactEmailSnapshot}
-        </p>
-        <p>{contact?.organization}</p>
-        <p>{contact?.givingSummary}</p>
+      <CardContent>
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p className="font-semibold text-foreground">
+            {contact?.name ??
+              ticket.contactName ??
+              ticket.contactNameSnapshot ??
+              "Unknown contact"}
+          </p>
+          <p>
+            {contact?.email ??
+              ticket.contactEmail ??
+              ticket.contactEmailSnapshot}
+          </p>
+          <p>{contact?.organization}</p>
+          <p>{contact?.givingSummary}</p>
+        </div>
       </CardContent>
     </Card>
   );
@@ -121,7 +125,7 @@ function SupportTicketMacroCard({
   macro: SupportMacro | undefined;
 }) {
   return (
-    <Card className="rounded-3xl">
+    <Card>
       <CardHeader>
         <CardTitle>Suggested macro</CardTitle>
         <CardDescription>{macro?.title ?? "No macro found"}</CardDescription>
@@ -157,16 +161,14 @@ export default async function SupportTicketDetailPage({
       title={ticket.subject}
       description={`${ticket.id} · ${queue?.label ?? ticket.queueId} · ${ticket.status}`}
       actions={
-        <Link
-          href={supportHubRoutes.tickets}
-          className={buttonVariants({ variant: "outline" })}
-        >
-          Back to tickets
-        </Link>
+        <ButtonLink
+          variant="outline"
+          render={<Link href={supportHubRoutes.tickets}>Back to tickets</Link>}
+        />
       }
     >
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <Card className="rounded-3xl">
+      <div className="flex flex-col gap-6 lg:flex-row">
+        <Card className="min-w-0 flex-1">
           <CardHeader>
             <CardTitle>Thread summary</CardTitle>
             <CardDescription>{ticket.summary}</CardDescription>
@@ -188,7 +190,7 @@ export default async function SupportTicketDetailPage({
           </CardContent>
         </Card>
 
-        <aside className="space-y-4">
+        <aside className="space-y-4 lg:w-90 lg:shrink-0">
           <SupportTicketContactCard contact={contact} ticket={ticket} />
           <SupportTicketMacroCard macro={macro} />
         </aside>
