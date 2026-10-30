@@ -275,19 +275,21 @@
         "shadcn/no-restyle": 35
       },
       "initialSourceSha256": "599caeb3d1ab3f785c2c2c3b038fa8e15aded6307a33960e4c22bbfe7024ab8a",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "d8a33889356bbff1d95d3f8e2e54d30998c8c9e02f6d3cc58fc6af079e1eaab9",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-care-2026-10-30",
+          "verifiedSourceSha256": "b64efb6601a125d143648c693445008637f1fe95e18615457b567adb47b0a917",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-raw-colors": 15,
-        "shadcn/no-restyle": 32
-      },
-      "latestSourceSha256": "d8a33889356bbff1d95d3f8e2e54d30998c8c9e02f6d3cc58fc6af079e1eaab9",
+      "currentFindings": {},
+      "latestSourceSha256": "b64efb6601a125d143648c693445008637f1fe95e18615457b567adb47b0a917",
       "includedInLatestScan": true
     },
     {
@@ -326,7 +328,7 @@
         "shadcn/no-restyle": 96
       },
       "initialSourceSha256": "b5a7d9c2fc6ea5b5ba3d060759268f55566e4fdf81c0000234f3953ee06aac6c",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -337,14 +339,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "3ab38ee0469b128f31a5b91d8680feab4af049d6767762156aeecb6142948789",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-care-2026-10-30",
+          "verifiedSourceSha256": "7372dd63930491a78985936176ee86924ab677ac3e378b89aa51ae6c98bb79ee",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 5,
-        "shadcn/no-raw-colors": 62,
-        "shadcn/no-restyle": 94
-      },
-      "latestSourceSha256": "3ab38ee0469b128f31a5b91d8680feab4af049d6767762156aeecb6142948789",
+      "currentFindings": {},
+      "latestSourceSha256": "7372dd63930491a78985936176ee86924ab677ac3e378b89aa51ae6c98bb79ee",
       "includedInLatestScan": true
     },
     {
@@ -1831,20 +1834,21 @@
         "shadcn/require-static-classes": 1
       },
       "initialSourceSha256": "cdb68b84a6f25267643e2cd4f43cd696f8f44b2f971576662a13f48c99184397",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "f551654fb12896eed74cbd59892d914833539f5651fd432eecdcb4be5c9b773b",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-care-2026-10-30",
+          "verifiedSourceSha256": "1029d5d7ba2deae8815e296e2700766e101894b343649ab4bda9ce2b5a9c57d0",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-restyle": 50,
-        "shadcn/require-static-classes": 1
-      },
-      "latestSourceSha256": "f551654fb12896eed74cbd59892d914833539f5651fd432eecdcb4be5c9b773b",
+      "currentFindings": {},
+      "latestSourceSha256": "1029d5d7ba2deae8815e296e2700766e101894b343649ab4bda9ce2b5a9c57d0",
       "includedInLatestScan": true
     },
     {
@@ -1854,7 +1858,7 @@
         "shadcn/no-restyle": 70
       },
       "initialSourceSha256": "ae1148deffd670d7ef86878000b12e2d392331b40f7d832c246287044ea96bc2",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -1865,13 +1869,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "2810296751c5500b06a965ec89e8b3b27204d1a83740b5de4346dda0eecd500a",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-care-2026-10-30",
+          "verifiedSourceSha256": "8a86a4ca324415d4ba96c03684c7bd336e6f98bef4bbfb95c386462411133847",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 11,
-        "shadcn/no-restyle": 68
-      },
-      "latestSourceSha256": "2810296751c5500b06a965ec89e8b3b27204d1a83740b5de4346dda0eecd500a",
+      "currentFindings": {},
+      "latestSourceSha256": "8a86a4ca324415d4ba96c03684c7bd336e6f98bef4bbfb95c386462411133847",
       "includedInLatestScan": true
     },
     {
@@ -1883,15 +1889,16 @@
         "shadcn/require-static-classes": 1
       },
       "initialSourceSha256": "7f7b88008c060fc85d1f711650d6e8c61dff0563f9d36044e641d7707c8cf2e1",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 3,
-        "shadcn/no-restyle": 10,
-        "shadcn/require-static-classes": 1
-      },
-      "latestSourceSha256": "7f7b88008c060fc85d1f711650d6e8c61dff0563f9d36044e641d7707c8cf2e1",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-care-2026-10-30",
+          "verifiedSourceSha256": "396a6fadbadd79d6498530ecb9a16c5e3ab4daf40a268dd925744b7c0f556477",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "396a6fadbadd79d6498530ecb9a16c5e3ab4daf40a268dd925744b7c0f556477",
       "includedInLatestScan": true
     },
     {
@@ -1902,14 +1909,16 @@
         "shadcn/no-restyle": 49
       },
       "initialSourceSha256": "7a955e12ea6d469ee4487d7ae6ffc88cf2443f2e7e9c80b34afb050ad5462d7c",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 7,
-        "shadcn/no-raw-colors": 8,
-        "shadcn/no-restyle": 49
-      },
-      "latestSourceSha256": "7a955e12ea6d469ee4487d7ae6ffc88cf2443f2e7e9c80b34afb050ad5462d7c",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-care-2026-10-30",
+          "verifiedSourceSha256": "bd8786feee44865b9c9e28a39a1537883761b4104f307ec1239ca7132812e480",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "bd8786feee44865b9c9e28a39a1537883761b4104f307ec1239ca7132812e480",
       "includedInLatestScan": true
     },
     {
@@ -1921,7 +1930,7 @@
         "shadcn/no-restyle": 124
       },
       "initialSourceSha256": "e8f6a11ada81848a98360f6b7ab8a01e891b9d697dec9480bc75c7da03613ea6",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -1937,14 +1946,15 @@
           "batch": "runtime-inline-values-2026-09-23",
           "verifiedSourceSha256": "c39acf2bdf2d625ceeef388abdb365018df9c76eb40645190d3777f4b4d536b6",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-care-2026-10-30",
+          "verifiedSourceSha256": "b04eb3882745ff46387c4e85cd401e231b939ffdd89adf7ced0f4a93b7ea36d7",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 8,
-        "shadcn/no-raw-colors": 103,
-        "shadcn/no-restyle": 117
-      },
-      "latestSourceSha256": "c39acf2bdf2d625ceeef388abdb365018df9c76eb40645190d3777f4b4d536b6",
+      "currentFindings": {},
+      "latestSourceSha256": "b04eb3882745ff46387c4e85cd401e231b939ffdd89adf7ced0f4a93b7ea36d7",
       "includedInLatestScan": true
     },
     {
@@ -1977,14 +1987,16 @@
         "shadcn/no-restyle": 26
       },
       "initialSourceSha256": "0d809080890ff2b5d5b58b145a4ad12a21ec4ff3dc73ce8b47caaece68a15654",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-raw-colors": 23,
-        "shadcn/no-restyle": 26
-      },
-      "latestSourceSha256": "0d809080890ff2b5d5b58b145a4ad12a21ec4ff3dc73ce8b47caaece68a15654",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-care-2026-10-30",
+          "verifiedSourceSha256": "d080594a880585ef0b86df23d5d97fe9f0d7589d381fb0f14c81f3f46b959a6b",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "d080594a880585ef0b86df23d5d97fe9f0d7589d381fb0f14c81f3f46b959a6b",
       "includedInLatestScan": true
     },
     {
@@ -1994,7 +2006,7 @@
         "shadcn/no-unknown-classes": 1
       },
       "initialSourceSha256": "cc2de9f3e7ab93f19063c500f706b9a07cd048ebfc3cffc9d8ca4f3e22289cf5",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -2005,12 +2017,15 @@
           "batch": "undefined-scrollbar-classes-2026-09-23",
           "verifiedSourceSha256": "aa0d36696b6d75e06df0fd953ac2dddca3d081aaeee20cb8fb34e6a8149af2f4",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-care-2026-10-30",
+          "verifiedSourceSha256": "411d98358c0bd131bc3fd35ee1f179c9f5f6219d37b9b3af4a05a9921131a8f6",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 7
-      },
-      "latestSourceSha256": "aa0d36696b6d75e06df0fd953ac2dddca3d081aaeee20cb8fb34e6a8149af2f4",
+      "currentFindings": {},
+      "latestSourceSha256": "411d98358c0bd131bc3fd35ee1f179c9f5f6219d37b9b3af4a05a9921131a8f6",
       "includedInLatestScan": true
     },
     {
@@ -9655,6 +9670,35 @@
         "Axe incompletes retained; no full accessibility conformance claim. Console-error collection covers16 core contexts; all final focused contexts assert page errors and external requests.",
         "Narrow table uses a local horizontal scroller; all columns are not claimed to fit simultaneously at320px.",
         "Normal lint earlier returned1 solely for obsolete suppressions; root owns full baseline prune and combined gates. No suppression/policy/shared primitive changes by this batch."
+      ]
+    },
+    "admin-care-2026-10-30": {
+      "summary": "Member Care retires 300 findings in 9 files; 84 before/after route runs plus profile width checks remove two contrast failures and a pre-existing 390px profile overflow, with no new axe violations.",
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/care/care__care-profile.results.json",
+          "sha256": "9d15494a121d44a223145e3107e54f4d96e0f6acf6ad115feef36ae6ad484bdc"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/care/care__care-surfaces.results.json",
+          "sha256": "3b6a13040904b7ddc6165d8fb88b50cd793e5321da1372f62e8aae860905f0b0"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/care/harness.mjs",
+          "sha256": "76d711b167cf697db8eb9b4770badea912cc7f42b126020acf006e920c2b77cc"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/care/scenario__care-profile.mjs",
+          "sha256": "1b176e4e7a7215530a056b4276536c00e2f78a36dbccc4752bd182f39c22e30d"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/care/scenario__care-surfaces.mjs",
+          "sha256": "2093373951dc05fa9344cbb794474a1e630fbb32e2a84fdca8ff1503ecdcdecb"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/care/screenshots-manifest.json",
+          "sha256": "8cff5520e96da9e890d447dbfdc90b6ffa716649c0681296ba696247df600108"
+        }
       ]
     }
   },

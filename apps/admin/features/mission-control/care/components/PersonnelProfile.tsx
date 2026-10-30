@@ -81,15 +81,13 @@ function PersonnelProfileHeaderCard({
 }) {
   const attentionLabelId = useId();
   return (
-    <Card className="border-border shadow-sm overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="h-24 bg-primary" />
-      <CardContent className="relative pt-0 pb-6 px-6">
+      <CardContent className="pt-0 pb-6 px-6">
         <div className="flex flex-col md:flex-row items-start md:items-end gap-4 -mt-10">
-          <Avatar className="size-24 border-4 border-background shadow-lg bg-card">
+          <Avatar className="size-24">
             <AvatarImage src={personnel.avatarUrl} />
-            <AvatarFallback className="text-2xl font-semibold">
-              {personnel.initials}
-            </AvatarFallback>
+            <AvatarFallback>{personnel.initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1 space-y-1">
             <div className="flex flex-wrap items-center gap-3">
@@ -123,8 +121,6 @@ function PersonnelProfileHeaderCard({
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
-              size="sm"
-              className="h-9 px-4 font-semibold border-border"
               onClick={onToggleManualAttention}
               disabled={isUpdatingAttention}
               focusableWhenDisabled={isUpdatingAttention}
@@ -164,13 +160,10 @@ function OverviewTabContentSection({
 }) {
   const { formatDate } = useLocaleFormat();
   return (
-    <TabsContent
-      value="overview"
-      className="space-y-6 animate-in fade-in duration-300"
-    >
+    <TabsContent value="overview" className="space-y-6">
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-2 border-border shadow-sm">
-          <CardHeader className="pb-3 border-b border-border">
+        <Card className="md:col-span-2">
+          <CardHeader>
             <CardTitle className="text-base font-semibold">
               Wellness Heatmap
             </CardTitle>
@@ -178,7 +171,7 @@ function OverviewTabContentSection({
               Interaction frequency and intensity over the last 90 days.
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent>
             <HealthHeatmap data={heatmapData} />
             <div className="mt-6 space-y-4">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -221,13 +214,13 @@ function OverviewTabContentSection({
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-border shadow-sm">
-            <CardHeader className="pb-3 border-b border-border">
+          <Card>
+            <CardHeader>
               <CardTitle className="text-base font-semibold">
                 Health Signals
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-4">
+            <CardContent className="space-y-4">
               {Object.entries(personnel.healthSignals).map(([key, value]) => (
                 <div key={key} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-semibold capitalize">
@@ -267,7 +260,7 @@ function OverviewTabContentSection({
           </Card>
 
           {personnel.careGaps.length > 0 && (
-            <Card className="border-destructive/25 bg-destructive/5 shadow-sm">
+            <Card>
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2 text-destructive">
                   <AlertTriangle className="size-4" />
@@ -292,43 +285,47 @@ function OverviewTabContentSection({
             </Card>
           )}
 
-          <Card className="border-border shadow-sm">
-            <CardHeader className="pb-3 border-b border-border">
+          <Card>
+            <CardHeader>
               <CardTitle className="text-base font-semibold">
                 Personal & Family Info
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-3 text-xs text-muted-foreground">
-              <div className="flex justify-between gap-4">
-                <span className="font-semibold uppercase tracking-wider text-muted-foreground">
-                  Household
-                </span>
-                <span>Not provided</span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="font-semibold uppercase tracking-wider text-muted-foreground">
-                  Dependents
-                </span>
-                <span>Not provided</span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="font-semibold uppercase tracking-wider text-muted-foreground">
-                  Preferred language
-                </span>
-                <span>Not provided</span>
+            <CardContent>
+              <div className="space-y-3 text-xs text-muted-foreground">
+                <div className="flex justify-between gap-4">
+                  <span className="font-semibold uppercase tracking-wider text-muted-foreground">
+                    Household
+                  </span>
+                  <span>Not provided</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="font-semibold uppercase tracking-wider text-muted-foreground">
+                    Dependents
+                  </span>
+                  <span>Not provided</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="font-semibold uppercase tracking-wider text-muted-foreground">
+                    Preferred language
+                  </span>
+                  <span>Not provided</span>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-border shadow-sm">
-            <CardHeader className="pb-3 border-b border-border">
+          <Card>
+            <CardHeader>
               <CardTitle className="text-base font-semibold">
                 Emergency Contact
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-2 text-xs">
-              <p className="font-semibold text-foreground">Not yet recorded</p>
-              <p className="text-muted-foreground">
+            <CardContent className="space-y-2">
+              <p className="text-xs font-semibold text-foreground">
+                Not yet recorded
+              </p>
+              <p className="text-xs text-muted-foreground">
                 Add emergency contact information in profile editing flows.
               </p>
             </CardContent>
@@ -353,12 +350,9 @@ function CareThreadTabContent({
   const threadEntries = activities;
 
   return (
-    <TabsContent
-      value="care-thread"
-      className="animate-in fade-in duration-300"
-    >
-      <Card className="border-border shadow-sm min-h-100">
-        <CardHeader className="border-b border-border">
+    <TabsContent value="care-thread">
+      <Card className="min-h-100">
+        <CardHeader>
           <CardTitle className="text-base font-semibold">Care Thread</CardTitle>
           <CardDescription className="text-xs">
             Shared updates and contextual care notes for {personnel.name}.
@@ -400,7 +394,6 @@ function CareThreadTabContent({
                 aria-labelledby={`${pendingActionLabelId}-13`}
                 focusableWhenDisabled={createThreadPost.isPending}
                 size="sm"
-                className="font-semibold bg-primary text-primary-foreground"
                 onClick={async () => {
                   if (!draft.trim()) return;
                   await createThreadPost.mutateAsync({
@@ -443,9 +436,9 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
       ];
 
   return (
-    <TabsContent value="care-plan" className="animate-in fade-in duration-300">
-      <Card className="border-border shadow-sm min-h-100">
-        <CardHeader className="border-b border-border">
+    <TabsContent value="care-plan">
+      <Card className="min-h-100">
+        <CardHeader>
           <div className="flex items-center justify-between gap-3">
             <div>
               <CardTitle className="text-base font-semibold">
@@ -459,7 +452,6 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
               aria-labelledby={`${pendingActionLabelId}-14`}
               focusableWhenDisabled={upsertCareGoal.isPending}
               size="sm"
-              className="bg-primary text-primary-foreground"
               onClick={async () => {
                 await upsertCareGoal.mutateAsync({
                   personnelId: personnel.id,
@@ -511,12 +503,7 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
                 </p>
               </div>
               <Badge
-                className={cn(
-                  "border-none",
-                  item.status === "Overdue"
-                    ? "bg-destructive text-destructive-foreground"
-                    : "bg-info/10 text-info",
-                )}
+                variant={item.status === "Overdue" ? "destructive" : "info"}
               >
                 {item.status}
               </Badge>
@@ -537,12 +524,9 @@ function ActivityTabContent({
 }) {
   const { formatDateTime } = useLocaleFormat();
   return (
-    <TabsContent
-      value="activity"
-      className="space-y-6 animate-in fade-in duration-300"
-    >
-      <Card className="border-border shadow-sm">
-        <CardHeader className="border-b border-border">
+    <TabsContent value="activity" className="space-y-6">
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base font-semibold">
             Activity Log
           </CardTitle>
@@ -572,8 +556,8 @@ function ActivityTabContent({
         </CardContent>
       </Card>
 
-      <Card className="border-border shadow-sm">
-        <CardHeader className="border-b border-border">
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base font-semibold">
             Activity Heatmap
           </CardTitle>
@@ -602,12 +586,9 @@ function SecureNotesTabContent({
   const createPrivateNote = useCreateCarePrivateNote();
 
   return (
-    <TabsContent
-      value="secure-notes"
-      className="animate-in fade-in duration-300"
-    >
-      <Card className="border-border shadow-sm min-h-100 border-warning/25 bg-warning/5">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-warning/25">
+    <TabsContent value="secure-notes">
+      <Card className="min-h-100">
+        <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
               <CardTitle className="text-base font-semibold">
@@ -615,15 +596,11 @@ function SecureNotesTabContent({
               </CardTitle>
               <Lock className="size-3.5 text-warning" />
             </div>
-            <CardDescription className="text-xs text-warning/60">
+            <CardDescription className="text-xs">
               Only visible to you and platform super admins.
             </CardDescription>
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            className="font-semibold border-warning/25 text-warning hover:bg-warning/15"
-          >
+          <Button size="sm" variant="outline">
             <Plus className="mr-2 size-3.5" /> Add Private Note
           </Button>
         </CardHeader>
@@ -672,7 +649,6 @@ function SecureNotesTabContent({
                 aria-labelledby={`${pendingActionLabelId}-16`}
                 focusableWhenDisabled={createPrivateNote.isPending}
                 size="sm"
-                className="font-semibold bg-warning text-primary-foreground hover:bg-warning"
                 onClick={async () => {
                   if (!draft.trim()) return;
                   await createPrivateNote.mutateAsync({
@@ -754,12 +730,8 @@ export function PersonnelProfile({
       />
 
       <Tabs defaultValue="overview" className="w-full">
-        <div className="mb-6 overflow-x-auto border-b border-border pb-px">
-          <TabsList
-            aria-label="Personnel profile"
-            variant="line"
-            className="w-max min-w-full gap-5 p-0 group-data-[orientation=horizontal]/tabs:h-auto"
-          >
+        <div className="mb-6 overflow-x-auto pb-1">
+          <TabsList aria-label="Personnel profile" variant="line">
             {[
               "overview",
               "care-thread",
@@ -767,12 +739,8 @@ export function PersonnelProfile({
               "activity",
               "secure-notes",
             ].map((tab) => (
-              <TabsTrigger
-                key={tab}
-                value={tab}
-                className="px-0 py-3 text-sm font-semibold text-muted-foreground data-active:text-foreground rounded-none transition-none capitalize group-data-[orientation=horizontal]/tabs:after:bottom-0"
-              >
-                {tab.replace("-", " ")}
+              <TabsTrigger key={tab} value={tab}>
+                <span className="capitalize">{tab.replace("-", " ")}</span>
               </TabsTrigger>
             ))}
           </TabsList>

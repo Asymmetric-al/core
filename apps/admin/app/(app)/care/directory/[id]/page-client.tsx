@@ -81,7 +81,7 @@ export default function CareProfilePage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="lg:col-span-8">
           <PersonnelProfile
             personnel={personnel}
