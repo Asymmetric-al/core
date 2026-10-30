@@ -26,7 +26,7 @@ export function StudioLayout({
     <div
       data-testid="web-studio-native-shell"
       className={cn(
-        "payload-admin-wrapper flex min-h-[calc(100vh-4rem)] flex-col bg-background text-foreground",
+        "payload-admin-wrapper flex flex-1 flex-col bg-background text-foreground",
         className,
       )}
     >

@@ -2,7 +2,7 @@
 
 import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Empty,
   EmptyDescription,
@@ -169,119 +169,108 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
 
   return (
     <StudioLayout sectionLabel={studioConfig.sectionLabel}>
-      <div className="px-4 py-6 sm:px-6 lg:px-8">
-        <PageShell
-          title={title}
-          description={studioConfig.description}
-          density="compact"
-          className="gap-8 p-0 pb-12"
-          headerClassName="border-0 pb-6"
-          actions={
-            hasCreatePermission && createHref ? (
-              <Link
-                href={createHref}
-                className={cn(
-                  buttonVariants({ size: "sm" }),
-                  "font-semibold uppercase tracking-wide",
-                )}
-              >
-                <Plus className="mr-2 size-4" />
-                {studioConfig.createLabel}
-              </Link>
-            ) : null
-          }
-        >
-          <FilterBar
-            className="mb-6"
-            search={{
-              value: query?.search ?? "",
-              onChange: (value) => void handleSearchChange?.(value),
-              placeholder: `Search ${title.toLowerCase()}...`,
-            }}
-            filters={
-              <Button
-                type="button"
-                variant={filterExpanded ? "secondary" : "outline"}
-                size="sm"
-                className="font-semibold uppercase tracking-wider"
-                onClick={() => void persistFilterExpanded(!filterExpanded)}
-              >
-                Columns &amp; filters
-              </Button>
-            }
-            activeFilters={
-              filterExpanded
-                ? [
-                    {
-                      label: "Columns & filters",
-                      onRemove: () => void persistFilterExpanded(false),
-                    },
-                  ]
-                : []
-            }
-            onReset={() => {
-              void handleSearchChange?.("");
-              void persistFilterExpanded(false);
-            }}
-          />
-
-          <div className="rounded-lg border border-border bg-card shadow-sm">
-            <div
-              className={cn(
-                "border-border border-b px-4 py-3",
-                !filterExpanded && "hidden",
-              )}
+      <PageShell
+        title={title}
+        description={studioConfig.description}
+        density="compact"
+        actions={
+          hasCreatePermission && createHref ? (
+            <ButtonLink size="sm" render={<Link href={createHref} />}>
+              <Plus className="mr-2 size-4" />
+              {studioConfig.createLabel}
+            </ButtonLink>
+          ) : null
+        }
+      >
+        <FilterBar
+          className="mb-6"
+          search={{
+            value: query?.search ?? "",
+            onChange: (value) => void handleSearchChange?.(value),
+            placeholder: `Search ${title.toLowerCase()}...`,
+          }}
+          filters={
+            <Button
+              type="button"
+              variant={filterExpanded ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => void persistFilterExpanded(!filterExpanded)}
             >
-              <ListControls
-                beforeActions={beforeActions}
-                collectionConfig={collectionConfig}
-                collectionSlug={collectionSlug}
-                disableQueryPresets={
-                  collectionConfig?.enableQueryPresets !== true ||
-                  disableQueryPresets
-                }
-                listMenuItems={listMenuItems}
-                queryPreset={queryPreset}
-                queryPresetPermissions={queryPresetPermissions}
-                renderedFilters={renderedFilters}
-                resolvedFilterOptions={resolvedFilterOptions}
-              />
-            </div>
+              Columns &amp; filters
+            </Button>
+          }
+          activeFilters={
+            filterExpanded
+              ? [
+                  {
+                    label: "Columns & filters",
+                    onRemove: () => void persistFilterExpanded(false),
+                  },
+                ]
+              : []
+          }
+          onReset={() => {
+            void handleSearchChange?.("");
+            void persistFilterExpanded(false);
+          }}
+        />
 
-            <div className="px-2 py-4 sm:px-4">
-              {BeforeList}
-              {BeforeListTable}
-              <TableColumnsProvider
-                collectionSlug={collectionSlug}
-                columnState={columnState}
-              >
-                <SelectionProvider docs={docs} totalDocs={totalDocs}>
-                  <RelationshipProvider>
-                    <NativeCollectionTableBridge InitialTable={InitialTable} />
-                  </RelationshipProvider>
-                  <div className="mt-6 border-border border-t pt-4">
-                    <PageControls collectionConfig={collectionConfig} />
-                  </div>
-                </SelectionProvider>
-              </TableColumnsProvider>
-              {AfterListTable}
-              {AfterList}
-            </div>
+        <div className="rounded-lg border border-border bg-card shadow-sm">
+          <div
+            className={cn(
+              "border-border border-b px-4 py-3",
+              !filterExpanded && "hidden",
+            )}
+          >
+            <ListControls
+              beforeActions={beforeActions}
+              collectionConfig={collectionConfig}
+              collectionSlug={collectionSlug}
+              disableQueryPresets={
+                collectionConfig?.enableQueryPresets !== true ||
+                disableQueryPresets
+              }
+              listMenuItems={listMenuItems}
+              queryPreset={queryPreset}
+              queryPresetPermissions={queryPresetPermissions}
+              renderedFilters={renderedFilters}
+              resolvedFilterOptions={resolvedFilterOptions}
+            />
           </div>
 
-          <p className="mt-6 text-muted-foreground text-xs">
-            Tip: Column visibility and ordering persist via Payload list
-            preferences.{" "}
-            <Link
-              className="font-semibold text-primary underline-offset-4 hover:underline"
-              href={listHref}
+          <div className="px-2 py-4 sm:px-4">
+            {BeforeList}
+            {BeforeListTable}
+            <TableColumnsProvider
+              collectionSlug={collectionSlug}
+              columnState={columnState}
             >
-              Open stock list view
-            </Link>{" "}
-            if you need the default Payload chrome.
-          </p>
-        </PageShell>
-      </div>
+              <SelectionProvider docs={docs} totalDocs={totalDocs}>
+                <RelationshipProvider>
+                  <NativeCollectionTableBridge InitialTable={InitialTable} />
+                </RelationshipProvider>
+                <div className="mt-6 border-border border-t pt-4">
+                  <PageControls collectionConfig={collectionConfig} />
+                </div>
+              </SelectionProvider>
+            </TableColumnsProvider>
+            {AfterListTable}
+            {AfterList}
+          </div>
+        </div>
+
+        <p className="mt-6 text-muted-foreground text-xs">
+          Tip: Column visibility and ordering persist via Payload list
+          preferences.{" "}
+          <Link
+            className="font-semibold text-primary underline-offset-4 hover:underline"
+            href={listHref}
+          >
+            Open stock list view
+          </Link>{" "}
+          if you need the default Payload chrome.
+        </p>
+      </PageShell>
     </StudioLayout>
   );
 }
@@ -302,7 +291,7 @@ function NativeCollectionTableBridge({
 
     if (rows.length === 0) {
       return (
-        <Empty className="border border-border">
+        <Empty>
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <FileSearch className="size-5" />
@@ -317,7 +306,7 @@ function NativeCollectionTableBridge({
     }
 
     return (
-      <div className="payload-table-native">
+      <div>
         <Table columns={columns} data={rows} />
       </div>
     );

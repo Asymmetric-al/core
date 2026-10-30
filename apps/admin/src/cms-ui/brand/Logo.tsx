@@ -8,19 +8,14 @@ export function Logo() {
         {brandConfig.shortName}
       </span>
       <div className="flex flex-col leading-none">
-        <span className="text-xs font-black tracking-[0.22em] uppercase text-foreground">
+        <span className="text-xs font-black tracking-widest uppercase text-foreground">
           {brandConfig.name}
         </span>
         <div className="mt-1 flex items-center gap-1.5">
-          <span className="text-xs font-semibold tracking-[0.18em] uppercase text-muted-foreground">
+          <span className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
             Site Studio
           </span>
-          <Badge
-            variant="secondary"
-            className="h-4 px-1.5 font-semibold uppercase"
-          >
-            CMS
-          </Badge>
+          <Badge variant="secondary">CMS</Badge>
         </div>
       </div>
     </div>

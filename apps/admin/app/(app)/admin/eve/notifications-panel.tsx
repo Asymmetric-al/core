@@ -99,9 +99,11 @@ export function EveNotificationsPanel() {
   return (
     <Card id="eve-notifications">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BellRing aria-hidden="true" className="size-5" />
-          Operator notifications
+        <CardTitle>
+          <span className="flex items-center gap-2">
+            <BellRing aria-hidden="true" className="size-5" />
+            Operator notifications
+          </span>
         </CardTitle>
         <CardDescription>
           Durable email and Discord alerts with platform-owner recipients,

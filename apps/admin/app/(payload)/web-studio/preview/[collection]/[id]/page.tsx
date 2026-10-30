@@ -1,5 +1,5 @@
 import { renderPublicCmsPageContent } from "@asym/lib/cms/public-page-renderer";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
@@ -88,7 +88,7 @@ export default async function WebStudioAuthenticatedPreviewPage({
       <header className="border-border border-b bg-card px-4 py-4 sm:px-6">
         <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <p className="font-semibold text-muted-foreground text-xs uppercase tracking-[0.2em]">
+            <p className="font-semibold text-muted-foreground text-xs uppercase tracking-widest">
               Authenticated Preview
             </p>
             <h1 className="text-2xl font-semibold tracking-tight">
@@ -96,12 +96,16 @@ export default async function WebStudioAuthenticatedPreviewPage({
             </h1>
             <p className="text-muted-foreground text-sm">{label}</p>
           </div>
-          <Link
-            className={buttonVariants({ variant: "outline" })}
-            href={`/web-studio/collections/${collection}/${encodeURIComponent(id)}`}
-          >
-            Back to editor
-          </Link>
+          <ButtonLink
+            variant="outline"
+            render={
+              <Link
+                href={`/web-studio/collections/${collection}/${encodeURIComponent(id)}`}
+              >
+                Back to editor
+              </Link>
+            }
+          />
         </div>
       </header>
 
@@ -202,7 +206,7 @@ function renderHeroBlock(block: PreviewBlock, key: string) {
       ) : null}
       <div className="space-y-4 p-6">
         {readOptionalString(block.eyebrow) ? (
-          <p className="font-semibold text-muted-foreground text-xs uppercase tracking-[0.2em]">
+          <p className="font-semibold text-muted-foreground text-xs uppercase tracking-widest">
             {readOptionalString(block.eyebrow)}
           </p>
         ) : null}
@@ -214,11 +218,7 @@ function renderHeroBlock(block: PreviewBlock, key: string) {
             {readOptionalString(block.subheading)}
           </p>
         ) : null}
-        {href && label ? (
-          <a className={buttonVariants()} href={href}>
-            {label}
-          </a>
-        ) : null}
+        {href && label ? <ButtonLink href={href}>{label}</ButtonLink> : null}
       </div>
     </section>
   );
@@ -242,9 +242,9 @@ function renderCallToActionBlock(block: PreviewBlock, key: string) {
           ) : null}
         </div>
         {href ? (
-          <a className={buttonVariants({ variant: "outline" })} href={href}>
+          <ButtonLink variant="outline" href={href}>
             {label}
-          </a>
+          </ButtonLink>
         ) : null}
       </div>
     </section>
@@ -272,9 +272,9 @@ function renderMediaFeatureBlock(block: PreviewBlock, key: string) {
   return (
     <section
       key={key}
-      className="grid gap-6 rounded-lg border border-border bg-card p-6 md:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] md:items-center"
+      className="flex flex-col gap-6 rounded-lg border border-border bg-card p-6 md:flex-row md:items-center"
     >
-      <div className="space-y-3">
+      <div className="min-w-0 space-y-3 md:flex-1">
         {readOptionalString(block.title) ? (
           <h2 className="text-2xl font-semibold tracking-tight">
             {readOptionalString(block.title)}
@@ -287,8 +287,8 @@ function renderMediaFeatureBlock(block: PreviewBlock, key: string) {
         ) : null}
       </div>
       {image ? (
-        <figure className="space-y-2">
-          <div className="relative aspect-[16/9] overflow-hidden rounded-md bg-muted">
+        <figure className="space-y-2 md:w-96 md:shrink-0">
+          <div className="relative aspect-video overflow-hidden rounded-md bg-muted">
             <Image
               alt={image.alt}
               className="object-cover"

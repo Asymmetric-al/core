@@ -150,7 +150,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "4ceec1bde3be5b2f30e23ada08e45914555e0119a484d7c0bc768ce7433fef6e"
+          "sha256": "d5bad4bdcae335e1145b120f107e173ae8c64647af4313f90389f3352e6885e2"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
@@ -204,7 +204,7 @@
       "proof": [
         {
           "path": "apps/admin/app/mc-shell.tsx",
-          "sha256": "fa28af66230b9e42a683990246ff6cffca627fa459771ce409a0b9a7da038297"
+          "sha256": "fd6f903f16874e64a0646260d710e2f01db1615b1e9ffacb2e1108c9c75f1be2"
         },
         {
           "path": "apps/admin/features/mission-control/components/navigation-search.tsx",
@@ -240,7 +240,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "4ceec1bde3be5b2f30e23ada08e45914555e0119a484d7c0bc768ce7433fef6e"
+          "sha256": "d5bad4bdcae335e1145b120f107e173ae8c64647af4313f90389f3352e6885e2"
         },
         {
           "path": "packages/ui/components/shadcn/select.tsx",
@@ -284,7 +284,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "4ceec1bde3be5b2f30e23ada08e45914555e0119a484d7c0bc768ce7433fef6e"
+          "sha256": "d5bad4bdcae335e1145b120f107e173ae8c64647af4313f90389f3352e6885e2"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
@@ -305,7 +305,7 @@
       "proof": [
         {
           "path": "apps/admin/app/global-error.tsx",
-          "sha256": "1c2d33ad71f478497055b9181638dedb4d31fa9dd2b51c86c6091fa490034d81"
+          "sha256": "15f833267b6db556ccf229dd68029278b8cae2b9b6adfe521d82dfc146cef7be"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -330,7 +330,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx",
-          "sha256": "00c0022f6b11fe6997fa1926a3a0d9801302316f5d0826c3e69499ba7ce397ec"
+          "sha256": "10421283b87133885cf718f7f03a85e841885a76d50e8dc6a06e109cb89e8318"
         },
         {
           "path": "apps/admin/app/(app)/settings/integrations/resend/use-resend-forms.ts",
@@ -386,7 +386,7 @@
       "proof": [
         {
           "path": "apps/admin/app/mc-shell.tsx",
-          "sha256": "fa28af66230b9e42a683990246ff6cffca627fa459771ce409a0b9a7da038297"
+          "sha256": "fd6f903f16874e64a0646260d710e2f01db1615b1e9ffacb2e1108c9c75f1be2"
         },
         {
           "path": "packages/ui/components/shadcn/sidebar.tsx",
@@ -410,7 +410,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/workspace-shell.tsx",
-          "sha256": "f90d09bd3c16aea77f1e83c2ed6cf0875d5686ed28113a9b4e387417e8ac0441"
+          "sha256": "9e9bb41cc01e69e3f0157b3e562086dbf6d0e06d365485bc759757b9577e24e5"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
@@ -434,7 +434,7 @@
         },
         {
           "path": "apps/admin/app/global-not-found.tsx",
-          "sha256": "e604e04291a90cafdea7421a546312fc24486ce55dcd68e73889dbf949f11256"
+          "sha256": "d679734a5764d8826b8ca304d3b5d0b291166ff713f8d95d05be74b9e99c6745"
         },
         {
           "path": "apps/admin/package.json",
@@ -482,7 +482,7 @@
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
-          "sha256": "95b977b2390616f397b00c175d9f6929009957c3092501760866a6dc6f2b46b4"
+          "sha256": "57e3af58c7da48467935e775655a620bc97269b4e26c71ef781a15b0019bda48"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
@@ -548,7 +548,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/page-client.tsx",
-          "sha256": "bdd41318f50e267ef0a25c3d73a0a1081407841c517bb285b988c4b314f46513"
+          "sha256": "291279e4845a590d055af7c92d5c596ef14795812d964e070875b8f96a1911d9"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-governance-confirmation-stability.test.tsx",

@@ -43,7 +43,7 @@ export function StudioTemplateBreadcrumb({
         aria-hidden="true"
         className="hidden size-3 shrink-0 lg:block"
       />
-      <span className="sr-only font-medium text-foreground lg:not-sr-only lg:max-w-[180px] lg:truncate">
+      <span className="sr-only font-medium text-foreground lg:not-sr-only lg:max-w-45 lg:truncate">
         {name}
       </span>
       {hasUnsavedChanges && (
@@ -178,7 +178,7 @@ export function StudioExportedHtmlPreview({
             {copied ? "Copied!" : "Copy"}
           </Button>
         </div>
-        <pre className="bg-invert text-invert-foreground p-4 rounded-xl text-xs overflow-auto max-h-[320px] font-mono leading-relaxed">
+        <pre className="bg-invert text-invert-foreground p-4 rounded-xl text-xs overflow-auto max-h-80 font-mono leading-relaxed">
           {html.slice(0, EXPORT_PREVIEW_LIMIT)}
           {html.length > EXPORT_PREVIEW_LIMIT && (
             <span className="text-invert-foreground/70">

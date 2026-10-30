@@ -32,17 +32,17 @@ export function WorkflowsPanel() {
             href={resolveMissionControlHref(workflow.route)}
             className="group block rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
-            <Card className="h-full overflow-hidden border-border bg-card shadow-sm transition-colors hover:border-ring/30">
+            <Card className="h-full overflow-hidden">
               <CardHeader className="space-y-1.5">
                 <div className="mb-1 flex items-center justify-between">
                   <div className="flex size-9 items-center justify-center rounded-xl border border-border bg-muted">
                     <ArrowRight className="size-4 text-muted-foreground" />
                   </div>
                 </div>
-                <CardTitle className="text-base font-semibold text-foreground">
+                <CardTitle className="text-base font-semibold">
                   {workflow.title}
                 </CardTitle>
-                <CardDescription className="mt-1 text-sm leading-6 text-muted-foreground">
+                <CardDescription className="mt-1 text-sm leading-6">
                   {workflow.description}
                 </CardDescription>
               </CardHeader>

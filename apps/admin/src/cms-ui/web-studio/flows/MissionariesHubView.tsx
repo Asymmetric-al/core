@@ -1,6 +1,6 @@
 "use client";
 
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Empty,
   EmptyDescription,
@@ -68,7 +68,9 @@ export function MissionariesHubView() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Missionary ID</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>
+                  <div className="text-right">Actions</div>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -113,7 +115,7 @@ function MissionariesHubTableRows({
     return (
       <TableRow>
         <TableCell colSpan={3}>
-          <Empty className="border-0 py-10">
+          <Empty className="py-10">
             <EmptyHeader>
               <EmptyMedia variant="icon">
                 <UserRound className="size-5" />
@@ -138,17 +140,27 @@ function MissionariesHubTableRows({
 
     return (
       <TableRow key={missionary.id}>
-        <TableCell className="font-medium">{label}</TableCell>
-        <TableCell className="font-mono text-muted-foreground text-xs">
-          {missionary.id}
+        <TableCell>
+          <span className="font-medium">{label}</span>
         </TableCell>
-        <TableCell className="text-right">
-          <Link
-            className={buttonVariants({ size: "sm" })}
-            href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(missionary.id)}`}
-          >
-            Create giving page
-          </Link>
+        <TableCell>
+          <span className="font-mono text-muted-foreground text-xs">
+            {missionary.id}
+          </span>
+        </TableCell>
+        <TableCell>
+          <div className="flex justify-end">
+            <ButtonLink
+              size="sm"
+              render={
+                <Link
+                  href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(missionary.id)}`}
+                />
+              }
+            >
+              Create giving page
+            </ButtonLink>
+          </div>
         </TableCell>
       </TableRow>
     );

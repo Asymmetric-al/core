@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -17,7 +17,6 @@ import {
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { cn } from "@asym/ui/lib/utils";
 import { useConfig } from "@payloadcms/ui";
 import { useQuery } from "@tanstack/react-query";
 import { FileSearch } from "lucide-react";
@@ -128,17 +127,10 @@ function TemplateGalleryViewContent() {
           </p>
           {pageTypeFilter ? (
             <p className="mt-2 text-muted-foreground text-xs">
-              Filtered to{" "}
-              <Badge variant="secondary" className="">
-                {pageTypeFilter}
-              </Badge>
-              .{" "}
+              Filtered to <Badge variant="secondary">{pageTypeFilter}</Badge>.{" "}
               <Link
                 href="/web-studio/templates"
-                className={cn(
-                  buttonVariants({ variant: "link" }),
-                  "h-auto p-0 text-xs",
-                )}
+                className="font-medium text-primary underline-offset-4 hover:underline"
               >
                 Clear filter
               </Link>
@@ -155,7 +147,7 @@ function TemplateGalleryViewContent() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {templatesIsPending
             ? Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="border-border">
+                <Card key={i}>
                   <CardHeader>
                     <Skeleton className="h-5 w-2/3" />
                     <Skeleton className="mt-2 h-4 w-full" />
@@ -173,16 +165,14 @@ function TemplateGalleryViewContent() {
                   missionaryContext,
                 );
                 return (
-                  <Card key={id} className="border-border">
+                  <Card key={id}>
                     <CardHeader>
                       <div className="flex flex-wrap items-center gap-2">
                         <CardTitle className="text-base">
                           {template.name ?? id}
                         </CardTitle>
                         {template.pageType ? (
-                          <Badge variant="outline" className="uppercase">
-                            {template.pageType}
-                          </Badge>
+                          <Badge variant="outline">{template.pageType}</Badge>
                         ) : null}
                       </div>
                       {template.description ? (
@@ -200,15 +190,13 @@ function TemplateGalleryViewContent() {
                           </span>
                         </p>
                       ) : null}
-                      <Link
-                        href={href}
-                        className={cn(
-                          buttonVariants({ size: "sm" }),
-                          "w-full font-semibold uppercase",
-                        )}
+                      <ButtonLink
+                        size="sm"
+                        className="w-full"
+                        render={<Link href={href} />}
                       >
                         Start from template
-                      </Link>
+                      </ButtonLink>
                     </CardContent>
                   </Card>
                 );
@@ -216,7 +204,7 @@ function TemplateGalleryViewContent() {
         </div>
 
         {!templatesIsPending && filtered.length === 0 ? (
-          <Empty className="mt-6 border border-border">
+          <Empty className="mt-6">
             <EmptyHeader>
               <EmptyMedia variant="icon">
                 <FileSearch className="size-5" />

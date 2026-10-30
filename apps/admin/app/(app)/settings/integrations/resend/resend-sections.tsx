@@ -6,7 +6,7 @@ import {
   AlertTitle,
 } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -29,7 +29,12 @@ import {
   FieldError,
   FieldLabel,
 } from "@asym/ui/components/shadcn/field";
-import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import {
   AlertTriangle,
   ArrowRight,
@@ -180,7 +185,7 @@ export function ResendConnectedView({
 
   return (
     <div className="space-y-6">
-      <Card className="border-success/25">
+      <Card>
         <CardHeader className="pb-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -231,7 +236,7 @@ export function ResendConnectedView({
               </div>
             </div>
           ) : (
-            <Alert className="border-border bg-card">
+            <Alert>
               <Info className="size-4 text-muted-foreground" />
               <AlertTitle>Reconnect Required</AlertTitle>
               <AlertDescription>
@@ -283,24 +288,21 @@ export function ResendConnectedView({
               }
             >
               <AlertTitle>{warning.code}</AlertTitle>
-              <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-                <span>{warning.message}</span>
-                {warning.helpUrl ? (
-                  <Button
-                    className="h-auto p-0 text-inherit"
-                    onClick={() =>
-                      window.open(
-                        warning.helpUrl,
-                        "_blank",
-                        "noopener,noreferrer",
-                      )
-                    }
-                    size="sm"
-                    variant="link"
-                  >
-                    Learn more <ArrowRight className="ml-1 size-3" />
-                  </Button>
-                ) : null}
+              <AlertDescription>
+                <div className="flex w-full flex-wrap items-center justify-between gap-3">
+                  <span>{warning.message}</span>
+                  {warning.helpUrl ? (
+                    <ButtonLink
+                      href={warning.helpUrl}
+                      rel="noopener noreferrer"
+                      size="sm"
+                      target="_blank"
+                      variant="link"
+                    >
+                      Learn more <ArrowRight className="ml-1 size-3" />
+                    </ButtonLink>
+                  ) : null}
+                </div>
               </AlertDescription>
             </Alert>
           ))}
@@ -311,9 +313,11 @@ export function ResendConnectedView({
       connection.domainAuthentication.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Globe className="size-4 text-info" />
-              Domain Authentication
+            <CardTitle className="text-base">
+              <span className="flex items-center gap-2">
+                <Globe className="size-4 text-info" />
+                Domain Authentication
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -369,9 +373,11 @@ export function ResendDisconnectedView({
     >
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="size-5 text-muted-foreground" />
-            Connect Resend
+          <CardTitle>
+            <span className="flex items-center gap-2">
+              <Key className="size-5 text-muted-foreground" />
+              Connect Resend
+            </span>
           </CardTitle>
           <CardDescription>
             Enter your Resend API key and sender defaults to get started.
@@ -410,9 +416,8 @@ export function ResendDisconnectedView({
                     Resend API Key <span className="text-destructive">*</span>
                   </FieldLabel>
                   <FieldContent>
-                    <div className="relative">
-                      <Input
-                        className="pr-10 font-mono text-sm"
+                    <InputGroup>
+                      <InputGroupInput
                         id={resendCredentialFieldId}
                         aria-invalid={errors.length > 0}
                         aria-describedby={
@@ -428,23 +433,22 @@ export function ResendDisconnectedView({
                         type={showApiKey ? "text" : "password"}
                         value={field.state.value}
                       />
-                      <Button
-                        aria-label={
-                          showApiKey ? "Hide API key" : "Show API key"
-                        }
-                        className="absolute right-0 top-0 h-full hover:bg-transparent"
-                        onClick={onToggleApiKeyVisibility}
-                        size="sm"
-                        type="button"
-                        variant="ghost"
-                      >
-                        {showApiKey ? (
-                          <EyeOff className="size-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="size-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
+                      <InputGroupAddon align="inline-end">
+                        <InputGroupButton
+                          aria-label={
+                            showApiKey ? "Hide API key" : "Show API key"
+                          }
+                          onClick={onToggleApiKeyVisibility}
+                          size="icon-xs"
+                        >
+                          {showApiKey ? (
+                            <EyeOff className="size-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="size-4 text-muted-foreground" />
+                          )}
+                        </InputGroupButton>
+                      </InputGroupAddon>
+                    </InputGroup>
                     <FieldError
                       id={`${resendCredentialFieldId}-error`}
                       errors={errors}
@@ -519,7 +523,7 @@ export function ResendDisconnectedView({
             </Alert>
           ))}
         </CardContent>
-        <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t bg-muted/50 pt-6">
+        <CardFooter className="flex flex-wrap items-center justify-between gap-3">
           <Button
             onClick={() =>
               window.open(
@@ -541,26 +545,28 @@ export function ResendDisconnectedView({
             })}
           >
             {({ canSubmit, isSubmitting }) => (
-              <Button
-                aria-labelledby={`${pendingActionLabelId}-8`}
-                focusableWhenDisabled={isSubmitting}
-                className="min-w-35"
-                disabled={!canSubmit || isSubmitting}
-                onClick={handleConnectSubmit}
-                type="button"
-              >
-                <span id={`${pendingActionLabelId}-8`} className="sr-only">
-                  {isSubmitting ? "Connecting…" : "Connect Resend"}
-                </span>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                    Connecting…
-                  </>
-                ) : (
-                  "Connect Resend"
-                )}
-              </Button>
+              <div className="min-w-35">
+                <Button
+                  aria-labelledby={`${pendingActionLabelId}-8`}
+                  focusableWhenDisabled={isSubmitting}
+                  className="w-full"
+                  disabled={!canSubmit || isSubmitting}
+                  onClick={handleConnectSubmit}
+                  type="button"
+                >
+                  <span id={`${pendingActionLabelId}-8`} className="sr-only">
+                    {isSubmitting ? "Connecting…" : "Connect Resend"}
+                  </span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                      Connecting…
+                    </>
+                  ) : (
+                    "Connect Resend"
+                  )}
+                </Button>
+              </div>
             )}
           </form.Subscribe>
         </CardFooter>
@@ -595,9 +601,11 @@ export function ResendTestDialog({
           }}
         >
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Send className="size-5 text-info" />
-              Send Test Email
+            <DialogTitle>
+              <span className="flex items-center gap-2">
+                <Send className="size-5 text-info" />
+                Send Test Email
+              </span>
             </DialogTitle>
             <DialogDescription>
               Send a test email to confirm your Resend configuration is working.

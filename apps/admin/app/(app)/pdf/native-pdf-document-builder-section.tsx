@@ -27,8 +27,8 @@ export function NativePdfDocumentBuilderSection({
   onPreview: () => void;
 }) {
   return (
-    <div className="absolute inset-0 grid min-h-0 grid-cols-1 grid-rows-2 bg-background lg:grid-rows-1 lg:grid-cols-[minmax(360px,0.92fr)_minmax(420px,1.08fr)]">
-      <section className="flex min-h-0 flex-col border-r bg-background">
+    <div className="absolute inset-0 grid min-h-0 grid-cols-1 grid-rows-2 bg-background lg:grid-rows-1 lg:grid-cols-11">
+      <section className="flex min-h-0 flex-col border-r bg-background lg:col-span-5">
         <div className="flex h-12 shrink-0 items-center justify-between border-b px-3">
           <div className="flex items-center gap-2 text-sm font-medium">
             <FileCode className="size-4 text-muted-foreground" />
@@ -50,7 +50,7 @@ export function NativePdfDocumentBuilderSection({
         </div>
       </section>
 
-      <section className="flex min-h-0 flex-col bg-muted/30">
+      <section className="flex min-h-0 flex-col bg-muted/30 lg:col-span-6">
         <div className="flex h-12 shrink-0 items-center justify-between border-b bg-background px-3">
           <div className="flex items-center gap-2 text-sm font-medium">
             <Monitor className="size-4 text-muted-foreground" />
@@ -63,14 +63,14 @@ export function NativePdfDocumentBuilderSection({
             {preview.status}
           </div>
         </div>
-        <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto]">
+        <div className="flex min-h-0 flex-1 flex-col">
           <iframe
             title="Native PDF authoring preview"
             // The print document is static markup plus inline CSS (no
             // scripts), so the same sandbox as the email preview applies.
             sandbox="allow-same-origin"
             srcDoc={preview.html}
-            className="h-full w-full bg-card"
+            className="min-h-0 w-full flex-1 bg-card"
           />
           <div className="max-h-40 overflow-y-auto border-t bg-background p-3">
             {preview.error ? (

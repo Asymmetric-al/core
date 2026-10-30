@@ -202,7 +202,7 @@ const DonorsChart = dynamic<{ data: DonorsByFundPoint[] }>(
 export function ReportsCharts({ donors, giving, isEmpty }: ReportsChartsProps) {
   return (
     <div className="grid gap-4 text-left md:grid-cols-2 lg:grid-cols-7">
-      <Card className="col-span-4 rounded-2xl border-border shadow-sm">
+      <Card className="col-span-4">
         <CardHeader>
           <CardTitle className="text-base font-semibold">
             Giving by Fund
@@ -220,7 +220,7 @@ export function ReportsCharts({ donors, giving, isEmpty }: ReportsChartsProps) {
         </CardContent>
       </Card>
 
-      <Card className="col-span-3 rounded-2xl border-border shadow-sm">
+      <Card className="col-span-3">
         <CardHeader>
           <CardTitle className="text-base font-semibold">
             Donors by Fund
