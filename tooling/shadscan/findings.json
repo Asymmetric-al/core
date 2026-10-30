@@ -362,7 +362,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
-          "sha256": "931a82d19ac42540044c2a306d087a8a130c21ace1cc8238063b05f94df55cda"
+          "sha256": "e29292c8dcf84ce9006bd3351c592aeb18e0a879fc23567bbbc189888bf0024c"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",

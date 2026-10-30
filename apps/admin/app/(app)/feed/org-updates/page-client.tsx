@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@asym/ui/components/shadcn/alert-dialog";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import {
   DropdownMenu,
@@ -27,7 +27,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { Label } from "@asym/ui/components/shadcn/label";
 import {
   RadioGroup,
   RadioGroupItem,
@@ -218,151 +217,155 @@ function FeedSettingsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md p-0 flex flex-col">
-        <SheetHeader className="p-6 pb-4 border-b">
-          <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-muted flex items-center justify-center">
-              <Settings className="size-5 text-muted-foreground" />
-            </div>
-            <div>
-              <SheetTitle className="text-base font-semibold">
-                Feed Settings
-              </SheetTitle>
-              <SheetDescription className="text-sm">
-                Visibility and notification defaults
-              </SheetDescription>
-            </div>
-          </div>
-        </SheetHeader>
-
-        <ScrollArea className="flex-1">
-          <div className="p-6 space-y-8">
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-foreground">
-                  Feed Visibility
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Who sees organization updates by default
-                </p>
+      <SheetContent className="w-full sm:max-w-md">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <SheetHeader className="p-6 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-xl bg-muted flex items-center justify-center">
+                <Settings className="size-5 text-muted-foreground" />
               </div>
+              <div>
+                <SheetTitle className="text-base font-semibold">
+                  Feed Settings
+                </SheetTitle>
+                <SheetDescription className="text-sm">
+                  Visibility and notification defaults
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+          <Separator />
 
-              <RadioGroup
-                aria-label="Feed Visibility"
-                value={visibility}
-                onValueChange={(val) => setVisibility(val as OrgPostVisibility)}
-                className="space-y-2"
-              >
-                <label
-                  htmlFor="all_donors"
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[color,background-color,border-color,box-shadow,transform,opacity]",
-                    visibility === "all_donors"
-                      ? "border-foreground bg-muted/50"
-                      : "border-border hover:bg-muted/30",
-                  )}
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="p-6 space-y-8">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-foreground">
+                    Feed Visibility
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Who sees organization updates by default
+                  </p>
+                </div>
+
+                <RadioGroup
+                  aria-label="Feed Visibility"
+                  value={visibility}
+                  onValueChange={(val) =>
+                    setVisibility(val as OrgPostVisibility)
+                  }
                 >
-                  <RadioGroupItem value="all_donors" id="all_donors" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="all_donors"
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
+                      visibility === "all_donors"
+                        ? "border-foreground bg-muted/50"
+                        : "border-border hover:bg-muted/30",
+                    )}
+                  >
+                    <RadioGroupItem value="all_donors" id="all_donors" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-foreground">
+                          All Donors
+                        </span>
+                        <Badge variant="secondary">Default</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Anyone who has donated sees org posts
+                      </p>
+                    </div>
+                  </label>
+
+                  <label
+                    htmlFor="followers_only"
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
+                      visibility === "followers_only"
+                        ? "border-foreground bg-muted/50"
+                        : "border-border hover:bg-muted/30",
+                    )}
+                  >
+                    <RadioGroupItem
+                      value="followers_only"
+                      id="followers_only"
+                    />
+                    <div className="flex-1 min-w-0">
                       <span className="text-sm font-medium text-foreground">
-                        All Donors
+                        Followers Only
                       </span>
-                      <Badge
-                        variant="secondary"
-                        className="h-4 px-1.5 font-semibold"
-                      >
-                        Default
-                      </Badge>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Only donors who follow the org
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Anyone who has donated sees org posts
-                    </p>
-                  </div>
-                </label>
-
-                <label
-                  htmlFor="followers_only"
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[color,background-color,border-color,box-shadow,transform,opacity]",
-                    visibility === "followers_only"
-                      ? "border-foreground bg-muted/50"
-                      : "border-border hover:bg-muted/30",
-                  )}
-                >
-                  <RadioGroupItem value="followers_only" id="followers_only" />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium text-foreground">
-                      Followers Only
-                    </span>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Only donors who follow the org
-                    </p>
-                  </div>
-                </label>
-              </RadioGroup>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-foreground">
-                  Notification Defaults
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Default settings for new donors
-                </p>
+                  </label>
+                </RadioGroup>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-xl border">
-                  <div className="flex items-center gap-3">
-                    <div className="size-8 rounded-lg bg-muted flex items-center justify-center">
-                      <Bell className="size-4 text-muted-foreground" />
+              <Separator />
+
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-foreground">
+                    Notification Defaults
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Default settings for new donors
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-xl border">
+                    <div className="flex items-center gap-3">
+                      <div className="size-8 rounded-lg bg-muted flex items-center justify-center">
+                        <Bell className="size-4 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          Email for Org Posts
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Default: Off
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Email for Org Posts
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Default: Off
-                      </p>
-                    </div>
+                    <Switch
+                      aria-label="Email for Org Posts"
+                      checked={emailOrgPosts}
+                      onCheckedChange={setEmailOrgPosts}
+                    />
                   </div>
-                  <Switch
-                    aria-label="Email for Org Posts"
-                    checked={emailOrgPosts}
-                    onCheckedChange={setEmailOrgPosts}
-                  />
+                </div>
+
+                <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Donors can change these settings individually. Missionary
+                    notification preferences are separate and independent.
+                  </p>
                 </div>
               </div>
-
-              <div className="p-3 rounded-xl bg-muted/50 border border-border">
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Donors can change these settings individually. Missionary
-                  notification preferences are separate and independent.
-                </p>
-              </div>
             </div>
-          </div>
-        </ScrollArea>
+          </ScrollArea>
 
-        <SheetFooter className="p-4 border-t">
-          <Button
-            focusableWhenDisabled={isSaving}
-            onClick={handleSave}
-            disabled={isSaving}
-            className="w-full h-10 rounded-xl font-semibold"
-          >
-            {isSaving ? (
-              <Loader2 className="size-4 animate-spin mr-2" />
-            ) : (
-              <Check className="size-4 mr-2" />
-            )}
-            Save Settings
-          </Button>
-        </SheetFooter>
+          <Separator />
+          <SheetFooter className="p-4">
+            <Button
+              focusableWhenDisabled={isSaving}
+              onClick={handleSave}
+              disabled={isSaving}
+              size="lg"
+              className="w-full"
+            >
+              {isSaving ? (
+                <Loader2 className="size-4 animate-spin mr-2" />
+              ) : (
+                <Check className="size-4 mr-2" />
+              )}
+              Save Settings
+            </Button>
+          </SheetFooter>
+        </div>
       </SheetContent>
     </Sheet>
   );
@@ -392,7 +395,7 @@ function PostCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border shadow-sm hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 rounded-2xl sm:rounded-3xl bg-card"
+        className="overflow-hidden border shadow-sm hover:shadow-lg transition-shadow duration-500 rounded-2xl sm:rounded-3xl bg-card"
       >
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between gap-y-0">
           <div className="flex gap-3 sm:gap-4">
@@ -407,17 +410,9 @@ function PostCard({
                 <h3 className="font-semibold text-foreground text-base sm:text-lg tracking-tight">
                   {brandConfig.name}
                 </h3>
-                <Badge
-                  variant="secondary"
-                  className="font-semibold uppercase tracking-wider"
-                >
-                  {post.post_type}
-                </Badge>
+                <Badge variant="secondary">{post.post_type}</Badge>
                 {post.isPinned && (
-                  <Badge
-                    variant="outline"
-                    className="font-semibold uppercase tracking-wider"
-                  >
+                  <Badge variant="outline">
                     <Pin className="size-2.5" /> Pinned
                   </Badge>
                 )}
@@ -435,7 +430,7 @@ function PostCard({
                   ) : (
                     <Lock className="size-3" />
                   )}
-                  <span className="hidden xs:inline">{post.visibility}</span>
+                  <span className="hidden sm:inline">{post.visibility}</span>
                 </span>
               </div>
             </div>
@@ -445,43 +440,27 @@ function PostCard({
               <DropdownMenuTrigger
                 aria-label="Open actions"
                 render={
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-colors"
-                  >
+                  <Button variant="ghost" size="icon">
                     <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
                   </Button>
                 }
               />
             </motion.div>
-            <DropdownMenuContent
-              align="end"
-              className="rounded-xl border shadow-lg p-2 min-w-40"
-            >
-              <DropdownMenuItem
-                onClick={onTogglePin}
-                className="font-medium text-xs rounded-lg py-2.5 cursor-pointer gap-2.5"
-              >
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onTogglePin}>
                 <Pin className="size-3.5 text-muted-foreground" />{" "}
                 {post.isPinned ? "Unpin" : "Pin to Top"}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={onEdit}
-                className="font-medium text-xs rounded-lg py-2.5 cursor-pointer gap-2.5"
-              >
+              <DropdownMenuItem onClick={onEdit}>
                 <Settings className="size-3.5 text-muted-foreground" /> Edit
                 Post
               </DropdownMenuItem>
-              <DropdownMenuItem className="font-medium text-xs rounded-lg py-2.5 cursor-pointer gap-2.5">
+              <DropdownMenuItem>
                 <ExternalLink className="size-3.5 text-muted-foreground" /> View
                 Public
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={onDelete}
-                className="font-medium text-xs rounded-lg py-2.5 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer gap-2.5"
-              >
+              <DropdownMenuItem onClick={onDelete} variant="destructive">
                 <Trash2 className="size-3.5" /> Delete Post
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -497,8 +476,8 @@ function PostCard({
           >
             <PostContent
               value={post.content}
-              richTextClassName="text-foreground/80 leading-relaxed"
-              htmlClassName="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed prose-headings:font-semibold prose-headings:text-foreground prose-headings:tracking-tight prose-strong:font-semibold prose-strong:text-foreground prose-a:text-primary prose-a:font-semibold prose-a:no-underline hover:prose-a:underline"
+              richTextClassName="leading-relaxed"
+              htmlClassName="prose prose-sm sm:prose-base max-w-none leading-relaxed prose-headings:font-semibold prose-headings:tracking-tight prose-strong:font-semibold prose-a:font-semibold prose-a:no-underline hover:prose-a:underline"
             />
             {post.media && post.media.length > 0 && (
               <motion.div
@@ -564,25 +543,20 @@ function DraftCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6"
+        className="overflow-hidden border hover:shadow-lg transition-shadow duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6"
       >
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6">
           <div className="flex-1 min-w-0 space-y-3">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <Badge
-                variant="secondary"
-                className="font-semibold uppercase tracking-wider"
-              >
-                Draft • {draft.post_type}
-              </Badge>
+              <Badge variant="secondary">Draft • {draft.post_type}</Badge>
               <span className="text-xs text-muted-foreground font-medium">
                 Saved <TimeAgo date={draft.created_at} />
               </span>
             </div>
             <PostContent
               value={draft.content}
-              richTextClassName="line-clamp-2 opacity-60 text-foreground/80 text-sm"
-              htmlClassName="prose prose-sm max-w-none line-clamp-2 opacity-60 text-foreground"
+              richTextClassName="line-clamp-2 text-sm"
+              htmlClassName="prose prose-sm max-w-none line-clamp-2"
             />
           </div>
           <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
@@ -591,10 +565,7 @@ function DraftCard({
               whileTap={{ scale: 0.98 }}
               className="flex-1 sm:flex-none"
             >
-              <Button
-                onClick={onEdit}
-                className="w-full sm:h-10 sm:px-6 uppercase tracking-wider rounded-xl font-semibold"
-              >
+              <Button onClick={onEdit} className="w-full">
                 <ExternalLink className="size-3.5 mr-2" />
                 <span className="hidden sm:inline">Edit & Publish</span>
                 <span className="sm:hidden">Edit</span>
@@ -605,12 +576,8 @@ function DraftCard({
               whileTap={{ scale: 0.98 }}
               className="flex-1 sm:flex-none"
             >
-              <Button
-                variant="ghost"
-                onClick={onDelete}
-                className="w-full sm:h-10 text-destructive hover:bg-destructive/10 font-semibold uppercase tracking-wider rounded-xl"
-              >
-                <Trash2 className="size-3.5 mr-2" />
+              <Button variant="ghost" onClick={onDelete} className="w-full">
+                <Trash2 className="size-3.5 mr-2 text-destructive" />
                 Delete
               </Button>
             </motion.div>
@@ -759,12 +726,7 @@ export function ComposeCardTypeSelector({
         ))}
       </ToggleGroup>
       {editingPost && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onCancelEdit}
-          className="text-destructive"
-        >
+        <Button variant="ghost" size="sm" onClick={onCancelEdit}>
           Cancel Edit
         </Button>
       )}
@@ -805,7 +767,7 @@ export function ComposeCardActions({
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
+            className="flex gap-2 sm:gap-3 overflow-x-auto pb-2"
           >
             {selectedMedia.map((item) => (
               <motion.div
@@ -881,26 +843,14 @@ export function ComposeCardActions({
               }
             />
           </motion.div>
-          <DropdownMenuContent
-            align="start"
-            className="rounded-xl border shadow-lg p-1.5 min-w-40"
-          >
-            <DropdownMenuItem
-              onClick={() => onSetVisibility("public")}
-              className="font-medium text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-            >
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem onClick={() => onSetVisibility("public")}>
               <Globe className="size-3.5 text-muted-foreground" /> Public
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onSetVisibility("partners")}
-              className="font-medium text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-            >
+            <DropdownMenuItem onClick={() => onSetVisibility("partners")}>
               <Users className="size-3.5 text-muted-foreground" /> Partners Only
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onSetVisibility("private")}
-              className="font-medium text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-            >
+            <DropdownMenuItem onClick={() => onSetVisibility("private")}>
               <Lock className="size-3.5 text-muted-foreground" /> Private
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -916,7 +866,6 @@ export function ComposeCardActions({
             size="sm"
             disabled={isDisabled}
             focusableWhenDisabled={pendingAction === "draft"}
-            className="px-2.5 sm:px-4 uppercase tracking-wider rounded-lg font-semibold"
           >
             {isPublishing ? (
               <Loader2 className="size-3 animate-spin" />
@@ -934,7 +883,6 @@ export function ComposeCardActions({
             size="sm"
             disabled={isDisabled}
             focusableWhenDisabled={pendingAction === "publish"}
-            className="sm:px-5 uppercase tracking-wider rounded-lg shadow-sm font-semibold"
           >
             {isPublishing ? (
               <Loader2 className="size-3 animate-spin" />
@@ -1064,7 +1012,7 @@ function ComposeCard({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex-1 min-w-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+            className="flex-1 min-w-0"
           >
             <RichTextEditor
               aria-label="Organization post content"
@@ -1262,17 +1210,9 @@ function OrgUpdatesTabsSection({
         transition={{ delay: 0.35 }}
         className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0"
       >
-        <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border backdrop-blur-sm">
-          <TabsTrigger
-            value="published"
-            className="rounded-lg px-4 sm:px-6 py-2 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
-          >
-            Published
-          </TabsTrigger>
-          <TabsTrigger
-            value="draft"
-            className="rounded-lg px-4 sm:px-6 py-2 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow] flex items-center gap-2"
-          >
+        <TabsList>
+          <TabsTrigger value="published">Published</TabsTrigger>
+          <TabsTrigger value="draft">
             Drafts
             <AnimatePresence>
               {drafts.length > 0 && (
@@ -1282,9 +1222,7 @@ function OrgUpdatesTabsSection({
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={springTransition}
                 >
-                  <Badge className="border-none h-4 px-1 font-semibold">
-                    {drafts.length}
-                  </Badge>
+                  <Badge>{drafts.length}</Badge>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1464,13 +1402,15 @@ export default function OrgUpdatesPage() {
         density="compact"
         actions={
           <>
-            <Link
-              href="/feed"
-              className={buttonVariants({ variant: "outline" })}
-            >
-              <Eye className="mr-2 size-4" />
-              Moderation
-            </Link>
+            <ButtonLink
+              variant="outline"
+              render={
+                <Link href="/feed">
+                  <Eye className="mr-2 size-4" />
+                  Moderation
+                </Link>
+              }
+            />
             <Button
               variant="outline"
               onClick={() =>
@@ -1482,27 +1422,30 @@ export default function OrgUpdatesPage() {
             </Button>
           </>
         }
-        contentClassName="space-y-6 sm:space-y-8 lg:space-y-10"
       >
-        <ComposeCard
-          onSave={handleSavePost}
-          editingPost={editingPost}
-          onCancelEdit={() =>
-            dispatchUi({ type: "set_editing_post", value: null })
-          }
-        />
+        <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+          <ComposeCard
+            onSave={handleSavePost}
+            editingPost={editingPost}
+            onCancelEdit={() =>
+              dispatchUi({ type: "set_editing_post", value: null })
+            }
+          />
 
-        <OrgUpdatesTabsSection
-          activeTab={activeTab}
-          drafts={drafts}
-          posts={posts}
-          isLoading={isLoading}
-          lastSynced={lastSynced}
-          onTabChange={(value) => dispatchUi({ type: "set_active_tab", value })}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onTogglePin={handleTogglePin}
-        />
+          <OrgUpdatesTabsSection
+            activeTab={activeTab}
+            drafts={drafts}
+            posts={posts}
+            isLoading={isLoading}
+            lastSynced={lastSynced}
+            onTabChange={(value) =>
+              dispatchUi({ type: "set_active_tab", value })
+            }
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onTogglePin={handleTogglePin}
+          />
+        </div>
       </PageShell>
 
       <FeedSettingsSheet
@@ -1520,7 +1463,7 @@ export default function OrgUpdatesPage() {
           }
         }}
       >
-        <AlertDialogContent className="rounded-2xl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Update?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -1529,11 +1472,8 @@ export default function OrgUpdatesPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive hover:bg-destructive/90 rounded-xl"
-            >
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} variant="destructive">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

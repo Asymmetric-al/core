@@ -973,18 +973,21 @@
         "shadcn/no-restyle": 12
       },
       "initialSourceSha256": "91ef1b107b40eb03424a804be9d0f610ecd3376a8680f3464c91e03926f5decc",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "94a5fa83a020697712be31e933fc28fb7a377825c4eb997560c5a81540ed66cf",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-feed-2026-10-30",
+          "verifiedSourceSha256": "ec5c93d4790ec96aaca1946dc2a19cb036f6562b00ef527180530ea1ec239179",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-restyle": 7
-      },
-      "latestSourceSha256": "94a5fa83a020697712be31e933fc28fb7a377825c4eb997560c5a81540ed66cf",
+      "currentFindings": {},
+      "latestSourceSha256": "ec5c93d4790ec96aaca1946dc2a19cb036f6562b00ef527180530ea1ec239179",
       "includedInLatestScan": true
     },
     {
@@ -996,21 +999,21 @@
         "shadcn/no-unknown-classes": 3
       },
       "initialSourceSha256": "3f3f44ac92dbdfdce10454fa247617d8188536dba35c1473ae73d95d63525dda",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "a7fde510d21bfe8998f5ac9d53065c927e9f7b66b49a8ee469f416af13a8ada9",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-feed-2026-10-30",
+          "verifiedSourceSha256": "e29292c8dcf84ce9006bd3351c592aeb18e0a879fc23567bbbc189888bf0024c",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 48,
-        "shadcn/no-raw-colors": 24,
-        "shadcn/no-restyle": 308,
-        "shadcn/no-unknown-classes": 3
-      },
-      "latestSourceSha256": "a7fde510d21bfe8998f5ac9d53065c927e9f7b66b49a8ee469f416af13a8ada9",
+      "currentFindings": {},
+      "latestSourceSha256": "e29292c8dcf84ce9006bd3351c592aeb18e0a879fc23567bbbc189888bf0024c",
       "includedInLatestScan": true
     },
     {
@@ -1022,7 +1025,7 @@
         "shadcn/no-unknown-classes": 2
       },
       "initialSourceSha256": "702014b67ac13599a91366a4607d92843b0c8dc4dc8e40052219748d8f46904b",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -1038,15 +1041,15 @@
           "batch": "undefined-scrollbar-classes-2026-09-23",
           "verifiedSourceSha256": "6b96e8caec28e9c82580ec9b63498a206d8f86e77d461e8b1a4ddaf36e5ea395",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-feed-2026-10-30",
+          "verifiedSourceSha256": "00521492643bc29bfdaa0d4f80615fae547277b02f951225b6a8ce356c4b473c",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 32,
-        "shadcn/no-raw-colors": 4,
-        "shadcn/no-restyle": 233,
-        "shadcn/no-unknown-classes": 1
-      },
-      "latestSourceSha256": "6b96e8caec28e9c82580ec9b63498a206d8f86e77d461e8b1a4ddaf36e5ea395",
+      "currentFindings": {},
+      "latestSourceSha256": "00521492643bc29bfdaa0d4f80615fae547277b02f951225b6a8ce356c4b473c",
       "includedInLatestScan": true
     },
     {
@@ -9655,6 +9658,43 @@
         "Axe incompletes retained; no full accessibility conformance claim. Console-error collection covers16 core contexts; all final focused contexts assert page errors and external requests.",
         "Narrow table uses a local horizontal scroller; all columns are not claimed to fit simultaneously at320px.",
         "Normal lint earlier returned1 solely for obsolete suppressions; root owns full baseline prune and combined gates. No suppression/policy/shared primitive changes by this batch."
+      ]
+    },
+    "admin-feed-2026-10-30": {
+      "summary": "Feed retires 473 findings in 3 files; 186 before/after route step runs at 1280/768/390 show no page errors, overflow or new axe violations, and fix a pre-existing unclickable sort control.",
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/feed/buttonlink__buttonlink-names.results.json",
+          "sha256": "807bd209ae3559e2da2fb9b422bf93d819828b278cfbf17ecf482d8c330d5dbf"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/feed/feed__feed-moderation.results.json",
+          "sha256": "586fc82374fa632415e902ff1b43ce0a40d44903712efee5adc120d7eb4d7487"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/feed/feed__feed-org-updates.results.json",
+          "sha256": "8139ed68d85df9a549c2d9ead5bff18d5fc0bd0a31b237d705adc11333ed0af9"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/feed/harness.mjs",
+          "sha256": "76d711b167cf697db8eb9b4770badea912cc7f42b126020acf006e920c2b77cc"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/feed/scenario__buttonlink-names.mjs",
+          "sha256": "560886901dc3ece798d3d4b1544df8a1574d2aade6ecd7c25715c2f92cec8281"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/feed/scenario__feed-moderation.mjs",
+          "sha256": "c29c0138ee8ec201fd15ef1c68dac213f03dd4d18c854fc981452e760fde23f2"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/feed/scenario__feed-org-updates.mjs",
+          "sha256": "6c8bbdd95e24164bc7202271fbd19a8fe107c9c3e34fd934b2bafb8b1b0762ab"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/feed/screenshots-manifest.json",
+          "sha256": "9d040a79011c624a877fbcf697848d103b01f48e462c690ee3cb63355c3dcfe8"
+        }
       ]
     }
   },
