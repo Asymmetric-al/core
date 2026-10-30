@@ -563,3 +563,98 @@ was corrected by moving its existing import; focused ESLint with
 Exact logs are
 `.tmp/shadcn-modernization-2026-09-22/preflight-surface-cleanup-preflight-final.log`.
 This remains local evidence; current published-head CI is a separate gate.
+
+## Admin application cleanup (task 5.4) — 2026-10-30
+
+At base `629cb71dc`, `apps/admin` had **2,908 raw findings in 158 files**:
+
+| Rule                     | Findings |
+| ------------------------ | -------: |
+| `no-restyle`             |    2,589 |
+| `no-raw-colors`          |      189 |
+| `no-arbitrary-values`    |      110 |
+| `require-static-classes` |       14 |
+| `no-unknown-classes`     |        6 |
+
+Eight PRs repair them, and each prunes only its own `suppressions.json` entries:
+
+- **Seven area PRs** fix 2,433 findings in rendered code through shared
+  variants, sizes and composition. No shared component, token, contract,
+  exception or suppression count was widened.
+  - [#2533](https://github.com/Asymmetric-al/core/pull/2533) feed — 473 findings
+  - [#2534](https://github.com/Asymmetric-al/core/pull/2534) events and mobilize — 326
+  - [#2535](https://github.com/Asymmetric-al/core/pull/2535) CRM and contributions — 424
+  - [#2536](https://github.com/Asymmetric-al/core/pull/2536) member care — 292
+  - [#2537](https://github.com/Asymmetric-al/core/pull/2537) support inbox — 292
+  - [#2538](https://github.com/Asymmetric-al/core/pull/2538) support settings — 243
+  - [#2539](https://github.com/Asymmetric-al/core/pull/2539) shell and admin tools — 383
+- **One removal PR**,
+  [#2540](https://github.com/Asymmetric-al/core/pull/2540), deletes
+  nineteen admin files that had no product importer, including Care's local
+  `UI.tsx` kit and the old dashboard charts. They held the last 475 findings,
+  and the user approved the deletion. Every file belongs to exactly one of
+  the eight PRs.
+
+The per-area records are in [admin-cleanup/](admin-cleanup/). The cleanup
+ledger holds one batch per PR, with hashed local evidence under
+`.tmp/admin-lint-5-4/`.
+
+### Verification
+
+- **Lint:** every changed file reports zero findings and zero warnings under
+  `bun run lint:ui <files> --raw`. Admin `tsc --noEmit` passes, and the
+  focused unit suites for each area pass.
+- **Browser, before and after:** real admin routes ran on two dev servers,
+  the base commit and the change, both through the E2E demo-auth bypass. The
+  checks ran at 1280, 768 and 390px (admin forces the light theme) and
+  covered screenshots, horizontal overflow, page errors, axe, keyboard and
+  focus. Admin API reads were stubbed with `page.route`. The support ticket
+  pages, which read through the admin Supabase client, rendered against a
+  loopback PostgREST stub.
+  - The runs found and fixed regressions caused by the change: Events config
+    navigation alignment and tab overflow; a lost CRM drawer close control
+    at 390px; the Support layout-toggle state and popover search; Resend
+    link alignment; and the Eve audit layout. Review bots caught one more: the
+    conversation sheet had no close control while loading. It was fixed with
+    a unit regression test.
+  - They also fixed bugs that existed before the change: an unclickable
+    moderation sort control; unreachable Refund dialog actions; Mobilize
+    header actions off screen; Care profile overflow at 390px; automation
+    card overflow; unclipped business-hours time inputs; and two contrast
+    failures.
+  - No new axe violations were found. The remaining shell
+    `label-content-name-mismatch` and `list`/`listitem` hits exist on the
+    base commit.
+- **Review ledgers:** Shadscan finding proofs and React Doctor exceptions
+  bound to edited files were rebound only after re-review. A React Doctor
+  exception is rebound only when the same diagnostic is still emitted with a
+  byte-identical context inside the same enclosing declaration; the rest
+  were reviewed by hand. Diagnostics that disappeared retire their
+  exceptions. One exception cited deleted files as supporting evidence: the
+  `packages/ui` `chart.tsx` dynamic-import exception. It was bound to the
+  live owners its reason already names only after that reason was
+  re-reviewed. `bun run verify:shadscan` and `bun run react-doctor:check` pass
+  on every branch. Every branch was pushed through the full pre-push
+  `ci:preflight` from a standalone WSL clone.
+
+### Acceptance and limits
+
+Task 5.4 is checked by this record, which merges last. Before merging, rebase
+on `develop` and confirm both of these:
+
+- `bun run lint:ui apps/admin --raw` reports zero findings and warnings;
+- `tooling/eslint-config/suppressions.json` has no `apps/admin/` entries.
+
+Not exercised in a browser:
+
+- the Eve global panel, because the demo user has no Mission Control user
+  (unit tests cover it);
+- the native PDF builder, because its feature flag is off;
+- Payload `/web-studio`, which returns 500 without a database (the existing
+  isolated CMS fixture covers the chrome);
+- Approve and Retry posting, which are disabled in code.
+
+Shared-UI gaps recorded for task 5.7: missing ghost-destructive, warning,
+floating-action and compact control variants; a weak `ToggleGroup` selected
+state; the `InputGroup` double focus ring; and `MotionCard` hiding Card
+provenance from the analyzer.

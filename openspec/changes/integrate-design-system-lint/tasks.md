@@ -72,7 +72,9 @@ Authorized on 2026-09-22; the user explicitly included legacy UI cleanup.
       Pass all actual-config compatibility, discovery, command and cache tests.
 - [x] 5.3 Produce a fresh raw inventory and a persistent per-surface cleanup
       ledger covering every applicable file and finding category.
-- [ ] 5.4 Repair admin UI debt and verify affected behavior and rendering.
+- [x] 5.4 Repair admin UI debt and verify affected behavior and rendering.
+      Evidence: [cleanup-verification.md](cleanup-verification.md) and
+      [admin-cleanup/](admin-cleanup/); eight PRs, #2533–#2539 and #2540.
 - [ ] 5.5 Repair donor UI debt and verify affected behavior and rendering.
 - [ ] 5.6 Repair missionary app UI debt and verify affected behavior and rendering.
 - [ ] 5.7 Repair shared UI and missionary library debt with consumer coverage
