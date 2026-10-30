@@ -41,15 +41,12 @@ export function ContributionNeedsAttentionPanel({
   const totalCount = groups.reduce((sum, group) => sum + group.count, 0);
 
   return (
-    <Alert className="rounded-lg p-5 shadow-sm">
+    <Alert>
       <AlertTriangle />
-      <AlertTitle className="flex items-center gap-2 text-sm font-semibold uppercase">
-        Needs Attention
-        <Badge variant="secondary" className="">
-          {totalCount}
-        </Badge>
+      <AlertTitle>
+        Needs Attention <Badge variant="secondary">{totalCount}</Badge>
       </AlertTitle>
-      <AlertDescription className="text-xs font-medium">
+      <AlertDescription>
         Contribution issues grouped by urgency and issue type.
       </AlertDescription>
 
@@ -57,7 +54,7 @@ export function ContributionNeedsAttentionPanel({
         {groups.slice(0, 3).map((group) => {
           const firstItem = group.items[0];
           return (
-            <Card key={group.key} className="rounded-lg">
+            <Card key={group.key}>
               <CardHeader className="gap-3">
                 <div className="flex items-center justify-between gap-2">
                   <Badge
@@ -85,7 +82,7 @@ export function ContributionNeedsAttentionPanel({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="mt-3 px-0 text-xs font-semibold"
+                    className="mt-3"
                     onClick={() =>
                       onOpenContribution(firstItem.contributionId!)
                     }

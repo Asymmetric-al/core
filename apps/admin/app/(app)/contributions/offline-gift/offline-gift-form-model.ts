@@ -5,6 +5,10 @@ import {
 import { z } from "zod";
 
 import type { OfflineContributionRequest } from "@asym/api/schemas/contributions-offline";
+import type { Badge } from "@asym/ui/components/shadcn/badge";
+import type { ComponentProps } from "react";
+
+type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 
 /**
  * Offline gift entry FORM model (Contributions Hub UI).
@@ -94,13 +98,13 @@ export const OFFLINE_METHOD_OPTIONS_UNKNOWN: readonly OfflineMethodOption[] = [
 interface OfflineReceiptStatusDisplay {
   label: string;
   description: string;
-  /** Literal Tailwind palette classes (light + dark) — matches columns.tsx. */
-  className: string;
+  /** Shared Badge variant for the receipt-status tile. */
+  badgeVariant: BadgeVariant;
 }
 
 /**
  * Receipt-status tile per the WP Contributions Hub spec ("enter offline gifts
- * like checks or stock"). Brand-token neutral palette classes with dark variants.
+ * like checks or stock"). Semantic shared Badge variants.
  */
 export const OFFLINE_RECEIPT_STATUS_DISPLAY: Record<
   ReceiptStatus,
@@ -109,21 +113,18 @@ export const OFFLINE_RECEIPT_STATUS_DISPLAY: Record<
   pending: {
     label: "Receipt pending",
     description: "A tax receipt will be issued to the donor.",
-    className:
-      "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-900",
+    badgeVariant: "warning",
   },
   no_receipt_requested: {
     label: "No receipt requested",
     description: "The donor did not request a receipt for this gift.",
-    className:
-      "bg-zinc-50 text-zinc-600 border-zinc-200 dark:bg-zinc-900/50 dark:text-zinc-400 dark:border-zinc-800",
+    badgeVariant: "secondary",
   },
   not_receiptable: {
     label: "Not receiptable",
     description:
       "Anonymous offline gift — no donor identity to receipt (§11.3).",
-    className:
-      "bg-zinc-50 text-zinc-600 border-zinc-200 dark:bg-zinc-900/50 dark:text-zinc-400 dark:border-zinc-800",
+    badgeVariant: "secondary",
   },
 };
 

@@ -149,7 +149,7 @@ describe("previewOfflineReceiptStatus", () => {
       previewOfflineReceiptStatus(knownValues({ receiptRequested: false })),
     ).toBe("no_receipt_requested");
   });
-  it("every receipt status has a display config with a label + class", () => {
+  it("every receipt status has a display config with a label + badge variant", () => {
     for (const status of [
       "pending",
       "no_receipt_requested",
@@ -158,9 +158,7 @@ describe("previewOfflineReceiptStatus", () => {
       expect(
         OFFLINE_RECEIPT_STATUS_DISPLAY[status].label.length,
       ).toBeGreaterThan(0);
-      expect(
-        OFFLINE_RECEIPT_STATUS_DISPLAY[status].className.length,
-      ).toBeGreaterThan(0);
+      expect(OFFLINE_RECEIPT_STATUS_DISPLAY[status].badgeVariant).toBeTruthy();
     }
   });
 });

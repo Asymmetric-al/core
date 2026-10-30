@@ -376,7 +376,7 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "01419b71eede2e2cee4cd1a1a2d343b4cf4b36978e71e397476aaf8cfcd55d0b",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -387,13 +387,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "2d0d5aceae6fb45a859dfbcacbe0f235bc18faf5a6fe6a738f3b98d9ab95a8eb",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "32bb00b42a4477453230534f6e23359decbb173647c2292bf3abf0cea76ac382",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-restyle": 18,
-        "shadcn/require-static-classes": 2
-      },
-      "latestSourceSha256": "2d0d5aceae6fb45a859dfbcacbe0f235bc18faf5a6fe6a738f3b98d9ab95a8eb",
+      "currentFindings": {},
+      "latestSourceSha256": "32bb00b42a4477453230534f6e23359decbb173647c2292bf3abf0cea76ac382",
       "includedInLatestScan": true
     },
     {
@@ -404,20 +406,21 @@
         "shadcn/no-restyle": 95
       },
       "initialSourceSha256": "80461389c7e1cf9c5defa89214d6c9bd300e03371accfbcf314696c31c919032",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "399daa4cec4e2389ab51234db69a1c5c32433e7a87e756c5cbfcb99d47c4ef77",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "89b57cfaab708bfe725670afe1b8228f7a5393f17aac0fc0fec10f326b7668a9",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 24,
-        "shadcn/no-raw-colors": 3,
-        "shadcn/no-restyle": 91
-      },
-      "latestSourceSha256": "399daa4cec4e2389ab51234db69a1c5c32433e7a87e756c5cbfcb99d47c4ef77",
+      "currentFindings": {},
+      "latestSourceSha256": "89b57cfaab708bfe725670afe1b8228f7a5393f17aac0fc0fec10f326b7668a9",
       "includedInLatestScan": true
     },
     {
@@ -469,7 +472,7 @@
         "shadcn/no-restyle": 28
       },
       "initialSourceSha256": "24db0a6e4e47386eea44b8b33d8e14f3afad579cb313389c8593e87a19e15140",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -480,13 +483,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "b43be59ef40fbe3c34db805bff32ca7748f4191ec3e847c534f47b38074ec0f0",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "dc984af6d067c8247afc7cf97e4a263fde1435ca2ca7383166f880295099b918",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 5,
-        "shadcn/no-restyle": 25
-      },
-      "latestSourceSha256": "b43be59ef40fbe3c34db805bff32ca7748f4191ec3e847c534f47b38074ec0f0",
+      "currentFindings": {},
+      "latestSourceSha256": "dc984af6d067c8247afc7cf97e4a263fde1435ca2ca7383166f880295099b918",
       "includedInLatestScan": true
     },
     {
@@ -495,18 +500,21 @@
         "shadcn/no-restyle": 17
       },
       "initialSourceSha256": "5cc99a39d4d738fe500e9106cddadd14f64b03c186683f45ff6a6bb6cac0d333",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "ee726e884442bcd1e1278aa877ab035956ca61b2df1218432b092b246dd3fd03",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "203d5dfa4f567443f07ee039a66fc60e8f56232d9aab8431a5b863da89448578",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-restyle": 15
-      },
-      "latestSourceSha256": "ee726e884442bcd1e1278aa877ab035956ca61b2df1218432b092b246dd3fd03",
+      "currentFindings": {},
+      "latestSourceSha256": "203d5dfa4f567443f07ee039a66fc60e8f56232d9aab8431a5b863da89448578",
       "includedInLatestScan": true
     },
     {
@@ -518,21 +526,21 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "ec87c0f67c31290dac57b4342fdeed127f67e13921d17c0f1c61e383349eb29b",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "f7b37426273b549e6eeeeae8fd31b9bb5377f8723dcad8d49adce5f88e7bcd10",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "fabaa0b20f605861a8061a0b19c93f9d827fda4dc8b57de661035288e85f52d4",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 4,
-        "shadcn/no-restyle": 20,
-        "shadcn/require-static-classes": 2
-      },
-      "latestSourceSha256": "f7b37426273b549e6eeeeae8fd31b9bb5377f8723dcad8d49adce5f88e7bcd10",
+      "currentFindings": {},
+      "latestSourceSha256": "fabaa0b20f605861a8061a0b19c93f9d827fda4dc8b57de661035288e85f52d4",
       "includedInLatestScan": true
     },
     {
@@ -543,14 +551,16 @@
         "shadcn/no-restyle": 27
       },
       "initialSourceSha256": "af4fac7fd3d149b5fbf9a54b6a4c777572b350462dfca07f7bd3d7ae976e19f5",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 2,
-        "shadcn/no-restyle": 25
-      },
-      "latestSourceSha256": "af4fac7fd3d149b5fbf9a54b6a4c777572b350462dfca07f7bd3d7ae976e19f5",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "4a29952ae9cad7540bde87bfeb0518ca345003ffd29e39ebead66b88b8800f7d",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "4a29952ae9cad7540bde87bfeb0518ca345003ffd29e39ebead66b88b8800f7d",
       "includedInLatestScan": true
     },
     {
@@ -560,13 +570,16 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "c31f5ab795609e5b4fef569ee8dfd3f64b9af33b14a530581bff40a5a81edc9e",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-restyle": 6
-      },
-      "latestSourceSha256": "c31f5ab795609e5b4fef569ee8dfd3f64b9af33b14a530581bff40a5a81edc9e",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "b4b10acdad7962a9210f0dc25ba905c867f6213150631f5d8fb9763e631e0795",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "b4b10acdad7962a9210f0dc25ba905c867f6213150631f5d8fb9763e631e0795",
       "includedInLatestScan": true
     },
     {
@@ -575,12 +588,16 @@
         "shadcn/no-restyle": 5
       },
       "initialSourceSha256": "661226eebf0de3bd61903bdf6d742b462c3f8c29cf6fdd203bc854543014dc83",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 5
-      },
-      "latestSourceSha256": "661226eebf0de3bd61903bdf6d742b462c3f8c29cf6fdd203bc854543014dc83",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "9356202488ff6393ad2d4511e523c46b537d7abdbac2a2254f5b43e2c6d5fdb4",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "9356202488ff6393ad2d4511e523c46b537d7abdbac2a2254f5b43e2c6d5fdb4",
       "includedInLatestScan": true
     },
     {
@@ -591,7 +608,7 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "7d7c8bf80e445ca0829d54a639f3b90938a731748d1b7c2cb0ee10a08e5a6591",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -602,14 +619,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "036a678f2584eb8633858b5fb308aac0fd34a22a0bfe94474e7e9154ebd62893",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "852ab460a4a97889850afa3db1659a590ab9b34102fc3959d8214d5851d31b04",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-restyle": 32,
-        "shadcn/require-static-classes": 2
-      },
-      "latestSourceSha256": "036a678f2584eb8633858b5fb308aac0fd34a22a0bfe94474e7e9154ebd62893",
+      "currentFindings": {},
+      "latestSourceSha256": "852ab460a4a97889850afa3db1659a590ab9b34102fc3959d8214d5851d31b04",
       "includedInLatestScan": true
     },
     {
@@ -620,20 +638,21 @@
         "shadcn/require-static-classes": 1
       },
       "initialSourceSha256": "e37d9cb41ec5f1a99af106a76fc9f4236944aaa94cb1e91c9674ea1e2b32c042",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "ea38d4ce0dcbe4fbe777b456e9f42b4a9ae2bf4090cb33e86ebc8dd11fed26b5",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "efff79bc778cc1d40b6154a331026d36d77161e228a8dbd1903122cfbd68a894",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 23,
-        "shadcn/no-restyle": 112,
-        "shadcn/require-static-classes": 1
-      },
-      "latestSourceSha256": "ea38d4ce0dcbe4fbe777b456e9f42b4a9ae2bf4090cb33e86ebc8dd11fed26b5",
+      "currentFindings": {},
+      "latestSourceSha256": "efff79bc778cc1d40b6154a331026d36d77161e228a8dbd1903122cfbd68a894",
       "includedInLatestScan": true
     },
     {
@@ -642,12 +661,16 @@
         "shadcn/no-restyle": 17
       },
       "initialSourceSha256": "d6b4ec272a90c0bb0ce63703597e6f657832135a81df0cd2fdccfd2a480c85b7",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 12
-      },
-      "latestSourceSha256": "d6b4ec272a90c0bb0ce63703597e6f657832135a81df0cd2fdccfd2a480c85b7",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "ae478fc6dfa97018b82fb646ae9226346302f6c3957921188b2a1e1b95faae18",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "ae478fc6dfa97018b82fb646ae9226346302f6c3957921188b2a1e1b95faae18",
       "includedInLatestScan": true
     },
     {
@@ -671,13 +694,16 @@
         "shadcn/no-restyle": 2
       },
       "initialSourceSha256": "ff617e3317e84c7b552691e6600e09749ba0e37f610bbb654c658b31e5af9700",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-restyle": 2
-      },
-      "latestSourceSha256": "ff617e3317e84c7b552691e6600e09749ba0e37f610bbb654c658b31e5af9700",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "b6307da0867d85011d059d5eb2ee4e2ea7a7b76677ff27520b5f9905a3c61c2a",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "b6307da0867d85011d059d5eb2ee4e2ea7a7b76677ff27520b5f9905a3c61c2a",
       "includedInLatestScan": true
     },
     {
@@ -687,13 +713,16 @@
         "shadcn/no-restyle": 28
       },
       "initialSourceSha256": "573184bfade4783d81bb03318a2b00101c77fdb6c55802b16f5a6f06086e6af1",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 5,
-        "shadcn/no-restyle": 28
-      },
-      "latestSourceSha256": "573184bfade4783d81bb03318a2b00101c77fdb6c55802b16f5a6f06086e6af1",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "a704acc5e71937064c06e3d9340f05734cd1b9b17d551be2b716fc6479a2b546",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "a704acc5e71937064c06e3d9340f05734cd1b9b17d551be2b716fc6479a2b546",
       "includedInLatestScan": true
     },
     {
@@ -702,18 +731,21 @@
         "shadcn/no-restyle": 9
       },
       "initialSourceSha256": "f3189c988399bcf719894eb3627c84e2fe426e7035458495b0e82385b03f5ff7",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "4a5e72c52a73b36ee9cfb9918429055025aa4a0c30df8266c8df53485ae82ae3",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "762b02f18062a4b0c1d415af769cfbf84b963017a99a8b47d46dfc0597a930a0",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-restyle": 8
-      },
-      "latestSourceSha256": "4a5e72c52a73b36ee9cfb9918429055025aa4a0c30df8266c8df53485ae82ae3",
+      "currentFindings": {},
+      "latestSourceSha256": "762b02f18062a4b0c1d415af769cfbf84b963017a99a8b47d46dfc0597a930a0",
       "includedInLatestScan": true
     },
     {
@@ -723,19 +755,21 @@
         "shadcn/no-restyle": 14
       },
       "initialSourceSha256": "6e2ab8b6583cae9685420e093eb910e78ea8e848bfd00f7695e037a37890d11d",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "df542760eab784f9984148b3dcffa771e137cb2298ed3e39f4a2854eb347d698",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "340a16b17cf1c1c547b681d9089738c9271d6c7b9b8679f5bdf872f853dacad8",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-restyle": 13
-      },
-      "latestSourceSha256": "df542760eab784f9984148b3dcffa771e137cb2298ed3e39f4a2854eb347d698",
+      "currentFindings": {},
+      "latestSourceSha256": "340a16b17cf1c1c547b681d9089738c9271d6c7b9b8679f5bdf872f853dacad8",
       "includedInLatestScan": true
     },
     {
@@ -745,19 +779,21 @@
         "shadcn/no-restyle": 11
       },
       "initialSourceSha256": "a348cea00dc8eb6ca8dcf39b9df7b8e245a2c972f30b48c72ca3e5ab1d6b1308",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "a14bced71885798d7724044d1c9116ae7272b8fcf907b23d9eec36b0cf05659a",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "ddbfdb6d15df06beab30c654bd3d319fdca0cba10e82aa75d77b38782c9d907e",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 8,
-        "shadcn/no-restyle": 8
-      },
-      "latestSourceSha256": "a14bced71885798d7724044d1c9116ae7272b8fcf907b23d9eec36b0cf05659a",
+      "currentFindings": {},
+      "latestSourceSha256": "ddbfdb6d15df06beab30c654bd3d319fdca0cba10e82aa75d77b38782c9d907e",
       "includedInLatestScan": true
     },
     {
@@ -767,13 +803,16 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "1ed4ac0faeef995b2c47d1e25550ab803cf32d24e9a4c0397b92d3d0413a10fc",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-restyle": 7
-      },
-      "latestSourceSha256": "1ed4ac0faeef995b2c47d1e25550ab803cf32d24e9a4c0397b92d3d0413a10fc",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "f9e82d9980527fd2cd1f1f58d05da2874dde3aebbac57622293c7d6bb76f61b5",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "f9e82d9980527fd2cd1f1f58d05da2874dde3aebbac57622293c7d6bb76f61b5",
       "includedInLatestScan": true
     },
     {
@@ -784,20 +823,21 @@
         "shadcn/no-restyle": 35
       },
       "initialSourceSha256": "8c9aa69e706e5364046dd91ab24be9332722b3bf1af9a9fe83d1f04adde9b433",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "cf39cb79dda859a2b253fdb62957482c0a126e048a4856817584ea02889f0a42",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "919654dabf4bd3ba891cc5100d65599334846e03a6b3e3924991fea8d8594543",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-raw-colors": 9,
-        "shadcn/no-restyle": 33
-      },
-      "latestSourceSha256": "cf39cb79dda859a2b253fdb62957482c0a126e048a4856817584ea02889f0a42",
+      "currentFindings": {},
+      "latestSourceSha256": "919654dabf4bd3ba891cc5100d65599334846e03a6b3e3924991fea8d8594543",
       "includedInLatestScan": true
     },
     {
@@ -807,7 +847,7 @@
         "shadcn/no-restyle": 18
       },
       "initialSourceSha256": "5c9f9ac52c17fee23838a777d6044459af19f653c8bccfdeb6acc2c4d5c34399",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -818,13 +858,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "3333050898340795f1ed96ef707c49c51e50df4c68d2151ca9b2aa24fc872ac2",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "58fa4d6b89002e71c9adb17b69c94404d091a8d8a15d5b30785a698d697b1849",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-restyle": 13
-      },
-      "latestSourceSha256": "3333050898340795f1ed96ef707c49c51e50df4c68d2151ca9b2aa24fc872ac2",
+      "currentFindings": {},
+      "latestSourceSha256": "58fa4d6b89002e71c9adb17b69c94404d091a8d8a15d5b30785a698d697b1849",
       "includedInLatestScan": true
     },
     {
@@ -877,20 +919,21 @@
         "shadcn/no-restyle": 16
       },
       "initialSourceSha256": "f83b3ee739bbcd07ddd9606d9732ba91b728d317a98a548bbd4acc6545ed9435",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "a2adc4df2f16637ab6d1dca2cb33c371630dba04eee8f054128bcfa30e2f5e80",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-crm-contributions-2026-10-30",
+          "verifiedSourceSha256": "1efa9a93f3c45d99e955be3b724415843c9be3b79735489a0e009a42e3c795d3",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 3,
-        "shadcn/no-restyle": 15
-      },
-      "latestSourceSha256": "a2adc4df2f16637ab6d1dca2cb33c371630dba04eee8f054128bcfa30e2f5e80",
+      "currentFindings": {},
+      "latestSourceSha256": "1efa9a93f3c45d99e955be3b724415843c9be3b79735489a0e009a42e3c795d3",
       "includedInLatestScan": true
     },
     {
@@ -9655,6 +9698,103 @@
         "Axe incompletes retained; no full accessibility conformance claim. Console-error collection covers16 core contexts; all final focused contexts assert page errors and external requests.",
         "Narrow table uses a local horizontal scroller; all columns are not claimed to fit simultaneously at320px.",
         "Normal lint earlier returned1 solely for obsolete suppressions; root owns full baseline prune and combined gates. No suppression/policy/shared primitive changes by this batch."
+      ]
+    },
+    "admin-crm-contributions-2026-10-30": {
+      "summary": "CRM and Contributions retire 424 findings in 20 files; stubbed before/after route scenarios and the offline-gift fixture verify one on-screen close control, scrolling sheets, reachable refund actions and keyboard toggles, with no new axe violations.",
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__crm-contributions-cards.results.json",
+          "sha256": "648e1ec197e57736bedd27a3404ad231b94a96f1a5e52e60c1b10a63c70386cb"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__crm-contributions-crm.results.json",
+          "sha256": "acb93f2e8b8817bbdf0fcb291bc03387b9521d16fc9dd16c20e70d87f977f5dc"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__crm-contributions-hub.results.json",
+          "sha256": "e132472691f3b199294624a4cb7c606591d66cfb0176756063c89737fab6692e"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__crm-contributions-notes.results.json",
+          "sha256": "87cc64f51de760ae8eacf61e0c040ec6d1fdf3d4943809d25a45f603f9d774e1"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__crm-contributions-receipt.results.json",
+          "sha256": "0b432f5ae38b9334803e4cd72e519fa68e4b5d384124dddc7b3d79c1a8cf103c"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__crm-contributions-states.results.json",
+          "sha256": "ab653930fc648be13a7913f4b13b505ee26ce34d91b2dd7bc33a54c87ce53553"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__crm-rerun__crm-contributions-crm.results.json",
+          "sha256": "e1b45b2716910497e73c1b3e9681bcf00c73460756963f35c10b2305931cf9b6"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__crm390__crm-contributions-crm.results.json",
+          "sha256": "c8cd55c9a72a6e5a45470bbc4c36f5d08685e2cf6561e8ca6f9e071be9848691"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__hub390__crm-contributions-hub.results.json",
+          "sha256": "768e650b019e4ffbfe60f23d79ef59f2c61bb8961c1b4164620898b822460bdc"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__offline__offline-dialog__1280x600__after.json",
+          "sha256": "1ff202bb587cd3afe46c3752c1ee139cf83ce24e7500de752ec4e0d2335eccf3"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__offline__offline-dialog__1280x600__before.json",
+          "sha256": "7529304bd423f9a8ea543703bd16ecf0474c8519fea3fe2a458a5f32f213dff6"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__offline__offline-dialog__390x844__after.json",
+          "sha256": "1495c4e6dd24fd1ac5258e36571a1bc1441dc1607bf08514eae5cd8b7eae6364"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm-contributions__offline__offline-dialog__390x844__before.json",
+          "sha256": "0f199c09719126e3799a9d9a39818d5478596ba1f40e7f23d743243a0ace75b0"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/crm__crm-drawer.results.json",
+          "sha256": "9ad17d4f429c5a0b28fc23f8de48725102c73f90913ea165437e9d301ac96601"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/harness.mjs",
+          "sha256": "76d711b167cf697db8eb9b4770badea912cc7f42b126020acf006e920c2b77cc"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/scenario__crm-contributions-cards.mjs",
+          "sha256": "571c45bcd5b24f717142ee97438f8d1142469fdb0cd67f1b6a76c139c385d3b4"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/scenario__crm-contributions-crm.mjs",
+          "sha256": "74e1d3d4fb5d38485e7046e08b54ee0771771a2ef96270e496204f7f5c7590aa"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/scenario__crm-contributions-hub.mjs",
+          "sha256": "a44d5734d03429310bac95c09f7c1499879d2c2d44bb36dd1938ad3b451aab8d"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/scenario__crm-contributions-notes.mjs",
+          "sha256": "adaf35e2b6993da0ce5ffc049ce2dcbdf703e3e744a6a346c2f370e20d485131"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/scenario__crm-contributions-receipt.mjs",
+          "sha256": "c782584014452634b3534ad4ce9fab9e0502e5149572c1e9ce8d2951830348d6"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/scenario__crm-contributions-states.mjs",
+          "sha256": "971fc3496d84b24b6e13e3b0eaa572811bb139a6dab71f4f04084ae5bd3a8cfe"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/scenario__crm-drawer.mjs",
+          "sha256": "8f4b7556c679b9db2dd68751ea90d86141e8a65fa3d5ca2739d41202ebbdf2b0"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/crm-contributions/screenshots-manifest.json",
+          "sha256": "45409d0badf401682553eed80e94f76714716dc7c53bab9eb8d1dfd846497b70"
+        }
       ]
     }
   },

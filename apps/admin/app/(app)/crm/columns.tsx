@@ -23,11 +23,10 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
-import { cn } from "@asym/ui/lib/utils";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 
-import { PORTAL_BADGE_CLASS, type CrmGridRow } from "./types";
+import { PORTAL_BADGE_VARIANT, type CrmGridRow } from "./types";
 
 import type { DataTableFilterOption } from "@asym/ui/components/shadcn/data-table";
 
@@ -67,11 +66,9 @@ export function getCrmColumns({
             <SharedNamedViewTransition
               name={crmRecordAvatarTransitionName(record.id)}
             >
-              <Avatar className="size-9 rounded-xl border border-border">
+              <Avatar className="size-9">
                 <AvatarImage src={record.avatarUrl ?? undefined} />
-                <AvatarFallback className="rounded-xl bg-primary text-xs font-semibold text-primary-foreground">
-                  {initial}
-                </AvatarFallback>
+                <AvatarFallback>{initial}</AvatarFallback>
               </Avatar>
             </SharedNamedViewTransition>
             <div className="flex flex-col min-w-0">
@@ -209,12 +206,8 @@ export function getCrmColumns({
     {
       accessorKey: "lifetimeGiving",
       header: ({ column }) => (
-        <div className="text-right">
-          <DataTableColumnHeader
-            column={column}
-            title="Lifetime giving"
-            className="justify-end"
-          />
+        <div className="flex justify-end">
+          <DataTableColumnHeader column={column} title="Lifetime giving" />
         </div>
       ),
       cell: ({ row }) => (
@@ -278,13 +271,7 @@ export function getCrmColumns({
       cell: ({ row }) => {
         const label = row.original.portalAccessLabel;
         return (
-          <Badge
-            variant="outline"
-            className={cn(
-              "border font-semibold shadow-none",
-              PORTAL_BADGE_CLASS[label],
-            )}
-          >
+          <Badge variant={PORTAL_BADGE_VARIANT[label]}>
             {label === "linked" ? "Linked" : "No portal"}
           </Badge>
         );
@@ -315,7 +302,7 @@ export function getCrmColumns({
             </span>
           ) : (
             row.original.tags.map((t) => (
-              <Badge key={t} variant="secondary" className="h-5 px-1.5">
+              <Badge key={t} variant="secondary">
                 {t}
               </Badge>
             ))
@@ -351,14 +338,14 @@ export function getCrmColumns({
                   <Button
                     aria-label={`CRM actions for ${record.displayName ?? "CRM record"}`}
                     variant="ghost"
-                    className="size-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
+                    size="icon-sm"
                   >
                     <span className="sr-only">Open menu</span>
                     <MoreHorizontal className="size-4" aria-hidden="true" />
                   </Button>
                 }
               />
-              <DropdownMenuContent align="end" className="w-48 rounded-xl">
+              <DropdownMenuContent align="end">
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                   {record.email ? (
@@ -366,15 +353,11 @@ export function getCrmColumns({
                       onClick={() =>
                         void navigator.clipboard.writeText(record.email ?? "")
                       }
-                      className="rounded-lg"
                     >
                       Copy email
                     </DropdownMenuItem>
                   ) : null}
-                  <DropdownMenuItem
-                    onClick={() => onViewRecord(record)}
-                    className="rounded-lg"
-                  >
+                  <DropdownMenuItem onClick={() => onViewRecord(record)}>
                     Open details
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
