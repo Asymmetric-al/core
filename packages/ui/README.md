@@ -104,6 +104,7 @@ bunx --bun shadcn@latest add <component> --cwd packages/ui
 - Prefer `gap-*` over `space-x-*` / `space-y-*` when composing new layouts.
 - Prefer the current shared `Field` / `InputGroup` patterns for form controls.
 - Use the Shadcn MCP when available, but still review CLI `view`, `--dry-run`, and `--diff` output before accepting generated changes.
+- The project Shadcn MCP (`shadcn` in `.mcp.json`, `.cursor/mcp.json`, and `.codex/config.toml`) starts through `scripts/shadcn/mcp.mjs`, which runs `bun x shadcn@4.22.1 mcp` from this package so the server sees every registry in `components.json`. Registry keys come from the environment.
 - For broad UI edits, run the non-blocking drift report with `bun run verify:shadcn-token-drift`.
 
 ### shadcnuikit registry installs
