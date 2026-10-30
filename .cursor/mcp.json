@@ -8,8 +8,9 @@
       ]
     },
     "shadcn": {
-      "command": "bunx",
+      "command": "npx",
       "args": [
+        "--yes",
         "shadcn@4.22.1",
         "mcp"
       ]

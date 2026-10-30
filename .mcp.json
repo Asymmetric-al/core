@@ -5,8 +5,8 @@
       "args": ["-y", "next-devtools-mcp@0.4.0"]
     },
     "shadcn": {
-      "command": "bunx",
-      "args": ["shadcn@4.22.1", "mcp"]
+      "command": "npx",
+      "args": ["--yes", "shadcn@4.22.1", "mcp"]
     },
     "inngest-dev": {
       "type": "http",
