@@ -64,7 +64,6 @@ export function AutomationRuleList() {
             variant="outline"
             size="sm"
             onClick={() => setEditing("new")}
-            className="rounded-lg text-xs"
           >
             <Plus className="size-3.5" />
             New rule
@@ -99,7 +98,7 @@ export function AutomationRuleList() {
                       {rule.description}
                     </span>
                   ) : null}
-                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground">
                     {rule.conditions.length} conditions · {rule.actions.length}{" "}
                     actions
                   </span>
@@ -117,22 +116,20 @@ export function AutomationRuleList() {
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() => setEditing(rule)}
                   aria-label={`Edit ${rule.name}`}
-                  className="size-8 text-muted-foreground hover:text-foreground"
                 >
                   <Pencil className="size-3.5" />
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() => void handleDelete(rule)}
                   aria-label={`Delete ${rule.name}`}
-                  className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
-                  <Trash2 className="size-3.5" />
+                  <Trash2 className="size-3.5 text-destructive" />
                 </Button>
               </li>
             ))}

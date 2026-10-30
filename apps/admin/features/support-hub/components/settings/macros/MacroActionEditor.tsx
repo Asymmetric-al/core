@@ -25,7 +25,13 @@ import { useSupportCannedResponses } from "../../../hooks/use-support-canned-res
 import { useSupportLabels } from "../../../hooks/use-support-labels";
 import { createDraftRow, type DraftRow } from "../draft-rows";
 
-import type { SupportMacroAction } from "../../../types";
+import type {
+  SupportAssignee,
+  SupportCannedResponse,
+  SupportLabel,
+  SupportMacroAction,
+  SupportTeam,
+} from "../../../types";
 
 const ACTION_KINDS: SupportMacroAction["kind"][] = [
   "set_status",
@@ -86,13 +92,7 @@ export function MacroActionEditor({ rows, onChange }: MacroActionEditorProps) {
         <span className="text-sm font-medium text-muted-foreground">
           Actions
         </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleAdd}
-          className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
-        >
+        <Button type="button" variant="ghost" size="xs" onClick={handleAdd}>
           <Plus className="size-3" />
           Add action
         </Button>
@@ -121,12 +121,14 @@ export function MacroActionEditor({ rows, onChange }: MacroActionEditorProps) {
                   if (value !== null) handleKindChange(index, value);
                 }}
               >
-                <SelectTrigger
-                  aria-label={`Action ${index + 1} type`}
-                  className="h-8 min-w-42.5"
-                >
-                  <SelectValue />
-                </SelectTrigger>
+                <div className="min-w-42.5">
+                  <SelectTrigger
+                    aria-label={`Action ${index + 1} type`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                </div>
                 <SelectContent>
                   {ACTION_KINDS.map((kind) => (
                     <SelectItem key={kind} value={kind}>
@@ -136,210 +138,257 @@ export function MacroActionEditor({ rows, onChange }: MacroActionEditorProps) {
                 </SelectContent>
               </Select>
 
-              {action.kind === "set_status" ? (
-                <Select
-                  items={[
-                    ...SUPPORT_CONVERSATION_STATUSES.map((status) => ({
-                      value: status,
-                      label: status,
-                    })),
-                  ]}
-                  value={action.status}
-                  onValueChange={(value) => {
-                    if (value === null) return;
-                    handlePatch(index, {
-                      kind: "set_status",
-                      status: value,
-                    });
-                  }}
-                >
-                  <SelectTrigger
-                    aria-label={`Action ${index + 1} status`}
-                    className="h-8 min-w-35"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUPPORT_CONVERSATION_STATUSES.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : null}
-
-              {action.kind === "set_priority" ? (
-                <Select
-                  items={[
-                    ...SUPPORT_PRIORITIES.map((priority) => ({
-                      value: priority,
-                      label: priority,
-                    })),
-                  ]}
-                  value={action.priority}
-                  onValueChange={(value) => {
-                    if (value === null) return;
-                    handlePatch(index, {
-                      kind: "set_priority",
-                      priority: value,
-                    });
-                  }}
-                >
-                  <SelectTrigger
-                    aria-label={`Action ${index + 1} priority`}
-                    className="h-8 min-w-35"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUPPORT_PRIORITIES.map((priority) => (
-                      <SelectItem key={priority} value={priority}>
-                        {priority}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : null}
-
-              {action.kind === "assign_agent" ? (
-                <SearchableSelect
-                  items={[
-                    ...agents.map((agent) => ({
-                      value: agent.id,
-                      label: agent.name,
-                    })),
-                  ]}
-                  value={action.agentId}
-                  onValueChange={(value) => {
-                    if (value === null) {
-                      return;
-                    }
-                    handlePatch(index, {
-                      kind: "assign_agent",
-                      agentId: value,
-                    });
-                  }}
-                  aria-label={`Action ${index + 1} agent`}
-                  className="h-8 min-w-50"
-                  placeholder="Pick an agent"
-                />
-              ) : null}
-
-              {action.kind === "assign_team" ? (
-                <SearchableSelect
-                  items={[
-                    ...(teams.data ?? []).map((team) => ({
-                      value: team.id,
-                      label: team.name,
-                    })),
-                  ]}
-                  value={action.teamId}
-                  onValueChange={(value) => {
-                    if (value === null) {
-                      return;
-                    }
-                    handlePatch(index, { kind: "assign_team", teamId: value });
-                  }}
-                  aria-label={`Action ${index + 1} team`}
-                  className="h-8 min-w-50"
-                  placeholder="Pick a team"
-                />
-              ) : null}
-
-              {action.kind === "add_label" || action.kind === "remove_label" ? (
-                <SearchableSelect
-                  items={[
-                    ...labels.map((label) => ({
-                      value: label.id,
-                      label: label.name,
-                    })),
-                  ]}
-                  value={action.labelId}
-                  onValueChange={(value) => {
-                    if (value === null) {
-                      return;
-                    }
-                    handlePatch(index, {
-                      kind: action.kind,
-                      labelId: value,
-                    } as SupportMacroAction);
-                  }}
-                  aria-label={`Action ${index + 1} label`}
-                  className="h-8 min-w-45"
-                  placeholder="Pick a label"
-                />
-              ) : null}
-
-              {action.kind === "send_canned_response" ? (
-                <SearchableSelect
-                  items={[
-                    ...cannedResponses.map((row) => ({
-                      value: row.id,
-                      label: row.title,
-                    })),
-                  ]}
-                  value={action.cannedResponseId}
-                  onValueChange={(value) => {
-                    if (value === null) {
-                      return;
-                    }
-                    handlePatch(index, {
-                      kind: "send_canned_response",
-                      cannedResponseId: value,
-                    });
-                  }}
-                  aria-label={`Action ${index + 1} canned response`}
-                  className="h-8 min-w-55"
-                  placeholder="Pick a canned response"
-                />
-              ) : null}
-
-              {action.kind === "snooze" ? (
-                <Input
-                  type="number"
-                  min={1}
-                  value={action.hours}
-                  onChange={(event) =>
-                    handlePatch(index, {
-                      kind: "snooze",
-                      hours: Number(event.target.value) || 1,
-                    })
-                  }
-                  className="h-8 w-25 font-mono"
-                  aria-label="Hours to snooze"
-                />
-              ) : null}
-
-              {action.kind === "add_private_note" ? (
-                <Input
-                  value={action.bodyText}
-                  onChange={(event) =>
-                    handlePatch(index, {
-                      kind: "add_private_note",
-                      bodyText: event.target.value,
-                    })
-                  }
-                  placeholder="Note text"
-                  className="h-8 min-w-60"
-                />
-              ) : null}
+              <MacroActionValueControl
+                action={action}
+                index={index}
+                onPatch={(patch) => handlePatch(index, patch)}
+                agents={agents}
+                teams={teams.data ?? []}
+                labels={labels}
+                cannedResponses={cannedResponses}
+              />
 
               <Button
                 type="button"
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
                 onClick={() => handleRemove(index)}
                 aria-label="Remove action"
-                className="size-7 text-destructive hover:bg-destructive/10"
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-3.5 text-destructive" />
               </Button>
             </li>
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+interface MacroActionValueControlProps {
+  action: SupportMacroAction;
+  index: number;
+  onPatch: (patch: Partial<SupportMacroAction>) => void;
+  agents: SupportAssignee[];
+  teams: SupportTeam[];
+  labels: SupportLabel[];
+  cannedResponses: SupportCannedResponse[];
+}
+
+/** The kind-specific value control for one macro action row. */
+function MacroActionValueControl({
+  action,
+  index,
+  onPatch,
+  agents,
+  teams,
+  labels,
+  cannedResponses,
+}: MacroActionValueControlProps) {
+  return (
+    <>
+      {action.kind === "set_status" ? (
+        <Select
+          items={[
+            ...SUPPORT_CONVERSATION_STATUSES.map((status) => ({
+              value: status,
+              label: status,
+            })),
+          ]}
+          value={action.status}
+          onValueChange={(value) => {
+            if (value === null) return;
+            onPatch({
+              kind: "set_status",
+              status: value,
+            });
+          }}
+        >
+          <div className="min-w-35">
+            <SelectTrigger
+              aria-label={`Action ${index + 1} status`}
+              className="w-full"
+            >
+              <SelectValue />
+            </SelectTrigger>
+          </div>
+          <SelectContent>
+            {SUPPORT_CONVERSATION_STATUSES.map((status) => (
+              <SelectItem key={status} value={status}>
+                {status}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
+
+      {action.kind === "set_priority" ? (
+        <Select
+          items={[
+            ...SUPPORT_PRIORITIES.map((priority) => ({
+              value: priority,
+              label: priority,
+            })),
+          ]}
+          value={action.priority}
+          onValueChange={(value) => {
+            if (value === null) return;
+            onPatch({
+              kind: "set_priority",
+              priority: value,
+            });
+          }}
+        >
+          <div className="min-w-35">
+            <SelectTrigger
+              aria-label={`Action ${index + 1} priority`}
+              className="w-full"
+            >
+              <SelectValue />
+            </SelectTrigger>
+          </div>
+          <SelectContent>
+            {SUPPORT_PRIORITIES.map((priority) => (
+              <SelectItem key={priority} value={priority}>
+                {priority}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
+
+      {action.kind === "assign_agent" ? (
+        <div className="min-w-50 flex-1">
+          <SearchableSelect
+            items={[
+              ...agents.map((agent) => ({
+                value: agent.id,
+                label: agent.name,
+              })),
+            ]}
+            value={action.agentId}
+            onValueChange={(value) => {
+              if (value === null) {
+                return;
+              }
+              onPatch({
+                kind: "assign_agent",
+                agentId: value,
+              });
+            }}
+            aria-label={`Action ${index + 1} agent`}
+            placeholder="Pick an agent"
+          />
+        </div>
+      ) : null}
+
+      {action.kind === "assign_team" ? (
+        <div className="min-w-50 flex-1">
+          <SearchableSelect
+            items={[
+              ...teams.map((team) => ({
+                value: team.id,
+                label: team.name,
+              })),
+            ]}
+            value={action.teamId}
+            onValueChange={(value) => {
+              if (value === null) {
+                return;
+              }
+              onPatch({
+                kind: "assign_team",
+                teamId: value,
+              });
+            }}
+            aria-label={`Action ${index + 1} team`}
+            placeholder="Pick a team"
+          />
+        </div>
+      ) : null}
+
+      {action.kind === "add_label" || action.kind === "remove_label" ? (
+        <div className="min-w-45 flex-1">
+          <SearchableSelect
+            items={[
+              ...labels.map((label) => ({
+                value: label.id,
+                label: label.name,
+              })),
+            ]}
+            value={action.labelId}
+            onValueChange={(value) => {
+              if (value === null) {
+                return;
+              }
+              onPatch({
+                kind: action.kind,
+                labelId: value,
+              } as SupportMacroAction);
+            }}
+            aria-label={`Action ${index + 1} label`}
+            placeholder="Pick a label"
+          />
+        </div>
+      ) : null}
+
+      {action.kind === "send_canned_response" ? (
+        <div className="min-w-55 flex-1">
+          <SearchableSelect
+            items={[
+              ...cannedResponses.map((row) => ({
+                value: row.id,
+                label: row.title,
+              })),
+            ]}
+            value={action.cannedResponseId}
+            onValueChange={(value) => {
+              if (value === null) {
+                return;
+              }
+              onPatch({
+                kind: "send_canned_response",
+                cannedResponseId: value,
+              });
+            }}
+            aria-label={`Action ${index + 1} canned response`}
+            placeholder="Pick a canned response"
+          />
+        </div>
+      ) : null}
+
+      {action.kind === "snooze" ? (
+        <div className="w-25">
+          <Input
+            type="number"
+            min={1}
+            value={action.hours}
+            onChange={(event) =>
+              onPatch({
+                kind: "snooze",
+                hours: Number(event.target.value) || 1,
+              })
+            }
+            aria-label="Hours to snooze"
+          />
+        </div>
+      ) : null}
+
+      {action.kind === "add_private_note" ? (
+        <div className="min-w-60 flex-1">
+          <Input
+            value={action.bodyText}
+            onChange={(event) =>
+              onPatch({
+                kind: "add_private_note",
+                bodyText: event.target.value,
+              })
+            }
+            placeholder="Note text"
+          />
+        </div>
+      ) : null}
+    </>
   );
 }
 

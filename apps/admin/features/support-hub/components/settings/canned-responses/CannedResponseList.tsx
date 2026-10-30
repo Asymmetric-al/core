@@ -47,7 +47,6 @@ export function CannedResponseList() {
             variant="outline"
             size="sm"
             onClick={() => setEditing("new")}
-            className="rounded-lg text-xs"
           >
             <Plus className="size-3.5" />
             New response
@@ -85,22 +84,20 @@ export function CannedResponseList() {
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() => setEditing(row)}
                   aria-label={`Edit ${row.title}`}
-                  className="size-8 text-muted-foreground hover:text-foreground"
                 >
                   <Pencil className="size-3.5" />
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() => void handleDelete(row)}
                   aria-label={`Delete ${row.title}`}
-                  className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
-                  <Trash2 className="size-3.5" />
+                  <Trash2 className="size-3.5 text-destructive" />
                 </Button>
               </li>
             ))}

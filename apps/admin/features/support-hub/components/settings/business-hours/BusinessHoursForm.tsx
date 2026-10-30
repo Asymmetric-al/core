@@ -2,7 +2,6 @@
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { Plus, Trash2 } from "lucide-react";
 import * as React from "react";
@@ -146,33 +145,39 @@ export function BusinessHoursForm({
                   }
                   aria-label={`Toggle ${day}`}
                 />
-                <Input
-                  type="time"
-                  value={entry.openTime}
-                  disabled={!entry.enabled}
-                  onChange={(event) =>
-                    dispatch({
-                      type: "schedule",
-                      value: (prev) =>
-                        upsertDay(prev, day, { openTime: event.target.value }),
-                    })
-                  }
-                  className="h-8 w-27.5 font-mono"
-                />
+                <div className="w-36">
+                  <Input
+                    type="time"
+                    value={entry.openTime}
+                    disabled={!entry.enabled}
+                    onChange={(event) =>
+                      dispatch({
+                        type: "schedule",
+                        value: (prev) =>
+                          upsertDay(prev, day, {
+                            openTime: event.target.value,
+                          }),
+                      })
+                    }
+                  />
+                </div>
                 <span className="text-xs text-muted-foreground">→</span>
-                <Input
-                  type="time"
-                  value={entry.closeTime}
-                  disabled={!entry.enabled}
-                  onChange={(event) =>
-                    dispatch({
-                      type: "schedule",
-                      value: (prev) =>
-                        upsertDay(prev, day, { closeTime: event.target.value }),
-                    })
-                  }
-                  className="h-8 w-27.5 font-mono"
-                />
+                <div className="w-36">
+                  <Input
+                    type="time"
+                    value={entry.closeTime}
+                    disabled={!entry.enabled}
+                    onChange={(event) =>
+                      dispatch({
+                        type: "schedule",
+                        value: (prev) =>
+                          upsertDay(prev, day, {
+                            closeTime: event.target.value,
+                          }),
+                      })
+                    }
+                  />
+                </div>
               </li>
             );
           })}
@@ -187,7 +192,7 @@ export function BusinessHoursForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            size="xs"
             onClick={() =>
               dispatch({
                 type: "holidays",
@@ -201,7 +206,6 @@ export function BusinessHoursForm({
                 ],
               })
             }
-            className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
           >
             <Plus className="size-3" />
             Add
@@ -218,42 +222,44 @@ export function BusinessHoursForm({
                 key={holiday.id}
                 className="flex flex-wrap items-center gap-2 px-3 py-2"
               >
-                <Input
-                  type="date"
-                  value={holiday.date.slice(0, 10)}
-                  onChange={(event) => {
-                    const iso = makeDisplayDate(
-                      `${event.target.value}T00:00:00.000Z`,
-                    ).toISOString();
-                    dispatch({
-                      type: "holidays",
-                      value: (prev) =>
-                        prev.map((row, i) =>
-                          i === index ? { ...row, date: iso } : row,
-                        ),
-                    });
-                  }}
-                  className="h-8 w-40 font-mono"
-                />
-                <Input
-                  value={holiday.label}
-                  onChange={(event) =>
-                    dispatch({
-                      type: "holidays",
-                      value: (prev) =>
-                        prev.map((row, i) =>
-                          i === index
-                            ? { ...row, label: event.target.value }
-                            : row,
-                        ),
-                    })
-                  }
-                  className="h-8 min-w-50"
-                />
+                <div className="w-40">
+                  <Input
+                    type="date"
+                    value={holiday.date.slice(0, 10)}
+                    onChange={(event) => {
+                      const iso = makeDisplayDate(
+                        `${event.target.value}T00:00:00.000Z`,
+                      ).toISOString();
+                      dispatch({
+                        type: "holidays",
+                        value: (prev) =>
+                          prev.map((row, i) =>
+                            i === index ? { ...row, date: iso } : row,
+                          ),
+                      });
+                    }}
+                  />
+                </div>
+                <div className="min-w-50 flex-1">
+                  <Input
+                    value={holiday.label}
+                    onChange={(event) =>
+                      dispatch({
+                        type: "holidays",
+                        value: (prev) =>
+                          prev.map((row, i) =>
+                            i === index
+                              ? { ...row, label: event.target.value }
+                              : row,
+                          ),
+                      })
+                    }
+                  />
+                </div>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() =>
                     dispatch({
                       type: "holidays",
@@ -261,9 +267,8 @@ export function BusinessHoursForm({
                     })
                   }
                   aria-label="Remove holiday"
-                  className="size-7 text-destructive hover:bg-destructive/10"
                 >
-                  <Trash2 className="size-3.5" />
+                  <Trash2 className="size-3.5 text-destructive" />
                 </Button>
               </li>
             ))}
@@ -289,22 +294,16 @@ export function BusinessHoursForm({
 
       <div className="flex items-center justify-between gap-2 pt-2">
         {onCancel ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onCancel}
-            className="rounded-lg text-xs"
-          >
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             <span className="sr-only">Cancel</span>
             Cancel
           </Button>
         ) : (
           <span />
         )}
-        <Label className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Times use 24-hour format.
-        </Label>
+        </p>
       </div>
 
       <SettingsToolbar
