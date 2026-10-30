@@ -45,31 +45,30 @@ export function ConversationAssigneeMenu({
             type="button"
             variant="ghost"
             size="sm"
-            className="max-w-48"
             aria-label={
               assignee ? `Assigned to ${assignee.name}` : "Unassigned"
             }
           >
             {assignee ? (
-              <Avatar className="size-5 border border-border">
+              <Avatar className="size-5">
                 <AvatarImage
                   src={assignee.avatarUrl ?? undefined}
                   alt={assignee.name}
                 />
-                <AvatarFallback className="text-xs font-semibold">
-                  {assignee.name.charAt(0)}
-                </AvatarFallback>
+                <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
               </Avatar>
             ) : (
               <span className="flex size-5 items-center justify-center rounded-full border border-dashed border-warning/40 text-warning">
                 <UserRound className="size-3" />
               </span>
             )}
-            <span className="truncate">{assignee?.name ?? "Unassigned"}</span>
+            <span className="max-w-36 truncate">
+              {assignee?.name ?? "Unassigned"}
+            </span>
           </Button>
         }
       />
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Assign conversation</DropdownMenuLabel>
 
@@ -117,14 +116,12 @@ export function ConversationAssigneeMenu({
                     isActive ? "text-foreground" : "text-transparent",
                   )}
                 />
-                <Avatar className="size-5 border border-border">
+                <Avatar className="size-5">
                   <AvatarImage
                     src={agent.avatarUrl ?? undefined}
                     alt={agent.name}
                   />
-                  <AvatarFallback className="text-xs font-semibold">
-                    {agent.name.charAt(0)}
-                  </AvatarFallback>
+                  <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <span className="truncate">{agent.name}</span>
               </DropdownMenuItem>

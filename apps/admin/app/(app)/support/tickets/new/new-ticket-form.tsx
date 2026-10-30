@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
@@ -137,7 +137,7 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
           required
         >
           <SelectControlLabel>Contact</SelectControlLabel>
-          <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select contact" />
           </SelectTrigger>
           <SelectContent>
@@ -176,7 +176,7 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
             required
           >
             <SelectControlLabel>Support track</SelectControlLabel>
-            <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Select support track" />
             </SelectTrigger>
             <SelectContent>
@@ -204,7 +204,7 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
             required
           >
             <SelectControlLabel>Priority</SelectControlLabel>
-            <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3 capitalize">
+            <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -239,12 +239,10 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
             {isSubmitting ? "Creating..." : "Create ticket"}
           </span>
         </Button>
-        <Link
-          href={supportHubRoutes.tickets}
-          className={buttonVariants({ variant: "outline" })}
-        >
-          Cancel
-        </Link>
+        <ButtonLink
+          variant="outline"
+          render={<Link href={supportHubRoutes.tickets}>Cancel</Link>}
+        />
       </div>
     </form>
   );

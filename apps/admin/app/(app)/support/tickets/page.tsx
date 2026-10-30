@@ -1,6 +1,6 @@
 import { loadSupportTicketList } from "@asym/api/admin/support/loaders";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -62,19 +62,19 @@ export default async function SupportTicketsPage({
     >
       <div className="space-y-6">
         <div className="flex flex-wrap gap-2">
-          <Link
-            href={supportHubRoutes.home}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Back to Support Hub
-          </Link>
-          <Link href={supportHubRoutes.newTicket} className={buttonVariants()}>
-            New ticket
-          </Link>
+          <ButtonLink
+            variant="outline"
+            render={
+              <Link href={supportHubRoutes.home}>Back to Support Hub</Link>
+            }
+          />
+          <ButtonLink
+            render={<Link href={supportHubRoutes.newTicket}>New ticket</Link>}
+          />
         </div>
 
-        <form className="grid gap-3 rounded-3xl border border-border bg-card p-4 md:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
-          <div className="space-y-2">
+        <form className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-4 md:flex-row">
+          <div className="space-y-2 md:min-w-0 md:flex-1">
             <Label className="sr-only" htmlFor="support-ticket-search">
               Search tickets
             </Label>
@@ -86,7 +86,7 @@ export default async function SupportTicketsPage({
               type="search"
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:w-45 md:shrink-0">
             <Select
               items={[
                 { value: "", label: "All tracks" },
@@ -106,7 +106,7 @@ export default async function SupportTicketsPage({
               <SelectControlLabel className="sr-only">
                 Support track
               </SelectControlLabel>
-              <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3">
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -119,7 +119,7 @@ export default async function SupportTicketsPage({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:w-45 md:shrink-0">
             <Select
               items={[
                 { value: "", label: "All statuses" },
@@ -139,7 +139,7 @@ export default async function SupportTicketsPage({
               <SelectControlLabel className="sr-only">
                 Status
               </SelectControlLabel>
-              <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3">
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -157,7 +157,7 @@ export default async function SupportTicketsPage({
 
         <div className="grid gap-3 md:grid-cols-5">
           {queueSummaries.map((queue) => (
-            <Card className="rounded-2xl" key={queue.id}>
+            <Card key={queue.id}>
               <CardContent className="p-4">
                 <p className="text-sm font-semibold">{queue.label}</p>
                 <p className="mt-1 text-2xl font-semibold tabular-nums">
@@ -171,57 +171,59 @@ export default async function SupportTicketsPage({
           ))}
         </div>
 
-        <Card className="rounded-3xl">
+        <Card>
           <CardHeader>
             <CardTitle>All tickets</CardTitle>
             <CardDescription>
               Live tenant-scoped tickets from the support workspace.
             </CardDescription>
           </CardHeader>
-          <CardContent className="divide-y divide-border/70 p-0">
-            {tickets.length > 0 ? (
-              tickets.map((ticket) => (
-                <article className="p-4" key={ticket.id}>
-                  <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                    <div>
-                      <p className="font-mono text-xs font-semibold text-muted-foreground">
-                        {ticket.id}
-                      </p>
-                      <h2 className="mt-1 font-semibold">{ticket.subject}</h2>
-                      <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
-                        {ticket.summary}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-xs font-semibold">
-                      <span className="rounded-full bg-muted px-2 py-1">
-                        {ticket.queueId}
-                      </span>
-                      <span className="rounded-full bg-muted px-2 py-1">
-                        {ticket.status}
-                      </span>
-                      {ticket.followUpAt ? (
+          <CardContent className="p-0">
+            <div className="divide-y divide-border/70">
+              {tickets.length > 0 ? (
+                tickets.map((ticket) => (
+                  <article className="p-4" key={ticket.id}>
+                    <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <p className="font-mono text-xs font-semibold text-muted-foreground">
+                          {ticket.id}
+                        </p>
+                        <h2 className="mt-1 font-semibold">{ticket.subject}</h2>
+                        <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
+                          {ticket.summary}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs font-semibold">
                         <span className="rounded-full bg-muted px-2 py-1">
-                          follow-up
+                          {ticket.queueId}
                         </span>
-                      ) : null}
+                        <span className="rounded-full bg-muted px-2 py-1">
+                          {ticket.status}
+                        </span>
+                        {ticket.followUpAt ? (
+                          <span className="rounded-full bg-muted px-2 py-1">
+                            follow-up
+                          </span>
+                        ) : null}
+                      </div>
+                      <ButtonLink
+                        variant="outline"
+                        size="sm"
+                        render={
+                          <Link href={supportHubRoutes.ticket(ticket.id)}>
+                            Open thread
+                          </Link>
+                        }
+                      />
                     </div>
-                    <Link
-                      href={supportHubRoutes.ticket(ticket.id)}
-                      className={buttonVariants({
-                        size: "sm",
-                        variant: "outline",
-                      })}
-                    >
-                      Open thread
-                    </Link>
-                  </div>
-                </article>
-              ))
-            ) : (
-              <div className="p-6 text-sm text-muted-foreground">
-                No support tickets match the current filters.
-              </div>
-            )}
+                  </article>
+                ))
+              ) : (
+                <div className="p-6 text-sm text-muted-foreground">
+                  No support tickets match the current filters.
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

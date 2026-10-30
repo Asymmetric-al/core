@@ -56,7 +56,7 @@ export function ConversationLabelMenu({
               <span>
                 Labels
                 {conversation.labels.length > 0 ? (
-                  <Badge variant="secondary" className="ml-1 tabular-nums">
+                  <Badge variant="secondary" className="ml-1">
                     {conversation.labels.length}
                   </Badge>
                 ) : null}
@@ -65,9 +65,9 @@ export function ConversationLabelMenu({
           </Button>
         }
       />
-      <PopoverContent align="end" className="w-64 p-0">
+      <PopoverContent align="end" className="w-64">
         <Command>
-          <CommandInput placeholder="Search labels..." />
+          <CommandInput popoverChrome placeholder="Search labels..." />
           <CommandList>
             <CommandEmpty>No labels.</CommandEmpty>
             <CommandGroup>
@@ -83,7 +83,6 @@ export function ConversationLabelMenu({
                         labelId: label.id,
                       })
                     }
-                    className="flex items-center gap-2"
                   >
                     <span
                       className={cn(

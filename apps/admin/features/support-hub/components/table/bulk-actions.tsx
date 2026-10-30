@@ -239,7 +239,6 @@ export function useSupportBulkActions(): UseBulkActionsReturn {
                   key={label.id}
                   value={label.slug}
                   onSelect={() => void applyLabel(label)}
-                  className="flex items-center gap-2"
                 >
                   <Badge variant={LABEL_BADGE_VARIANTS[label.tone]}>
                     {label.name}

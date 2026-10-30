@@ -31,14 +31,12 @@ export function PrivateNote({ message }: PrivateNoteProps) {
     >
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Avatar className="size-7 border border-warning/20">
+          <Avatar className="size-7">
             <AvatarImage
               src={message.author.avatarUrl ?? undefined}
               alt={message.author.name}
             />
-            <AvatarFallback className="text-xs font-semibold">
-              {message.author.name.charAt(0)}
-            </AvatarFallback>
+            <AvatarFallback>{message.author.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <span className="text-xs font-semibold text-warning">
             {message.author.name}

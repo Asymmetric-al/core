@@ -30,30 +30,32 @@ const STATUS_LABELS: Record<StatusFilterValue, string> = {
 
 export function StatusFilter({ value, onValueChange }: StatusFilterProps) {
   return (
-    <Select<StatusFilterValue>
-      items={[
-        { value: "all", label: STATUS_LABELS.all },
-        ...SUPPORT_CONVERSATION_STATUSES.map((status) => ({
-          value: status,
-          label: STATUS_LABELS[status],
-        })),
-      ]}
-      value={value}
-      onValueChange={(next) => {
-        if (next !== null) onValueChange(next);
-      }}
-    >
-      <SelectTrigger aria-label="Status filter" className="w-40">
-        <SelectValue placeholder="All statuses" />
-      </SelectTrigger>
-      <SelectContent align="start">
-        <SelectItem value="all">{STATUS_LABELS.all}</SelectItem>
-        {SUPPORT_CONVERSATION_STATUSES.map((status) => (
-          <SelectItem key={status} value={status}>
-            {STATUS_LABELS[status]}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="w-40">
+      <Select<StatusFilterValue>
+        items={[
+          { value: "all", label: STATUS_LABELS.all },
+          ...SUPPORT_CONVERSATION_STATUSES.map((status) => ({
+            value: status,
+            label: STATUS_LABELS[status],
+          })),
+        ]}
+        value={value}
+        onValueChange={(next) => {
+          if (next !== null) onValueChange(next);
+        }}
+      >
+        <SelectTrigger aria-label="Status filter" className="w-full">
+          <SelectValue placeholder="All statuses" />
+        </SelectTrigger>
+        <SelectContent align="start">
+          <SelectItem value="all">{STATUS_LABELS.all}</SelectItem>
+          {SUPPORT_CONVERSATION_STATUSES.map((status) => (
+            <SelectItem key={status} value={status}>
+              {STATUS_LABELS[status]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

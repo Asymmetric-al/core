@@ -17,7 +17,6 @@ import {
   InputGroup,
   InputGroupAddon,
 } from "@asym/ui/components/shadcn/input-group";
-import { cn } from "@asym/ui/lib/utils";
 import { Check, Search, Settings2, Tag } from "lucide-react";
 import * as React from "react";
 
@@ -73,40 +72,34 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
           if (details.isItemPress) details.cancel();
         }}
       >
-        <ComboboxTrigger
-          aria-label="Labels"
-          render={<Button variant="outline" size="sm" />}
-          className={cn(
-            "h-10 gap-2 rounded-xl border-border bg-background px-3 text-xs font-medium text-foreground",
-            activeCount > 0 && "border-input",
-          )}
-        >
-          <Tag className="size-3.5 text-muted-foreground" />
-          <span>Labels</span>
-          {activeCount > 0 && (
-            <Badge
-              variant="secondary"
-              className="h-5 min-w-[1.25rem] justify-center rounded-md border-transparent bg-primary px-1.5 font-semibold tabular-nums text-primary-foreground"
-            >
-              {activeCount}
-            </Badge>
-          )}
-        </ComboboxTrigger>
-        <ComboboxContent aria-label="Labels" className="w-64 p-0">
-          <InputGroup className="m-2 mb-0 w-auto shadow-none">
-            <InputGroupAddon>
-              <Search />
-            </InputGroupAddon>
-            <ComboboxInput
-              ref={searchRef}
-              aria-label="Search labels"
-              placeholder="Search labels..."
-            />
-          </InputGroup>
+        <div className="w-45">
+          <ComboboxTrigger
+            aria-label="Labels"
+            render={<Button variant="outline" />}
+            className="w-full"
+          >
+            <Tag className="size-3.5 text-muted-foreground" />
+            <span>Labels</span>
+            {activeCount > 0 && <Badge>{activeCount}</Badge>}
+          </ComboboxTrigger>
+        </div>
+        <ComboboxContent aria-label="Labels">
+          <div className="p-2 pb-0">
+            <InputGroup>
+              <InputGroupAddon>
+                <Search />
+              </InputGroupAddon>
+              <ComboboxInput
+                ref={searchRef}
+                aria-label="Search labels"
+                placeholder="Search labels..."
+              />
+            </InputGroup>
+          </div>
           <ComboboxEmpty>No labels.</ComboboxEmpty>
           <ComboboxList>
             {(label: SupportLabel) => (
-              <ComboboxItem key={label.id} value={label.slug} className="gap-2">
+              <ComboboxItem key={label.id} value={label.slug}>
                 <span className="flex size-4 items-center justify-center rounded border border-border in-data-selected:border-primary in-data-selected:bg-primary in-data-selected:text-primary-foreground">
                   <ComboboxItemIndicator>
                     <Check className="size-3" />
@@ -123,7 +116,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-full justify-center text-xs font-medium"
+                className="w-full"
                 onClick={() => {
                   searchRef.current?.focus();
                   onValueChange([]);
@@ -142,7 +135,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
                 setOpen(false);
                 setIsManagerOpen(true);
               }}
-              className="h-8 w-full justify-center gap-1.5 text-xs font-medium text-muted-foreground"
+              className="w-full"
             >
               <Settings2 className="size-3.5" />
               Manage labels

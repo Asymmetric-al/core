@@ -68,7 +68,7 @@ export function ConversationSnoozeMenu({
           </Button>
         }
       />
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Snooze until</DropdownMenuLabel>
 

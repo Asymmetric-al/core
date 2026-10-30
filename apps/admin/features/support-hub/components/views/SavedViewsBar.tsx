@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@asym/ui/components/shadcn/button";
-import { cn } from "@asym/ui/lib/utils";
 import { BookmarkPlus, Folder } from "lucide-react";
 import * as React from "react";
 
@@ -73,10 +72,6 @@ export function SavedViewsBar() {
         variant="ghost"
         size="sm"
         onClick={() => setIsCreating(true)}
-        className={cn(
-          "h-8 gap-1.5 rounded-lg px-2 font-bold uppercase tracking-wider text-muted-foreground",
-          "hover:bg-muted hover:text-foreground",
-        )}
       >
         <BookmarkPlus className="size-3.5" />
         Save filter

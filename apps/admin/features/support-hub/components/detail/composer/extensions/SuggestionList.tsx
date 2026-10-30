@@ -121,7 +121,7 @@ export const SuggestionList = React.forwardRef<
       )}
     >
       {heading ? (
-        <p className="border-b border-border px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+        <p className="border-b border-border px-3 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
           {heading}
         </p>
       ) : null}

@@ -7,7 +7,7 @@ interface TimelineSeparatorProps {
 export function TimelineSeparator({ label }: TimelineSeparatorProps) {
   return (
     <li
-      className="flex items-center gap-3 p-1 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground"
+      className="flex items-center gap-3 p-1 text-xs font-bold uppercase tracking-widest text-muted-foreground"
       aria-label={`Day group ${label}`}
     >
       <span className="h-px flex-1 bg-muted" aria-hidden />

@@ -60,7 +60,7 @@ export function ConversationStatusMenu({
           </Button>
         }
       />
-      <DropdownMenuContent align="end" className="w-44">
+      <DropdownMenuContent align="end">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Set status</DropdownMenuLabel>
 

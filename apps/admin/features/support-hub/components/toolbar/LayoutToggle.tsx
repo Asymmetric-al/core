@@ -34,9 +34,10 @@ export function LayoutToggle({ value, onValueChange }: LayoutToggleProps) {
         const next = values[0];
         if (next === "board" || next === "table") onValueChange(next);
       }}
-      spacing={1}
+      variant="outline"
+      size="sm"
+      spacing={0}
       aria-label="Inbox layout"
-      className="inline-flex h-10 items-center gap-0 rounded-xl border border-border bg-background p-1"
     >
       {OPTIONS.map((option) => {
         const isActive = option.value === value;
@@ -45,18 +46,22 @@ export function LayoutToggle({ value, onValueChange }: LayoutToggleProps) {
           <ToggleGroupItem
             key={option.value}
             type="button"
-            size="sm"
             value={option.value}
             aria-label={option.label}
-            className={cn(
-              "h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold uppercase tracking-wider data-pressed:bg-foreground data-pressed:text-background",
-              isActive
-                ? "hover:bg-foreground hover:text-background"
-                : "text-muted-foreground hover:text-foreground",
-            )}
           >
-            <Icon className="size-3.5" />
-            <span className="hidden sm:inline">{option.label}</span>
+            {/* The shared pressed tint is faint; muting the inactive option
+                keeps the selected layout readable at a glance. */}
+            <Icon
+              className={cn("size-3.5", !isActive && "text-muted-foreground")}
+            />
+            <span
+              className={cn(
+                "hidden sm:inline",
+                !isActive && "text-muted-foreground",
+              )}
+            >
+              {option.label}
+            </span>
           </ToggleGroupItem>
         );
       })}

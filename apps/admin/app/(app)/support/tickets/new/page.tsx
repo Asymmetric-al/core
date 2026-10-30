@@ -16,8 +16,8 @@ export default function NewSupportTicketPage() {
       title="New Support Ticket"
       description="Capture a request and route it to the right support track."
     >
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <Card className="rounded-3xl">
+      <div className="flex flex-col gap-6 lg:flex-row">
+        <Card className="min-w-0 flex-1">
           <CardHeader>
             <CardTitle>Ticket intake</CardTitle>
             <CardDescription>
@@ -37,7 +37,7 @@ export default function NewSupportTicketPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl">
+        <Card className="lg:w-80 lg:shrink-0">
           <CardHeader>
             <CardTitle>Track hints</CardTitle>
             <CardDescription>
