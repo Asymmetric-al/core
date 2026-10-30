@@ -97,12 +97,12 @@ lint check.
 
 ### Requirement: Shared Components Are Linted With Native Semantics
 
-When first-party code uses a shared UI component that renders a native control,
-image or link, accessibility lint SHALL apply the rules for that native element.
-A shared wrapper SHALL NOT hide a violation that the native element would report.
-Every shared export that renders a native element by default SHALL be mapped.
-First-party code SHALL use mapped shared components under their exported
-names, so an import alias or a namespace import cannot bypass the mapping.
+When first-party code uses a shared UI component that renders a native element,
+accessibility lint SHALL apply that element's rules. A shared wrapper SHALL NOT
+hide a violation the native element would report. Every shared export that
+renders a native element by default SHALL be mapped. First-party code SHALL use
+mapped shared components under their exported names, so an import alias, a
+namespace import or a local rebinding cannot bypass the mapping.
 
 #### Scenario: A shared component wraps a native element
 
@@ -110,9 +110,9 @@ names, so an import alias or a namespace import cannot bypass the mapping.
 - **THEN** accessibility lint evaluates that usage as the native element
 - **AND** a violation the native element would report is reported for the shared component usage
 
-#### Scenario: A mapped shared component is imported under another name
+#### Scenario: A mapped shared component is used under another name
 
-- **WHEN** first-party code imports a mapped shared component under a different local name, or imports its module as a namespace
+- **WHEN** first-party code imports a mapped shared component under a different local name, imports its module as a namespace, or binds it to another local name such as `const SharedButton = Button;`
 - **THEN** lint fails and names the file, line and the component's exported name or module
 
 #### Scenario: A shared export renders a native element but is not mapped
@@ -125,15 +125,38 @@ names, so an import alias or a namespace import cannot bypass the mapping.
 - **WHEN** a change adds an export to the shared UI package without classifying the native element it renders by default
 - **THEN** the repository's verification fails and names the unclassified export
 
+### Requirement: Accessibility Exceptions Are Narrow And Explained
+
+An accessibility lint exception SHALL be a next-line directive that names
+exactly one rule and gives a reason that is either a static false-positive
+explanation or a tracked-issue citation. File-scoped, block, multi-rule,
+rule-less or count-based suppressions and inline rule configuration SHALL NOT
+cover accessibility rules. An exception that no longer suppresses a violation
+SHALL fail lint.
+
+#### Scenario: An exception is broader than one line and one rule
+
+- **WHEN** first-party code adds a file-scoped or block disable that covers an accessibility rule, a rule-less disable, a next-line exception naming more than one rule, or an inline configuration comment such as `/* eslint jsx-a11y/alt-text: "off" */` that sets an accessibility rule
+- **THEN** the repository's verification fails and names the file and line
+
+#### Scenario: An exception lacks a valid reason
+
+- **WHEN** first-party code adds an accessibility exception with no reason, or with a reason that is neither a static false-positive explanation nor a tracked-issue citation
+- **THEN** the repository's verification fails and names the file and line
+
 ### Requirement: Existing Accessibility Debt Can Only Shrink
 
-Existing accessibility lint violations and static false positives SHALL be
-recorded only as next-line exceptions that each name exactly one rule and give
-a reason; residual debt SHALL also cite a tracked issue. File-scoped, block,
-multi-rule, rule-less or count-based suppressions and inline rule
-configuration SHALL NOT cover these rules.
-An exception that no longer suppresses a violation SHALL fail lint, so
-recorded debt can only shrink.
+Accessibility violations left unrepaired when enforcement is adopted SHALL be
+recorded as residual-debt exceptions listed in a reviewed baseline. A
+residual-debt exception that is not in the baseline SHALL fail verification,
+and a change SHALL NOT add or alter baseline entries, so recorded debt can only
+shrink.
+
+#### Scenario: A change adds a new residual-debt exception
+
+- **WHEN** a change adds a new violation together with a well-formed residual-debt exception that cites a tracked issue
+- **THEN** the repository's verification fails because the exception is not in the baseline
+- **AND** adding a matching baseline entry in the same change also fails the required check
 
 #### Scenario: A new violation lands in a file with recorded debt
 
@@ -150,16 +173,7 @@ recorded debt can only shrink.
 
 - **WHEN** a change removes a violation that has an exception
 - **THEN** lint fails until the same change deletes that exception
-
-#### Scenario: An exception is broader than one line and one rule
-
-- **WHEN** first-party code adds a file-scoped or block disable that covers an accessibility rule, a rule-less disable, a next-line exception naming more than one rule, or an inline configuration comment such as `/* eslint jsx-a11y/alt-text: "off" */` that sets an accessibility rule
-- **THEN** the repository's verification fails and names the file and line
-
-#### Scenario: An exception lacks a valid reason
-
-- **WHEN** first-party code adds an accessibility exception with no reason, or with a reason that is neither a static false-positive explanation nor a tracked-issue citation
-- **THEN** the repository's verification fails and names the file and line
+- **AND** verification fails until the same change removes its baseline entry
 
 ### Requirement: Rendered And Behavioral Accessibility Evidence Is Retained
 

@@ -53,11 +53,26 @@ See `proposal.md` for the motivation. Current state that shapes the approach:
     public CMS route and the admin preview, and whose
     `components/safe-html.tsx` is used by the apps and `packages/ui`;
   - `packages/database`, with two provider components.
-- Two first-party files import shared components under aliases:
-  `Button as SharedButton` in
-  `apps/admin/features/mission-control/care/components/UI.tsx` and
-  `Label as UiLabel` in
-  `apps/admin/features/support-hub/components/labels/LabelForm.tsx`.
+- Six imports in two files alias shared components:
+  - `apps/admin/features/mission-control/care/components/UI.tsx` imports
+    `Button`, `Dialog`, `DialogContent`, `DialogHeader` and `DialogTitle` as
+    `Shared*`, because it exports its own `DialogHeader` and `DialogTitle`
+    wrappers under the same names;
+  - `apps/admin/features/support-hub/components/labels/LabelForm.tsx` imports
+    `Label as UiLabel`.
+
+  No first-party code imports `@asym/ui` as a namespace, renames the default
+  import of `next/link` or `next/image`, or rebinds a shared component with
+  `const X = Component;`.
+
+- Outside this change, the retired paths `tooling/shadscan` and
+  `shadscan-policy` appear in:
+  - live gate code and tests, which this change deletes;
+  - `docs/guides/development/shadscan.md`, which task 2.7 rewrites;
+  - dated records under `docs/maintenance/modernization`, `docs/plans` and
+    `docs/qa`;
+  - two issue-scoped acceptance records: the issue-2067 runtime checklist,
+    and the opt-in pinned-path list in the issue-2277 scope test.
 - Per-category scores are computed by `categoryScores` in
   `scripts/verify/shadscan-policy.mjs`. The publish test fixture has no
   category data.
@@ -170,6 +185,12 @@ Rewritten: the `shadscan-publish` test, for the simplified report.
 Kept as is: `shadscan-browser-resolution.test.ts`. It guards dependency
 isolation for as long as the scanner stays installed.
 
+Dated records and the two issue-scoped acceptance records that mention the
+retired paths stay as history. The retirement check therefore searches only
+live paths, excluding `openspec/`, `docs/maintenance/`, `docs/plans/`,
+`docs/qa/`, `tests/unit/acceptance/issue-2067/` and
+`tests/unit/acceptance/issue-2277/`.
+
 All behavior, browser and axe proof tests keep their file names and
 assertions. Renaming them is optional follow-up churn and is not part of
 this change.
@@ -245,9 +266,19 @@ inside `packages/ui`) and default imports of `next/link` and `next/image`.
 It also rejects namespace imports of those modules (`import * as ui from …`):
 the plugin names `<ui.Button>` as `ui.Button`, which the `Button` mapping
 does not match. No first-party code imports them as a namespace today.
-Aliases of unrelated exports, such as `Link as LinkIcon` from an icon set,
-are not affected because the selector matches the import source. The two
-existing aliases are renamed during apply.
+It also rejects a local rebinding of a mapped component, such as
+`const SharedButton = Button;`, using a selector on variable declarators
+whose initializer is a mapped component's name. Aliases of unrelated exports,
+such as `Link as LinkIcon` from an icon set, are not affected, because the
+selectors match the import source or the mapped names.
+
+All six existing aliased imports are migrated during apply. In the care
+`UI.tsx` file, the local `DialogHeader` and `DialogTitle` wrappers are
+renamed (for example `CareDialogHeader` and `CareDialogTitle`) and their call
+sites updated. The shared `Button` and `Dialog*` components then import under
+their exported names. `LabelForm.tsx` imports `Label` directly. The rule
+covers only mapped exports, but all six move together, so one module never
+mixes aliased and direct shared imports.
 
 - **Rejected: listing every alias in the mapping.** Each new alias would
   silently bypass lint until someone added it.
@@ -265,7 +296,8 @@ recorded as a limitation in the guide.
    `eslint-disable-next-line jsx-a11y/<rule> -- false positive: <why>`.
 4. Record only what cannot be repaired safely in this change, as
    `eslint-disable-next-line jsx-a11y/<rule> -- debt #<issue>: <why>`. Open
-   that issue with the residual list.
+   that issue with the residual list, and list each entry in the debt
+   baseline described below.
 
 These two forms are the only accepted way to except an accessibility rule.
 Each covers one line and one rule, which gives the spec's shrink-only
@@ -314,6 +346,33 @@ accessibility debt cannot move into the count-based file.
 - **Residual limit:** a different violation of the same rule on the same
   excepted line stays hidden. Review covers that narrow case.
 
+**Debt baseline.** Line anchoring stops a debt exception from hiding other
+lines, but on its own it would still let a change add a new violation with a
+fresh, well-formed `debt #` exception. Residual debt is therefore frozen at
+adoption:
+
+- `tooling/eslint-config/a11y-debt-baseline.json` lists each residual
+  exception with its file, rule, issue and the trimmed source text of the line
+  it covers. The adoption commit creates the file and it is reviewed once. If
+  the repair pass leaves no debt, the file is not created and every `debt #`
+  exception fails.
+- The directive verification fails on any `debt #` exception that has no
+  exactly matching baseline entry, and on any baseline entry with no matching
+  live exception. Debt directives cannot be added, moved to another line or
+  edited, and stale entries must be pruned.
+- A check in the required CI lint job reads the baseline at the pull
+  request's base commit, fetching it if the checkout is shallow. It fails if
+  the head adds or changes any entry, so only removals pass. The local
+  preflight runs the same comparison against the merge base with
+  `origin/develop` when that ref exists.
+
+A new static false positive after adoption still uses the
+`false positive:` form. Such a directive is visible in review and cannot
+reference an issue as debt.
+
+- **Rejected: a count of debt exceptions per file.** It would reopen the
+  same-count swap.
+
 ### D7. Amend other active changes only after ratification
 
 After the owner ratifies this proposal, every active change whose open work
@@ -359,8 +418,12 @@ section imposes no present behavior.
   regressions that matter. A drop seen in review is triaged under the
   "Triaged By Review" requirement.
 - **[Risk]** The jsx-a11y inventory is larger than expected. → D6's
-  line-anchored exceptions and tracked issue keep the change bounded without
-  accepting new debt, at the cost of one directive per residual line.
+  line-anchored exceptions, frozen baseline and tracked issue keep the
+  change bounded without accepting new debt, at the cost of one directive and
+  one baseline entry per residual line.
+- **[Risk]** A real violation is labeled as a false positive after adoption.
+  → The baseline check cannot judge the label, so review is the control.
+  Each such directive names its rule and reason in the diff.
 - **[Risk]** Unused-disable reporting at error also covers the 4 existing
   directives for other rules. → Any stale ones are deleted during apply.
   Deleting an unused directive cannot change behavior.

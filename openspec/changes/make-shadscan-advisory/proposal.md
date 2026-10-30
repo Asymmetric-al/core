@@ -42,7 +42,8 @@ its rules. The existing axe-based Playwright checks cover rendered behavior.
   `packages/ui` components to their native semantics, and reject import
   aliases that would bypass that mapping. Record any violation left after
   repair as a single-line, single-rule exception that fails lint once it is
-  unused, so debt can only shrink.
+  unused. Each exception is also listed in a baseline that CI lets shrink but
+  never grow, so debt can only shrink.
 - Keep every behavioral, Playwright and axe test written as Shadscan proof.
   They are ordinary regression tests now.
 - When this change is ratified, amend the active `modernize-shadscan-readiness`
