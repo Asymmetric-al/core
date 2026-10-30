@@ -22,8 +22,17 @@ import {
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
 import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
 import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
+import {
+  Item,
+  ItemContent,
+  ItemMedia,
+  ItemTitle,
+} from "@asym/ui/components/shadcn/item";
 import { Meter } from "@asym/ui/components/shadcn/meter";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
@@ -606,35 +615,22 @@ const MOCK_ATTENDEES: Attendee[] = [
 
 // --- Helper Functions ---
 
-const getStatusColor = (status: SpeakerStatus) => {
-  switch (status) {
-    case "Confirmed":
-      return "bg-success/15 text-success border-success/25";
-    case "Invited":
-      return "bg-info/10 text-info border-info/25";
-    case "Pending":
-      return "bg-warning/15 text-warning border-warning/25";
-    case "Declined":
-      return "bg-destructive/10 text-destructive border-destructive/25";
-    default:
-      return "bg-muted text-muted-foreground";
-  }
+type BadgeVariant = React.ComponentProps<typeof Badge>["variant"];
+
+const SPEAKER_STATUS_BADGE_VARIANT: Record<SpeakerStatus, BadgeVariant> = {
+  Confirmed: "success",
+  Invited: "info",
+  Pending: "warning",
+  Declined: "destructive-subtle",
 };
 
-const getAttendeeStatusColor = (status: Attendee["status"]) => {
-  switch (status) {
-    case "Checked In":
-      return "bg-success/10 text-success border-success/25";
-    case "Registered":
-      return "bg-info/10 text-info border-info/25";
-    case "Waitlist":
-      return "bg-warning/10 text-warning border-warning/25";
-    case "Cancelled":
-      return "bg-destructive/10 text-destructive border-destructive/25";
-    default:
-      return "bg-muted text-muted-foreground border-border";
-  }
-};
+const ATTENDEE_STATUS_BADGE_VARIANT: Record<Attendee["status"], BadgeVariant> =
+  {
+    "Checked In": "success",
+    Registered: "info",
+    Waitlist: "warning",
+    Cancelled: "destructive-subtle",
+  };
 
 const getPaymentStatusColor = (status: Attendee["paymentStatus"]) => {
   switch (status) {
@@ -680,7 +676,7 @@ const RegistrationTrendsChart = dynamic(
     ssr: false,
     loading: () => (
       <Card className="col-span-4 overflow-hidden">
-        <CardHeader className="border-b border-border bg-muted/30">
+        <CardHeader>
           <CardTitle className="text-base font-semibold">
             Registration Trends
           </CardTitle>
@@ -724,11 +720,9 @@ function EventMetricCard({
   children?: React.ReactNode;
 }) {
   return (
-    <Card className="border-border shadow-sm">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-y-0 px-5 py-4 pb-2">
-        <CardTitle className="text-sm font-semibold text-muted-foreground">
-          {title}
-        </CardTitle>
+        <CardTitle className="text-sm font-semibold">{title}</CardTitle>
         <Icon className={cn("size-4", iconClassName)} />
       </CardHeader>
       <CardContent className="px-5 pb-4 pt-0">
@@ -782,7 +776,7 @@ function EventsOverviewTab({ event }: { event: ConferenceEvent }) {
               <Meter
                 aria-label="Event registration capacity"
                 value={registrationCapacity.progressValue}
-                className="mt-3 h-1.5"
+                className="mt-3"
               />
             </EventMetricCard>
           </motion.div>
@@ -842,38 +836,26 @@ function EventsOverviewTab({ event }: { event: ConferenceEvent }) {
         <div className="grid gap-6 md:grid-cols-7">
           <RegistrationTrendsChart />
           <Card className="col-span-3 overflow-hidden">
-            <CardHeader className="border-b border-border bg-muted/30 px-5 py-4">
+            <CardHeader className="px-5 py-4">
               <CardTitle className="text-base font-semibold">
                 Quick Actions
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3 p-5">
-              <Button
-                variant="outline"
-                className="flex h-18 flex-col gap-1.5 rounded-xl border-border text-xs font-semibold"
-              >
-                <Printer className="size-5 text-muted-foreground" />
+            <CardContent className="grid gap-3 p-5">
+              <Button variant="outline" className="w-full">
+                <Printer className="size-4 text-muted-foreground" />
                 <span>Print Badges</span>
               </Button>
-              <Button
-                variant="outline"
-                className="flex h-18 flex-col gap-1.5 rounded-xl border-border text-xs font-semibold"
-              >
-                <Mail className="size-5 text-muted-foreground" />
+              <Button variant="outline" className="w-full">
+                <Mail className="size-4 text-muted-foreground" />
                 <span>Email Attendees</span>
               </Button>
-              <Button
-                variant="outline"
-                className="flex h-18 flex-col gap-1.5 rounded-xl border-border text-xs font-semibold"
-              >
-                <FileText className="size-5 text-muted-foreground" />
+              <Button variant="outline" className="w-full">
+                <FileText className="size-4 text-muted-foreground" />
                 <span>Run Reports</span>
               </Button>
-              <Button
-                variant="outline"
-                className="flex h-18 flex-col gap-1.5 rounded-xl border-border text-xs font-semibold"
-              >
-                <Settings className="size-5 text-muted-foreground" />
+              <Button variant="outline" className="w-full">
+                <Settings className="size-4 text-muted-foreground" />
                 <span>Integrations</span>
               </Button>
             </CardContent>
@@ -884,6 +866,17 @@ function EventsOverviewTab({ event }: { event: ConferenceEvent }) {
   );
 }
 
+const CONFIG_SECTIONS = [
+  { label: "Venues & Spaces", icon: Building },
+  { label: "Lodging & Travel", icon: BedDouble },
+  { label: "Event Logistics", icon: Wifi },
+  { label: "Tracks & Types", icon: Layers },
+] as const;
+
+// Only the venues panel is built; it stays the selected section.
+const ACTIVE_CONFIG_SECTION: (typeof CONFIG_SECTIONS)[number]["label"] =
+  "Venues & Spaces";
+
 function EventsConfigTab({ event }: { event: ConferenceEvent }) {
   return (
     <TabsContent value="config" className="mt-5">
@@ -893,32 +886,34 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
         transition={{ duration: 0.2 }}
         className="flex min-h-150 flex-col gap-5 lg:flex-row"
       >
-        <div className="w-full shrink-0 space-y-1 rounded-2xl border border-border bg-card p-2 shadow-sm lg:w-64">
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 rounded-xl bg-primary font-semibold text-primary-foreground hover:bg-primary hover:text-primary-foreground"
-          >
-            <Building className="size-4" /> Venues & Spaces
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <BedDouble className="size-4" /> Lodging & Travel
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <Wifi className="size-4" /> Event Logistics
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <Layers className="size-4" /> Tracks & Types
-          </Button>
-        </div>
+        <nav
+          aria-label="Event configuration sections"
+          className="w-full shrink-0 rounded-2xl border border-border bg-card p-2 shadow-sm lg:w-64"
+        >
+          <ul className="space-y-1">
+            {CONFIG_SECTIONS.map(({ label, icon: SectionIcon }) => {
+              const isCurrent = label === ACTIVE_CONFIG_SECTION;
+              return (
+                <li key={label}>
+                  <Item
+                    render={<button type="button" />}
+                    aria-current={isCurrent ? "true" : undefined}
+                    variant={isCurrent ? "muted" : "default"}
+                    size="sm"
+                    className="w-full"
+                  >
+                    <ItemMedia>
+                      <SectionIcon className="size-4 text-muted-foreground" />
+                    </ItemMedia>
+                    <ItemContent>
+                      <ItemTitle>{label}</ItemTitle>
+                    </ItemContent>
+                  </Item>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
         <div className="flex-1 rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>
@@ -929,16 +924,13 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
                 Configure physical locations and assign rooms.
               </p>
             </div>
-            <Button className="rounded-xl bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary">
+            <Button>
               <Plus className="mr-2 size-4" /> Add Venue
             </Button>
           </div>
           {event.venues.map((venue) => (
-            <Card
-              key={venue.id}
-              className="mb-4 border-border bg-muted/50 shadow-none"
-            >
-              <CardHeader className="flex flex-row items-center justify-between border-b border-border py-3">
+            <Card key={venue.id} className="mb-4">
+              <CardHeader className="flex flex-row items-center justify-between py-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-card rounded-lg border border-border text-info">
                     <Building className="size-5" />
@@ -956,24 +948,20 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
               <CardContent className="grid gap-5 p-5 md:grid-cols-2">
                 <div className="space-y-3 text-left">
                   <div className="space-y-1">
-                    <Label className="text-xs font-semibold text-muted-foreground">
+                    <p className="text-xs font-semibold text-muted-foreground">
                       Address
-                    </Label>
+                    </p>
                     <p className="text-sm font-medium">
                       {venue.address}, {venue.city}, {venue.state} {venue.zip}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs font-semibold text-muted-foreground">
+                    <p className="text-xs font-semibold text-muted-foreground">
                       Rooms
-                    </Label>
+                    </p>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {venue.rooms.map((room) => (
-                        <Badge
-                          key={room.id}
-                          variant="secondary"
-                          className="bg-card border-border text-muted-foreground"
-                        >
+                        <Badge key={room.id} variant="outline">
                           {room.name} ({room.capacity})
                         </Badge>
                       ))}
@@ -982,9 +970,9 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
                 </div>
                 <div className="space-y-3 text-left">
                   <div className="space-y-1">
-                    <Label className="text-xs font-semibold text-muted-foreground">
+                    <p className="text-xs font-semibold text-muted-foreground">
                       Arrival Info
-                    </Label>
+                    </p>
                     <p className="text-sm text-muted-foreground leading-relaxed italic">
                       &quot;{venue.directions}&quot;
                     </p>
@@ -1026,11 +1014,11 @@ function EventsSpeakersTab({
             whileHover={{ y: -2 }}
             transition={SPEAKER_CARD_SPRING}
           >
-            <Card className="group cursor-pointer overflow-hidden transition-shadow [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md">
+            <Card className="overflow-hidden">
               <CardHeader className="flex flex-row items-start gap-4 p-5">
-                <Avatar className="size-12 border-2 border-background shadow-sm transition-transform [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105">
+                <Avatar className="size-12">
                   <AvatarImage src={speaker.avatar} />
-                  <AvatarFallback className="bg-muted font-semibold">
+                  <AvatarFallback>
                     {speaker.firstName[0]}
                     {speaker.lastName[0]}
                   </AvatarFallback>
@@ -1047,19 +1035,15 @@ function EventsSpeakersTab({
                   </p>
                   <div className="mt-2">
                     <Badge
-                      variant="outline"
-                      className={cn(
-                        "h-5 px-1.5 font-semibold shadow-none",
-                        getStatusColor(speaker.status),
-                      )}
+                      variant={SPEAKER_STATUS_BADGE_VARIANT[speaker.status]}
                     >
                       {speaker.status}
                     </Badge>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="px-5 pb-5 pt-0 text-left">
-                <Separator className="mb-3 opacity-50" />
+              <CardContent className="px-5 pb-5 pt-0">
+                <Separator className="mb-3" />
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
                     <span>Assigned Sessions</span>
@@ -1087,24 +1071,18 @@ function EventsSpeakersTab({
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="p-0 border-t border-border divide-x divide-border h-10">
-                <Button
-                  variant="ghost"
-                  className="size-full rounded-none text-xs font-semibold text-muted-foreground hover:text-info"
-                >
+              <CardFooter className="gap-2">
+                <Button variant="ghost" size="sm" className="grow basis-0">
                   <Mail className="size-3.5 mr-2" /> Message
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="size-full rounded-none text-xs font-semibold text-muted-foreground hover:text-foreground"
-                >
+                <Button variant="ghost" size="sm" className="grow basis-0">
                   <User className="size-3.5 mr-2" /> Details
                 </Button>
               </CardFooter>
             </Card>
           </motion.div>
         ))}
-        <button className="press-feedback group flex h-55 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border text-muted-foreground transition-[background-color,border-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-info/25 hover:bg-info/5 hover:text-info">
+        <button className="press-feedback group flex h-55 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border text-muted-foreground transition-colors duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-info/25 hover:bg-info/5 hover:text-info">
           <div className="flex size-12 items-center justify-center rounded-full border border-border bg-muted [@media(hover:hover)_and_(pointer:fine)]:group-hover:bg-card [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-sm">
             <Plus className="size-6" />
           </div>
@@ -1129,15 +1107,13 @@ function EventsAttendeesTab() {
           <div className="flex items-center gap-3 py-1">
             <Avatar className="size-8">
               <AvatarImage src={row.original.avatar} />
-              <AvatarFallback className="text-xs bg-muted font-semibold">
-                {getInitials(row.original.name)}
-              </AvatarFallback>
+              <AvatarFallback>{getInitials(row.original.name)}</AvatarFallback>
             </Avatar>
             <div className="text-left">
               <div className="text-sm font-semibold text-foreground">
                 {row.original.name}{" "}
                 {row.original.isVip && (
-                  <Badge className="ml-1 h-4 bg-warning/15 text-warning hover:bg-warning/15 uppercase tracking-tighter px-1 border-none shadow-none">
+                  <Badge variant="warning" className="ml-1">
                     VIP
                   </Badge>
                 )}
@@ -1161,13 +1137,7 @@ function EventsAttendeesTab() {
           <DataTableColumnHeader column={column} title="Status" />
         ),
         cell: ({ row }) => (
-          <Badge
-            variant="outline"
-            className={cn(
-              "h-5 font-semibold shadow-none",
-              getAttendeeStatusColor(row.original.status),
-            )}
-          >
+          <Badge variant={ATTENDEE_STATUS_BADGE_VARIANT[row.original.status]}>
             {row.original.status}
           </Badge>
         ),
@@ -1197,8 +1167,7 @@ function EventsAttendeesTab() {
           <div className="flex justify-end pr-2">
             <Button
               variant="ghost"
-              size="icon"
-              className="size-8 text-muted-foreground"
+              size="icon-sm"
               aria-label="Open attendee actions"
             >
               <MoreHorizontal className="size-4" />
@@ -1217,24 +1186,24 @@ function EventsAttendeesTab() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
       >
-        <Card className="border-border shadow-sm">
+        <Card>
           <div className="p-4 border-b border-border bg-muted/50 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="relative w-full md:w-96">
-              <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-              <Input
-                aria-label="Search attendees"
-                placeholder="Search attendees..."
-                className="pl-9 bg-card"
-              />
+            <div className="w-full md:w-96">
+              <InputGroup>
+                <InputGroupAddon>
+                  <Search className="size-4 text-muted-foreground" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  aria-label="Search attendees"
+                  placeholder="Search attendees..."
+                />
+              </InputGroup>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
-              <Button
-                variant="outline"
-                className="rounded-xl border-border bg-card text-xs font-semibold shadow-none"
-              >
+              <Button variant="outline">
                 <Download className="mr-2 size-4" /> Export CSV
               </Button>
-              <Button className="rounded-xl bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary">
+              <Button>
                 <UserPlus className="mr-2 size-4" /> Register Person
               </Button>
             </div>
@@ -1300,12 +1269,14 @@ export default function EventsPage() {
           }}
           className="w-full"
         >
-          <TabsList className="h-auto w-full flex-wrap justify-start gap-1 sm:w-fit">
-            <TabsTrigger value="dashboard">Overview</TabsTrigger>
-            <TabsTrigger value="config">Configuration</TabsTrigger>
-            <TabsTrigger value="speakers">Speakers</TabsTrigger>
-            <TabsTrigger value="attendees">Attendees</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList>
+              <TabsTrigger value="dashboard">Overview</TabsTrigger>
+              <TabsTrigger value="config">Configuration</TabsTrigger>
+              <TabsTrigger value="speakers">Speakers</TabsTrigger>
+              <TabsTrigger value="attendees">Attendees</TabsTrigger>
+            </TabsList>
+          </div>
 
           <EventsOverviewTab event={event} />
           <EventsConfigTab event={event} />
