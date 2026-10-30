@@ -93,7 +93,7 @@ When first-party code uses a shared UI component that renders a native control,
 image or link, accessibility lint SHALL apply the rules for that native element.
 A shared wrapper SHALL NOT hide a violation that the native element would report.
 First-party code SHALL use mapped shared components under their exported
-names, so an import alias cannot bypass the mapping.
+names, so an import alias or a namespace import cannot bypass the mapping.
 
 #### Scenario: A shared component wraps a native element
 
@@ -103,8 +103,8 @@ names, so an import alias cannot bypass the mapping.
 
 #### Scenario: A mapped shared component is imported under another name
 
-- **WHEN** first-party code imports a mapped shared component under a different local name
-- **THEN** lint fails and names the file, line and the component's exported name
+- **WHEN** first-party code imports a mapped shared component under a different local name, or imports its module as a namespace
+- **THEN** lint fails and names the file, line and the component's exported name or module
 
 ### Requirement: Existing Accessibility Debt Can Only Shrink
 

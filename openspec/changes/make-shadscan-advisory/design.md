@@ -198,6 +198,9 @@ The plugin matches components by their JSX name, so an import alias such as
 rejects any import of a mapped component under another local name: named
 imports from its shared module (the `@asym/ui` path, or a relative path
 inside `packages/ui`) and default imports of `next/link` and `next/image`.
+It also rejects namespace imports of those modules (`import * as ui from …`):
+the plugin names `<ui.Button>` as `ui.Button`, which the `Button` mapping
+does not match. No first-party code imports them as a namespace today.
 Aliases of unrelated exports, such as `Link as LinkIcon` from an icon set,
 are not affected because the selector matches the import source. The two
 existing aliases are renamed during apply.
