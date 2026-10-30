@@ -31,8 +31,10 @@ before running `bun run skills:sync`.
    literal `zinc-*` or hardcoded colors.
 6. Follow [Core design-system lint](references/design-system-lint.md) for
    scoped lint, raw-finding review, authoring exceptions, and checking consumers
-   after shared changes. Preserve other shadcn guardrails and browser evidence
-   when visible. Do not load this workflow for unrelated work.
+   after shared changes. To fix a specific finding, use the short
+   [fix guide](references/design-system-lint-fixes.md). Preserve other shadcn
+   guardrails and browser evidence when visible. Do not load this workflow for
+   unrelated work.
 
 ### Checklist
 

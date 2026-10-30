@@ -7,6 +7,10 @@ import { designSystemExceptions } from "./design-system-exceptions.mjs";
 
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
 
+// Every finding links here: the short, agent-facing fix guide.
+export const fixGuide =
+  "docs/ai/skills/moai-library-shadcn/references/design-system-lint-fixes.md";
+
 export const uiWorkspaces = [
   "apps/admin",
   "apps/donor",
@@ -52,6 +56,7 @@ const dimensions = [
   "max-h-*",
   "size-*",
 ];
+const popupWidth = [...placement, "w-*", "min-w-*", "max-w-*"];
 const composition = [
   ...placement,
   ...dimensions,
@@ -87,13 +92,26 @@ const contracts = [
     allow: [...placement, ...dimensions, "rounded", "rounded-*"],
   },
   { pattern: "^Avatar$", allow: [...placement, "size-*"] },
+  // Portaled popup contents expose their width through className. This follows
+  // the official Dialog/Popover examples and Sheet's shared Popup API; an
+  // ordinary DOM parent cannot set the width of a portaled child. Height,
+  // scrolling, positioning, focus and motion remain component-owned, so the
+  // upstream "put layout on a parent" advice is replaced for these popups.
   {
-    // Portaled popup contents expose their width through className. This follows
-    // the official Dialog/Popover examples and Sheet's shared Popup API; an
-    // ordinary DOM parent cannot set the width of a portaled child. Height,
-    // scrolling, positioning, focus and motion remain component-owned.
-    pattern: "^(DialogContent|PopoverContent|SheetContent)$",
-    allow: [...placement, "w-*", "min-w-*", "max-w-*"],
+    pattern: "^DialogContent$",
+    allow: popupWidth,
+    message: {
+      layout:
+        '"{{className}}" is not allowed on <DialogContent>: the dialog owns its height, scrolling, layout and position. For long content, use <DialogContent scrollable>. For flex, grid or positioning, put the classes on an element inside the dialog. Width (w-*, min-w-*, max-w-*) and margin are yours to set.',
+    },
+  },
+  {
+    pattern: "^(PopoverContent|SheetContent)$",
+    allow: popupWidth,
+    message: {
+      layout:
+        '"{{className}}" is not allowed on <{{component}}>: the popup owns its height, scrolling, layout and position. Put sizing, scrolling, flex, grid or positioning on an element inside it instead. Width (w-*, min-w-*, max-w-*) and margin are yours to set.',
+    },
   },
   {
     // PostContent's richTextClassName/htmlClassName explicitly style authored
@@ -130,6 +148,14 @@ const primitiveArbitrary = [
   "focus-visible:ring-[3px]",
   "transition-[color,box-shadow]",
 ];
+
+// Core-specific wording only where upstream's built-in guidance would send an
+// agent the wrong way. Size, variant and scale-replacement messages stay
+// upstream's: they list the real options and say when a swap is exact.
+// Upstream sends new colors to the app's own stylesheet, but Core's theme
+// lives only in packages/ui.
+const rawColorMessage =
+  "{{className}} is not a Core theme color. Nearest tokens: {{suggestions|none close}}. Use a semantic token such as background, card, primary, muted, accent or border; for state use success, warning, info or destructive; for SVG use currentColor with a text color. Palette classes such as zinc-* are not allowed. A new color is a purpose-named token in packages/ui/styles/globals.css, never in an app stylesheet.";
 
 // Structural Maia geometry, slot alignment and Base UI positioning. These are
 // exact values in named implementations, not a layout-category exemption.
@@ -309,12 +335,12 @@ export function designSystemConfig({
           ],
           // Re-exports resolve to the defining components.json with the pinned
           // compatibility patch. Do not label all @asym/ui exports as primitives.
-          note: "See docs/ai/skills/moai-library-shadcn/references/design-system-lint.md.",
+          note: `Fix guide: ${fixGuide}.`,
         },
       },
       rules: {
         "shadcn/no-restyle": ["error", { allow: placement, contracts }],
-        "shadcn/no-raw-colors": "error",
+        "shadcn/no-raw-colors": ["error", { message: rawColorMessage }],
         "shadcn/no-arbitrary-values": ["error", { allow: motionTokens }],
         "shadcn/no-inline-styles": "error",
         "shadcn/no-unknown-classes": "error",

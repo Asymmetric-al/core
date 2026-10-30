@@ -4550,8 +4550,8 @@
       "sourcePath": "docs/ai/skills/moai-library-shadcn/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "7188477b97ecf9685c96f66170c50bf7e5f531e0a4c06e3bdd4a5bbc5b1fc219",
-      "treeHash": "e8b237a19751bb368a5cfba6f029dade7091cdbedad89257f7a010b4ec05c7aa",
+      "entrypointHash": "dd08387a8c18ad3a15520db8f8579549e215b33502fdeea27d673c959ed68593",
+      "treeHash": "160209fa8cb44925005efaa35b603ea3385b597b273a8552fbba4e7c66cf4ef9",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
