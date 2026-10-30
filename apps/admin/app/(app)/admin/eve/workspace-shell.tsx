@@ -105,13 +105,11 @@ export function EveWorkspaceIndex() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle
-          aria-level={2}
-          role="heading"
-          className="flex items-center gap-2"
-        >
-          <PanelsTopLeft aria-hidden="true" className="size-5" />
-          Operations workspace
+        <CardTitle aria-level={2} role="heading">
+          <span className="flex items-center gap-2">
+            <PanelsTopLeft aria-hidden="true" className="size-5" />
+            Operations workspace
+          </span>
         </CardTitle>
         <CardDescription>
           Governance and control come first. Inspect real operational state
@@ -124,7 +122,7 @@ export function EveWorkspaceIndex() {
             {WORKSPACE_SECTIONS.map((section) => (
               <li key={section.id}>
                 <a
-                  className="group flex h-full items-start justify-between gap-3 rounded-lg border border-border bg-background p-3 text-left outline-none transition-[border-color,background-color] hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="group flex h-full items-start justify-between gap-3 rounded-lg border border-border bg-background p-3 text-left outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   href={`#${section.id}`}
                 >
                   <span>
@@ -197,14 +195,11 @@ export function EveCapabilityConnectionsPanel() {
     <section aria-labelledby="eve-connections-title">
       <Card>
         <CardHeader>
-          <CardTitle
-            id="eve-connections-title"
-            aria-level={2}
-            role="heading"
-            className="flex items-center gap-2"
-          >
-            <Activity aria-hidden="true" className="size-5" />
-            Capability connections
+          <CardTitle id="eve-connections-title" aria-level={2} role="heading">
+            <span className="flex items-center gap-2">
+              <Activity aria-hidden="true" className="size-5" />
+              Capability connections
+            </span>
           </CardTitle>
           <CardDescription>
             Future integrations are labeled unavailable. This workspace never

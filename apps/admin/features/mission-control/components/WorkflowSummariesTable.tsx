@@ -88,7 +88,7 @@ export function WorkflowSummariesTable({
 }) {
   if (summaries.length === 0) {
     return (
-      <Empty className="rounded-2xl border border-dashed">
+      <Empty>
         <EmptyHeader>
           <EmptyMedia variant="icon">
             <Workflow />
@@ -153,8 +153,10 @@ export function WorkflowSummariesTable({
                     </div>
                   ) : null}
                 </TableCell>
-                <TableCell className="px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground">
-                  {summary.attempts}
+                <TableCell className="px-4 py-3">
+                  <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                    {summary.attempts}
+                  </span>
                 </TableCell>
                 <TableCell className="px-4 py-3">
                   {summary.notification.level === "urgent" ? (

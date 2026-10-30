@@ -1,71 +1,4 @@
 {
-  "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
-    "shadcn/no-restyle": {
-      "count": 7
-    }
-  },
-  "apps/admin/app/(app)/admin/eve/approval-budget-panel.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
-  "apps/admin/app/(app)/admin/eve/engineering-monitors-panel.tsx": {
-    "shadcn/no-restyle": {
-      "count": 3
-    }
-  },
-  "apps/admin/app/(app)/admin/eve/launch-readiness-panel.tsx": {
-    "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
-  "apps/admin/app/(app)/admin/eve/model-policy-panel.tsx": {
-    "shadcn/no-restyle": {
-      "count": 9
-    }
-  },
-  "apps/admin/app/(app)/admin/eve/notifications-panel.tsx": {
-    "shadcn/no-restyle": {
-      "count": 3
-    }
-  },
-  "apps/admin/app/(app)/admin/eve/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 20
-    }
-  },
-  "apps/admin/app/(app)/admin/eve/retention-panel.tsx": {
-    "shadcn/no-restyle": {
-      "count": 3
-    }
-  },
-  "apps/admin/app/(app)/admin/eve/workspace-shell.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
-  "apps/admin/app/(app)/admin/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 10
-    }
-  },
-  "apps/admin/app/(app)/automations/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 38
-    }
-  },
   "apps/admin/app/(app)/care/directory/page-client.tsx": {
     "shadcn/no-restyle": {
       "count": 5
@@ -243,11 +176,6 @@
       "count": 2
     }
   },
-  "apps/admin/app/(app)/help/about/page.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
   "apps/admin/app/(app)/mobilize/locations/page-client.tsx": {
     "shadcn/no-restyle": {
       "count": 12
@@ -259,34 +187,6 @@
     },
     "shadcn/no-restyle": {
       "count": 128
-    }
-  },
-  "apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    }
-  },
-  "apps/admin/app/(app)/reports/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 8
-    }
-  },
-  "apps/admin/app/(app)/reports/reports-charts.tsx": {
-    "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
-  "apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx": {
-    "shadcn/no-restyle": {
-      "count": 31
-    }
-  },
-  "apps/admin/app/(app)/sign/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
-    "shadcn/no-restyle": {
-      "count": 26
     }
   },
   "apps/admin/app/(app)/support/contacts/page.tsx": {
@@ -346,41 +246,6 @@
       "count": 12
     }
   },
-  "apps/admin/app/(auth)/loading.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/app/(auth)/login/loading.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    }
-  },
-  "apps/admin/app/eve/global-panel.tsx": {
-    "shadcn/no-restyle": {
-      "count": 12
-    }
-  },
-  "apps/admin/app/global-error.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/app/global-not-found.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/app/mc-shell.tsx": {
-    "shadcn/no-restyle": {
-      "count": 37
-    }
-  },
   "apps/admin/app/web-studio/web-studio-sections.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 8
@@ -422,11 +287,6 @@
     },
     "shadcn/no-restyle": {
       "count": 3
-    }
-  },
-  "apps/admin/components/studio/studio-chrome.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
     }
   },
   "apps/admin/features/mission-control/care/components/CareDashboard.tsx": {
@@ -495,11 +355,6 @@
       "count": 4
     }
   },
-  "apps/admin/features/mission-control/components/WorkflowSummariesTable.tsx": {
-    "shadcn/no-restyle": {
-      "count": 7
-    }
-  },
   "apps/admin/features/mission-control/components/app-shell/index.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 3
@@ -522,27 +377,6 @@
     },
     "shadcn/no-raw-colors": {
       "count": 18
-    }
-  },
-  "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
-    "shadcn/no-restyle": {
-      "count": 30
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
-    }
-  },
-  "apps/admin/features/mission-control/components/tiles/tile-card.tsx": {
-    "shadcn/no-restyle": {
-      "count": 18
-    }
-  },
-  "apps/admin/features/mission-control/components/tiles/workflows-panel.tsx": {
-    "shadcn/no-restyle": {
-      "count": 7
     }
   },
   "apps/admin/features/mission-control/locations/components/LocationEditor.tsx": {
@@ -898,69 +732,6 @@
   "apps/admin/features/support-hub/components/views/SavedViewsBar.tsx": {
     "shadcn/no-restyle": {
       "count": 10
-    }
-  },
-  "apps/admin/src/cms-ui/brand/Logo.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
-    "shadcn/no-restyle": {
-      "count": 4
-    }
-  },
-  "apps/admin/src/cms-ui/root/Header.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
-  "apps/admin/src/cms-ui/root/Nav.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
-    "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/collections/shared/list-workspace/NativeCollectionListView.tsx": {
-    "shadcn/no-restyle": {
-      "count": 10
-    },
-    "shadcn/no-unknown-classes": {
-      "count": 1
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/flows/MissionariesHubView.tsx": {
-    "shadcn/no-restyle": {
-      "count": 7
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/flows/TemplateGalleryView.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/shell/studio-layout.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/shell/studio-top-bar.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
-    "shadcn/no-restyle": {
-      "count": 4
     }
   },
   "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx": {

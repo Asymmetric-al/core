@@ -18,13 +18,16 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "bc7474e4cccb36aa731dbcdee6f784e8b8a8e2c6841cec797bfb73bb931aa2a6",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-restyle": 7
-      },
-      "latestSourceSha256": "bc7474e4cccb36aa731dbcdee6f784e8b8a8e2c6841cec797bfb73bb931aa2a6",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "d5bad4bdcae335e1145b120f107e173ae8c64647af4313f90389f3352e6885e2",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "d5bad4bdcae335e1145b120f107e173ae8c64647af4313f90389f3352e6885e2",
       "includedInLatestScan": true
     },
     {
@@ -34,13 +37,16 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "2da4b36bc555b44cc52741453f5a223c194e1358dde05ab76933a399275f6d91",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-restyle": 6
-      },
-      "latestSourceSha256": "2da4b36bc555b44cc52741453f5a223c194e1358dde05ab76933a399275f6d91",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "f5428ab1602eb428b7e1ec4704203638195a477a5c4bf455513c8bc059d2c89a",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "f5428ab1602eb428b7e1ec4704203638195a477a5c4bf455513c8bc059d2c89a",
       "includedInLatestScan": true
     },
     {
@@ -49,12 +55,16 @@
         "shadcn/no-restyle": 3
       },
       "initialSourceSha256": "e5171d30fe47f88a024be15b10f83c54cb4261703cf5740699559a592186a1d2",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 3
-      },
-      "latestSourceSha256": "e5171d30fe47f88a024be15b10f83c54cb4261703cf5740699559a592186a1d2",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "3ee6a7c44df7fff5ad24417e49685ec784f155079ff0e514b9ffeef1c54f1616",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "3ee6a7c44df7fff5ad24417e49685ec784f155079ff0e514b9ffeef1c54f1616",
       "includedInLatestScan": true
     },
     {
@@ -63,12 +73,16 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "82d01d206165825b9bb64146a9b5a7cdd330fa6c90fe09f255300b62537535ab",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 6
-      },
-      "latestSourceSha256": "82d01d206165825b9bb64146a9b5a7cdd330fa6c90fe09f255300b62537535ab",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "4e19794aeaaff317ad30dbe33985798aac9489884ffbe8e71b3e91890a7b0d02",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "4e19794aeaaff317ad30dbe33985798aac9489884ffbe8e71b3e91890a7b0d02",
       "includedInLatestScan": true
     },
     {
@@ -77,12 +91,16 @@
         "shadcn/no-restyle": 9
       },
       "initialSourceSha256": "74ff4708707cd75c9e9b7c87ae4e408d3e7d396f6d95c1742547d33777ced256",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 9
-      },
-      "latestSourceSha256": "74ff4708707cd75c9e9b7c87ae4e408d3e7d396f6d95c1742547d33777ced256",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "eb6042fa5f48f7cf5a845b5216284efd865d158c9c06ce08c47f2a6e34e4bb08",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "eb6042fa5f48f7cf5a845b5216284efd865d158c9c06ce08c47f2a6e34e4bb08",
       "includedInLatestScan": true
     },
     {
@@ -91,12 +109,16 @@
         "shadcn/no-restyle": 3
       },
       "initialSourceSha256": "86a4a7854c7656003b05934b1a50c566556571f46595ec993275783986f1e9fb",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 3
-      },
-      "latestSourceSha256": "86a4a7854c7656003b05934b1a50c566556571f46595ec993275783986f1e9fb",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "5ed952872343244f9acddb6760e56d6caa492f8f1ac8ce52d84babe2896d9992",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "5ed952872343244f9acddb6760e56d6caa492f8f1ac8ce52d84babe2896d9992",
       "includedInLatestScan": true
     },
     {
@@ -106,13 +128,16 @@
         "shadcn/no-restyle": 20
       },
       "initialSourceSha256": "d4ab08a8b52bdd600905db829dd34cb158e9e86caca705f4568db298554e674f",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-restyle": 20
-      },
-      "latestSourceSha256": "d4ab08a8b52bdd600905db829dd34cb158e9e86caca705f4568db298554e674f",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "291279e4845a590d055af7c92d5c596ef14795812d964e070875b8f96a1911d9",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "291279e4845a590d055af7c92d5c596ef14795812d964e070875b8f96a1911d9",
       "includedInLatestScan": true
     },
     {
@@ -121,12 +146,16 @@
         "shadcn/no-restyle": 3
       },
       "initialSourceSha256": "0a19ced8cd95ef43b238535b4124660da95baa1094a2ce329f1468d09280ecaf",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 3
-      },
-      "latestSourceSha256": "0a19ced8cd95ef43b238535b4124660da95baa1094a2ce329f1468d09280ecaf",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "4e15b64a6a13b91de657f6c5f822811dc695c6e772e596373d11a5eea8d7dfcd",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "4e15b64a6a13b91de657f6c5f822811dc695c6e772e596373d11a5eea8d7dfcd",
       "includedInLatestScan": true
     },
     {
@@ -136,13 +165,16 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "703497ba1b3ac6979d22a7d8748a02b7aea321619b2073e9e285846cda0461eb",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-restyle": 6
-      },
-      "latestSourceSha256": "703497ba1b3ac6979d22a7d8748a02b7aea321619b2073e9e285846cda0461eb",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "9e9bb41cc01e69e3f0157b3e562086dbf6d0e06d365485bc759757b9577e24e5",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "9e9bb41cc01e69e3f0157b3e562086dbf6d0e06d365485bc759757b9577e24e5",
       "includedInLatestScan": true
     },
     {
@@ -153,20 +185,21 @@
         "shadcn/no-restyle": 49
       },
       "initialSourceSha256": "5a2e036be42bb4804c5cbf44dd9a71a0ca3318103a4d3e87be1bf3bd8fa5a3fe",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "1777d4ac995d5fe4995b54633a42bde70c2589a7357d7d39a7e6354c8c02bb0e",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "270303ce8b7c959fc3c6ca2bf967abee807247a03d16723b05e7972406eff517",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 34,
-        "shadcn/no-restyle": 46
-      },
-      "latestSourceSha256": "1777d4ac995d5fe4995b54633a42bde70c2589a7357d7d39a7e6354c8c02bb0e",
+      "currentFindings": {},
+      "latestSourceSha256": "270303ce8b7c959fc3c6ca2bf967abee807247a03d16723b05e7972406eff517",
       "includedInLatestScan": true
     },
     {
@@ -225,18 +258,21 @@
         "shadcn/no-restyle": 40
       },
       "initialSourceSha256": "1182202239edf531c3f99e38c953242cfcf853c8026f07082a6fb777ad025e2b",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "e11b59eb763af83b97af151659dea0c72669530a3caed3e6323560a478f15da1",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "8fc06db743639730b582edf4f8b85176e3d9f54aac372b0b5f216b0f1f7b3446",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-restyle": 38
-      },
-      "latestSourceSha256": "e11b59eb763af83b97af151659dea0c72669530a3caed3e6323560a478f15da1",
+      "currentFindings": {},
+      "latestSourceSha256": "8fc06db743639730b582edf4f8b85176e3d9f54aac372b0b5f216b0f1f7b3446",
       "includedInLatestScan": true
     },
     {
@@ -1057,14 +1093,16 @@
         "shadcn/no-restyle": 5
       },
       "initialSourceSha256": "bd2608b5e8b8c8e11daac5dda13670ca5df33cbe88428046053ad0947ed3e873",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 16,
-        "shadcn/no-restyle": 5
-      },
-      "latestSourceSha256": "bd2608b5e8b8c8e11daac5dda13670ca5df33cbe88428046053ad0947ed3e873",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "19e852b32e5de48572d802b6d6dbc772bfb6e5d0b8ffdabb22c213cdc5fa4c47",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "19e852b32e5de48572d802b6d6dbc772bfb6e5d0b8ffdabb22c213cdc5fa4c47",
       "includedInLatestScan": true
     },
     {
@@ -1134,6 +1172,24 @@
       "includedInLatestScan": true
     },
     {
+      "file": "apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx",
+      "initialFindings": {
+        "shadcn/no-arbitrary-values": 2
+      },
+      "initialSourceSha256": "c00c54d12dff2dcd547e46c0e3ecbd8d149413ac75f62dfa63866cae72090339",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "c32727fcb991a6ad835676d9f8290807ca3afa303b84b39dbecbede1d2133715",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "c32727fcb991a6ad835676d9f8290807ca3afa303b84b39dbecbede1d2133715",
+      "includedInLatestScan": true
+    },
+    {
       "file": "apps/admin/app/(app)/pdf/page-client.tsx",
       "initialFindings": {
         "shadcn/no-arbitrary-values": 13,
@@ -1169,7 +1225,7 @@
         "shadcn/no-restyle": 10
       },
       "initialSourceSha256": "52acc8eaaedcf55311f773e7b8743a0629799e87c5c54a0a1b8ef1403099a6af",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -1180,12 +1236,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "9e97ee2bdbab236451b2c4dd9f830007c51fdf9439230b8c8fa0a9ad8ae3019a",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "fb8064652ea0a2933d38e836797dc7e3a3c6ae2168faeb42b4de86a56edfa5fc",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-restyle": 8
-      },
-      "latestSourceSha256": "9e97ee2bdbab236451b2c4dd9f830007c51fdf9439230b8c8fa0a9ad8ae3019a",
+      "currentFindings": {},
+      "latestSourceSha256": "fb8064652ea0a2933d38e836797dc7e3a3c6ae2168faeb42b4de86a56edfa5fc",
       "includedInLatestScan": true
     },
     {
@@ -1195,18 +1254,21 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "f868d85abe3a02ee96cd6df75bc83d793b4bdd448b17f21ba971c5b4e6c6013d",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "a862750f665663bbbe95e8bb30750c0dcec300c779ecb4eb185a693bd4d3af26",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "aa97966ac3a89910476fe638723ae47e8c92b917e49b87470c8a02aa4ce9db19",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-restyle": 6
-      },
-      "latestSourceSha256": "a862750f665663bbbe95e8bb30750c0dcec300c779ecb4eb185a693bd4d3af26",
+      "currentFindings": {},
+      "latestSourceSha256": "aa97966ac3a89910476fe638723ae47e8c92b917e49b87470c8a02aa4ce9db19",
       "includedInLatestScan": true
     },
     {
@@ -1232,7 +1294,7 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "e714e9d2e99d84e8c4fc9aa78149c437d2ec9c28158cafa992c6438ce9f263a9",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -1243,14 +1305,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "5edf07d44f22e9c1ceadbbbfb34d00d356cdcecfe5dd99dfd9cf588b5be43b34",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "10421283b87133885cf718f7f03a85e841885a76d50e8dc6a06e109cb89e8318",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-raw-colors": 64,
-        "shadcn/no-restyle": 59,
-        "shadcn/require-static-classes": 2
-      },
-      "latestSourceSha256": "5edf07d44f22e9c1ceadbbbfb34d00d356cdcecfe5dd99dfd9cf588b5be43b34",
+      "currentFindings": {},
+      "latestSourceSha256": "10421283b87133885cf718f7f03a85e841885a76d50e8dc6a06e109cb89e8318",
       "includedInLatestScan": true
     },
     {
@@ -1261,14 +1324,16 @@
         "shadcn/no-restyle": 26
       },
       "initialSourceSha256": "9f0342fe225aaef97d9f92c660d8eab890257a9fdbf02a3ffac607f5d01d1eed",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-raw-colors": 9,
-        "shadcn/no-restyle": 26
-      },
-      "latestSourceSha256": "9f0342fe225aaef97d9f92c660d8eab890257a9fdbf02a3ffac607f5d01d1eed",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "73473acd85479580fd30f1c59d9718fb3d84ac502ff215dc95f1444bb79a5a45",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "73473acd85479580fd30f1c59d9718fb3d84ac502ff215dc95f1444bb79a5a45",
       "includedInLatestScan": true
     },
     {
@@ -1575,12 +1640,16 @@
         "shadcn/no-arbitrary-values": 1
       },
       "initialSourceSha256": "4e0f1d02d878ce2c87375d7906fe35d6c8c83cfdeb2813c260345bda578959ed",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1
-      },
-      "latestSourceSha256": "4e0f1d02d878ce2c87375d7906fe35d6c8c83cfdeb2813c260345bda578959ed",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "84515bd24ac25c45accf6fa65a3645568698f4b1fea901ad918b1a9b49e41624",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "84515bd24ac25c45accf6fa65a3645568698f4b1fea901ad918b1a9b49e41624",
       "includedInLatestScan": true
     },
     {
@@ -1589,12 +1658,16 @@
         "shadcn/no-arbitrary-values": 1
       },
       "initialSourceSha256": "84426242235c7d945bd09f9ab90e5dc1775bddbdd48eb487616ce319e8cb9223",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1
-      },
-      "latestSourceSha256": "84426242235c7d945bd09f9ab90e5dc1775bddbdd48eb487616ce319e8cb9223",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "cb95a00073f5cea07bd8ec048176d2aa518ae08c8c8c024de76d38cbee2e8124",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "cb95a00073f5cea07bd8ec048176d2aa518ae08c8c8c024de76d38cbee2e8124",
       "includedInLatestScan": true
     },
     {
@@ -1625,12 +1698,16 @@
         "shadcn/no-arbitrary-values": 4
       },
       "initialSourceSha256": "c712ef766081f926a5271e78db5b278713154ca6a249eb926acf1a2697652779",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4
-      },
-      "latestSourceSha256": "c712ef766081f926a5271e78db5b278713154ca6a249eb926acf1a2697652779",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "57e3af58c7da48467935e775655a620bc97269b4e26c71ef781a15b0019bda48",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "57e3af58c7da48467935e775655a620bc97269b4e26c71ef781a15b0019bda48",
       "includedInLatestScan": true
     },
     {
@@ -1639,12 +1716,16 @@
         "shadcn/no-restyle": 13
       },
       "initialSourceSha256": "a3fe41533915098404ca35dae3177e0aefa83e9a41890e9bdd9558ec0bd40598",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 12
-      },
-      "latestSourceSha256": "a3fe41533915098404ca35dae3177e0aefa83e9a41890e9bdd9558ec0bd40598",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "c3c387ec2831e8ca30bd84eadd7014c331b8272819d47d062248d83a9c1ffdc9",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "c3c387ec2831e8ca30bd84eadd7014c331b8272819d47d062248d83a9c1ffdc9",
       "includedInLatestScan": true
     },
     {
@@ -1654,19 +1735,21 @@
         "shadcn/no-raw-colors": 7
       },
       "initialSourceSha256": "1ccd232fbe2fea11308cfc9cd631450d5a45f37e1be1af21bb345f83b017f9b9",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "82026709464391d8f0c14f791cbf4829a646f68f42ab58bb5c8c76eca59d9d29",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "15f833267b6db556ccf229dd68029278b8cae2b9b6adfe521d82dfc146cef7be",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-raw-colors": 7
-      },
-      "latestSourceSha256": "82026709464391d8f0c14f791cbf4829a646f68f42ab58bb5c8c76eca59d9d29",
+      "currentFindings": {},
+      "latestSourceSha256": "15f833267b6db556ccf229dd68029278b8cae2b9b6adfe521d82dfc146cef7be",
       "includedInLatestScan": true
     },
     {
@@ -1676,19 +1759,21 @@
         "shadcn/no-raw-colors": 6
       },
       "initialSourceSha256": "292f2d05a26c304eab352a589d2b112465cadb2a45b87253d5989cf749308ffb",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "df86630a4c91ad52cdd90c218f1c67c66e490aa4f832c3cff12edbfd11078c4c",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "d679734a5764d8826b8ca304d3b5d0b291166ff713f8d95d05be74b9e99c6745",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-raw-colors": 6
-      },
-      "latestSourceSha256": "df86630a4c91ad52cdd90c218f1c67c66e490aa4f832c3cff12edbfd11078c4c",
+      "currentFindings": {},
+      "latestSourceSha256": "d679734a5764d8826b8ca304d3b5d0b291166ff713f8d95d05be74b9e99c6745",
       "includedInLatestScan": true
     },
     {
@@ -1699,20 +1784,21 @@
         "shadcn/no-restyle": 65
       },
       "initialSourceSha256": "2f397416f9b0f363a5ad879ec93201cc65c22e21c5a69387982c95d0186c6ad8",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "7868afb3e1c6d0c4f0e6556bc3d52e7c2b6033cea4ea237e3efdc2c009415715",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "fd6f903f16874e64a0646260d710e2f01db1615b1e9ffacb2e1108c9c75f1be2",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 10,
-        "shadcn/no-raw-colors": 34,
-        "shadcn/no-restyle": 63
-      },
-      "latestSourceSha256": "7868afb3e1c6d0c4f0e6556bc3d52e7c2b6033cea4ea237e3efdc2c009415715",
+      "currentFindings": {},
+      "latestSourceSha256": "fd6f903f16874e64a0646260d710e2f01db1615b1e9ffacb2e1108c9c75f1be2",
       "includedInLatestScan": true
     },
     {
@@ -1821,6 +1907,24 @@
         "shadcn/no-restyle": 5
       },
       "latestSourceSha256": "5522f741fd75f5f3214fa2e1423a8c411880f64797b67188c94761f46a04ed6a",
+      "includedInLatestScan": true
+    },
+    {
+      "file": "apps/admin/components/studio/studio-chrome.tsx",
+      "initialFindings": {
+        "shadcn/no-arbitrary-values": 2
+      },
+      "initialSourceSha256": "09932865e8136058ec86b17d8e53c092bee5605e49fa4d7b1ad2191f1bc99971",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "b77cdbd6b57c5956ac339de1572f7a589dda01c4e99bade932514354d14ac959",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "b77cdbd6b57c5956ac339de1572f7a589dda01c4e99bade932514354d14ac959",
       "includedInLatestScan": true
     },
     {
@@ -2040,21 +2144,21 @@
         "shadcn/require-static-classes": 1
       },
       "initialSourceSha256": "717063982d97134575a38323e6a6bb50abf7eac81f0568f38e99bd4615e0ce63",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "f654e92130e189377cf405a2f84d50f2249575f957755e731f386b8e571c9a63",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "17e2793a8659855bd004db9e7f60e0265e64d352cf5569c10770b97bb8a797fc",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 9,
-        "shadcn/no-raw-colors": 17,
-        "shadcn/no-restyle": 17,
-        "shadcn/require-static-classes": 1
-      },
-      "latestSourceSha256": "f654e92130e189377cf405a2f84d50f2249575f957755e731f386b8e571c9a63",
+      "currentFindings": {},
+      "latestSourceSha256": "17e2793a8659855bd004db9e7f60e0265e64d352cf5569c10770b97bb8a797fc",
       "includedInLatestScan": true
     },
     {
@@ -2120,7 +2224,7 @@
         "shadcn/require-static-classes": 1
       },
       "initialSourceSha256": "16c78d074e62106da82bd768011be4e637ba74eccb881caed118db975d1cb899",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -2131,15 +2235,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "fffe6f459a2c6ee9dad6835230e2405d5ac30eb147d4b61bdb951ffa46d35f7f",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "13dccc1735edaea2b0c6d2cb7a9b71c86a3b1c0101bef627d8ddab329e4fdf38",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 11,
-        "shadcn/no-raw-colors": 24,
-        "shadcn/no-restyle": 79,
-        "shadcn/require-static-classes": 1
-      },
-      "latestSourceSha256": "fffe6f459a2c6ee9dad6835230e2405d5ac30eb147d4b61bdb951ffa46d35f7f",
+      "currentFindings": {},
+      "latestSourceSha256": "13dccc1735edaea2b0c6d2cb7a9b71c86a3b1c0101bef627d8ddab329e4fdf38",
       "includedInLatestScan": true
     },
     {
@@ -2172,20 +2276,21 @@
         "shadcn/no-restyle": 28
       },
       "initialSourceSha256": "4321f293f8e9603ed48d7f0e1aee3f0ce0ff2cf22a28cc31a44c53f4b1ea3ac3",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "13f9ffc6804e25f5018c2ab8cb6949a6e7ac7e581a6a011a31f319bcf8ea5835",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "8a92e472b0ba198ebd842f30acd6e587055db3f9c424f76cd0ee9968fe2fe760",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 21,
-        "shadcn/no-restyle": 27
-      },
-      "latestSourceSha256": "13f9ffc6804e25f5018c2ab8cb6949a6e7ac7e581a6a011a31f319bcf8ea5835",
+      "currentFindings": {},
+      "latestSourceSha256": "8a92e472b0ba198ebd842f30acd6e587055db3f9c424f76cd0ee9968fe2fe760",
       "includedInLatestScan": true
     },
     {
@@ -2210,14 +2315,16 @@
         "shadcn/no-restyle": 13
       },
       "initialSourceSha256": "496bb0c4a57a5e1c6e1a2cba51fe32d93c3af6933e1ff47a0ff0636c55afd73a",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 13,
-        "shadcn/no-restyle": 13
-      },
-      "latestSourceSha256": "496bb0c4a57a5e1c6e1a2cba51fe32d93c3af6933e1ff47a0ff0636c55afd73a",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "5c5516889aad8751c58086f383d19955acbe03a15ce5dd307f1dd7f4feb151f4",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "5c5516889aad8751c58086f383d19955acbe03a15ce5dd307f1dd7f4feb151f4",
       "includedInLatestScan": true
     },
     {
@@ -4094,19 +4201,21 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "a52b0d40abb7ac19f0714988a33a97307751afc30c5e248b1497b6f8ac3e1a31",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "5e9d41e0ebad68e4c5661ef64afccd95c9ec2fd87788fafcc28f260b777484d1",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "f2e00a134397da7853b7fe8fc6a36e7dc5d1412b5cd35c3a2eda1de86f90a8d9",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-restyle": 5
-      },
-      "latestSourceSha256": "5e9d41e0ebad68e4c5661ef64afccd95c9ec2fd87788fafcc28f260b777484d1",
+      "currentFindings": {},
+      "latestSourceSha256": "f2e00a134397da7853b7fe8fc6a36e7dc5d1412b5cd35c3a2eda1de86f90a8d9",
       "includedInLatestScan": true
     },
     {
@@ -4116,13 +4225,16 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "9c7a6339057033a88a836436a40280c615251f0f32da3263e8458f8f52fbf456",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-restyle": 7
-      },
-      "latestSourceSha256": "9c7a6339057033a88a836436a40280c615251f0f32da3263e8458f8f52fbf456",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "53a97675b8e510d0c5549af6e2ae49fb9388974db27d194212e4a677ab5b6aa4",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "53a97675b8e510d0c5549af6e2ae49fb9388974db27d194212e4a677ab5b6aa4",
       "includedInLatestScan": true
     },
     {
@@ -4132,19 +4244,21 @@
         "shadcn/no-restyle": 8
       },
       "initialSourceSha256": "32f0c5a1b5f70f4b528c2164abcf4069dc6161f672b3c3090a138159f3850252",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "d0699e33d34f4babb08dc40ccdc8e37ad473e46ef37a0e6af4d509a3379d7849",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "7b3803d038d34ad0c0b92553dba39b62466a466cd596ddcc2a5b91ff2b95323c",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 5,
-        "shadcn/no-restyle": 7
-      },
-      "latestSourceSha256": "d0699e33d34f4babb08dc40ccdc8e37ad473e46ef37a0e6af4d509a3379d7849",
+      "currentFindings": {},
+      "latestSourceSha256": "7b3803d038d34ad0c0b92553dba39b62466a466cd596ddcc2a5b91ff2b95323c",
       "includedInLatestScan": true
     },
     {
@@ -4154,13 +4268,16 @@
         "shadcn/no-restyle": 8
       },
       "initialSourceSha256": "b4a71153015c4c3562856168028db107cebbf66e70148c6f28776d5b14a671db",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 7,
-        "shadcn/no-restyle": 8
-      },
-      "latestSourceSha256": "b4a71153015c4c3562856168028db107cebbf66e70148c6f28776d5b14a671db",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c",
       "includedInLatestScan": true
     },
     {
@@ -4183,14 +4300,16 @@
         "shadcn/no-unknown-classes": 1
       },
       "initialSourceSha256": "6a592dfe9df43dc650725ad25c63bd35468cd6c489733edf5fb902a4fa1b9828",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-restyle": 11,
-        "shadcn/no-unknown-classes": 1
-      },
-      "latestSourceSha256": "6a592dfe9df43dc650725ad25c63bd35468cd6c489733edf5fb902a4fa1b9828",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "5fc65475e6777d8dfb1cca7e7209271e5ab96c8be23299730eb424fbc2bb31e3",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "5fc65475e6777d8dfb1cca7e7209271e5ab96c8be23299730eb424fbc2bb31e3",
       "includedInLatestScan": true
     },
     {
@@ -4199,12 +4318,16 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "680b3fb09d0cfbf8c3c861f8c0183ace30f65ee948e28ead15e6b0333dab0d38",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 7
-      },
-      "latestSourceSha256": "680b3fb09d0cfbf8c3c861f8c0183ace30f65ee948e28ead15e6b0333dab0d38",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "1b5a4a0399ed1e80fd3c297d77669e35e3f3bc3243bb9019af94e039dad9e018",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "1b5a4a0399ed1e80fd3c297d77669e35e3f3bc3243bb9019af94e039dad9e018",
       "includedInLatestScan": true
     },
     {
@@ -4214,13 +4337,16 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "08b562268822f8a5389eab639459aa5eac5618586abc4f234c26c85f961a905c",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-restyle": 7
-      },
-      "latestSourceSha256": "08b562268822f8a5389eab639459aa5eac5618586abc4f234c26c85f961a905c",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "d00a421950dedb134490b8e413a17164f2efc1eab13912c0a5cc038fde7fa56f",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "d00a421950dedb134490b8e413a17164f2efc1eab13912c0a5cc038fde7fa56f",
       "includedInLatestScan": true
     },
     {
@@ -4229,12 +4355,16 @@
         "shadcn/no-arbitrary-values": 1
       },
       "initialSourceSha256": "1025e8d8c0eac1b51074dc93b1ebeef361654c9e15a0e98294a7f81addde73b3",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1
-      },
-      "latestSourceSha256": "1025e8d8c0eac1b51074dc93b1ebeef361654c9e15a0e98294a7f81addde73b3",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "3a14550126731e27da8184b18d8707529f19e00ee0b57f7af9e9e6ffc88ed02d",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "3a14550126731e27da8184b18d8707529f19e00ee0b57f7af9e9e6ffc88ed02d",
       "includedInLatestScan": true
     },
     {
@@ -4260,13 +4390,16 @@
         "shadcn/no-restyle": 4
       },
       "initialSourceSha256": "81eec09b6956ddb978fdeed3604358f5c374b4a60adece2556b7f6bbf63613f4",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-restyle": 4
-      },
-      "latestSourceSha256": "81eec09b6956ddb978fdeed3604358f5c374b4a60adece2556b7f6bbf63613f4",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-shell-tools-2026-10-30",
+          "verifiedSourceSha256": "b193c82f1b099c01fb6aee7094bf29d50b13c5027a993e8258bab83ecd7a58b3",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "b193c82f1b099c01fb6aee7094bf29d50b13c5027a993e8258bab83ecd7a58b3",
       "includedInLatestScan": true
     },
     {
@@ -9655,6 +9788,67 @@
         "Axe incompletes retained; no full accessibility conformance claim. Console-error collection covers16 core contexts; all final focused contexts assert page errors and external requests.",
         "Narrow table uses a local horizontal scroller; all columns are not claimed to fit simultaneously at320px.",
         "Normal lint earlier returned1 solely for obsolete suppressions; root owns full baseline prune and combined gates. No suppression/policy/shared primitive changes by this batch."
+      ]
+    },
+    "admin-shell-tools-2026-10-30": {
+      "summary": "Shell, home, admin tools and CMS chrome retire 383 findings in 38 files; 70 before/after route step-width runs per server fix three layout regressions and show no new axe violations, page errors or overflow.",
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/buttonlink__buttonlink-names.results.json",
+          "sha256": "807bd209ae3559e2da2fb9b422bf93d819828b278cfbf17ecf482d8c330d5dbf"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/harness.mjs",
+          "sha256": "76d711b167cf697db8eb9b4770badea912cc7f42b126020acf006e920c2b77cc"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/scenario__buttonlink-names.mjs",
+          "sha256": "560886901dc3ece798d3d4b1544df8a1574d2aade6ecd7c25715c2f92cec8281"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/scenario__shell-tools-about.mjs",
+          "sha256": "bc733e39e180a3eda4fc5b1cfe1702f944cc19f00c787fd36af4e0316c505d80"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/scenario__shell-tools-automations-narrow.mjs",
+          "sha256": "c1c7e43bf96274720802b0e7b8c63fb8697dc7387d81dfb101539d619de16446"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/scenario__shell-tools-eve.mjs",
+          "sha256": "8504b29c125c1a7e0c9e76ae7b062b6f479fd9aec50b846095e3a0bd43fb9588"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/scenario__shell-tools-pages.mjs",
+          "sha256": "6bcf9f40c868145a86518e3307a4e54bf8500c78ff8998c8eb7569bc79bc5063"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/scenario__shell-tools-shell.mjs",
+          "sha256": "30310e84cd8c9a0375d5e907c611c4bd5e842954c2eabbfd868d81bfce40c34c"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/screenshots-manifest.json",
+          "sha256": "53e1f43d16121ad6021a7e670afd5481019b4004a7bf3d81d330242d0267db39"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/shell-tools__shell-tools-about.results.json",
+          "sha256": "bebcef52e313e31d103ae882f7bc68cdd2cda5f774b83aa094822a8616a0f21f"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/shell-tools__shell-tools-automations-narrow.results.json",
+          "sha256": "7758a67d795d32b35cd554ce6225fab68ee5d63c0b2911a943abf0b4476be934"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/shell-tools__shell-tools-eve.results.json",
+          "sha256": "113d25fa7777d7d186ce52510d0b02947b83e139c510aa026dc24ed8ac346f7b"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/shell-tools__shell-tools-pages.results.json",
+          "sha256": "085ec37b4601c5730fcf343633b7ad44d946de7b6675e6049e5ea39008840602"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/shell-tools__shell-tools-shell.results.json",
+          "sha256": "eedcf817940b99832b95bca5871b6f0e99ee19cea0a92e632d85d759a7c9a9f0"
+        }
       ]
     }
   },

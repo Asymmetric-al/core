@@ -1,7 +1,7 @@
 "use client";
 
 import { getTileById } from "@asym/lib/mission-control/tiles";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -54,25 +54,28 @@ export default function SignStudioPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Search className="size-4" />
-            Search Documents
+          <CardTitle className="text-base">
+            <span className="flex items-center gap-2">
+              <Search className="size-4" />
+              Search Documents
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Input
-              aria-label="Search documents"
-              placeholder="Search by signer name, email, or document ID..."
-              className="max-w-md"
-            />
+            <div className="w-full max-w-md">
+              <Input
+                aria-label="Search documents"
+                placeholder="Search by signer name, email, or document ID..."
+              />
+            </div>
             <Button>Search</Button>
           </div>
         </CardContent>
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
+        <Card>
           <CardHeader className="pb-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-info/10 text-info">
               <FileText className="size-5" />
@@ -83,20 +86,16 @@ export default function SignStudioPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link
-              href="/mc/sign/templates"
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: "w-full",
-              })}
-            >
-              Manage Templates
-            </Link>
+            <ButtonLink
+              variant="outline"
+              size="sm"
+              className="w-full"
+              render={<Link href="/mc/sign/templates">Manage Templates</Link>}
+            />
           </CardContent>
         </Card>
 
-        <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
+        <Card>
           <CardHeader className="pb-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-warning/10 text-warning">
               <Send className="size-5" />
@@ -105,20 +104,16 @@ export default function SignStudioPage() {
             <CardDescription>Documents out for signature</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link
-              href="/mc/sign/active"
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: "w-full",
-              })}
-            >
-              View Active
-            </Link>
+            <ButtonLink
+              variant="outline"
+              size="sm"
+              className="w-full"
+              render={<Link href="/mc/sign/active">View Active</Link>}
+            />
           </CardContent>
         </Card>
 
-        <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
+        <Card>
           <CardHeader className="pb-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-success/10 text-success">
               <CheckCircle className="size-5" />
@@ -127,20 +122,16 @@ export default function SignStudioPage() {
             <CardDescription>Signed and archived documents</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link
-              href="/mc/sign/completed"
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: "w-full",
-              })}
-            >
-              View Completed
-            </Link>
+            <ButtonLink
+              variant="outline"
+              size="sm"
+              className="w-full"
+              render={<Link href="/mc/sign/completed">View Completed</Link>}
+            />
           </CardContent>
         </Card>
 
-        <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
+        <Card>
           <CardHeader className="pb-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
               <Download className="size-5" />
@@ -149,16 +140,12 @@ export default function SignStudioPage() {
             <CardDescription>Bulk download and audit exports</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link
-              href="/mc/sign/export"
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: "w-full",
-              })}
-            >
-              Export Documents
-            </Link>
+            <ButtonLink
+              variant="outline"
+              size="sm"
+              className="w-full"
+              render={<Link href="/mc/sign/export">Export Documents</Link>}
+            />
           </CardContent>
         </Card>
       </div>
@@ -167,8 +154,8 @@ export default function SignStudioPage() {
         <CardHeader>
           <CardTitle className="text-base">How it works</CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-2">
-          <ul className="list-disc list-inside space-y-1 ml-2">
+        <CardContent className="space-y-2">
+          <ul className="list-disc list-inside space-y-1 ml-2 text-sm text-muted-foreground">
             <li>
               Packet templates include forms, uploads, and signature steps
             </li>

@@ -40,7 +40,6 @@ import ProfileDropdown, {
 } from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
-import { cn } from "@asym/ui/lib/utils";
 import {
   Activity,
   BarChart3,
@@ -138,11 +137,7 @@ function NavSection({
 }) {
   return (
     <SidebarGroup className="p-0">
-      {label && (
-        <SidebarGroupLabel className="mb-1 px-2 text-xs font-medium text-sidebar-foreground/70">
-          {label}
-        </SidebarGroupLabel>
-      )}
+      {label && <SidebarGroupLabel className="mb-1">{label}</SidebarGroupLabel>}
       <SidebarGroupContent>
         <SidebarMenu className="gap-0.5">
           {items.map((item) => {
@@ -157,7 +152,6 @@ function NavSection({
                   defaultOpen={item.items.some((sub) =>
                     pathname.startsWith(sub.href),
                   )}
-                  className="group/collapsible"
                 >
                   <SidebarMenuItem>
                     <CollapsibleTrigger
@@ -166,18 +160,9 @@ function NavSection({
                           tooltip={item.title}
                           isActive={isActive}
                         >
-                          <AppIcon
-                            icon={item.icon}
-                            animated={isActive}
-                            className={cn(
-                              "size-4 shrink-0",
-                              isActive
-                                ? "text-sidebar-accent-foreground"
-                                : "text-muted-foreground",
-                            )}
-                          />
+                          <AppIcon icon={item.icon} animated={isActive} />
                           <span className="truncate text-sm">{item.title}</span>
-                          <ChevronRight className="ml-auto size-3.5 text-muted-foreground transition-transform duration-200 group-data-open/collapsible:rotate-90" />
+                          <ChevronRight className="ml-auto size-3.5 text-muted-foreground transition-transform duration-200 in-data-panel-open:rotate-90" />
                         </SidebarMenuButton>
                       }
                     />
@@ -212,16 +197,7 @@ function NavSection({
                   isActive={isActive}
                   tooltip={item.title}
                 >
-                  <AppIcon
-                    icon={item.icon}
-                    animated={isActive}
-                    className={cn(
-                      "size-4 shrink-0",
-                      isActive
-                        ? "text-sidebar-accent-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  />
+                  <AppIcon icon={item.icon} animated={isActive} />
                   <span className="truncate text-sm">{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -241,18 +217,16 @@ function UserFooter() {
   const { user } = useMC();
 
   return (
-    <SidebarFooter className="border-t border-sidebar-border p-3">
+    <SidebarFooter className="p-3">
       <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-        <Avatar className="size-8 rounded-lg">
+        <Avatar>
           <AvatarImage
             src={
               user?.avatarUrl ||
               "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
             }
           />
-          <AvatarFallback className="rounded-lg bg-sidebar-accent text-xs font-medium text-sidebar-accent-foreground">
-            {user?.name?.charAt(0) || "U"}
-          </AvatarFallback>
+          <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
           <span className="truncate text-sm font-medium leading-tight text-sidebar-foreground">
@@ -275,10 +249,7 @@ function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="border-r border-sidebar-border bg-sidebar"
-    >
+    <Sidebar collapsible="icon">
       <SidebarHeader className="p-3">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground">
@@ -328,7 +299,7 @@ function AppHeader() {
       <div className="flex h-12 items-center justify-between px-4">
         <div className="flex items-center gap-3">
           <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="h-4 hidden sm:block" />
+          <Separator orientation="vertical" className="h-4 max-sm:hidden" />
           <MissionControlNavigationSearch
             role={role}
             onNavigate={handleNavigate}
@@ -339,9 +310,9 @@ function AppHeader() {
             trigger={
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
                 aria-label="Change language"
-                className="size-8 hidden sm:inline-flex"
+                className="max-sm:hidden"
               >
                 <Languages className="size-4" />
               </Button>
@@ -351,9 +322,9 @@ function AppHeader() {
             trigger={
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
                 aria-label="Open activity"
-                className="size-8 hidden sm:inline-flex"
+                className="max-sm:hidden"
               >
                 <Activity className="size-4" />
               </Button>
@@ -363,12 +334,13 @@ function AppHeader() {
             trigger={
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
                 aria-label="Open notifications"
-                className="relative size-8"
               >
-                <Bell className="size-4" />
-                <span className="bg-destructive absolute top-1.5 right-1.5 size-1.5 rounded-full ring-2 ring-background" />
+                <span className="relative inline-flex">
+                  <Bell className="size-4" />
+                  <span className="bg-destructive absolute -top-0.5 -right-0.5 size-1.5 rounded-full ring-2 ring-background" />
+                </span>
               </Button>
             }
           />
@@ -376,18 +348,17 @@ function AppHeader() {
             trigger={
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
                 aria-label="Open profile menu"
-                className="size-8"
               >
-                <Avatar className="size-7 rounded-lg">
+                <Avatar className="size-7">
                   <AvatarImage
                     src={
                       user?.avatarUrl ||
                       "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
                     }
                   />
-                  <AvatarFallback className="text-xs rounded-lg font-semibold">
+                  <AvatarFallback>
                     {user?.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -401,7 +372,7 @@ function AppHeader() {
             variant="ghost"
             size="sm"
             data-testid="auth-signout"
-            className="px-2 text-xs hidden md:inline-flex"
+            className="max-md:hidden"
             onClick={handleSignOut}
           >
             <LogOut className="mr-1 size-3.5" />

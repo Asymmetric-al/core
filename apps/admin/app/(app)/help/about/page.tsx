@@ -22,9 +22,9 @@ export default function AboutPage() {
       description="Build and licensing information for this deployment."
       density="compact"
     >
-      <Card className="shadow-sm border-border max-w-2xl">
-        <CardHeader className="border-b border-border">
-          <CardTitle className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold uppercase tracking-widest">
             Deployment
           </CardTitle>
         </CardHeader>

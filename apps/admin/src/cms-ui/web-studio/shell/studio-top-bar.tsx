@@ -8,7 +8,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@asym/ui/components/shadcn/breadcrumb";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { useAuth } from "@payloadcms/ui";
 import { ChevronLeft } from "lucide-react";
@@ -45,55 +45,53 @@ export function StudioTopBar({
       )}
     >
       <div className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
-        <Link
-          href="/"
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            "gap-1.5",
-          )}
-        >
+        <ButtonLink variant="ghost" size="sm" render={<Link href="/" />}>
           <ChevronLeft className="size-4" />
           <span className="font-semibold text-xs uppercase tracking-wide">
             Mission Control
           </span>
-        </Link>
+        </ButtonLink>
 
-        <Breadcrumb className="min-w-0 flex-1">
-          <BreadcrumbList className="flex-wrap">
-            <BreadcrumbItem>
-              <BreadcrumbLink render={<Link href="/web-studio" />}>
-                Web Studio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            {sectionLabel ? (
-              <>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  {currentLabel ? (
-                    <BreadcrumbLink render={<Link href={sectionHref} />}>
-                      {sectionLabel}
-                    </BreadcrumbLink>
-                  ) : (
-                    <BreadcrumbPage>{sectionLabel}</BreadcrumbPage>
-                  )}
-                </BreadcrumbItem>
-              </>
-            ) : null}
-            {currentLabel ? (
-              <>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="max-w-[min(40vw,20rem)] truncate">
-                    {currentLabel}
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </>
-            ) : null}
-          </BreadcrumbList>
-        </Breadcrumb>
+        <div className="min-w-0 flex-1">
+          <Breadcrumb>
+            <BreadcrumbList className="flex-wrap">
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link href="/web-studio" />}>
+                  Web Studio
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              {sectionLabel ? (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    {currentLabel ? (
+                      <BreadcrumbLink render={<Link href={sectionHref} />}>
+                        {sectionLabel}
+                      </BreadcrumbLink>
+                    ) : (
+                      <BreadcrumbPage>{sectionLabel}</BreadcrumbPage>
+                    )}
+                  </BreadcrumbItem>
+                </>
+              ) : null}
+              {currentLabel ? (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>
+                      <span className="block max-w-40 truncate sm:max-w-80">
+                        {currentLabel}
+                      </span>
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              ) : null}
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <span className="hidden max-w-[12rem] truncate text-muted-foreground text-xs sm:inline">
+          <span className="hidden max-w-48 truncate text-muted-foreground text-xs sm:inline">
             {display}
           </span>
         </div>

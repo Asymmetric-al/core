@@ -186,14 +186,16 @@ function StatusCard({
   warning?: boolean;
 }) {
   return (
-    <Card className="border-border bg-card shadow-sm">
+    <Card>
       <CardHeader className="pb-3">
         <CardDescription>{label}</CardDescription>
-        <CardTitle className="flex items-center justify-between gap-3 text-xl">
-          {value}
-          <Badge variant={warning ? "destructive" : "secondary"}>
-            {warning ? "Attention" : "Observed"}
-          </Badge>
+        <CardTitle className="text-xl">
+          <span className="flex items-center justify-between gap-3">
+            {value}
+            <Badge variant={warning ? "destructive" : "secondary"}>
+              {warning ? "Attention" : "Observed"}
+            </Badge>
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -400,9 +402,11 @@ function EveRecentRunsCard({
   return (
     <Card id="eve-active-runs">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Bot aria-hidden="true" className="size-5" />
-          Recent governed runs
+        <CardTitle>
+          <span className="flex items-center gap-2">
+            <Bot aria-hidden="true" className="size-5" />
+            Recent governed runs
+          </span>
         </CardTitle>
         <CardDescription>
           Decision summaries from the governance kernel. No hidden model
@@ -453,13 +457,11 @@ function EveGovernedFailuresCard({
   return (
     <Card id="eve-failures">
       <CardHeader>
-        <CardTitle
-          aria-level={2}
-          role="heading"
-          className="flex items-center gap-2"
-        >
-          <CircleX aria-hidden="true" className="size-5" />
-          Governed failures
+        <CardTitle aria-level={2} role="heading">
+          <span className="flex items-center gap-2">
+            <CircleX aria-hidden="true" className="size-5" />
+            Governed failures
+          </span>
         </CardTitle>
         <CardDescription>
           Failed run and audit summaries from app-owned governance state. No raw
@@ -511,9 +513,11 @@ function EveAuditHistoryCard({
   return (
     <Card id="eve-audit">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <History aria-hidden="true" className="size-5" />
-          Audit history
+        <CardTitle>
+          <span className="flex items-center gap-2">
+            <History aria-hidden="true" className="size-5" />
+            Audit history
+          </span>
         </CardTitle>
         <CardDescription>
           App-owned action records with decision summaries and redacted replay
@@ -576,23 +580,43 @@ function EveAuditHistoryCard({
                         {event.changeSummary}
                       </p>
                     </div>
-                    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs md:col-span-2">
-                      <dt className="text-muted-foreground">Target</dt>
-                      <dd>{event.target ?? "No external target"}</dd>
-                      <dt className="text-muted-foreground">Initiator</dt>
-                      <dd>
-                        {event.initiatorType}: {event.initiatorId}
-                      </dd>
-                      <dt className="text-muted-foreground">Policy</dt>
-                      <dd>
-                        {event.policyId} ({event.policyStatus})
-                      </dd>
-                      <dt className="text-muted-foreground">Model role</dt>
-                      <dd>{event.modelRole}</dd>
-                      <dt className="text-muted-foreground">
-                        Redaction contract
-                      </dt>
-                      <dd>{event.redactionVersion}</dd>
+                    <dl className="grid gap-y-1 text-xs md:col-span-2">
+                      <div className="flex gap-3">
+                        <dt className="w-28 shrink-0 text-muted-foreground">
+                          Target
+                        </dt>
+                        <dd className="min-w-0">
+                          {event.target ?? "No external target"}
+                        </dd>
+                      </div>
+                      <div className="flex gap-3">
+                        <dt className="w-28 shrink-0 text-muted-foreground">
+                          Initiator
+                        </dt>
+                        <dd className="min-w-0">
+                          {event.initiatorType}: {event.initiatorId}
+                        </dd>
+                      </div>
+                      <div className="flex gap-3">
+                        <dt className="w-28 shrink-0 text-muted-foreground">
+                          Policy
+                        </dt>
+                        <dd className="min-w-0">
+                          {event.policyId} ({event.policyStatus})
+                        </dd>
+                      </div>
+                      <div className="flex gap-3">
+                        <dt className="w-28 shrink-0 text-muted-foreground">
+                          Model role
+                        </dt>
+                        <dd className="min-w-0">{event.modelRole}</dd>
+                      </div>
+                      <div className="flex gap-3">
+                        <dt className="w-28 shrink-0 text-muted-foreground">
+                          Redaction contract
+                        </dt>
+                        <dd className="min-w-0">{event.redactionVersion}</dd>
+                      </div>
                     </dl>
                     <div className="space-y-1 md:col-span-2">
                       <p className="font-medium text-foreground">
@@ -700,9 +724,11 @@ export function EveGovernanceView({
 
       <Card id="eve-emergency-controls">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ShieldAlert aria-hidden="true" className="size-5" />
-            Kill-switch controls
+          <CardTitle>
+            <span className="flex items-center gap-2">
+              <ShieldAlert aria-hidden="true" className="size-5" />
+              Kill-switch controls
+            </span>
           </CardTitle>
           <CardDescription>
             Every change is atomic, attributed to your verified admin identity,
@@ -767,7 +793,7 @@ export default function EveGovernancePage() {
       description="Inspect real governance state, approvals, failures, policy, memory, and emergency controls before using chat."
       density="compact"
       actions={
-        <Badge variant="outline" className="gap-1.5">
+        <Badge variant="outline">
           <Power aria-hidden="true" className="size-3.5" />
           Controls audited
         </Badge>

@@ -25,11 +25,12 @@
         "SNAPSHOT SOURCE apps/admin/app/(app)/admin/eve/model-policy-panel.tsx:127: exact named export `EveModelPolicyReadiness`.",
         "TEST SOURCE (not run here) tests/unit/apps/admin/app/eve-operations-workspace.test.tsx: Named import at line 7; rendered at line 133.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/admin/eve/model-policy-panel.tsx:127; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/admin/eve/model-policy-panel.tsx:127. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/admin/eve/model-policy-panel.tsx:127. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if this exact consumer is removed or redirected, or the test seam/export is intentionally migrated.",
       "sourceContextHash": "26ab7e20af09c10261c0927fd1c7161a472f0f852c9d70b573e6f7b7655e3a98",
-      "sourceFileHash": "302bd906949fdf50f68acd464921af2145e23d0511cd441a1c1904e49af11ea7",
+      "sourceFileHash": "eb6042fa5f48f7cf5a845b5216284efd865d158c9c06ce08c47f2a6e34e4bb08",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/app/eve-operations-workspace.test.tsx": "783505ec8ce72317e4ec6f8e8d1f0966366ccb5c1fc8c0f1f49ec602d2303f64"
       }
@@ -42,11 +43,11 @@
       "title": "Value export has no importer",
       "message": "Unused value export: `EveGovernanceView` has no importer in the analyzed project graph.",
       "help": "Remove the export or make it module-private after checking external, generated, and dynamic consumers.",
-      "line": 616,
+      "line": 640,
       "column": 7,
       "category": "Maintainability",
       "fingerprint": "e5ee7fa7d684eaafcfc9191e5d2fa41fca40bc459259d913e1142ef037910e51",
-      "id": "app/(app)/admin/eve/page-client.tsx::616:7::react-doctor/unused-export::ee4c51059e1da918c2f777cb3b2965878816caadd7f6193b98413622d3b03e94",
+      "id": "app/(app)/admin/eve/page-client.tsx::640:7::react-doctor/unused-export::ee4c51059e1da918c2f777cb3b2965878816caadd7f6193b98413622d3b03e94",
       "normalizedFilePath": "app/(app)/admin/eve/page-client.tsx",
       "tags": ["project-analysis"],
       "target": "apps/admin",
@@ -55,11 +56,12 @@
         "SNAPSHOT SOURCE apps/admin/app/(app)/admin/eve/page-client.tsx:614: exact named export `EveGovernanceView`.",
         "TEST SOURCE (not run here) tests/unit/apps/admin/app/eve-governance-page.test.tsx: Dynamic module.EveGovernanceView assignment at line 30 and real-component renders at lines 37 onward.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/admin/eve/page-client.tsx:616; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/admin/eve/page-client.tsx:616. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/admin/eve/page-client.tsx:616. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if this exact consumer is removed or redirected, or the test seam/export is intentionally migrated.",
       "sourceContextHash": "b037894d71e2bd30045ad54cc8cd10c6b40d82868e43e7d02aa485ad4620c9aa",
-      "sourceFileHash": "bdd41318f50e267ef0a25c3d73a0a1081407841c517bb285b988c4b314f46513",
+      "sourceFileHash": "291279e4845a590d055af7c92d5c596ef14795812d964e070875b8f96a1911d9",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/app/eve-governance-page.test.tsx": "8c7b7c9f451af84cbdd04ea832992ca34fadf81532fb5a4bdce4d8ab00b2aa56"
       }
@@ -132,14 +134,14 @@
       "title": "Props spread onto element",
       "message": "You can't tell what props reach this element when you spread them.",
       "help": "List each prop explicitly so consumers can see the component API instead of receiving hidden spread props.",
-      "line": 191,
+      "line": 195,
       "column": 11,
-      "offset": 5036,
+      "offset": 4979,
       "length": 63,
-      "endLine": 191,
+      "endLine": 195,
       "category": "Maintainability",
       "fingerprint": "cc14f445f4af4df97f8ca94ee838a4417111ef88b8e251f4ceac9c5769984a01",
-      "id": "app/(app)/automations/page-client.tsx::191:11::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
+      "id": "app/(app)/automations/page-client.tsx::195:11::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
       "normalizedFilePath": "app/(app)/automations/page-client.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -150,13 +152,14 @@
         "SOURCE packages/lib/motion-presets.ts:104-125 defines both the reduced and animated variants. SOURCE packages/lib/motion-provider.tsx supplies MotionConfig reducedMotion=user for JavaScript transform/layout behavior; global CSS is not claimed to govern JavaScript animation.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/automations/page-client.tsx:191; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/automations/page-client.tsx:191. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale."
+        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if this exact caller stops passing its reduced-motion or transition ownership policy, or the factory shape/policy changes.",
       "sourceContextHash": "cc14f445f4af4df97f8ca94ee838a4417111ef88b8e251f4ceac9c5769984a01",
-      "sourceFileHash": "1e822bb8e8768f49326123d967cbaf3eb7f64bbc708264f856b1c5407a5254c3",
+      "sourceFileHash": "8fc06db743639730b582edf4f8b85176e3d9f54aac372b0b5f216b0f1f7b3446",
       "evidenceFileHashes": {
-        "apps/admin/app/(app)/automations/page-client.tsx": "1e822bb8e8768f49326123d967cbaf3eb7f64bbc708264f856b1c5407a5254c3",
+        "apps/admin/app/(app)/automations/page-client.tsx": "8fc06db743639730b582edf4f8b85176e3d9f54aac372b0b5f216b0f1f7b3446",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
         "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
@@ -170,14 +173,14 @@
       "title": "Array index used as a key",
       "message": "Your users can see & submit the wrong data when this list reorders or filters, so use a stable id like `key={item.id}`, not the array index \"index\".",
       "help": "Use a stable id from the item, like `key={item.id}` or `key={item.slug}`. Index keys break when the list reorders or filters.",
-      "line": 350,
+      "line": 347,
       "column": 11,
-      "offset": 9086,
+      "offset": 8810,
       "length": 40,
-      "endLine": 350,
+      "endLine": 347,
       "category": "Bugs",
       "fingerprint": "896f04e0f229999af8c88d53ce12b8fb05df4573622e4c74f17050c06c4d9db8",
-      "id": "app/(app)/automations/page-client.tsx::350:11::react-doctor/no-array-index-as-key::4355749737c20ecca42e88a124407ac8602be73048f4c3deb95ffd199427279c",
+      "id": "app/(app)/automations/page-client.tsx::347:11::react-doctor/no-array-index-as-key::4355749737c20ecca42e88a124407ac8602be73048f4c3deb95ffd199427279c",
       "normalizedFilePath": "app/(app)/automations/page-client.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -185,13 +188,14 @@
       "evidence": [
         "SOURCE apps/admin/app/(app)/automations/page-client.tsx: complete row body inspected, including controls and ownership conditions.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/automations/page-client.tsx:350; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/automations/page-client.tsx:350. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/automations/page-client.tsx:350. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider before adding per-row editable controls, local state/ref/focus, keyed motion, reorderable independent async ownership, or stable-record identity requirements.",
       "sourceContextHash": "896f04e0f229999af8c88d53ce12b8fb05df4573622e4c74f17050c06c4d9db8",
-      "sourceFileHash": "1e822bb8e8768f49326123d967cbaf3eb7f64bbc708264f856b1c5407a5254c3",
+      "sourceFileHash": "8fc06db743639730b582edf4f8b85176e3d9f54aac372b0b5f216b0f1f7b3446",
       "evidenceFileHashes": {
-        "apps/admin/app/(app)/automations/page-client.tsx": "1e822bb8e8768f49326123d967cbaf3eb7f64bbc708264f856b1c5407a5254c3"
+        "apps/admin/app/(app)/automations/page-client.tsx": "8fc06db743639730b582edf4f8b85176e3d9f54aac372b0b5f216b0f1f7b3446"
       }
     },
     {
@@ -202,11 +206,11 @@
       "title": "Value export has no importer",
       "message": "Unused value export: `AutomationsPageView` has no importer in the analyzed project graph.",
       "help": "Remove the export or make it module-private after checking external, generated, and dynamic consumers.",
-      "line": 546,
+      "line": 543,
       "column": 7,
       "category": "Maintainability",
       "fingerprint": "248b2c151e2e4a011041cf7c0c3efb6bb27d8cfd7b18f7243275d026761d98a4",
-      "id": "app/(app)/automations/page-client.tsx::546:7::react-doctor/unused-export::02aad6fc53d1d711062fdbad34bd3e1e9ddafac24e52eb1742eb7b51c6d5c40d",
+      "id": "app/(app)/automations/page-client.tsx::543:7::react-doctor/unused-export::02aad6fc53d1d711062fdbad34bd3e1e9ddafac24e52eb1742eb7b51c6d5c40d",
       "normalizedFilePath": "app/(app)/automations/page-client.tsx",
       "tags": ["project-analysis"],
       "target": "apps/admin",
@@ -215,11 +219,12 @@
         "SNAPSHOT SOURCE apps/admin/app/(app)/automations/page-client.tsx:540: exact named export `AutomationsPageView`.",
         "TEST SOURCE (not run here) tests/unit/apps/admin/app/automations-page.test.tsx: Public export type lookup at line 22, dynamic module.AutomationsPageView assignment at line 121 and renders at line 135 onward.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/automations/page-client.tsx:546; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/automations/page-client.tsx:546. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/automations/page-client.tsx:546. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if this exact consumer is removed or redirected, or the test seam/export is intentionally migrated.",
       "sourceContextHash": "2552ae18febc5e1929a62e818eb9cda3281f2039189a8fcd643512447a1b0f7d",
-      "sourceFileHash": "1e822bb8e8768f49326123d967cbaf3eb7f64bbc708264f856b1c5407a5254c3",
+      "sourceFileHash": "8fc06db743639730b582edf4f8b85176e3d9f54aac372b0b5f216b0f1f7b3446",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/app/automations-page.test.tsx": "6276ac6c746365a0b6654ab5de23f705a85b82d3c4514b142eb787a6e1babfe3"
       }
@@ -929,7 +934,7 @@
       "help": "Use a stable id from the item, like `key={item.id}` or `key={item.slug}`. Index keys break when the list reorders or filters.",
       "line": 85,
       "column": 21,
-      "offset": 3525,
+      "offset": 3498,
       "length": 35,
       "endLine": 85,
       "category": "Bugs",
@@ -943,14 +948,15 @@
         "SOURCE apps/admin/app/(app)/pdf/page-client.tsx: complete row body inspected, including controls and ownership conditions.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/pdf/page-client.tsx:1059; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "OWNER RELOCATION: the diagnostic list moved byte-for-byte to NativePdfDocumentBuilderSection; it remains a read-only, stateless complete response snapshot, without per-row inputs or retained keyed state.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx:85. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx:85. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider before adding per-row editable controls, local state/ref/focus, keyed motion, reorderable independent async ownership, or stable-record identity requirements.",
       "sourceContextHash": "a5a2951bee580434bc73c3d9c3d8fd06d696d41365f3abc19cc15ea5714a17a8",
-      "sourceFileHash": "c00c54d12dff2dcd547e46c0e3ecbd8d149413ac75f62dfa63866cae72090339",
+      "sourceFileHash": "c32727fcb991a6ad835676d9f8290807ca3afa303b84b39dbecbede1d2133715",
       "evidenceFileHashes": {
         "apps/admin/app/(app)/pdf/page-client.tsx": "1685ae3ffd5e16539de3c72bfefc68dd6ff4a4e3fdae04afa1f18784982ddfe5",
-        "apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx": "c00c54d12dff2dcd547e46c0e3ecbd8d149413ac75f62dfa63866cae72090339",
+        "apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx": "c32727fcb991a6ad835676d9f8290807ca3afa303b84b39dbecbede1d2133715",
         "tests/fixtures/base-ui-compliance/specs/modernization-controls.spec.ts": "5e8e47de4245db605b9fdc42420d8f0348f32cf87a1a5e826bdb21703b88be08"
       }
     },
@@ -962,11 +968,11 @@
       "title": "Value export has no importer",
       "message": "Unused value export: `ReportsPageView` has no importer in the analyzed project graph.",
       "help": "Remove the export or make it module-private after checking external, generated, and dynamic consumers.",
-      "line": 93,
+      "line": 90,
       "column": 7,
       "category": "Maintainability",
       "fingerprint": "922df0db83a1488215004b1bd348bc3092a88578c41f8db4b9ea883c61183af7",
-      "id": "app/(app)/reports/page-client.tsx::93:7::react-doctor/unused-export::0430790cb50a2fe5546ec59ada04d75fd3214982e256e34ca1927af98032c864",
+      "id": "app/(app)/reports/page-client.tsx::90:7::react-doctor/unused-export::0430790cb50a2fe5546ec59ada04d75fd3214982e256e34ca1927af98032c864",
       "normalizedFilePath": "app/(app)/reports/page-client.tsx",
       "tags": ["project-analysis"],
       "target": "apps/admin",
@@ -975,11 +981,12 @@
         "SNAPSHOT SOURCE apps/admin/app/(app)/reports/page-client.tsx:86: exact named export `ReportsPageView`.",
         "TEST SOURCE (not run here) tests/unit/apps/admin/app/reports-page.test.tsx: Exact export type lookup at line 24, dynamic module.ReportsPageView assignment at line 149 and renders at lines 221 onward.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/reports/page-client.tsx:86; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/reports/page-client.tsx:93. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/reports/page-client.tsx:93. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if this exact consumer is removed or redirected, or the test seam/export is intentionally migrated.",
       "sourceContextHash": "0d3fb7949d469a7276ea6bf04c85fd5a7164052610b99f610802bf1f02d47eb5",
-      "sourceFileHash": "7491598d30f76bcf2b447e4a4db39f21c6307b679d2b63b1b6af5569d074f63e",
+      "sourceFileHash": "fb8064652ea0a2933d38e836797dc7e3a3c6ae2168faeb42b4de86a56edfa5fc",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/app/reports-page.test.tsx": "eb8410f1149c7bdbf62225fa96cce64bf7873250d2a8239ca0e8f1fd5842119e"
       }
@@ -1010,11 +1017,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/reports/reports-charts.tsx:30; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/reports/reports-charts.tsx:30. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/reports/reports-charts.tsx:30. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "f738b86ecccc6daa6aabbb8fe4f823f63543972d89edb886c7ba5bdbbc4c5b56",
-      "sourceFileHash": "57b86d1554af7ff06a80d1874c0de2638a2b2911f8be822a7a95dc8ee15b9b55",
+      "sourceFileHash": "aa97966ac3a89910476fe638723ae47e8c92b917e49b87470c8a02aa4ce9db19",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1064,15 +1072,15 @@
       "title": "Tailwind animation ignores reduced motion",
       "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
       "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 557,
-      "column": 21,
-      "offset": 17862,
+      "line": 562,
+      "column": 23,
+      "offset": 17869,
       "length": 48,
-      "endLine": 557,
+      "endLine": 562,
       "category": "Accessibility",
       "matchByOccurrence": true,
       "fingerprint": "8063f99e818e2e21067def3282d141f5178988b8f36bc4d2093ba109754d8225",
-      "id": "app/(app)/settings/integrations/resend/resend-sections.tsx::557:21::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
+      "id": "app/(app)/settings/integrations/resend/resend-sections.tsx::562:23::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
       "normalizedFilePath": "app/(app)/settings/integrations/resend/resend-sections.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -1082,11 +1090,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx:571; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx:557. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx:557. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "8063f99e818e2e21067def3282d141f5178988b8f36bc4d2093ba109754d8225",
-      "sourceFileHash": "00c0022f6b11fe6997fa1926a3a0d9801302316f5d0826c3e69499ba7ce397ec",
+      "sourceFileHash": "10421283b87133885cf718f7f03a85e841885a76d50e8dc6a06e109cb89e8318",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1103,14 +1112,14 @@
       "title": "preventDefault on a form or link",
       "message": "Your users can't submit this <form> without JavaScript because onSubmit calls preventDefault(), so use a server action like `<form action={serverAction}>` to make it work either way.",
       "help": "Use `<form action>` where your framework supports it (it works without JS), or use a `<button>` instead of an `<a>` with preventDefault.",
-      "line": 590,
+      "line": 596,
       "column": 9,
-      "offset": 18543,
+      "offset": 18583,
       "length": 166,
-      "endLine": 596,
+      "endLine": 602,
       "category": "Bugs",
       "fingerprint": "f12ef5ee4e6f05b9ed6f55e061f50629338cfd1a66b16da6fa5b4ecf75d19cbe",
-      "id": "app/(app)/settings/integrations/resend/resend-sections.tsx::590:9::react-doctor/no-prevent-default::0fc34f6b4d32bcf96326f8d56359be2fb14865da60a123bdda86f1f755307522",
+      "id": "app/(app)/settings/integrations/resend/resend-sections.tsx::596:9::react-doctor/no-prevent-default::0fc34f6b4d32bcf96326f8d56359be2fb14865da60a123bdda86f1f755307522",
       "normalizedFilePath": "app/(app)/settings/integrations/resend/resend-sections.tsx",
       "tags": ["test-noise"],
       "target": "apps/admin",
@@ -1119,11 +1128,12 @@
         "POLICY SOURCE docs/ai/rules/frontend.md:111 selects TanStack Form + Zod for complex client forms including modal/drawer workflows; :184-203 shows preventDefault followed by form.handleSubmit.",
         "SOURCE apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx: exact onSubmit prevents browser navigation and invokes its existing TanStack submission owner.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx:604; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx:590. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx:590. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider when this exact workflow is intentionally converted to a native/server-owned form, or validation, authentication, callbacks, or submission ownership changes.",
       "sourceContextHash": "16269c24d5d802cc4229ce7349a8ef3ec27a5b843fd244038d873a43c7d8a3b2",
-      "sourceFileHash": "00c0022f6b11fe6997fa1926a3a0d9801302316f5d0826c3e69499ba7ce397ec",
+      "sourceFileHash": "10421283b87133885cf718f7f03a85e841885a76d50e8dc6a06e109cb89e8318",
       "evidenceFileHashes": {
         "docs/ai/rules/frontend.md": "7a2fd29ac7320025c6347781ecee3032551fef403ceba1cf1b2764f979fb2448",
         "apps/admin/app/(app)/settings/integrations/resend/use-resend-forms.ts": "6e332bad0d06224890019e373850907b5ca5cd73f4b0dde80b9226694d570647",
@@ -1139,15 +1149,15 @@
       "title": "Tailwind animation ignores reduced motion",
       "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
       "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 679,
+      "line": 687,
       "column": 23,
-      "offset": 21809,
+      "offset": 21896,
       "length": 48,
-      "endLine": 679,
+      "endLine": 687,
       "category": "Accessibility",
       "matchByOccurrence": true,
       "fingerprint": "8063f99e818e2e21067def3282d141f5178988b8f36bc4d2093ba109754d8225",
-      "id": "app/(app)/settings/integrations/resend/resend-sections.tsx::679:23::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
+      "id": "app/(app)/settings/integrations/resend/resend-sections.tsx::687:23::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
       "normalizedFilePath": "app/(app)/settings/integrations/resend/resend-sections.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -1157,11 +1167,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx:696; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx:679. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx:679. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "8063f99e818e2e21067def3282d141f5178988b8f36bc4d2093ba109754d8225",
-      "sourceFileHash": "00c0022f6b11fe6997fa1926a3a0d9801302316f5d0826c3e69499ba7ce397ec",
+      "sourceFileHash": "10421283b87133885cf718f7f03a85e841885a76d50e8dc6a06e109cb89e8318",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1687,7 +1698,7 @@
       "help": "Use a stable id from the item, like `key={item.id}` or `key={item.slug}`. Index keys break when the list reorders or filters.",
       "line": 326,
       "column": 16,
-      "offset": 9960,
+      "offset": 9948,
       "length": 28,
       "endLine": 326,
       "category": "Bugs",
@@ -1700,13 +1711,14 @@
       "evidence": [
         "SOURCE apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx: complete row body inspected, including controls and ownership conditions.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx:327; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx:322. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx:322. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider before adding per-row editable controls, local state/ref/focus, keyed motion, reorderable independent async ownership, or stable-record identity requirements.",
       "sourceContextHash": "ab2313eb8a21c57bf6847d4c1735e12c3dc1ed5d37bc25ed8f8e6b5df5b4c478",
-      "sourceFileHash": "95b977b2390616f397b00c175d9f6929009957c3092501760866a6dc6f2b46b4",
+      "sourceFileHash": "57e3af58c7da48467935e775655a620bc97269b4e26c71ef781a15b0019bda48",
       "evidenceFileHashes": {
-        "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx": "95b977b2390616f397b00c175d9f6929009957c3092501760866a6dc6f2b46b4"
+        "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx": "57e3af58c7da48467935e775655a620bc97269b4e26c71ef781a15b0019bda48"
       }
     },
     {
@@ -1719,7 +1731,7 @@
       "help": "Use a stable id from the item, like `key={item.id}` or `key={item.slug}`. Index keys break when the list reorders or filters.",
       "line": 354,
       "column": 16,
-      "offset": 10849,
+      "offset": 10837,
       "length": 28,
       "endLine": 354,
       "category": "Bugs",
@@ -1732,13 +1744,14 @@
       "evidence": [
         "SOURCE apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx: complete row body inspected, including controls and ownership conditions.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx:355; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx:350. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx:350. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider before adding per-row editable controls, local state/ref/focus, keyed motion, reorderable independent async ownership, or stable-record identity requirements.",
       "sourceContextHash": "497db698d571c2af0ee7094fbbe8e88cb953a740afb80062d288058b660f5be1",
-      "sourceFileHash": "95b977b2390616f397b00c175d9f6929009957c3092501760866a6dc6f2b46b4",
+      "sourceFileHash": "57e3af58c7da48467935e775655a620bc97269b4e26c71ef781a15b0019bda48",
       "evidenceFileHashes": {
-        "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx": "95b977b2390616f397b00c175d9f6929009957c3092501760866a6dc6f2b46b4"
+        "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx": "57e3af58c7da48467935e775655a620bc97269b4e26c71ef781a15b0019bda48"
       }
     },
     {
@@ -1902,7 +1915,7 @@
       "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
       "line": 135,
       "column": 11,
-      "offset": 3447,
+      "offset": 3442,
       "length": 153,
       "endLine": 138,
       "category": "Accessibility",
@@ -1918,11 +1931,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/components/studio/studio-chrome.tsx:139; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/components/studio/studio-chrome.tsx:135. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/components/studio/studio-chrome.tsx:135. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "ae51015aed611095e98d8b990b4a224cb58a0d9fd5ccd2eba17d1a5670c2cc6d",
-      "sourceFileHash": "09932865e8136058ec86b17d8e53c092bee5605e49fa4d7b1ad2191f1bc99971",
+      "sourceFileHash": "b77cdbd6b57c5956ac339de1572f7a589dda01c4e99bade932514354d14ac959",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -2435,14 +2449,15 @@
         "PUBLIC SEAM SOURCE packages/missionary/package.json exposes components, not internal chart modules. No measured bundle performance or broad heavy-import exception is claimed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/components/tiles/mission-control-chart-views.tsx:3; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/components/tiles/mission-control-chart-views.tsx:3. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale."
+        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if this exact module gains an eager importer/re-export, the lazy owner is removed, or the chart SDK no longer requires native child identity.",
       "sourceContextHash": "a0a7b9ea479282c83abc3df9ae23baae80089b626b56b0980926c9554c3eb691",
       "sourceFileHash": "6da8c30d0045c181363d8874e37c35e0ae16a1653f0faf27cdcdac1bf9521396",
       "evidenceFileHashes": {
         "apps/admin/features/mission-control/components/tiles/mission-control-chart-views.tsx": "6da8c30d0045c181363d8874e37c35e0ae16a1653f0faf27cdcdac1bf9521396",
-        "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": "fdf12e75c6db185dca2aea07ad7ef564fc01ea8994942b70b5350cd9d92d7e8e",
+        "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": "13dccc1735edaea2b0c6d2cb7a9b71c86a3b1c0101bef627d8ddab329e4fdf38",
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "packages/missionary/package.json": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439",
         "bun.lock": "7935bcc9ee5dcd5a53675f1dbec2adb14dc84cb4344afec97bd66a01912d8247"
@@ -2924,7 +2939,7 @@
       "severity": "warning",
       "title": "useState not destructured",
       "message": "`useState` should be destructured as `[value, setValue]` so readers can see the state value and setter together.",
-      "help": "Destructure `useState` as `const [thing, setThing] = useState(\u2026)` so state reads and writes stay visible together.",
+      "help": "Destructure `useState` as `const [thing, setThing] = useState(…)` so state reads and writes stay visible together.",
       "line": 22,
       "column": 9,
       "offset": 669,
@@ -3118,14 +3133,14 @@
       "title": "Props spread onto element",
       "message": "You can't tell what props reach this element when you spread them.",
       "help": "List each prop explicitly so consumers can see the component API instead of receiving hidden spread props.",
-      "line": 775,
+      "line": 774,
       "column": 15,
-      "offset": 21382,
+      "offset": 21278,
       "length": 10,
-      "endLine": 775,
+      "endLine": 774,
       "category": "Maintainability",
       "fingerprint": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "id": "src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx::775:15::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
+      "id": "src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx::774:15::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
       "normalizedFilePath": "src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -3134,13 +3149,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx:692-777: NativeCollectionEditView accepts { studioCollection, ...props }: NativeCollectionEditViewProps and forwards `props` to `DefaultEditView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx:775; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx:775. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx:775. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "sourceFileHash": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda",
+      "sourceFileHash": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3269,13 +3285,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/media/document/MediaNativeEditView.tsx:7-8: MediaNativeEditView accepts props: DocumentViewClientProps and forwards `props` to `NativeCollectionEditView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/media/document/MediaNativeEditView.tsx:8; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/media/document/MediaNativeEditView.tsx:8. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/media/document/MediaNativeEditView.tsx:8. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "77b18d079092789e1fa6354564c9ea8ec8ee1294df5dc19b8b0a7cb0e13efdd0",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3302,13 +3319,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/media/list/MediaNativeListView.tsx:12-13: MediaNativeListView accepts props: MediaNativeListViewProps and forwards `props` to `NativeCollectionListView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/media/list/MediaNativeListView.tsx:13; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/media/list/MediaNativeListView.tsx:13. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/media/list/MediaNativeListView.tsx:13. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "525d20472eaababa9b72a3892aaae0b916254367740abbf24dddf8e3cc027df4",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3335,13 +3353,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/ministry-updates/document/MinistryUpdatesNativeEditView.tsx:7-9: MinistryUpdatesNativeEditView accepts props: DocumentViewClientProps and forwards `props` to `NativeCollectionEditView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/ministry-updates/document/MinistryUpdatesNativeEditView.tsx:9; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/ministry-updates/document/MinistryUpdatesNativeEditView.tsx:9. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/ministry-updates/document/MinistryUpdatesNativeEditView.tsx:9. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "5cff1363a75a2c965effa52653d23fa65bc977e3a51f16d911af72df843245d2",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3368,13 +3387,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/ministry-updates/list/MinistryUpdatesNativeListView.tsx:12-17: MinistryUpdatesNativeListView accepts props: MinistryUpdatesNativeListViewProps and forwards `props` to `NativeCollectionListView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/ministry-updates/list/MinistryUpdatesNativeListView.tsx:17; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/ministry-updates/list/MinistryUpdatesNativeListView.tsx:17. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/ministry-updates/list/MinistryUpdatesNativeListView.tsx:17. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "8e2000b44bb10faaefdfa5fb6263b94b5bf6e45d392f2be8a2ecb7395d4f485b",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3401,13 +3421,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/missionary-giving-pages/document/MissionaryGivingPagesNativeEditView.tsx:7-12: MissionaryGivingPagesNativeEditView accepts props: DocumentViewClientProps and forwards `props` to `NativeCollectionEditView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/missionary-giving-pages/document/MissionaryGivingPagesNativeEditView.tsx:12; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/missionary-giving-pages/document/MissionaryGivingPagesNativeEditView.tsx:12. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/missionary-giving-pages/document/MissionaryGivingPagesNativeEditView.tsx:12. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "1aca91393cda9b0b7adcf9afbb94f811bc778f3d995de39f8a664918761ef45b",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3434,13 +3455,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/missionary-giving-pages/list/MissionaryGivingPagesNativeListView.tsx:12-17: MissionaryGivingPagesNativeListView accepts props: MissionaryGivingPagesNativeListViewProps and forwards `props` to `NativeCollectionListView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/missionary-giving-pages/list/MissionaryGivingPagesNativeListView.tsx:17; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/missionary-giving-pages/list/MissionaryGivingPagesNativeListView.tsx:17. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/missionary-giving-pages/list/MissionaryGivingPagesNativeListView.tsx:17. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "0e55a6e729c232f12f76eaff2d0d9dfbb5bb11af3cf98591580facfd2888a659",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3467,13 +3489,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx:7-12: MissionaryProfilesNativeEditView accepts props: DocumentViewClientProps and forwards `props` to `NativeCollectionEditView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx:12; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx:12. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx:12. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "54d70f6dd10e7dc914e71d7a3bbf7b6da45e1b062865f7209e61d55505c3cdf1",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3500,13 +3523,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/missionary-profiles/list/MissionaryProfilesNativeListView.tsx:12-16: MissionaryProfilesNativeListView accepts props: MissionaryProfilesNativeListViewProps and forwards `props` to `NativeCollectionListView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/missionary-profiles/list/MissionaryProfilesNativeListView.tsx:16; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/missionary-profiles/list/MissionaryProfilesNativeListView.tsx:16. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/missionary-profiles/list/MissionaryProfilesNativeListView.tsx:16. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "61c10dd73b362ba32e4f7c17ab4f067f8fbb94ed821d213bd48be83767f876a9",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3533,13 +3557,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx:7-8: NavigationNativeEditView accepts props: DocumentViewClientProps and forwards `props` to `NativeCollectionEditView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx:8; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx:8. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx:8. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "f7611a0067111c8b491b7732a8466e9c9ba6c5ee479d4d6fea78c8dc616d7500",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3566,13 +3591,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx:12-13: NavigationNativeListView accepts props: NavigationNativeListViewProps and forwards `props` to `NativeCollectionListView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx:13; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx:13. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx:13. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "6e2e10eb065ca54d86797abbc259b1572ea6d9edb712d3c8cd1ecd9aa94b8f03",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3599,13 +3625,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/page-templates/document/PageTemplatesNativeEditView.tsx:7-9: PageTemplatesNativeEditView accepts props: DocumentViewClientProps and forwards `props` to `NativeCollectionEditView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/page-templates/document/PageTemplatesNativeEditView.tsx:9; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/page-templates/document/PageTemplatesNativeEditView.tsx:9. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/page-templates/document/PageTemplatesNativeEditView.tsx:9. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "77ae318029e5c6a157e84595658a89c3de60d66075c23bd1eb3a71b544e894a4",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3632,13 +3659,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/page-templates/list/PageTemplatesNativeListView.tsx:12-16: PageTemplatesNativeListView accepts props: PageTemplatesNativeListViewProps and forwards `props` to `NativeCollectionListView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/page-templates/list/PageTemplatesNativeListView.tsx:16; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/page-templates/list/PageTemplatesNativeListView.tsx:16. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/page-templates/list/PageTemplatesNativeListView.tsx:16. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "a08cbfaadfbf3280bcf3a28fb47480a51861c959fb4963a4693dc907a8d4cfc4",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3665,13 +3693,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx:7-8: PagesNativeEditView accepts props: DocumentViewClientProps and forwards `props` to `NativeCollectionEditView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx:8; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx:8. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx:8. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "249dcc3afe01b4726d9a7afe8adccad8098858c105b0c2c081403e5c3c30bd0d",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3698,13 +3727,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx:12-13: PagesNativeListView accepts props: PagesNativeListViewProps and forwards `props` to `NativeCollectionListView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx:13; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx:13. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx:13. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "fa3fb60451d0ae183b5c1fe82425e5c18cb25a062099025f944aa7d9ab364a19",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3731,13 +3761,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/project-pages/document/ProjectPagesNativeEditView.tsx:7-9: ProjectPagesNativeEditView accepts props: DocumentViewClientProps and forwards `props` to `NativeCollectionEditView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/project-pages/document/ProjectPagesNativeEditView.tsx:9; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/project-pages/document/ProjectPagesNativeEditView.tsx:9. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/project-pages/document/ProjectPagesNativeEditView.tsx:9. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "80aede422eecc16b70a904811d7afc51ce32dc30512780e98c69d3ff515ee8d6",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -3764,13 +3795,14 @@
         "SNAPSHOT SOURCE apps/admin/src/cms-ui/web-studio/project-pages/list/ProjectPagesNativeListView.tsx:12-15: ProjectPagesNativeListView accepts props: ProjectPagesNativeListViewProps and forwards `props` to `NativeCollectionListView`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/project-pages/list/ProjectPagesNativeListView.tsx:15; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/project-pages/list/ProjectPagesNativeListView.tsx:15. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/project-pages/list/ProjectPagesNativeListView.tsx:15. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "cd521703a78e8f74ebacc4fb1df8c31a43bc912510ca9b4ddca8b2bc269963c7",
       "evidenceFileHashes": {
-        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "65aa29f384addb4569662d21f6fc4706ec16de575198d731517c8b83fb25adda"
+        "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": "cb6d0dfaa80c1d0db74fb61fc756382de14406ba961cb10c69787d5f61d4d29c"
       }
     },
     {
@@ -7359,7 +7391,8 @@
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/chart.tsx:4; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "CURRENT SOURCE: chart.tsx retains a direct synchronous Tooltip alias and a synchronous typed ChartLegend adapter with itemSorter=null, preserving declared Recharts3 series ordering. Whole-chart lazy owners remain the boundary.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/chart.tsx:4. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale."
+        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider when intentional loading/Suspense API or dependency split preserves sync identities, props, SSR and all callers; continue fixing app owner chunk boundaries separately.",
       "sourceContextHash": "100e67afaf4d90edc94760d8a9aa65901e3c9589973f1d751fe17bc8f6d7914a",
@@ -7373,7 +7406,7 @@
         "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
         "apps/admin/components/dashboard/charts/revenue-chart.tsx": "f14afd060eb3e204bc3565ec325b13bb0f244d2fbf8c6fbe8d6e98c2812e9566",
         "apps/admin/components/dashboard/charts/weekly-chart.tsx": "28fb60578d68d9cfba2d6833b30c297d43271b9c213501b4fa15861e7b8c8643",
-        "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": "fdf12e75c6db185dca2aea07ad7ef564fc01ea8994942b70b5350cd9d92d7e8e"
+        "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": "13dccc1735edaea2b0c6d2cb7a9b71c86a3b1c0101bef627d8ddab329e4fdf38"
       }
     },
     {
@@ -7733,7 +7766,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onKeyDown\" does not match the \"onKeyDown\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
+      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
       "line": 436,
       "column": 7,
       "offset": 12235,
@@ -7767,7 +7800,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onFocus\" does not match the \"onFocus\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
+      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
       "line": 437,
       "column": 7,
       "offset": 12272,
@@ -7801,7 +7834,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onBlur\" does not match the \"onBlur\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
+      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
       "line": 438,
       "column": 7,
       "offset": 12305,
@@ -7972,7 +8005,7 @@
       "rule": "async-await-in-loop",
       "severity": "warning",
       "title": "await inside a loop",
-      "message": "This for\u2026of loop waits before starting the next iteration. If iterations perform independent asynchronous work, consider bounded concurrency; await syntax alone does not establish a speedup.",
+      "message": "This for…of loop waits before starting the next iteration. If iterations perform independent asynchronous work, consider bounded concurrency; await syntax alone does not establish a speedup.",
       "help": "Consider concurrent calls only for independent asynchronous work. Shared queues or synchronous work may not benefit. Preserve resource limits, transaction ordering, and failure/cancellation semantics; observe all callback promises.",
       "line": 240,
       "column": 31,
@@ -9155,7 +9188,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onClick\" does not match the \"onClick\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
+      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
       "line": 281,
       "column": 7,
       "offset": 8607,
@@ -10081,7 +10114,7 @@
       "severity": "warning",
       "title": "useState not destructured",
       "message": "`useState` should be destructured as `[value, setValue]` so readers can see the state value and setter together.",
-      "help": "Destructure `useState` as `const [thing, setThing] = useState(\u2026)` so state reads and writes stay visible together.",
+      "help": "Destructure `useState` as `const [thing, setThing] = useState(…)` so state reads and writes stay visible together.",
       "line": 42,
       "column": 9,
       "offset": 948,

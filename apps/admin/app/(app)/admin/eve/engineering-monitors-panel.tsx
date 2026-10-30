@@ -54,9 +54,11 @@ export function EveEngineeringMonitorsPanel() {
   return (
     <Card id="eve-engineering-monitors">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity aria-hidden="true" className="size-5" />
-          Engineering health monitors
+        <CardTitle>
+          <span className="flex items-center gap-2">
+            <Activity aria-hidden="true" className="size-5" />
+            Engineering health monitors
+          </span>
         </CardTitle>
         <CardDescription>
           Exact six-signal allowlist with safe evidence, stable dedupe, current
