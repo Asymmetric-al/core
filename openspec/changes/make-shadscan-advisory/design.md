@@ -353,9 +353,10 @@ adoption:
 
 - `tooling/eslint-config/a11y-debt-baseline.json` lists each residual
   exception with its file, rule, issue and the trimmed source text of the line
-  it covers. The adoption commit creates the file and it is reviewed once. If
-  the repair pass leaves no debt, the file is not created and every `debt #`
-  exception fails.
+  it covers. The adoption commit always creates the file, even as an empty
+  list when the repair pass leaves no debt, and it is reviewed once. A test
+  requires the file to exist and match its schema, so no later change can
+  delete it.
 - The directive verification fails on any `debt #` exception that has no
   exactly matching baseline entry, and on any baseline entry with no matching
   live exception. Debt directives cannot be added, moved to another line or
@@ -365,6 +366,12 @@ adoption:
   the head adds or changes any entry, so only removals pass. The local
   preflight runs the same comparison against the merge base with
   `origin/develop` when that ref exists.
+- **One-time adoption.** If the base commit has no baseline, the change is
+  the adoption change, and the comparison accepts the head's entries. Each
+  entry must still match a live `debt #` exception, and reviewers check the
+  list once in that pull request. This cannot repeat: the existence test
+  blocks any later change that deletes the file, so every later base commit
+  has one.
 
 A new static false positive after adoption still uses the
 `false positive:` form. Such a directive is visible in review and cannot

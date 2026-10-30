@@ -147,10 +147,22 @@ SHALL fail lint.
 ### Requirement: Existing Accessibility Debt Can Only Shrink
 
 Accessibility violations left unrepaired when enforcement is adopted SHALL be
-recorded as residual-debt exceptions listed in a reviewed baseline. A
-residual-debt exception that is not in the baseline SHALL fail verification,
-and a change SHALL NOT add or alter baseline entries, so recorded debt can only
-shrink.
+recorded as residual-debt exceptions listed in a reviewed baseline, which the
+adopting change creates once and no later change removes. A residual-debt
+exception that is not in the baseline SHALL fail verification, and after
+adoption a change SHALL NOT add or alter baseline entries, so recorded debt can
+only shrink.
+
+#### Scenario: The adopting change creates the baseline
+
+- **WHEN** the change that adopts enforcement records its residual debt, or an empty list if none remains
+- **THEN** the required check accepts the new baseline, because the base commit has none
+- **AND** each entry still has to match a live residual-debt exception
+
+#### Scenario: A later change removes the baseline
+
+- **WHEN** a change after adoption deletes the baseline
+- **THEN** the repository's verification fails, so the adoption path cannot be reused to add debt
 
 #### Scenario: A change adds a new residual-debt exception
 
