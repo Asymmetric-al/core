@@ -2906,13 +2906,14 @@
       "evidence": [
         "SOURCE apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx: complete row body inspected, including controls and ownership conditions.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx:50; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx:50. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx:50. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider before adding per-row editable controls, local state/ref/focus, keyed motion, reorderable independent async ownership, or stable-record identity requirements.",
       "sourceContextHash": "dca99bc28ef11c9d72caaa70356ae58b214263351a7c2c10bf2cc95ed6d5cb84",
-      "sourceFileHash": "350f8c013c0eac3a08eda075a1694401eeca99d12861bf68b599778838cb3a1b",
+      "sourceFileHash": "36114ced29768c7b04e49a5220b33d9e732f67c4444f981903b4605fd5888343",
       "evidenceFileHashes": {
-        "apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx": "350f8c013c0eac3a08eda075a1694401eeca99d12861bf68b599778838cb3a1b",
+        "apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx": "36114ced29768c7b04e49a5220b33d9e732f67c4444f981903b4605fd5888343",
         "apps/admin/features/support-hub/lib/automation-engine.ts": "27feb27107bf3bdc6fdd21b77b4223233380551b146267b0ee810769555926d2",
         "tests/unit/apps/admin/features/support-hub/automation-engine.test.ts": "7c3f680f8883219b84c1741d53ed37eaafea806096754b37fba57e19bcd426ad"
       }
@@ -2924,7 +2925,7 @@
       "severity": "warning",
       "title": "useState not destructured",
       "message": "`useState` should be destructured as `[value, setValue]` so readers can see the state value and setter together.",
-      "help": "Destructure `useState` as `const [thing, setThing] = useState(\u2026)` so state reads and writes stay visible together.",
+      "help": "Destructure `useState` as `const [thing, setThing] = useState(…)` so state reads and writes stay visible together.",
       "line": 22,
       "column": 9,
       "offset": 669,
@@ -2941,13 +2942,14 @@
         "SOURCE TeamForm.tsx:21-24 initializes fields and readonly slug; :33-36 saves snapshot slug or derives only when absent.",
         "CURRENT SOURCE TeamList.tsx:115-117 keys TeamForm by editingTeam?.id ?? \"new-team\". Missing this key was a real defect, not an exception.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/support-hub/components/settings/collaborators/TeamForm.tsx:22; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/settings/collaborators/TeamForm.tsx:22. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/settings/collaborators/TeamForm.tsx:22. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if slug becomes editable, record switching stops resetting draft ownership, or deliberate slug migration is added.",
       "sourceContextHash": "2dded012b9e731907f782ace55bae1a43498c6db4400550443bee6f594bfb197",
-      "sourceFileHash": "fa403ddcf7647aa9e26eb582aa14dff7295287242751c64bf6c8ec79c9d1b939",
+      "sourceFileHash": "6fe9ec8deef81699a196824f64d35744dca66cca2b75ba5d9b2c997d00236749",
       "evidenceFileHashes": {
-        "apps/admin/features/support-hub/components/settings/collaborators/TeamList.tsx": "f30e6b477f1b748e49328ec67986d11dd77ddc33f158086728b252fcbc65350b",
+        "apps/admin/features/support-hub/components/settings/collaborators/TeamList.tsx": "6c37f9128349909bd8b335ffcfa9f894ced5b5d4b4941b8895b1a3b4b05c622b",
         "tests/unit/apps/admin/support-team-draft-ownership.test.tsx": "97ce99cc0f5eea18f9f9e31b255758037eb75801c11d8ff7139a6843dbd000fa"
       }
     },
@@ -7733,7 +7735,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onKeyDown\" does not match the \"onKeyDown\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
+      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
       "line": 436,
       "column": 7,
       "offset": 12235,
@@ -7767,7 +7769,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onFocus\" does not match the \"onFocus\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
+      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
       "line": 437,
       "column": 7,
       "offset": 12272,
@@ -7801,7 +7803,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onBlur\" does not match the \"onBlur\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
+      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
       "line": 438,
       "column": 7,
       "offset": 12305,
@@ -7972,7 +7974,7 @@
       "rule": "async-await-in-loop",
       "severity": "warning",
       "title": "await inside a loop",
-      "message": "This for\u2026of loop waits before starting the next iteration. If iterations perform independent asynchronous work, consider bounded concurrency; await syntax alone does not establish a speedup.",
+      "message": "This for…of loop waits before starting the next iteration. If iterations perform independent asynchronous work, consider bounded concurrency; await syntax alone does not establish a speedup.",
       "help": "Consider concurrent calls only for independent asynchronous work. Shared queues or synchronous work may not benefit. Preserve resource limits, transaction ordering, and failure/cancellation semantics; observe all callback promises.",
       "line": 240,
       "column": 31,
@@ -9155,7 +9157,7 @@
       "severity": "warning",
       "title": "Inconsistent event handler names",
       "message": "The handler \"onClick\" does not match the \"onClick\" event prop convention, so readers cannot trace event flow quickly.",
-      "help": "Use the `on\u2026` prefix for event-handler props and `handle\u2026` for handlers so readers can trace event flow.",
+      "help": "Use the `on…` prefix for event-handler props and `handle…` for handlers so readers can trace event flow.",
       "line": 281,
       "column": 7,
       "offset": 8607,
@@ -10081,7 +10083,7 @@
       "severity": "warning",
       "title": "useState not destructured",
       "message": "`useState` should be destructured as `[value, setValue]` so readers can see the state value and setter together.",
-      "help": "Destructure `useState` as `const [thing, setThing] = useState(\u2026)` so state reads and writes stay visible together.",
+      "help": "Destructure `useState` as `const [thing, setThing] = useState(…)` so state reads and writes stay visible together.",
       "line": 42,
       "column": 9,
       "offset": 948,

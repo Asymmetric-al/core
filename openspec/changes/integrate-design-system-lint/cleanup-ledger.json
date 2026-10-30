@@ -3176,13 +3176,16 @@
         "shadcn/no-raw-colors": 2
       },
       "initialSourceSha256": "812f870e2dee7ee41289c67cfac2ebca7362755864452458dae5418e25c68ca7",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 2
-      },
-      "latestSourceSha256": "812f870e2dee7ee41289c67cfac2ebca7362755864452458dae5418e25c68ca7",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "6b96de278d84219597579441b92e2fca4922284a90331f84ee495ee2e063c11e",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "6b96de278d84219597579441b92e2fca4922284a90331f84ee495ee2e063c11e",
       "includedInLatestScan": true
     },
     {
@@ -3217,14 +3220,16 @@
         "shadcn/no-restyle": 3
       },
       "initialSourceSha256": "44919ab4eb7d95257085f524816bfcbd01d5f94aed344f3580adb1f1120cb8d2",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 2,
-        "shadcn/no-restyle": 3
-      },
-      "latestSourceSha256": "44919ab4eb7d95257085f524816bfcbd01d5f94aed344f3580adb1f1120cb8d2",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "f8302cb9bf76375a3372ae963425000221ed81ac9b423a0721f2a7567b650e64",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "f8302cb9bf76375a3372ae963425000221ed81ac9b423a0721f2a7567b650e64",
       "includedInLatestScan": true
     },
     {
@@ -3235,20 +3240,21 @@
         "shadcn/no-restyle": 28
       },
       "initialSourceSha256": "d4741843a05ec4c794cb6cbac021712a99d883c77fdf71e74fab4b6942661528",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "30a3f4de7c86b6bf4f3b51c2928195fbc891c1d72b961f26b48f1a1ab172b08d",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "fdd1f6d48fbc4c3a30c19783b62c227b18bc33220d77435b82ce3caf91e7f91e",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 8,
-        "shadcn/no-raw-colors": 3,
-        "shadcn/no-restyle": 28
-      },
-      "latestSourceSha256": "30a3f4de7c86b6bf4f3b51c2928195fbc891c1d72b961f26b48f1a1ab172b08d",
+      "currentFindings": {},
+      "latestSourceSha256": "fdd1f6d48fbc4c3a30c19783b62c227b18bc33220d77435b82ce3caf91e7f91e",
       "includedInLatestScan": true
     },
     {
@@ -3259,20 +3265,21 @@
         "shadcn/no-restyle": 19
       },
       "initialSourceSha256": "89f76ff3a9aab15554fb47df0365dc7b0a3ad33838d0e81f8537a1ca3bbeb864",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "4ed68c3966d230aee6bd9644ca17124e92f1096dca97719f01e49922e91d335f",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "d1e6cc223f22a8147e377b83189dc678ca391865aac846fce7d44f907ad6bc9a",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-raw-colors": 4,
-        "shadcn/no-restyle": 19
-      },
-      "latestSourceSha256": "4ed68c3966d230aee6bd9644ca17124e92f1096dca97719f01e49922e91d335f",
+      "currentFindings": {},
+      "latestSourceSha256": "d1e6cc223f22a8147e377b83189dc678ca391865aac846fce7d44f907ad6bc9a",
       "includedInLatestScan": true
     },
     {
@@ -3283,14 +3290,16 @@
         "shadcn/no-restyle": 10
       },
       "initialSourceSha256": "c18102c2af32b5073ea408533ed86368bb5c389733f1e2cccc28764363981ff0",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 11,
-        "shadcn/no-raw-colors": 12,
-        "shadcn/no-restyle": 10
-      },
-      "latestSourceSha256": "c18102c2af32b5073ea408533ed86368bb5c389733f1e2cccc28764363981ff0",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "36114ced29768c7b04e49a5220b33d9e732f67c4444f981903b4605fd5888343",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "36114ced29768c7b04e49a5220b33d9e732f67c4444f981903b4605fd5888343",
       "includedInLatestScan": true
     },
     {
@@ -3301,20 +3310,21 @@
         "shadcn/no-restyle": 23
       },
       "initialSourceSha256": "c4d30fdbb80c0571b3fb1f47e8b59d5491872ce3199f589d0eb992f2a6c93959",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "2ca9cc3c9352ab7afe105c52d070a7e28989a1816a1e10be559e271abb437b5e",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "3dc1e337dc6e3f660ec7fc0655fa2838e80678ad6755e2a3073e58099f5629b5",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 10,
-        "shadcn/no-raw-colors": 7,
-        "shadcn/no-restyle": 21
-      },
-      "latestSourceSha256": "2ca9cc3c9352ab7afe105c52d070a7e28989a1816a1e10be559e271abb437b5e",
+      "currentFindings": {},
+      "latestSourceSha256": "3dc1e337dc6e3f660ec7fc0655fa2838e80678ad6755e2a3073e58099f5629b5",
       "includedInLatestScan": true
     },
     {
@@ -3325,20 +3335,21 @@
         "shadcn/no-restyle": 12
       },
       "initialSourceSha256": "a35bd21814a61c1e47cac62c563ce21d85a881bf351693eb4309efa1cdc41297",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "2da360a193c1f79841a8670c5cb9c7ac335ec920d312e8e04ea6ce7b2c5c2439",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "aef542d458e816e2f6eb00b1d1cd696280d2a5ceb4a9504d196ad89a31154a30",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-raw-colors": 14,
-        "shadcn/no-restyle": 9
-      },
-      "latestSourceSha256": "2da360a193c1f79841a8670c5cb9c7ac335ec920d312e8e04ea6ce7b2c5c2439",
+      "currentFindings": {},
+      "latestSourceSha256": "aef542d458e816e2f6eb00b1d1cd696280d2a5ceb4a9504d196ad89a31154a30",
       "includedInLatestScan": true
     },
     {
@@ -3349,7 +3360,7 @@
         "shadcn/no-restyle": 35
       },
       "initialSourceSha256": "ec8e2517f94182c8a5a5022d1af8d27a9d2854a92c1886cfb4227f1452092d22",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -3360,14 +3371,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "a72c9e5319793e73f1f43fe7f0f93cef31ec39718162e94cf8c34dd3210633b8",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "dcae986e066821d53bdc880b5fcaf3194a30fdb5bda8d6b62d2d52a816944edd",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 14,
-        "shadcn/no-raw-colors": 15,
-        "shadcn/no-restyle": 33
-      },
-      "latestSourceSha256": "a72c9e5319793e73f1f43fe7f0f93cef31ec39718162e94cf8c34dd3210633b8",
+      "currentFindings": {},
+      "latestSourceSha256": "dcae986e066821d53bdc880b5fcaf3194a30fdb5bda8d6b62d2d52a816944edd",
       "includedInLatestScan": true
     },
     {
@@ -3378,20 +3390,21 @@
         "shadcn/no-restyle": 12
       },
       "initialSourceSha256": "52bb753ba657f76556bedd912e0ce5ab6b3e27f1252279ed31a23738f73b1476",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "77d3ed5d6c6e9806c6a2ceec4cb47b83a7217f0f18e49295b3be7965fc12a16b",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "255a11cdfe244bf16c48ec516086d2aea55d13150bd844d9db9b844bec2e126f",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 11,
-        "shadcn/no-restyle": 9
-      },
-      "latestSourceSha256": "77d3ed5d6c6e9806c6a2ceec4cb47b83a7217f0f18e49295b3be7965fc12a16b",
+      "currentFindings": {},
+      "latestSourceSha256": "255a11cdfe244bf16c48ec516086d2aea55d13150bd844d9db9b844bec2e126f",
       "includedInLatestScan": true
     },
     {
@@ -3402,20 +3415,21 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "39d989a2b5f297afc382fbf18350486e264f3ac3ec2e367ee3e3eb98e9804093",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "4d48bbe65818011a3a3828d55e0cd38eed8d7ee07fca38810df9edc4f8c9c77e",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "38b575e864a2f870693bb4255fef45b847f3e9f916d1f8f0ccf876336fd3fec5",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 3,
-        "shadcn/no-restyle": 5
-      },
-      "latestSourceSha256": "4d48bbe65818011a3a3828d55e0cd38eed8d7ee07fca38810df9edc4f8c9c77e",
+      "currentFindings": {},
+      "latestSourceSha256": "38b575e864a2f870693bb4255fef45b847f3e9f916d1f8f0ccf876336fd3fec5",
       "includedInLatestScan": true
     },
     {
@@ -3426,20 +3440,21 @@
         "shadcn/no-restyle": 12
       },
       "initialSourceSha256": "880a3e013b06133e2869159d0ce09c8153e07eabf991e99f78daddc4324e4101",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "256886de14bc23f593c6acc32cd1e2bb4c168ded54e51caf4f98e1a9ecc3491a",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "3b3fff0e157eb318ab0b549911fea237e5f914974ec448807cf8198c18acb551",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 13,
-        "shadcn/no-restyle": 9
-      },
-      "latestSourceSha256": "256886de14bc23f593c6acc32cd1e2bb4c168ded54e51caf4f98e1a9ecc3491a",
+      "currentFindings": {},
+      "latestSourceSha256": "3b3fff0e157eb318ab0b549911fea237e5f914974ec448807cf8198c18acb551",
       "includedInLatestScan": true
     },
     {
@@ -3450,14 +3465,16 @@
         "shadcn/no-restyle": 2
       },
       "initialSourceSha256": "7f3602dde6be3bac92b2838e19d866c8363745f87389566a1cc68b5e241b5f6b",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 5,
-        "shadcn/no-restyle": 2
-      },
-      "latestSourceSha256": "7f3602dde6be3bac92b2838e19d866c8363745f87389566a1cc68b5e241b5f6b",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "8354bdf7f782b19d1a057393dff19d1e339afe76bd123c8ee9a61c2f32bdfbf9",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "8354bdf7f782b19d1a057393dff19d1e339afe76bd123c8ee9a61c2f32bdfbf9",
       "includedInLatestScan": true
     },
     {
@@ -3467,19 +3484,21 @@
         "shadcn/no-restyle": 9
       },
       "initialSourceSha256": "5ba0d9c7f0be745bef82560df9c36638d6a8961e854c5ae109fde73b624bb5a9",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "8b6d71d74ffa549dc5a9d7b5a960b9494278ee3fdb7bfb7c6372350695bbee63",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "6fe9ec8deef81699a196824f64d35744dca66cca2b75ba5d9b2c997d00236749",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-raw-colors": 1,
-        "shadcn/no-restyle": 5
-      },
-      "latestSourceSha256": "8b6d71d74ffa549dc5a9d7b5a960b9494278ee3fdb7bfb7c6372350695bbee63",
+      "currentFindings": {},
+      "latestSourceSha256": "6fe9ec8deef81699a196824f64d35744dca66cca2b75ba5d9b2c997d00236749",
       "includedInLatestScan": true
     },
     {
@@ -3490,20 +3509,21 @@
         "shadcn/no-restyle": 16
       },
       "initialSourceSha256": "ad2037129b74651b8f62141a41b59217e9ce6b7b6471e77d13aceb627b0b5e03",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "55fd63f0279b93699fe0574d86c9e8026641e93816e2f5f86fcfc143f5d43aa1",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "6c37f9128349909bd8b335ffcfa9f894ced5b5d4b4941b8895b1a3b4b05c622b",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 10,
-        "shadcn/no-restyle": 11
-      },
-      "latestSourceSha256": "55fd63f0279b93699fe0574d86c9e8026641e93816e2f5f86fcfc143f5d43aa1",
+      "currentFindings": {},
+      "latestSourceSha256": "6c37f9128349909bd8b335ffcfa9f894ced5b5d4b4941b8895b1a3b4b05c622b",
       "includedInLatestScan": true
     },
     {
@@ -3514,7 +3534,7 @@
         "shadcn/no-restyle": 13
       },
       "initialSourceSha256": "fcca26a34fee7569c763e8d831fd238536085921165094b8edec6fb5f622143d",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -3525,14 +3545,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "a3d5ade9e74a7f25d0444e248aa6bbb1a7105264729a08f57d3d1afc65d8436e",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "789a80253f48b55e4b1bb3d6f5beb18dca28fd4975c576b28ca4ec839ab7b8f7",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 8,
-        "shadcn/no-raw-colors": 4,
-        "shadcn/no-restyle": 12
-      },
-      "latestSourceSha256": "a3d5ade9e74a7f25d0444e248aa6bbb1a7105264729a08f57d3d1afc65d8436e",
+      "currentFindings": {},
+      "latestSourceSha256": "789a80253f48b55e4b1bb3d6f5beb18dca28fd4975c576b28ca4ec839ab7b8f7",
       "includedInLatestScan": true
     },
     {
@@ -3543,20 +3564,21 @@
         "shadcn/no-restyle": 12
       },
       "initialSourceSha256": "f0d65e921214e5916bed50677f91690df9f3048abe322d613450446cf64ac3a3",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "eca7b2eb97bfd4b788333e9736cb0e137556e563ac4c9b58dc04add4ab2aa116",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "c71ce1ee1138f6593c49131a43b2e6c5e2abe579cce375ae037b9168ab977a7d",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 8,
-        "shadcn/no-restyle": 9
-      },
-      "latestSourceSha256": "eca7b2eb97bfd4b788333e9736cb0e137556e563ac4c9b58dc04add4ab2aa116",
+      "currentFindings": {},
+      "latestSourceSha256": "c71ce1ee1138f6593c49131a43b2e6c5e2abe579cce375ae037b9168ab977a7d",
       "includedInLatestScan": true
     },
     {
@@ -3567,20 +3589,21 @@
         "shadcn/no-restyle": 39
       },
       "initialSourceSha256": "2ff97361766c9b27ec176e9adc8bb89078ecd848bfa734f28f881fe35df194d0",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "cabffccdd8b632bbbc8496994ab896cc00ad9c679397af7bd12d12e1e79e1e25",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "b407cd962d53ca4d7710e93cb7beb49241b830ee5a7217e7df44f5e1fa99ed7c",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 13,
-        "shadcn/no-raw-colors": 6,
-        "shadcn/no-restyle": 39
-      },
-      "latestSourceSha256": "cabffccdd8b632bbbc8496994ab896cc00ad9c679397af7bd12d12e1e79e1e25",
+      "currentFindings": {},
+      "latestSourceSha256": "b407cd962d53ca4d7710e93cb7beb49241b830ee5a7217e7df44f5e1fa99ed7c",
       "includedInLatestScan": true
     },
     {
@@ -3589,18 +3612,21 @@
         "shadcn/no-restyle": 4
       },
       "initialSourceSha256": "c8017ff926849715ce40f464868006bf3538c2d49aa98b9b5ba25c1e55efbf60",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "662cda05e7539b7a5c8afe6047574b251fd33caa37f4e674c564b99969275148",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "bc4dfc81915ea76812fcd5492a6c8d4c428e2045d0a5ce542b34483209b4504b",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-restyle": 2
-      },
-      "latestSourceSha256": "662cda05e7539b7a5c8afe6047574b251fd33caa37f4e674c564b99969275148",
+      "currentFindings": {},
+      "latestSourceSha256": "bc4dfc81915ea76812fcd5492a6c8d4c428e2045d0a5ce542b34483209b4504b",
       "includedInLatestScan": true
     },
     {
@@ -3611,20 +3637,21 @@
         "shadcn/no-restyle": 12
       },
       "initialSourceSha256": "9cc70d1afe7b1811ce6f20630ed67638879b60b3712b7e64ac8293751d0c4f01",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "daa689256713c3ce5aa4709de905aabc1e04094085984fc78689aae801233141",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "d7f82bbb5160d6b784bab086cf3b7e76223c666c9cd32f65f50d44c0027221d6",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 10,
-        "shadcn/no-restyle": 9
-      },
-      "latestSourceSha256": "daa689256713c3ce5aa4709de905aabc1e04094085984fc78689aae801233141",
+      "currentFindings": {},
+      "latestSourceSha256": "d7f82bbb5160d6b784bab086cf3b7e76223c666c9cd32f65f50d44c0027221d6",
       "includedInLatestScan": true
     },
     {
@@ -3635,14 +3662,16 @@
         "shadcn/no-restyle": 3
       },
       "initialSourceSha256": "ef7eadd67fc4ce51bb7912d8e815595e957b9e6548872cacaf3a90a0b524663d",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 8,
-        "shadcn/no-raw-colors": 11,
-        "shadcn/no-restyle": 3
-      },
-      "latestSourceSha256": "ef7eadd67fc4ce51bb7912d8e815595e957b9e6548872cacaf3a90a0b524663d",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "6e99210d87f138e52b4ac3588d1541d5bf73557ad055386b160abb6edd46803d",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "6e99210d87f138e52b4ac3588d1541d5bf73557ad055386b160abb6edd46803d",
       "includedInLatestScan": true
     },
     {
@@ -3653,14 +3682,16 @@
         "shadcn/no-restyle": 4
       },
       "initialSourceSha256": "ee77ac0abbada2e6028090de46fd918a93d6e35b5b710da735394ee3158fe4f5",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 4,
-        "shadcn/no-raw-colors": 11,
-        "shadcn/no-restyle": 4
-      },
-      "latestSourceSha256": "ee77ac0abbada2e6028090de46fd918a93d6e35b5b710da735394ee3158fe4f5",
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "8bf45dd93381006473544c517d701405f509855f2feb7e4eb3c8864d6860af8f",
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": "8bf45dd93381006473544c517d701405f509855f2feb7e4eb3c8864d6860af8f",
       "includedInLatestScan": true
     },
     {
@@ -3671,20 +3702,21 @@
         "shadcn/no-restyle": 14
       },
       "initialSourceSha256": "37731cec0b90d9d1b84bdc8f316ad22ec5a9c1f5c4e67b902c15e5d4b3963ad2",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "cc4f8ea660312f9851859198f1720ebf8b01204e36bc5494dba8fbd17f6bf9e0",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "6a91ef08b3ef8a33860271b8439e92b7d215fcfb9d16045ffaded20e2b20cb24",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-raw-colors": 5,
-        "shadcn/no-restyle": 12
-      },
-      "latestSourceSha256": "cc4f8ea660312f9851859198f1720ebf8b01204e36bc5494dba8fbd17f6bf9e0",
+      "currentFindings": {},
+      "latestSourceSha256": "6a91ef08b3ef8a33860271b8439e92b7d215fcfb9d16045ffaded20e2b20cb24",
       "includedInLatestScan": true
     },
     {
@@ -3695,20 +3727,21 @@
         "shadcn/no-restyle": 16
       },
       "initialSourceSha256": "1db7168b1b2579b59fccc5584891674bcf8f85dca545a2f5bbcfb2f6acb6e1ae",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "d413d49fb290d54e4e55de0a3f03adb17056abb34953f6d64140c63040f9a438",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "03ac71b4073f1e9aff51a8973500aa58ce063e2866fbe480b946e53795660479",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 14,
-        "shadcn/no-restyle": 13
-      },
-      "latestSourceSha256": "d413d49fb290d54e4e55de0a3f03adb17056abb34953f6d64140c63040f9a438",
+      "currentFindings": {},
+      "latestSourceSha256": "03ac71b4073f1e9aff51a8973500aa58ce063e2866fbe480b946e53795660479",
       "includedInLatestScan": true
     },
     {
@@ -3719,7 +3752,7 @@
         "shadcn/no-restyle": 16
       },
       "initialSourceSha256": "cd7ad8620c2d8bb72538dfe2a4ec7c17c59e6518d9127b6321b0fec6577162d1",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -3730,14 +3763,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "bee87c72be784f47e92d160cb91ebaf9761ea3f76e0b7f2f1ed416d3ca589a45",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "ef94e0d6441e25c5a4ef17b4d10d17860b1ecfecb9f43aff6d222a76bff304e4",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 5,
-        "shadcn/no-raw-colors": 1,
-        "shadcn/no-restyle": 14
-      },
-      "latestSourceSha256": "bee87c72be784f47e92d160cb91ebaf9761ea3f76e0b7f2f1ed416d3ca589a45",
+      "currentFindings": {},
+      "latestSourceSha256": "ef94e0d6441e25c5a4ef17b4d10d17860b1ecfecb9f43aff6d222a76bff304e4",
       "includedInLatestScan": true
     },
     {
@@ -3748,20 +3782,21 @@
         "shadcn/no-restyle": 16
       },
       "initialSourceSha256": "7d3723c401d5a155a05bb7eb64b26230b62d90337310ab5465a9bdffbb661586",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "085ff594a8775fd3accbcc8f0c19f53c6c12d4b7b6daf24ccc19a3279e937e00",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-support-settings-2026-10-30",
+          "verifiedSourceSha256": "7e13a364dcd8a8b4ababde7206428c2a145b255c7b38ad826edc1505b660b9d5",
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 14,
-        "shadcn/no-restyle": 13
-      },
-      "latestSourceSha256": "085ff594a8775fd3accbcc8f0c19f53c6c12d4b7b6daf24ccc19a3279e937e00",
+      "currentFindings": {},
+      "latestSourceSha256": "7e13a364dcd8a8b4ababde7206428c2a145b255c7b38ad826edc1505b660b9d5",
       "includedInLatestScan": true
     },
     {
@@ -9655,6 +9690,43 @@
         "Axe incompletes retained; no full accessibility conformance claim. Console-error collection covers16 core contexts; all final focused contexts assert page errors and external requests.",
         "Narrow table uses a local horizontal scroller; all columns are not claimed to fit simultaneously at320px.",
         "Normal lint earlier returned1 solely for obsolete suppressions; root owns full baseline prune and combined gates. No suppression/policy/shared primitive changes by this batch."
+      ]
+    },
+    "admin-support-settings-2026-10-30": {
+      "summary": "Support Hub settings retire 243 findings in 25 files; 84 stubbed before/after route records at 1280/390 show working add/remove rows, named on-screen controls, unclipped time inputs and no new axe violations.",
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/support-settings/harness.mjs",
+          "sha256": "76d711b167cf697db8eb9b4770badea912cc7f42b126020acf006e920c2b77cc"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-settings/scenario__support-settings-a.mjs",
+          "sha256": "c0ba562bb529bbd225f0cb3791bfc7c7dc7574a935a33b7826c6fa313e2f4dc3"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-settings/scenario__support-settings-b.mjs",
+          "sha256": "1d0729ec912d6092aafefcf344e118c34aac001766ec3a7b5a5de591684391e4"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-settings/scenario__support-settings-data.mjs",
+          "sha256": "af981bddd2b76617ee7ec1cc5b074805b16ecbce46ef01401cf3b74ebf9ab8db"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-settings/screenshots-manifest.json",
+          "sha256": "b62d7dff5d1812881b3eb98aa7d2fb204b81301c99eb2c6313acff927f0fe446"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-settings/support-settings-macro-refactor__support-settings-b.results.json",
+          "sha256": "6c4e3140625cd7d61793ccbc8ffecf76b4654c7ae76bc0baa4bd44dd62714fd1"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-settings/support-settings__support-settings-a.results.json",
+          "sha256": "cbaa8a59173a78704e411cc8940984906bdf3eb59929288024f83ab4fa9f2453"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-settings/support-settings__support-settings-b.results.json",
+          "sha256": "6c4e3140625cd7d61793ccbc8ffecf76b4654c7ae76bc0baa4bd44dd62714fd1"
+        }
       ]
     }
   },

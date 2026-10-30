@@ -46,7 +46,6 @@ export function MacroList() {
             variant="outline"
             size="sm"
             onClick={() => setEditing("new")}
-            className="rounded-lg text-xs"
           >
             <Plus className="size-3.5" />
             New macro
@@ -83,22 +82,20 @@ export function MacroList() {
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() => setEditing(macro)}
                   aria-label={`Edit ${macro.name}`}
-                  className="size-8 text-muted-foreground hover:text-foreground"
                 >
                   <Pencil className="size-3.5" />
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() => void handleDelete(macro)}
                   aria-label={`Delete ${macro.name}`}
-                  className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
-                  <Trash2 className="size-3.5" />
+                  <Trash2 className="size-3.5 text-destructive" />
                 </Button>
               </li>
             ))}
