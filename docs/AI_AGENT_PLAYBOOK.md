@@ -53,19 +53,25 @@
 
 - The Shadcn MCP is configured as `shadcn` in root `.mcp.json`,
   `.cursor/mcp.json`, and `.codex/config.toml`. All three run
-  `bun scripts/shadcn/mcp.mjs`, which starts the pinned `bun x shadcn@4.22.1 mcp`
-  from `packages/ui`. The server reads registries from its working directory,
-  and `packages/ui/components.json` is the only `components.json`. Do not switch
+  `bun scripts/shadcn/mcp.mjs`. It starts the workspace-installed shadcn, pinned
+  by the root `devDependencies.shadcn`, with `packages/ui` as the working
+  directory. The server reads registries from its working directory, and
+  `packages/ui/components.json` is the only `components.json`. Do not switch
   back to `npx`: inside Core it fails with npm `EOVERRIDE` because of the root
   `overrides`.
-- Paid registries resolve their `${VAR}` placeholders from the server's
-  environment. Use the names in `components.json` and `.env.example`. Real
-  environment variables win; Bun loads a git-ignored root `.env.local` as the
-  fallback. Never put key values in a client config.
-- The first start on a machine installs shadcn into Bun's cache, which takes
-  about a minute. Codex allows 120 seconds for it. Claude Code's default startup
-  timeout (`MCP_TIMEOUT`) is shorter, so reconnect the server once if it times
-  out. Later starts take a few seconds.
+- Paid registries resolve the `${VAR}` placeholders in `components.json` from
+  the server's environment: `SHADCN_STUDIO_EMAIL`, `SHADCN_STUDIO_LICENSE_KEY`,
+  `SHADCNBLOCKS_API_KEY`, `SHADCNUIKIT_API_KEY`, `EFFERD_REGISTRY_TOKEN`,
+  `REACTBITS_LICENSE_KEY` and `REUI_LICENSE_KEY`. Real environment variables
+  win; Bun loads a git-ignored root `.env.local` as the fallback. Never put key
+  values in a client config.
+- Agents can start the MCP before dependencies are installed; fresh
+  `.claude/worktrees` checkouts have no `node_modules`. In that case the launcher
+  falls back to `bun x` with the same pin. That fallback's first start on a
+  machine installs shadcn into Bun's cache, which takes about a minute. Codex
+  allows 120 seconds for it. Claude Code's default startup timeout
+  (`MCP_TIMEOUT`) is shorter, so reconnect the server once if it times out, or
+  run `bun install` first.
 
 ## ReUI agent tooling
 

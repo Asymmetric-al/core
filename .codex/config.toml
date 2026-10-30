@@ -10,7 +10,8 @@ command = "bun"
 args = [
     "scripts/shadcn/mcp.mjs",
 ]
-# The first start on a machine installs shadcn through `bun x` (~1 minute).
+# Before `bun install`, the launcher falls back to `bun x`, whose first start
+# on a machine installs shadcn (~1 minute).
 startup_timeout_sec = 120
 
 [mcp_servers.reui]

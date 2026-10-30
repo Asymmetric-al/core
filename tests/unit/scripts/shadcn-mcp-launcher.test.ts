@@ -29,25 +29,58 @@ const studioParams = {
 };
 
 describe("shadcn MCP launcher", () => {
-  it("runs the pinned server through Bun from the components.json directory", () => {
-    const env = { SHADCN_STUDIO_EMAIL: "owner@example.test" };
+  const pinned = JSON.parse(read("package.json")).devDependencies.shadcn;
+  const env = { SHADCN_STUDIO_EMAIL: "owner@example.test" };
+  const options = {
+    cwd: path.join(repoRoot, "packages/ui"),
+    env,
+    shell: false,
+    stdio: "inherit",
+  };
+
+  it("takes its pin from the root devDependency", () => {
+    expect(SHADCN_MCP_PACKAGE).toBe(`shadcn@${pinned}`);
+  });
+
+  it("runs the workspace-installed CLI from the components.json directory", () => {
+    expect(
+      shadcnMcpSpawnSpec({
+        env,
+        execPath: "/opt/bun/bin/bun",
+        versions: { bun: "1.4.3" },
+        installedVersion: pinned,
+      }),
+    ).toEqual({
+      command: "node",
+      args: [path.join(repoRoot, "node_modules/shadcn/dist/index.js"), "mcp"],
+      options,
+    });
+  });
+
+  it("falls back to bun x with the same pin before dependencies are installed", () => {
+    expect(
+      shadcnMcpSpawnSpec({
+        env,
+        execPath: "/opt/bun/bin/bun",
+        versions: { bun: "1.4.3" },
+        installedVersion: null,
+      }),
+    ).toEqual({
+      command: "/opt/bun/bin/bun",
+      args: ["x", SHADCN_MCP_PACKAGE, "mcp"],
+      options,
+    });
+  });
+
+  it("never runs a stale workspace install", () => {
     const spec = shadcnMcpSpawnSpec({
       env,
       execPath: "/opt/bun/bin/bun",
       versions: { bun: "1.4.3" },
+      installedVersion: "0.0.1",
     });
 
-    expect(spec).toEqual({
-      command: "/opt/bun/bin/bun",
-      args: ["x", SHADCN_MCP_PACKAGE, "mcp"],
-      options: {
-        cwd: path.join(repoRoot, "packages/ui"),
-        env,
-        shell: false,
-        stdio: "inherit",
-      },
-    });
-    expect(SHADCN_MCP_PACKAGE).toBe("shadcn@4.22.1");
+    expect(spec.args).toEqual(["x", SHADCN_MCP_PACKAGE, "mcp"]);
   });
 
   it("falls back to bun on PATH when started by another runtime", () => {
@@ -55,6 +88,7 @@ describe("shadcn MCP launcher", () => {
       env: {},
       execPath: "/usr/bin/node",
       versions: { node: "24.0.0" },
+      installedVersion: null,
     });
 
     expect(spec.command).toBe("bun");
