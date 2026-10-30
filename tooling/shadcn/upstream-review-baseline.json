@@ -2162,7 +2162,7 @@
   "proofSources": [
     {
       "path": "docs/ai/rules/frontend.md",
-      "sha256": "7a2fd29ac7320025c6347781ecee3032551fef403ceba1cf1b2764f979fb2448"
+      "sha256": "b720d1661985406e1cc6ede182607b6dbd3046a545e511d2b5f71a3f24da5476"
     },
     {
       "path": "packages/lib/hooks/use-mobile.ts",
