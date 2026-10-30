@@ -59,10 +59,22 @@ accepted product decisions SHALL need no repository record.
 
 ### Requirement: First-Party UI Lint Enforces Accessibility Rules
 
-Lint for first-party web UI SHALL enforce a standard JSX accessibility rule set.
-It SHALL cover alternative text, anchor content and validity, label association,
-keyboard access for interactive handlers, semantic roles, valid ARIA and focus
-order. A violation SHALL fail local lint and the required CI lint check.
+Lint for first-party web UI SHALL enforce a standard JSX accessibility rule set
+in every first-party app and workspace package whose production sources render
+JSX. It SHALL cover alternative text, anchor content and validity, label
+association, keyboard access for interactive handlers, semantic roles, valid
+ARIA and focus order. A violation SHALL fail local lint and the required CI
+lint check.
+
+#### Scenario: A shared package renderer emits inaccessible markup
+
+- **WHEN** first-party code in a workspace package that renders production JSX, such as the public CMS page renderer, adds an accessibility violation
+- **THEN** lint fails and names the file, line and rule
+
+#### Scenario: A new workspace package starts rendering JSX
+
+- **WHEN** a first-party workspace package gains production JSX sources but its lint configuration does not apply the accessibility rules
+- **THEN** the repository's verification fails and names the package
 
 #### Scenario: A non-interactive element gains a click handler
 
@@ -97,11 +109,11 @@ names, so an import alias cannot bypass the mapping.
 ### Requirement: Existing Accessibility Debt Can Only Shrink
 
 Existing accessibility lint violations and static false positives SHALL be
-recorded only as line-anchored exceptions that name the rule and give a
-reason; residual debt SHALL also cite a tracked issue. They SHALL NOT be
-recorded as file-scoped or count-based suppressions. An exception that no
-longer suppresses a violation SHALL fail lint, so recorded debt can only
-shrink.
+recorded only as next-line exceptions that each name exactly one rule and give
+a reason; residual debt SHALL also cite a tracked issue. File-scoped, block,
+multi-rule, rule-less or count-based suppressions SHALL NOT cover these rules.
+An exception that no longer suppresses a violation SHALL fail lint, so
+recorded debt can only shrink.
 
 #### Scenario: A new violation lands in a file with recorded debt
 
@@ -119,9 +131,14 @@ shrink.
 - **WHEN** a change removes a violation that has an exception
 - **THEN** lint fails until the same change deletes that exception
 
-#### Scenario: An exception omits its rule or reason
+#### Scenario: An exception is broader than one line and one rule
 
-- **WHEN** first-party code adds an accessibility lint exception that names no rule or gives no reason
+- **WHEN** first-party code adds a file-scoped or block disable that covers an accessibility rule, a rule-less disable, or a next-line exception naming more than one rule
+- **THEN** the repository's verification fails and names the file and line
+
+#### Scenario: An exception lacks a valid reason
+
+- **WHEN** first-party code adds an accessibility exception with no reason, or with a reason that is neither a static false-positive explanation nor a tracked-issue citation
 - **THEN** the repository's verification fails and names the file and line
 
 ### Requirement: Rendered And Behavioral Accessibility Evidence Is Retained

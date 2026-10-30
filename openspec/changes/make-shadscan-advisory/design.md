@@ -35,7 +35,15 @@ See `proposal.md` for the motivation. Current state that shapes the approach:
   same-count swap passes lint.
 - No lint config sets `reportUnusedDisableDirectives`, and lint does not fail
   on warnings. First-party `apps/**` and `packages/**` sources hold 4 inline
-  disable directives.
+  disable directives. Each names its rules, and none covers `jsx-a11y`.
+- The design-system scope (`uiWorkspaces` in
+  `tooling/eslint-config/design-system.mjs`) lists the three apps,
+  `packages/ui` and `packages/missionary`. Two more packages have production
+  JSX and lint through `tooling/eslint-config/library.mjs`:
+  - `packages/lib`, whose `cms/public-page-renderer.tsx` renders the donor
+    public CMS route and the admin preview, and whose
+    `components/safe-html.tsx` is used by the apps and `packages/ui`;
+  - `packages/database`, with two provider components.
 - Two first-party files import shared components under aliases:
   `Button as SharedButton` in
   `apps/admin/features/mission-control/care/components/UI.tsx` and
@@ -144,18 +152,31 @@ this change.
 
 `@asym/eslint-config` declares the exact `eslint-plugin-jsx-a11y@6.10.2`,
 which is already in `bun.lock`. It applies `flatConfigs.recommended.rules` at
-error level. The file scope is the same first-party web UI scope the
-design-system policy uses: apps plus shared UI packages, excluding vendored
-and generated trees.
+error level. The scope is every first-party app and workspace package whose
+non-test sources contain JSX, excluding vendored and generated trees. Today
+that means the three apps, `packages/ui`, `packages/missionary`,
+`packages/lib` and `packages/database`. This is deliberately wider than the
+design-system scope, which leaves out the two library-config packages even
+though `packages/lib` renders public pages.
 
 Plugin registration must not collide:
 
 - **Next app configs:** reuse the plugin object that `eslint-config-next`
   already registers.
-- **Non-Next UI packages:** register the declared copy.
+- **Design-system packages and `library.mjs` packages:** register the
+  declared copy for their JSX files.
 
-A config test proves both entry points resolve one `jsx-a11y` namespace with
-no "Cannot redefine plugin" error. The test is written red first.
+Config tests, written red first, prove two things:
+
+- Every entry point resolves one `jsx-a11y` namespace, with no "Cannot
+  redefine plugin" error.
+- Every workspace with non-test JSX sources resolves the rules for a JSX file
+  inside it. The workspace list is derived from the repository, not
+  hard-coded, so a package that starts rendering JSX cannot fall outside the
+  scope silently.
+
+- **Rejected: reusing `uiWorkspaces`.** It omits `packages/lib`, so public
+  CMS markup regressions would pass lint.
 
 - **Rejected: `eslint-plugin-jsx-a11y-x` (0.2.0).** It declares ESLint 10
   peers, but it would add a second, younger dependency beside the copy Next
@@ -193,24 +214,38 @@ recorded as a limitation in the guide.
 1. Run the enabled rules over the full scope and produce an inventory.
 2. Repair real violations at their owning component, with focused tests where
    behavior changes.
-3. For a false positive caused by the static rule, use an
-   `eslint-disable-next-line` directive that names the rule and gives a
-   `-- reason`.
-4. Record only what cannot be repaired safely in this change, using the same
-   directive form with a reason that cites a tracked issue. Open that issue
-   with the residual list.
+3. For a false positive caused by the static rule, use
+   `eslint-disable-next-line jsx-a11y/<rule> -- false positive: <why>`.
+4. Record only what cannot be repaired safely in this change, as
+   `eslint-disable-next-line jsx-a11y/<rule> -- debt #<issue>: <why>`. Open
+   that issue with the residual list.
 
-Each directive covers one line and one rule. That gives the spec's
-shrink-only behavior:
+These two forms are the only accepted way to except an accessibility rule.
+Each covers one line and one rule, which gives the spec's shrink-only
+behavior:
 
 - A new violation on any other line fails lint, even in a file with
   exceptions.
-- First-party UI configs set `linterOptions.reportUnusedDisableDirectives` to
+- Configs for every workspace in the D4 scope set
+  `linterOptions.reportUnusedDisableDirectives` to
   `"error"`, so a directive whose violation was repaired fails lint until it
   is deleted. That also applies to the 4 existing directives, and any that
   are stale are removed during apply.
-- A focused test scans first-party sources and fails when a `jsx-a11y`
-  directive names no rule or has no `--` reason.
+- A focused verification test parses every directive in first-party sources
+  in scope, whether written as a line comment or a JSX block comment. It
+  fails on:
+  - an `eslint-disable` or `eslint-disable-line` directive that names a
+    `jsx-a11y` rule, since that covers a whole file, a block or more than
+    the next line;
+  - any rule-less disable directive, since it silently covers every
+    accessibility rule;
+  - a next-line directive that names a `jsx-a11y` rule together with any
+    other rule;
+  - a `jsx-a11y` exception whose reason does not start with
+    `false positive:` or `debt #<issue>:`.
+
+  Directives for other rules that name their rules stay allowed, so the 4
+  existing directives are unaffected.
 
 `validateSuppressions` stays limited to `@shadcn/lint` rules, so
 accessibility debt cannot move into the count-based file.

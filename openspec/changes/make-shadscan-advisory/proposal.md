@@ -33,11 +33,13 @@ its rules. The existing axe-based Playwright checks cover rendered behavior.
   ledger, the policy file and the gate-mechanics tests. Retire the 100/100
   target. Reviewers triage reported findings: confirmed defects are repaired
   with behavior tests or tracked as issues.
-- Enforce the full `jsx-a11y` recommended rule set in first-party web UI lint.
-  Map shared `packages/ui` components to their native semantics, and reject
-  import aliases that would bypass that mapping. Record any violation left
-  after repair as a line-anchored, rule-named exception that fails lint once
-  it is unused, so debt can only shrink.
+- Enforce the full `jsx-a11y` recommended rule set in first-party web UI lint,
+  covering every app and workspace package that renders production JSX,
+  including `packages/lib` and its public CMS renderer. Map shared
+  `packages/ui` components to their native semantics, and reject import
+  aliases that would bypass that mapping. Record any violation left after
+  repair as a single-line, single-rule exception that fails lint once it is
+  unused, so debt can only shrink.
 - Keep every behavioral, Playwright and axe test written as Shadscan proof.
   They are ordinary regression tests now.
 - When this change is ratified, amend the active `modernize-shadscan-readiness`
