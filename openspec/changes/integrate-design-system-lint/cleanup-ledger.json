@@ -2560,12 +2560,12 @@
         },
         {
           "batch": "admin-support-inbox-2026-10-30",
-          "verifiedSourceSha256": "aeaf3e539a5f7405468fa0a79c446d35bf0259fec942c0bc7bdf275b6b48f90d",
+          "verifiedSourceSha256": "bff86145261429756fa777218be5d970cbd6842abfb4eaa0482041b0d98b9f98",
           "supportsFileCompletion": true
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "aeaf3e539a5f7405468fa0a79c446d35bf0259fec942c0bc7bdf275b6b48f90d",
+      "latestSourceSha256": "bff86145261429756fa777218be5d970cbd6842abfb4eaa0482041b0d98b9f98",
       "includedInLatestScan": true
     },
     {
@@ -9763,7 +9763,7 @@
       ]
     },
     "admin-support-inbox-2026-10-30": {
-      "summary": "Support Hub inbox, reports and routes retire 292 findings in 46 files; 174 stubbed before/after route records at 1280/768/390 fix four regressions found in review, confirm named ButtonLink anchors, and show no new axe violations.",
+      "summary": "Support Hub inbox, reports and routes retire 292 findings in 46 files; 174 stubbed before/after route records at 1280/768/390 plus a loopback-PostgREST render of the ticket list and detail pages fix four regressions found in review, confirm named ButtonLink anchors, and show no new axe violations.",
       "evidence": [
         {
           "path": ".tmp/admin-lint-5-4/support-inbox/buttonlink__buttonlink-names.results.json",
@@ -9771,7 +9771,11 @@
         },
         {
           "path": ".tmp/admin-lint-5-4/support-inbox/harness.mjs",
-          "sha256": "76d711b167cf697db8eb9b4770badea912cc7f42b126020acf006e920c2b77cc"
+          "sha256": "059086f51f66093c6c55eb87bd78bb672c30b050030a844abe19c30754ff72ef"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/postgrest-stub.mjs",
+          "sha256": "028a08008383901028f5a8b1cfc4e2ac912fe5cadfc678f79c9d66099e921c2b"
         },
         {
           "path": ".tmp/admin-lint-5-4/support-inbox/scenario__buttonlink-names.mjs",
@@ -9794,8 +9798,16 @@
           "sha256": "c02c286702e6a629b5e781b08d51593749de67535ce546217595b2e48c28bf7a"
         },
         {
+          "path": ".tmp/admin-lint-5-4/support-inbox/scenario__support-inbox-tickets.mjs",
+          "sha256": "f575934c9dcb4ecc9392c947e2933d465cfc9ccfce64b75896c940f08c829c30"
+        },
+        {
           "path": ".tmp/admin-lint-5-4/support-inbox/screenshots-manifest.json",
-          "sha256": "4032f034fff6bf2f2228fc800e7fbc4ff0d1b1fda435be3220178acd49526cc0"
+          "sha256": "167d13af2d4d72ee31612a648fd4e680d5556030c53720899c318877123c6d1f"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/support-inbox/support-inbox-tickets__support-inbox-tickets.results.json",
+          "sha256": "3cff2add7db6618eff0372bb8a9a86f9e821628baebbe88159e15999f1577503"
         },
         {
           "path": ".tmp/admin-lint-5-4/support-inbox/support-inbox__support-inbox-hub.results.json",

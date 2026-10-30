@@ -49,7 +49,10 @@ Component paths are under `apps/admin/features/support-hub/components/`;
   Command lists inside the padded `PopoverContent` use
   `CommandInput popoverChrome`, the Tasks pattern.
 - The conversation sheet has one close control; before, the sheet's and the
-  header's close buttons overlapped. The header border is a `Separator`.
+  header's close buttons overlapped. While a conversation is still loading,
+  the header (and its close button) is not mounted yet, so the sheet's
+  built-in close stays visible in that state. The header border is a
+  `Separator`.
 - The knowledge "article not found" notice is an `Alert` (`role="alert"`).
   The failure banner text uses foreground; its icon keeps the warning colour.
 
@@ -73,6 +76,22 @@ Component paths are under `apps/admin/features/support-hub/components/`;
   - Four regressions found during verification were fixed: the layout toggle
     state, label popup width, the duplicate sheet close, and the popover
     search field.
+- The server-rendered ticket list and ticket detail pages were rendered on
+  both servers against a loopback PostgREST stub that returns synthetic
+  `support_tickets` and `support_contacts` rows (`support-inbox-tickets`
+  scenario, 4 steps at 1280, 768 and 390px). Both commits show the same
+  results:
+  - the list has three rows and three "Open thread" links;
+  - the status filter leaves one row;
+  - the detail page shows the thread summary;
+  - an unknown id shows "Back to tickets";
+  - every converted `ButtonLink` is an on-screen anchor with the right
+    `href`;
+  - no horizontal overflow.
+
+  Axe results are identical before and after (`button-name` on the list's
+  icon buttons is pre-existing).
+
 - Axe found no new violations. `label-content-name-mismatch`, `list`,
   `listitem` and the command palette's `aria-required-children` are present
   before the change.
@@ -87,9 +106,7 @@ Component paths are under `apps/admin/features/support-hub/components/`;
 
 - No `CommandDialog` or `ComboboxContent` width option and no padding-free
   `PopoverContent` exists; no selected Card state exists.
-- Not exercised: the tickets list and ticket detail pages, which fail
-  server-side on both commits here because `SUPABASE_SERVICE_ROLE_KEY` is not
-  configured. The conversation timeline also collapses to zero height at 768
-  and 390px on both commits, a pre-existing layout problem.
+- Pre-existing: the conversation timeline collapses to zero height at 768
+  and 390px on both commits.
 
 Evidence (ignored, hashed in the ledger): `.tmp/admin-lint-5-4/support-inbox/`.
