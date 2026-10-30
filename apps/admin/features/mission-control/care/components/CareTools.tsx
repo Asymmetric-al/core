@@ -54,15 +54,12 @@ export function CareTools({ personnel }: CareToolsProps) {
       {/* Floating Action Button */}
       <div
         className={cn(
-          "fixed bottom-8 right-8 z-50",
+          "group fixed bottom-8 right-8 z-50",
           !withinRouteVt &&
             "animate-in fade-in slide-in-from-bottom-4 duration-300 ease-[var(--ease-out-soft)]",
         )}
       >
-        <Button
-          onClick={() => setOpen(true)}
-          className="size-14 rounded-2xl shadow-2xl [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 transition-[transform,box-shadow] group border-none"
-        >
+        <Button size="icon-touch" onClick={() => setOpen(true)}>
           <Zap className="size-6 transition-transform group-hover:rotate-12 fill-current" />
           <span className="sr-only">Open Care Tools</span>
 
@@ -75,13 +72,10 @@ export function CareTools({ personnel }: CareToolsProps) {
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <div className="p-2 border-b border-border/50 bg-muted/20">
-          <CommandInput
-            placeholder="Search personnel, care actions, or settings..."
-            className="border-none focus:ring-0 text-sm font-medium"
-          />
+          <CommandInput placeholder="Search personnel, care actions, or settings..." />
         </div>
-        <CommandList className="max-h-100 p-2">
-          <CommandEmpty className="py-12 text-center">
+        <CommandList>
+          <CommandEmpty>
             <div className="size-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
               <Search className="size-6 text-muted-foreground/40" />
             </div>
@@ -95,7 +89,7 @@ export function CareTools({ personnel }: CareToolsProps) {
 
           <CommandGroup
             heading={
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground px-2 py-3 block">
+              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground px-2 py-3 block">
                 Personnel Directory
               </span>
             }
@@ -104,9 +98,8 @@ export function CareTools({ personnel }: CareToolsProps) {
               <CommandItem
                 key={p.id}
                 onSelect={() => navigate(`/mc/care/directory/${p.id}`)}
-                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors group"
               >
-                <div className="size-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center text-xs font-black border border-primary/10 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <div className="size-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center text-xs font-black border border-primary/10">
                   {p.initials}
                 </div>
                 <div className="flex flex-col">
@@ -117,10 +110,7 @@ export function CareTools({ personnel }: CareToolsProps) {
                     {p.region} • {p.role}
                   </span>
                 </div>
-                <Badge
-                  variant="outline"
-                  className="ml-auto font-black uppercase tracking-tighter border-border/50   transition-opacity"
-                >
+                <Badge variant="outline" className="ml-auto">
                   View Profile
                 </Badge>
               </CommandItem>
@@ -129,36 +119,27 @@ export function CareTools({ personnel }: CareToolsProps) {
 
           <CommandGroup
             heading={
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground px-2 py-3 block">
+              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground px-2 py-3 block">
                 Care Actions
               </span>
             }
           >
-            <CommandItem
-              onSelect={() => navigate("/mc/care/directory")}
-              className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors group"
-            >
-              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+            <CommandItem onSelect={() => navigate("/mc/care/directory")}>
+              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground">
                 <Search className="size-4" />
               </div>
               <span className="text-sm font-bold">Browse All Personnel</span>
             </CommandItem>
-            <CommandItem
-              onSelect={() => {}}
-              className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors group"
-            >
-              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+            <CommandItem onSelect={() => {}}>
+              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground">
                 <Heart className="size-4" />
               </div>
               <span className="text-sm font-bold">
                 Log Quick Wellness Check
               </span>
             </CommandItem>
-            <CommandItem
-              onSelect={() => {}}
-              className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors group"
-            >
-              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+            <CommandItem onSelect={() => {}}>
+              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground">
                 <MessageSquare className="size-4" />
               </div>
               <span className="text-sm font-bold">Send Team Broadcast</span>
@@ -167,16 +148,13 @@ export function CareTools({ personnel }: CareToolsProps) {
 
           <CommandGroup
             heading={
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground px-2 py-3 block">
+              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground px-2 py-3 block">
                 System
               </span>
             }
           >
-            <CommandItem
-              onSelect={() => navigate("/mc/care/settings")}
-              className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors group"
-            >
-              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+            <CommandItem onSelect={() => navigate("/mc/care/settings")}>
+              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground">
                 <Settings className="size-4" />
               </div>
               <span className="text-sm font-bold">Member Care Settings</span>

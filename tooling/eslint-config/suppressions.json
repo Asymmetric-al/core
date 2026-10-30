@@ -66,16 +66,6 @@
       "count": 38
     }
   },
-  "apps/admin/app/(app)/care/directory/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/admin/app/(app)/care/settings/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 32
-    }
-  },
   "apps/admin/app/(app)/contributions/columns.tsx": {
     "shadcn/no-restyle": {
       "count": 11
@@ -429,54 +419,12 @@
       "count": 2
     }
   },
-  "apps/admin/features/mission-control/care/components/CareDashboard.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 47
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
-    }
-  },
-  "apps/admin/features/mission-control/care/components/CareTools.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
-    "shadcn/no-restyle": {
-      "count": 65
-    }
-  },
-  "apps/admin/features/mission-control/care/components/HealthHeatmap.tsx": {
-    "shadcn/no-restyle": {
-      "count": 10
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
-    }
-  },
-  "apps/admin/features/mission-control/care/components/PersonnelList.tsx": {
-    "shadcn/no-restyle": {
-      "count": 9
-    }
-  },
-  "apps/admin/features/mission-control/care/components/PersonnelProfile.tsx": {
-    "shadcn/no-restyle": {
-      "count": 106
-    }
-  },
   "apps/admin/features/mission-control/care/components/ShortcutsHelp.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 1
     },
     "shadcn/no-restyle": {
       "count": 6
-    }
-  },
-  "apps/admin/features/mission-control/care/components/TimezoneScheduler.tsx": {
-    "shadcn/no-restyle": {
-      "count": 11
     }
   },
   "apps/admin/features/mission-control/care/components/UI.tsx": {

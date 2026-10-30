@@ -55,16 +55,20 @@ export function HealthHeatmap({ data, days = 90 }: HeatmapProps) {
           return (
             <Tooltip key={date}>
               <TooltipTrigger
-                type="button"
-                aria-label={label}
-                className={cn(
-                  "w-3 h-3 rounded-sm cursor-pointer transition-colors hover:ring-1 hover:ring-ring focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
-                  healthHeatmapGetColor(intensity),
-                )}
+                render={
+                  <button
+                    type="button"
+                    aria-label={label}
+                    className={cn(
+                      "size-3 rounded-sm cursor-pointer transition-colors hover:ring-1 hover:ring-ring focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
+                      healthHeatmapGetColor(intensity),
+                    )}
+                  />
+                }
               />
               <TooltipContent side="top">
                 <p className="text-xs font-medium">{date}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs">
                   {intensity > 0
                     ? `${entry?.type} intensity: ${intensity}`
                     : "No activity logged"}
