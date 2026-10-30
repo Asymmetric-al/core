@@ -189,7 +189,21 @@ INSERT INTO expected_field_policy_supplement VALUES
   ('donations','stripe_refund_ids',
    'supabase/migrations/20260702090000_donation_stripe_refund_ids.sql',
    '2fd5fe0c396d9662e5595b1f24879c4b3dc5404b9ab24b7c0ff60c144d1b9bda',
-   'ffa812656b0ff920b3fe014a31d2d57ee8679288');
+   'ffa812656b0ff920b3fe014a31d2d57ee8679288'),
+  -- #2254 reviewed supplement v2: bound by working-tree hash, not a base SHA.
+  ('donors','email_normalized',
+   'supabase/migrations/20261024140000_identity_email_normalizer_and_donor_keys.sql',
+   '36190ece4a2ad17d24dddbddb0db579f9511c77fda2feed90ce0bf07b16efbfa', NULL),
+  ('donors','email_verified_at',
+   'supabase/migrations/20261024140000_identity_email_normalizer_and_donor_keys.sql',
+   '36190ece4a2ad17d24dddbddb0db579f9511c77fda2feed90ce0bf07b16efbfa', NULL),
+  -- #2256 reviewed supplement v3: bound by working-tree hash, not a base SHA.
+  ('missionaries','person_id',
+   'supabase/migrations/20261025110000_person_anchor.sql',
+   'b9d7b5ef5569d35ee198ac6264a8fca91c4fd5b5e349b1da91375cf68029a875', NULL),
+  ('profiles','person_id',
+   'supabase/migrations/20261025110000_person_anchor.sql',
+   'b9d7b5ef5569d35ee198ac6264a8fca91c4fd5b5e349b1da91375cf68029a875', NULL);
 INSERT INTO expected_field_policy_columns(record_type,field_key)
   SELECT record_type,field_key FROM expected_field_policy_supplement;
 
@@ -223,6 +237,15 @@ BEGIN
     AND table_name='donations' AND column_name='stripe_refund_ids' AND data_type='ARRAY'
     AND udt_name='_text' AND is_nullable='NO' AND column_default=quote_literal('{}')||'::text[]') THEN
     RAISE EXCEPTION 'C4: exact repository supplement must be required TEXT[] with empty-array default'; END IF;
+  IF (SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='donors'
+    AND ((column_name='email_normalized' AND data_type='text' AND is_generated='ALWAYS')
+      OR (column_name='email_verified_at' AND data_type='timestamp with time zone' AND column_default IS NULL))
+    AND is_nullable='YES')<>2 THEN
+    RAISE EXCEPTION 'C4: identity supplement must be generated TEXT email_normalized and nullable TIMESTAMPTZ email_verified_at'; END IF;
+  IF (SELECT count(*) FROM information_schema.columns WHERE table_schema='public'
+    AND table_name IN ('missionaries','profiles') AND column_name='person_id'
+    AND data_type='uuid' AND is_nullable='YES' AND column_default IS NULL)<>2 THEN
+    RAISE EXCEPTION 'C4: person anchor supplement must be nullable UUID person_id on missionaries and profiles'; END IF;
   SELECT string_agg(record_type||'.'||field_key, ', ') INTO bad FROM (
     SELECT record_type,field_key FROM expected_field_policy_columns
     EXCEPT SELECT c.table_name,c.column_name FROM information_schema.columns c WHERE c.table_schema='public'
@@ -239,9 +262,9 @@ BEGIN
     LEFT JOIN public.field_policies p ON p.record_type=e.record_type AND p.field_key=e.field_key AND p.surface=s.surface AND p.tenant_id IS NULL
     WHERE p.field_key IS NULL;
   IF bad IS NOT NULL THEN RAISE EXCEPTION 'C4: missing baseline policy rows: %',bad; END IF;
-  IF (SELECT count(*) FROM expected_field_policy_columns)<>172 OR
-    (SELECT count(*) FROM public.field_policies)<>860 THEN
-    RAISE EXCEPTION 'C4: expected exactly 171 live columns + one source supplement and 860 baseline rows'; END IF;
+  IF (SELECT count(*) FROM expected_field_policy_columns)<>176 OR
+    (SELECT count(*) FROM public.field_policies)<>880 THEN
+    RAISE EXCEPTION 'C4: expected exactly 171 live columns + five reviewed supplement columns and 880 baseline rows'; END IF;
   IF EXISTS (SELECT 1 FROM public.field_policies p LEFT JOIN expected_field_policy_columns e USING(record_type,field_key)
     WHERE e.field_key IS NULL OR p.field_key LIKE '%.%') THEN
     RAISE EXCEPTION 'C4: seed contains fabricated columns, record types or dotted fields'; END IF;
@@ -262,7 +285,7 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.field_policies WHERE record_type='donations'
     AND field_key='stripe_refund_ids' AND sensitivity_category<>'financial') THEN
     RAISE EXCEPTION 'C4: entire refund-identifier array must be financial'; END IF;
-  RAISE NOTICE 'C4: 171 immutable live columns + exact one-column repository supplement have 860 baseline rows';
+  RAISE NOTICE 'C4: 171 immutable live columns + exact reviewed supplements (v1 one column, v2 two columns, v3 two columns) have 880 baseline rows';
 
   -- Canonical receipts remain absent. Existing repository prototype tables are
   -- not canonical authority and must stay unseeded/denied; their existence is

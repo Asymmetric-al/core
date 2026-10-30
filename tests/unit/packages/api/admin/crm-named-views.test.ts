@@ -8,6 +8,7 @@ import {
   updateCrmNamedView,
 } from "../../../../../packages/api/src/admin/crm/table-preferences/named-views";
 
+import type { RequestSessionClient } from "../../../../../packages/api/src/shared/request-session-client";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 interface ViewRow {
@@ -269,6 +270,7 @@ function createSupabaseStub(initialRows: ViewRow[] = []) {
 
   return {
     supabaseAdmin: stub as unknown as AdminSupabaseClient,
+    sessionClient: stub as unknown as RequestSessionClient,
     rows,
     updates,
     deletes,
@@ -279,6 +281,12 @@ function createSupabaseStub(initialRows: ViewRow[] = []) {
 const SCOPE = {
   tenantId: "tenant-1",
   profileId: "profile-1",
+  tableId: "crm.giftHistory",
+};
+
+// Writes carry no profile: the RPCs take it from the session (#2402).
+const WRITE_SCOPE = {
+  tenantId: "tenant-1",
   tableId: "crm.giftHistory",
 };
 
@@ -309,8 +317,44 @@ describe("admin/crm/table-preferences/named-views", () => {
     ]);
   });
 
+  it("writes through the session client without actor arguments", async () => {
+    const { rpcCalls, sessionClient } = createSupabaseStub();
+
+    const created = await createCrmNamedView({
+      sessionClient,
+      ...WRITE_SCOPE,
+      name: "Mine",
+    });
+    await updateCrmNamedView({
+      sessionClient,
+      ...WRITE_SCOPE,
+      viewId: created.id,
+      name: "Renamed",
+    });
+    await deleteCrmNamedView({
+      sessionClient,
+      ...WRITE_SCOPE,
+      viewId: created.id,
+    });
+
+    expect(rpcCalls.map((call) => call.name)).toEqual([
+      "create_crm_table_named_view",
+      "update_crm_table_named_view",
+      "delete_crm_table_named_view",
+    ]);
+    for (const { params } of rpcCalls) {
+      expect(params).toMatchObject({
+        p_tenant_id: "tenant-1",
+        p_table_id: "crm.giftHistory",
+      });
+      expect(
+        Object.keys(params).filter((key) => /profile|actor|user/.test(key)),
+      ).toEqual([]);
+    }
+  });
+
   it("creating a default view clears the previous default", async () => {
-    const { rpcCalls, supabaseAdmin, rows } = createSupabaseStub([
+    const { rpcCalls, sessionClient, rows } = createSupabaseStub([
       {
         id: "view-1",
         name: "Old default",
@@ -322,8 +366,8 @@ describe("admin/crm/table-preferences/named-views", () => {
     ]);
 
     const created = await createCrmNamedView({
-      supabaseAdmin,
-      ...SCOPE,
+      sessionClient,
+      ...WRITE_SCOPE,
       name: "New default",
       isDefault: true,
       pinnedActionId: "resend_receipt",
@@ -341,11 +385,11 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("normalizes renamed pinned operation ids before saving views", async () => {
-    const { rpcCalls, supabaseAdmin } = createSupabaseStub();
+    const { rpcCalls, sessionClient } = createSupabaseStub();
 
     const created = await createCrmNamedView({
-      supabaseAdmin,
-      ...SCOPE,
+      sessionClient,
+      ...WRITE_SCOPE,
       name: "Receipts",
       pinnedActionId: "send_receipt",
     });
@@ -355,12 +399,12 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("rejects unknown pinned operation ids before saving views", async () => {
-    const { rpcCalls, supabaseAdmin } = createSupabaseStub();
+    const { rpcCalls, sessionClient } = createSupabaseStub();
 
     await expect(
       createCrmNamedView({
-        supabaseAdmin,
-        ...SCOPE,
+        sessionClient,
+        ...WRITE_SCOPE,
         name: "Receipts",
         pinnedActionId: "unknown_action",
       }),
@@ -372,7 +416,7 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("maps duplicate named view creates to conflict responses", async () => {
-    const { supabaseAdmin } = createSupabaseStub([
+    const { sessionClient } = createSupabaseStub([
       {
         id: "view-1",
         name: "Receipts",
@@ -385,8 +429,8 @@ describe("admin/crm/table-preferences/named-views", () => {
 
     await expect(
       createCrmNamedView({
-        supabaseAdmin,
-        ...SCOPE,
+        sessionClient,
+        ...WRITE_SCOPE,
         name: "Receipts",
       }),
     ).rejects.toMatchObject({
@@ -396,7 +440,7 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("set-default through update clears other defaults first", async () => {
-    const { rpcCalls, supabaseAdmin, rows } = createSupabaseStub([
+    const { rpcCalls, sessionClient, rows } = createSupabaseStub([
       {
         id: "view-1",
         name: "A",
@@ -416,8 +460,8 @@ describe("admin/crm/table-preferences/named-views", () => {
     ]);
 
     await updateCrmNamedView({
-      supabaseAdmin,
-      ...SCOPE,
+      sessionClient,
+      ...WRITE_SCOPE,
       viewId: "view-2",
       isDefault: true,
     });
@@ -433,12 +477,12 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("returns 404 when updating a missing named view", async () => {
-    const { supabaseAdmin } = createSupabaseStub();
+    const { sessionClient } = createSupabaseStub();
 
     await expect(
       updateCrmNamedView({
-        supabaseAdmin,
-        ...SCOPE,
+        sessionClient,
+        ...WRITE_SCOPE,
         viewId: "missing-view",
         name: "Does not exist",
       }),
@@ -449,7 +493,7 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("maps duplicate named view updates to conflict responses", async () => {
-    const { supabaseAdmin } = createSupabaseStub([
+    const { sessionClient } = createSupabaseStub([
       {
         id: "view-1",
         name: "Receipts",
@@ -470,8 +514,8 @@ describe("admin/crm/table-preferences/named-views", () => {
 
     await expect(
       updateCrmNamedView({
-        supabaseAdmin,
-        ...SCOPE,
+        sessionClient,
+        ...WRITE_SCOPE,
         viewId: "view-2",
         name: "Receipts",
       }),
@@ -482,7 +526,7 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("merges partial settings updates without wiping sibling scopes", async () => {
-    const { supabaseAdmin, rows } = createSupabaseStub([
+    const { sessionClient, rows } = createSupabaseStub([
       {
         id: "view-1",
         name: "Receipts",
@@ -497,8 +541,8 @@ describe("admin/crm/table-preferences/named-views", () => {
     ]);
 
     const updated = await updateCrmNamedView({
-      supabaseAdmin,
-      ...SCOPE,
+      sessionClient,
+      ...WRITE_SCOPE,
       viewId: "view-1",
       settings: { columns: { statusLine: false } },
     });
@@ -512,7 +556,7 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("applies null settings updates as scoped resets", async () => {
-    const { supabaseAdmin, rows } = createSupabaseStub([
+    const { sessionClient, rows } = createSupabaseStub([
       {
         id: "view-1",
         name: "Receipts",
@@ -527,8 +571,8 @@ describe("admin/crm/table-preferences/named-views", () => {
     ]);
 
     await updateCrmNamedView({
-      supabaseAdmin,
-      ...SCOPE,
+      sessionClient,
+      ...WRITE_SCOPE,
       viewId: "view-1",
       settings: { columns: null },
     });
@@ -539,7 +583,7 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("deleting the default view can promote a chosen replacement", async () => {
-    const { supabaseAdmin, rows } = createSupabaseStub([
+    const { sessionClient, rows } = createSupabaseStub([
       {
         id: "view-1",
         name: "Default",
@@ -559,8 +603,8 @@ describe("admin/crm/table-preferences/named-views", () => {
     ]);
 
     await deleteCrmNamedView({
-      supabaseAdmin,
-      ...SCOPE,
+      sessionClient,
+      ...WRITE_SCOPE,
       viewId: "view-1",
       nextDefaultViewId: "view-2",
     });
@@ -570,7 +614,7 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("does not promote a replacement when deleting a non-default view", async () => {
-    const { supabaseAdmin, rows } = createSupabaseStub([
+    const { sessionClient, rows } = createSupabaseStub([
       {
         id: "view-1",
         name: "Default",
@@ -598,8 +642,8 @@ describe("admin/crm/table-preferences/named-views", () => {
     ]);
 
     await deleteCrmNamedView({
-      supabaseAdmin,
-      ...SCOPE,
+      sessionClient,
+      ...WRITE_SCOPE,
       viewId: "view-3",
       nextDefaultViewId: "view-2",
     });
@@ -610,7 +654,7 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("keeps the deleted view when the replacement default is missing", async () => {
-    const { supabaseAdmin, rows } = createSupabaseStub([
+    const { sessionClient, rows } = createSupabaseStub([
       {
         id: "view-1",
         name: "Default",
@@ -631,8 +675,8 @@ describe("admin/crm/table-preferences/named-views", () => {
 
     await expect(
       deleteCrmNamedView({
-        supabaseAdmin,
-        ...SCOPE,
+        sessionClient,
+        ...WRITE_SCOPE,
         viewId: "view-1",
         nextDefaultViewId: "missing-view",
       }),
@@ -647,7 +691,7 @@ describe("admin/crm/table-preferences/named-views", () => {
   });
 
   it("deleting the default without a replacement leaves no default (tenant/system fallback)", async () => {
-    const { supabaseAdmin, rows } = createSupabaseStub([
+    const { sessionClient, rows } = createSupabaseStub([
       {
         id: "view-1",
         name: "Default",
@@ -667,8 +711,8 @@ describe("admin/crm/table-preferences/named-views", () => {
     ]);
 
     await deleteCrmNamedView({
-      supabaseAdmin,
-      ...SCOPE,
+      sessionClient,
+      ...WRITE_SCOPE,
       viewId: "view-1",
     });
 

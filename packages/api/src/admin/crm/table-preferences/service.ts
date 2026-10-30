@@ -5,6 +5,7 @@ import {
 import { ApiHttpError } from "../../../shared/http-errors";
 import { isRecord } from "../../../shared/json-coerce";
 
+import type { RequestSessionClient } from "../../../shared/request-session-client";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type {
   CrmTablePreferencesResponse,
@@ -103,8 +104,12 @@ export async function getCrmTablePreferences(input: {
   };
 }
 
+/**
+ * Writes go through the caller's session: the RPCs take the acting profile
+ * from auth.uid() and check the tenant against it (#2402).
+ */
 export interface SaveCrmTablePreferenceInput {
-  supabaseAdmin: SupabaseAdmin;
+  sessionClient: RequestSessionClient;
   tenantId: string;
   tableId: string;
   /** undefined = unchanged; null = unpin. */
@@ -113,17 +118,16 @@ export interface SaveCrmTablePreferenceInput {
 }
 
 export async function saveCrmUserTablePreference(
-  input: SaveCrmTablePreferenceInput & { profileId: string },
+  input: SaveCrmTablePreferenceInput,
 ): Promise<CrmTableRowActionPreference> {
   const pinnedActionId =
     input.pinnedActionId === undefined
       ? null
       : normalizeCrmPinnedActionId(input.pinnedActionId);
-  const { data, error } = await input.supabaseAdmin.rpc(
+  const { data, error } = await input.sessionClient.rpc(
     "save_crm_user_table_preference",
     {
       p_tenant_id: input.tenantId,
-      p_profile_id: input.profileId,
       p_table_id: input.tableId,
       p_pinned_action_id: pinnedActionId,
       p_pinned_action_id_is_set: input.pinnedActionId !== undefined,
@@ -158,9 +162,8 @@ export async function saveCrmUserTablePreference(
 }
 
 export async function saveCrmUserRowActionPin(input: {
-  supabaseAdmin: SupabaseAdmin;
+  sessionClient: RequestSessionClient;
   tenantId: string;
-  profileId: string;
   tableId: string;
   pinnedActionId: string | null;
 }): Promise<CrmTableRowActionPreference> {
@@ -168,16 +171,13 @@ export async function saveCrmUserRowActionPin(input: {
 }
 
 export async function saveCrmTenantTableDefault(
-  input: SaveCrmTablePreferenceInput & {
-    actorCanManageDefaults: boolean;
-    actorProfileId: string;
-  },
+  input: SaveCrmTablePreferenceInput,
 ): Promise<CrmTableRowActionPreference> {
   const pinnedActionId =
     input.pinnedActionId === undefined
       ? null
       : normalizeCrmPinnedActionId(input.pinnedActionId);
-  const { data, error } = await input.supabaseAdmin.rpc(
+  const { data, error } = await input.sessionClient.rpc(
     "save_crm_tenant_table_default",
     {
       p_tenant_id: input.tenantId,
@@ -186,8 +186,6 @@ export async function saveCrmTenantTableDefault(
       p_pinned_action_id_is_set: input.pinnedActionId !== undefined,
       p_schema_version: CRM_ROW_ACTION_SCHEMA_VERSION,
       p_settings_patch: input.settingsPatch ?? {},
-      p_actor_profile_id: input.actorProfileId,
-      p_actor_can_manage_defaults: input.actorCanManageDefaults,
     },
   );
   const row = readPreferenceRpcRow(data);
@@ -211,12 +209,10 @@ export async function saveCrmTenantTableDefault(
 }
 
 export async function saveCrmTenantRowActionDefault(input: {
-  supabaseAdmin: SupabaseAdmin;
+  sessionClient: RequestSessionClient;
   tenantId: string;
   tableId: string;
   pinnedActionId: string | null;
-  actorCanManageDefaults: boolean;
-  actorProfileId: string;
 }): Promise<CrmTableRowActionPreference> {
   return saveCrmTenantTableDefault(input);
 }

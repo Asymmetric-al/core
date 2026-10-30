@@ -133,7 +133,7 @@ describe("ci-integration workflow contract", () => {
     );
     expect(integrationGate).not.toContain("test-e2e");
 
-    expect(e2eSmokeGate).toContain("needs: [test-e2e-smoke]");
+    expect(e2eSmokeGate).toContain("needs: [migrate, smoke, test-e2e-smoke]");
     expect(e2eSmokeGate).toContain('!= "success"');
 
     expect(e2eGate).toContain("needs: [test-e2e, instant-nav]");

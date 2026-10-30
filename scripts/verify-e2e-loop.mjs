@@ -1,6 +1,14 @@
 import { spawn } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const maxAttempts = Number.parseInt(process.argv[2] || "3", 10);
+/** Absent or "" → 3; otherwise digits only, ≥ 1 and exact; else null. */
+export const parseAttemptCount = (raw) => {
+  if (raw === undefined || raw === "") return 3;
+  const count = /^[0-9]+$/.test(raw) ? Number(raw) : Number.NaN;
+  return count >= 1 && Number.isSafeInteger(count) ? count : null;
+};
 
 const runOnce = () =>
   new Promise((resolve) => {
@@ -31,6 +39,13 @@ const formatFailure = (failure) => {
 };
 
 const main = async () => {
+  const maxAttempts = parseAttemptCount(process.argv[2]);
+  if (maxAttempts === null) {
+    process.stderr.write(
+      `verify:e2e:loop: attempt count must be a positive integer, got "${process.argv[2]}"\n`,
+    );
+    process.exit(1);
+  }
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     process.stderr.write(`Attempt ${attempt}/${maxAttempts}\n`);
     const result = await runOnce();
@@ -47,10 +62,25 @@ const main = async () => {
       process.stderr.write(`${result.raw}\n`);
       process.exit(1);
     }
+    if (typeof summary?.ok !== "boolean") {
+      process.stderr.write("verify:e2e output has no boolean ok.\n");
+      process.stderr.write(`${result.raw}\n`);
+      process.exit(1);
+    }
 
     process.stdout.write(`${result.raw.trim()}\n`);
 
-    if (summary.ok) {
+    // An attempt passes only when the exit code and the summary agree.
+    if (summary.ok !== (result.code === 0)) {
+      process.stderr.write(
+        `verify:e2e exited ${result.code} with ok=${summary.ok}; treating attempt as failed\n`,
+      );
+    } else if (summary.ok) {
+      if (attempt > 1) {
+        process.stderr.write(
+          `Passed on attempt ${attempt}/${maxAttempts} after ${attempt - 1} failed attempt(s)\n`,
+        );
+      }
       process.exit(0);
     }
 
@@ -64,9 +94,23 @@ const main = async () => {
     }
 
     if (attempt === maxAttempts) {
+      process.stderr.write(
+        `Reached max attempts (${maxAttempts}) without a pass\n`,
+      );
       process.exit(1);
     }
   }
 };
 
-main();
+// Realpaths on both sides, so a relative or symlinked argv[1] still runs main().
+const isEntrypoint = () => {
+  try {
+    return (
+      fs.realpathSync(path.resolve(process.argv[1])) ===
+      fs.realpathSync(fileURLToPath(import.meta.url))
+    );
+  } catch {
+    return false;
+  }
+};
+if (process.argv[1] && isEntrypoint()) main();

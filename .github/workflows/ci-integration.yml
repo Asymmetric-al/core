@@ -33,7 +33,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
     services:
       postgres:
-        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres # pragma: allowlist secret
@@ -93,6 +93,32 @@ jobs:
         env:
           DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
         run: bun x vitest run tests/unit/acceptance/issue-2067/reader-role.integration.acceptance.test.ts
+      - name: Verify identity email normalizer and donor keys (real stack)
+        run: bun x vitest run tests/unit/acceptance/issue-2254/identity.realstack.acceptance.test.ts
+      - name: Verify tenant isolation (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts tests/unit/acceptance/issue-2256/person-anchor.realstack.acceptance.test.ts tests/unit/acceptance/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2258/current-user-assignments.realstack.acceptance.test.ts tests/unit/acceptance/issue-2312/public-reads.realstack.acceptance.test.ts tests/unit/acceptance/issue-2402/crm-table-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2364/missionaries-reads.realstack.acceptance.test.ts
+      - name: Verify authz EXECUTE grants (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts
+      - name: Verify tenant table RLS posture (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/acceptance/issue-2251/rls-posture.realstack.acceptance.test.ts
+      - name: Verify claim tables (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/acceptance/issue-2255/claim-tables.realstack.acceptance.test.ts
+      - name: Verify donor spine composite FKs (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/acceptance/issue-2252/donor-spine-fk.realstack.acceptance.test.ts
+      - name: Verify RLS catalog gate (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts
 
   smoke:
     needs: migrate
@@ -106,7 +132,7 @@ jobs:
     timeout-minutes: 10
     services:
       postgres:
-        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres # pragma: allowlist secret
@@ -163,7 +189,7 @@ jobs:
     timeout-minutes: 25
     services:
       postgres:
-        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres # pragma: allowlist secret
@@ -261,7 +287,7 @@ jobs:
     timeout-minutes: 30
     services:
       postgres:
-        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres # pragma: allowlist secret
@@ -396,14 +422,29 @@ jobs:
 
   e2e-smoke-gate:
     if: always()
-    needs: [test-e2e-smoke]
+    needs: [migrate, smoke, test-e2e-smoke]
     runs-on: ubuntu-slim
     steps:
       - name: Fail if E2E smoke failed
         run: |
+          echo "migrate: ${{ needs.migrate.result }}"
+          echo "smoke: ${{ needs.smoke.result }}"
           echo "test-e2e-smoke: ${{ needs['test-e2e-smoke'].result }}"
 
+          # Every skip fails closed. Blame the first non-success in dependency
+          # order so an upstream failure is not reported as an E2E failure.
+          if [ "${{ needs.migrate.result }}" != "success" ]; then
+            echo "Root cause: migrate (${{ needs.migrate.result }})"
+            echo "E2E smoke gate failed."
+            exit 1
+          fi
+          if [ "${{ needs.smoke.result }}" != "success" ]; then
+            echo "Root cause: smoke (${{ needs.smoke.result }})"
+            echo "E2E smoke gate failed."
+            exit 1
+          fi
           if [ "${{ needs['test-e2e-smoke'].result }}" != "success" ]; then
+            echo "Root cause: test-e2e-smoke (${{ needs['test-e2e-smoke'].result }})"
             echo "E2E smoke gate failed."
             exit 1
           fi
@@ -501,7 +542,19 @@ jobs:
             fi
           done
 
+          # Blame the first non-success in dependency order.
           if [ "$failed" -ne 0 ]; then
+            if [ "${{ needs.migrate.result }}" != "success" ]; then
+              echo "Root cause: migrate (${{ needs.migrate.result }})"
+              echo "Integration gate failed."
+              exit 1
+            fi
+            if [ "${{ needs.smoke.result }}" != "success" ]; then
+              echo "Root cause: smoke (${{ needs.smoke.result }})"
+              echo "Integration gate failed."
+              exit 1
+            fi
+            echo "Root cause: e2e-smoke-gate (${{ needs['e2e-smoke-gate'].result }}); see its own Root cause line"
             echo "Integration gate failed."
             exit 1
           fi

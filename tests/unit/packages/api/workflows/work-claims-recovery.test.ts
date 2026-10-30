@@ -47,6 +47,7 @@ describe("product work claims (#289)", () => {
         acquired: true,
         claim_id: CLAIM_ID,
         expires_at: "2026-06-11T00:05:00.000Z",
+        tenant_id: TENANT_A,
       },
       error: null,
     });
@@ -70,7 +71,7 @@ describe("product work claims (#289)", () => {
 
   it("reports a duplicate attempt when an active claim already exists", async () => {
     const rpc = vi.fn().mockResolvedValue({
-      data: { acquired: false },
+      data: { acquired: false, tenant_id: TENANT_A },
       error: null,
     });
 
@@ -85,14 +86,19 @@ describe("product work claims (#289)", () => {
   });
 
   it("releases an acquired claim", async () => {
-    const rpc = vi.fn().mockResolvedValue({ data: true, error: null });
+    const rpc = vi.fn().mockResolvedValue({
+      data: { released: true, tenant_id: TENANT_A },
+      error: null,
+    });
 
     const released = await releaseWorkClaim({ rpc } as never, {
+      tenantId: TENANT_A,
       claimId: CLAIM_ID,
     });
 
     expect(released).toBe(true);
     expect(rpc).toHaveBeenCalledWith("release_workflow_work_claim", {
+      p_tenant_id: TENANT_A,
       p_claim_id: CLAIM_ID,
       p_status: "released",
     });
@@ -141,15 +147,17 @@ function createScanClientMock(options: ScanClientOptions) {
   const from = vi.fn().mockReturnValue({ select, update });
 
   const rpc = vi.fn();
-  rpc.mockImplementation((fn: string) => {
+  // Guarded RPCs echo the tenant they ran for (#2250).
+  rpc.mockImplementation((fn: string, args: { p_tenant_id: string }) => {
+    const echo = { tenant_id: args.p_tenant_id };
     if (fn === "acquire_workflow_work_claim") {
       const next = options.acquireResults.shift() ?? {
         acquired: true,
         claim_id: CLAIM_ID,
       };
-      return Promise.resolve({ data: next, error: null });
+      return Promise.resolve({ data: { ...next, ...echo }, error: null });
     }
-    return Promise.resolve({ data: true, error: null });
+    return Promise.resolve({ data: { released: true, ...echo }, error: null });
   });
 
   return {
@@ -192,7 +200,7 @@ describe("dispatch recovery scan (#289)", () => {
     );
     expect(mock.rpc).toHaveBeenCalledWith(
       "release_workflow_work_claim",
-      expect.objectContaining({ p_claim_id: CLAIM_ID }),
+      expect.objectContaining({ p_tenant_id: TENANT_A, p_claim_id: CLAIM_ID }),
     );
   });
 

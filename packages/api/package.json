@@ -28,6 +28,7 @@
     "./donate/guest/donor-merge": "./src/donate/guest/donor-merge.ts",
     "./donate/outbox": "./src/donate/outbox.ts",
     "./donations": "./src/donations/index.ts",
+    "./donations/select": "./src/donations/select.ts",
     "./donor-portal": "./src/donor-portal/index.ts",
     "./donor-portal/billing": "./src/donor-portal/billing.ts",
     "./donor-portal/receipts": "./src/donor-portal/receipts.ts",
@@ -37,6 +38,7 @@
     "./donor-portal/pledge-view": "./src/donor-portal/pledge-view.ts",
     "./stripe/webhooks": "./src/stripe/webhooks.ts",
     "./profile": "./src/profile/index.ts",
+    "./upload/image": "./src/upload/image.ts",
     "./public-giving": "./src/public-giving/index.ts",
     "./feed-preferences": "./src/feed-preferences/index.ts",
     "./admin/org-settings": "./src/admin/org-settings.ts",
@@ -177,7 +179,8 @@
     "./eve/launch-readiness": "./src/eve/launch-readiness/index.ts",
     "./eve/launch-readiness/route": "./src/eve/launch-readiness/route.ts",
     "./field-policies": "./src/field-policies/index.ts",
-    "./projection": "./src/projection/index.ts"
+    "./projection": "./src/projection/index.ts",
+    "./principal": "./src/principal/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

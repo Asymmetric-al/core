@@ -51,7 +51,9 @@ const EXPECTED_RUNS_ON: Record<
   typecheck: "ubuntu-latest",
   build: "self-hosted",
   "test-unit": "self-hosted",
+  "acceptance-tests": "ubuntu-latest",
   "ci-gate": "ubuntu-latest",
+  "ci-gate-comment": "ubuntu-latest",
 };
 
 /** Spec rev 3 line 358 — exact timeout-minutes for moved jobs in ci.yml. */
@@ -179,6 +181,7 @@ describe("issue #2158 PR A — ci.yml acceptance", () => {
       "typecheck",
       "build",
       "test-unit",
+      "acceptance-tests",
     ] as const;
 
     const allSuccess = (): Record<string, string> =>

@@ -57,14 +57,24 @@ if (service) {
     `OK: database (PostgREST) — campaigns head count=${count ?? "unknown"}`,
   );
 } else {
-  const { error } = await anonClient.from("campaigns").select("id").limit(1);
-  if (error) {
+  // #2312: anon holds no privilege on campaigns, so the probe must be denied.
+  const { data, error } = await anonClient
+    .from("campaigns")
+    .select("id")
+    .limit(1);
+  const denied =
+    error?.code === "42501" || /permission denied/i.test(error?.message ?? "");
+  if (!denied) {
     fail(
-      `PostgREST anon query failed: ${error.message}. Set SUPABASE_SERVICE_ROLE_KEY for a definitive DB check, or verify RLS allows read.`,
+      error
+        ? `PostgREST anon query failed: ${error.message}. Set SUPABASE_SERVICE_ROLE_KEY for a definitive DB check; anon should get 42501.`
+        : data?.length
+          ? `anon can read campaigns: public exposure (${data.length} row(s))`
+          : "anon can query campaigns (0 rows) instead of 42501 permission denied; apply #2312's migration",
     );
   }
   console.log(
-    "OK: database (PostgREST) — anon can query campaigns (or empty set)",
+    "OK: database (PostgREST) — anon is denied campaigns (expected after #2312)",
   );
 }
 

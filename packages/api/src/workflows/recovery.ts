@@ -136,7 +136,10 @@ export async function runDispatchRecoveryScan(
         summary.failed += 1;
       }
     } finally {
-      await releaseWorkClaim(deps.client, { claimId: claim.claimId });
+      await releaseWorkClaim(deps.client, {
+        tenantId: request.tenantId,
+        claimId: claim.claimId,
+      });
     }
   }
 

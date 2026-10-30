@@ -218,6 +218,8 @@ Classification: **Confirmed.** This task did not modify any skill or mirror.
   `bun install --cwd ../.. --frozen-lockfile`, and gates builds with
   `node ../../scripts/vercel/should-ignore-build.mjs <app>`.
 - Release controls: `release:production` = `scripts/release/production.mjs`;
+  it refuses while any open issue carries the `release-blocker` label (gate in
+  `scripts/release/release-blockers.mjs`, fails closed);
   `.husky/pre-push` blocks direct `production` pushes; verify scripts
   `verify:deployment-discipline`, `verify:vercel-build-controls`,
   `verify:vercel-production`, `verify:vercel-env-inventory`,

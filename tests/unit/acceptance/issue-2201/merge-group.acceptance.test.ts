@@ -131,7 +131,7 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
       { contents: "read", "pull-requests": "read" },
       { contents: "read" },
     ]);
-    expect(ids((j) => j.permissions)).toBe("shadscan-report");
+    expect(ids((j) => j.permissions)).toBe("shadscan-report ci-gate-comment");
     expect(ids((j) => j.environment)).toBe("");
     expect(ids(usesSecrets)).toBe(`${MG_SECRET_JOBS} test-e2e`);
   });
@@ -163,16 +163,60 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     );
     expect(users).toEqual(["release-source.yml"]);
   });
+  /**
+   * Accepted ci-integration.yml fingerprints, CI_BASES-style: one entry per
+   * reviewed file. A later spec'd step (e.g. #2250) adds exactly one entry
+   * after its diff is reviewed; any unlisted fingerprint fails.
+   */
+  const CII_PRINTS = [
+    // develop
+    { ref: "develop c541b84b", hash: "1078832efaff84e6" },
+    // #2254: Builder ea6878ad adds the migrate identity real-stack step
+    { ref: "#2254 Builder ea6878ad", hash: "e72e09b4d720835c" },
+    // #2250: Builder 0cdce1bd adds the last migrate step (tenant isolation)
+    { ref: "#2250 Builder 0cdce1bd", hash: "d49376af6b9ca7e7" },
+    // #2270: Builder b671a0e3 adds migrate step 17 (authz EXECUTE grants)
+    { ref: "#2270 Builder b671a0e3", hash: "62f202ecfaca7a3f" },
+    // #2251: Builder 2039d580 adds migrate step 18 (tenant table RLS posture)
+    { ref: "#2251 Builder 2039d580", hash: "4b9f9d19330793f6" },
+    // #2255: Builder 6446bb59 adds migrate step 19 (claim tables)
+    { ref: "#2255 Builder 6446bb59", hash: "d3893a68b1cf0d6e" },
+    // #2252: Builder 03a8d5b2 adds migrate step 19 (donor spine composite FKs)
+    { ref: "#2252 Builder 03a8d5b2", hash: "ab8fec8cfaa6a7d3" },
+    // #2252 synced on develop d1f0af94: Builder 70d1497a, donor spine step moves to migrate 20 (after #2255's 19)
+    { ref: "#2252 Builder 70d1497a", hash: "d6d855999c1bea0b" },
+    // #2253: Builder 88aeebc2 adds migrate step 19 (RLS catalog gate)
+    { ref: "#2253 Builder 88aeebc2", hash: "edaf3b22c468fb20" },
+    // #2253 sync: Builder c9f11d54 (develop d1f0af94 merged) has both, #2253's step now 20
+    { ref: "#2253 Builder c9f11d54", hash: "39e8eec12b28c87e" },
+    // #2253 sync2: Builder 18d490e9 (develop c4d4fbc5 merged) has #2252's step 20, #2253's step now 21
+    { ref: "#2253 Builder 18d490e9", hash: "f7866ec7ed2060ae" },
+    // #2256: Builder 157724da (develop 0727d810 merged) appends the issue-2256 real-stack path to tenant isolation
+    { ref: "#2256 Builder 157724da", hash: "a41d2f366062b967" },
+    // #2260: Builder e1657b68 (develop e25d7727 merged, after #2256) appends the issue-2260 real-stack path to tenant isolation
+    { ref: "#2260 Builder e1657b68", hash: "534cbcf817506336" },
+    // #2258: Builder c3f71ffe (on develop a1375d46, after #2260) appends the issue-2258 real-stack path to tenant isolation
+    { ref: "#2258 Builder c3f71ffe", hash: "8ac7feb33d789d3d" },
+    // #2312: Builder e518a845 (develop f8ef44f8 merged, after #2258) appends the issue-2312 real-stack path to tenant isolation
+    { ref: "#2312 Builder e518a845", hash: "3e026b8f31f34dda" },
+    { ref: "#2402 Builder 28ac3c13", hash: "7755cfddb8cb875c" },
+    { ref: "#2364 Builder 0cf86552", hash: "21073c70380a4f90" },
+  ] as const;
   it("nothing but on: and test-e2e's if: changes (fingerprint)", () => {
     const prints = [CI, CII].map((file) => {
       const { on: _on, ...rest } = doc(file);
+      delete (rest.jobs as W.WorkflowJobs)["ci-gate-comment"];
       delete (rest.jobs as W.WorkflowJobs)["test-e2e"]?.if;
       return createHash("sha256")
         .update(JSON.stringify(rest))
         .digest("hex")
         .slice(0, 16);
     });
-    expect(prints).toEqual(["5c45b189b9f994ab", "f62439b67c445769"]);
+    expect(prints[0], "ci.yml fingerprint").toBe("cd62e4e85c2cc658");
+    expect(
+      CII_PRINTS.map((p) => p.hash),
+      `ci-integration.yml fingerprint ${prints[1]} is not reviewed`,
+    ).toContain(prints[1]);
   });
 });
 

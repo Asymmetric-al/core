@@ -41,3 +41,10 @@ Do not create or apply extra labels named `bug`, `enhancement`, `needs-triage`,
 
 When a skill mentions a role (for example, "apply the AFK-ready triage label"),
 use the corresponding repo tracker action from this table.
+
+## Release labels
+
+- `release-blocker`: while any open issue carries it, `bun run release:production`
+  refuses to release, dry runs included. Optional, and separate from the required
+  one-`type:*`/one-`complexity:*` pair. Close the issue or remove the label to
+  lift the block. See `docs/ops/production-release.md#release-blockers`.

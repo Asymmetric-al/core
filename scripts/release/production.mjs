@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { APPS, resolveBuildDecision } from "../vercel/should-ignore-build.mjs";
+import { assertNoReleaseBlockers } from "./release-blockers.mjs";
 
 const TARGET_BRANCH = "production";
 const DEVELOPMENT_BRANCH = "develop";
@@ -62,6 +63,8 @@ Options:
   --dry-run          Run every gate and print the push that would happen
   --remote <name>    Git remote to push to. Default: ${DEFAULT_REMOTE}
   -h, --help         Show this help
+
+Open release-blocker issues refuse the release, including --dry-run.
 `);
 }
 
@@ -187,6 +190,7 @@ async function main() {
 
   assertReleaseSourceBranch(branch);
   assertCleanWorktree();
+  assertNoReleaseBlockers({ stage: "pre-flight" });
 
   runGate("verify deployment discipline", "bun", [
     "run",
@@ -217,6 +221,7 @@ async function main() {
   console.log(formatImpactSummary(impact));
   console.log("");
 
+  assertNoReleaseBlockers({ stage: "pre-push" });
   pushProduction({ remote: args.remote, commit, dryRun: args.dryRun });
 
   console.log("");

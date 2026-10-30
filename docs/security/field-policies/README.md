@@ -2,8 +2,10 @@
 
 `census-v1.json` is the immutable baseline seed specification, with every column's
 category and explicit visibility/editability/exportability on all five surfaces.
-The migration contains 855 rows for the 171 live columns plus five rows for the
-separately source-bound repository supplement: 172 candidate columns / 860 rows. The two
+The foundation migration contains 855 rows for the 171 live columns plus five rows for the
+separately source-bound repository supplement v1; the #2254 migration adds ten rows for
+the two columns of supplement v2, and the #2256 migration ten rows for the two columns
+of supplement v3: 176 candidate columns / 880 rows. The two
 unaltered read-only metadata responses bind the census to project
 `pnmlrbgjiqzzsthsoikm`, capture `2026-10-05 04:51:45.072671+00`, PostgreSQL 17.6,
 latest live migration `20261001061717`, and base repository revision
@@ -131,8 +133,33 @@ actual local catalog (`ARRAY`, `_text`, NOT NULL, default `'{}'::text[]`, ordina
 29). Its five explicit financial-category rows protect the entire array as
 processor proof, without changing `refund_amount` money truth. The census holds
 the supplement artifact digest separately; no live evidence or source schema is
-amended. The verifier requires exact 171-live-plus-one-source column parity and
-exact 860-row flag/category parity; it allows no arbitrary drift exemption.
+amended.
+
+**Reviewed supplement v2 (#2254):** `repository-supplement-v2-donor-identity.json`
+adds `donors.email_normalized` (generated `normalize_email(email)`, ordinal 43) and
+`donors.email_verified_at` (nullable `timestamptz`, no default, ordinal 44), both
+category `contact`, approved by Samson on Oct 24, 2026 (#2254 Q11). Neither column
+is editable or exportable on any surface. `email_normalized` is visible on
+mission_control, donor and missionary; `email_verified_at` only on mission_control
+and donor. The source migration
+`supabase/migrations/20261024140000_identity_email_normalizer_and_donor_keys.sql`
+postdates the census base SHA, so v2 binds it by working-tree SHA-256 instead of
+`git show`. Its local catalog result is also exact. See
+`docs/security/identity-email-normalization.md`.
+
+**Reviewed supplement v3 (#2256):** `repository-supplement-v3-person-anchor.json`
+adds the inert seams `missionaries.person_id` (ordinal 22) and `profiles.person_id`
+(ordinal 14), both nullable `uuid` with no default, category `security` (#2256 Q11,
+approved by Samson). Each is denied on every surface, Mission Control included:
+`(F,F,F)` everywhere, because nothing reads or writes them in Phase 4. The source
+migration `supabase/migrations/20261025110000_person_anchor.sql` is bound by
+working-tree SHA-256, and its local catalog result is exact. See
+`docs/security/identity-person-anchor.md`.
+
+Supplements are an ordered list (v1, v2, then v3), each pinned by digest in
+`census-v1.json`. The verifier requires exact 171-live-plus-five-supplement column
+parity (176 candidate columns) and exact 880-row flag/category parity; it allows no
+arbitrary drift exemption.
 
 Only canonical `public.receipts` must be physically absent in the candidate.
 The noncanonical prototype source migrations remain unchanged:

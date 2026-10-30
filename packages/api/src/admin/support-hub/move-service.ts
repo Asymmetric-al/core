@@ -377,7 +377,10 @@ export async function bulkMoveSupportConversations(
         message: MOVE_FAILURE_MESSAGES.move_failed,
       });
     } finally {
-      await releaseWorkClaim(client, { claimId: claim.claimId });
+      await releaseWorkClaim(client, {
+        tenantId: input.tenantId,
+        claimId: claim.claimId,
+      });
     }
   }
 
@@ -514,6 +517,9 @@ export async function retryFailedBulkMove(
       failed,
     };
   } finally {
-    await releaseWorkClaim(client, { claimId: claim.claimId });
+    await releaseWorkClaim(client, {
+      tenantId: input.tenantId,
+      claimId: claim.claimId,
+    });
   }
 }

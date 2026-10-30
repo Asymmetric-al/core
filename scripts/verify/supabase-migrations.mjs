@@ -4,6 +4,10 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { buildPostgresUpgradeProbe } from "../lib/postgres-upgrade-preflight.mjs";
+import {
+  formatTenantRlsCatalogSummary,
+  runTenantRlsCatalogGate,
+} from "./tenant-rls-catalog.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..", "..");
@@ -102,5 +106,23 @@ if (censusResult.error) {
   process.exit(1);
 }
 if (censusResult.status !== 0) process.exit(censusResult.status ?? 1);
+
+console.log("==> verify tenant RLS catalog gate");
+let catalogGate;
+try {
+  catalogGate = runTenantRlsCatalogGate({ databaseUrl, psqlBin });
+} catch (error) {
+  console.error(`error: tenant RLS catalog gate: ${error.message}`);
+  process.exit(1);
+}
+if (!catalogGate.ok) {
+  for (const { code, table, function: fn, detail } of catalogGate.failures)
+    console.error(`${code} ${table ?? fn ?? "-"}: ${detail}`);
+  console.error(
+    "error: tenant RLS catalog gate failed. See docs/security/tenant-guard.md#ci-gates.",
+  );
+  process.exit(1);
+}
+console.log(formatTenantRlsCatalogSummary(catalogGate));
 
 console.log(`Verified ${migrationFiles.length} forward Supabase migrations.`);

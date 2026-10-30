@@ -13,7 +13,9 @@ export type CrmIdentityConceptId =
   | "receipt_record"
   | "refund_record"
   | "statement_record"
-  | "reconciliation_record";
+  | "reconciliation_record"
+  | "household"
+  | "organization";
 
 export type CrmIdentityLinkPolicy =
   "direct_link" | "context_link" | "summary_only" | "no_crm_identity_link";
@@ -60,7 +62,7 @@ export const CRM_IDENTITY_CONCEPTS = [
     label: "CRM person",
     owner: "asym",
     description:
-      "Operational relationship person owned by Asym Postgres. Provider links are references, not identity or truth.",
+      "Operational relationship person owned by Asym Postgres: the Phase 9 party-spine person (`persons.id = parties.id`, `party_kind = 'person'`). `crm_record_links.asym_entity_id` for this type is the `persons`/`parties` id. Provider links are references, not identity or truth.",
     linkPolicy: "direct_link",
     notSameAs: [
       "supabase_auth_user",
@@ -68,6 +70,8 @@ export const CRM_IDENTITY_CONCEPTS = [
       "donor_profile",
       "missionary_profile",
       "stripe_customer",
+      "household",
+      "organization",
     ],
   },
   {
@@ -174,7 +178,35 @@ export const CRM_IDENTITY_CONCEPTS = [
     linkPolicy: "no_crm_identity_link",
     notSameAs: ["payment_record", "refund_record", "crm_person"],
   },
+  {
+    id: "household",
+    label: "Household (party)",
+    owner: "asym",
+    description:
+      "The Phase 9 household party (`households.id = parties.id`, `party_kind = 'household'`). It's a group of persons that never absorbs them (#570). Membership and household truth live in Asym Postgres; provider links are references.",
+    linkPolicy: "direct_link",
+    notSameAs: ["crm_person", "organization", "donor_profile"],
+  },
+  {
+    id: "organization",
+    label: "Organization (party)",
+    owner: "asym",
+    description:
+      "The Phase 9 org party (`party_kind = 'org'`), including church, foundation, business and DAF sponsor via `org_type` on the org subtype. Provider links are references.",
+    linkPolicy: "direct_link",
+    notSameAs: ["crm_person", "household", "donor_profile", "stripe_customer"],
+  },
 ] as const satisfies readonly CrmIdentityConcept[];
+
+type AssertNoMissingConcepts<Missing extends never> = Missing;
+
+/**
+ * Compile-time exhaustiveness check: fails `tsc` naming any
+ * CrmIdentityConceptId that has no CRM_IDENTITY_CONCEPTS entry.
+ */
+export type CrmIdentityConceptCoverage = AssertNoMissingConcepts<
+  Exclude<CrmIdentityConceptId, (typeof CRM_IDENTITY_CONCEPTS)[number]["id"]>
+>;
 
 export function getCrmIdentityConcept(
   id: CrmIdentityConceptId,

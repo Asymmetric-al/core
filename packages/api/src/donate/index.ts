@@ -20,13 +20,12 @@ import {
 import { resolveRequiredIdempotencyKey } from "./idempotency";
 import { processDonationSagaOutboxEvent } from "./saga";
 import { resolveTenantSettlementCurrency } from "../money/settlement";
-import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
+import { donatePostSchema } from "../schemas/donate";
 import {
   ApiHttpError,
   ensureJsonBody,
   toErrorResponse,
 } from "../shared/http-errors";
-import { findDonorByProfileId } from "../shared/queries";
 import { withOperation } from "../shared/with-operation";
 import { resolveTenantStripe } from "../stripe/tenant-client";
 
@@ -286,88 +285,7 @@ export async function GET(request: NextRequest) {
     }
     const { publishableKey } = tenantStripe;
 
-    const { searchParams } = new URL(request.url);
-    const { missionary_id: missionaryId, fund_id: fundId } =
-      donateGetQuerySchema.parse({
-        missionary_id: searchParams.get("missionary_id"),
-        fund_id: searchParams.get("fund_id"),
-      });
-
-    const { data: donor } = await findDonorByProfileId(
-      supabaseAdmin,
-      ctx.profileId,
-      ctx.tenantId,
-    );
-
-    let designations: { missionaries: unknown[]; funds: unknown[] } = {
-      missionaries: [],
-      funds: [],
-    };
-
-    if (missionaryId || fundId) {
-      if (missionaryId) {
-        const { data: missionary } = await supabaseAdmin
-          .from("missionaries")
-          .select(
-            `
-            id,
-            funding_goal,
-            current_funding,
-            profile:profiles!profile_id(first_name, last_name, avatar_url)
-          `,
-          )
-          .eq("id", missionaryId)
-          .eq("tenant_id", ctx.tenantId)
-          .single();
-
-        if (missionary) {
-          designations.missionaries = [missionary];
-        }
-      }
-
-      if (fundId) {
-        const { data: fund } = await supabaseAdmin
-          .from("funds")
-          .select("id, name, description, target_amount, current_amount")
-          .eq("id", fundId)
-          .eq("tenant_id", ctx.tenantId)
-          .eq("is_active", true)
-          .single();
-
-        if (fund) {
-          designations.funds = [fund];
-        }
-      }
-    } else {
-      const { data: missionaries } = await supabaseAdmin
-        .from("missionaries")
-        .select(
-          `
-          id,
-          funding_goal,
-          current_funding,
-          profile:profiles!profile_id(first_name, last_name, avatar_url)
-        `,
-        )
-        .eq("tenant_id", ctx.tenantId);
-
-      const { data: funds } = await supabaseAdmin
-        .from("funds")
-        .select("id, name, description, target_amount, current_amount")
-        .eq("tenant_id", ctx.tenantId)
-        .eq("is_active", true);
-
-      designations = {
-        missionaries: missionaries || [],
-        funds: funds || [],
-      };
-    }
-
-    return NextResponse.json({
-      designations,
-      donor: donor || null,
-      publishableKey,
-    });
+    return NextResponse.json({ publishableKey });
   } catch (error) {
     return toErrorResponse(error);
   }

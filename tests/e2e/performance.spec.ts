@@ -64,19 +64,34 @@ async function measureWebVitals(page: Page) {
 
 test.describe("@perf Performance Budgets", () => {
   test("Homepage LCP should be under 2.5s", async ({ page }) => {
+    const staticAssetRequests: { url: string; cacheControl: string | null }[] =
+      [];
+
+    page.on("response", (response) => {
+      const url = response.url();
+      if (url.includes("/_next/static/") || url.match(/\.(js|css|woff2?)$/)) {
+        staticAssetRequests.push({
+          url,
+          cacheControl: response.headers()["cache-control"] ?? null,
+        });
+      }
+    });
+
     await page.goto("/");
     await page.waitForLoadState("networkidle");
+
+    for (const asset of staticAssetRequests) {
+      console.log(`Asset: ${asset.url}, Cache-Control: ${asset.cacheControl}`);
+    }
 
     const vitals = await measureWebVitals(page);
 
     console.log("Homepage Web Vitals:", vitals);
 
-    if (vitals.lcp !== null) {
-      expect(vitals.lcp).toBeLessThan(LCP_THRESHOLD_MS);
-    }
-    if (vitals.ttfb !== null) {
-      expect(vitals.ttfb).toBeLessThan(TTFB_THRESHOLD_MS);
-    }
+    expect(vitals.lcp).not.toBeNull();
+    expect(vitals.ttfb).not.toBeNull();
+    expect(vitals.lcp).toBeLessThan(LCP_THRESHOLD_MS);
+    expect(vitals.ttfb).toBeLessThan(TTFB_THRESHOLD_MS);
   });
 
   test("Login page LCP should be under 2.5s", async ({ page }) => {
@@ -87,14 +102,11 @@ test.describe("@perf Performance Budgets", () => {
 
     console.log("Login Page Web Vitals:", vitals);
 
-    if (vitals.lcp !== null) {
-      expect(vitals.lcp).toBeLessThan(LCP_THRESHOLD_MS);
-    }
+    expect(vitals.lcp).not.toBeNull();
+    expect(vitals.lcp).toBeLessThan(LCP_THRESHOLD_MS);
   });
 
-  test("Login to dashboard flow should complete under threshold", async ({
-    page,
-  }) => {
+  test("Login page reaches DOMContentLoaded under 5s", async ({ page }) => {
     const startTime = Date.now();
 
     await page.goto("/login");
@@ -135,29 +147,5 @@ test.describe("@perf SSR Integrity", () => {
     );
 
     expect(hydrationErrors).toHaveLength(0);
-  });
-});
-
-test.describe("@perf Edge Caching", () => {
-  test("Static assets should have cache headers", async ({ page }) => {
-    const staticAssetRequests: { url: string; cacheControl: string | null }[] =
-      [];
-
-    page.on("response", (response) => {
-      const url = response.url();
-      if (url.includes("/_next/static/") || url.match(/\.(js|css|woff2?)$/)) {
-        staticAssetRequests.push({
-          url,
-          cacheControl: response.headers()["cache-control"] ?? null,
-        });
-      }
-    });
-
-    await page.goto("/");
-    await page.waitForLoadState("networkidle");
-
-    for (const asset of staticAssetRequests) {
-      console.log(`Asset: ${asset.url}, Cache-Control: ${asset.cacheControl}`);
-    }
   });
 });

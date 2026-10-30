@@ -1,0 +1,19 @@
+// POISON (Gate 2): trusts the client-supplied tenant and falls back to the
+// first row instead of validating the proposal. The Gate 2 check must fail it.
+export async function resolveActiveAssignment(input, reader) {
+  const rows = await reader.listActiveAssignments();
+  const row = rows.find((r) => r.id === input.proposedAssignmentId) ?? rows[0];
+  if (!row) return { ok: false, reason: "no_assignment" };
+  return {
+    ok: true,
+    selection: "proposed",
+    assignment: {
+      assignmentId: row.id,
+      userId: input.userId,
+      tenantId: input.expectedTenantId ?? row.tenant_id,
+      revision: row.updated_at,
+      membershipRole: row.role,
+      staffRole: row.staff_role,
+    },
+  };
+}
