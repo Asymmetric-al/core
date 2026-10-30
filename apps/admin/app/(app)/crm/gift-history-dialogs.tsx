@@ -41,10 +41,10 @@ export function ViewSettingsResetDialog({
         <DialogTitle>Reset view settings</DialogTitle>
         <DialogDescription>{description}</DialogDescription>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" className="h-11" onClick={onCancel}>
+          <Button variant="outline" size="lg" onClick={onCancel}>
             Cancel
           </Button>
-          <Button className="h-11" onClick={onConfirm}>
+          <Button size="lg" onClick={onConfirm}>
             Reset
           </Button>
         </div>
@@ -87,11 +87,11 @@ export function SetTenantDefaultDialog({
           changed and keep overriding the tenant default.
         </DialogDescription>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" className="h-11" onClick={onCancel}>
+          <Button variant="outline" size="lg" onClick={onCancel}>
             Cancel
           </Button>
           <Button
-            className="h-11"
+            size="lg"
             disabled={isSaving}
             focusableWhenDisabled={isSaving}
             onClick={onConfirm}
@@ -140,14 +140,13 @@ export function NamedViewNameDialog({
             id="named-view-name"
             value={value}
             onChange={(event) => onValueChange(event.target.value)}
-            className="h-11"
           />
         </div>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" className="h-11" onClick={onCancel}>
+          <Button variant="outline" size="lg" onClick={onCancel}>
             Cancel
           </Button>
-          <Button className="h-11" disabled={!value.trim()} onClick={onSubmit}>
+          <Button size="lg" disabled={!value.trim()} onClick={onSubmit}>
             Save view
           </Button>
         </div>
@@ -192,7 +191,6 @@ export function DeleteNamedViewDialog({
         {view.isDefault ? (
           <RadioGroup
             aria-label="Replacement default view"
-            className="space-y-2"
             value={nextDefaultChoice}
             onValueChange={onNextDefaultChoiceChange}
           >
@@ -223,10 +221,10 @@ export function DeleteNamedViewDialog({
           </RadioGroup>
         ) : null}
         <div className="flex justify-end gap-2">
-          <Button variant="outline" className="h-11" onClick={onCancel}>
+          <Button variant="outline" size="lg" onClick={onCancel}>
             Cancel
           </Button>
-          <Button variant="destructive" className="h-11" onClick={onConfirm}>
+          <Button variant="destructive" size="lg" onClick={onConfirm}>
             Delete view
           </Button>
         </div>

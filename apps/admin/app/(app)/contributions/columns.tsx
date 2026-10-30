@@ -136,12 +136,12 @@ export function getContributionColumns({
 
         return (
           <div className="flex items-center gap-3 min-w-60">
-            <Avatar className="size-9 border border-border/60">
+            <Avatar className="size-9">
               <AvatarImage
                 src={contribution.donorAvatar ?? undefined}
                 alt={donorName}
               />
-              <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
+              <AvatarFallback>
                 {contribution.isAnonymous ? "?" : getInitials(donorName)}
               </AvatarFallback>
             </Avatar>
@@ -168,12 +168,8 @@ export function getContributionColumns({
     {
       accessorKey: "amountGross",
       header: ({ column }) => (
-        <div className="text-right">
-          <DataTableColumnHeader
-            className="justify-end"
-            column={column}
-            title="Amount"
-          />
+        <div className="flex justify-end">
+          <DataTableColumnHeader column={column} title="Amount" />
         </div>
       ),
       cell: ({ row }) => (
@@ -355,12 +351,8 @@ export function getContributionColumns({
     {
       accessorKey: "amountNet",
       header: ({ column }) => (
-        <div className="text-right">
-          <DataTableColumnHeader
-            className="justify-end"
-            column={column}
-            title="Net Amount"
-          />
+        <div className="flex justify-end">
+          <DataTableColumnHeader column={column} title="Net Amount" />
         </div>
       ),
       cell: ({ row }) => (
@@ -422,7 +414,7 @@ export function getContributionColumns({
               render={
                 <Button
                   variant="ghost"
-                  className="size-8 p-0"
+                  size="icon-sm"
                   aria-label={`Contribution actions for ${donorName}`}
                 >
                   <span className="sr-only">Open menu</span>
@@ -430,7 +422,7 @@ export function getContributionColumns({
                 </Button>
               }
             />
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end">
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuItem

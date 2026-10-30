@@ -167,7 +167,8 @@ export default function ContributionsPage({
               type="button"
               onClick={() => void contributionsQuery.refetch()}
               variant="outline"
-              className="mt-6 h-10 px-6 font-semibold uppercase tracking-widest"
+              size="lg"
+              className="mt-6"
             >
               <RefreshCw className="mr-2 size-4" />
               Retry

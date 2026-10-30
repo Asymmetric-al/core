@@ -158,17 +158,19 @@ export function CrmRelationshipsFilters({
 }) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <InputGroup className="w-full lg:max-w-sm">
-        <InputGroupAddon>
-          <Search />
-        </InputGroupAddon>
-        <InputGroupInput
-          aria-label="Search CRM relationships"
-          placeholder="Search relationships"
-          value={search}
-          onChange={(event) => onSearchChange(event.target.value)}
-        />
-      </InputGroup>
+      <div className="w-full lg:max-w-sm">
+        <InputGroup>
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+          <InputGroupInput
+            aria-label="Search CRM relationships"
+            placeholder="Search relationships"
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+          />
+        </InputGroup>
+      </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button
           variant={domains.length === 0 ? "default" : "outline"}

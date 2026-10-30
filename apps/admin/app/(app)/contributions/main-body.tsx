@@ -522,7 +522,7 @@ export function ContributionsPageActions({
     <div className="flex items-center gap-3">
       <Button
         variant="outline"
-        className="h-11 font-semibold uppercase tracking-widest transition-colors"
+        size="lg"
         onClick={contributionsPageActionsHandleExport}
       >
         <Download className="size-4" />
@@ -530,10 +530,7 @@ export function ContributionsPageActions({
       </Button>
       {canShowOfflineGiftEntry ? (
         <>
-          <Button
-            className="h-11 px-6 font-semibold uppercase tracking-widest shadow-lg"
-            onClick={() => setOfflineEntryOpen(true)}
-          >
+          <Button size="lg" onClick={() => setOfflineEntryOpen(true)}>
             <HandCoins className="size-4" />
             Enter Offline Gift
           </Button>
@@ -650,11 +647,11 @@ function ContributionResultsTable({
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Avatar className="size-10 border border-border">
+                      <Avatar className="size-10">
                         {!contribution.isAnonymous && avatarSrc ? (
                           <AvatarImage src={avatarSrc} alt={donorLabel} />
                         ) : null}
-                        <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
+                        <AvatarFallback>
                           {contribution.isAnonymous
                             ? "?"
                             : getInitials(donorLabel)}
@@ -703,7 +700,7 @@ function ContributionResultsTable({
           },
         }}
         emptyState={
-          <Empty className="rounded-2xl border border-dashed">
+          <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">
                 <DollarSign />

@@ -47,17 +47,12 @@ export function GiftHistoryViewSwitcher({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button
-            variant="outline"
-            size="sm"
-            className="max-w-36 gap-1 truncate text-xs"
-            aria-label="Gift history views"
-          >
-            {label}
+          <Button variant="outline" size="sm" aria-label="Gift history views">
+            <span className="max-w-30 truncate">{label}</span>
           </Button>
         }
       />
-      <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuContent align="end">
         {views.length > 0 ? (
           <DropdownMenuRadioGroup
             value={activeViewId ?? ""}
@@ -70,7 +65,7 @@ export function GiftHistoryViewSwitcher({
           >
             {views.map((view) => (
               <DropdownMenuRadioItem key={view.id} value={view.id}>
-                {view.name}
+                <span className="max-w-40">{view.name}</span>
                 {view.isDefault ? (
                   <DropdownMenuShortcut>Default</DropdownMenuShortcut>
                 ) : null}
@@ -92,7 +87,7 @@ export function GiftHistoryViewSwitcher({
         {activeView ? (
           <>
             <DropdownMenuItem onClick={() => onRename(activeView)}>
-              Rename “{activeView.name}”…
+              <span className="max-w-56">Rename “{activeView.name}”…</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDuplicate(activeView)}>
               Duplicate
