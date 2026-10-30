@@ -17,6 +17,17 @@ the compact root router and generated-mirror ownership.
 - **AND** shared contract changes broaden verification to relevant consumers
 - **AND** repairs preserve design intent instead of widening exceptions to pass
 
+#### Scenario: A design-system finding is reported
+
+- **WHEN** a design-system rule reports a finding to an agent
+- **THEN** the message names the class and keeps upstream's guidance from
+  the actual components, sizes, variants and theme
+- **AND** Core-specific wording replaces upstream advice that would
+  contradict Core ownership, such as declaring a color outside the shared
+  theme or styling a portaled popup from a parent element
+- **AND** the message links to a short fix guide within the canonical
+  reference set
+
 #### Scenario: A test author or reviewer checks the integration
 
 - **WHEN** configuration, discovery, contracts, or debt acceptance changes

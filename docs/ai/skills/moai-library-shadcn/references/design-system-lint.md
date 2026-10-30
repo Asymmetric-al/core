@@ -5,6 +5,11 @@ and changes to shared components, tokens, contracts, or lint policy. It is
 subordinate to `packages/ui/AGENTS.md` and the frontend rulebook. Unrelated
 backend work and prose-only edits do not require this workflow.
 
+To fix a specific finding, start with
+[design-system-lint-fixes.md](design-system-lint-fixes.md). Every finding
+links to it. This page stays the authority for policy, boundaries, debt
+and maintenance.
+
 ## Vetted version and compatibility
 
 `@asym/eslint-config` owns the exact `@shadcn/lint@0.2.3` pin and its
@@ -95,6 +100,21 @@ allowing dimensions, transforms, focus, hover, or press overrides. Named
 structural slots permit content arrangement; title/description slots permit
 typography; Skeleton delegates silhouette and Avatar delegates size.
 The exact executable patterns are the authority, not a duplicated list here.
+
+Finding messages keep upstream's built-in guidance, which lists each
+component's real sizes and variants and says when a scale replacement is
+exact. Core replaces that text only where upstream's advice would contradict
+Core ownership:
+
+- Raw colors: new colors belong in `packages/ui/styles/globals.css`, never
+  in an app stylesheet, and states use the semantic status tokens.
+- Dialog, Popover and Sheet content height: use the `scrollable` API or
+  scroll inside the popup, not a parent element.
+
+`settings.shadcn.note` appends the fix-guide link to every finding. Keep
+each message within upstream's 500-character limit.
+`tests/unit/scripts/design-system-messages.test.ts` covers the wording
+agents rely on.
 
 Dialog, Popover and Sheet content expose width, min-width and max-width through
 their actual popup APIs. Those dimensions are caller-owned; height, scrolling,
@@ -207,8 +227,9 @@ fixtures, not broad wildcard widening.
 2. For substantive UI work, inspect raw existing findings in affected files
    before attributing all failures to the new edit.
 3. Implement or adapt registry output to Core's APIs and visual language.
-4. Run the smallest relevant workspace-aware lint check. Fix consumer usage;
-   investigate discovery and analyzer failures as tooling problems.
+4. Run the smallest relevant workspace-aware lint check. Fix consumer usage
+   with the [fix guide](design-system-lint-fixes.md); investigate discovery
+   and analyzer failures as tooling problems.
 5. After a shared component, variant, token, export, resolution, or policy
    change, expand checking to affected consumers and verify analysis health.
 6. Review policy, token, contract, exception, and debt changes separately from
@@ -242,8 +263,8 @@ bunx --no-install turbo run lint --filter=@asym/ui
 # Raw, machine-readable findings including accepted legacy debt.
 bun run lint:ui apps/donor --raw --format json --output-file .tmp-ui-lint.json
 
-# Deliberate full-run cleanup after fixing accepted findings.
-bun run lint:ui --prune-suppressions
+# After fixing accepted findings, prune the same paths you linted.
+bun run lint:ui apps/donor/app/layout.tsx --prune-suppressions
 
 # Discovery/configuration check and required broader entry points.
 bun run verify:eslint
@@ -264,9 +285,15 @@ selects that root/workspace config, then invokes native ESLint with repository
 cwd so the suppression file always uses repository-relative keys. Its supported
 flags preserve ESLint JSON diagnostics, locations, rule IDs, suggestions when
 available, and exit status: `1` for lint failure and `2` for setup/analysis
-failure. `--raw` uses an empty temporary suppression file without changing
-accepted debt. It rejects unsupported flags such as cache, configuration
-replacement, or baseline expansion.
+failure. ESLint also exits `2` when a linted file has fewer findings than its
+recorded debt; its message asks for `--prune-suppressions`. `--raw` uses an
+empty temporary suppression file without changing accepted debt. It rejects
+unsupported flags such as cache, configuration replacement, or baseline
+expansion.
+
+Plain `eslint`, editor-only results and the ESLint MCP server are not lint
+evidence here. They do not apply Core's suppression file or health probes,
+so they report accepted legacy debt as new errors.
 
 `.tmp-ui-lint.json` is ignored scratch evidence, not a committed artifact.
 Reports belong to the invocation that produced them; Turbo does not promise
@@ -320,9 +347,11 @@ an empty bulk baseline, with behavioral/rendered proof for affected surfaces.
 Track remaining work in `openspec/changes/integrate-design-system-lint/`;
 do not mark cleanup complete merely because the bounded baseline gate passes.
 
-Normal lint and CI must never enlarge accepted debt. Pruning is deliberate
-after a complete run covering the recorded scope; a scoped clean run does not
-prove unvisited entries obsolete. Review raw findings in changed code.
+Normal lint and CI must never enlarge accepted debt. After fixing recorded
+debt, prune with the same paths you linted. ESLint's prune lowers counts only
+for files in that run, and removes entries for files that no longer exist,
+so a scoped prune never changes unvisited entries. Review raw findings in
+changed code.
 Per-file/per-rule counts are not identity-level guarantees: replacing an old
 violation with a new one can retain the same count.
 
@@ -420,7 +449,8 @@ diff checks, Shadscan, motion checks, and browser/a11y verification.
 
 For a dependency upgrade, inspect the published release/exports and official
 docs, compare rule categories, contract inheritance, discovery and supported
-toolchain, then rerun the compatibility/cache suite and review raw findings.
+toolchain, message placeholders and built-in wording, then rerun the
+compatibility/cache and message suites and review raw findings.
 Pin the vetted release and review minimal lockfile changes. Reassess the Bun
 compatibility patch: remove its `patchedDependencies` entry and patch file
 only when the upstream release passes the same relative/mixed-barrel and

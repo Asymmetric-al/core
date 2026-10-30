@@ -672,6 +672,7 @@
     "moai-library-shadcn": [
       "SKILL.md",
       "reference-links.md",
+      "references/design-system-lint-fixes.md",
       "references/design-system-lint.md"
     ],
     "mobile-native": [
