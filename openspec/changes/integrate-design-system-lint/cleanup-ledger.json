@@ -1334,20 +1334,22 @@
         "shadcn/no-restyle": 17
       },
       "initialSourceSha256": "ce19af01165d98d5446ae9f92d7bc774e51b78c73de2d16c78983daa54956798",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "b88d150ab2d13c55d2cbc9d721e492571c05f5720529640f5d4d0c42d6e23c11",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 6,
-        "shadcn/no-restyle": 16
-      },
-      "latestSourceSha256": "b88d150ab2d13c55d2cbc9d721e492571c05f5720529640f5d4d0c42d6e23c11",
-      "includedInLatestScan": true
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/app/(app)/support/reports/loading.tsx",
@@ -1723,7 +1725,7 @@
         "shadcn/no-restyle": 154
       },
       "initialSourceSha256": "c920044c768838964a14fddef9c8e68f73dbf69e0cc926de2329d09ac75d3bd6",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -1734,15 +1736,16 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "5b110196afb09658e7670ed4f07ad8405ce707ac79aa2ccda6975f916a18272e",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 29,
-        "shadcn/no-raw-colors": 95,
-        "shadcn/no-restyle": 148
-      },
-      "latestSourceSha256": "5b110196afb09658e7670ed4f07ad8405ce707ac79aa2ccda6975f916a18272e",
-      "includedInLatestScan": true
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/components/dashboard/activity-item.tsx",
@@ -1753,22 +1756,22 @@
         "shadcn/require-static-classes": 1
       },
       "initialSourceSha256": "ab3d6a16db8b4a648b09d71ae9bfc12fc624d85fca839584dfbdc9c6124b8b2d",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "f76809145a5929f6479b4d642ba5843158ffa0a3c3ea99604012c3661b7723c3",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 1,
-        "shadcn/no-raw-colors": 9,
-        "shadcn/no-restyle": 10,
-        "shadcn/require-static-classes": 1
-      },
-      "latestSourceSha256": "f76809145a5929f6479b4d642ba5843158ffa0a3c3ea99604012c3661b7723c3",
-      "includedInLatestScan": true
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/components/dashboard/quick-action-card.tsx",
@@ -1777,19 +1780,22 @@
         "shadcn/no-restyle": 11
       },
       "initialSourceSha256": "9355a0deb96a76a6772296cfc75b426a7d47199fe3ea810b86236c6ec567ff0b",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "30713acbc230ac8b476950f68360ec00d97faa5284b4cbbd4c7872b8ef35f2a4",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-restyle": 11
-      },
-      "latestSourceSha256": "30713acbc230ac8b476950f68360ec00d97faa5284b4cbbd4c7872b8ef35f2a4",
-      "includedInLatestScan": true
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/components/dashboard/stat-card.tsx",
@@ -1798,14 +1804,17 @@
         "shadcn/no-restyle": 2
       },
       "initialSourceSha256": "dbb41260e9ad1c7e1982c5a1777a202f21ea017942fda9e89c15b03fe3d6ba69",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-raw-colors": 7,
-        "shadcn/no-restyle": 2
-      },
-      "latestSourceSha256": "dbb41260e9ad1c7e1982c5a1777a202f21ea017942fda9e89c15b03fe3d6ba69",
-      "includedInLatestScan": true
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/components/dashboard/task-item.tsx",
@@ -1814,14 +1823,17 @@
         "shadcn/no-restyle": 5
       },
       "initialSourceSha256": "5522f741fd75f5f3214fa2e1423a8c411880f64797b67188c94761f46a04ed6a",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-raw-colors": 5,
-        "shadcn/no-restyle": 5
-      },
-      "latestSourceSha256": "5522f741fd75f5f3214fa2e1423a8c411880f64797b67188c94761f46a04ed6a",
-      "includedInLatestScan": true
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/features/mission-control/care/components/CareDashboard.tsx",
@@ -1954,20 +1966,22 @@
         "shadcn/no-raw-colors": 19
       },
       "initialSourceSha256": "6eba673df6d156aad9b4853f9494fc9f9593a866795b1a910985896d482a0bd2",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
           "verifiedSourceSha256": "64b96c5252a096a798541da627918176249c55eae814d91c76251343409b9f11",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 9,
-        "shadcn/no-raw-colors": 19
-      },
-      "latestSourceSha256": "64b96c5252a096a798541da627918176249c55eae814d91c76251343409b9f11",
-      "includedInLatestScan": true
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/features/mission-control/care/components/TimezoneScheduler.tsx",
@@ -1994,7 +2008,7 @@
         "shadcn/no-unknown-classes": 1
       },
       "initialSourceSha256": "cc2de9f3e7ab93f19063c500f706b9a07cd048ebfc3cffc9d8ca4f3e22289cf5",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -2005,13 +2019,16 @@
           "batch": "undefined-scrollbar-classes-2026-09-23",
           "verifiedSourceSha256": "aa0d36696b6d75e06df0fd953ac2dddca3d081aaeee20cb8fb34e6a8149af2f4",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 7
-      },
-      "latestSourceSha256": "aa0d36696b6d75e06df0fd953ac2dddca3d081aaeee20cb8fb34e6a8149af2f4",
-      "includedInLatestScan": true
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx",
@@ -2021,15 +2038,17 @@
         "shadcn/no-restyle": 4
       },
       "initialSourceSha256": "ca2470716a4605d8d7a00f6b5f6a7e75cb29e108cdf93a11dcf167b1771b8e16",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 2,
-        "shadcn/no-raw-colors": 1,
-        "shadcn/no-restyle": 4
-      },
-      "latestSourceSha256": "ca2470716a4605d8d7a00f6b5f6a7e75cb29e108cdf93a11dcf167b1771b8e16",
-      "includedInLatestScan": true
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/features/mission-control/components/WorkflowSummariesTable.tsx",
@@ -2065,21 +2084,22 @@
         "shadcn/no-restyle": 74
       },
       "initialSourceSha256": "7d1a3c0fdc63e342cb24836316049f1ee475e0e2e9fb506e881c3f0fd486f3a6",
-      "completion": "pending",
+      "completion": "complete",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "33ffe22c663d3ef9e865b8b16e40edaee0bdb311e5ee7ad86826526c2c984230",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 9,
-        "shadcn/no-raw-colors": 52,
-        "shadcn/no-restyle": 70
-      },
-      "latestSourceSha256": "33ffe22c663d3ef9e865b8b16e40edaee0bdb311e5ee7ad86826526c2c984230",
-      "includedInLatestScan": true
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/features/mission-control/components/patterns/details-drawer.tsx",
@@ -2087,13 +2107,17 @@
         "shadcn/no-restyle": 2
       },
       "initialSourceSha256": "fcccaa17a968b61ead8f5d7f4625c963a211eb87dc58d9f2b9cdbccb0a2a8463",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-restyle": 2
-      },
-      "latestSourceSha256": "fcccaa17a968b61ead8f5d7f4625c963a211eb87dc58d9f2b9cdbccb0a2a8463",
-      "includedInLatestScan": true
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/features/mission-control/components/tiles/dashboard-tile.tsx",
@@ -2102,14 +2126,17 @@
         "shadcn/no-raw-colors": 18
       },
       "initialSourceSha256": "5a42b42d06a49319a488a9f9aa1b0b8c66548a6e6182ea3be4f7ea609e01db88",
-      "completion": "pending",
-      "verification": [],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 3,
-        "shadcn/no-raw-colors": 18
-      },
-      "latestSourceSha256": "5a42b42d06a49319a488a9f9aa1b0b8c66548a6e6182ea3be4f7ea609e01db88",
-      "includedInLatestScan": true
+      "completion": "complete",
+      "verification": [
+        {
+          "batch": "admin-unused-removal-2026-10-30",
+          "verifiedSourceSha256": null,
+          "supportsFileCompletion": true
+        }
+      ],
+      "currentFindings": {},
+      "latestSourceSha256": null,
+      "includedInLatestScan": false
     },
     {
       "file": "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx",
@@ -9655,6 +9682,39 @@
         "Axe incompletes retained; no full accessibility conformance claim. Console-error collection covers16 core contexts; all final focused contexts assert page errors and external requests.",
         "Narrow table uses a local horizontal scroller; all columns are not claimed to fit simultaneously at320px.",
         "Normal lint earlier returned1 solely for obsolete suppressions; root owns full baseline prune and combined gates. No suppression/policy/shared primitive changes by this batch."
+      ]
+    },
+    "admin-unused-removal-2026-10-30": {
+      "summary": "The user approved deleting nineteen admin files with no product importer (475 raw findings): twelve modules first, then Care UI.tsx and the old dashboard charts. Importers resolved just before each deletion, and a string search finds no remaining reference to the nineteen paths; the orphaned deriveSupportHubStats helper and type removed; ten test cases that covered only deleted modules removed, plus the orphaned helper's own case and the two chart rows of the design-system exceptions test; the two chart height design-system exceptions and seven React Doctor exceptions bound to deleted files retired; the packages/ui chart.tsx exception's evidence rebound to live lazy chart owners after review; admin typecheck, edited tests, verify:shadscan and react-doctor:check pass, root ESLint reports nothing new, and a raw admin scan leaves only the area PRs' 2,433 findings.",
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/unused/deleted-files.txt",
+          "sha256": "81d37c093a2c050a56ca0782ba535df2ad2485c314eeb46aa6ff00c76e8c44a3"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/unused/eslint-develop-vs-branch.txt",
+          "sha256": "9d6147b04fe09b9f248775d8586c82f8d43385e527140842ffeca13e7d07a7ad"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/unused/importers-after.txt",
+          "sha256": "4ce1e9d8e198b8372d8038c55766abf1ea47f327077fc05bbb6c345bdf50179e"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/unused/importers-before-care-ui-and-charts.txt",
+          "sha256": "f443d22e4a23f1c505c05995ad052beb368d52a2c055196db13ef4f4df012fc2"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/unused/raw-admin-scan.txt",
+          "sha256": "5811d917068b0da0610c0e946876a5518f4640473c02520b4b986b761b8688bf"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/unused/react-doctor-requalification.json",
+          "sha256": "fd97af7ab05e561094cd5f1f774aa4d8f8f542cb717b4fb23a7010040a59a709"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/unused/string-references-after.txt",
+          "sha256": "d39548977d74d743ff999df8da2071aeec579ea1ad16abec94903a8b42b225ee"
+        }
       ]
     }
   },

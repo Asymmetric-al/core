@@ -84,14 +84,6 @@ const runtimeCases = [
     properties: ["width", "height"],
   },
   {
-    file: "apps/admin/components/dashboard/charts/revenue-chart.tsx",
-    properties: ["height"],
-  },
-  {
-    file: "apps/admin/components/dashboard/charts/weekly-chart.tsx",
-    properties: ["height"],
-  },
-  {
     file: "apps/admin/app/(app)/reports/reports-charts.tsx",
     properties: ["height"],
   },

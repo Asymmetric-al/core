@@ -309,14 +309,6 @@
       "count": 1
     }
   },
-  "apps/admin/app/(app)/support/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 5
-    },
-    "shadcn/no-restyle": {
-      "count": 16
-    }
-  },
   "apps/admin/app/(app)/support/tickets/[id]/page.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 2
@@ -381,49 +373,6 @@
       "count": 37
     }
   },
-  "apps/admin/app/web-studio/web-studio-sections.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 8
-    },
-    "shadcn/no-raw-colors": {
-      "count": 95
-    },
-    "shadcn/no-restyle": {
-      "count": 137
-    }
-  },
-  "apps/admin/components/dashboard/activity-item.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 9
-    },
-    "shadcn/no-restyle": {
-      "count": 9
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
-    }
-  },
-  "apps/admin/components/dashboard/quick-action-card.tsx": {
-    "shadcn/no-restyle": {
-      "count": 11
-    }
-  },
-  "apps/admin/components/dashboard/stat-card.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 7
-    },
-    "shadcn/no-restyle": {
-      "count": 2
-    }
-  },
-  "apps/admin/components/dashboard/task-item.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 5
-    },
-    "shadcn/no-restyle": {
-      "count": 3
-    }
-  },
   "apps/admin/components/studio/studio-chrome.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 2
@@ -466,62 +415,14 @@
       "count": 106
     }
   },
-  "apps/admin/features/mission-control/care/components/ShortcutsHelp.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
   "apps/admin/features/mission-control/care/components/TimezoneScheduler.tsx": {
     "shadcn/no-restyle": {
       "count": 11
     }
   },
-  "apps/admin/features/mission-control/care/components/UI.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
-    "shadcn/no-restyle": {
-      "count": 4
-    }
-  },
-  "apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 4
-    }
-  },
   "apps/admin/features/mission-control/components/WorkflowSummariesTable.tsx": {
     "shadcn/no-restyle": {
       "count": 7
-    }
-  },
-  "apps/admin/features/mission-control/components/app-shell/index.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
-    "shadcn/no-raw-colors": {
-      "count": 52
-    },
-    "shadcn/no-restyle": {
-      "count": 70
-    }
-  },
-  "apps/admin/features/mission-control/components/patterns/details-drawer.tsx": {
-    "shadcn/no-restyle": {
-      "count": 2
-    }
-  },
-  "apps/admin/features/mission-control/components/tiles/dashboard-tile.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
-    "shadcn/no-raw-colors": {
-      "count": 18
     }
   },
   "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": {

@@ -1,7 +1,6 @@
 import type {
   SupportContact,
   SupportHubReadModel,
-  SupportHubStats,
   SupportQueueSummary,
   SupportTicket,
   SupportTicketFilter,
@@ -26,49 +25,6 @@ export function formatSupportRelativeTime(
 
 function needsFollowUp(ticket: SupportTicket): boolean {
   return ticket.status !== "resolved";
-}
-
-export function deriveSupportHubStats(
-  model: SupportHubReadModel,
-  _nowInput: string | Date = model.generatedAt,
-): SupportHubStats {
-  return model.tickets.reduce<SupportHubStats>(
-    (stats, ticket) => {
-      if (ticket.status === "open") {
-        stats.open += 1;
-      }
-
-      if (ticket.status === "waiting") {
-        stats.waiting += 1;
-      }
-
-      if (ticket.status === "resolved") {
-        stats.resolved += 1;
-      }
-
-      if (ticket.status === "escalated") {
-        stats.escalated += 1;
-      }
-
-      if (ticket.priority === "urgent") {
-        stats.urgent += 1;
-      }
-
-      if (needsFollowUp(ticket)) {
-        stats.needsFollowUp += 1;
-      }
-
-      return stats;
-    },
-    {
-      open: 0,
-      urgent: 0,
-      waiting: 0,
-      resolved: 0,
-      escalated: 0,
-      needsFollowUp: 0,
-    },
-  );
 }
 
 export function filterSupportTickets(
