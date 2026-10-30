@@ -89,7 +89,7 @@ export function ConversationDetail({
       <SheetContent
         side="right"
         className="w-full max-w-xl sm:max-w-xl"
-        showCloseButton={false}
+        showCloseButton={isLoading && !conversation}
       >
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <SheetHeader className="px-4 py-3">
