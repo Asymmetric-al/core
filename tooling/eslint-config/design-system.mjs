@@ -102,7 +102,7 @@ const contracts = [
     allow: popupWidth,
     message: {
       layout:
-        '"{{className}}" is not allowed on <DialogContent>: the dialog owns its height, scrolling and position. For long content, use <DialogContent scrollable>. Width (w-*, min-w-*, max-w-*) and margin are yours to set.',
+        '"{{className}}" is not allowed on <DialogContent>: the dialog owns its height, scrolling, layout and position. For long content, use <DialogContent scrollable>. For flex, grid or positioning, put the classes on an element inside the dialog. Width (w-*, min-w-*, max-w-*) and margin are yours to set.',
     },
   },
   {
@@ -110,7 +110,7 @@ const contracts = [
     allow: popupWidth,
     message: {
       layout:
-        '"{{className}}" is not allowed on <{{component}}>: the popup owns its height, scrolling and position. Scroll or size the content inside it instead. Width (w-*, min-w-*, max-w-*) and margin are yours to set.',
+        '"{{className}}" is not allowed on <{{component}}>: the popup owns its height, scrolling, layout and position. Put sizing, scrolling, flex, grid or positioning on an element inside it instead. Width (w-*, min-w-*, max-w-*) and margin are yours to set.',
     },
   },
   {

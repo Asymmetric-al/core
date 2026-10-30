@@ -37,9 +37,10 @@ class, the component and the options it already has.
   content. Title and description slots accept typography.
 - **Popups**: `DialogContent`, `PopoverContent` and `SheetContent` accept
   width (`w-*`, `min-w-*`, `max-w-*`) and margin. They own their height,
-  scrolling and position. For long dialog content, use
-  `<DialogContent scrollable>`. In a popover or sheet, scroll or size the
-  content inside it.
+  scrolling, layout and position. For long dialog content, use
+  `<DialogContent scrollable>`; only `DialogContent` has that prop. For
+  flex, grid or positioning, and for any sizing or scrolling in a popover or
+  sheet, put the classes on an element inside the popup.
 - **Links that look like buttons**: use `ButtonLink` from
   `@asym/ui/components/shadcn/button`, with the same `variant` and `size`
   props. `Button` is for actions.

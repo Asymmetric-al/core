@@ -108,8 +108,10 @@ Core ownership:
 
 - Raw colors: new colors belong in `packages/ui/styles/globals.css`, never
   in an app stylesheet, and states use the semantic status tokens.
-- Dialog, Popover and Sheet content height: use the `scrollable` API or
-  scroll inside the popup, not a parent element.
+- Dialog, Popover and Sheet content layout: a parent element cannot size a
+  portaled popup. Long dialog content uses `DialogContent scrollable`;
+  other sizing, scrolling, flex, grid or positioning goes on an element
+  inside the popup. Popover and Sheet content have no `scrollable` prop.
 
 `settings.shadcn.note` appends the fix-guide link to every finding. Keep
 each message within upstream's 500-character limit.

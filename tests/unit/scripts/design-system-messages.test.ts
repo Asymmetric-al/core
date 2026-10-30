@@ -123,20 +123,45 @@ describe("design-system lint messages for agents", () => {
     }
   });
 
-  it("tells sheets and popovers to scroll their content instead", async () => {
+  // Upstream files flex, grid and positioning under the same layout category,
+  // so the one message must not offer scrollable as their fix.
+  it("sends dialog flex and positioning inside the dialog", async () => {
+    const messages = only(
+      await lint(
+        'import { DialogContent } from "@asym/ui/components/shadcn/dialog"; export const Probe = () => <DialogContent className="flex absolute">Body</DialogContent>;',
+      ),
+      "shadcn/no-restyle",
+    );
+    expect(messages).toHaveLength(2);
+    for (const message of messages) {
+      expect(message.message).toContain(
+        "For flex, grid or positioning, put the classes on an element inside the dialog.",
+      );
+      expect(message.message).toContain(
+        "For long content, use <DialogContent scrollable>.",
+      );
+    }
+  });
+
+  it("tells sheets and popovers to lay out their content instead", async () => {
     for (const [component, module] of [
       ["SheetContent", "sheet"],
       ["PopoverContent", "popover"],
     ]) {
-      const [message] = only(
+      const messages = only(
         await lint(
-          `import { ${component} } from "@asym/ui/components/shadcn/${module}"; export const Probe = () => <${component} className="h-96">Body</${component}>;`,
+          `import { ${component} } from "@asym/ui/components/shadcn/${module}"; export const Probe = () => <${component} className="h-96 flex">Body</${component}>;`,
         ),
         "shadcn/no-restyle",
       );
-      expect(message.message).toContain(`<${component}>`);
-      expect(message.message).toContain("inside it");
-      expect(message.message).not.toContain("scrollable>");
+      expect(messages).toHaveLength(2);
+      for (const message of messages) {
+        expect(message.message).toContain(`<${component}>`);
+        expect(message.message).toContain(
+          "Put sizing, scrolling, flex, grid or positioning on an element inside it instead.",
+        );
+        expect(message.message).not.toContain("scrollable");
+      }
     }
   });
 
