@@ -103,7 +103,9 @@
     },
     {
       "path": "tooling/shadscan/findings.json",
-      "sha256": "316802e24fa66703a44910a2823360ea134cf464d67bf8ef2a673c2e2bf365fb"
+      "sha256": "316802e24fa66703a44910a2823360ea134cf464d67bf8ef2a673c2e2bf365fb",
+      "matchesCommit": "249075f76f032f624ee5996f655146765a2bd314",
+      "binding": "This ledger matches the branch tree after the develop merge. It does not match sourceCommit. The other runtime inputs match both."
     }
   ],
   "runtimeTestAndQualityAggregateSha256": "96ad6f49e9aed3d9c8e7a54f3ed96b7bd196eb8577fe8ac4e59c55a7e90cd8ce",
