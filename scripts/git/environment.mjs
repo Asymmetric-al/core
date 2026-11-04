@@ -16,6 +16,8 @@ export function repositoryGitEnvironment(env = process.env) {
     "GIT_NO_REPLACE_OBJECTS",
     "GIT_REPLACE_REF_BASE",
     "GIT_PREFIX",
+    // Git 2.39 `rev-parse --local-env-vars` still lists this name.
+    "GIT_INTERNAL_SUPER_PREFIX",
     "GIT_SHALLOW_FILE",
     "GIT_COMMON_DIR",
   ]);

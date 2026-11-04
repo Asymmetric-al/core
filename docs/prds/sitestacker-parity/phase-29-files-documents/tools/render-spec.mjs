@@ -11,6 +11,7 @@ const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const root = path.resolve(dir, "../../../..");
 const main = path.resolve(dir, "../phase-29-files-documents.md");
 const change = path.join(root, "openspec/changes/add-files-documents");
+const filesDocumentsSpec = path.join(change, "specs/files-documents/spec.md");
 const volumes = [
   "proof.md",
   "request-access.md",
@@ -151,13 +152,13 @@ const outputs = new Map([
     ),
   ],
   [path.join(dir, "traceability.json"), JSON.stringify(trace, null, 2) + "\n"],
-  [path.join(change, "specs/files-documents/spec.md"), projection],
+  [filesDocumentsSpec, projection],
 ]);
 let stale = false;
 for (const [file, raw] of outputs) {
   const config = await resolveConfig(file);
   let text = await format(raw, { ...config, filepath: file });
-  if (file.endsWith("/specs/files-documents/spec.md")) {
+  if (file === filesDocumentsSpec) {
     text = await renderContractView({
       repoRoot: root,
       capability: "files-documents",

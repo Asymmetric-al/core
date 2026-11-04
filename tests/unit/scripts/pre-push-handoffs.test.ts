@@ -111,6 +111,7 @@ describe("feature branch handoffs", () => {
     );
     const env = Object.freeze({
       ...Object.fromEntries(localVariables.map((name) => [name, "hook-local"])),
+      GIT_INTERNAL_SUPER_PREFIX: "hook-local",
       GIT_CONFIG_COUNT: "2",
       GIT_CONFIG_KEY_0: "core.bare",
       GIT_CONFIG_VALUE_0: "true",
