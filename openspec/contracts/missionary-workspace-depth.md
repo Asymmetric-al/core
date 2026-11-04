@@ -1411,24 +1411,6 @@ Story: US28-F34. Source: finance-stewardship.md. Decision basis: D40; P17/P6 not
 
 <!-- prettier-ignore-start -->
 
-<a id="contract-4c2fdabae8fc909eb143"></a>
-
-## REQ28-C38 — Find useful organization resources
-
-<!-- BEGIN CONTRACT {"id":"4c2fdabae8fc909eb143","name":"REQ28-C38 — Find useful organization resources"} -->
-
-The system SHALL satisfy this contract and the common safeguards in the canonical specification.
-
-Resources from the organization shall provide text-first browsing with practical descriptions and honest format, language and known file-size information. Categories organize content; they do not grant access. The P28 owner adopts the complete [Phase29 resource contracts](../phase-29-files-documents/organization-and-review-tools.md#req29-c80--read-resources-with-honest-advisory-review-status), REQ29-C80–C86 and C95–C115, with their shared proof requirements. These add advisory review planning, actual review/correction, private problem reporting and handling, independently qualified staff readership/shared publications, and optional personal Save for later; they are source-owned extensions, not a competing library.
-
-Story: US28-C38. Source: coaching-resources.md. Decision basis: Selected D12 organization-managed resource library; D37 resource reuse; Phase29 Q55/Q57–Q59 ratified review, reporting, staff-reader and personal-return amendments.
-
-<!-- END CONTRACT -->
-
-<!-- prettier-ignore-end -->
-
-<!-- prettier-ignore-start -->
-
 <a id="contract-4c7bdd73a0c7ac9e821d"></a>
 
 ## REQ28-M35 — Request one of six precise edits
