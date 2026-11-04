@@ -100,7 +100,6 @@ export async function PATCH(request: NextRequest) {
             .from("profiles")
             .select("avatar_url")
             .eq("id", ctx.profileId)
-            .eq("tenant_id", ctx.tenantId)
             .maybeSingle()
         : null,
       typeof patch.coverUrl === "string"
@@ -115,6 +114,8 @@ export async function PATCH(request: NextRequest) {
     const lookupError = storedAvatar?.error ?? storedCover?.error;
     if (lookupError) throw new ApiHttpError(500, lookupError.message);
     // #2406: validated before any write; unchanged stored values are skipped.
+    // The avatar lookup is the caller's profile id. A tenant filter misses a
+    // tenantless super_admin, whose auth tenant is the demo fallback.
     const owner = { tenantId: ctx.tenantId, userId: ctx.userId };
     const writeAvatar = checkProfileImageUrl(patch.avatarUrl, {
       ...owner,
@@ -200,11 +201,13 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    const { data: profile, error: profileError } = await findFullProfileById(
-      supabaseAdmin,
-      ctx.profileId,
-      ctx.tenantId,
-    );
+    // Reload by the caller's profile id. ctx.tenantId is the demo tenant for a
+    // tenantless super_admin, so a tenant filter would miss that row.
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .select("*")
+      .eq("id", ctx.profileId)
+      .single();
 
     if (profileError) {
       return NextResponse.json(

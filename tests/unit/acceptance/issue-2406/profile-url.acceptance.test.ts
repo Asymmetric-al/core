@@ -252,11 +252,29 @@ describe("#2406 PATCH /api/profile", () => {
     expect(row("missionaries", "profile_id", PROFILE.M).cover_url).toBe(url);
   });
   // Follow-up: 'Profile API: super_admin with no tenant can't save PATCH /api/profile' (addendum 1: criterion 11 third bullet is validator-only).
-  it("#2406 criterion 11: super_admin without a tenant may use avatars/<DEMO_TENANT_ID>/U/", async () => {
+  it("#2406 criterion 11: super_admin whose profile tenant_id is DEMO may use avatars/<DEMO_TENANT_ID>/U/", async () => {
     await accepted("profile", "SA", { avatarUrl: own("avatars", "SA") });
     expect(row("profiles", "id", PROFILE.SA).avatar_url).toBe(
       own("avatars", "SA"),
     );
+  });
+  it("#2406 criterion 11: tenantless super_admin resubmitting the stored avatar is not rejected", async () => {
+    const profile = row("profiles", "id", PROFILE.SA);
+    profile.tenant_id = null;
+    profile.avatar_url = STORED.external;
+    await accepted("profile", "SA", { avatarUrl: STORED.external });
+    expect(profile.avatar_url).toBe(STORED.external);
+    expect(wrote("avatar_url")).toBe(false);
+  });
+  it("#2406 criterion 11: a new avatar is not stored while profiles.tenant_id is null", async () => {
+    const profile = row("profiles", "id", PROFILE.SA);
+    profile.tenant_id = null;
+    profile.avatar_url = null;
+    const response = await send("profile", "SA", {
+      avatarUrl: own("avatars", "SA"),
+    });
+    expect(response.status, JSON.stringify(response.body)).toBe(200);
+    expect(profile.avatar_url).toBeNull();
   });
   it("#2406 criterion 11 (addendum 1, validator-only): isOwnProfileImageUrl accepts avatars/<DEMO_TENANT_ID>/U/ for a tenant-less super_admin resolved to DEMO", async () => {
     const { isOwnProfileImageUrl } =
