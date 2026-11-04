@@ -3,6 +3,8 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
+import { citedTraceIds, taskDependencyIds } from "./task-order.mjs";
+
 const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const root = path.resolve(dir, "../../../..");
 const read = (name) =>
@@ -157,11 +159,10 @@ for (let n = 0; n < taskHeaders.length; n++) {
   const h = taskHeaders[n];
   if (taskGraph.has(h[1])) errors.push(`Duplicate task ${h[1]}`);
   const body = tasks.slice(h.index, taskHeaders[n + 1]?.index ?? tasks.length);
-  for (const m of body.matchAll(
-    /\b(?:REQ|AC)29-[A-Z]\d{2,3}(?:-\d{2,3})?\b/g,
-  )) {
-    if (!ids.has(m[0])) errors.push(`Task ${h[1]} has unknown target ${m[0]}`);
-    if (m[0].startsWith("REQ")) taskRequirements.add(m[0]);
+  for (const target of citedTraceIds(body)) {
+    if (!ids.has(target))
+      errors.push(`Task ${h[1]} has unknown target ${target}`);
+    if (target.startsWith("REQ")) taskRequirements.add(target);
   }
   const dependencies = body.match(/\*\*Dependencies:\*\* ([^\n]+)/)?.[1];
   if (
@@ -172,10 +173,7 @@ for (let n = 0; n < taskHeaders.length; n++) {
     errors.push(
       `Task ${h[1]} lacks dependency, acceptance or verification detail`,
     );
-  taskGraph.set(
-    h[1],
-    [...(dependencies ?? "").matchAll(/\d+\.\d+/g)].map((m) => m[0]),
-  );
+  taskGraph.set(h[1], dependencies ? taskDependencyIds(dependencies) : []);
 }
 for (const r of trace.requirements)
   if (!taskRequirements.has(r.requirement))
