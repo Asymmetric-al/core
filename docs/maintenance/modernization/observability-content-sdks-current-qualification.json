@@ -103,10 +103,10 @@
     },
     {
       "path": "tooling/shadscan/findings.json",
-      "sha256": "982434f92df132096083e5feb9ce00109b22f7fd9b14417ae38cb069e2d1ebbb"
+      "sha256": "316802e24fa66703a44910a2823360ea134cf464d67bf8ef2a673c2e2bf365fb"
     }
   ],
-  "runtimeTestAndQualityAggregateSha256": "f8d91a5c9cbda0796c747af78482cef8c1a94066ded2e26921a895ef4197c5df",
+  "runtimeTestAndQualityAggregateSha256": "96ad6f49e9aed3d9c8e7a54f3ed96b7bd196eb8577fe8ac4e59c55a7e90cd8ce",
   "aggregateFormat": "sorted path order; sha256 + two spaces + repo-relative path + LF",
   "checks": {
     "fullPreflight": {
