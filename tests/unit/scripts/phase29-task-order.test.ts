@@ -60,7 +60,9 @@ describe("phase 29 task order", () => {
 
   it("expands acceptance ranges and leaves listed ids alone", () => {
     expect(
-      citedTraceIds("AC29-P01-01 through AC29-P01-05; AC29-D24-01, AC29-D24-09"),
+      citedTraceIds(
+        "AC29-P01-01 through AC29-P01-05; AC29-D24-01, AC29-D24-09",
+      ),
     ).toEqual([
       "AC29-P01-01",
       "AC29-P01-02",
