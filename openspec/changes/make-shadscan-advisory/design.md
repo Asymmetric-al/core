@@ -209,9 +209,12 @@ assertions, including every path the ledger cites as proof before it is
 deleted. That set is wider than `tests/unit/apps`, `tests/unit/packages` and
 `tests/fixtures/base-ui-compliance`; it includes
 `tests/e2e/react-cleanup-memory.spec.ts` and
-`tests/unit/scripts/shadcn-config-guardrails.test.ts`. The final-head check is a content diff of that whole set (`git diff -U0`),
-not a stat summary, so a later repair task cannot replace an assertion while
-the line count still looks unchanged.
+`tests/unit/scripts/shadcn-config-guardrails.test.ts`. The final-head check compares each complete assertion span on `develop`
+with the head, from `expect(` or `assert.` through its matching close,
+including a callback body. A substring search of changed lines misses an
+edit inside the `page.evaluate` callback of `expect.poll` in
+`tests/e2e/react-cleanup-memory.spec.ts`. Added `it(` or `test(` cases are
+allowed. Those declarations are not assertions.
 Renaming them is optional follow-up churn and is not part of this change.
 
 - **Rejected: keeping floors as non-blocking warnings.** A floor needs the
