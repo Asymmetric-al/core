@@ -553,13 +553,6 @@ The Legacy Recurring Tail MUST close only after the last old charge plus its rev
 - THEN the item is listed as pending in legacy systems and closure is blocked
 - AND kept email-tool lists show a 2-day target for executing it
 
-#### Scenario: A legacy arrangement is still unresolved
-
-- GIVEN the reversal window has passed and no dispute or pending privacy item is open
-- WHEN a legacy arrangement has not been handed over through Phase 16, ended with donor notice and a restart invitation, or reclassified by Phase 16 as ongoing external
-- THEN closure is refused and the arrangement is named
-- AND after closure no backfill can be planned or committed
-
 #### Scenario: A decommission checklist item is not attested
 
 - GIVEN a Switch has closed, both tax-document attestations are recorded and no item is pending in legacy systems
@@ -571,6 +564,17 @@ The Legacy Recurring Tail MUST close only after the last old charge plus its rev
 - GIVEN a Switch has closed and every other decommission checklist item is attested
 - WHEN decommission sign-off is requested while a Practice copy of the Tenant is live
 - THEN sign-off is refused until the copy's destruction is confirmed
+
+### Requirement: Every Legacy Arrangement Is Resolved Before The Tail Closes
+
+Tail closure MUST be refused while any legacy arrangement has not been handed over through Phase 16, ended with donor notice and a restart invitation, or reclassified by Phase 16 as ongoing external, and the refusal MUST name each such arrangement. Once the tail is closed, no backfill MAY be planned or committed for that Switch.
+
+#### Scenario: A legacy arrangement is still unresolved
+
+- GIVEN the reversal window has passed and no dispute or pending privacy item is open
+- WHEN a legacy arrangement has not been handed over through Phase 16, ended with donor notice and a restart invitation, or reclassified by Phase 16 as ongoing external
+- THEN closure is refused and the arrangement is named
+- AND after closure no backfill can be planned or committed
 
 ### Requirement: The SiteStacker Licence Ends Only Once Its Final Duties Are Done
 
@@ -654,14 +658,6 @@ A person on a moved list MUST receive an Adopted email permission only through t
 - THEN they keep evidence only and receive no Adopted email permission
 - AND nobody is emailed to ask for permission
 
-#### Scenario: Evidence follows where the person lives
-
-- GIVEN a US recipient, or a Canadian recipient of a registered charity, with sourced list membership
-- WHEN adoption is evaluated
-- THEN that membership is sufficient evidence
-- AND a UK or EU recipient, or a Canadian recipient of a ministry that is not a registered charity, needs a dated opt-in
-- AND residence comes from the imported postal country, or from the ministry's country when that country is unknown
-
 #### Scenario: A missionary newsletter carries over
 
 - GIVEN a list a named missionary ran through the old system
@@ -680,6 +676,18 @@ A person on a moved list MUST receive an Adopted email permission only through t
 - WHEN a qualifying person on it receives an Adopted email permission
 - THEN it keeps the source system, list, original dates, IP and wording where present, the list mapping and the Switch lead's attestation
 - AND the attestation records who vouched and never replaces the evidence
+
+### Requirement: Consent Evidence Follows Where The Person Lives
+
+For a US recipient, or a Canadian recipient of a registered charity, list membership with its source MUST be the evidence for adoption; a UK or EU recipient, or a Canadian recipient of a ministry that is not a registered charity, MUST have a dated opt-in record, or stays evidence only. Where a person lives MUST come from their imported postal country, or from the ministry's country when that is unknown.
+
+#### Scenario: Evidence follows where the person lives
+
+- GIVEN a US recipient, or a Canadian recipient of a registered charity, with sourced list membership
+- WHEN adoption is evaluated
+- THEN that membership is sufficient evidence
+- AND a UK or EU recipient, or a Canadian recipient of a ministry that is not a registered charity, needs a dated opt-in
+- AND residence comes from the imported postal country, or from the ministry's country when that country is unknown
 
 ### Requirement: People Come First And Households Only From Evidence
 
@@ -715,6 +723,10 @@ When two source people share an email, the email MUST go to exactly one holder i
 - WHEN they import
 - THEN the wife holds the email and the husband is shown as "shares a mailbox with {name}"
 - AND the address is kept as evidence on the husband, to be added as his contact email once Phase 4 and Phase 9 allow two people to share one (O48)
+
+### Requirement: Only Giving Groups Become Organizations
+
+A source group MUST become an organization only if it has gifts or the ministry marks it as one, and other groups MUST be listed for the ministry to classify. An organization and its contact person MUST become an organization record, a person record and a contact link, with the organization holding its gifts, and an organization MUST NOT join a household.
 
 #### Scenario: A group with no gifts
 

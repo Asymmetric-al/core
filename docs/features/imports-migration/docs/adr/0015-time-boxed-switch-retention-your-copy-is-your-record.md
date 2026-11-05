@@ -40,7 +40,6 @@ A Switch puts a ministry's whole donor database into Asym as raw exports. Q1, Q1
    - **24 hours:** unfinished uploads.
    - **30 days after commit:** everyday import files and undo values.
    - **When that import's reversal window ends:** plan-edit cell values. Row, column, who and when remain.
-   - **When that import's reversal window ends:** plan-edit cell values. Row, column, who and when remain.
 3. **Verify your copy.** The ministry keeps the files it exported. Its browser verifies them against the recorded digests at sign-off and before deletion, uploading nothing.
    - **No raw export back:** Asym never sends the raw export back.
    - **Later imports:** they need an exact digest match per file, including each file inside a ZIP.

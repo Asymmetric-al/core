@@ -819,8 +819,6 @@ _Amendment (Q20, ratified 2026-11-04): clause 4's on-demand downloads stream wit
 
 _Amendment (Phase 30 publication, 2026-11-05): plan-edit cell values are their own Retention class. They are deleted when that import's reversal window ends. Row, column, who and when remain. Erasure removes them with the reversal prior values._
 
-_Amendment (Phase 30 publication, 2026-11-05): plan-edit cell values are their own Retention class. They are deleted when that import's reversal window ends. Row, column, who and when remain. Erasure removes them with the reversal prior values._
-
 _Amendment (Q19, ratified 2026-11-04): the Retention class gains import drafts: an everyday import draft unchanged for 14 days is discarded with its file, and the date is shown on the draft and in the Imports list 7 days ahead. No email is sent._
 
 _Amendment (Q18, ratified 2026-11-03): clause 11's "Everyday import undo" is renamed the import reversal window, and its "undo values" are reversal prior values (also in the Retention class). The window is 30 days from commit for everyday imports and from go-live for a Switch run. A reversal confirmed before the deadline finishes, and deleting prior values waits for it. A legal hold keeps prior values but doesn't extend the window. Erasing a person removes their prior values and their plan-edit cell values, and a reversal never writes to an erased person (O92)._
@@ -838,7 +836,6 @@ Evidence: `q15-retention-scale/` (research r1–r4, `q15-adversarial-review.md`)
    - **Practice and superseded exports**, ★ Legacy Tail Backfill inputs, Q8's switch-off export and Q9's kept-list returns: deleted 30 days after being superseded, or after that backfill or return is signed off.
    - ★ **Unfinished uploads:** deleted after 24 hours.
    - ★ **Everyday import files:** deleted 30 days after commit.
-   - ★ **Plan-edit cell values:** deleted when that import's reversal window ends. Row, column, who and when remain.
    - ★ **Plan-edit cell values:** deleted when that import's reversal window ends. Row, column, who and when remain.
 3. ★ **Your copy is your record.**
    - **The ministry keeps the files it exported.** Asym never sends the raw export back: a full raw export includes restricted workers, and Phase 12 blocks that.
@@ -859,7 +856,6 @@ Evidence: `q15-retention-scale/` (research r1–r4, `q15-adversarial-review.md`)
 8. ★ **Erasure.**
    - **Immediate:** an erasure suppresses the person in every held file at once, through their Source Record Binding tombstone.
    - **Within 14 days:** each affected held file is rewritten in the same format without the person's own rows, and with their identity blanked where other rows reference them. Money amounts and source IDs are kept (Q13). The rewrite is a successor file, and the original digest stays on record.
-   - **Plan-edit cell values:** erasure removes that person's old and new values together with their reversal prior values. Row, column, who and when remain.
    - **Plan-edit cell values:** erasure removes that person's old and new values together with their reversal prior values. Row, column, who and when remain.
    - **Later re-uploads:** tombstones skip erased people. No separate erasure list.
 9. ★ **Legal hold.**
