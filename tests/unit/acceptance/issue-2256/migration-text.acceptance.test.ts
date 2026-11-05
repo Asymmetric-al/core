@@ -21,6 +21,7 @@ import {
   POLICY,
   READER_APPS,
   READER_FUNCTIONS,
+  READER_POLICIES,
   ROLLBACK,
   SEAMS,
   V2_MIGRATION,
@@ -332,7 +333,8 @@ describe("#2256 census artifacts and docs", () => {
       ...CONSTRAINTS,
       ...Object.keys(READER_FUNCTIONS),
       ...READER_APPS,
-      "profiles staff tenant select",
+      // Every policy reader by name, incl. #2406 addendum 1's storage policies.
+      ...READER_POLICIES.map((p) => p.replace(/^\S+ /, "")),
     ])
       expect(doc, n).toContain(n);
     const rollback = path.basename(ROLLBACK).replace(/\./g, "\\.");

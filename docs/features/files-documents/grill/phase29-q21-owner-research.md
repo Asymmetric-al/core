@@ -1,0 +1,96 @@
+# Phase29 Q21 — ordinary native evidence acceptance policy
+
+Research only, 2026-10-21 (Asia/Bangkok). Q01–Q20 and their full amendments are ratified grooming intent. Q21 is unselected. This note recommends one product question and records constraints; it does not create an ADR, change an owner contract or conduct the later selected-answer adversarial review.
+
+## Recommended next question
+
+**For ordinary native document requests, must an authorized staff member accept the current requested evidence before that item counts as satisfied, or should the product also support an explicitly declared collection-only request that can be satisfied by qualified receipt without human content review?**
+
+The unit is a **Document Request Item**, which may require several supporting files. This is not a question about a separate final Complete button, one file per item, the number of reviewers or a new workflow engine.
+
+### A — Staff accepts requested evidence before it counts satisfied (recommended)
+
+For items whose requirement is file evidence in this ordinary native profile, an authorized staff acceptance decision binds the exact current submission/member set and relevant requirement/review revisions before that evidence counts as satisfying the item. Upload received, technical safety and preview readiness remain distinct. Staff can use the existing source review context; there is no requirement to download and reupload, impose an extra confirmation, create an account or construct a configurable workflow.
+
+Preserve existing authorized non-file/waived/not-required source outcomes and the source's overall completion predicate. This is not a blanket claim that every requirement in Asym needs human document approval, nor a new override of specialist sources. It does not require a duplicate review where an existing exact source-authorized acceptance already legitimately governs the same evidence/purpose; equally, an old approval for different bytes or another use cannot be copied over.
+
+Benefit: the ordinary collection journey has an understandable “received → checked → reviewed” distinction, and wrong/incomplete-but-safe files do not silently satisfy a request. It fits the founder's responsible-reviewer outcome and existing GEN-06 precedent. Cost: meaningful staff review consumes attention and may delay satisfaction even when the file is informational. Existing access deadlines continue to run under Q10–Q19; choosing A does not extend them or make source staff work depend on an open recipient session.
+
+### B — Also admit an upfront source-declared collection-only profile
+
+Keep the reviewed profile, but additionally allow an exact qualified source purpose to declare **before issuance** that its requirement is collection rather than human acceptance of content. Once its specified receipt, integrity, required hygiene, cardinality, metadata and current source criteria are met, the owning source may record an attributable distinct satisfaction outcome without a staff content-review action. Its user-facing meaning must remain **collected, not reviewed/approved/authenticated**.
+
+This is a new optional product capability and narrow source-owner amendment, not a default interpretation of a clean scan. It is not a general “skip review” toggle, tenant rules designer, AI evidence approver or override for applications, financial evidence, care, signed documents or other source-mandated review. Each admitted source profile must genuinely have collection as its sufficient purpose; an arbitrary low-risk label cannot supply that meaning.
+
+Benefit: avoids a ceremonial staff approval when the exact purpose genuinely is to collect material for later independent work. Cost: staff can receive a perfectly safe but irrelevant/wrong file; the request may already count satisfied and, when the source completion predicate is met, fulfill before anyone notices. That can close the recipient's pending-correction opportunity and begin the already-ratified completed-view period sooner. The participant must understand this mode before submitting; no automatic reopening, replacement of accepted history or later upgrade from collected to reviewed follows.
+
+**Recommendation: A.** It supplies a small dependable ordinary native review policy already consistent with the requested private request-to-review journey. B is a credible stronger flexibility alternative where collection itself is the real requirement, but it earns an additional source profile and its distinct promise. No measured Asym review burden or frequency of collection-only needs was found. The recommendation is product judgment, not an asserted industry rule.
+
+## What is already fixed
+
+- The founder brief explicitly separates received, safe to inspect, reviewer decision and source requirement satisfaction. Only the owning domain's accepted command/evidence can satisfy a requirement. A File Manager status or scan callback cannot invent rejection, needs-information, waiver or acceptance.
+- Q03 binds acceptance to exact reviewed occurrences and every relevant evidence-set revision. A winning correction admission removes the predecessor from candidacy immediately; a checker failure cannot revive it. A request remaining open is not enough to correct an already accepted/frozen/ineligible item.
+- Q06 defines fulfillment as a durable exact source outcome, not upload/scan/task/technical success. Later invalidation is source-owned remediation, not rewriting completion or silently reopening it.
+- Workflow GEN-06 explicitly routes a reviewer, observes scan and requires exact acceptance evidence. The Workflow source boundary forbids the coordinator marking an upload accepted automatically. These are meaningful existing constraints, not permission for an automatic generic “approved” checkbox.
+- The glossary's Submission Confirmation is receipt, not business acceptance; Document Request Item may have several files. Preview is a representation, not the business decision; completed access is distinct from fulfillment.
+- Specialist source semantics remain theirs: P18 owns official documents and currentness; P21 owns evidence qualification, exact claim/item coverage and approval; Phase41 owns accepted application evidence; P28 task/resource projections cannot manufacture those facts.
+
+Consequently, **“safe upload automatically means accepted” is not a fair existing-compatible alternative**. B must be described honestly as a distinct explicitly declared collection-only source profile, still with a separate authoritative satisfaction decision and no claim of human review. It is a proposed extension, not a discovery that current sources already allow it.
+
+## Why the exact human requirement is still a genuine Q21 decision
+
+Existing documents settle the authority and evidence distinctions but do not select the complete ordinary native Phase29 acceptance policy. Q03 says acceptance must pin the exact reviewed evidence and source revision; it does not universally require a particular human review step for every future file purpose. Q06 says fulfillment needs the exact source outcome, without prescribing that every source outcome must be manual. The roadmap explicitly leaves business meaning and authorization with consumers.
+
+GEN-06 is an adopted **Phase34 / CORE editable workflow recipe**, default activation disabled, with a reviewer route and owner-bound operations. It is strong precedent for A, not an already-qualified universal native P29 source policy. The founder brief makes native requests work independently of the full configurable workflow product. Its responsible-reviewer/review journey is the proposed baseline; it still asks grooming to resolve exact native request semantics.
+
+Q21 therefore decides whether the standard native product should have only deliberate staff acceptance for this file-evidence lane, or should additionally support a distinct collection-only lane. It does not ask Conrad to re-ratify the fixed “receipt is not acceptance” rule, nor suggest that a generic workflow/runtime/storage service may decide business sufficiency.
+
+## Scope guards for the question and later review
+
+1. **Exact current item, not file count.** A requirement may contain several supporting submissions. Acceptance or collection satisfaction binds its exact applicable evidence set and source requirements. A safe sibling cannot compensate for a missing required member unless the actual source allows it.
+2. **One source authority.** P29 custody reports exact bytes and technical qualification. Its native requesting source owns its bounded request/item decision; specialist consuming sources keep theirs. Shared tasks and Workflow project/coordinate only exact source outcomes.
+3. **Current rights and revision.** Staff source-review authority is not generic staff rank, file-read capability, a coach share or task assignment. Q03's correction/acceptance fences and same-scope evidence identities remain. Seeing one file cannot authorize all uses or hidden siblings.
+4. **No inherited approval.** Changed bytes, corrected submissions or changed meaning do not inherit earlier review. Viewing a preview alone does not accept; requiring a particular number of clicks, every-page dwell time or a download is not selected.
+5. **Item satisfaction and overall fulfillment remain distinct.** Q21 does not choose automatic overall completion versus a final Complete action. Existing source predicates, other requirements and authorized alternative outcomes continue. Completion may occur only through the lawful source outcome and has Q06–Q19's actual temporal consequences.
+6. **A does not erase other source outcomes.** An already authorized waiver, non-file evidence route or source rule that the item is not required remains owned and visible according to that source. No new waiver/override power is introduced.
+7. **B needs prospective explicit meaning.** No conversion of an issued reviewed requirement to collection-only after uploads to avoid review; no speculative backfill. Its exact purpose/profile, policy boundary, outcome attribution and recipient-visible meaning must be part of the source contract before activation. This note selects no policy editor, per-item menu or schema.
+8. **No new clock/recovery rules.** Receipt-only fulfillment can close intake/correction earlier; A may require staff time. Both preserve current finite authority, lawful timely/delayed fulfillment, source work after participant expiry, original received facts and independently authorized remediation. Neither gets incidental regrant, reopened intake or extra notifications.
+9. **Negative-review taxonomy and assignment stay separate.** Do not bundle Accept/Needs changes/Reject wording, participant feedback, named reviewer versus eligible pool, escalation, batch acceptance, extra approvers, reminder cadence or a final request Complete button into this question.
+10. **No native engine prerequisite.** Reuse the existing source/task/communication/custody owners. Whole Phase34/41 products, general automation, an AI classifier or a new permission model are not prerequisites.
+
+## Precise source evidence
+
+Repository paths below are relative to `/home/conrad/code/core`. The attachment is `C:\Users\Conrad\.codex\attachments\f7bc3300-0e34-4add-8ec0-286eba5d6c58\Pasted text.txt`.
+
+| Source / lines                                                                                                     | Evidence and Q21 implication                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Founder attachment `:123–141,209–231`                                                                              | Custody versus source meaning; exact-version reviews; responsible reviewer; required files/instructions; received/safe/reviewer/satisfaction separate; no configurable workflow prerequisite.                 |
+| Founder attachment `:327–329,377–407`                                                                              | Complete private request-to-review-to-share journey and source-owned acceptance proof; a polished explorer or provider upload is insufficient.                                                                |
+| `docs/features/files-documents/CONTEXT.md:39–61,76–80`                                                             | Receipt, preview, multi-file item, correction and completed access are different concepts.                                                                                                                    |
+| `docs/features/files-documents/docs/adr/0003-recipient-corrections-and-exact-review-lineage.md:18–33,44–54`        | Immediate correction-admission predecessor fence, independent safety/preview/acceptance and existing owner boundaries.                                                                                        |
+| `docs/features/files-documents/grill/phase29-q03-adversarial-review.md:118–128,133`                                | C01 exact unaccepted eligible item; C05 pins reviewed occurrences and evidence-set revisions; C10 separates states; C11 no receipt/preview event itself satisfies item; C16 source business meaning retained. |
+| `docs/features/files-documents/grill/phase29-q03-question.md:44–45`                                                | One item can be accepted while others remain outstanding. Do not ask whole-request-only acceptance as though item independence were new.                                                                      |
+| `docs/features/files-documents/docs/adr/0006-bounded-completed-request-access.md:22–45`                            | Exact durable source fulfillment, no technical-success substitution, correction race and independent source work after participant access ends.                                                               |
+| `docs/prds/workflow-studio/07-core-workflow-catalog.md:577–605`                                                    | GEN-06 Phase34/CORE editable recipe: source-approved requirement, exact evidence, scan, reviewer, correction/qualified evidence; exact acceptance decision; disabled until qualified.                         |
+| `docs/prds/workflow-studio/01-product-and-experience.md:59–77`                                                     | Application evidence owned by41, submitted items/correction requests/participant-safe progress, uploads not acceptance, quarantined files cannot satisfy evidence.                                            |
+| `docs/prds/workflow-studio/05-security-and-domain-boundaries.md:37–55`                                             | Workflow cannot mark uploads accepted, approve expense truth or treat a folder as evidence. It requests authorized source operations.                                                                         |
+| `docs/prds/workflow-studio/contracts/requirements.json:134–140`                                                    | Canonical Forms and Evidence requirement and source-qualified clean accepted-evidence scenario; generated projections must follow source authoring.                                                           |
+| `docs/prds/workflow-studio/12-owner-bindings-and-decisions.md:14–28,68–85`                                         | Shared task completion requires exact source receipt; application review belongs to41; private admission/capability/source mapping remain qualification gates.                                                |
+| `docs/prds/workflow-studio/00-scope-and-decisions.md:3–13,30–36`                                                   | Integrated planning intent, not runtime; configurable/automatic/protected processes preserve native domain ownership.                                                                                         |
+| `docs/prds/program-roadmap/owner-constraints.md:180–225,307–312`                                                   | P18/P21 exact document/evidence/approval ownership; storage/scan/availability cannot assert sufficiency, resolve a case or change financial truth.                                                            |
+| Live `docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/coaching-resources.md:480–534` at `8002134` | Task summary is a qualified read projection; completion/cancellation and source-controlled predecessors retain source meaning; coach cannot approve/complete/reopen through the share.                        |
+| `docs/ai/document-authority.md:10–35`; `openspec/project.md:6–19`                                                  | Exact owner/supersession, generated-view and intent-versus-implementation boundaries remain.                                                                                                                  |
+
+## Conditional successor scope
+
+If **A** is later selected and ratified, record an explicit staff-acceptance requirement for the exact ordinary native file-evidence cohort, building on Q03-C05/C10/C11/C16 and Q06's source-fulfillment boundary. This is a narrow source profile clarification, not a rewrite of all source acceptance rules. Preserve the original labels and exact-source commands rather than making a generic storage status authoritative.
+
+If **B** is later selected and ratified, retain A for the reviewed profile and explicitly add only the declared collection-only source profile with its distinct satisfaction meaning. Reconcile the ordinary-source routing/acceptance language and applicable GEN-06 consumer mapping without weakening the universal separation of receipt, hygiene and acceptance or giving Workflow/custody independent authority. Carry its earlier item-closure/fulfillment consequences into Q03/Q06–Q19 consumer proof. Do not silently use B as a fallback when reviewers are unavailable or rendering fails.
+
+For either answer, current source authoring and declared OpenSpec projections must be reconciled at authorized `/to-prd` publication; no formal spec, task or issue is written here. Exact implementation/qualification remains later work. No Q21 answer or new glossary term is recorded.
+
+## Snapshot and limits
+
+Local HEAD freshly checked: `3d85897ebf1515008ef5c676b1c58a15422fb9ab`. Live develop freshly checked: `800213405e2c51e07180e86ee8322355e0fdb4eb`, unchanged since Q20. No new owner drift. Relevant live Phase28 task/resource text was read through GitHub without pulling. Q20's canonical ADR file is present; parent owns its ratification recording.
+
+This bounded source research establishes the next genuine product fork. It is not complete Phase29 coverage, a native review implementation audit, a security test, a runtime/provider experiment or an intended-user study. No empirical review-effort benefit or automatic-content correctness is claimed. Only this assigned research note was written.
