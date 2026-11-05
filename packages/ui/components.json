@@ -46,6 +46,21 @@
         "license_key": "${SHADCN_STUDIO_LICENSE_KEY}"
       }
     },
+    "@shadcn-studio": "https://shadcnstudio.com/r/{style}/{name}.json",
+    "@ss-pages": {
+      "url": "https://shadcnstudio.com/r/pages/{style}/{name}.json",
+      "params": {
+        "email": "${SHADCN_STUDIO_EMAIL}",
+        "license_key": "${SHADCN_STUDIO_LICENSE_KEY}"
+      }
+    },
+    "@ss-illustrations": {
+      "url": "https://shadcnstudio.com/r/illustrations/{name}.json",
+      "params": {
+        "email": "${SHADCN_STUDIO_EMAIL}",
+        "license_key": "${SHADCN_STUDIO_LICENSE_KEY}"
+      }
+    },
     "@efferd": {
       "url": "https://efferd.com/r/{style}/{name}.json",
       "headers": {
