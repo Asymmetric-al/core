@@ -1692,6 +1692,13 @@ Data Tools MUST use exact base-maia and shared packages/ui components (stepper, 
 
 Data Tools MUST be default-deny and appear for a ministry only when at least one import kind is on, and each kind (People import, Gift file, Switch) MUST have its own kill switch. No Switch giving history or Legacy Tail Backfill money MAY commit until the owner commands that write Recorded outside Asym exist and the prototype portal receipt link and text statement are retired (O24). No Legacy Tail Backfill MAY commit until O13 exists and O33, O34 and the zero-donor-messages test pass.
 
+#### Scenario: People imports would store a restriction before the owner command exists
+
+- GIVEN the scoped restriction-import command is not live, or it has not passed the same seam tests as the other People-import owner commands
+- WHEN a ministry asks to turn on People imports
+- THEN People imports stay off
+- AND a restriction column is neither omitted nor written outside that command
+
 #### Scenario: A kind is switched off
 
 - GIVEN Gift files are switched off for a ministry while People imports are on

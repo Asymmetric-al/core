@@ -370,19 +370,34 @@ define domain truth.
   bulk import** (Salesforce's Data-Loader-bypasses-rules inconsistency is
   the named anti-pattern), reusing the Phase 4 merge contract and Phase 9
   duplicate surfaces.
-- **Stable external/source IDs** on all importable records: re-import
-  updates instead of duplicating; cross-system reconciliation. Every imported
-  financial root also pins exact Tenant, Legal Entity, currency, source
-  system, and stable external ID. None is inferred from Site, provider, or a
-  default entity.
-- **Provenance + rollback**: every import batch tagged on created/updated
-  records; time-boxed batch undo with before-image capture only while no
-  immutable downstream coverage exists. If an issued document, fulfillment
-  application, Field Account entry, Accounting Release, provider operation,
-  or external transfer covers a fact, undo is blocked and the owning domain's
-  append-only successor/correction path applies, including Phase 20
-  compensation where applicable. The undo-after-merge hazard (Planning Center
-  documents it deleting real people) is explicitly blocked.
+- **Stable external/source IDs** on all importable records: a re-import
+  converges on the stored source binding and never creates a second record;
+  cross-system reconciliation. A later snapshot's field differences are
+  source-changed conflicts for reviewed correction and are never applied
+  source-wins, and a row missing from a later snapshot is reported, never
+  treated as a deletion (D20; Q1 clause 5). An everyday People import may
+  still fill or replace a field under its write mode only when that field
+  was not changed in Asym after the plan was made. Every imported financial
+  root also pins exact Tenant, Legal Entity, currency, source system, and
+  stable external ID. None is inferred from Site, provider, or a default
+  entity.
+- **Provenance + import reversal**: every import batch tagged on
+  created/updated records. The action is Prepare reversal and the term is
+  import reversal, never a generic batch undo (D3, D70; Q18). It is offered
+  on People imports, Gift files, website content imports and Switch runs
+  after go-live, for 30 days from commit or, for a Switch run, from go-live.
+  It is not offered for the missionary self-import, a Practice copy, or a
+  Switch run before go-live. People results change only when the current-state
+  checks pass at that moment: a value, tag, contact, list membership or
+  household link that was edited, sent, linked, shared or otherwise used
+  since the import stays as it is, and a person the import created is
+  archived only if untouched since. Gift files, Switch giving history and
+  the other families go to their owner's correction path. An issued document,
+  fulfillment application, Field Account entry, Accounting Release, provider
+  operation or external transfer still blocks undoing that covered fact, and
+  the owning domain's append-only correction applies, including Phase 20
+  compensation where applicable. The undo-after-merge hazard is explicitly
+  blocked.
 - **Background processing** via Inngest: chunked, progress-reported,
   row-level failure isolation, resumable; **batch-origin event suppression**
   (an import must not fan out ten thousand automation emails).
