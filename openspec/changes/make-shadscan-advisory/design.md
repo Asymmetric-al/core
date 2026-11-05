@@ -301,8 +301,13 @@ example, uses `useRender` with `defaultTagName: "a"`, so it is classified as
 The plugin matches components by their JSX name, so an import alias such as
 `Button as SharedButton` would bypass the mapping. `no-restricted-syntax`
 rejects any import of a mapped component under another local name: named
-imports from its shared module (the `@asym/ui` path, or a relative path
-inside `packages/ui`) and default imports of `next/link` and `next/image`.
+imports from its shared module through every specifier that resolves to it,
+and default imports of `next/link` and `next/image`. Those specifiers are the
+`@asym/ui` path and, inside `packages/ui`, both a relative path and the
+internal `@/` alias, which `packages/ui/tsconfig.json` maps to the package
+root, `components.json` writes and `docs/ai/rules/frontend.md` prefers. The
+`@/` selectors apply only to `packages/ui` files, because elsewhere `@/`
+resolves to that workspace's own root.
 It also rejects namespace imports of those modules (`import * as ui from …`):
 the plugin names `<ui.Button>` as `ui.Button`, which the `Button` mapping
 does not match. No first-party code imports them as a namespace today.

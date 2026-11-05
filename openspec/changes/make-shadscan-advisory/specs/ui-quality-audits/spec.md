@@ -112,7 +112,7 @@ namespace import or a local rebinding cannot bypass the mapping.
 
 #### Scenario: A mapped shared component is used under another name
 
-- **WHEN** first-party code imports a mapped shared component under a different local name, imports its module as a namespace, or binds it to another local name such as `const SharedButton = Button;`
+- **WHEN** first-party code imports a mapped shared component under a different local name or imports its module as a namespace, through any import path that resolves to it, including the shared package's internal alias, or binds it to another local name such as `const SharedButton = Button;`
 - **THEN** lint fails and names the file, line and the component's exported name or module
 
 #### Scenario: A shared export renders a native element but is not mapped
