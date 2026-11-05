@@ -19,27 +19,37 @@ source-to-build attestation.
 The root `patchedDependencies` entry applies
 `tooling/eslint-config/patches/@shadcn%2Flint@0.2.3.patch` during frozen installation.
 The tooling owner maintains five narrowly scoped repairs that remain necessary
-in the published release:
+in the published release. Each was reported upstream with a minimal
+reproduction on 2026-10-30:
 
 1. Resolve a consumer barrel through the defining component index, retaining
-   upstream `node_modules` guards and import identity.
+   upstream `node_modules` guards and import identity
+   ([#134](https://github.com/shadcn-ui/lint/issues/134)).
 2. Validate exact plugin-generated contract classes with the actual Tailwind
-   compiler. Unknown classes and broken themes still fail.
+   compiler. Unknown classes and broken themes still fail
+   ([#135](https://github.com/shadcn-ui/lint/issues/135)).
 3. Find a component's exact named, relative CVA factory in its defining file,
-   with refreshed cache data. Keep upstream local-prop and barrel fallbacks.
+   with refreshed cache data. Keep upstream local-prop and barrel fallbacks
+   ([#136](https://github.com/shadcn-ui/lint/issues/136)).
 4. Attribute native `render` target presentation to the caller only when the
    current source proves a classless Base UI Trigger wrapper. Parenthesized
    JSX is equivalent. Styled owners, custom or opaque targets, higher-order
-   components, shadowed imports and unknown implementations remain protected.
+   components, shadowed imports and unknown implementations remain protected
+   ([#129](https://github.com/shadcn-ui/lint/issues/129), with Core's
+   reproduction in
+   [a comment](https://github.com/shadcn-ui/lint/issues/129#issuecomment-6517163391)).
 5. Preserve raw Base UI namespace-member provenance through shared re-exports.
-   Local styled members and other external components keep their contracts.
+   Local styled members and other external components keep their contracts
+   ([#137](https://github.com/shadcn-ui/lint/issues/137)).
 
 These are upstream-defect repairs, not an official fixed release. The
 resolution, variant, theme and suppression suites are removal criteria:
 remove each repair only when a current unpatched upstream package passes its
 behavioral regressions. Requalify the patch on every release; an old hold is
-not sufficient justification. Core configuration calls the public ESLint
-plugin and supported options, with no private runtime API.
+not sufficient justification. Check the linked issues and release notes
+first, but a closed issue alone is not removal evidence. Core configuration
+calls the public ESLint plugin and supported options, with no private runtime
+API.
 
 The release supports Node >=20.19, ESLint >=9.30, the TypeScript ESLint parser
 
