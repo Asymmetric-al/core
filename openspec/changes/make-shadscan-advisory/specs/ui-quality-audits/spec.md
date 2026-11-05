@@ -151,7 +151,8 @@ recorded as residual-debt exceptions listed in a reviewed baseline, which the
 adopting change creates once and no later change removes. A residual-debt
 exception that is not in the baseline SHALL fail verification, and after
 adoption a change SHALL NOT add or alter baseline entries, so recorded debt can
-only shrink.
+only shrink. Each entry identifies one occurrence by file, rule, issue, line
+number and the trimmed source text of that line.
 
 #### Scenario: The adopting change creates the baseline
 
@@ -169,6 +170,11 @@ only shrink.
 - **WHEN** a change adds a new violation together with a well-formed residual-debt exception that cites a tracked issue
 - **THEN** the repository's verification fails because the exception is not in the baseline
 - **AND** adding a matching baseline entry in the same change also fails the required check
+
+#### Scenario: A residual-debt exception moves to another identical line
+
+- **WHEN** a change repairs the original line and places the same exception on another line in that file with the same rule, issue and source text
+- **THEN** verification fails because the baseline entry's line number no longer matches
 
 #### Scenario: A new violation lands in a file with recorded debt
 
@@ -197,7 +203,7 @@ regression tests.
 #### Scenario: The audit gate tooling is removed
 
 - **WHEN** the score gate, floors and ledger are retired
-- **THEN** every behavioral, browser and axe test that served as audit proof still runs in its suite with unchanged assertions
+- **THEN** every behavioral, browser and axe test that served as audit proof still runs in its suite with unchanged assertions, including every path the retired ledger cited as proof
 - **AND** only tests that verify the retired gate mechanics are removed
 
 #### Scenario: A rendered accessibility check fails

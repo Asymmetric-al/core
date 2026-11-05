@@ -107,8 +107,11 @@ See `proposal.md` for the motivation. Current state that shapes the approach:
 
 ### D1. The scan runs in the non-required `shadscan-report` job
 
-`.github/workflows/shadscan.yml` installs dependencies, runs the audit itself
-and publishes the result. The `integrity` job loses its two Shadscan steps.
+`.github/workflows/shadscan.yml` installs dependencies, runs the audit itself,
+publishes the result, and uploads `shadscan.raw.json` as a workflow artifact.
+The `integrity` job loses its two Shadscan steps, including the artifact
+upload that lives with them today. Reviewers still need the raw findings
+after the runner is gone, so the upload moves with the scan.
 `ci-gate` keeps its current needs, so the scan cannot block a merge.
 
 - **Rejected: `continue-on-error` inside `integrity`.** It still adds about 30
@@ -186,14 +189,20 @@ Kept as is: `shadscan-browser-resolution.test.ts`. It guards dependency
 isolation for as long as the scanner stays installed.
 
 Dated records and the two issue-scoped acceptance records that mention the
-retired paths stay as history. The retirement check therefore searches only
-live paths, excluding `openspec/`, `docs/maintenance/`, `docs/plans/`,
-`docs/qa/`, `tests/unit/acceptance/issue-2067/` and
+retired paths stay as history. Feature grill notes do too: they cite the
+retired paths and are not rewritten. The retirement check therefore searches
+only live paths, excluding `openspec/`, `docs/maintenance/`, `docs/plans/`,
+`docs/qa/`, `docs/features/`, `tests/unit/acceptance/issue-2067/` and
 `tests/unit/acceptance/issue-2277/`.
 
 All behavior, browser and axe proof tests keep their file names and
-assertions. Renaming them is optional follow-up churn and is not part of
-this change.
+assertions, including every path the ledger cites as proof before it is
+deleted. That set is wider than `tests/unit/apps`, `tests/unit/packages` and
+`tests/fixtures/base-ui-compliance`; it includes
+`tests/e2e/react-cleanup-memory.spec.ts` and
+`tests/unit/scripts/shadcn-config-guardrails.test.ts`. The final-head diff
+covers the whole set, so a later repair task cannot change those assertions.
+Renaming them is optional follow-up churn and is not part of this change.
 
 - **Rejected: keeping floors as non-blocking warnings.** A floor needs the
   policy file and its maintenance, and a warning that never blocks adds
@@ -242,6 +251,19 @@ Config tests, written red first, prove two things:
 native element to that element, for example `Button` to `button`,
 `ButtonLink` to `a`, `Input` to `input`, `Textarea` to `textarea`, `Label` to
 `label`, Next `Link` to `a`, and Next `Image` to `img`.
+
+The plugin keys that map on the JSX name, not the import origin. Each mapped
+name is reserved for the shared component the classification describes. An
+unrelated `Label` that renders a span, or a local `Button` that is not the
+shared button, is still evaluated as the native element, and a fixture must
+show that failure. During apply, every other component that already uses a
+mapped name is renamed, with its call sites. That includes the chart
+annotation `Label` components in
+`packages/ui/components/shadcn-studio/blocks/chart-sales-metrics.tsx` and
+`chart-missionary-metrics.tsx`, and the icon exports `Image` and `Link` from
+`@asym/ui/components/shadcn/icons`, which render `svg` and cannot share the
+`img` and `a` mappings. The completeness test fails if another `packages/ui`
+export uses a mapped name while rendering a different element.
 
 The mapping is not a hand-picked list. During apply, a committed
 classification file in `tooling/eslint-config` records, for every component
@@ -352,8 +374,11 @@ fresh, well-formed `debt #` exception. Residual debt is therefore frozen at
 adoption:
 
 - `tooling/eslint-config/a11y-debt-baseline.json` lists each residual
-  exception with its file, rule, issue and the trimmed source text of the line
-  it covers. The adoption commit always creates the file, even as an empty
+  exception with its file, rule, issue, 1-based line number and the trimmed
+  source text of the line it covers. The line number is the occurrence
+  identity: two identical lines in one file are different entries, and moving
+  a directive onto the other line fails the match. The adoption commit always
+  creates the file, even as an empty
   list when the repair pass leaves no debt, and it is reviewed once. A test
   requires the file to exist and match its schema, so no later change can
   delete it.
