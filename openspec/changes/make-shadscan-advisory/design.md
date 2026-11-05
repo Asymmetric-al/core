@@ -107,8 +107,12 @@ See `proposal.md` for the motivation. Current state that shapes the approach:
 
 ### D1. The scan runs in the non-required `shadscan-report` job
 
-`.github/workflows/shadscan.yml` installs dependencies, runs the audit itself,
+`.github/workflows/shadscan.yml` checks out the submitted commit, not the
+default merge ref: `github.event.pull_request.head.sha` on `pull_request`,
+and the push SHA on `push`. It installs dependencies, runs the audit itself,
 publishes the result, and uploads `shadscan.raw.json` as a workflow artifact.
+Task 4.3 verifies that checkout. A merge-ref checkout would report the merge
+result instead of the head.
 The `integrity` job loses its two Shadscan steps, including the artifact
 upload that lives with them today. Reviewers still need the raw findings
 after the runner is gone, so the upload moves with the scan.
@@ -161,8 +165,12 @@ unavailable mode:
   with the same statement. Today a failed scan leaves the previous head's
   scores in the comment, where they read as current.
 
-The job's own red status remains the primary signal. A test covers the
-transition from a successful comment to a failed scan.
+The job's own red status remains the primary signal. The audit step records
+its outcome and does not use `continue-on-error`, which would let the job
+finish green. The publisher runs with `if: always()`, so unavailable mode
+still replaces the marker comment after a failed audit. A final step exits
+non-zero when the audit failed. A test checks that final job status, the job
+summary, and the replaced marker comment.
 
 Pull requests from forks keep the current security model. The
 `pull_request` token is read-only for forks, so the publisher already
@@ -211,8 +219,10 @@ Renaming them is optional follow-up churn and is not part of this change.
 ### D4. Enable the full `jsx-a11y` recommended rules on first-party web UI
 
 `@asym/eslint-config` declares the exact `eslint-plugin-jsx-a11y@6.10.2`,
-which is already in `bun.lock`. It applies `flatConfigs.recommended.rules` at
-error level. The scope is every first-party app and workspace package whose
+which is already in `bun.lock`. It applies `flatConfigs.recommended.rules`
+at that preset's own severities. In 6.10.2 the preset leaves
+`anchor-ambiguous-text`, `control-has-associated-label`, and `label-has-for`
+off. Those stay off unless a later change records an explicit override. The scope is every first-party app and workspace package whose
 non-test sources contain JSX, excluding vendored and generated trees. Today
 that means the three apps, `packages/ui`, `packages/missionary`,
 `packages/lib` and `packages/database`. This is deliberately wider than the
@@ -374,27 +384,28 @@ fresh, well-formed `debt #` exception. Residual debt is therefore frozen at
 adoption:
 
 - `tooling/eslint-config/a11y-debt-baseline.json` lists each residual
-  exception with its file, rule, issue, trimmed source text, a 1-based
-  occurrence index, and the line number for review. The occurrence index
-  counts lines in that file with the same trimmed source, in source order.
-  It is the identity. The line number is not: adding an import or removing
-  an earlier unrelated line shifts the line number and the same occurrence
-  still matches. Moving the directive onto another identical line changes
-  the index and fails. The adoption commit always creates the file, even as
-  an empty list when the repair pass leaves no debt, and it is reviewed once.
-  A test
-  requires the file to exist and match its schema, so no later change can
-  delete it.
+  exception with its file, rule, issue, trimmed source text, and the line
+  number for review. The line number is not the identity, and neither is a
+  count of identical lines by itself. The check follows the directive
+  through the diff. An insertion or deletion above it, of a line that is
+  not the same trimmed source, leaves the entry valid and the recorded line
+  number may be updated. Moving the directive onto another identical line
+  fails. That failure remains when the original line is deleted in the same
+  change, even if only one identical line is left: the deleted line's entry
+  is a removal, and the directive on the survivor is a new entry. The
+  adoption commit always creates the file, even as an empty list when the
+  repair pass leaves no debt, and it is reviewed once. A test requires the
+  file to exist and match its schema, so no later change can delete it.
 - The directive verification fails on any `debt #` exception that has no
   exactly matching baseline entry, and on any baseline entry with no matching
   live exception. Debt directives cannot be added, transferred to another
-  occurrence, or edited. A line shift that keeps the same occurrence is not
-  a transfer. Stale entries must be pruned.
+  occurrence, or edited. A line shift that the diff maps to the same
+  directive is not a transfer. Stale entries must be pruned.
 - A check in the required CI lint job reads the baseline at the pull
   request's base commit, fetching it if the checkout is shallow. It fails if
-  the head adds an entry or changes its file, rule, issue, source text, or
-  occurrence index. Updating only the recorded line number passes, so a
-  harmless shift is not stuck behind a frozen line. Removals pass. The local
+  the head adds an entry or changes its file, rule, issue, or source text,
+  or if the diff does not map the directive to the same entry. Updating only
+  the recorded line number passes. Removals pass. The local
   preflight runs the same comparison against the merge base with
   `origin/develop` when that ref exists.
 - **One-time adoption.** If the base commit has no baseline, the change is

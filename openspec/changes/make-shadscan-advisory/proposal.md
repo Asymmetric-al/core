@@ -93,8 +93,9 @@ None. No durable spec requirement changes.
 - **CI:** the `integrity` job and the `shadscan-report` job in
   `.github/workflows/ci.yml`, plus `.github/workflows/shadscan.yml`.
 - **Gate tooling:**
-  - Rewritten: `scripts/verify/shadscan.mjs`, `shadscan-publish.mjs` and
-    `shadscan-summary.mjs`.
+  - Rewritten: `scripts/shadscan-audit.mjs` (from
+    `scripts/verify/shadscan.mjs`), with `scripts/shadscan-publish.mjs` and
+    `scripts/shadscan-summary.mjs` beside it.
   - Removed: `scripts/verify/shadscan-policy.mjs` and `tooling/shadscan/`.
   - Gate tests under `tests/unit/scripts/shadscan-*.test.ts`: the ledger,
     policy, perfect-score and staged tests are removed; the publish test is
