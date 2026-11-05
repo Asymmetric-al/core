@@ -504,7 +504,7 @@ These user stories are normative for Phase 30 — Imports & Migration and cover 
       - Given an approver who built the environment, then approval is refused.
       - Given a read-back, then it confirms applied migrations match the release under test, no read rule on person or money data admits anonymous users or every row, the staff-migration custody profile is qualified, no destructive script defaults to the environment, and its real-data status and hosting region are recorded.
       - Given the read-back before the first real export, then it also confirms no super-admin or role-string escape on person, money, Phase 29 or Phase 30 data, or that nobody holds super-admin there, and any failure refuses approval.
-      - Given a non-production environment other than the Approved Practice environment, then a real export upload is refused. The Approved Practice environment accepts a real export only as a practice-run input once the gates for a real export hold.
+      - Given a non-production environment, then a real export upload is refused. The Approved Practice environment receives the staged plan through a Practice copy build, never raw source files, and only once the gates for a real export hold.
       - Given the Practice environment, then approval also requires no live credentials, no public routes and email captured in the Practice outbox.
 
 ## Source tiers and Import templates (Q3, Q11)
