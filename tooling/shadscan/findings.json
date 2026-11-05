@@ -506,7 +506,7 @@
         },
         {
           "path": "packages/ui/components.json",
-          "sha256": "b81a5f8dea6679be6141d7679863082d2400d0c5bf5b7240520e1a090a5416f0"
+          "sha256": "17bb8b3db270eb8767e91068ef1ec8829811771826ce78f1f97ea7e447aebea2"
         },
         {
           "path": "scripts/verify/shadcn-config-guardrails.mjs",
@@ -881,7 +881,7 @@
         },
         {
           "path": "packages/ui/components.json",
-          "sha256": "b81a5f8dea6679be6141d7679863082d2400d0c5bf5b7240520e1a090a5416f0"
+          "sha256": "17bb8b3db270eb8767e91068ef1ec8829811771826ce78f1f97ea7e447aebea2"
         },
         {
           "path": "scripts/verify/shadcn-config-guardrails.mjs",
@@ -1407,7 +1407,7 @@
         },
         {
           "path": "packages/ui/components.json",
-          "sha256": "b81a5f8dea6679be6141d7679863082d2400d0c5bf5b7240520e1a090a5416f0"
+          "sha256": "17bb8b3db270eb8767e91068ef1ec8829811771826ce78f1f97ea7e447aebea2"
         },
         {
           "path": "scripts/verify/shadcn-config-guardrails.mjs",
