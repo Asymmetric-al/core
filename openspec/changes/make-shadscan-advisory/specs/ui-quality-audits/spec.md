@@ -35,7 +35,7 @@ check, and SHALL NOT impose score floors or score targets.
 
 #### Scenario: The scan cannot complete
 
-- **WHEN** the scanner errors, times out or returns a report the published contract cannot read
+- **WHEN** dependency installation fails, or the scanner errors, times out or returns a report the published contract cannot read
 - **THEN** the job summary states that audit evidence is unavailable for that head commit
 - **AND** for a pull request from this repository, the existing report comment is replaced with the same statement, so an earlier head's scores are no longer shown as current
 - **AND** no score is presented as current or passing

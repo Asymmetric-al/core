@@ -156,8 +156,9 @@ the audit script. They lose floor and classification columns and keep the
 `<!-- shadscan-report -->` comment marker, so the existing comment updates in
 place.
 
-When the audit step fails, the publisher still runs, in an explicit
-unavailable mode:
+When dependency installation or the audit step fails, the publisher still
+runs with `if: always()` in an explicit unavailable mode. Unavailable mode
+does not load a report and does not require an audit summary file:
 
 - It writes the "evidence unavailable" statement, naming the head commit, to
   the job summary.
@@ -167,10 +168,10 @@ unavailable mode:
 
 The job's own red status remains the primary signal. The audit step records
 its outcome and does not use `continue-on-error`, which would let the job
-finish green. The publisher runs with `if: always()`, so unavailable mode
-still replaces the marker comment after a failed audit. A final step exits
-non-zero when the audit failed. A test checks that final job status, the job
-summary, and the replaced marker comment.
+finish green. The publisher and a final step both use `if: always()`, so a
+failed installation does not skip them. The final step exits non-zero when
+installation or the audit failed. A test checks that final job status, the
+job summary, and the replaced marker comment for both failures.
 
 Pull requests from forks keep the current security model. The
 `pull_request` token is read-only for forks, so the publisher already
