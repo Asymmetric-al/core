@@ -151,14 +151,14 @@ recorded as residual-debt exceptions listed in a reviewed baseline, which the
 adopting change creates once and no later change removes. A residual-debt
 exception that is not in the baseline SHALL fail verification, and after
 adoption a change SHALL NOT add or alter baseline entries, so recorded debt can
-only shrink. Each entry identifies one occurrence by file, rule, issue, line
-number and the trimmed source text of that line.
+only shrink.
 
 #### Scenario: The adopting change creates the baseline
 
 - **WHEN** the change that adopts enforcement records its residual debt, or an empty list if none remains
 - **THEN** the required check accepts the new baseline, because the base commit has none
 - **AND** each entry still has to match a live residual-debt exception
+- **AND** each entry names one occurrence by file, rule, issue, line number and trimmed source text
 
 #### Scenario: A later change removes the baseline
 
