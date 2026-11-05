@@ -18,10 +18,15 @@ describe("Sentry release and sourcemap verifier", () => {
     });
 
     expect(options.release.name).toBe("abc123");
-    expect(options.release.inject).toBe(true);
+    expect(options.release).not.toHaveProperty("inject");
     expect(options.release.create).toBeUndefined();
     expect(options.sourcemaps.disable).toBe(true);
     expect(options.widenClientFileUpload).toBe(false);
+    expect(options.telemetry).toBe(false);
+    expect(options.bundleSizeOptimizations).toEqual({
+      excludeDebugStatements: true,
+    });
+    expect(options).not.toHaveProperty("webpack.treeshake");
   });
 
   it("enables upload and deploy metadata when SENTRY_AUTH_TOKEN exists", () => {
@@ -39,6 +44,8 @@ describe("Sentry release and sourcemap verifier", () => {
     expect(options.release.deploy).toEqual({ env: "development" });
     expect(options.sourcemaps.disable).toBe(false);
     expect(options.widenClientFileUpload).toBe(true);
+    expect(options.telemetry).toBe(false);
+    expect(options.release).not.toHaveProperty("inject");
   });
 
   it("prefers explicit release names before provider commit variables", () => {
@@ -48,6 +55,27 @@ describe("Sentry release and sourcemap verifier", () => {
         VERCEL_GIT_COMMIT_SHA: "vercel",
       }),
     ).toBe("manual");
+  });
+
+  it.each([
+    "SENTRY_RELEASE",
+    "VERCEL_GIT_COMMIT_SHA",
+    "GIT_SHA",
+    "GITHUB_SHA",
+    "NEXT_PUBLIC_GIT_SHA",
+  ])("ignores a self-named %s placeholder", (key) => {
+    expect(resolveSentryReleaseName({ [key]: ` ${key} ` })).toMatch(
+      /^[a-f0-9]{40}$/u,
+    );
+  });
+
+  it("falls through a placeholder to the next valid release candidate", () => {
+    expect(
+      buildSentryNextConfigOptions({
+        SENTRY_RELEASE: "SENTRY_RELEASE",
+        VERCEL_GIT_COMMIT_SHA: "qualified-commit",
+      }).release.name,
+    ).toBe("qualified-commit");
   });
 
   it("summarizes the repo proof without secret values", () => {

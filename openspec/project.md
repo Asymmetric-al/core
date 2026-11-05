@@ -87,6 +87,12 @@ Do not archive until implementation is accepted repository reality.
 
 ## Validation
 
+The Phase 29 `files-documents` active change is generated from
+`docs/prds/sitestacker-parity/phase-29-files-documents.md` and its six canonical
+volumes. Use `bun run verify:phase29-spec` to verify source preservation, exact
+trace and generated full contracts. Publication does not establish runtime
+qualification and the change remains active until implementation is accepted.
+
 - `bun run openspec:validate`
 - `bun run openspec:audit-archive`
 - `bun run skills:verify`
