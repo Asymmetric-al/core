@@ -11,13 +11,17 @@ export function getSentryCompatibilityOptions() {
       userInfo: false,
       cookies: false,
       httpHeaders: {
-        request: { deny: [...sensitiveKeys] },
+        // Node RequestData does not filter query values inside Referer.
+        // Deny the whole header consistently across runtimes.
+        request: { deny: [...sensitiveKeys, "referer", "referrer"] },
         response: { deny: [...sensitiveKeys] },
       },
       httpBodies: [],
       urlQueryParams: { deny: [...sensitiveKeys] },
       genAI: { inputs: false, outputs: false },
+      mcp: { inputs: false, outputs: false },
       databaseQueryData: false,
+      queues: false,
       graphQL: { document: false, variables: false },
       frameContextLines: 7,
     },
