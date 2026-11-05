@@ -374,14 +374,16 @@ describe("#2407a static contract [A]", () => {
     expect(index).toBe(i);
     expect(steps[i]).toEqual({ name: STEP, ...body });
   });
-  it("#2407a criterion 20: init_schema.sql and the service-role allowlist stay byte-identical to develop 629cb71d (2308 C12 green); verify:service-role-clients passes", () => {
+  it("#2407a criterion 20: init_schema.sql stays byte-identical to develop 629cb71d and the allowlist stays byte-identical to develop after #2406; verify:service-role-clients passes", () => {
     const sha = (f: string) =>
       createHash("sha256").update(readFileSync(f)).digest("hex");
     expect(sha(H.INIT)).toBe(
       "c5cc1775d6914b613730822d920f4ec3ba189cdb5e2f98fadb8981238e76635a",
     );
+    // #2406 (ed3958096) moved profile and donor-portal lines. This PR does not
+    // edit the allowlist; the pin is that file on current develop.
     expect(sha(ALLOWLIST)).toBe(
-      "9c9875a789cb33d8b1b80d35428773c3cab8599b0ef4805e4e65d0241e060233",
+      "41b0324c81960fc9349c92b5048293ff7b856ce8d51d5c14ce2c22b4fb575d0c",
     );
     const r = spawnSync(
       "node",
