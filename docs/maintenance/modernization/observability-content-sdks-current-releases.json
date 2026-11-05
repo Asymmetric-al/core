@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-23T11:08:03.901236+00:00",
+  "scope": "Official public registry readback before the current tested SDK qualification; exact tested versions frozen.",
+  "previousFreeze": {
+    "path": "observability-content-sdks-releases.json",
+    "sha256": "61fa3045d5e165ed870e8562c3c8a23b2346bccb7aa8fa7f3a235f05aa473b77",
+    "preservedByteExact": true
+  },
+  "items": [
+    {
+      "name": "@sentry/nextjs",
+      "source": "https://registry.npmjs.org/%40sentry%2Fnextjs/latest",
+      "responseDate": "Fri, 23 Oct 2026 11:08:04 GMT",
+      "responseSha256": "62380a9b18628508658729fe86937ef5d13246d524aac4c50eb02de8c18a8716",
+      "integrity": "sha512-zIjaceJJhZnSGkrRpgl1PRsNVEkYAS+8rINOLAR/4xjbv0/i4J0RUuNSQWcrx8yULUfR1+v0meK4LBoOKYE8ow==",
+      "repository": {
+        "url": "git://github.com/getsentry/sentry-javascript.git",
+        "type": "git"
+      },
+      "deprecated": null,
+      "engines": {
+        "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
+      },
+      "peerDependencies": {
+        "next": "^14.0 || ^15.0.0-rc.0 || ^16.0.0-0"
+      },
+      "selectedVersion": "11.9.0",
+      "previouslyQualifiedVersion": "11.8.0",
+      "unchangedFromPreviousCandidate": false
+    },
+    {
+      "name": "html-react-parser",
+      "source": "https://registry.npmjs.org/html-react-parser/latest",
+      "responseDate": "Fri, 23 Oct 2026 11:08:04 GMT",
+      "responseSha256": "684bf036ad015f868326b1d5f511e31364cc98556fc16f1de38eae4979d44c46",
+      "integrity": "sha512-5lQzzUQXrFe1+OR7GOGkATsm/2h3UIIWQvPkl+84+A9vYG6zbGxhZJjrCDlGvmQs7qPMbffO3XYizVrHekLZbA==",
+      "repository": {
+        "url": "git+https://github.com/remarkablemark/html-react-parser.git",
+        "type": "git"
+      },
+      "deprecated": null,
+      "engines": null,
+      "peerDependencies": {
+        "react": "0.14 || 15 || 16 || 17 || 18 || 19",
+        "@types/react": "0.14 || 15 || 16 || 17 || 18 || 19"
+      },
+      "selectedVersion": "6.1.9",
+      "previouslyQualifiedVersion": "6.1.9",
+      "unchangedFromPreviousCandidate": true
+    },
+    {
+      "name": "isomorphic-dompurify",
+      "source": "https://registry.npmjs.org/isomorphic-dompurify/latest",
+      "responseDate": "Fri, 23 Oct 2026 11:08:04 GMT",
+      "responseSha256": "6113ae23d5230493f25009a16a2f8b10ec8c4065a87c46da17f2ac8831bbc4a0",
+      "integrity": "sha512-ZLYxxq2efNUsaUMViQXML/HMBkaJSd8WAFcNJQfWOGi+KLGQyZA8Ewpcj7yWur6KzMHlrZNXTXr8trbx/bkZRw==",
+      "repository": {
+        "url": "kkomelin/isomorphic-dompurify",
+        "type": "git"
+      },
+      "deprecated": null,
+      "engines": {
+        "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+      },
+      "peerDependencies": null,
+      "selectedVersion": "4.6.0",
+      "previouslyQualifiedVersion": "4.6.0",
+      "unchangedFromPreviousCandidate": true
+    },
+    {
+      "name": "resend",
+      "source": "https://registry.npmjs.org/resend/latest",
+      "responseDate": "Fri, 23 Oct 2026 11:08:04 GMT",
+      "responseSha256": "cff0f6daa7d52061f84c68342e91b65e9268af45dbb2338fcf5dbf7ba9465cdc",
+      "integrity": "sha512-3jo/j1WAW7CBkE6pzK4qLjZCfHRLIhY3ph3x/wzU+MN51cSw3EtReGce8S1cA1R0ipNDOdFYU5Lmt5r563lvYw==",
+      "repository": {
+        "url": "git+https://github.com/resend/resend-node.git",
+        "type": "git"
+      },
+      "deprecated": null,
+      "engines": {
+        "node": ">=20"
+      },
+      "peerDependencies": {
+        "@react-email/render": "*"
+      },
+      "selectedVersion": "6.34.1",
+      "previouslyQualifiedVersion": "6.34.1",
+      "unchangedFromPreviousCandidate": true
+    },
+    {
+      "name": "@stripe/react-stripe-js",
+      "source": "https://registry.npmjs.org/%40stripe%2Freact-stripe-js/latest",
+      "responseDate": "Fri, 23 Oct 2026 11:08:04 GMT",
+      "responseSha256": "f6d3d0387e6ec5915578fd83acccc6e6b472a89c0d58c06aa2dbe9a54397b8c2",
+      "integrity": "sha512-wKw6YM0p/IpGj7hcwdJL7UAb7s0hlO8kLJIXn0CezewYILQ8j/A7j55EHuHHjF6dV+cr4yZhbhg4QLRjovfM4A==",
+      "repository": {
+        "url": "https://github.com/stripe/react-stripe-js.git",
+        "type": "git"
+      },
+      "deprecated": null,
+      "engines": null,
+      "peerDependencies": {
+        "react": ">=16.8.0 <20.0.0",
+        "react-dom": ">=16.8.0 <20.0.0",
+        "@stripe/stripe-js": ">=10.0.0 <11.0.0"
+      },
+      "selectedVersion": "7.0.0",
+      "previouslyQualifiedVersion": "7.0.0",
+      "unchangedFromPreviousCandidate": true
+    },
+    {
+      "name": "@stripe/stripe-js",
+      "source": "https://registry.npmjs.org/%40stripe%2Fstripe-js/latest",
+      "responseDate": "Fri, 23 Oct 2026 11:08:04 GMT",
+      "responseSha256": "1c9e8ec9c250b6452624ef0ccf0bf30585a675653a240b526d044c066651549a",
+      "integrity": "sha512-sLRPukMKMxvRVrgV3Za8LM0Yd2azrixQjfaiuzS8Fivlu/Gt7VbBuRiRZJIvfL3XxAw+FdfdmhHSvjAfLG3lkA==",
+      "repository": {
+        "url": "https://github.com/stripe/stripe-js.git",
+        "type": "git"
+      },
+      "deprecated": null,
+      "engines": {
+        "node": ">=12.16"
+      },
+      "peerDependencies": null,
+      "selectedVersion": "10.1.0",
+      "previouslyQualifiedVersion": "10.1.0",
+      "unchangedFromPreviousCandidate": true
+    }
+  ]
+}
