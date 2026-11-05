@@ -209,8 +209,9 @@ assertions, including every path the ledger cites as proof before it is
 deleted. That set is wider than `tests/unit/apps`, `tests/unit/packages` and
 `tests/fixtures/base-ui-compliance`; it includes
 `tests/e2e/react-cleanup-memory.spec.ts` and
-`tests/unit/scripts/shadcn-config-guardrails.test.ts`. The final-head diff
-covers the whole set, so a later repair task cannot change those assertions.
+`tests/unit/scripts/shadcn-config-guardrails.test.ts`. The final-head check is a content diff of that whole set (`git diff -U0`),
+not a stat summary, so a later repair task cannot replace an assertion while
+the line count still looks unchanged.
 Renaming them is optional follow-up churn and is not part of this change.
 
 - **Rejected: keeping floors as non-blocking warnings.** A floor needs the
