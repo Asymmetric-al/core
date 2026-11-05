@@ -186,6 +186,7 @@ Every evidence artifact MUST be classed as Synthetic evidence, a Vendor-format s
 - WHEN the profile status is updated
 - THEN it becomes Pilot-qualified
 - AND it becomes Supported only after that pilot Switch goes live with reconciliation signed off and recovery exercised in production
+- AND Supported names only the export surfaces, version range and exporter permission level that pilot exercised, and every later installation still runs header pre-flight and its own practice runs
 
 #### Scenario: Scheduling on an Unavailable profile
 
@@ -194,11 +195,29 @@ Every evidence artifact MUST be classed as Synthetic evidence, a Vendor-format s
 - THEN scheduling is refused because the profile is Unavailable
 - AND the scheduling task shows Cannot start yet with that reason
 
+#### Scenario: A later installation differs from the exercised evidence
+
+- GIVEN the SiteStacker profile is Supported only for the pilot's export surfaces, version range and exporter permission level
+- WHEN another ministry's export uses a different version, permission level or surface
+- THEN that Switch is not scheduled as if the profile covered it
+- AND that installation still runs its header pre-flight and its own practice runs
+
 #### Scenario: A second ministry on a Pilot-qualified profile
 
 - GIVEN the SiteStacker profile is Pilot-qualified from its design partner's practice runs and is not yet Supported
 - WHEN a member of another ministry holding Run the Switch asks to schedule that ministry's SiteStacker Switch
 - THEN scheduling is refused until the profile is Supported
+
+### Requirement: Discovery Material Is Screened Before Any Other Use
+
+Discovery material received before a real-export agreement MUST live only in a private store. The evidence custodian MUST screen each received file before any other person or tool sees it. An unmarked real row MUST quarantine the file, delete every copy, notify the ministry and record an incident. Each artifact MUST stay on a register until disposal when real-run evidence supersedes it or the engagement ends.
+
+#### Scenario: A vendor-format sample contains a real donor row
+
+- GIVEN a Vendor-format sample is received before any real-export agreement
+- WHEN screening finds an unmarked real donor row
+- THEN the file is quarantined, every copy is deleted, the ministry is notified and an incident is recorded
+- AND no other person or AI tool sees it
 
 ### Requirement: Real Donor Data Follows Staged Evidence And Qualified Custody
 
@@ -308,6 +327,12 @@ Every gift that reaches Asym through a Switch history import or a Legacy Tail Ba
 ### Requirement: Switch-Year Readiness And Decommission Attest Tax Documents
 
 Go/no-go MUST be blocked while any issuing Legal Entity's pre-boundary gifts or Legacy Tail cohort lacks a named tax-document issuer, while that entity's Asym tax-document setup is not active, or while staff gift entry in the old system is not Off at boundary. Decommission sign-off MUST require attestations that tax documents owed for gifts recorded outside Asym are issued or ready, and where the old records are kept. A legacy charge after a Move MUST NOT be excluded as a duplicate.
+
+#### Scenario: A Canadian entity has no serial continuity
+
+- GIVEN a Canadian issuing Legal Entity whose readiness census has no previous receipting tool or last serial
+- WHEN go/no-go is requested
+- THEN it is blocked until O25 has accepted that continuity evidence and the entity's tax-document setup is active
 
 #### Scenario: A possible duplicate across systems
 
@@ -449,7 +474,14 @@ A Practice copy MUST be built only by a member holding Run the Switch, only in t
 
 ### Requirement: Legacy Tail Backfills Are Bounded Reviewed And Append-Only
 
-Facts recorded after the Switch Boundary by a legacy executor MUST enter only through separately reviewed Legacy Tail Backfills on a fixed cadence until the recorded tail closure date, by default no later than 12 months after go-live. A backfill MUST apply restrict-only contact facts first, carry only append-only money facts, schedule-state and stop evidence, and MUST NOT create or update supporter details or override an Asym edit.
+Facts recorded after the Switch Boundary by a legacy executor MUST enter only through separately reviewed Legacy Tail Backfills, weekly until the last old charge and then every four weeks, until the recorded tail closure date. A backfill MUST apply restrict-only contact facts first, carry only append-only money facts, schedule-state and stop evidence, and MUST NOT create or update supporter details or override an Asym edit.
+
+#### Scenario: Charges are still running
+
+- GIVEN the last old charge has not yet run
+- WHEN the next Legacy Tail Backfill is due
+- THEN it is due weekly
+- AND after that last charge the cadence is every four weeks through the reversal window, until the recorded tail closure date and by default no later than 12 months after go-live
 
 #### Scenario: A refund arrives for an imported gift
 
@@ -657,6 +689,13 @@ A person on a moved list MUST receive an Adopted email permission only through t
 - WHEN adoption is evaluated
 - THEN they keep evidence only and receive no Adopted email permission
 - AND nobody is emailed to ask for permission
+
+#### Scenario: An Adoption hold is released
+
+- GIVEN adopted permissions are on hold and the purpose and channel check honors that hold
+- WHEN the first optional message goes to an adopted list
+- THEN it names its sender, carries a one-click unsubscribe honored within 2 days, and says the person subscribed to that list in the previous system
+- AND optional mail uses its own authenticated subdomain, waves follow the provider warm-up with the most recent givers and highest-rated readers first, and sending pauses at 3% bounces, 0.1% complaints, or any complaint in the first wave of 50
 
 #### Scenario: A missionary newsletter carries over
 
@@ -923,6 +962,13 @@ A Gift file MUST be read and mapped by Phase 30 and opened as one or more draft 
 
 Switch giving history MUST be imported gift by gift through Phase 13's adoption command for every payment type, and a gift MUST commit only when every Fixed gift fact is known, without any default for fund, date, currency, Site or Legal Entity. Amounts MUST stay in the source currency without conversion, gift dates MUST be the source-recorded calendar date never shifted through a time zone, and refunds and reversals MUST be separate entries linked to their original by exact source reference.
 
+#### Scenario: A DAF grant names a different person
+
+- GIVEN a history gift the source records as a DAF grant, employer match or workplace gift
+- WHEN it commits
+- THEN the payer of record is the legal donor and the person is recognised, in Phase 14's shape
+- AND soft credits, tributes, matching links and non-deductible portions the source recorded are kept, and the recognised person is never stored as the legal donor
+
 #### Scenario: A gift has no fund mapped
 
 - GIVEN a history gift whose source fund is unmapped
@@ -982,13 +1028,19 @@ History and its refunds MUST NOT create Field Account activity or balance, Suppo
 
 ### Requirement: History Sign-Off Requires Reader Readiness And A Spot Check
 
-Before the first real Switch commits history, every surface that shows or sums gifts MUST pass the Reader readiness check on a Practice copy as a go/no-go item. History sign-off MUST require zero Waiting rows, no unexplained variance, a per-year breakdown by Legal Entity, currency and year with totals per designation, and a History spot check of 20 random gifts and the 5 largest.
+Before the first real Switch commits history, every surface that shows or sums gifts MUST pass the Reader readiness check on a Practice copy as a go/no-go item. History sign-off MUST require zero Waiting rows, no unexplained variance, count, total and distinct donors per Legal Entity, currency and year, plus totals per designation, and a History spot check of 20 random gifts and the 5 largest.
 
 #### Scenario: A reader dates gifts by insert time
 
 - GIVEN a dashboard sums gifts by row creation time
 - WHEN the Reader readiness check runs
 - THEN the check fails and go/no-go is blocked
+
+#### Scenario: Totals tie while the gift count does not
+
+- GIVEN duplicated gifts, or gifts attributed to the wrong donor, and the currency totals still match the export
+- WHEN history sign-off is requested
+- THEN sign-off is refused because the per-year count or distinct-donor figure does not match
 
 #### Scenario: A spot check mismatch
 
@@ -1048,6 +1100,12 @@ Notes, interactions, files, applications and care records MUST NOT commit for an
 
 The ministry MUST set a Record tier (Staff, Restricted, or Sealed for care or personnel) or Leave behind per source category or file type, never by scanning content; unknown categories start Restricted and anything about a minor or restricted worker is at least Restricted. A shared entry MUST take the strictest tier, loosening MUST need the tier's holder and a reason, and missionaries and donors MUST see nothing from these families except a missionary's own private notes.
 
+#### Scenario: Safeguarding records reach their review date
+
+- GIVEN safeguarding records were imported into the sealed care home and the ministry set a review date for that family
+- WHEN that date passes
+- THEN the records are not deleted automatically
+
 #### Scenario: A category answers yes to care
 
 - GIVEN the mapping step asks whether a category contains care, counselling, health or safeguarding information
@@ -1093,6 +1151,12 @@ Every stored Phase 30 artifact MUST carry a Retention class, and an artifact wit
 - WHEN the Retention sweep runs
 - THEN the old and new cell values are deleted
 - AND row, column, who and when remain
+
+#### Scenario: The tenant closes
+
+- GIVEN a ministry closes its tenant soon after go-live and no Legal hold covers the Switch files
+- WHEN 30 days pass from tenant closure
+- THEN every Switch file and staging artifact is deleted, even if the final export's ordinary clock has not ended
 
 #### Scenario: Abandoned Switch
 
@@ -1353,6 +1417,13 @@ At the moment each item changes, an import reversal MUST restore a value only if
 ### Requirement: Import Reversal Runs Effect-Dark Within Its Window
 
 An import reversal MUST be confirmable only within the Import reversal window, 30 days from commit for everyday imports and from go-live for a Switch run, shown as an absolute date and time in the ministry's time zone, and a prepared page MUST expire after 24 hours or when the window closes. An import reversal's own changes MUST fire no automations, field-change triggers, sends, welcomes or goodbyes and MUST be attributed.
+
+#### Scenario: Confirmation lands near the deadline
+
+- GIVEN an import reversal is confirmed before its 30-day deadline
+- WHEN the job is still running as that deadline passes
+- THEN the confirmed job finishes
+- AND its Reversal prior values are not deleted until it finishes
 
 #### Scenario: Confirming names the result
 
