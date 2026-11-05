@@ -50,7 +50,9 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 For applicable UI work, follow
 `docs/ai/skills/moai-library-shadcn/references/design-system-lint.md`.
 It defines the shared six-rule policy workflow, scoped commands, authoring
-boundaries, raw-finding review, and legacy-debt handling. Normal lint enforces
+boundaries, raw-finding review, and legacy-debt handling. Every finding links
+to the short fix guide,
+`docs/ai/skills/moai-library-shadcn/references/design-system-lint-fixes.md`. Normal lint enforces
 the policy; keep existing shadcn, token-drift, motion, Shadscan, and browser/a11y
 checks. Do not widen a contract or exception simply to make a usage pass.
 
