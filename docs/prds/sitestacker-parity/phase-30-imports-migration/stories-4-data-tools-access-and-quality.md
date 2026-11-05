@@ -497,9 +497,9 @@ This part specifies the Data Tools area of Mission Control (Q19 clauses 1–3 an
        - Any automation, message send or field-change trigger caused by an import reversal's write raises the signal, and zero is the only acceptable count.
        - The signal names the producer and the import reversal by ID.
        - Each occurrence opens an incident to fix the suppression.
-431. As the Phase 9 owner, I want a signal for any reversal prior values past their deletion date without a legal hold, so that kept values never outlive the import reversal window. [Q18; Q15; ADR-IM-015; ADR-IM-018; M-Q18-5]
+431. As the Phase 9 owner, I want a signal for any reversal prior values or plan-edit cell values past their deletion date without a legal hold, so that kept values never outlive the import reversal window. [Q18; Q15; ADR-IM-015; ADR-IM-018; M-Q18-5]
      - **Acceptance:**
-       - The Retention sweep reports reversal prior values past their deletion date and not under a legal hold, and any count above zero raises the signal to the Phase 9 owner and the sweep owner.
+       - The Retention sweep reports reversal prior values and plan-edit cell values past their deletion date and not under a legal hold, and any count above zero raises the signal to the Phase 9 owner and the sweep owner.
        - Values under a legal hold never raise it.
        - Each occurrence opens an incident to delete the values and fix the sweep.
 432. As the Phase 30 product owner, I want a signal for any wrong-file import reversal followed by erasure, so that I can review that import's file checks and preview. [Q18; ADR-IM-018; M-Q18-6]

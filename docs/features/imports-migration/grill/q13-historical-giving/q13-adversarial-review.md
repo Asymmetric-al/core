@@ -349,7 +349,7 @@ Each case below is handled by a clause in §3; none needs a new subsystem.
 - Readers use per-currency aggregates. There are no unbounded client sums and no silent 1,000-row caps: today several sums truncate at the API default (r4 §7).
 - The Stripe webhook lookup by payment id is unindexed today (r4 §8). History must never write processor IDs into live-matching columns. Legacy provider identifiers are inert evidence (Q1 clause 8).
 
-**Timing.** Practice runs measure commit plus reconciliation time. Go/no-go requires the last practice run to fit within half the declared editing pause (M-Q13-5).
+**Timing.** Practice runs measure commit plus reconciliation time. Go/no-go blocks when that time exceeds the declared editing pause. The declared pause stays capped at the measured pause × 1.5, and the next step is another dress rehearsal (M-Q13-5).
 
 **Unverified:** hosted limits, timeouts and query plans at this volume. The production-shaped practice run (Q6) is the proof.
 
@@ -552,7 +552,7 @@ Each makes an owner dependency explicit; none adds a subsystem.
 - **AC15 — tenant and edit safety.**
   - A history line cannot target another tenant's designation.
   - Its origin or Recorded outside Asym cannot be changed by any role.
-- **AC16 — commit time.** The last practice run's history commit and reconciliation fit within half the declared editing pause, or go/no-go blocks.
+- **AC16 — commit time.** The last practice run's history commit and reconciliation fit within the declared editing pause, or go/no-go blocks. That pause stays capped at the measured pause × 1.5.
 
 ## 4. Ruthless synthesis
 
@@ -601,15 +601,15 @@ Each makes an owner dependency explicit; none adds a subsystem.
 
 ### Monitors
 
-| ID      | Signal                                                                                                                                              | Threshold                                   | Owner                         | Response                                                   |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------- | ---------------------------------------------------------- |
-| M-Q13-1 | Outward effects referencing history (messages, tasks, receipt plans, statement lines, Field Account occurrences, posting intents, settlement links) | 0                                           | Phase 30 with each owner      | Halt the consumer; owner correction; incident              |
-| M-Q13-2 | Unexplained variance at sign-off                                                                                                                    | 0 (cent-exact per entity × currency × year) | Switch lead with Phase 30     | Block sign-off; find the cause                             |
-| M-Q13-3 | Spot-check mismatches                                                                                                                               | 0                                           | Switch lead                   | Stop; find the systematic cause; re-run                    |
-| M-Q13-4 | Waiting rows at the final practice run                                                                                                              | > 2% of gift rows                           | Phase 30 with the Switch lead | Go/no-go review of causes before the real run              |
-| M-Q13-5 | History commit plus reconciliation time in the last practice run                                                                                    | > 50% of the declared editing pause         | Phase 30                      | Block go/no-go, or lengthen the pause by ministry decision |
-| M-Q13-6 | Gifts corrected after go-live, first 90 days                                                                                                        | > 0.5% of imported gifts                    | Phase 30                      | Review mapping defaults and waiting reasons                |
-| M-Q13-7 | Missionary requests to see history older than the roster window                                                                                     | Learning signal                             | Phase 28                      | Input to a future Phase 28 decision; no Phase 30 change    |
+| ID      | Signal                                                                                                                                              | Threshold                                   | Owner                         | Response                                                                                                     |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| M-Q13-1 | Outward effects referencing history (messages, tasks, receipt plans, statement lines, Field Account occurrences, posting intents, settlement links) | 0                                           | Phase 30 with each owner      | Halt the consumer; owner correction; incident                                                                |
+| M-Q13-2 | Unexplained variance at sign-off                                                                                                                    | 0 (cent-exact per entity × currency × year) | Switch lead with Phase 30     | Block sign-off; find the cause                                                                               |
+| M-Q13-3 | Spot-check mismatches                                                                                                                               | 0                                           | Switch lead                   | Stop; find the systematic cause; re-run                                                                      |
+| M-Q13-4 | Waiting rows at the final practice run                                                                                                              | > 2% of gift rows                           | Phase 30 with the Switch lead | Go/no-go review of causes before the real run                                                                |
+| M-Q13-5 | History commit plus reconciliation time in the last practice run                                                                                    | Longer than the declared editing pause      | Phase 30                      | Block go/no-go. The pause stays capped at the measured pause × 1.5; the next step is another dress rehearsal |
+| M-Q13-6 | Gifts corrected after go-live, first 90 days                                                                                                        | > 0.5% of imported gifts                    | Phase 30                      | Review mapping defaults and waiting reasons                                                                  |
+| M-Q13-7 | Missionary requests to see history older than the roster window                                                                                     | Learning signal                             | Phase 28                      | Input to a future Phase 28 decision; no Phase 30 change                                                      |
 
 ## 5. Owner requirements (proposed O53–O60)
 

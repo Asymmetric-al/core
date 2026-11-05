@@ -567,18 +567,24 @@ The Legacy Recurring Tail MUST close only after the last old charge plus its rev
 
 ### Requirement: The SiteStacker Licence Ends Only Once Its Final Duties Are Done
 
-Recording the end of the SiteStacker licence MUST be refused until SiteStacker's last charge has run, its final export is in custody and its tax documents for gifts recorded outside Asym are issued; the licence end does not wait for tail closure. Once the licence has ended, processor reports MUST be the only source for reversals of its old charges, and the old merchant, gateway and PayPal accounts MUST be listed as staying open until the reversal window closes.
+Recording the end of the SiteStacker licence MUST be refused until SiteStacker's last charge has run, the switch-off export taken after that charge is in custody and its tax documents for gifts recorded outside Asym are issued. The Source Snapshot Manifest sealed at the Switch Boundary MUST NOT satisfy that gate. The licence end does not wait for tail closure. Once the licence has ended, processor reports MUST be the only source for reversals of its old charges, and the old merchant, gateway and PayPal accounts MUST be listed as staying open until the reversal window closes.
 
 #### Scenario: The licence end is recorded too early
 
-- GIVEN SiteStacker's last charge has run and its final export is in custody, but its tax documents for gifts recorded outside Asym are not yet issued
+- GIVEN SiteStacker's last charge has run and the switch-off export taken after that charge is in custody, but its tax documents for gifts recorded outside Asym are not yet issued
 - WHEN the end of the SiteStacker licence is recorded
 - THEN it is refused and the outstanding item is named
 - AND the refusal does not depend on whether the tail has closed
 
+#### Scenario: Only the boundary manifest is in custody
+
+- GIVEN SiteStacker's last charge has run, the Source Snapshot Manifest sealed at the Switch Boundary is in custody, and the tax documents for gifts recorded outside Asym are issued, while the switch-off export taken after that charge is not in custody
+- WHEN the end of the SiteStacker licence is recorded
+- THEN it is refused and the missing switch-off export is named
+
 #### Scenario: The licence ends while the reversal window is open
 
-- GIVEN SiteStacker's last charge has run, its final export is in custody and its tax documents for gifts recorded outside Asym are issued, but the reversal window has not closed
+- GIVEN SiteStacker's last charge has run, the switch-off export taken after that charge is in custody and its tax documents for gifts recorded outside Asym are issued, but the reversal window has not closed
 - WHEN the end of the SiteStacker licence is recorded
 - THEN it is accepted without waiting for tail closure
 - AND processor reports become the only source for reversals of its old charges, and the old merchant, gateway and PayPal accounts are listed as staying open until the reversal window closes
@@ -1039,13 +1045,20 @@ Every imported file, including everyday import files, Switch exports, XLSX, ZIP 
 
 ### Requirement: Every Artifact Follows Its Retention Class
 
-Every stored Phase 30 artifact MUST carry a Retention class, and an artifact without one MUST NOT be stored. The final Source Snapshot Manifest MUST be deleted at the earlier of 90 days after Switch closed or 24 months after go-live, other classes MUST follow their recorded clocks, and the daily Retention sweep MUST delete through the storage service, verify each deletion and log it with no personal data.
+Every stored Phase 30 artifact MUST carry a Retention class, and an artifact without one MUST NOT be stored. The final Source Snapshot Manifest MUST be deleted at the earlier of 90 days after Switch closed or 24 months after go-live. Plan-edit cell values MUST be deleted when that import's reversal window ends, leaving row, column, who and when. Other classes MUST follow their recorded clocks, and the daily Retention sweep MUST delete through the storage service, verify each deletion and log it with no personal data.
 
 #### Scenario: Unfinished upload
 
 - GIVEN an upload left unfinished
 - WHEN 24 hours pass
 - THEN the Retention sweep deletes it and records the deletion without personal data
+
+#### Scenario: A plan edit outlives its reversal window
+
+- GIVEN an import whose reversal window has ended and no Legal hold covers its plan edits
+- WHEN the Retention sweep runs
+- THEN the old and new cell values are deleted
+- AND row, column, who and when remain
 
 #### Scenario: Abandoned Switch
 
@@ -1093,9 +1106,9 @@ A Legal hold MUST be placed only by a member holding Run the Switch or Asym's na
 - WHEN someone looks for Prepare reversal
 - THEN no import reversal is offered, although its Reversal prior values are kept
 
-### Requirement: Erasure Reaches Held Files And Reversal Prior Values
+### Requirement: Erasure Reaches Held Files, Reversal Prior Values And Plan-Edit Cell Values
 
-Erasing a person MUST immediately suppress them in every held file through their Source Record Binding tombstone and remove their Reversal prior values, and each affected held file MUST be rewritten as a successor within 14 days without their own rows and with their identity blanked elsewhere, keeping money amounts, source IDs and the original digest on record. Refused identifier columns MUST be stripped from held copies within 14 days of sign-off through the same rewrite.
+Erasing a person MUST immediately suppress them in every held file through their Source Record Binding tombstone and remove their Reversal prior values and their plan-edit cell values, and each affected held file MUST be rewritten as a successor within 14 days without their own rows and with their identity blanked elsewhere, keeping money amounts, source IDs and the original digest on record. Refused identifier columns MUST be stripped from held copies within 14 days of sign-off through the same rewrite. Row, column, who and when remain on each plan edit.
 
 #### Scenario: Erasure during a Switch
 
@@ -1348,7 +1361,7 @@ A record family MUST become importable, by Everyday import or Switch, only when 
 
 - GIVEN a staff member imported another organization's donor file by mistake
 - WHEN they prepare and confirm the import reversal and the privacy role erases those people
-- THEN the held file and Reversal prior values are reached by the erasure
+- THEN the held file, Reversal prior values and plan-edit cell values are reached by the erasure
 
 ### Requirement: Data Tools Is One Area With Shortcuts Where Staff Work
 

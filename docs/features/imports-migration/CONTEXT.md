@@ -300,7 +300,7 @@ _Avoid_: virus scan (alone), upload validation, preview
 ## Retention and size
 
 **Retention class**:
-The declared kind of a stored Phase 30 artifact that fixes its purpose, the event that starts its clock and its deletion date: final export (earlier of Switch closed + 90 days or go-live + 24 months); superseded and practice exports, backfill inputs, switch-off export and kept-list returns (30 days after superseded or signed off); per-run staging (30 days after that run is committed or discarded; final run 30 days after go-live); unfinished uploads (24 hours); import drafts (14 days after their last change); everyday import files (30 days after commit); reversal prior values (when the Import reversal window ends: 30 days after commit, or 30 days after go-live for a Switch run). An artifact without a class cannot be stored.
+The declared kind of a stored Phase 30 artifact that fixes its purpose, the event that starts its clock and its deletion date: final export (earlier of Switch closed + 90 days or go-live + 24 months); superseded and practice exports, backfill inputs, switch-off export and kept-list returns (30 days after superseded or signed off); per-run staging (30 days after that run is committed or discarded; final run 30 days after go-live); unfinished uploads (24 hours); import drafts (14 days after their last change); everyday import files (30 days after commit); reversal prior values (when the Import reversal window ends: 30 days after commit, or 30 days after go-live for a Switch run); plan-edit cell values (when that import's reversal window ends, leaving row, column, who and when). An artifact without a class cannot be stored.
 _Avoid_: TTL, expiry, archive period
 
 **Legal hold**:

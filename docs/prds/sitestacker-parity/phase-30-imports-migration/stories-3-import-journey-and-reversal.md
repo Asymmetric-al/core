@@ -426,6 +426,7 @@ These stories specify how Mission Control staff take an Everyday import (a Peopl
      - **Acceptance:**
        - In an everyday import, a problem cell can be fixed one cell at a time or by find and replace within one column.
        - Each fix records who made it, when, the old value and the new value.
+       - The old and new values are deleted when that import's reversal window ends, and erasure removes them. Row, column, who and when remain.
        - Fixing cells in Asym leaves the uploaded file itself unchanged.
        - In a Switch, Review offers no cell editing, and problems are fixed at the source.
 
@@ -807,7 +808,7 @@ These stories specify how Mission Control staff take an Everyday import (a Peopl
 
 355. As a ministry privacy role, I want erasing a person to remove their reversal prior values and keep any import reversal away from them, so that erasure is complete. [Q18 clause 7; Q15 clause 8; ADR-IM-018; O92]
      - **Acceptance:**
-       - Erasing a person removes their reversal prior values.
+       - Erasing a person removes their reversal prior values and their plan-edit cell values. Row, column, who and when remain.
        - An import reversal skips an erased person, listing them as "Erased since", and writes nothing to them.
 
 ## Effects, history and evidence (Q18)

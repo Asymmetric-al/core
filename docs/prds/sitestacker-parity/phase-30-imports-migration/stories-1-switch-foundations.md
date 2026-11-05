@@ -167,7 +167,7 @@ These user stories are normative for Phase 30 — Imports & Migration and cover 
     - **Acceptance:**
       - Given go-live, then the Switch shows "Switch live" and never "migration complete" or "done".
       - Given any legacy executor not yet proved stopped, formally cut over or ended, or a tail not yet closed, then Switch closed is refused and the open items are listed.
-      - Given SiteStacker's last charge has not run, its final export is not in custody, or its tax documents for gifts recorded outside Asym are not issued, then recording the end of the SiteStacker licence is refused and each outstanding item is named; once all three are done, the licence end can be recorded without waiting for tail closure.
+      - Given SiteStacker's last charge has not run, the switch-off export taken after that charge is not in custody, or its tax documents for gifts recorded outside Asym are not issued, then recording the end of the SiteStacker licence is refused and each outstanding item is named. The Source Snapshot Manifest sealed at the Switch Boundary does not meet this gate. Once the last charge has run, that switch-off export is in custody and those tax documents are issued, the licence end can be recorded without waiting for tail closure.
       - Given Switch closed, then decommission sign-off remains a separate, later step.
 
 23. As a staff member, I want every record a Switch wrote to show where it came from, so that any question about an imported fact can be traced to its source row. [Q1 clause 6; Q1 clause 8; Q1 clause 11; ADR-IM-001]
