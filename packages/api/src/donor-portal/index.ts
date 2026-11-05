@@ -10,6 +10,7 @@ import { NextResponse } from "next/server";
 import { getDemoDonorPortalSnapshot } from "./demo-snapshot";
 import { getDonorPortalSnapshot, resolveDonorPortalContext } from "./service";
 import { donorPortalPatchSchema } from "./settings-patch";
+import { checkProfileImageUrl } from "../profile/image-url";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
 import { withOperation } from "../shared/with-operation";
 
@@ -71,11 +72,19 @@ export const PATCH = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
     const patch = donorPortalPatchSchema.parse(await ensureJsonBody(request));
-    const { donor } = await resolveDonorPortalContext(
+    const { profile, donor } = await resolveDonorPortalContext(
       supabaseAdmin,
       ctx.profileId,
       ctx.tenantId,
     );
+    // #2406: validated before any write. Each column takes the accepted value
+    // unless it already holds it (OQ2), so a resent value still backfills.
+    checkProfileImageUrl(patch.avatarUrl, {
+      purpose: "avatars",
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      stored: [profile.avatar_url, donor.avatar_url],
+    });
 
     const now = new Date().toISOString();
     const profileUpdate: Record<string, unknown> = {};
@@ -96,8 +105,13 @@ export const PATCH = withOperation(
       donorUpdate.phone = patch.phone || null;
     }
     if (patch.avatarUrl !== undefined) {
-      profileUpdate.avatar_url = patch.avatarUrl || null;
-      donorUpdate.avatar_url = patch.avatarUrl || null;
+      const avatarUrl = patch.avatarUrl || null;
+      if (profile.avatar_url !== avatarUrl) {
+        profileUpdate.avatar_url = avatarUrl;
+      }
+      if (donor.avatar_url !== avatarUrl) {
+        donorUpdate.avatar_url = avatarUrl;
+      }
     }
     if (patch.preferredContact !== undefined) {
       donorUpdate.preferred_contact = patch.preferredContact;
