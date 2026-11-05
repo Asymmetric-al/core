@@ -201,8 +201,10 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "#2312 Builder e518a845", hash: "3e026b8f31f34dda" },
     { ref: "#2402 Builder 28ac3c13", hash: "7755cfddb8cb875c" },
     { ref: "#2364 Builder 0cf86552", hash: "21073c70380a4f90" },
-    // #2407 PR (a) r1.1 §10: develop 629cb71d + the issue-2407 real-stack path appended to tenant isolation
-    { ref: "#2407a Acceptance on 629cb71d", hash: "75809b6a327933e3" },
+    // #2406: Builder 9563beea (develop 629cb71d merged) appends the issue-2406 real-stack path to tenant isolation
+    { ref: "#2406 Builder 9563beea", hash: "925cfd8de36c75a3" },
+    // #2407 PR (a): develop after #2406, plus the issue-2407 real-stack path
+    { ref: "#2407a after #2406", hash: "beea3b344a58ae76" },
   ] as const;
   it("nothing but on: and test-e2e's if: changes (fingerprint)", () => {
     const prints = [CI, CII].map((file) => {

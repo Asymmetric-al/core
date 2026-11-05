@@ -71,13 +71,15 @@ export const READER_FUNCTIONS: Record<string, boolean> = {
   expire_eve_retention_records: true,
   handle_new_user: true,
 };
-/** §1.3 policy rows ("schema.table policy", sorted): #2256's profiles policy
- * plus #2407a's N1/N2 on storage.objects, whose WITH CHECK reads
- * profiles.tenant_id (supabase/migrations/20261028100000_editor_image_storage.sql). */
+/** §1.3 policy rows ("schema.table policy", sorted): #2256's profiles policy,
+ * #2406's profiles-bucket folder policies, and #2407a's editor-image folder
+ * policies. Each storage policy reads profiles.tenant_id. */
 export const READER_POLICIES = [
   "public.profiles profiles staff tenant select",
   "storage.objects editor images owner folder insert",
   "storage.objects editor images owner folder update",
+  "storage.objects profiles owner folder insert",
+  "storage.objects profiles owner folder update",
 ];
 /** §1.3 app rows (files). */
 export const READER_APPS = [

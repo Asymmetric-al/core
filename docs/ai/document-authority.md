@@ -101,6 +101,17 @@ Core runtime or provider acceptance.
 
 ## Canonical authoring and evidence
 
+- **Phase 29:** `docs/prds/sitestacker-parity/phase-29-files-documents.md`
+  and its six canonical Markdown volumes own the ratified Q01–Q67 stories,
+  requirements and acceptance. Regenerate the main story index, exact trace,
+  OpenSpec behavioral projection and full contract companions with the package's
+  `tools/render-spec.mjs`; verify through `bun run verify:phase29-spec`.
+  Exact source maps and the 624-file preservation manifest retain provenance.
+  `/to-spec` and the confirmed testing seams authorize formal publication,
+  superseding historical unselected publication-stage options only. Specialist
+  source owners and actual policy/native/provider/user gates remain binding;
+  publication is not implementation, legal approval or activation.
+
 - **Phase 25:** `traceability.json` → `stories` is the sole story source;
   owner-contract sections remain independently authored domain rules. Run
   `bun docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/tools/render-stories.mjs --write`
