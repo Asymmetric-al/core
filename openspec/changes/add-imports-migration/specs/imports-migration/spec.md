@@ -553,6 +553,13 @@ The Legacy Recurring Tail MUST close only after the last old charge plus its rev
 - THEN the item is listed as pending in legacy systems and closure is blocked
 - AND kept email-tool lists show a 2-day target for executing it
 
+#### Scenario: A legacy arrangement is still unresolved
+
+- GIVEN the reversal window has passed and no dispute or pending privacy item is open
+- WHEN a legacy arrangement has not been handed over through Phase 16, ended with donor notice and a restart invitation, or reclassified by Phase 16 as ongoing external
+- THEN closure is refused and the arrangement is named
+- AND after closure no backfill can be planned or committed
+
 #### Scenario: A decommission checklist item is not attested
 
 - GIVEN a Switch has closed, both tax-document attestations are recorded and no item is pending in legacy systems
@@ -567,7 +574,7 @@ The Legacy Recurring Tail MUST close only after the last old charge plus its rev
 
 ### Requirement: The SiteStacker Licence Ends Only Once Its Final Duties Are Done
 
-Recording the end of the SiteStacker licence MUST be refused until SiteStacker's last charge has run, the switch-off export taken after that charge is in custody and its tax documents for gifts recorded outside Asym are issued. The Source Snapshot Manifest sealed at the Switch Boundary MUST NOT satisfy that gate. The licence end does not wait for tail closure. Once the licence has ended, processor reports MUST be the only source for reversals of its old charges, and the old merchant, gateway and PayPal accounts MUST be listed as staying open until the reversal window closes.
+Recording the end of the SiteStacker licence MUST be refused until SiteStacker's last charge has run, the switch-off export taken after that charge is in custody and its tax documents for gifts recorded outside Asym are issued. The licence end does not wait for tail closure. Once it has ended, processor reports MUST be the only source for reversals of its old charges, and the old merchant, gateway and PayPal accounts MUST stay listed as open until the reversal window closes.
 
 #### Scenario: The licence end is recorded too early
 
@@ -647,6 +654,14 @@ A person on a moved list MUST receive an Adopted email permission only through t
 - THEN they keep evidence only and receive no Adopted email permission
 - AND nobody is emailed to ask for permission
 
+#### Scenario: Evidence follows where the person lives
+
+- GIVEN a US recipient, or a Canadian recipient of a registered charity, with sourced list membership
+- WHEN adoption is evaluated
+- THEN that membership is sufficient evidence
+- AND a UK or EU recipient, or a Canadian recipient of a ministry that is not a registered charity, needs a dated opt-in
+- AND residence comes from the imported postal country, or from the ministry's country when that country is unknown
+
 #### Scenario: A missionary newsletter carries over
 
 - GIVEN a list a named missionary ran through the old system
@@ -706,6 +721,13 @@ When two source people share an email, the email MUST go to exactly one holder i
 - GIVEN a source group such as a committee with no gifts
 - WHEN the plan is built
 - THEN it is listed for the ministry to classify and is not created as an organization
+
+#### Scenario: A group with gifts
+
+- GIVEN a source group with gifts, or one the ministry marks as an organization
+- WHEN the plan commits
+- THEN it becomes an organization and that organization holds its gifts
+- AND a contact person imports as their own person with a contact link, and does not become the legal donor
 
 ### Requirement: Matching Never Merges Automatically
 
@@ -1045,7 +1067,7 @@ Every imported file, including everyday import files, Switch exports, XLSX, ZIP 
 
 ### Requirement: Every Artifact Follows Its Retention Class
 
-Every stored Phase 30 artifact MUST carry a Retention class, and an artifact without one MUST NOT be stored. The final Source Snapshot Manifest MUST be deleted at the earlier of 90 days after Switch closed or 24 months after go-live. Plan-edit cell values MUST be deleted when that import's reversal window ends, leaving row, column, who and when. Other classes MUST follow their recorded clocks, and the daily Retention sweep MUST delete through the storage service, verify each deletion and log it with no personal data.
+Every stored Phase 30 artifact MUST carry a Retention class, and an artifact without one MUST NOT be stored. The final Source Snapshot Manifest MUST be deleted at the earlier of 90 days after Switch closed or 24 months after go-live, other classes MUST follow their recorded clocks, and the daily Retention sweep MUST delete through the storage service, verify each deletion and log it with no personal data.
 
 #### Scenario: Unfinished upload
 
@@ -1108,7 +1130,7 @@ A Legal hold MUST be placed only by a member holding Run the Switch or Asym's na
 
 ### Requirement: Erasure Reaches Held Files, Reversal Prior Values And Plan-Edit Cell Values
 
-Erasing a person MUST immediately suppress them in every held file through their Source Record Binding tombstone and remove their Reversal prior values and their plan-edit cell values, and each affected held file MUST be rewritten as a successor within 14 days without their own rows and with their identity blanked elsewhere, keeping money amounts, source IDs and the original digest on record. Refused identifier columns MUST be stripped from held copies within 14 days of sign-off through the same rewrite. Row, column, who and when remain on each plan edit.
+Erasing a person MUST immediately suppress them in every held file through their Source Record Binding tombstone and remove their Reversal prior values and plan-edit values, and each affected held file MUST be rewritten as a successor within 14 days without their own rows and with their identity blanked elsewhere, keeping money amounts, source IDs and the original digest on record. Refused identifier columns MUST be stripped from held copies within 14 days of sign-off through the same rewrite.
 
 #### Scenario: Erasure during a Switch
 
@@ -1116,6 +1138,7 @@ Erasing a person MUST immediately suppress them in every held file through their
 - WHEN a later run reads the manifest
 - THEN the donor's rows are skipped immediately
 - AND the successor file without them exists within 14 days
+- AND their plan-edit cell values are removed while row, column, who and when remain
 
 #### Scenario: An import reversal reaches an erased person
 

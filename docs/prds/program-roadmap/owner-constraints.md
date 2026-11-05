@@ -347,7 +347,7 @@ define domain truth.
   This profile creates eligible restricted preparation or safely reuses an
   authorized reference. It never auto-merges, bulk-updates existing contacts,
   shares, verifies, enrolls, sends or grants consent. The general high-band
-  auto-merge and stable-ID update rules below do not authorize those effects
+  review-queue and stable-ID update rules below do not authorize those effects
   for this profile; ambiguous matches require the target's permitted explicit
   choice without disclosing inaccessible candidates. Other import profiles
   retain their existing rules. Qualify exact missionary review/commit grants,
@@ -365,8 +365,8 @@ define domain truth.
   per-row detail, before anything commits.
 - **Dedupe everywhere, consistently**: matching rules (exact/fuzzy per
   field) separated from duplicate actions (block/warn/queue); a
-  match-confidence review queue (auto-merge high band only, human review
-  middle band) — the **same rules firing across UI entry, API writes, and
+  match-confidence review queue (no automatic merge; high and middle bands
+  wait for a person, per ADR-0216 and Phase 4) — the **same rules firing across UI entry, API writes, and
   bulk import** (Salesforce's Data-Loader-bypasses-rules inconsistency is
   the named anti-pattern), reusing the Phase 4 merge contract and Phase 9
   duplicate surfaces.
