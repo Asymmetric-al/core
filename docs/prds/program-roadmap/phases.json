@@ -210,7 +210,7 @@
       "slug": "files-documents",
       "name": "File Manager & Document Management",
       "startingDependencies": "3, 9",
-      "status": "roadmap scope adopted; phase grooming/qualification required"
+      "status": "PRD exists ([full specification](phase-29-files-documents.md), AL-2429; Q01\u2013Q67 fully ratified; implementation and source/native/provider/user qualification pending)"
     },
     {
       "phase": 30,
