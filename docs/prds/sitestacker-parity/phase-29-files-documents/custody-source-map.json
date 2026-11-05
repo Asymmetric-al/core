@@ -1,0 +1,2196 @@
+{
+  "schema_version": 1,
+  "status": "Authored formal specification draft; native implementation and qualification unperformed",
+  "source_baseline": "629cb71dc206dd9aa7b2d5ed15aaf57914eee071",
+  "volume": "docs/prds/sitestacker-parity/phase-29-files-documents/custody-and-integration.md",
+  "volume_sha256": "bb5a8b688787997ace137a8e221fec0022c05a5c102b2328a76ff0af38eeffa9",
+  "founder_sha256": "bb2fb7588ff5c9f6d9de2e959053a54a51cd7e2512919345ed68a125eac23b85",
+  "requirements": [
+    {
+      "id": "REQ29-D01",
+      "title": "Preserve document, byte, rendition, copy and use identity",
+      "story": "US29-D01",
+      "decision_basis": "Founder §§7–8,13; Q02/Q28/Q42/Q44/Q50/Q53/Q56/Q61-C02/C07; P18/P21/P22/P23 identity owners.",
+      "acceptance_criteria": [
+        "AC29-D01-01",
+        "AC29-D01-02",
+        "AC29-D01-03",
+        "AC29-D01-04",
+        "AC29-D01-05"
+      ]
+    },
+    {
+      "id": "REQ29-D02",
+      "title": "Admit only a qualified source and purpose profile",
+      "story": "US29-D02",
+      "decision_basis": "Founder §§7,9,11,13–15; Q02/Q38/Q53/Q56/Q61-C02/C06/C08; Q62–Q67; P12/P29.",
+      "acceptance_criteria": [
+        "AC29-D02-01",
+        "AC29-D02-02",
+        "AC29-D02-03",
+        "AC29-D02-04",
+        "AC29-D02-05"
+      ]
+    },
+    {
+      "id": "REQ29-D03",
+      "title": "Bind every transfer to narrow durable intake",
+      "story": "US29-D03",
+      "decision_basis": "Founder §9; Q01–Q05/Q53-C01–C18/Q56-C01–C18/Q61-C07/C14; source-specific public and specialist intake contracts.",
+      "acceptance_criteria": [
+        "AC29-D03-01",
+        "AC29-D03-02",
+        "AC29-D03-03",
+        "AC29-D03-04",
+        "AC29-D03-05"
+      ]
+    },
+    {
+      "id": "REQ29-D04",
+      "title": "Verify immutable receipt before source admission",
+      "story": "US29-D04",
+      "decision_basis": "Founder §9; Q03/Q04/Q21/Q28/Q53/Q56/Q61-C07/C14.",
+      "acceptance_criteria": [
+        "AC29-D04-01",
+        "AC29-D04-02",
+        "AC29-D04-03",
+        "AC29-D04-04",
+        "AC29-D04-05",
+        "AC29-D04-06"
+      ]
+    },
+    {
+      "id": "REQ29-D05",
+      "title": "Bound hostile content and preserve truthful safety states",
+      "story": "US29-D05",
+      "decision_basis": "Founder §9; Q53/Q56/Q61-P06; P22/P23 hygiene and P26 D32.",
+      "acceptance_criteria": [
+        "AC29-D05-01",
+        "AC29-D05-02",
+        "AC29-D05-03",
+        "AC29-D05-04",
+        "AC29-D05-05"
+      ]
+    },
+    {
+      "id": "REQ29-D06",
+      "title": "Record exact transformations and whole assemblies",
+      "story": "US29-D06",
+      "decision_basis": "Founder §§9–10,13; Q29/Q45/Q53/Q56/Q61-C04/C07; P22/P23 and D32.",
+      "acceptance_criteria": [
+        "AC29-D06-01",
+        "AC29-D06-02",
+        "AC29-D06-03",
+        "AC29-D06-04",
+        "AC29-D06-05",
+        "AC29-D06-06"
+      ]
+    },
+    {
+      "id": "REQ29-D07",
+      "title": "Reuse the complete D32 read-only preview contract",
+      "story": "US29-D07",
+      "decision_basis": "Founder §9; Q29/Q45/Q56/Q61-C06/P06; P26 D32-R01–R28/P01–P40/O01–O06 and its published source contract.",
+      "acceptance_criteria": [
+        "AC29-D07-01",
+        "AC29-D07-02",
+        "AC29-D07-03",
+        "AC29-D07-04",
+        "AC29-D07-05",
+        "AC29-D07-06",
+        "AC29-D07-07",
+        "AC29-D07-08"
+      ]
+    },
+    {
+      "id": "REQ29-D08",
+      "title": "Authorize private delivery at the actual serving boundary",
+      "story": "US29-D08",
+      "decision_basis": "Founder §11; Q04/Q06–Q19/Q41/Q44/Q56/Q61-C08/C09; P12, P18 canonical access, P21 D24/D25 and P26 D32.",
+      "acceptance_criteria": [
+        "AC29-D08-01",
+        "AC29-D08-02",
+        "AC29-D08-03",
+        "AC29-D08-04",
+        "AC29-D08-05"
+      ]
+    },
+    {
+      "id": "REQ29-D09",
+      "title": "Preserve current stream, cache and access-evidence meaning",
+      "story": "US29-D09",
+      "decision_basis": "Founder §11; Q44/Q56/Q61-C09/P04/P15; P12 R6/tiered read/export and source-specific serving contracts.",
+      "acceptance_criteria": [
+        "AC29-D09-01",
+        "AC29-D09-02",
+        "AC29-D09-03",
+        "AC29-D09-04",
+        "AC29-D09-05",
+        "AC29-D09-06"
+      ]
+    },
+    {
+      "id": "REQ29-D10",
+      "title": "Prepare exact finite export products without collapsing their owners",
+      "story": "US29-D10",
+      "decision_basis": "Founder §§8,15; Q44-C01–C16/P01–P44; Q56-C14; P21 D26 and P25/P3 donor-history export.",
+      "acceptance_criteria": [
+        "AC29-D10-01",
+        "AC29-D10-02",
+        "AC29-D10-03",
+        "AC29-D10-04",
+        "AC29-D10-05",
+        "AC29-D10-06",
+        "AC29-D10-07",
+        "AC29-D10-08"
+      ]
+    },
+    {
+      "id": "REQ29-D11",
+      "title": "Prove complete references without disclosing hidden uses",
+      "story": "US29-D11",
+      "decision_basis": "Founder §§8,14; Q28/Q41/Q53/Q56/Q58/Q61-C02/C10; ADR0171 Used in and current source registrations.",
+      "acceptance_criteria": [
+        "AC29-D11-01",
+        "AC29-D11-02",
+        "AC29-D11-03",
+        "AC29-D11-04",
+        "AC29-D11-05"
+      ]
+    },
+    {
+      "id": "REQ29-D12",
+      "title": "Apply independent records protections to the correct scope",
+      "story": "US29-D12",
+      "decision_basis": "Founder §14; Q61-C10/Q62–Q67; P18/P21/P23 source records contracts.",
+      "acceptance_criteria": [
+        "AC29-D12-01",
+        "AC29-D12-02",
+        "AC29-D12-03",
+        "AC29-D12-04",
+        "AC29-D12-05"
+      ]
+    },
+    {
+      "id": "REQ29-D13",
+      "title": "Separate source disposition from physical-copy removal",
+      "story": "US29-D13",
+      "decision_basis": "Founder §14; Q42/Q47/Q53/Q56/Q61/Q63; ADR0165/0171.",
+      "acceptance_criteria": [
+        "AC29-D13-01",
+        "AC29-D13-02",
+        "AC29-D13-03",
+        "AC29-D13-04",
+        "AC29-D13-05",
+        "AC29-D13-06"
+      ]
+    },
+    {
+      "id": "REQ29-D14",
+      "title": "Fence final dispatch, late writers and cleanup recovery",
+      "story": "US29-D14",
+      "decision_basis": "Founder §§9,14; Q44/Q53/Q56/Q61-P07/P08/Q63-C07–C11; source-specific external-effect contracts.",
+      "acceptance_criteria": [
+        "AC29-D14-01",
+        "AC29-D14-02",
+        "AC29-D14-03",
+        "AC29-D14-04",
+        "AC29-D14-05",
+        "AC29-D14-06"
+      ]
+    },
+    {
+      "id": "REQ29-D15",
+      "title": "Recover bytes and adverse controls together",
+      "story": "US29-D15",
+      "decision_basis": "Founder §§14–15,19; Q61-C11/P11; P18/P21/P23/D32 source lifecycles.",
+      "acceptance_criteria": [
+        "AC29-D15-01",
+        "AC29-D15-02",
+        "AC29-D15-03",
+        "AC29-D15-04",
+        "AC29-D15-05"
+      ]
+    },
+    {
+      "id": "REQ29-D16",
+      "title": "Qualify adapters and exit without changing product identity",
+      "story": "US29-D16",
+      "decision_basis": "Founder §15; Q61-C11; ADR0171; P31 optional transfer contracts.",
+      "acceptance_criteria": [
+        "AC29-D16-01",
+        "AC29-D16-02",
+        "AC29-D16-03",
+        "AC29-D16-04",
+        "AC29-D16-05"
+      ]
+    },
+    {
+      "id": "REQ29-D17",
+      "title": "Migrate reached families through one authority cutover",
+      "story": "US29-D17",
+      "decision_basis": "Founder §§4,16,19; Q61 R-LEGACY/P13; source cutover contracts including P18 ADR0033 and P23 D27.",
+      "acceptance_criteria": [
+        "AC29-D17-01",
+        "AC29-D17-02",
+        "AC29-D17-03",
+        "AC29-D17-04",
+        "AC29-D17-05"
+      ]
+    },
+    {
+      "id": "REQ29-D18",
+      "title": "Preserve P22 specialized ministry-media custody",
+      "story": "US29-D18",
+      "decision_basis": "Founder §§7,12; ADR0126; Q61-C04/E13; P22 D9/D14/D25.",
+      "acceptance_criteria": [
+        "AC29-D18-01",
+        "AC29-D18-02",
+        "AC29-D18-03",
+        "AC29-D18-04",
+        "AC29-D18-05"
+      ]
+    },
+    {
+      "id": "REQ29-D19",
+      "title": "Serve P23 exact public generations and source-owned Trash",
+      "story": "US29-D19",
+      "decision_basis": "Founder §§7,12,14–15; ADR0171/D27 and D1; ADR0165; Q61-C04/E14/E15.",
+      "acceptance_criteria": [
+        "AC29-D19-01",
+        "AC29-D19-02",
+        "AC29-D19-03",
+        "AC29-D19-04",
+        "AC29-D19-05",
+        "AC29-D19-06",
+        "AC29-D19-07"
+      ]
+    },
+    {
+      "id": "REQ29-D20",
+      "title": "Keep resources, references and conversations independently protected",
+      "story": "US29-D20",
+      "decision_basis": "Founder §§7,10–13; P26/P28; Q55/Q57–Q59/Q65 and the corresponding source volumes.",
+      "acceptance_criteria": [
+        "AC29-D20-01",
+        "AC29-D20-02",
+        "AC29-D20-03",
+        "AC29-D20-04",
+        "AC29-D20-05"
+      ]
+    },
+    {
+      "id": "REQ29-D21",
+      "title": "Bind every existing consumer to its exact owner and repair",
+      "story": "US29-D21",
+      "decision_basis": "Founder §§3–4,7,12–16,19; Q61-C02/C06 and all E01–E23 source-register rows; subsequent Q62–Q67 amendments.",
+      "acceptance_criteria": [
+        "AC29-D21-01",
+        "AC29-D21-02",
+        "AC29-D21-03",
+        "AC29-D21-04",
+        "AC29-D21-05",
+        "AC29-D21-06",
+        "AC29-D21-07",
+        "AC29-D21-08",
+        "AC29-D21-09",
+        "AC29-D21-10",
+        "AC29-D21-11",
+        "AC29-D21-12",
+        "AC29-D21-13",
+        "AC29-D21-14",
+        "AC29-D21-15",
+        "AC29-D21-16",
+        "AC29-D21-17",
+        "AC29-D21-18",
+        "AC29-D21-19",
+        "AC29-D21-20",
+        "AC29-D21-21",
+        "AC29-D21-22",
+        "AC29-D21-23"
+      ]
+    },
+    {
+      "id": "REQ29-D22",
+      "title": "Register each future consumer without back-gating the foundation",
+      "story": "US29-D22",
+      "decision_basis": "Founder §§3,13,15–16; Q61-C02/C06 and all eleven future-consumer rows; current program delivery/owner contracts.",
+      "acceptance_criteria": [
+        "AC29-D22-01",
+        "AC29-D22-02",
+        "AC29-D22-03",
+        "AC29-D22-04",
+        "AC29-D22-05",
+        "AC29-D22-06",
+        "AC29-D22-07",
+        "AC29-D22-08",
+        "AC29-D22-09",
+        "AC29-D22-10",
+        "AC29-D22-11"
+      ]
+    },
+    {
+      "id": "REQ29-D23",
+      "title": "Operate finite workloads with accountable recovery",
+      "story": "US29-D23",
+      "decision_basis": "Founder §§15–16,19; Q44/Q53/Q56/Q61-C15/B01–B06/M01–M08; exact P12/P23/P26 and consuming-source budgets.",
+      "acceptance_criteria": [
+        "AC29-D23-01",
+        "AC29-D23-02",
+        "AC29-D23-03",
+        "AC29-D23-04",
+        "AC29-D23-05",
+        "AC29-D23-06",
+        "AC29-D23-07",
+        "AC29-D23-08",
+        "AC29-D23-09",
+        "AC29-D23-10"
+      ]
+    },
+    {
+      "id": "REQ29-D24",
+      "title": "Qualify the shared boundary through real behavior and exact trace",
+      "story": "US29-D24",
+      "decision_basis": "Founder §§3–4,16,19; Q61-C01–C16/P01–P16; all adopted source-specific proof obligations; confirmed `/to-spec` testing seams; REQ29-P01–P18.",
+      "acceptance_criteria": [
+        "AC29-D24-01",
+        "AC29-D24-02",
+        "AC29-D24-03",
+        "AC29-D24-04",
+        "AC29-D24-05",
+        "AC29-D24-06",
+        "AC29-D24-07",
+        "AC29-D24-08",
+        "AC29-D24-09",
+        "AC29-D24-10",
+        "AC29-D24-11"
+      ]
+    }
+  ],
+  "founder_mapping": [
+    {
+      "id": "F01",
+      "requirements": [
+        "REQ29-D01",
+        "REQ29-D02",
+        "REQ29-D20",
+        "REQ29-D21",
+        "REQ29-D22"
+      ],
+      "disposition": "Coherent shared custody with distinct source meaning; UI composition is also owned by the other volumes",
+      "lines": [9, 19],
+      "section": "1"
+    },
+    {
+      "id": "F02",
+      "requirements": ["REQ29-D24"],
+      "disposition": "Formal stage and implementation separation retained; parent owns publication authorization",
+      "lines": [21, 31],
+      "section": "2"
+    },
+    {
+      "id": "F03",
+      "requirements": ["REQ29-D02", "REQ29-D21", "REQ29-D22", "REQ29-D24"],
+      "disposition": "Exact owners, individual consumers, status and proof trace",
+      "lines": [33, 67],
+      "section": "3"
+    },
+    {
+      "id": "F04",
+      "requirements": ["REQ29-D17", "REQ29-D21", "REQ29-D24"],
+      "disposition": "Actual reached-family, reader/writer, copies and reliance census",
+      "lines": [69, 85],
+      "section": "4"
+    },
+    {
+      "id": "F05",
+      "requirements": [
+        "REQ29-D02",
+        "REQ29-D05",
+        "REQ29-D08",
+        "REQ29-D16",
+        "REQ29-D24"
+      ],
+      "disposition": "Current primary/provider qualification; benchmark UI choices also in UX volume",
+      "lines": [87, 102],
+      "section": "5"
+    },
+    {
+      "id": "F06",
+      "requirements": ["REQ29-D23", "REQ29-D24"],
+      "disposition": "Actual source state and user proof, not simulated demo; exact component reuse belongs to shared UX/source volumes",
+      "lines": [104, 121],
+      "section": "6"
+    },
+    {
+      "id": "F07-identity",
+      "requirements": [
+        "REQ29-D01",
+        "REQ29-D02",
+        "REQ29-D18",
+        "REQ29-D19",
+        "REQ29-D20",
+        "REQ29-D21"
+      ],
+      "disposition": "Custody versus source ownership and specialized identities",
+      "lines": [123, 141],
+      "section": "7"
+    },
+    {
+      "id": "F08-identity",
+      "requirements": ["REQ29-D01", "REQ29-D04", "REQ29-D11", "REQ29-D17"],
+      "disposition": "Opaque identity, immutable copies, independent use and digest limits",
+      "lines": [145, 153],
+      "section": "8"
+    },
+    {
+      "id": "F08-discovery",
+      "requirements": ["REQ29-D08", "REQ29-D09", "REQ29-D20", "REQ29-D21"],
+      "disposition": "Current disclosure and no permission from folders/metadata; organization interaction details owned by other volumes",
+      "lines": [155, 163],
+      "section": "8"
+    },
+    {
+      "id": "F08-bulk",
+      "requirements": ["REQ29-D10", "REQ29-D21", "REQ29-D24"],
+      "disposition": "Finite selected export and source-specific atomicity/outcome",
+      "lines": [165, 165],
+      "section": "8"
+    },
+    {
+      "id": "F08-extraction",
+      "requirements": ["REQ29-D06", "REQ29-D07", "REQ29-D22"],
+      "disposition": "Qualified exact-source coverage and no broad content/AI corpus",
+      "lines": [167, 167],
+      "section": "8"
+    },
+    {
+      "id": "F09-intake",
+      "requirements": ["REQ29-D03", "REQ29-D04", "REQ29-D14"],
+      "disposition": "Narrow upload grant, immutable receipt, source admission and replacement",
+      "lines": [171, 181],
+      "section": "9"
+    },
+    {
+      "id": "F09-safety",
+      "requirements": ["REQ29-D05", "REQ29-D06", "REQ29-D23"],
+      "disposition": "Bounded private parsing, safety, isolation, extraction and fidelity",
+      "lines": [183, 195],
+      "section": "9"
+    },
+    {
+      "id": "F09-reader",
+      "requirements": ["REQ29-D06", "REQ29-D07", "REQ29-D08", "REQ29-D14"],
+      "disposition": "Full D32 format/coverage/limits and conditional promotion",
+      "lines": [197, 207],
+      "section": "9"
+    },
+    {
+      "id": "F10-review",
+      "requirements": [
+        "REQ29-D01",
+        "REQ29-D06",
+        "REQ29-D08",
+        "REQ29-D21",
+        "REQ29-D24"
+      ],
+      "disposition": "Exact evidence/current source interface; comment/ordinary review product detail remains in source volume",
+      "lines": [209, 217],
+      "section": "10"
+    },
+    {
+      "id": "F10-request",
+      "requirements": [
+        "REQ29-D02",
+        "REQ29-D03",
+        "REQ29-D04",
+        "REQ29-D21",
+        "REQ29-D22",
+        "REQ29-D24"
+      ],
+      "disposition": "Source request/receipt/acceptance distinctions and native operation without Workflow",
+      "lines": [219, 231],
+      "section": "10"
+    },
+    {
+      "id": "F11",
+      "requirements": ["REQ29-D08", "REQ29-D09", "REQ29-D10", "REQ29-D24"],
+      "disposition": "Current private read/share/export gateway and true access evidence",
+      "lines": [233, 247],
+      "section": "11"
+    },
+    {
+      "id": "F12-public",
+      "requirements": ["REQ29-D18", "REQ29-D19", "REQ29-D21"],
+      "disposition": "Exact source public profiles, placement/rights/release/cache",
+      "lines": [249, 263],
+      "section": "12"
+    },
+    {
+      "id": "F12-resources",
+      "requirements": ["REQ29-D20", "REQ29-D21"],
+      "disposition": "Resource custody/read purpose; full resource lifecycle in its owning volume",
+      "lines": [265, 271],
+      "section": "12"
+    },
+    {
+      "id": "F13",
+      "requirements": [
+        "REQ29-D01",
+        "REQ29-D06",
+        "REQ29-D20",
+        "REQ29-D21",
+        "REQ29-D22"
+      ],
+      "disposition": "Exact generated/financial/agreement/import/development sources",
+      "lines": [273, 285],
+      "section": "13"
+    },
+    {
+      "id": "F14",
+      "requirements": [
+        "REQ29-D11",
+        "REQ29-D12",
+        "REQ29-D13",
+        "REQ29-D14",
+        "REQ29-D15"
+      ],
+      "disposition": "Complete use coverage, source obligations, physical disposal and adverse-first restore",
+      "lines": [287, 305],
+      "section": "14"
+    },
+    {
+      "id": "F15",
+      "requirements": ["REQ29-D10", "REQ29-D15", "REQ29-D16", "REQ29-D23"],
+      "disposition": "Small qualified adapter set, bytes backup/exit, finite export and accountable operations",
+      "lines": [307, 325],
+      "section": "15"
+    },
+    {
+      "id": "F16",
+      "requirements": [
+        "REQ29-D02",
+        "REQ29-D04",
+        "REQ29-D09",
+        "REQ29-D17",
+        "REQ29-D21",
+        "REQ29-D22",
+        "REQ29-D23",
+        "REQ29-D24"
+      ],
+      "disposition": "Established API boundary, actual states, accessible users, current constraints and one cutover",
+      "lines": [327, 347],
+      "section": "16"
+    },
+    {
+      "id": "F17",
+      "requirements": ["REQ29-D02", "REQ29-D16", "REQ29-D17", "REQ29-D24"],
+      "disposition": "Current code is evidence, not automatic durable design; preserve explicit owner meaning",
+      "lines": [349, 369],
+      "section": "17"
+    },
+    {
+      "id": "F18",
+      "requirements": ["REQ29-D24"],
+      "disposition": "Adopted adversarial evidence and source conflict handling; parent owns complete review/publication checks",
+      "lines": [371, 392],
+      "section": "18"
+    },
+    {
+      "id": "F19",
+      "requirements": ["REQ29-D21", "REQ29-D22", "REQ29-D23", "REQ29-D24"],
+      "disposition": "Complete consumer/acceptance and actual native/provider/user qualification; no premature readiness",
+      "lines": [394, 418],
+      "section": "19"
+    }
+  ],
+  "q61_clause_mapping": [
+    {
+      "source": "Q61-C01",
+      "requirements": ["REQ29-D21", "REQ29-D22", "REQ29-D24"]
+    },
+    {
+      "source": "Q61-C02",
+      "requirements": [
+        "REQ29-D01",
+        "REQ29-D02",
+        "REQ29-D21",
+        "REQ29-D22",
+        "REQ29-D24"
+      ]
+    },
+    {
+      "source": "Q61-C03",
+      "requirements": ["REQ29-D03", "REQ29-D04", "REQ29-D08", "REQ29-D21"]
+    },
+    {
+      "source": "Q61-C04",
+      "requirements": ["REQ29-D18", "REQ29-D19"]
+    },
+    {
+      "source": "Q61-C05",
+      "requirements": ["REQ29-D01", "REQ29-D09", "REQ29-D10", "REQ29-D20"]
+    },
+    {
+      "source": "Q61-C06",
+      "requirements": ["REQ29-D21", "REQ29-D22"]
+    },
+    {
+      "source": "Q61-C07",
+      "requirements": [
+        "REQ29-D01",
+        "REQ29-D03",
+        "REQ29-D04",
+        "REQ29-D05",
+        "REQ29-D06"
+      ]
+    },
+    {
+      "source": "Q61-C08",
+      "requirements": ["REQ29-D02", "REQ29-D08", "REQ29-D24"]
+    },
+    {
+      "source": "Q61-C09",
+      "requirements": ["REQ29-D08", "REQ29-D09", "REQ29-D10"]
+    },
+    {
+      "source": "Q61-C10",
+      "requirements": ["REQ29-D11", "REQ29-D12", "REQ29-D13", "REQ29-D14"]
+    },
+    {
+      "source": "Q61-C11",
+      "requirements": ["REQ29-D15", "REQ29-D16"]
+    },
+    {
+      "source": "Q61-C12",
+      "requirements": [
+        "REQ29-D03",
+        "REQ29-D04",
+        "REQ29-D07",
+        "REQ29-D10",
+        "REQ29-D23",
+        "REQ29-D24"
+      ]
+    },
+    {
+      "source": "Q61-C13",
+      "requirements": ["REQ29-D07", "REQ29-D24"]
+    },
+    {
+      "source": "Q61-C14",
+      "requirements": ["REQ29-D04", "REQ29-D14", "REQ29-D23", "REQ29-D24"]
+    },
+    {
+      "source": "Q61-C15",
+      "requirements": ["REQ29-D07", "REQ29-D09", "REQ29-D19", "REQ29-D23"]
+    },
+    {
+      "source": "Q61-C16",
+      "requirements": ["REQ29-D17", "REQ29-D24"]
+    }
+  ],
+  "q61_proof_mapping": [
+    {
+      "source": "Q61-P01",
+      "requirements": ["REQ29-D21", "REQ29-D22", "REQ29-D24"],
+      "acceptance_ids": ["AC29-D24-01"]
+    },
+    {
+      "source": "Q61-P02",
+      "requirements": [
+        "REQ29-D03",
+        "REQ29-D04",
+        "REQ29-D08",
+        "REQ29-D21",
+        "REQ29-D24"
+      ],
+      "acceptance_ids": ["AC29-D21-01", "AC29-D24-07"]
+    },
+    {
+      "source": "Q61-P03",
+      "requirements": ["REQ29-D18", "REQ29-D19", "REQ29-D24"],
+      "acceptance_ids": [
+        "AC29-D18-01",
+        "AC29-D18-03",
+        "AC29-D19-01",
+        "AC29-D19-02"
+      ]
+    },
+    {
+      "source": "Q61-P04",
+      "requirements": [
+        "REQ29-D02",
+        "REQ29-D08",
+        "REQ29-D09",
+        "REQ29-D10",
+        "REQ29-D24"
+      ],
+      "acceptance_ids": ["AC29-D02-04", "AC29-D24-02", "AC29-D08-05"]
+    },
+    {
+      "source": "Q61-P05",
+      "requirements": ["REQ29-D01", "REQ29-D02", "REQ29-D24"],
+      "acceptance_ids": ["AC29-D24-03"]
+    },
+    {
+      "source": "Q61-P06",
+      "requirements": ["REQ29-D05", "REQ29-D06", "REQ29-D07", "REQ29-D23"],
+      "acceptance_ids": ["AC29-D05-01", "AC29-D05-02", "AC29-D05-03"]
+    },
+    {
+      "source": "Q61-P07",
+      "requirements": [
+        "REQ29-D03",
+        "REQ29-D04",
+        "REQ29-D14",
+        "REQ29-D23",
+        "REQ29-D24"
+      ],
+      "acceptance_ids": ["AC29-D04-02", "AC29-D24-05"]
+    },
+    {
+      "source": "Q61-P08",
+      "requirements": [
+        "REQ29-D04",
+        "REQ29-D11",
+        "REQ29-D13",
+        "REQ29-D14",
+        "REQ29-D24"
+      ],
+      "acceptance_ids": ["AC29-D24-04", "AC29-D14-04"]
+    },
+    {
+      "source": "Q61-P09",
+      "requirements": ["REQ29-D01", "REQ29-D10", "REQ29-D20", "REQ29-D21"],
+      "acceptance_ids": ["AC29-D01-02", "AC29-D10-01"]
+    },
+    {
+      "source": "Q61-P10",
+      "requirements": ["REQ29-D11", "REQ29-D12", "REQ29-D13", "REQ29-D14"],
+      "acceptance_ids": ["AC29-D11-01", "AC29-D13-04"]
+    },
+    {
+      "source": "Q61-P11",
+      "requirements": ["REQ29-D15", "REQ29-D16"],
+      "acceptance_ids": ["AC29-D15-03", "AC29-D15-05", "AC29-D16-02"]
+    },
+    {
+      "source": "Q61-P12",
+      "requirements": ["REQ29-D20", "REQ29-D21", "REQ29-D22"],
+      "acceptance_ids": [
+        "AC29-D21-02",
+        "AC29-D21-16",
+        "AC29-D21-18",
+        "AC29-D21-19",
+        "AC29-D22-09"
+      ]
+    },
+    {
+      "source": "Q61-P13",
+      "requirements": ["REQ29-D17", "REQ29-D24"],
+      "acceptance_ids": ["AC29-D17-02", "AC29-D17-03", "AC29-D17-05"]
+    },
+    {
+      "source": "Q61-P14",
+      "requirements": ["REQ29-D03", "REQ29-D07", "REQ29-D10", "REQ29-D24"],
+      "acceptance_ids": ["AC29-D24-08"]
+    },
+    {
+      "source": "Q61-P15",
+      "requirements": ["REQ29-D07", "REQ29-D09", "REQ29-D19", "REQ29-D23"],
+      "acceptance_ids": ["AC29-D09-02", "AC29-D23-01", "AC29-D23-02"]
+    },
+    {
+      "source": "Q61-P16",
+      "requirements": ["REQ29-D19", "REQ29-D24"],
+      "acceptance_ids": ["AC29-D24-08"]
+    }
+  ],
+  "shared_proof_mapping": [
+    {
+      "source": "REQ29-P01",
+      "requirements": ["REQ29-D01", "REQ29-D02", "REQ29-D21", "REQ29-D22"]
+    },
+    {
+      "source": "REQ29-P02",
+      "requirements": ["REQ29-D02", "REQ29-D08", "REQ29-D24"]
+    },
+    {
+      "source": "REQ29-P03",
+      "requirements": ["REQ29-D01", "REQ29-D04", "REQ29-D24"]
+    },
+    {
+      "source": "REQ29-P04",
+      "requirements": ["REQ29-D08", "REQ29-D09", "REQ29-D18", "REQ29-D19"]
+    },
+    {
+      "source": "REQ29-P05",
+      "requirements": [
+        "REQ29-D03",
+        "REQ29-D04",
+        "REQ29-D10",
+        "REQ29-D14",
+        "REQ29-D24"
+      ]
+    },
+    {
+      "source": "REQ29-P06",
+      "requirements": ["REQ29-D04", "REQ29-D11", "REQ29-D14", "REQ29-D23"]
+    },
+    {
+      "source": "REQ29-P07",
+      "requirements": [
+        "REQ29-D07",
+        "REQ29-D09",
+        "REQ29-D10",
+        "REQ29-D12",
+        "REQ29-D21"
+      ]
+    },
+    {
+      "source": "REQ29-P08",
+      "requirements": ["REQ29-D01", "REQ29-D12", "REQ29-D13", "REQ29-D15"]
+    },
+    {
+      "source": "REQ29-P09",
+      "requirements": ["REQ29-D07", "REQ29-D21", "REQ29-D22", "REQ29-D23"]
+    },
+    {
+      "source": "REQ29-P10",
+      "requirements": [
+        "REQ29-D03",
+        "REQ29-D04",
+        "REQ29-D13",
+        "REQ29-D14",
+        "REQ29-D23"
+      ]
+    },
+    {
+      "source": "REQ29-P11",
+      "requirements": ["REQ29-D07", "REQ29-D10", "REQ29-D24"]
+    },
+    {
+      "source": "REQ29-P12",
+      "requirements": ["REQ29-D05", "REQ29-D06", "REQ29-D07"]
+    },
+    {
+      "source": "REQ29-P13",
+      "requirements": ["REQ29-D07", "REQ29-D09", "REQ29-D19", "REQ29-D23"]
+    },
+    {
+      "source": "REQ29-P14",
+      "requirements": ["REQ29-D09", "REQ29-D23"]
+    },
+    {
+      "source": "REQ29-P15",
+      "requirements": ["REQ29-D17", "REQ29-D24"]
+    },
+    {
+      "source": "REQ29-P16",
+      "requirements": ["REQ29-D13", "REQ29-D14", "REQ29-D15", "REQ29-D16"]
+    },
+    {
+      "source": "REQ29-P17",
+      "requirements": ["REQ29-D24"]
+    },
+    {
+      "source": "REQ29-P18",
+      "requirements": ["REQ29-D02", "REQ29-D21", "REQ29-D22", "REQ29-D24"]
+    }
+  ],
+  "existing_consumers": [
+    {
+      "source_row": "E01",
+      "consumer": "E01 Ordinary private request",
+      "owner_producer": "Actual request/item/receipt/contribution/review/acceptance/F commands; GEN-06/BP-11 labels alone do not bind them.",
+      "custody_gate": "Current source/P12 participant/staff authority, immutable original/assembly, actual receipt and private serving.",
+      "safe_unavailable_repair_ticket": "Actual Q23/Q33/Q34/Q47/Q49/Q53/Q56/Q60 recovery appropriate to current state; no generic Help substitute. Exact new source ticket not established by this ledger.",
+      "requirements": [
+        "REQ29-D21",
+        "REQ29-D01",
+        "REQ29-D02",
+        "REQ29-D03",
+        "REQ29-D04",
+        "REQ29-D08"
+      ],
+      "acceptance": ["AC29-D21-01"]
+    },
+    {
+      "source_row": "E02",
+      "consumer": "E02 P18 official/generated documents and P25 receipt destination",
+      "owner_producer": "Generation Request, Logical Document, Generated Document Version, validated Artifact and source-issued/current head. P25 consumes View/Download/local Print.",
+      "custody_gate": "Exact canonical accessible PDF/hash/length, issuer/purpose qualification, private current recipient access and source schedule.",
+      "safe_unavailable_repair_ticket": "P18 cause-owned integrity/correction and original generation recovery; P25 retry neither rerenders nor sends. #907 is the inspected source epic; its named children are not asserted completed.",
+      "requirements": ["REQ29-D21", "REQ29-D01", "REQ29-D08", "REQ29-D15"],
+      "acceptance": ["AC29-D21-02"]
+    },
+    {
+      "source_row": "E03",
+      "consumer": "E03 P19 statements/acknowledgments",
+      "owner_producer": "Source population/run/facts, P18 generation/issuance/artifact, P17/P6 delivery.",
+      "custody_gate": "Distinct source/run/generation/issuance/delivery state and exact frozen artifact.",
+      "safe_unavailable_repair_ticket": "Reconcile original run/request; do not reproduce an old issued version from current live facts. #941 is the verified P19 seam reference in #907, not proof of runtime.",
+      "requirements": ["REQ29-D21", "REQ29-D01", "REQ29-D08"],
+      "acceptance": ["AC29-D21-03"]
+    },
+    {
+      "source_row": "E04",
+      "consumer": "E04 P21 D10 receipt evidence",
+      "owner_producer": "Receipt Evidence Asset and exact Claim Version/item coverage; D13 acceptance.",
+      "custody_gate": "Same opaque bytes through P29 adoption; actual claimant/source receipt, hygiene and financial read purpose.",
+      "safe_unavailable_repair_ticket": "D10 successor/current D13 review or source-permitted missing-evidence route. #1109/#1108 and its expense lanes are source references, not successful native checks.",
+      "requirements": ["REQ29-D21", "REQ29-D01", "REQ29-D04"],
+      "acceptance": ["AC29-D21-04"]
+    },
+    {
+      "source_row": "E05",
+      "consumer": "E05 P21 D24 collaborator evidence",
+      "owner_producer": "Exact assignment, claim/item/split/evidence and Evidence Access Projection Version; helper's own identity.",
+      "custody_gate": "P12/current assignment/claim/claimant-confirmation floors; private no-store application retrieval with no reusable bearer URL.",
+      "safe_unavailable_repair_ticket": "Source reassignment/quarantine/disposition after revocation or departure; no impersonated claimant. ADR0113/#1109.",
+      "requirements": ["REQ29-D21", "REQ29-D08", "REQ29-D09"],
+      "acceptance": ["AC29-D21-05"]
+    },
+    {
+      "source_row": "E06",
+      "consumer": "E06 P21 D25 resolution evidence",
+      "owner_producer": "Exact cause-owned resolution and proportional Downstream Impact Manifest over D10/D24 evidence.",
+      "custody_gate": "Same bytes/current source projection; no duplicate evidence family or generic closure power.",
+      "safe_unavailable_repair_ticket": "Actual cause action, root proof and downstream disposition; access failure is not claimant unavailability. ADR0114/#1109.",
+      "requirements": ["REQ29-D21", "REQ29-D01", "REQ29-D08"],
+      "acceptance": ["AC29-D21-06"]
+    },
+    {
+      "source_row": "E07",
+      "consumer": "E07 P21 D22 prospective plan evidence",
+      "owner_producer": "Prospective Expense Plan/Request Version with quotes, budgets and itineraries.",
+      "custody_gate": "Separate semantic identity and certified private custody before evidence-bearing profile activation.",
+      "safe_unavailable_repair_ticket": "Attachment-free manual plan remains complete only where actual winning policy permits; source decides evidence repair. ADR0111; exact new custody adapter ticket not established.",
+      "requirements": ["REQ29-D21", "REQ29-D02", "REQ29-D04"],
+      "acceptance": ["AC29-D21-07"]
+    },
+    {
+      "source_row": "E08",
+      "consumer": "E08 P21 D18/D28 travel/location",
+      "owner_producer": "Route/GPS/odometer/provider inputs and calculation-admission/continuity manifest.",
+      "custody_gate": "Exact purpose, strongest worker/location restriction, current claim/calculation authority and private copies.",
+      "safe_unavailable_repair_ticket": "Source-permitted manual evidence and correction/containment; unknown is not zero or completeness. ADR0107/0117; exact adapter ticket not established.",
+      "requirements": ["REQ29-D21", "REQ29-D02", "REQ29-D08"],
+      "acceptance": ["AC29-D21-08"]
+    },
+    {
+      "source_row": "E09",
+      "consumer": "E09 P21 card activity",
+      "owner_producer": "Organization Card Activity File Asset, source/import profile, parser and transaction lineage.",
+      "custody_gate": "Sensitive-card hygiene, exact manifest, private retrieval and records purpose.",
+      "safe_unavailable_repair_ticket": "Owning source re-ingestion/reconciliation/manifest correction; no rewrite of accepted transactions. ADR0103/#1109.",
+      "requirements": ["REQ29-D21", "REQ29-D02", "REQ29-D05"],
+      "acceptance": ["AC29-D21-09"]
+    },
+    {
+      "source_row": "E10",
+      "consumer": "E10 P21 opening evidence",
+      "owner_producer": "D17 Opening Source Package/manifest, cohort source precedence and conservation.",
+      "custody_gate": "Exact private bytes; P30 transports only; no activation from a generic imported file.",
+      "safe_unavailable_repair_ticket": "Owner classifies exact versus inert reference history; failed mapping/custody blocks that opening cohort. ADR0106/#1109; #1120 is a verified reference, not new completion proof.",
+      "requirements": ["REQ29-D21", "REQ29-D15", "REQ29-D17"],
+      "acceptance": ["AC29-D21-10"]
+    },
+    {
+      "source_row": "E11",
+      "consumer": "E11 P21 compensation/reimbursement handoff",
+      "owner_producer": "Source Handoff Package/schema/digest/coverage and provider-operation lineage.",
+      "custody_gate": "Immutable private handoff bytes, exact current purpose and retention.",
+      "safe_unavailable_repair_ticket": "Source handoff reconciliation and independent provider readback; download is not payroll/AP/payment/accounting. ADR0096/0104/0059 and #1109 lanes.",
+      "requirements": ["REQ29-D21", "REQ29-D01", "REQ29-D16"],
+      "acceptance": ["AC29-D21-11"]
+    },
+    {
+      "source_row": "E12",
+      "consumer": "E12 P21 D26 records exports",
+      "owner_producer": "Six-family schedule/binding/resolution; per-Legal-Entity package, Coverage Manifest and offboarding snapshot plus delta.",
+      "custody_gate": "Exact package content/completeness source; P29 encrypted private staging, copy inventory, current streaming, expiry/hold/disposal/restore.",
+      "safe_unavailable_repair_ticket": "Truthful Ready with issues only from closed manifest; append-only residual package/current-authorized repeat download and actual records-owner repair. ADR0115/#1109; browser lane precedes optional P31 destination.",
+      "requirements": [
+        "REQ29-D21",
+        "REQ29-D10",
+        "REQ29-D12",
+        "REQ29-D15",
+        "REQ29-D16"
+      ],
+      "acceptance": ["AC29-D21-12"]
+    },
+    {
+      "source_row": "E13",
+      "consumer": "E13 P22 ministry public media",
+      "owner_producer": "D9 intake→sanitized master/derivative→exact page/locale release placement.",
+      "custody_gate": "Exact JPEG/PNG/still-WebP profile, discarded source name/raw-class policy, independent output proof and current safety.",
+      "safe_unavailable_repair_ticket": "No public output on hygiene failure; source adverse containment before cache cleanup. ADR0126/#1301/#1302.",
+      "requirements": ["REQ29-D21", "REQ29-D18"],
+      "acceptance": ["AC29-D21-13"]
+    },
+    {
+      "source_row": "E14",
+      "consumer": "E14 P23 Media, including P24 Site consumption",
+      "owner_producer": "Logical Media revision, Site/rights/safety qualification, Working Revision/placement/Used in and D1 generation.",
+      "custody_gate": "Source-designated private originals and exact public generations; actual 25,000-item/50-item workload and complete cutover.",
+      "safe_unavailable_repair_ticket": "Block the affected source action and reconcile origin/cache/copy state; do not replace source generation with provider status. ADR0171; #1388/#1389/#1391/#1393/#1398/#1401/#1402/#1403 are source references.",
+      "requirements": ["REQ29-D21", "REQ29-D19"],
+      "acceptance": ["AC29-D21-14"]
+    },
+    {
+      "source_row": "E15",
+      "consumer": "E15 P23 Page/Article Trash",
+      "owner_producer": "Whole Page/Article identity and reference-aware 90-day recovery.",
+      "custody_gate": "Retained references feed complete use coverage; Media disposition remains separate.",
+      "safe_unavailable_repair_ticket": "Restore privately with current qualification; unknown uses block purge; no cascade to shared bytes. ADR0165/#1399 reference.",
+      "requirements": ["REQ29-D21", "REQ29-D19"],
+      "acceptance": ["AC29-D21-15"]
+    },
+    {
+      "source_row": "E16",
+      "consumer": "E16 P26 conversation attachments/previews",
+      "owner_producer": "Exact attachment occurrence, conversation restriction and D32 reading rendition.",
+      "custody_gate": "Full source/format/coverage/limit/expiry/current gateway contract.",
+      "safe_unavailable_repair_ticket": "Lawful original read can survive unsupported preview; new eligible generation after preview expiry never renews original rights. Published #1656 source and complete D32 contract.",
+      "requirements": ["REQ29-D21", "REQ29-D07", "REQ29-D20"],
+      "acceptance": ["AC29-D21-16"]
+    },
+    {
+      "source_row": "E17",
+      "consumer": "E17 P27 stewardship preparation and qualified documents",
+      "owner_producer": "REQ27-C32 deterministic useful on-screen meeting brief; any offered existing document/print/export follows its exact source.",
+      "custody_gate": "Native screen preparation remains useful without AI or the full document product; advertised artifact has an actual qualified producer.",
+      "safe_unavailable_repair_ticket": "Only unqualified artifact/export is unavailable; actual source links/screen continue. R-P27 retains the exact artifact producer/ticket as not established until identified.",
+      "requirements": ["REQ29-D21", "REQ29-D02"],
+      "acceptance": ["AC29-D21-17"]
+    },
+    {
+      "source_row": "E18",
+      "consumer": "E18 P28 organization resources",
+      "owner_producer": "Exact source-curated publication/version/audience and Q55/Q57–Q59 refinements.",
+      "custody_gate": "Coherent publication/reference protection, current independent reader/report/preference rights and actual source qualification.",
+      "safe_unavailable_repair_ticket": "Curator correct/replace/withdraw and operator takeover; report or own preference return grants no historical bytes. #2064/#2157 are planning references, not resource runtime proof.",
+      "requirements": ["REQ29-D21", "REQ29-D20"],
+      "acceptance": ["AC29-D21-18"]
+    },
+    {
+      "source_row": "E19",
+      "consumer": "E19 P28 D17 self-import",
+      "owner_producer": "Restricted missionary contact-assertion preparation; P30 parsing/review and P9/P4 target admission.",
+      "custody_gate": "Private intake/parser derivatives under that person's current context; no staff/coach substitution.",
+      "safe_unavailable_repair_ticket": "Qualified Choose file→Review→Import/results; unknown matches do not reveal candidates. Exact target/custody producers remain individual gates, no invented ticket.",
+      "requirements": ["REQ29-D21", "REQ29-D22"],
+      "acceptance": ["AC29-D21-19"]
+    },
+    {
+      "source_row": "E20",
+      "consumer": "E20 Eve replay/debug artifacts",
+      "owner_producer": "Actual Eve artifact/hold/replay/expiry source and its source projection.",
+      "custody_gate": "Specialized redaction, scope, retention and serving; not arbitrary P42/ordinary/P27 authority.",
+      "safe_unavailable_repair_ticket": "Preserve its qualified source repair; current signed-URL or deletion code cannot be blindly generalized. No new ordinary ticket or deployed qualification inferred.",
+      "requirements": ["REQ29-D21", "REQ29-D02", "REQ29-D13", "REQ29-D14"],
+      "acceptance": ["AC29-D21-20"]
+    },
+    {
+      "source_row": "E21",
+      "consumer": "E21 Reached legacy/general assets and profile imagery",
+      "owner_producer": "Actual Cloudinary/assets, legacy editor, email-image, Payload and avatar/cover producers and retained URLs.",
+      "custody_gate": "Per-family census/source mapping, actual visibility and one compatible cutover; current code is not generic private certification.",
+      "safe_unavailable_repair_ticket": "Preserve relied-upon bytes, restrict affected unsafe doors and use qualified owner repair; no public fallback or blind purge. R-LEGACY retains exact reached-family tickets only when verified.",
+      "requirements": ["REQ29-D21", "REQ29-D17"],
+      "acceptance": ["AC29-D21-21"]
+    },
+    {
+      "source_row": "E22",
+      "consumer": "E22 P15 scans/remittances/gift evidence",
+      "owner_producer": "Scanned-check/deposit-slip/gift pointers, noncash document reference, immutable slip snapshot; P15 facts and P13 posted money.",
+      "custody_gate": "Private scan lane needs exact custody/source/records binding; generated slip requires actual P18 purpose/Approved Data View.",
+      "safe_unavailable_repair_ticket": "Complete permitted manual deposit reference/date/audited notes remain; only unqualified image/artifact lane is unavailable. #758/#759–#786 are source PRD references, not fresh completion proof.",
+      "requirements": ["REQ29-D21", "REQ29-D02", "REQ29-D08"],
+      "acceptance": ["AC29-D21-22"]
+    },
+    {
+      "source_row": "E23",
+      "consumer": "E23 P25/P3 donor-history CSV",
+      "owner_producer": "One reviewed P3 request/result with initiating context, scope/census, coherent extraction and immutable private artifact.",
+      "custody_gate": "Its own admission/preparation/Ready/failure/correlation clocks; current row/field/purpose no-store application egress.",
+      "safe_unavailable_repair_ticket": "Original-result recovery; complete zero is Empty, incomplete is not zero; whole immutable result invalidates on lost disclosure. AL-1563/#1565–#1652 are source references, not native artifact proof.",
+      "requirements": ["REQ29-D21", "REQ29-D09", "REQ29-D10"],
+      "acceptance": ["AC29-D21-23"]
+    }
+  ],
+  "future_consumers": [
+    {
+      "source_row": "F30",
+      "consumer": "F30 — Imports & Migration Tools",
+      "owner_producer": "P30 owns source upload/session/parse/review; actual target domain owns accepted rows/effects. P28 D17 and P21 opening remain different profiles.",
+      "qualification_and_repair": "Qualify target command, allowed mapping/classification/retention, private input/derivative custody and exact downstream coverage. Dry-run/errors and original-intent recovery remain; irreversible target effects need source successors, not generic Undo. Exact new P30 implementation ticket not established here.",
+      "requirements": ["REQ29-D22", "REQ29-D02", "REQ29-D11", "REQ29-D24"],
+      "acceptance": ["AC29-D22-01"]
+    },
+    {
+      "source_row": "F31",
+      "consumer": "F31 — Platform API/Webhooks/Connectors",
+      "owner_producer": "Governed projections/events and optional exact destination transfer; P29 holds bytes, not connection authority.",
+      "qualification_and_repair": "Current token/source scope, destination identity/write/readback/integrity/revocation/residency and ambiguous-transfer recovery. Native browser lane remains complete. No connector-marketplace or guessed implementation ticket is introduced.",
+      "requirements": ["REQ29-D22", "REQ29-D02", "REQ29-D11", "REQ29-D24"],
+      "acceptance": ["AC29-D22-02"]
+    },
+    {
+      "source_row": "F34",
+      "consumer": "F34 — Workflow Engine",
+      "owner_producer": "GEN-06/BP-11 collection and BP-16 owner-required renewal coordinate actual source commands; BP-06 expense and BP-09 care keep their owners.",
+      "qualification_and_repair": "Bind exact source occurrence, current human/NHI authority, acceptance predicate and semantic effect/result. Unqualified recipes stay unavailable while native source tasks work. Collection labels do not collapse receipt/cleanliness/acceptance; renewal is not fresh access or universal expiry.",
+      "requirements": ["REQ29-D22", "REQ29-D02", "REQ29-D11", "REQ29-D24"],
+      "acceptance": ["AC29-D22-03"]
+    },
+    {
+      "source_row": "F37",
+      "consumer": "F37 — Events/Groups",
+      "owner_producer": "Participant passport/waiver/insurance requirements; event registration is distinct from P41 application decisions.",
+      "qualification_and_repair": "Exact participant/event purpose/privacy, required assurance and custody; preserve P36 starting gate and conditional application dependencies. A missing protected collection profile blocks its dependent path; accountable event/application repair, no new arbitrary waiver.",
+      "requirements": ["REQ29-D22", "REQ29-D02", "REQ29-D11", "REQ29-D24"],
+      "acceptance": ["AC29-D22-04"]
+    },
+    {
+      "source_row": "F38",
+      "consumer": "F38 — Care/Crisis",
+      "owner_producer": "Sealed care attachments, contingency/proof-of-life artifacts and source-approved minimal determinations.",
+      "qualification_and_repair": "Actual case, professional/lay/emergency powers, classification/retention and sealed-source responder. No ordinary existence disclosure, generic staff Help access or unredacted export; missing material owner policy blocks that lane.",
+      "requirements": ["REQ29-D22", "REQ29-D02", "REQ29-D11", "REQ29-D24"],
+      "acceptance": ["AC29-D22-05"]
+    },
+    {
+      "source_row": "F39",
+      "consumer": "F39 — Field-first UX",
+      "owner_producer": "Named source-approved device-persistence/replay profiles and online recovery.",
+      "qualification_and_repair": "Exact device/session/key/logout/revocation/TTL/schema/lost-device proof. Restricted bytes are never device-cached under this profile; money/approval/finalization stay server-confirmed. Online-only/safe projection and truthful Not sent/pending/conflict remain.",
+      "requirements": ["REQ29-D22", "REQ29-D02", "REQ29-D11", "REQ29-D24"],
+      "acceptance": ["AC29-D22-06"]
+    },
+    {
+      "source_row": "F40",
+      "consumer": "F40 — Stewardship/Search/AI",
+      "owner_producer": "Current source projections plus separately approved extraction/suggestion input/output.",
+      "qualification_and_repair": "Code-owned purpose/egress/classification, exact coverage and human source commit. No restricted/care AI corpus, canonical model write or hidden broad body search from a download/preview grant; partial coverage remains honest.",
+      "requirements": ["REQ29-D22", "REQ29-D02", "REQ29-D11", "REQ29-D24"],
+      "acceptance": ["AC29-D22-07"]
+    },
+    {
+      "source_row": "F41",
+      "consumer": "F41 — Applications/Onboarding",
+      "owner_producer": "Application-scoped document/reference/agreement/screening requirements and receiving-owner acknowledgment.",
+      "qualification_and_repair": "P41 decision/equivalence/assurance/waiver rules over forms/tasks/custody; no Party-wide automatic evidence reuse. Missing actual required source/provider capability blocks only the affected requirement with capable application repair; task/run completion is not the application decision.",
+      "requirements": ["REQ29-D22", "REQ29-D02", "REQ29-D11", "REQ29-D24"],
+      "acceptance": ["AC29-D22-08"]
+    },
+    {
+      "source_row": "F42",
+      "consumer": "F42 — Web Studio Hybrid",
+      "owner_producer": "Exact repository/source capture, private archives/manifests/fonts/packages/build artifacts and source/content/publication chain.",
+      "qualification_and_repair": "Qualified installation/branch/credential epoch, sandbox/egress/dependencies/retention/custody/activation and complete Used in. No code execution by preview or generic deployment; disconnected retained editorial work stays lawful where independently permitted. HA-INT01–14 and P23 source references remain, not new implementation proof.",
+      "requirements": ["REQ29-D22", "REQ29-D02", "REQ29-D11", "REQ29-D24"],
+      "acceptance": ["AC29-D22-09"]
+    },
+    {
+      "source_row": "F43",
+      "consumer": "F43 — Governed SMS",
+      "owner_producer": "Only an independently qualified source/channel artifact purpose could consume custody; unqualified MMS/attachments remain unsupported.",
+      "qualification_and_repair": "Exact SMS-CHANNEL phone/purpose/provider and P6/P17 content/recipient controls, P26 semantics where used. No fallback send or attachment cohort; qualified native/email predecessor remains complete and actual channel operator owns recovery.",
+      "requirements": ["REQ29-D22", "REQ29-D02", "REQ29-D11", "REQ29-D24"],
+      "acceptance": ["AC29-D22-10"]
+    },
+    {
+      "source_row": "F44",
+      "consumer": "F44 — Enterprise Identity",
+      "owner_producer": "Bounded trust metadata, ephemeral assertions and minimized protected audit; no assumed general document/archive lane.",
+      "qualification_and_repair": "Actual P4/P12 assignment/trust and minimum P31 connection, scoped retention/disclosure and causal revocation/recovery. Identity failures use identity repair, not file access or guessed membership; only an actual offered file use registers custody.",
+      "requirements": ["REQ29-D22", "REQ29-D02", "REQ29-D11", "REQ29-D24"],
+      "acceptance": ["AC29-D22-11"]
+    }
+  ],
+  "budget_mapping": [
+    {
+      "source": "Q61-B01",
+      "requirements": [
+        "REQ29-D03",
+        "REQ29-D05",
+        "REQ29-D06",
+        "REQ29-D07",
+        "REQ29-D23"
+      ]
+    },
+    {
+      "source": "Q61-B02",
+      "requirements": ["REQ29-D09", "REQ29-D11", "REQ29-D23", "REQ29-D24"]
+    },
+    {
+      "source": "Q61-B03",
+      "requirements": ["REQ29-D03", "REQ29-D04", "REQ29-D14", "REQ29-D23"]
+    },
+    {
+      "source": "Q61-B04",
+      "requirements": ["REQ29-D08", "REQ29-D09", "REQ29-D18", "REQ29-D19"]
+    },
+    {
+      "source": "Q61-B05",
+      "requirements": [
+        "REQ29-D12",
+        "REQ29-D13",
+        "REQ29-D14",
+        "REQ29-D15",
+        "REQ29-D16"
+      ]
+    },
+    {
+      "source": "Q61-B06",
+      "requirements": ["REQ29-D07", "REQ29-D19", "REQ29-D23", "REQ29-D24"]
+    }
+  ],
+  "operating_controls": [
+    {
+      "source": "Q61-M01",
+      "requirements": ["REQ29-D02", "REQ29-D08", "REQ29-D24"]
+    },
+    {
+      "source": "Q61-M02",
+      "requirements": ["REQ29-D04", "REQ29-D14", "REQ29-D23", "REQ29-D24"]
+    },
+    {
+      "source": "Q61-M03",
+      "requirements": ["REQ29-D23"]
+    },
+    {
+      "source": "Q61-M04",
+      "requirements": ["REQ29-D11", "REQ29-D12", "REQ29-D13", "REQ29-D14"]
+    },
+    {
+      "source": "Q61-M05",
+      "requirements": ["REQ29-D08", "REQ29-D09", "REQ29-D18", "REQ29-D19"]
+    },
+    {
+      "source": "Q61-M06",
+      "requirements": ["REQ29-D15", "REQ29-D16"]
+    },
+    {
+      "source": "Q61-M07",
+      "requirements": ["REQ29-D07", "REQ29-D09", "REQ29-D19", "REQ29-D23"]
+    },
+    {
+      "source": "Q61-M08",
+      "requirements": [
+        "REQ29-D03",
+        "REQ29-D07",
+        "REQ29-D10",
+        "REQ29-D23",
+        "REQ29-D24"
+      ]
+    }
+  ],
+  "limits": [
+    "Per-consumer owner semantics and actual profile qualification remain authoritative; source registry is a crosswalk, not a replacement contract.",
+    "No hosted SQL, runtime tests, provider action, real pilot or live qualification was performed by authoring this volume.",
+    "Physical paths in this evidence mapping are provenance; formal Implementation Decisions use conceptual responsibilities rather than physical paths.",
+    "Historical Q61 GEN-06 blob spelling is not reused as a newly verified commit or current source identity.",
+    "Source policy, exact producer/ticket, legacy and byte/provider/user evidence gaps remain distinct affected prerequisites; no fabricated IDs or periods."
+  ],
+  "detailed_prior_proof_mapping": [
+    {
+      "source": "Q44-P01",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "First ordinary staff source command; same/foreign Tenant and environment, exact acting assignment, purpose, entity/classification and origin restrictions; role/profile/view/read/acceptance do not confer export.",
+      "requirements": ["REQ29-D02", "REQ29-D08", "REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D02-01", "AC29-D02-04", "AC29-D10-05"]
+    },
+    {
+      "source": "Q44-P02",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Whole-operation/restricted-set denial, member denial and lookup outage are distinct; unknown cannot become empty/complete or silently filtered authorized subset.",
+      "requirements": ["REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-01", "AC29-D10-05"]
+    },
+    {
+      "source": "Q44-P03",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Finite exact selection: duplicates normalize; same bytes across uses stay distinct; missing/extra/stale/foreign/overlimit members detected; no dynamic view/folder requery.",
+      "requirements": ["REQ29-D01", "REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D01-02", "AC29-D10-01"]
+    },
+    {
+      "source": "Q44-P04",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Original selection/history/handoff co-commit; crash before/after commit and lost response; no worker before authoritative operation or false failure from optional projection outage.",
+      "requirements": ["REQ29-D04", "REQ29-D10", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-04", "AC29-D24-05"]
+    },
+    {
+      "source": "Q44-P05",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Current exact original availability and integrity at worker reads; changed storage bytes under same locator, source correction and origin restriction races fail safely without latest substitution.",
+      "requirements": ["REQ29-D04", "REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D04-01", "AC29-D10-02"]
+    },
+    {
+      "source": "Q44-P06",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Full build and central-directory/manifest/member reconciliation before Ready; no child/member/partial build leakage before release.",
+      "requirements": ["REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-02", "AC29-D10-04"]
+    },
+    {
+      "source": "Q44-P07",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Source-qualified member SHA-256, actual counts/bytes and external whole-ZIP digest; CRC/ETag alone rejected; corrupt/missing/truncated stored result cannot be Ready.",
+      "requirements": ["REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-02"]
+    },
+    {
+      "source": "Q44-P08",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Partial preparation versus whole-command uncertainty, zero originals, unknown member and indivisible source set; deliberate partial download and permitted omissions without false completeness.",
+      "requirements": ["REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-01", "AC29-D10-05"]
+    },
+    {
+      "source": "Q44-P09",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Protected `CONTENTS.txt` and status disclosure: restricted names, IDs, counts, hashes, timestamps, failure reasons and mapping never leak through omitted members or telemetry.",
+      "requirements": ["REQ29-D09", "REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-04", "AC29-D09-05"]
+    },
+    {
+      "source": "Q44-P10",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Every included original and embedded manifest field reauthorized at release/retrieval; losing one blocks old ZIP; no byte-range exception or in-place redaction.",
+      "requirements": ["REQ29-D08", "REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-05"]
+    },
+    {
+      "source": "Q44-P11",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Request fulfilled/canceled, evidence accepted/unaccepted/removed, later correction and Q28 origin state evaluated by actual staff-export rule, without borrowed Q40/Q41 status rules.",
+      "requirements": ["REQ29-D02", "REQ29-D08", "REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D08-01", "AC29-D02-02"]
+    },
+    {
+      "source": "Q44-P12",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Current source/authority/epoch/expiry races in both orders against command, worker read, seal and transfer admission; no global long-lived read lock or obsolete cached decision.",
+      "requirements": ["REQ29-D08", "REQ29-D14", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-04", "AC29-D08-01"]
+    },
+    {
+      "source": "Q44-P13",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Authenticated GET/HEAD/conditional/304/Range/416/status/manifest/digest doors; foreign IDs and direct storage/API/GraphQL/CDN/cache paths deny without existence/detail leaks.",
+      "requirements": ["REQ29-D08", "REQ29-D09", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D08-05", "AC29-D24-06"]
+    },
+    {
+      "source": "Q44-P14",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Optional same-generation strong-validator resume; ignored/unsupported ranges honest; mixed-generation, many tiny/overlapping ranges and If-Range mismatch cannot bypass intent or budget.",
+      "requirements": ["REQ29-D09", "REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D09-01", "AC29-D09-03"]
+    },
+    {
+      "source": "Q44-P15",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Long-stream current expiry/revocation and bounded buffers; loss of authority stops future serving, interrupted/in-flight bytes truthfully classified, no local-custody claim.",
+      "requirements": ["REQ29-D08", "REQ29-D09"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D08-02", "AC29-D09-06"]
+    },
+    {
+      "source": "Q44-P16",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Matching committed semantic operation reconciled before new eligibility; changed payload conflicts; safe original-result disclosure independently current; same-key retry never generates again.",
+      "requirements": ["REQ29-D04", "REQ29-D08", "REQ29-D10", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-05", "AC29-D08-04"]
+    },
+    {
+      "source": "Q44-P17",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Multiple transfers remain distinct from one prepared generation; disconnect/response loss/duplicate click/browser retry do not establish failure, save or a new preparation.",
+      "requirements": ["REQ29-D09", "REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D09-03", "AC29-D09-04"]
+    },
+    {
+      "source": "Q44-P18",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Concurrent worker leases/retries and storage completion ambiguity; stale worker cannot seal/overwrite; failed completion response never causes deletion of proven committed ready object.",
+      "requirements": ["REQ29-D10", "REQ29-D14"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-02", "AC29-D14-04"]
+    },
+    {
+      "source": "Q44-P19",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Package Cancel/expiry versus seal/new read/build/callback in both orders, exact deadline equality, delayed scheduler and stale transaction/client clocks; terminal result never revives.",
+      "requirements": ["REQ29-D10", "REQ29-D14"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-06", "AC29-D14-05"]
+    },
+    {
+      "source": "Q44-P20",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Browser cancel versus package cancel; recover ready same result or deliberately prepare anew under current rules, without new participant receipt or source mutation.",
+      "requirements": ["REQ29-D03", "REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D03-01", "AC29-D10-06"]
+    },
+    {
+      "source": "Q44-P21",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Cleanup versus live reader/builder/hold in both orders; stale upload after delete, ambiguous delete, orphan object, held expired copy and partial worker outage; no false deletion or retention-as-access.",
+      "requirements": ["REQ29-D10", "REQ29-D13", "REQ29-D14"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-07", "AC29-D14-02", "AC29-D14-04"]
+    },
+    {
+      "source": "Q44-P22",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Flat unique safe names: traversal/separators/drive/device/control/Unicode/case/trailing-dot-space/manifest collision; no symlink/device metadata, recursive extraction or macro execution; otherwise source-qualified original bytes remain unchanged.",
+      "requirements": ["REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-03"]
+    },
+    {
+      "source": "Q44-P23",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Exact qualified ZIP writer/version/license and intended extractor compatibility; stored/deflated regular inputs, zero-byte allowed original, incomplete finalization and boundary counts/sizes without mandatory compression.",
+      "requirements": ["REQ29-D10", "REQ29-D16"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-03", "AC29-D16-01"]
+    },
+    {
+      "source": "Q44-P24",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Real structural DB relationships/unique identities/immutability/state checks; foreign child, reparent, nullable scope, duplicate member/name, overwrite sealed locator/hash, source/profile cascade.",
+      "requirements": ["REQ29-D01", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D01-04", "AC29-D24-03"]
+    },
+    {
+      "source": "Q44-P25",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Real-role effective grants and RLS USING/WITH CHECK, policy composition, SELECT/INSERT/UPDATE/DELETE/UPSERT/MERGE, owner/BYPASSRLS, raw table/RPC/view/trigger/storage paths; ordinary role cannot forge worker completion.",
+      "requirements": ["REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-03"]
+    },
+    {
+      "source": "Q44-P26",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Single-PDP PEP enforcement for app, worker, service account, operator and alternative doors; one validated Tenant source reaches coarse RLS; no role or signed-URL fallback.",
+      "requirements": ["REQ29-D02", "REQ29-D08", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D02-04", "AC29-D24-02"]
+    },
+    {
+      "source": "Q44-P27",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "P12 set-wise governance/projection/metering/audit budget, finite complete-selection queries and relevant indexes; SQL plan/call counts detect N+1 under actual role and source distributions.",
+      "requirements": ["REQ29-D09", "REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D09-02", "AC29-D23-02"]
+    },
+    {
+      "source": "Q44-P28",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Representative concurrent build/verify/download/cancel/cleanup: real bytes, high compression ratios, many small files, slow storage, unknown lengths, long streams and resource boundaries; no global capacity extrapolation.",
+      "requirements": ["REQ29-D10", "REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D23-01", "AC29-D10-02"]
+    },
+    {
+      "source": "Q44-P29",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Fair actor/Tenant/platform work and queue bounds, backpressure, overload and budget-accounting failures; smaller/individual recovery remains usable without starving intake/review.",
+      "requirements": ["REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D23-03", "AC29-D23-07"]
+    },
+    {
+      "source": "Q44-P30",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Restricted source history versus general diagnostics, P12 tier-correct durable audit and egress accounting, safe error classes; full names/manifest/content/provider secrets absent from telemetry.",
+      "requirements": ["REQ29-D09", "REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D09-04", "AC29-D23-08"]
+    },
+    {
+      "source": "Q44-P31",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Native keyboard/AT/touch/mobile/browser jobs: finite selection, one-intent complete path, deliberate partial, focus/context preserved, no auto burst or unexpected returning download, actual normal extraction.",
+      "requirements": ["REQ29-D10", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-08", "AC29-D10-06"]
+    },
+    {
+      "source": "Q44-P32",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Prospective migration/activation and mixed old/new binaries; no public upload/Eve/CSV object reclassified, old writers closed, no invented grants/history/verification.",
+      "requirements": ["REQ29-D17"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D17-01", "AC29-D17-02", "AC29-D17-03"]
+    },
+    {
+      "source": "Q44-P33",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Mixed DB/object restore, missing generation, orphan object, aged-out readable history and dedup/result-or-reject basis, canceled/expired URLs and worker callback replay; no resurrection.",
+      "requirements": ["REQ29-D15", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D15-02", "AC29-D15-03", "AC29-D24-05"]
+    },
+    {
+      "source": "Q44-P34",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Rollback/kill switches preserve original evidence and lawful outcome/reconciliation, close unsafe serving, clean staged copies with real hold/backup constraints and no routine SQL repair.",
+      "requirements": ["REQ29-D17", "REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D17-05", "AC29-D23-09"]
+    },
+    {
+      "source": "Q44-P35",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Actual prepare, seal, transfer, cancel, expiry, cleanup and source-decision instants remain distinguishable; status wording never equates server success with human read/save/custody.",
+      "requirements": ["REQ29-D09", "REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D09-04", "AC29-D10-06"]
+    },
+    {
+      "source": "Q44-P36",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Full source-to-browser vertical release evidence and negative paths, not source-string/mock/pure-resolver tests; actual configured runtime/storage/cost limits recorded before activation.",
+      "requirements": ["REQ29-D23", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-06", "AC29-D24-07", "AC29-D23-01"]
+    },
+    {
+      "source": "Q44-P37",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Exact end equality and source material cap versus session/JIT/step-up expiry: current admission time wins, temporary credential failure does not rewrite the fixed material deadline, and cancellation/expiry/terminal source withdrawal cannot revive.",
+      "requirements": ["REQ29-D08", "REQ29-D09", "REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-06", "AC29-D08-04"]
+    },
+    {
+      "source": "Q44-P38",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Actual candidate, orphan, held, deletion-claimed and cleanup-failed bytes remain capacity-accounted; exhausted limits stop/bound new preparation without deleting held/source material or extending access.",
+      "requirements": ["REQ29-D10", "REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-07", "AC29-D23-03"]
+    },
+    {
+      "source": "Q44-P39",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Each independent egress/redownload/range attempt receives actual current P12 budget/audit admission; replay of the preparation outcome neither decrements twice for one reconciled effect nor licenses unlimited new transfers.",
+      "requirements": ["REQ29-D09"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D09-03"]
+    },
+    {
+      "source": "Q44-P40",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Source-copy/read-reference fencing during preparation versus deletion, locator reuse, new hold and ongoing read in both orders; qualified custody protection never grants new historical rights or indefinite retention.",
+      "requirements": ["REQ29-D11", "REQ29-D14"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D11-02", "AC29-D14-04"]
+    },
+    {
+      "source": "Q44-P41",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "One truthful outcome per normalized intended binding and one distinct regular original member per included binding plus one manifest; equal-byte distinct uses remain distinct, missing/extra members fail sealing, complete means intended-set coverage only.",
+      "requirements": ["REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-01", "AC29-D10-04"]
+    },
+    {
+      "source": "Q44-P42",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "All44 composed journeys below, including browser gesture decline after fast preparation, returning user, private blocked manifest-only case, meaningful Unicode aliases, zero-byte original, low bandwidth and source-scoped support. No fabricated local save or human study success.",
+      "requirements": ["REQ29-D10", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-08", "AC29-D10-06"]
+    },
+    {
+      "source": "Q44-P43",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Whole-command/source indivisibility and partial-output authority are independently established before offering a subset; incompleteness cannot be suppressed or privately guessed away. If a safe intelligible partial account cannot be disclosed, withhold the archive.",
+      "requirements": ["REQ29-D10"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D10-01", "AC29-D10-05"]
+    },
+    {
+      "source": "Q44-P44",
+      "source_path": "docs/features/files-documents/grill/phase29-q44-adversarial-review.md",
+      "proof": "Complete canonical source/P12/P3/P29/OpenSpec trace, unchanged glossary/prior decisions, external practice conflicts, exact selected-versus-ratified stage and native evidence mapping; no D26 residual engine, Q41 sharing, new notification, B batch mode or cost-neutral claim.",
+      "requirements": ["REQ29-D10", "REQ29-D21", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-01", "AC29-D24-11", "AC29-D10-08"]
+    },
+    {
+      "source": "Q53-P01",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Real authorized, denied, reviewer-only, read-only, tenant-admin-without-source-power, wrong-Tenant and qualified no-Party contexts produce exactly the allowed preparation/admission/read outcomes. No forged actor/context field succeeds.",
+      "requirements": ["REQ29-D02", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D02-01", "AC29-D24-02"]
+    },
+    {
+      "source": "Q53-P02",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "A source requiring a participant act remains unsatisfied until that real act; a source requiring none gains no invented mandatory acknowledgement. No staff contribution is labeled participant-uploaded.",
+      "requirements": ["REQ29-D04", "REQ29-D21"],
+      "disposition": "Custody obligations covered here; complete ordinary-source/communication semantics also remain bound in their owner volume and shared proof requirements",
+      "acceptance_ids": ["AC29-D04-06", "AC29-D21-01"]
+    },
+    {
+      "source": "Q53-P03",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Wrong target/key/bucket/profile/version, public/overscoped grants, expired credentials and incompatible specialist paths cannot create ordinary evidence or disclose bytes.",
+      "requirements": ["REQ29-D03", "REQ29-D08"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D03-02", "AC29-D08-02"]
+    },
+    {
+      "source": "Q53-P04",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "A successful source commit has one coherent contribution, exact immutable version/reference protection, receipt, actor/time/history, original result and required durable intent; injected transaction failure leaves none of those new source facts.",
+      "requirements": ["REQ29-D04", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D04-03", "AC29-D04-06", "AC29-D24-04"]
+    },
+    {
+      "source": "Q53-P05",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Actual stored size/type/completeness/digest mismatch, deceptive extension, changed payload, forged callback and unrelated object pointer fail the relevant gate; equal filenames/digests do not transfer authority or acceptance.",
+      "requirements": ["REQ29-D04", "REQ29-D05"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D04-01", "AC29-D05-01"]
+    },
+    {
+      "source": "Q53-P06",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Grant expiry, admission-intent expiry and actual in-flight settlement are tested independently. Already committed originals recover; new work requires current valid authority.",
+      "requirements": ["REQ29-D03", "REQ29-D04", "REQ29-D14", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D03-03", "AC29-D24-05"]
+    },
+    {
+      "source": "Q53-P07",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Actual DB concurrent commits cannot violate same-scope relationships, source cardinality, current evidence basis, immutable actor/version/history or intake uniqueness. Include direct UPDATE/UPSERT/MERGE/delete paths.",
+      "requirements": ["REQ29-D01", "REQ29-D04", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D01-04", "AC29-D24-03", "AC29-D24-04"]
+    },
+    {
+      "source": "Q53-P08",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Required pre-admission unknown/failure prevents admission; only declared allowed post-admission work yields a real receipt plus Checking. Neither becomes readable/accepted before required proof. Late unsafe findings retain history and enforce source restriction.",
+      "requirements": ["REQ29-D04", "REQ29-D05"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D04-05", "AC29-D05-05"]
+    },
+    {
+      "source": "Q53-P09",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Duplicate calls/callbacks/different transport keys for one intake produce one admitted effect. Changed intent conflicts; a deliberately new eligible equal-byte intake is not rejected merely by a digest-only business key.",
+      "requirements": ["REQ29-D04", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D04-02", "AC29-D24-05"]
+    },
+    {
+      "source": "Q53-P10",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Drop the response after commit, then close the request: original-result recovery returns permitted historical success without new addition or a false fresh-lifecycle failure. Lost read permission yields neutral lawful recovery, not a leak.",
+      "requirements": ["REQ29-D04", "REQ29-D08", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D08-04", "AC29-D24-05"]
+    },
+    {
+      "source": "Q53-P11",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Source cancellation plus a still-usable provider grant cannot overwrite sealed bytes or add a contribution. Complete an upload after expiry/cancel and reconcile the tracked private staging.",
+      "requirements": ["REQ29-D03", "REQ29-D14"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D03-03", "AC29-D14-05"]
+    },
+    {
+      "source": "Q53-P12",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Test both native orders of source closure/No longer required/fulfillment versus finalization. No new admission after closure; durable prior receipts survive; unfinished transfer does not hold Q22 open.",
+      "requirements": ["REQ29-D04", "REQ29-D14", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D04-03", "AC29-D24-04"]
+    },
+    {
+      "source": "Q53-P13",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Test both orders of instructions/evidence/role/context restrictions versus finalization, including away-and-back revisions and relevant lock waits. No stale rebase or wrong-target success.",
+      "requirements": ["REQ29-D02", "REQ29-D04", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D02-04", "AC29-D24-04", "AC29-D24-05"]
+    },
+    {
+      "source": "Q53-P14",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Concurrent participant correction, staff addition and reviewer acceptance preserve all valid membership and exact review basis. Source-relevant Q30 shared clarification, Q45 comments and review concerns participate only under their owning dependency rules; unrelated display/comment changes are not a universal upload gate.",
+      "requirements": ["REQ29-D04", "REQ29-D21", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D04-04", "AC29-D24-04"]
+    },
+    {
+      "source": "Q53-P15",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Qualified provider adversarial tests show no overwrite of sealed bytes and no retired-key reuse. A delayed upload cannot revive disposed copies; each existing grant/endpoint's residual write window is accounted for.",
+      "requirements": ["REQ29-D03", "REQ29-D14"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D03-03", "AC29-D14-04"]
+    },
+    {
+      "source": "Q53-P16",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Cleanup requires independent current disposition authority, retention eligibility and complete registered coverage as well as all-write closure. Against finalization/new reference/hold/processor promotion it has one qualified winner. Expired worker lease cannot admit promotion while a late delete may run. Lost/partial delete response retains a safe fence until reconciled.",
+      "requirements": ["REQ29-D11", "REQ29-D13", "REQ29-D14"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D13-03", "AC29-D11-01", "AC29-D14-04"]
+    },
+    {
+      "source": "Q53-P17",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Stop before admission records canceled intake and offers safe recovery; admission-first reports Added and invokes no automatic removal. UI abort alone cannot claim source cancellation.",
+      "requirements": ["REQ29-D03", "REQ29-D04", "REQ29-D14"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D03-01", "AC29-D14-05"]
+    },
+    {
+      "source": "Q53-P18",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Authorized pending staff removal works for newly uploaded evidence, preserving history/shared copies/other evidence. Accepted or terminal mistakes have a tested capable owner remedy; no source data repair by hand is the normal path. If qualified Replace is offered, failed successor admission preserves the predecessor; committed permitted Checking followed by failure preserves lineage without automatic revival. A fresh independent add is Unfiled; only the actual qualified replacement basis permits Q42 home-only carry, with incompatible/unknown optional filing falling back Unfiled after independently lawful admission.",
+      "requirements": ["REQ29-D01", "REQ29-D04", "REQ29-D20", "REQ29-D21"],
+      "disposition": "Custody obligations covered here; complete ordinary-source/communication semantics also remain bound in their owner volume and shared proof requirements",
+      "acceptance_ids": ["AC29-D01-05", "AC29-D20-05", "AC29-D21-01"]
+    },
+    {
+      "source": "Q53-P19",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Supplying does not accept. Separate Q21/Q23/Q52 review needs exact current sufficient evidence, concern resolution and permission; same-person supply/review obeys actual duties. Q22 uses the whole current predicate.",
+      "requirements": ["REQ29-D04", "REQ29-D21"],
+      "disposition": "Custody obligations covered here; complete ordinary-source/communication semantics also remain bound in their owner volume and shared proof requirements",
+      "acceptance_ids": ["AC29-D21-01", "AC29-D04-04"]
+    },
+    {
+      "source": "Q53-P20",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Actual received/remaining-work/target-date presentation uses source facts and never external/file/browser dates. No recipient-overdue claim merely because staff review remains; no access renewal or reminder-cap reset.",
+      "requirements": ["REQ29-D03", "REQ29-D04", "REQ29-D21"],
+      "disposition": "Custody obligations covered here; complete ordinary-source/communication semantics also remain bound in their owner volume and shared proof requirements",
+      "acceptance_ids": ["AC29-D04-06", "AC29-D21-01"]
+    },
+    {
+      "source": "Q53-P21",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "New staff-origin actionability uses existing Q24/Q27 mapping once per real basis. Off/On/Off races, original cohort, optional-proof outage, delayed worker and restore cannot create historical mail or impede lawful receipt/review. Consume the complete current P17/P6 protocol: whole finite candidate validation, original publication order, atomic parent/member/hashes/counts including valid zero, no child before release, original prepared/envelope identity, each-call source/control/material/deadline/provider fences and only its already-authorized same-envelope indeterminate follow-up causes: concurrent_idempotent_request, typed provider_5xx for application_error/internal_server_error, or network_or_timeout with the exact sealed request and no contradictory evidence. At most two follow-up HTTP calls total after the initial attempt across all three causes, not per cause or a new attempt ordinal; keep the exact endpoint, UTF-8 bytes/order/headers/account/credential/key, bounded Retry-After/full jitter and live fences, before both the earliest member deadline and pinned provider idempotency-window expiry. Reconcile evidence first where available; acceptance or definite rejection stops the loop, and other indeterminate causes permit reconciliation only. No re-key, split or new retry entitlement follows.",
+      "requirements": ["REQ29-D21", "REQ29-D23", "REQ29-D24", "REQ29-P09"],
+      "disposition": "Custody obligations covered here; complete ordinary-source/communication semantics also remain bound in their owner volume and shared proof requirements",
+      "acceptance_ids": [
+        "AC29-D23-06",
+        "AC29-P09-01",
+        "AC29-P09-02",
+        "AC29-P09-05"
+      ]
+    },
+    {
+      "source": "Q53-P22",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Request changes guidance is actionable by its actual audience; inaccessible staff material cannot require blind affirmation or unauthorized editing. Technical issues use technical recovery instead of fabricated business rejection.",
+      "requirements": ["REQ29-D04", "REQ29-D21", "REQ29-D24"],
+      "disposition": "Custody obligations covered here; complete ordinary-source/communication semantics also remain bound in their owner volume and shared proof requirements",
+      "acceptance_ids": ["AC29-D21-01", "AC29-D24-07"]
+    },
+    {
+      "source": "Q53-P23",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Participant/staff metadata, receipts, origin labels, counts, files/history/ranges/conditional responses/export obey current permissions independently. No staff-added own-submission entitlement or existence leak.",
+      "requirements": ["REQ29-D08", "REQ29-D09"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D08-01", "AC29-D08-05", "AC29-D09-05"]
+    },
+    {
+      "source": "Q53-P24",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Native anon/authenticated/staff/service/NHI/operator roles and role composition; table/column/schema/function EXECUTE default/PUBLIC/named/inherited grants; permissive OR/restrictive AND, old-row USING/new-row WITH CHECK inheritance, SELECT/RETURNING and INSERT/UPDATE/DELETE/UPSERT/MERGE/trigger-transformed values; views/RPC overloads, actual invoker/definer owner/search_path and ENABLE/FORCE/BYPASS; and Storage sign/upload/resume/info/HEAD/list/read/copy/move/update/delete paths enforce the same boundary or are closed. Service-only mocks and a passing catalog/service-client gate do not prove fine-grained source authority.",
+      "requirements": ["REQ29-D02", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-02", "AC29-D24-03"]
+    },
+    {
+      "source": "Q53-P25",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Census and test legacy editor/assets/email/Support/Eve/CMS/import/worker paths; none can create or serve certified ordinary evidence around the source command. Preserve independently legitimate specialist use.",
+      "requirements": ["REQ29-D17", "REQ29-D21"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D17-01", "AC29-D21-21"]
+    },
+    {
+      "source": "Q53-P26",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "FK/check/uniqueness/nullability/delete/anonymization tests prove scope, immutable attribution/history, exact version and reference conservation. No ordinary allowed update transfers a row into forbidden ownership.",
+      "requirements": ["REQ29-D01", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D01-04", "AC29-D24-03"]
+    },
+    {
+      "source": "Q53-P27",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Actual UI uses contextual Upload/Add existing and one deliberate Upload and add, accurate pre/post-admission statuses, persistent known/unknown outcomes, no demo completion/progress and no routine second modal.",
+      "requirements": ["REQ29-D03", "REQ29-D04", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D03-01", "AC29-D04-05", "AC29-D24-08"]
+    },
+    {
+      "source": "Q53-P28",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Every file in an allowed same-item set has accurate succeeded/blocked/incomplete/unknown status; retry only unresolved intended work. Never claim all-or-none physical transfer or silently add unseen items.",
+      "requirements": ["REQ29-D03"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D03-04"]
+    },
+    {
+      "source": "Q53-P29",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Real keyboard/AT/speech/non-drag/touch, 320 CSS-pixel control reflow, zoom, focus restoration, IME/RTL/long names and slow-network journeys complete within declared supported contexts. Inspectable document content remains accessible or has a sufficient qualified alternative.",
+      "requirements": ["REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-08"]
+    },
+    {
+      "source": "Q53-P30",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Context loss/revocation/reload fences late responses and clears protected browser state; no filename/body/token/private association leaks through logs, URLs, analytics, crash reports or unapproved persistent device storage.",
+      "requirements": ["REQ29-D09"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D09-05"]
+    },
+    {
+      "source": "Q53-P31",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Mixed old/new readers/writers/workers and schema deployment cannot bypass or mislabel the new cohort. Legacy unknown records are not certified by backfill; stop/roll-forward preserve retained data and original results.",
+      "requirements": ["REQ29-D17"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D17-02", "AC29-D17-03", "AC29-D17-05"]
+    },
+    {
+      "source": "Q53-P32",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Restore actual bytes plus metadata/references/operations, verify integrity and apply later revocation/disposition/notification fences before serving. Database-only restore, lost object or stale snapshot cannot produce a green result.",
+      "requirements": ["REQ29-D15"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D15-02", "AC29-D15-03", "AC29-D15-05"]
+    },
+    {
+      "source": "Q53-P33",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Inject stuck processing, unknown finalization, late provider completion and cleanup failure; M01–M06 create owned actionable diagnosis/recovery without content leakage or direct SQL.",
+      "requirements": ["REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D23-04", "AC29-D23-10"]
+    },
+    {
+      "source": "Q53-P34",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Measure all B01–B06 workloads using actual provider/configuration, concurrent tenants and retries. Enforce 0/negative/limit/limit+1/malformed/unknown-policy boundaries, finite queue/backoff and cost reporting. No inherited preview/image cap is mislabeled an upload bound.",
+      "requirements": ["REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D23-01", "AC29-D23-03", "AC29-D23-07"]
+    },
+    {
+      "source": "Q53-P35",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Representative authorized staff and recipient pilot proves correct target/origin, understandable statuses, successful recovery and actual required participant work; record success, time/interactions, failures and feedback. No claimed benefit before this evidence.",
+      "requirements": ["REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-08"]
+    },
+    {
+      "source": "Q53-P36",
+      "source_path": "docs/features/files-documents/grill/phase29-q53-adversarial-review.md",
+      "proof": "Trace all C/R/L/J/P/B/M and glossary changes into authorized source requirements/design/tasks/projections, later tickets and release evidence. Verify full incorporated owner text and effective active changes; no simulated model or unrelated passing test substitutes for native closure.",
+      "requirements": ["REQ29-D21", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-01", "AC29-D24-11"]
+    },
+    {
+      "source": "Q56-P01",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Scope and baseline — Compare direct photo, multiple photos, prepared PDF and optional assembly with actual source rules; no compulsory scanner or unwanted signup. Validate A+B supersedes A-only exclusion.",
+      "requirements": ["REQ29-D03", "REQ29-D06", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D03-04", "AC29-D24-07"]
+    },
+    {
+      "source": "Q56-P02",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Page intent boundaries — Zero/one/maximum/maximum plus one pages, repeats, duplicate occurrence IDs, filenames/RTL order, canceled retake and remove/re-add; exact intended order/cardinality survives.",
+      "requirements": ["REQ29-D06"],
+      "disposition": "Custody obligations covered here; full assembly/source/UX behavior also remains bound in its owner volume",
+      "acceptance_ids": ["AC29-D06-01"]
+    },
+    {
+      "source": "Q56-P03",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Quantitative input boundaries — Actual profile limit minus one/equal/+1 bytes/pixels/dimensions/frames/output pages and overflow/adversarial compressed images; no work beyond budget or silent truncation.",
+      "requirements": ["REQ29-D05", "REQ29-D06", "REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D05-03", "AC29-D23-01"]
+    },
+    {
+      "source": "Q56-P04",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Fidelity and correspondence — Real decoder/render tests for formats/variants/EXIF orientations/quarter turns/color/fine print/aspect/full coverage; spoof MIME, malformed/polyglot/animation, wrong recipe/output/digests rejected; output page count/order exact; no ambient credential/network/remote reference or active PDF behavior through hostile decoding. Syntax/count alone cannot pass correspondence.",
+      "requirements": ["REQ29-D05", "REQ29-D06"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D06-01", "AC29-D06-02", "AC29-D05-02"]
+    },
+    {
+      "source": "Q56-P05",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Authentication/current authority — Real recipient, request-only recipient, staff with/without Party, wrong source, inactive assignment, revoked/expired scope, stale membership JWT, editable role metadata, system processor; selected tenant never sufficient; source-appropriate native context, application/DB agreement, missing/mismatched context, pooled reset and before allocation/processing denial are proved.",
+      "requirements": ["REQ29-D02", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D02-01", "AC29-D24-02"]
+    },
+    {
+      "source": "Q56-P06",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Database RLS and grants — Actual anon/authenticated/service/function/view/owner roles; old/new row transforms across tenant/source/item/actor/output/state, insert/update/upsert/returning and combined policies; immutable fields enforced beyond row visibility; effective named/PUBLIC/default/inherited schema/table/column/sequence/EXECUTE grants, overloads/owners/views/triggers and ENABLE/FORCE/superuser/BYPASS behavior verified.",
+      "requirements": ["REQ29-D01", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D01-04", "AC29-D24-03"]
+    },
+    {
+      "source": "Q56-P07",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Alternate doors and private delivery — Data API/RPC/internal job/Storage/raw object/preview/range/conditional/download/search/count/export/cache/history/result; forged references cannot read or change hidden data; effective revocation contract measured.",
+      "requirements": ["REQ29-D08", "REQ29-D09", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D08-05", "AC29-D09-01", "AC29-D24-06"]
+    },
+    {
+      "source": "Q56-P08",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Atomic admission — Fault before/after each boundary: input upload, processing, output persistence, source commit/history/result/effect intent. Zero/one complete source unit; no per-page receipts, premature predecessor fence or missing required lineage; references and retention protection for every selected original/output commit atomically against deletion claims, actual source time sampled after waits.",
+      "requirements": ["REQ29-D04", "REQ29-D06", "REQ29-D11", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D06-01", "AC29-D04-03", "AC29-D24-04"]
+    },
+    {
+      "source": "Q56-P09",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Source races and ABA — Real concurrent acceptance/fulfillment/cancel/access loss/instruction change/correction/withdrawal/restriction against admission; relevant basis revisions stop ABA and new output never revives a prior candidate.",
+      "requirements": ["REQ29-D04", "REQ29-D14", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D04-04", "AC29-D24-04", "AC29-D24-05"]
+    },
+    {
+      "source": "Q56-P10",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Idempotency and unknown outcome — Same exact intent returns original result; changed recipe/source/actor under key conflicts; response lost, history logs pruned, current new eligibility false and no-op/route logic cannot create duplicate effects; transport key variations for same intake dedup while legitimate distinct equal-byte acts remain possible.",
+      "requirements": ["REQ29-D04", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D04-02", "AC29-D24-05"]
+    },
+    {
+      "source": "Q56-P11",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Cancel and late writers — Actual interrupted/resumable uploads, expired credentials, multiple URLs/same path, client abort and worker lease expiry; immutable verified keys and source fencing prevent late replacement/promotion/retired key resurrection; unknown grant issuance reconciles without unbounded remint and resume binds exact intake/attempt/input.",
+      "requirements": ["REQ29-D03", "REQ29-D14"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D03-02", "AC29-D03-03", "AC29-D14-04"]
+    },
+    {
+      "source": "Q56-P12",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Cleanup and late deletes — Fault/retry deletion across reference/hold/retention races and expired delete lease; physical delete remains fenced, SQL metadata alone never counted as successful deletion; all retained copies accounted; current disposition authority, retention eligibility and complete reference/hold/processor coverage required independently of writer closure, unknown blocks deletion.",
+      "requirements": ["REQ29-D11", "REQ29-D13", "REQ29-D14"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D13-03", "AC29-D14-04", "AC29-D11-01"]
+    },
+    {
+      "source": "Q56-P13",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Evidence review and readback — Recipient own versus staff supplied and unrelated evidence, output/original labels, current page count, exact review basis and acceptance; no extra ritual or authenticity claim; preview failure does not erase receipt; Q30 and all five relevant Q45 mutations fence only structurally affected review, and a prohibited required constituent blocks the indivisible output.",
+      "requirements": ["REQ29-D06", "REQ29-D08", "REQ29-D21"],
+      "disposition": "Custody obligations covered here; full assembly/source/UX behavior also remains bound in its owner volume",
+      "acceptance_ids": ["AC29-D06-02", "AC29-D06-04", "AC29-D21-01"]
+    },
+    {
+      "source": "Q56-P14",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Correction and withdrawn resupply — Reuse own lawful inputs without reupload; new exact unit/history, previous unit unchanged; whole withdrawal, unchanged re-offer, revised resupply and terminal/privacy remedy; missing rights/input gives useful safe recovery; preserved original byte receipt on reuse, staff reuse of inputs in the same target lineage by currently authorized staff without original-author-only gate, whole Remove and optional atomic Replace qualified.",
+      "requirements": ["REQ29-D04", "REQ29-D06", "REQ29-D20", "REQ29-D21"],
+      "disposition": "Custody obligations covered here; full assembly/source/UX behavior also remains bound in its owner volume",
+      "acceptance_ids": ["AC29-D04-06", "AC29-D06-03", "AC29-D20-05"]
+    },
+    {
+      "source": "Q56-P15",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Downstream contracts — Q28/Q38/Q41/Q42/Q44/Q45/Q50/Q54 consumers, exact versions/components; no silent ZIP/PDF inclusion, input sharing, OCR/body-derived discovery, pin migration, copied approval or changed current home/name.",
+      "requirements": ["REQ29-D01", "REQ29-D06", "REQ29-D10", "REQ29-D20"],
+      "disposition": "Custody obligations covered here; full assembly/source/UX behavior also remains bound in its owner volume",
+      "acceptance_ids": [
+        "AC29-D06-05",
+        "AC29-D06-06",
+        "AC29-D10-08",
+        "AC29-D20-03"
+      ]
+    },
+    {
+      "source": "Q56-P16",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Native mobile and controls — Real supported iOS/Android/desktop browser plus touch/keyboard/speech/AT; camera canceled/denied, gallery/file, background/reload, slow link, meaningful progress, honest receipt and safe retry.",
+      "requirements": ["REQ29-D03", "REQ29-D24"],
+      "disposition": "Custody obligations covered here; full assembly/source/UX behavior also remains bound in its owner volume",
+      "acceptance_ids": ["AC29-D03-01", "AC29-D24-08"]
+    },
+    {
+      "source": "Q56-P17",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Accessibility/content and localization — 320 CSS pixels/200 percent text/400 percent zoom, labels/errors/status/focus/non-drag controls, RTL/IME/long international names, Enter/Space behavior; actual content accessibility/assistance route, not image PDF falsely tagged accessible.",
+      "requirements": ["REQ29-D06", "REQ29-D24"],
+      "disposition": "Custody obligations covered here; full assembly/source/UX behavior also remains bound in its owner volume",
+      "acceptance_ids": ["AC29-D24-08", "AC29-D06-02"]
+    },
+    {
+      "source": "Q56-P18",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Privacy minimization — No EXIF/GPS/private bytes/tokens/names/recipes in telemetry/replay/public cache/error URLs; required original metadata private, output/preview unnecessary metadata stripped without relabeling original.",
+      "requirements": ["REQ29-D06", "REQ29-D09", "REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D09-05", "AC29-D23-08"]
+    },
+    {
+      "source": "Q56-P19",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Performance and cost — Production-shaped finite profile on minimum supported phones and approved tenant concurrency; memory/CPU/output readability/DB plans/bandwidth/storage/egress measured, with actual limits and refusal before expensive work.",
+      "requirements": ["REQ29-D06", "REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D23-01", "AC29-D23-02"]
+    },
+    {
+      "source": "Q56-P20",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Jobs and source effects — At-least-once processing/notification intent recovery, bounded retry/fairness/queue age, lost provider responses and late callbacks; no per-page messages/new cadence or duplicate business effects.",
+      "requirements": ["REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D23-06", "AC29-D23-07"]
+    },
+    {
+      "source": "Q56-P21",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Migration and disable — Old/new clients/schema/mixed workers, fail-closed missing capability, additive migrations and no guessed lineage; disable new assembly while existing lawful recovery/read/cleanup remain; rollback never drops written lineage; correction needing disabled profile remains stopped while only actual independent repair routes remain available.",
+      "requirements": ["REQ29-D17", "REQ29-D23"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D17-03", "AC29-D17-05", "AC29-D23-09"]
+    },
+    {
+      "source": "Q56-P22",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Restore and provider/decoder change — Actual immutable input/output and source fact restore, held/withdrawn/revoked evidence and late jobs; no recipe-only byte backup claim; processor upgrade regression corpus and retention/disposition proof.",
+      "requirements": ["REQ29-D15", "REQ29-D16"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D15-03", "AC29-D16-05"]
+    },
+    {
+      "source": "Q56-P23",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Intended-user task proof — Representative authorized staff, phone-only recipient and applicable assistive technology users complete baseline, assembly, one-page correction, failure/recovery and readback without staff explanation; record observations, blocking issues, changes and retest.",
+      "requirements": ["REQ29-D24"],
+      "disposition": "Custody obligations covered here; full assembly/source/UX behavior also remains bound in its owner volume",
+      "acceptance_ids": ["AC29-D24-08"]
+    },
+    {
+      "source": "Q56-P24",
+      "source_path": "docs/features/files-documents/grill/phase29-q56-adversarial-review.md",
+      "proof": "Traceability and documentary proof — Exact report/ADR clauses and proposed glossary parity; all 22 categories/30 journeys/24 proof groups, owner contract mapping, prior Q01–Q55/glossary preservation and current head; later native/release evidence links, no fabricated success.",
+      "requirements": ["REQ29-D21", "REQ29-D24"],
+      "disposition": "Covered by exact custody contract plus shared proof; implementation evidence remains unperformed",
+      "acceptance_ids": ["AC29-D24-01", "AC29-D24-11"]
+    }
+  ],
+  "incorporated_owner_proof_sets": [
+    {
+      "source": "P26 D32-P01–P40 and O01–O06",
+      "scope": "Complete adopted format/coverage/data/UX/native/operations contract applies to every consumed reading lane, not a summary-only subset",
+      "requirements": ["REQ29-D07", "REQ29-D24"]
+    },
+    {
+      "source": "P23 ADR0171/D27 complete launch/custody/rights/public-generation/backup/migration proof; #1388/#1389/#1391/#1393/#1398/#1401/#1402/#1403",
+      "scope": "Exact owner profile and issued reference requirements, no ordinary-wide format/Trash/default import",
+      "requirements": ["REQ29-D19", "REQ29-D21", "REQ29-D24"]
+    },
+    {
+      "source": "P22 ADR0126/D9 and #1301/#1302",
+      "scope": "Independent sanitized output/private raw/source-name-discard and exact-placement release proof",
+      "requirements": ["REQ29-D18", "REQ29-D21", "REQ29-D24"]
+    },
+    {
+      "source": "P21 ADR0113/0114/0115 and exact D10/D17/D18/D22/D24/D25/D26/D28 owners",
+      "scope": "Each E04–E12 row retains its specific source proof; custody does not supply financial/claim/records completeness",
+      "requirements": ["REQ29-D08", "REQ29-D10", "REQ29-D21", "REQ29-D24"]
+    },
+    {
+      "source": "P25/P3 financial D09–D11",
+      "scope": "Exact immutable extract scope/clocks/private current stream; not ordinary ZIP or official record package",
+      "requirements": ["REQ29-D09", "REQ29-D10", "REQ29-D21", "REQ29-D24"]
+    }
+  ],
+  "validation": {
+    "date": "2026-10-29",
+    "method": "Deterministic identifier, reference-target, row-count, table-arity and exact-volume-hash checks",
+    "requirements": 24,
+    "stories": 24,
+    "unique_acceptance_criteria": 168,
+    "existing_consumers": 23,
+    "future_consumers": 11,
+    "founder_ranges": 26,
+    "q61_clauses": 16,
+    "q61_proofs": 16,
+    "shared_proofs": 18,
+    "detailed_prior_proofs": 104,
+    "result": "passed",
+    "limitations": [
+      "No native/runtime tests, provider calls, SQL, migrations or user studies executed.",
+      "Parent formatting may change raw hashes and must regenerate the volume hash before final publication validation.",
+      "This volume retains source-specific proof and current-policy prerequisites; it does not certify existing code or hosted permission state."
+    ]
+  },
+  "read_scope": [
+    "Complete founder brief received in bounded reads; missing middle from an initially truncated combined output reread in full.",
+    "All23existing and11future Q61 consumer rows read in full after whitespace-normalized bounded extraction; surrounding decision inventory not newly claimed fully reread.",
+    "Current P29 owner-constraints section, complete D32 ADR, exact ADR0171 custody/public/restore/qualification section and operative Q44/Q53/Q56 proof rows reviewed; earlier full source research retained as dated evidence.",
+    "Current scoped instructions and test/source inventory are documented separately in the testing-seam research and appendix."
+  ],
+  "proof_acceptance_mapping_status": "All 120 Q61/Q44/Q53/Q56 proof rows map to specific existing acceptance criteria; selected shared P09 criteria retain exact source communication obligations. This is trace verification, not runtime proof."
+}
