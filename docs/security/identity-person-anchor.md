@@ -97,8 +97,16 @@ today. Per spec In 3, this is escalated in the PR and tracked in #2267; this
 slice changes no behavior. The frozen reader set, pinned by the #2256 acceptance
 tests, is:
 
-- RLS policy: `public.profiles` `profiles staff tenant select`. Staff of the
-  profile's `tenant_id` may read the profile row.
+- RLS policies:
+  - `public.profiles` `profiles staff tenant select`. Staff of the profile's
+    `tenant_id` may read the profile row.
+  - `storage.objects` `profiles owner folder insert` and
+    `profiles owner folder update`, added by #2406. Each binds the object's
+    tenant folder segment to the caller's own `profiles.tenant_id`, looked up
+    by `user_id = auth.uid()`. Each fails closed when the caller has no
+    profile, or has a NULL tenant and isn't a `super_admin`. The `super_admin`
+    demo fallback mirrors `getAuthContext` and is tracked in #2267; if #2267
+    removes or moves it, these two policies change in the same PR.
 - Functions (SECURITY DEFINER unless marked INVOKER). Most bind an actor or
   referenced profile to a tenant by requiring `profiles.tenant_id` to match:
   - `enforce_contribution_operation_tenant_refs`
