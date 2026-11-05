@@ -374,17 +374,24 @@ describe("#2407a static contract [A]", () => {
     expect(index).toBe(i);
     expect(steps[i]).toEqual({ name: STEP, ...body });
   });
-  it("#2407a criterion 20: init_schema.sql stays byte-identical to develop 629cb71d and the allowlist stays byte-identical to develop after #2406; verify:service-role-clients passes", () => {
+  it("#2407a criterion 20: init_schema.sql stays byte-identical to develop 629cb71d; the allowlist matches the PR base until this migration merges; verify:service-role-clients passes", () => {
     const sha = (f: string) =>
       createHash("sha256").update(readFileSync(f)).digest("hex");
     expect(sha(H.INIT)).toBe(
       "c5cc1775d6914b613730822d920f4ec3ba189cdb5e2f98fadb8981238e76635a",
     );
-    // #2406 (ed3958096) moved profile and donor-portal lines. This PR does not
-    // edit the allowlist; the pin is that file on current develop.
-    expect(sha(ALLOWLIST)).toBe(
-      "41b0324c81960fc9349c92b5048293ff7b856ce8d51d5c14ce2c22b4fb575d0c",
-    );
+    // This PR does not edit the allowlist. A frozen hash would fail the next
+    // shrink the service-role gate permits, so the comparison lasts only
+    // while the migration is still this PR's. After merge, prBase skips and
+    // the gate below remains the check.
+    const b = prBase();
+    if (!("skip" in b)) {
+      const head = git("hash-object", `--path=${ALLOWLIST}`, ALLOWLIST);
+      const base = git("rev-parse", `${b.base}:${ALLOWLIST}`);
+      expect(head.status, head.stderr).toBe(0);
+      expect(base.status, base.stderr).toBe(0);
+      expect(head.stdout.trim()).toBe(base.stdout.trim());
+    }
     const r = spawnSync(
       "node",
       ["scripts/verify/service-role-client-gate.mjs"],
