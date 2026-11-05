@@ -8,8 +8,13 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { checkProfileImageUrl } from "./image-url";
 import { findFullProfileById } from "./queries";
-import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
+import {
+  ApiHttpError,
+  ensureJsonBody,
+  toErrorResponse,
+} from "../shared/http-errors";
 import { findMissionaryByProfileId } from "../shared/queries";
 
 const profilePatchSchema = z
@@ -89,6 +94,39 @@ export async function PATCH(request: NextRequest) {
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
     const patch = profilePatchSchema.parse(await ensureJsonBody(request));
+    const [storedAvatar, storedCover] = await Promise.all([
+      typeof patch.avatarUrl === "string"
+        ? supabaseAdmin
+            .from("profiles")
+            .select("avatar_url")
+            .eq("id", ctx.profileId)
+            .maybeSingle()
+        : null,
+      typeof patch.coverUrl === "string"
+        ? supabaseAdmin
+            .from("missionaries")
+            .select("cover_url")
+            .eq("profile_id", ctx.profileId)
+            .eq("tenant_id", ctx.tenantId)
+            .maybeSingle()
+        : null,
+    ]);
+    const lookupError = storedAvatar?.error ?? storedCover?.error;
+    if (lookupError) throw new ApiHttpError(500, lookupError.message);
+    // #2406: validated before any write; unchanged stored values are skipped.
+    // The avatar lookup is the caller's profile id. A tenant filter misses a
+    // tenantless super_admin, whose auth tenant is the demo fallback.
+    const owner = { tenantId: ctx.tenantId, userId: ctx.userId };
+    const writeAvatar = checkProfileImageUrl(patch.avatarUrl, {
+      ...owner,
+      purpose: "avatars",
+      stored: [storedAvatar?.data?.avatar_url],
+    });
+    const writeCover = checkProfileImageUrl(patch.coverUrl, {
+      ...owner,
+      purpose: "covers",
+      stored: [storedCover?.data?.cover_url],
+    });
     const now = new Date().toISOString();
     const profileUpdate: Record<string, unknown> = {};
     const missionaryUpdate: Record<string, unknown> = {};
@@ -106,7 +144,7 @@ export async function PATCH(request: NextRequest) {
       profileUpdate.phone = patch.phone || null;
       missionaryUpdate.phone = patch.phone || null;
     }
-    if (patch.avatarUrl !== undefined) {
+    if (writeAvatar) {
       profileUpdate.avatar_url = patch.avatarUrl || null;
     }
 
@@ -125,7 +163,7 @@ export async function PATCH(request: NextRequest) {
     if (patch.location !== undefined) {
       missionaryUpdate.location = patch.location || null;
     }
-    if (patch.coverUrl !== undefined) {
+    if (writeCover) {
       missionaryUpdate.cover_url = patch.coverUrl || null;
     }
     if (patch.socialLinks !== undefined) {
@@ -163,11 +201,13 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    const { data: profile, error: profileError } = await findFullProfileById(
-      supabaseAdmin,
-      ctx.profileId,
-      ctx.tenantId,
-    );
+    // Reload by the caller's profile id. ctx.tenantId is the demo tenant for a
+    // tenantless super_admin, so a tenant filter would miss that row.
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .select("*")
+      .eq("id", ctx.profileId)
+      .single();
 
     if (profileError) {
       return NextResponse.json(
