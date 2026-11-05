@@ -657,7 +657,7 @@ This part specifies the Data Tools area of Mission Control (Q19 clauses 1–3 an
        - Any outward effect referencing history (message, task, receipt plan, statement line, Field Account occurrence, posting intent or settlement link) halts that consumer and opens an incident for the Phase 30 owner with that consumer's owner.
        - Any unexplained variance at sign-off, cent-exact per Legal Entity × currency × year, or any History spot check mismatch blocks sign-off and signals the Switch lead.
        - Waiting rows above 2% of gift rows at the final practice run trigger a go/no-go review of their causes before the real Switch run.
-       - History commit plus reconciliation time in the last practice run above 50% of the declared editing pause blocks go/no-go unless the ministry lengthens the pause.
+       - History commit plus reconciliation time in the last practice run longer than the declared editing pause blocks go/no-go. The declared pause stays capped at the measured pause × 1.5 (story 12). The next step is another dress rehearsal; lengthening the pause past that cap is refused.
        - Gifts corrected in the first 90 days after go-live above 0.5% of imported gifts signal the Phase 30 owner to review mapping defaults and waiting reasons.
        - Missionary requests to see history older than the roster window are a learning signal for the Phase 28 owner.
 458. As the Phase 30 product owner, I want the notes, files and care signals, so that protected entries stay in their tiers and no unscanned file is used. [Q14; ADR-IM-014; M-Q14-1 to M-Q14-8]
