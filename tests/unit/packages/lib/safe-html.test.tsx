@@ -47,4 +47,26 @@ describe("safe rich HTML boundary", () => {
       dom.window.close();
     }
   });
+  it("preserves mixed-case styled HTML safely through server sanitization and parsing", () => {
+    const markup = renderToStaticMarkup(
+      <SafeHtml html='<p StYlE="color: red"><strong>Giving</strong> &amp; care <a href="https://example.test/details">details</a><a href="jav&#x61;script:alert(1)" onclick="alert(1)">unsafe link</a></p><iframe srcdoc="bad"></iframe><math><mi>x</mi></math>' />,
+    );
+    const dom = new JSDOM(markup);
+    try {
+      const document = dom.window.document;
+      expect(document.querySelector("p")?.style.color).toBe("red");
+      expect(document.querySelector("strong")?.textContent).toBe("Giving");
+      expect(document.querySelectorAll("a")[0]?.href).toBe(
+        "https://example.test/details",
+      );
+      expect(document.querySelectorAll("a")[1]?.hasAttribute("href")).toBe(
+        false,
+      );
+      expect(
+        document.querySelector("script, iframe, math, [onclick]"),
+      ).toBeNull();
+    } finally {
+      dom.window.close();
+    }
+  });
 });
