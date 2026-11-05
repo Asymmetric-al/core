@@ -88,6 +88,11 @@ docs/features/donor-development/grill/
 # Exact source hashes are retained in the formal Phase 28 source/publication manifests.
 docs/features/missionary-workspace-depth/grill/
 
+# Exact Phase 29 ratified session corpus; canonical formal volumes are formatted.
+# Verify all 624 source bytes through the Phase 29 preservation manifest.
+docs/features/files-documents/
+docs/prds/sitestacker-parity/phase-29-files-documents/founder-brief.txt
+
 # Exact MIT upstream bytes used by refresh regression tests; provenance hashes are checked.
 tests/fixtures/skills/emil-upstream/
 

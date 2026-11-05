@@ -622,14 +622,14 @@ Every numbered story has one stable requirement and independently observable acc
 193. **US28-C37.** As a coach, I want next-step status to retain its real meaning, so that I do not mistake task completion for an interaction, payment or message being completed.
      Requirement: REQ28-C37. Acceptance: AC28-C37-01, AC28-C37-02, AC28-C37-03, AC28-C37-04, AC28-C37-05.
 
-194. **US28-C38.** As a missionary, I want a simple resource library, so that I can quickly find material my organization has approved for me.
-     Requirement: REQ28-C38. Acceptance: AC28-C38-01, AC28-C38-02, AC28-C38-03, AC28-C38-04, AC28-C38-05, AC28-C38-06.
+194. **US28-C38.** As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
+     Requirement: REQ28-C38. Acceptance: AC28-C38-01, AC28-C38-02, AC28-C38-03, AC28-C38-04, AC28-C38-05, AC28-C38-06, AC28-C38-07, AC28-C38-08, AC28-C38-09, AC28-C38-10.
 
 195. **US28-C39.** As an authorized resource curator, I want to prepare, review and publish material, so that the library contains intentional and current guidance.
-     Requirement: REQ28-C39. Acceptance: AC28-C39-01, AC28-C39-02, AC28-C39-03, AC28-C39-04, AC28-C39-05, AC28-C39-06.
+     Requirement: REQ28-C39. Acceptance: AC28-C39-01, AC28-C39-02, AC28-C39-03, AC28-C39-04, AC28-C39-05, AC28-C39-06, AC28-C39-07, AC28-C39-08.
 
 196. **US28-C40.** As a curator, I want withdrawal to stop new library access reliably, so that outdated or unsafe material cannot remain available through stale navigation or download paths.
-     Requirement: REQ28-C40. Acceptance: AC28-C40-01, AC28-C40-02, AC28-C40-03, AC28-C40-04, AC28-C40-05, AC28-C40-06.
+     Requirement: REQ28-C40. Acceptance: AC28-C40-01, AC28-C40-02, AC28-C40-03, AC28-C40-04, AC28-C40-05, AC28-C40-06, AC28-C40-07, AC28-C40-08.
 
 197. **US28-C41.** As a missionary, I want an optional starting guide I can use in any order, skip and revisit, so that guidance supports my work without becoming a gate.
      Requirement: REQ28-C41. Acceptance: AC28-C41-01, AC28-C41-02, AC28-C41-03, AC28-C41-04, AC28-C41-05.
@@ -641,7 +641,7 @@ Every numbered story has one stable requirement and independently observable acc
      Requirement: REQ28-C43. Acceptance: AC28-C43-01, AC28-C43-02, AC28-C43-03, AC28-C43-04, AC28-C43-05.
 
 200. **US28-C44.** As a missionary, I want each guide suggestion to lead to a real permitted resource or workspace action, so that guidance stays useful and never exposes hidden material.
-     Requirement: REQ28-C44. Acceptance: AC28-C44-01, AC28-C44-02, AC28-C44-03, AC28-C44-04, AC28-C44-05.
+     Requirement: REQ28-C44. Acceptance: AC28-C44-01, AC28-C44-02, AC28-C44-03, AC28-C44-04, AC28-C44-05, AC28-C44-06.
 
 201. **US28-C45.** As a guide curator, I want to stop offering guidance and later re-offer a reviewed version, so that I can maintain it safely without disrupting missionary work.
      Requirement: REQ28-C45. Acceptance: AC28-C45-01, AC28-C45-02, AC28-C45-03, AC28-C45-04, AC28-C45-05.
