@@ -374,21 +374,27 @@ fresh, well-formed `debt #` exception. Residual debt is therefore frozen at
 adoption:
 
 - `tooling/eslint-config/a11y-debt-baseline.json` lists each residual
-  exception with its file, rule, issue, 1-based line number and the trimmed
-  source text of the line it covers. The line number is the occurrence
-  identity: two identical lines in one file are different entries, and moving
-  a directive onto the other line fails the match. The adoption commit always
-  creates the file, even as an empty
-  list when the repair pass leaves no debt, and it is reviewed once. A test
+  exception with its file, rule, issue, trimmed source text, a 1-based
+  occurrence index, and the line number for review. The occurrence index
+  counts lines in that file with the same trimmed source, in source order.
+  It is the identity. The line number is not: adding an import or removing
+  an earlier unrelated line shifts the line number and the same occurrence
+  still matches. Moving the directive onto another identical line changes
+  the index and fails. The adoption commit always creates the file, even as
+  an empty list when the repair pass leaves no debt, and it is reviewed once.
+  A test
   requires the file to exist and match its schema, so no later change can
   delete it.
 - The directive verification fails on any `debt #` exception that has no
   exactly matching baseline entry, and on any baseline entry with no matching
-  live exception. Debt directives cannot be added, moved to another line or
-  edited, and stale entries must be pruned.
+  live exception. Debt directives cannot be added, transferred to another
+  occurrence, or edited. A line shift that keeps the same occurrence is not
+  a transfer. Stale entries must be pruned.
 - A check in the required CI lint job reads the baseline at the pull
   request's base commit, fetching it if the checkout is shallow. It fails if
-  the head adds or changes any entry, so only removals pass. The local
+  the head adds an entry or changes its file, rule, issue, source text, or
+  occurrence index. Updating only the recorded line number passes, so a
+  harmless shift is not stuck behind a frozen line. Removals pass. The local
   preflight runs the same comparison against the merge base with
   `origin/develop` when that ref exists.
 - **One-time adoption.** If the base commit has no baseline, the change is

@@ -158,7 +158,7 @@ only shrink.
 - **WHEN** the change that adopts enforcement records its residual debt, or an empty list if none remains
 - **THEN** the required check accepts the new baseline, because the base commit has none
 - **AND** each entry still has to match a live residual-debt exception
-- **AND** each entry names one occurrence by file, rule, issue, line number and trimmed source text
+- **AND** each entry names one occurrence by file, rule, issue, occurrence index among identical lines, and trimmed source text
 
 #### Scenario: A later change removes the baseline
 
@@ -174,7 +174,13 @@ only shrink.
 #### Scenario: A residual-debt exception moves to another identical line
 
 - **WHEN** a change repairs the original line and places the same exception on another line in that file with the same rule, issue and source text
-- **THEN** verification fails because the baseline entry's line number no longer matches
+- **THEN** verification fails because the occurrence index no longer matches
+
+#### Scenario: A line above a residual-debt exception shifts
+
+- **WHEN** a change inserts or removes a line above a residual-debt exception and leaves that exception on the same occurrence
+- **THEN** verification passes
+- **AND** updating only the recorded line number in the baseline also passes
 
 #### Scenario: A new violation lands in a file with recorded debt
 
