@@ -210,8 +210,11 @@ deleted. That set is wider than `tests/unit/apps`, `tests/unit/packages` and
 `tests/fixtures/base-ui-compliance`; it includes
 `tests/e2e/react-cleanup-memory.spec.ts` and
 `tests/unit/scripts/shadcn-config-guardrails.test.ts`. The final-head check compares each complete assertion span on `develop`
-with the head, from `expect(` or `assert.` through its matching close,
-including a callback body. A substring search of changed lines misses an
+with the head. A span starts at `expect(` or `assert.` and runs to the end
+of the whole assertion expression: chained modifiers and matchers such as
+`.not`, `.resolves` and `.toEqual(...)`, their arguments, and any callback
+body. Ending at the close of `expect(` alone would let a changed matcher
+pass. A substring search of changed lines misses an
 edit inside the `page.evaluate` callback of `expect.poll` in
 `tests/e2e/react-cleanup-memory.spec.ts`. Added `it(` or `test(` cases are
 allowed. Those declarations are not assertions.
