@@ -81,6 +81,10 @@ docs/ai/skills/impeccable/scripts/impeccable.cmd text eol=lf
 # CRLF and Markdown hard breaks. Its source manifest verifies exact contents.
 docs/features/missionary-workspace-depth/grill/** -text -eol whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
 
+# Exact Phase 29 session and founder evidence; formal volumes stay ordinary LF.
+docs/features/files-documents/** -text -eol whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
+docs/prds/sitestacker-parity/phase-29-files-documents/founder-brief.txt -text -eol whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
+
 # Published owner-diff snapshot: blank context lines contain a required space.
 docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/owner-amendments.patch whitespace=-blank-at-eol,-space-before-tab
 

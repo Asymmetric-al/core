@@ -1,0 +1,302 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-22T20:40:37.471097+00:00",
+  "status": "local-qualified-awaiting-independent-review-ci-previews",
+  "baseCommit": "a45f56701378726bfc531e56ab6f5be64ff59e53",
+  "branch": "chore/AL-1965-observability-content-sdks",
+  "declarationsChanged": 9,
+  "manifestsChanged": 5,
+  "cohort": {
+    "@sentry/nextjs": "11.8.0",
+    "html-react-parser": "6.1.9",
+    "isomorphic-dompurify": "4.6.0",
+    "resend": "6.34.1",
+    "@stripe/stripe-js": "10.1.0",
+    "@stripe/react-stripe-js": "7.0.0 (maintained current)"
+  },
+  "runtime": {
+    "node": "24.22.1",
+    "bun": "1.4.3"
+  },
+  "baselineLockSha256": "41d600008d888c6a412dea737c24d2e001e142d6aaa61480b7102c339ebb39cd",
+  "lockSha256": "aee0871fa89b9a7393f5f3f504c978a2b9177abc14363e6001837d63e213fd88",
+  "research": {
+    "path": "/tmp/core-modernization-sdk-cohort-readonly-research-20261022T195424Z-7e8905d0.json",
+    "sha256": "88c2f0b6a01fd6b5726867878b83f98460f740421e9ead8e27e549426ef279b9"
+  },
+  "researchBindingComparison": {
+    "path": "/tmp/core-sdk-cohort-baseline-registry-20261023.json",
+    "sha256": "a4aa768c721755dc85ab9ac8267027e29e0f2f66251af6ca0032b31bd0a83b3c"
+  },
+  "releaseFreeze": {
+    "path": "/tmp/core-sdk-cohort-release-freeze-20261023.json",
+    "sha256": "d24bde76bf18daf55b3ff7c239396b4e2f8b5739adcc9e1494a7e8f0eed8f354"
+  },
+  "passed": [
+    {
+      "kind": "clean-baseline-install-and-browser-privacy-red",
+      "path": "/tmp/core-sdk-cohort-cold-baseline-proof-20261023.json",
+      "sha256": "6b18613b8bf3e7570e2ef0da4c49c20867017b311dda079a03ed2659c63e3430"
+    },
+    {
+      "kind": "working-tree-scoped-typecheck-15-uncached",
+      "path": "/tmp/core-sdk-cohort-scoped-typecheck-local-write-20261023.json",
+      "sha256": "44adf663699f4b123c7b0c6fc8ecb199df2a9f5c9a48df39bdaab93556b34f30"
+    },
+    {
+      "kind": "clean-candidate-install-focused-tests-types-lint-wiring-drift",
+      "path": "/tmp/core-sdk-cohort-cold-final-proof-20261023.json",
+      "sha256": "e3d269c5822d1cc9bd48556a2569e97aaa6ab0c9fea69b22a51858ee3260da5d"
+    },
+    {
+      "kind": "three-serial-production-next-builds",
+      "path": "/tmp/core-sdk-cohort-offline-build-report-v2-20261023.json",
+      "sha256": "eca7f0d1dd8f51c8f4763d860632ff397efc9d89fcc2806e4f20aec58b37e960"
+    },
+    {
+      "kind": "local-data-url-network-attribution",
+      "path": "/tmp/core-sdk-cohort-offline-build-report-v3-20261023.json",
+      "sha256": "cad79bcf99abccea29dbf586cd2166ecf9d30f070aa5f55c7ecf87063cbc634c"
+    },
+    {
+      "kind": "workspace-contract",
+      "path": "/tmp/core-sdk-cohort-workspace-contract-20261023.json",
+      "sha256": "fd481eaa27afa304f45409bb6ead7a1498230df61d2f4579767fb100d1132e00"
+    },
+    {
+      "kind": "typescript-toolchain",
+      "path": "/tmp/core-sdk-cohort-typescript-toolchain-20261023.json",
+      "sha256": "11ffa8366a8b0b8008c28d9d49df3984becaf70e9b1bb022164c7e5d894b2fa2"
+    }
+  ],
+  "results": {
+    "baselineTests": 130,
+    "baselineFiles": 12,
+    "focusedTests": 259,
+    "focusedFiles": 27,
+    "consumerTypecheckTargets": 15,
+    "cachedTypecheckTargets": 0,
+    "supplementaryFixtureFiles": 6,
+    "focusedLintErrors": 0,
+    "focusedLintWarnings": 0,
+    "appBuilds": [
+      {
+        "app": "admin",
+        "exit": 0,
+        "buildIdPresent": true,
+        "logSha256": "806b585000a3b2da2000ac653f25ff2049fa83cb1376fd53aced91adbb89d461"
+      },
+      {
+        "app": "donor",
+        "exit": 0,
+        "buildIdPresent": true,
+        "logSha256": "90904c2d52838d2c3ee89b7b72fb93bf3ee2614a944b2154c1c46b316d00b79a"
+      },
+      {
+        "app": "missionary",
+        "exit": 0,
+        "buildIdPresent": true,
+        "logSha256": "802c372011edf0c268f0fc525084bb73ab3209eff861b3e9f9f7b56253369cd9"
+      }
+    ],
+    "coldInstallLockUnchanged": true,
+    "sentryVerifier": "pass",
+    "lockDriftVerifier": "pass"
+  },
+  "behavior": {
+    "sharedSentryPolicy": "Existing explicit collection/static tracing/profiling/sampling and hooks retained; request-header deny extends only referer/referrer values in all 10 initialization paths.",
+    "nodeRefererReachability": "All 3 instrumentation hooks export captureRequestError; SDK copies incoming headers to normalizedRequest and default RequestData collects headers. Real SDK hook regression proves full header values filtered.",
+    "sentryBuilder": "bundleSizeOptimizations.excludeDebugStatements; no unsupported release.inject; release.name and auth-gated uploads preserved; telemetry false.",
+    "html": "Actual DOMPurify/html-react-parser through server render and client DOM, html-only string boundary unchanged.",
+    "resend": "Real local signed webhook verification and tamper/stale rejection; dot segments rejected before denied fetch; existing retry/idempotency/consumer contracts preserved.",
+    "stripeBrowser": "Actual standard/pure loader modules share one intercepted script and settle concurrent caller keys; existing mocked checkout/Elements contracts still pass."
+  },
+  "buildBoundary": {
+    "credentialLinkDetached": true,
+    "minimalSyntheticChildEnvironment": true,
+    "sourceMapUploadAuthPresent": false,
+    "applicationDsnsPresent": false,
+    "telemetryDisabled": [
+      "Next build diagnostics",
+      "Sentry bundler diagnostics"
+    ],
+    "compilerIpcEvents": 64,
+    "allowedIpc": "Only compiler-worker argv[1] under this checkout apps/<app>/.next/build, host 127.0.0.1 and port equal numeric argv[2].",
+    "deniedLocalDataUrlFetches": 1,
+    "externalTransportAttemptsObserved": 0,
+    "nodeGuardIsOsFirewall": false,
+    "remoteCacheUsed": false,
+    "eveArtifactModeEnvironmentSupplied": true,
+    "eveFullBuildOrRuntimeSandboxQualified": false,
+    "sourceMapUploadAndProviderDeliveryQualified": false
+  },
+  "security": {
+    "graph": {
+      "path": "/tmp/core-sdk-cohort-graph-audit-report-20261023.json",
+      "sha256": "eb9594c0f1941136c31d00792b72fdf3bb979f5eefba089c405cdf8e887bd76e"
+    },
+    "baselineAudit": {
+      "path": "/tmp/core-sdk-cohort-baseline-audit-20261023.log",
+      "sha256": "7abefec5ade4926b84ab28dcafe951cffe3f4441c613ff1f9dd269e4e874e13f",
+      "names": 33,
+      "rangeRecords": 85,
+      "uniqueAdvisories": 74,
+      "bySeverity": {
+        "low": 14,
+        "high": 24,
+        "moderate": 46,
+        "critical": 1
+      }
+    },
+    "audit": {
+      "path": "/tmp/core-sdk-cohort-final-audit-20261023.log",
+      "sha256": "abf7cf51fefa1d7bf5d3fa31d327998dde584e3f80dcd1c80c3d5bf51967750f",
+      "names": 33,
+      "rangeRecords": 84,
+      "uniqueAdvisories": 73,
+      "bySeverity": {
+        "low": 14,
+        "high": 24,
+        "moderate": 46
+      }
+    },
+    "baselineAffectedLockEntries": 58,
+    "currentAffectedLockEntries": 57,
+    "baselineAffectedPairs": 114,
+    "currentAffectedPairs": 111,
+    "removedPairs": [
+      {
+        "key": "dompurify",
+        "name": "dompurify",
+        "version": "3.4.16",
+        "integrity": "sha512-sqo+pNp3qRhCIpbgRi1y8Tgk27Bo2Ry7w0dC1NBeNTdZChWjz9Xb/KOoZbRP/R6pQZ80Qw8YhXw13hWWBbMRnQ==",
+        "advisory": "https://github.com/advisories/GHSA-cg2g-xh64-v4q7",
+        "severity": "critical",
+        "range": ">=3.4.4 <=3.4.16"
+      },
+      {
+        "key": "dompurify",
+        "name": "dompurify",
+        "version": "3.4.16",
+        "integrity": "sha512-sqo+pNp3qRhCIpbgRi1y8Tgk27Bo2Ry7w0dC1NBeNTdZChWjz9Xb/KOoZbRP/R6pQZ80Qw8YhXw13hWWBbMRnQ==",
+        "advisory": "https://github.com/advisories/GHSA-mrv2-3pqr-j5jr",
+        "severity": "high",
+        "range": "<=3.4.16"
+      },
+      {
+        "key": "dompurify",
+        "name": "dompurify",
+        "version": "3.4.16",
+        "integrity": "sha512-sqo+pNp3qRhCIpbgRi1y8Tgk27Bo2Ry7w0dC1NBeNTdZChWjz9Xb/KOoZbRP/R6pQZ80Qw8YhXw13hWWBbMRnQ==",
+        "advisory": "https://github.com/advisories/GHSA-c6gr-qvv4-5v3f",
+        "severity": "low",
+        "range": "<=3.4.16"
+      }
+    ],
+    "introducedPairs": [],
+    "requiredOptionalClosures": [
+      {
+        "root": "@sentry/nextjs",
+        "entries": 96,
+        "affectedPairs": 0,
+        "missingRequiredEdges": [],
+        "peerExpandedEntries": 273,
+        "peerExpandedAffectedPairs": 4
+      },
+      {
+        "root": "html-react-parser",
+        "entries": 12,
+        "affectedPairs": 0,
+        "missingRequiredEdges": [],
+        "peerExpandedEntries": 15,
+        "peerExpandedAffectedPairs": 0
+      },
+      {
+        "root": "isomorphic-dompurify",
+        "entries": 39,
+        "affectedPairs": 0,
+        "missingRequiredEdges": [],
+        "peerExpandedEntries": 77,
+        "peerExpandedAffectedPairs": 0
+      },
+      {
+        "root": "resend",
+        "entries": 5,
+        "affectedPairs": 0,
+        "missingRequiredEdges": [],
+        "peerExpandedEntries": 30,
+        "peerExpandedAffectedPairs": 0
+      },
+      {
+        "root": "@stripe/react-stripe-js",
+        "entries": 6,
+        "affectedPairs": 0,
+        "missingRequiredEdges": [],
+        "peerExpandedEntries": 10,
+        "peerExpandedAffectedPairs": 0
+      },
+      {
+        "root": "@stripe/stripe-js",
+        "entries": 1,
+        "affectedPairs": 0,
+        "missingRequiredEdges": [],
+        "peerExpandedEntries": 1,
+        "peerExpandedAffectedPairs": 0
+      }
+    ],
+    "ownerAdvisorySeverity": "All three removed DOMPurify IDs are Low at primary owner sources; audit feed labels critical/high/low are retained separately.",
+    "dompurifyModePrerequisites": "String/html-only Core sanitizer does not use SAFE_FOR_TEMPLATES plus DOM/shadow output, IN_PLACE hooks, or XHTML/SMIL modes. Version-pair removal does not prove previously reachable critical XSS.",
+    "remainingOwnership": [
+      "Babel/Browserslist/braces inherited peer/build chains",
+      "Payload/Monaco DOMPurify3.2.7",
+      "Inngest/OpenTelemetry older instrumentation chains",
+      "Whole retained graph remains affected at 57 locked entries; named chains are examples"
+    ],
+    "exceptionsGranted": 0
+  },
+  "opaqueInputHandling": {
+    "initialBunInstallAutoEnvLoadObserved": true,
+    "agentReadOrCopiedCredentialBytes": false,
+    "valuesPrinted": false,
+    "providerCallsPerformed": false,
+    "argumentFixture": {
+      "path": "/tmp/core-sdk-cohort-bun-argument-proof-20261023.json",
+      "sha256": "0f3ca26a8daccc62dff311d20f82e2f85328b60fda90fe8f129d741921315a19"
+    },
+    "subsequentHandling": "Move only this checkout ignored symlink to an owned temporary path; restore identical symlink inode and target metadata in finally.",
+    "finalColdCandidateCredentialLinkAbsent": true,
+    "primaryTargetModified": false
+  },
+  "diagnosticsRetained": [
+    {
+      "kind": "initial network guard blocked compiler IPC; owned build stopped; corrected v2 builds pass",
+      "path": "/tmp/core-sdk-cohort-offline-build-report-20261023.json",
+      "sha256": "8af263c754693d5a6c597c870ebc74604f23cafaecac9b3695a357c907920b1c"
+    },
+    {
+      "kind": "initial cold lint found 2 type-import ordering warnings; corrected final cold lint0",
+      "path": "/tmp/core-sdk-cohort-cold-candidate-proof-20261023.json",
+      "sha256": "fc14517646e18605d1d6b8777c7d7c39c08b08a4c96974cdb9d8805a9fd72f20"
+    }
+  ],
+  "remaining": [
+    "Independent review of frozen22-path implementation",
+    "Reconcile and requalify on current develop, which advanced during this bounded implementation",
+    "Full preflight, browser/strict quality gates, exact-head CI and deployed previews",
+    "Remote source-map upload/runtime telemetry delivery with authorized provider inputs",
+    "Eve runtime/sandbox and remaining AI cohort",
+    "Backend Stripe serialization/drain/sandbox qualification",
+    "Whole-graph security and final combined release; no waiver",
+    "Commit, push, PR publication and merge not performed"
+  ],
+  "supplementaryTypingLimit": "Existing server test untyped jsdom import excluded from supplemental 6-file fixture typecheck; actual server code passed workspace types, builds and Vitest.",
+  "inventoryPreservation": "Only6 selected records change current uses/status/disposition/evidence; baseline uses, initialTarget, audit/provenance/owner fields and other 124 records stay intact.",
+  "currentDevelopReadback": {
+    "sha": "cc568c92c1cd283d82a4ef9c6d4be7dabe4efee4",
+    "startedAt": "2026-10-22T20:44:23.376901+00:00",
+    "completedAt": "2026-10-22T20:44:24.115220+00:00",
+    "method": "git ls-remote origin refs/heads/develop",
+    "qualificationBaseRemains": "a45f56701378726bfc531e56ab6f5be64ff59e53",
+    "integrationQualification": "pending; no rebase or current-develop claim"
+  }
+}

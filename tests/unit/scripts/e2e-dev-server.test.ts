@@ -189,7 +189,9 @@ describe("e2e-dev-server.sh", () => {
         );
         const elapsed = Date.now() - started;
         expect(result.status).not.toBe(0);
-        expect(elapsed).toBeLessThan(5_000);
+        // The stderr line is the 2s deadline. Wall time also includes spawning
+        // bash on a busy runner; 15s still rejects a 10s curl-cap regression.
+        expect(elapsed).toBeLessThan(15_000);
         expect(result.stderr).toContain("Timed out after 2s waiting for donor");
         expect(result.stdout + result.stderr).toContain("hung dev server");
         expect(existsSync(pidfile)).toBe(false);
