@@ -93,8 +93,8 @@ bunx --bun shadcn@latest add <component> --cwd packages/ui
 ### Shadcn install checklist
 
 - Run Shadcn commands from the repo root and always target the shared package with `--cwd packages/ui`.
-- Prefer `npx --yes shadcn@latest` for read-only `view`, `search`, `diff`, and registry inspection commands.
-- Run `npx --yes shadcn@latest view <item> --cwd packages/ui` before third-party installs so the source, dependencies, and targets are reviewed first.
+- Use `bunx --bun shadcn@latest` for read-only `view`, `search`, `diff`, and registry inspection commands. Do not use `npx` inside Core: npm 11 rejects it with `EOVERRIDE` because of the root `overrides.sharp` pin.
+- Run `bunx --bun shadcn@latest view <item> --cwd packages/ui` before third-party installs so the source, dependencies, and targets are reviewed first.
 - Use `--dry-run` or `--diff` before overwriting any existing component.
 - Never run `shadcn init` in apps; `packages/ui/components.json` is the shared integration point.
 - Avoid manual `components.json` edits except reviewed registry changes, and run `bun run verify:shadcn-config` after any edit.
@@ -104,6 +104,7 @@ bunx --bun shadcn@latest add <component> --cwd packages/ui
 - Prefer `gap-*` over `space-x-*` / `space-y-*` when composing new layouts.
 - Prefer the current shared `Field` / `InputGroup` patterns for form controls.
 - Use the Shadcn MCP when available, but still review CLI `view`, `--dry-run`, and `--diff` output before accepting generated changes.
+- The project Shadcn MCP (`shadcn` in `.mcp.json`, `.cursor/mcp.json`, and `.codex/config.toml`) starts through `scripts/shadcn/mcp.mjs`, which runs the workspace-installed shadcn (`bun x` with the same pin before `bun install`) from this package so the server sees every registry in `components.json`. Registry keys come from the environment.
 - For broad UI edits, run the non-blocking drift report with `bun run verify:shadcn-token-drift`.
 
 ### shadcnuikit registry installs
