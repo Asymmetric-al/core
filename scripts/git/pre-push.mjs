@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { repositoryGitEnvironment } from "./environment.mjs";
 import {
   evaluatePrePushGuard,
   parsePrePushUpdates,
@@ -29,7 +30,9 @@ export function runPrePush({
   if (updates.some((update) => targetsBranch(update)))
     args.push("--", "--full");
   const result = runCommand("bun", args, {
-    env,
+    // Preflight creates disposable repositories; hook-local Git variables must
+    // not redirect their commands into the repository being pushed.
+    env: repositoryGitEnvironment(env),
     stdio: "inherit",
   });
 
