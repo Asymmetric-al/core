@@ -18,7 +18,7 @@ const retainedSnapshots = new Set([
   "pdf",
 ]);
 
-// Reviewed baseline c4d36cb029121641b8882237632d0d6da434049e; this task adds only security-audit.
+// Reviewed baseline c4d36cb029121641b8882237632d0d6da434049e; this task adds security-audit and council.
 const baselineSkillNames = [
   "accessibility-review",
   "agent-browser",
@@ -546,7 +546,11 @@ function readLock() {
 
 describe("reviewed installed skill inventory", () => {
   it("accounts for every installed skill without adding unrelated pack skills", () => {
-    const expectedNames = [...baselineSkillNames, "security-audit"].sort();
+    const expectedNames = [
+      ...baselineSkillNames,
+      "security-audit",
+      "council",
+    ].sort();
     const { skills } = readLock();
 
     for (const runtimeRoot of runtimeRoots) {
@@ -714,7 +718,7 @@ describe("reviewed installed skill inventory", () => {
       "c4d36cb029121641b8882237632d0d6da434049e",
     );
     expect(audit.skills.map((skill) => skill.name).sort()).toEqual(
-      [...baselineSkillNames, "security-audit"].sort(),
+      [...baselineSkillNames, "security-audit", "council"].sort(),
     );
     expect(new Set(audit.skills.map((skill) => skill.name)).size).toBe(
       audit.skills.length,

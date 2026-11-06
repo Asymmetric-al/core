@@ -3,15 +3,15 @@
   "reviewedAt": "2026-10-22",
   "baselineCommit": "c4d36cb029121641b8882237632d0d6da434049e",
   "counts": {
-    "canonical": 134,
-    "runtimePerClient": 190,
-    "lockEntries": 150,
+    "canonical": 135,
+    "runtimePerClient": 191,
+    "lockEntries": 151,
     "outcomes": {
       "current": 89,
       "excluded": 1,
       "retained-snapshot": 12,
       "unresolved": 8,
-      "updated": 80
+      "updated": 81
     }
   },
   "treeHashAlgorithm": "SHA-256 of sorted POSIX relative path, NUL, file bytes, NUL; symlinks rejected.",
@@ -1827,6 +1827,43 @@
             "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
+        }
+      ]
+    },
+    {
+      "name": "council",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "t3dotgg/tstack",
+      "importedRef": "1085050f3baed1ac724caa4a8166145fb2ac88af",
+      "examinedRef": "1085050f3baed1ac724caa4a8166145fb2ac88af",
+      "sourcePath": "skills/council/SKILL.md",
+      "rawSkillHash": "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
+      "lockHash": "a1993f93b9157a8c73d4b8c16da267a3addd2bec94bcffb6b5f4caea23a8854b",
+      "entrypointHash": "cad90af8948a96bcba869996c8feb30bda5761b6145870895fcf2961ea73a949",
+      "treeHash": "51b394f9f6ca76e553b0b81587b2eeb00b0c9be9623913aa4cbeaa4d520fb081",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "8095f9a9f97d074131f6a2ce09b952d12c18b36f09f4e5df0517c4e64e82c851"
+          }
+        ]
+      },
+      "adaptations": [
+        "Complete council import with marked Core overlay; preserve upstream multi-provider review procedure and bind it to Core's instruction system."
+      ],
+      "evidence": "docs/ai/skills/council/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/t3dotgg/tstack/tree/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/council",
+          "rawSkillSha256": "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
+          "licenseSha256": "8095f9a9f97d074131f6a2ce09b952d12c18b36f09f4e5df0517c4e64e82c851",
+          "claim": "Complete reviewed source, root MIT notice, and marked Core overlay; imported code was not executed by refresh."
         }
       ]
     },
