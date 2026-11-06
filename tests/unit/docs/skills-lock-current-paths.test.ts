@@ -20,7 +20,41 @@ function readLock() {
 
 describe("skills lock current upstream paths", () => {
   it("keeps the current lockfile skill names", () => {
-    expect(Object.keys(readLock().skills)).toHaveLength(150);
+    expect(Object.keys(readLock().skills)).toHaveLength(151);
+  });
+
+  it("pins the reviewed tstack council source without the rest of the pack", () => {
+    const { skills } = readLock();
+    const provenance = readRepoFile(
+      "docs/ai/skills/council/references/upstream.md",
+    );
+
+    expect(skills.council).toMatchObject({
+      source: "t3dotgg/tstack",
+      sourceType: "github",
+      skillPath: "skills/council/SKILL.md",
+    });
+    expect(provenance).toContain(
+      "reviewed_commit: 1085050f3baed1ac724caa4a8166145fb2ac88af",
+    );
+    expect(provenance).toContain(
+      `skills_lock_hash: ${skills.council?.computedHash}`,
+    );
+    expect(readRepoFile("docs/ai/skills/council/LICENSE")).toContain(
+      "Copyright (c) 2026 Theo Browne",
+    );
+    for (const excluded of [
+      "full-send",
+      "full-stop",
+      "sol-loop",
+      "file-pr",
+      "takeover",
+      "babysit-pr",
+      "modernize",
+      "leaving-pr-comments",
+    ]) {
+      expect(Object.hasOwn(skills, excluded), excluded).toBe(false);
+    }
   });
 
   it("pins moved GitHub skill paths and the Resend CLI source", () => {

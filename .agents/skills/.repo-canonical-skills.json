@@ -28,6 +28,7 @@
     "components-build",
     "control-cli",
     "control-ui",
+    "council",
     "create-agent",
     "design-an-interface",
     "design-taste-frontend",
@@ -320,6 +321,11 @@
       "references/upstream.md"
     ],
     "control-ui": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "council": [
+      "LICENSE",
       "SKILL.md",
       "references/upstream.md"
     ],

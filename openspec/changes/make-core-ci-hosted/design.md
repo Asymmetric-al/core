@@ -2,11 +2,17 @@
 
 ## Context
 
-Current develop at `4329fa0089b9e166ee9a6f655bfd9eba8277b452` contains merged
+Work started from develop `4329fa0089b9e166ee9a6f655bfd9eba8277b452`, containing merged
 PR #2641. Its seven dynamic runner selections default to Proxmox; only the
 case-insensitive `github-hosted` override avoids local queues. See proposal.md
 for the requested reliability outcome. R1 currently requires exactly the two
 main workflows to retain self-hosted reachability.
+
+PR #2642 was first published at `02a3aa28d81538d00e4c4ca354cdd0360167ff98`.
+The feature branch then synchronized develop
+`8368004b339384eb98129a086ca71b7db88534ed` through an ordinary merge after
+concurrent accepted work advanced the base. Final-candidate qualification is
+recorded in that PR; earlier runs remain evidence for their own tested revision.
 
 ## Goals / Non-Goals
 

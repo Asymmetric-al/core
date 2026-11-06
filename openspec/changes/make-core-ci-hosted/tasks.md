@@ -41,3 +41,15 @@ the final compilation-policy/#2153 run passed 115 tests. The #2258 full CI-doc
 fingerprint was recalculated only after reviewing the terminal pointer change;
 its 40,204-byte content now hashes to
 `8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed`.
+
+Initial publication evidence: candidate
+`02a3aa28d81538d00e4c4ca354cdd0360167ff98` passed normal required pre-push
+`ci:preflight` (1,070 files, 11,225 tests passed) and `test:acceptance` (2,178
+passed). All three app builds also passed with Turbo forced to execute. That
+force setting caused two cache-contract failures when inherited by the first
+unit invocation; this container's non-reaping PID 1 caused one unchanged process
+cleanup fixture to fail. Normal cache settings plus a local-only subreaper
+restored all 32 tests in those unchanged suites and the complete preflight.
+No test assertion, CI policy or hook was bypassed. PR #2642 records subsequent
+final-revision runs after synchronizing accepted develop changes; qualification
+tasks remain pending until those results and reviews are inspected.
