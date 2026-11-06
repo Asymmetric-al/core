@@ -25,10 +25,10 @@ const sql = () => {
 /** sha256 of the 85 other exceptions entry lines at develop 0727d810, trimmed, "\n"-joined. */
 const OTHERS_SHA =
   "9b004012247680c8b1bb83b2f3838752251789e71ea5b2cdb4e2c9d682d4e151";
-/** docs/ci.md develop byte prefix (#2250's CI_BASES). */
+/** Reviewed hosted-only R1 pointer amendment to #2250's CI-doc prefix. */
 const CI_BASE = {
-  bytes: 40058,
-  sha256: "f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b",
+  bytes: 40204,
+  sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
 };
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
 const DOC_RULES = String.raw`anon ~ authenticated ~ service_role ~ SELECT, INSERT, UPDATE ~ auth\.uid\(\) ~ authz\.current_tenant_id\(\) ~ cross[- ]tenant ~ default (privileges|grants) ~ DELETE ~ #2251 ~ #668 ~ Down`;

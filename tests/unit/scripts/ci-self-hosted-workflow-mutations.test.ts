@@ -60,6 +60,9 @@ import {
   resolveRunSettings,
   runStepShellArgv,
   isSelfHostedJob,
+  isHostedUbuntuLatest,
+  evaluateFlag,
+  type EventScenario,
   needsList,
   parseWorkflowSource,
   renderStepText,
@@ -111,6 +114,19 @@ function mutate(
     expectedCount,
   );
   return text.split(from).join(to);
+}
+
+/** Reintroduce a routing expression in the two explicitly fork-rejecting jobs. */
+function mutateRejectRunsOn(text: string, expression: string): string {
+  for (const id of ["migrate", "smoke"]) {
+    const pattern = new RegExp(
+      `(^  ${id}:\\n[\\s\\S]*?    runs-on:) ubuntu-latest\\n`,
+      "m",
+    );
+    expect(text.match(pattern), `${id} literal hosted runner`).not.toBeNull();
+    text = text.replace(pattern, `$1 >-\n      ${expression}\n`);
+  }
+  return text;
 }
 
 /** Add a step-level key line right after the step's `- name:` line. */
@@ -206,7 +222,125 @@ const ciGateRun = (jobs: WorkflowJobs, overrides: Record<string, string>) =>
     outputs: { "compilation-plan": { requested: "true" } },
   });
 
-describe("MAJOR-4: trigger set is pinned on workflows that host self-hosted jobs", () => {
+/** Hosted policy inventory stays explicit even when self-hosted discovery is empty. */
+const HOSTED_CI_JOBS = {
+  [CI]: ["build", "test-unit"],
+  [CI_INTEGRATION]: [
+    "migrate",
+    "smoke",
+    "test-e2e-smoke",
+    "test-e2e",
+    "instant-nav",
+  ],
+} as const;
+
+describe("hosted-only CI routing", () => {
+  it("places all seven existing heavy jobs on full hosted Ubuntu VMs", () => {
+    let count = 0;
+    for (const file of WORKFLOWS) {
+      const jobs = jobsOf(source(file), file);
+      for (const id of HOSTED_CI_JOBS[file]) {
+        expect(jobs[id], `${file} ${id} exists`).toBeDefined();
+        expect(jobs[id]!["runs-on"], `${file} ${id}`).toBe("ubuntu-latest");
+        count += 1;
+      }
+    }
+    expect(count).toBe(7);
+  });
+
+  const stacked = EVENT_SCENARIOS.filter(
+    (scenario) =>
+      scenario.label.startsWith("pull_request") &&
+      (scenario.github as { base_ref: string }).base_ref === "develop",
+  ).map((scenario): EventScenario => {
+    const github = structuredClone(scenario.github) as {
+      base_ref: string;
+      event: { pull_request: { base: { ref: string } } };
+    };
+    github.base_ref = "feature/stacked-base";
+    github.event.pull_request.base.ref = "feature/stacked-base";
+    return { ...scenario, label: `${scenario.label} (stacked)`, github };
+  });
+  const scenarios = [...EVENT_SCENARIOS, ...stacked];
+  const fallbackValues = [
+    undefined,
+    "",
+    "github-hosted",
+    "GITHUB-HOSTED",
+    "GitHub-Hosted",
+    "typo",
+    "proxmox",
+  ];
+  const expectedNeeds: Record<string, string[]> = {
+    build: ["compilation-plan"],
+    "test-unit": [],
+    migrate: [],
+    smoke: ["migrate"],
+    "test-e2e-smoke": ["smoke"],
+    "test-e2e": ["smoke", "test-e2e-smoke"],
+    "instant-nav": [],
+  };
+
+  for (const file of WORKFLOWS) {
+    for (const id of HOSTED_CI_JOBS[file]) {
+      it(`${id}: retains event, trust and dependency behavior for every fallback value`, () => {
+        const job = jobsOf(source(file), file)[id]!;
+        expect(needsList(job), id).toEqual(expectedNeeds[id]);
+        // Existing execution budgets exceed five minutes; no admission/recovery
+        // timer or routing prerequisite interrupts a normally running job.
+        expect(job["timeout-minutes"], id).toBeGreaterThan(5);
+        for (const scenario of scenarios) {
+          const github = scenario.github as {
+            event_name: string;
+            base_ref: string;
+            ref: string;
+          };
+          const production =
+            github.base_ref === "production" ||
+            github.ref === "refs/heads/production";
+          const develop =
+            (github.event_name === "pull_request" &&
+              github.base_ref === "develop") ||
+            (github.event_name === "push" &&
+              github.ref === "refs/heads/develop");
+          const expectedRuns =
+            id === "migrate" || id === "smoke"
+              ? true
+              : !scenario.fork &&
+                (id === "test-e2e"
+                  ? github.event_name !== "merge_group"
+                  : id === "instant-nav"
+                    ? github.event_name === "workflow_dispatch" || production
+                    : true);
+          for (const fallback of fallbackValues) {
+            const needs = Object.fromEntries(
+              needsList(job).map((need) => [
+                need,
+                {
+                  result: "success",
+                  outputs: { requested: "true" },
+                },
+              ]),
+            );
+            const ctx = scenarioContext(scenario, needs);
+            ctx.contexts.vars =
+              fallback === undefined ? {} : { CI_RUNNER_FALLBACK: fallback };
+            const label = `${id} ${scenario.label} fallback=${String(fallback)}`;
+            expect(evaluateRunsOn(job["runs-on"], ctx), label).toEqual([
+              "ubuntu-latest",
+            ]);
+            expect(evaluateIfCondition(job.if, ctx), label).toBe(expectedRuns);
+            expect(evaluateFlag(job["continue-on-error"], ctx), label).toBe(
+              (id === "test-e2e" || id === "instant-nav") && develop,
+            );
+          }
+        }
+      });
+    }
+  }
+});
+
+describe("MAJOR-4: CI trigger coverage stays pinned after hosted migration", () => {
   it("the fork model covers exactly the pinned triggers", () => {
     expect([...MODELED_TRIGGER_EVENTS]).toEqual(PINNED_TRIGGERS);
   });
@@ -215,10 +349,13 @@ describe("MAJOR-4: trigger set is pinned on workflows that host self-hosted jobs
     describe(file, () => {
       const doc = parseWorkflowSource(source(file));
 
-      it("hosts self-hosted jobs (so the pin applies)", () => {
-        expect(
-          Object.values(workflowJobs(doc, file)).some(isSelfHostedJob),
-        ).toBe(true);
+      it("retains the explicit hosted workload inventory without self-hosted reachability", () => {
+        const jobs = workflowJobs(doc, file);
+        for (const id of HOSTED_CI_JOBS[file]) {
+          expect(jobs[id], `${file} ${id}`).toBeDefined();
+          expect(isHostedUbuntuLatest(jobs[id]!["runs-on"])).toBe(true);
+        }
+        expect(Object.values(jobs).some(isSelfHostedJob)).toBe(false);
       });
 
       it("triggers on exactly merge_group, pull_request, push and workflow_dispatch", () => {
@@ -259,17 +396,15 @@ describe("MAJOR-4: trigger set is pinned on workflows that host self-hosted jobs
 
 describe("MAJOR-1: fork-aware runs-on is evaluated with GitHub string comparison", () => {
   const mutated = () =>
-    mutate(
+    mutateRejectRunsOn(
       source(CI_INTEGRATION),
-      ") && 'ubuntu-latest' ||",
-      `) && ('a' < 'z' && ${PROXMOX_FROM_JSON} || 'ubuntu-latest') ||`,
-      2,
+      `\${{ ${FORK_ONLY_STEP_GUARD} && ('a' < 'z' && ${PROXMOX_FROM_JSON} || 'ubuntu-latest') || ${PROXMOX_FROM_JSON} }}`,
     );
 
   for (const jobId of ["migrate", "smoke"] as const) {
-    it(`${jobId}: real runs-on is fork-aware and fails closed`, () => {
+    it(`${jobId}: literal hosted runs-on retains fail-closed fork rejection`, () => {
       const job = jobsOf(source(CI_INTEGRATION), CI_INTEGRATION)[jobId]!;
-      expect(isForkAwareRunsOnExpression(job["runs-on"])).toBe(true);
+      expect(isHostedUbuntuLatest(job["runs-on"])).toBe(true);
       expect(requiredJobFailsClosedOnFork(job)).toBe(true);
     });
 
@@ -775,11 +910,9 @@ describe("MINOR-7: non-ASCII literals cannot fake a fork-aware runs-on", () => {
 
   for (const literal of ["('ı' == 'I')", "('ſ' == 'S')"]) {
     it(`rejects ${literal} && in the fork branch of migrate/smoke runs-on`, () => {
-      const mutated = mutate(
+      const mutated = mutateRejectRunsOn(
         source(CI_INTEGRATION),
-        condition,
-        condition.replace("${{ ", `\${{ ${literal} && `),
-        2,
+        `${condition.replace("${{ ", `\${{ ${literal} && `)} || ${PROXMOX_FROM_JSON} }}`,
       );
       const jobs = jobsOf(mutated, "MINOR-7");
       for (const jobId of ["migrate", "smoke"] as const) {
@@ -1426,11 +1559,9 @@ describe("MAJOR-9: pinned fork-reject if; unmodelled context members fail closed
   });
 
   it("an unmodelled member in the fork-aware runs-on is not fork-aware", () => {
-    const text = mutate(
+    const text = mutateRejectRunsOn(
       source(CI_INTEGRATION),
-      "head.repo.full_name != github.repository) || vars.CI_RUNNER_FALLBACK",
-      "head.repo.full_name != github.repository && github.job != 'x') || vars.CI_RUNNER_FALLBACK",
-      2,
+      `\${{ (${FORK_ONLY_STEP_GUARD} && github.job != 'x') && 'ubuntu-latest' || ${PROXMOX_FROM_JSON} }}`,
     );
     const jobs = jobsOf(text, "runs-on");
     for (const jobId of ["migrate", "smoke"] as const) {
@@ -2102,11 +2233,9 @@ describe("repair 6: pinned reject/gate if, whole-object functions, second value 
             jobId === "smoke" ? smokeNeeds : {},
           );
           const labels = evaluateRunsOn(job["runs-on"], ctx);
-          expect(labels, `${jobId} ${scenario.label}`).toEqual(
-            scenario.fork
-              ? ["ubuntu-latest"]
-              : ["self-hosted", "linux", "x64", "proxmox"],
-          );
+          expect(labels, `${jobId} ${scenario.label}`).toEqual([
+            "ubuntu-latest",
+          ]);
           // Step-level success() reflects earlier steps (none before step 0).
           const stepCtx = {
             ...ctx,
