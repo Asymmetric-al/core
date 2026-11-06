@@ -389,7 +389,7 @@ function OperationLoadingSection({
           Loading current gift values…
         </p>
         <div className="flex justify-end">
-          <Button variant="outline" className="h-11" onClick={onClose}>
+          <Button variant="outline" size="lg" onClick={onClose}>
             Cancel
           </Button>
         </div>
@@ -429,7 +429,8 @@ function OperationBlockedSection({
         {operationBlock && onOpenFullDetail && donationId && (
           <Button
             variant="outline"
-            className="mt-3 h-11"
+            size="lg"
+            className="mt-3"
             onClick={() => onOpenFullDetail(donationId)}
           >
             View full contribution detail
@@ -452,7 +453,7 @@ function OperationRiskNotices({
       {pendingRefundMessage && (
         <Alert role="status" data-testid="pending-refund-notice">
           <Clock3 className="size-4" aria-hidden />
-          <AlertDescription className="text-xs">
+          <AlertDescription>
             {pendingRefundMessage} Submitting another refund is blocked until
             the provider confirms or the pending refund fails.
           </AlertDescription>
@@ -461,9 +462,7 @@ function OperationRiskNotices({
 
       {operation.riskCopy && (
         <Alert role="note">
-          <AlertDescription className="text-xs">
-            {operation.riskCopy}
-          </AlertDescription>
+          <AlertDescription>{operation.riskCopy}</AlertDescription>
         </Alert>
       )}
 
@@ -516,7 +515,6 @@ function OperationAmountField({
               amountDollars: event.target.value,
             }));
           }}
-          className="h-11"
         />
         {isRefundOperation && (
           <FieldDescription>
@@ -563,7 +561,6 @@ function OperationFundField({
               fundId: event.target.value,
             }));
           }}
-          className="h-11"
         />
         <FieldError
           id={`${fundId}-error`}
@@ -682,10 +679,7 @@ function OperationConfirmationField({
           className="mt-0.5"
         />
         <FieldContent>
-          <Label
-            htmlFor={confirmId}
-            className="text-sm font-normal leading-snug"
-          >
+          <Label htmlFor={confirmId}>
             I reviewed the current values and downstream effects and want to
             submit this change.
           </Label>
@@ -761,12 +755,12 @@ function OperationFormActions({
 }) {
   return (
     <div className="flex flex-wrap justify-end gap-2 pt-1">
-      <Button variant="outline" className="h-11" onClick={onClose}>
+      <Button variant="outline" size="lg" onClick={onClose}>
         {needsStaleDraftRecovery ? "Discard draft" : "Cancel"}
       </Button>
       {needsStaleDraftRecovery ? (
         <Button
-          className="h-11"
+          size="lg"
           disabled={detailQuery.isFetching}
           focusableWhenDisabled={detailQuery.isFetching}
           aria-labelledby={`${confirmId}-reload-label`}
@@ -780,7 +774,7 @@ function OperationFormActions({
         </Button>
       ) : (
         <Button
-          className="h-11"
+          size="lg"
           disabled={
             Boolean(validationMessage) ||
             Boolean(pendingRefundMessage) ||
@@ -893,17 +887,13 @@ function OperationResultActions({
       {onOpenFullDetail && donationId && (
         <Button
           variant="outline"
-          className="h-11"
+          size="lg"
           onClick={() => onOpenFullDetail(donationId)}
         >
           View full contribution detail
         </Button>
       )}
-      <Button
-        aria-label="Close operation result"
-        className="h-11"
-        onClick={onClose}
-      >
+      <Button aria-label="Close operation result" size="lg" onClick={onClose}>
         Close
       </Button>
     </div>
@@ -1320,16 +1310,11 @@ function ContributionOperationDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <DialogContent
-        className="gap-4 p-5 max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:max-h-[92dvh] max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-y-auto max-sm:rounded-b-none sm:max-w-lg"
-        data-testid="contribution-operation-shell"
-      >
+      <DialogContent scrollable data-testid="contribution-operation-shell">
         <DialogTitle className="text-base font-semibold">
           {operation.title}
         </DialogTitle>
-        <DialogDescription className="text-sm text-muted-foreground">
-          {operation.description}
-        </DialogDescription>
+        <DialogDescription>{operation.description}</DialogDescription>
 
         <OperationLoadingSection
           detailLoading={detailLoading}

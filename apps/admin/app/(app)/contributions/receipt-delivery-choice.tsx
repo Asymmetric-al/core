@@ -9,7 +9,6 @@ import {
   RadioGroupItem,
 } from "@asym/ui/components/shadcn/radio-group";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { cn } from "@asym/ui/lib/utils";
 import { useId } from "react";
 
 import {
@@ -114,27 +113,23 @@ export function ReceiptDeliveryChoiceField({
             onChange({ ...value, choice: next });
           }
         }}
-        className="gap-2"
       >
         {receiptDelivery.options.map((option) => {
           const itemId = `${groupId}-${option.choice}`;
 
           return (
             <div key={option.choice} className="space-y-1">
-              <div className="flex items-start gap-2">
+              <div
+                className="group flex items-start gap-2"
+                data-disabled={option.available ? undefined : "true"}
+              >
                 <RadioGroupItem
                   id={itemId}
                   value={option.choice}
                   disabled={!option.available}
                   className="mt-0.5"
                 />
-                <Label
-                  htmlFor={itemId}
-                  className={cn(
-                    "text-sm font-normal leading-snug",
-                    !option.available && "text-muted-foreground",
-                  )}
-                >
+                <Label htmlFor={itemId}>
                   {optionDisplayLabel(
                     option.choice,
                     receiptDelivery.donor.email,

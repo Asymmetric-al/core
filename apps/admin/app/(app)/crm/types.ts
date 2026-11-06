@@ -1,4 +1,8 @@
 import type { CrmDonorDetailResponse, CrmGridRow } from "@asym/database/types";
+import type { Badge } from "@asym/ui/components/shadcn/badge";
+import type { ComponentProps } from "react";
+
+type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 
 export type { CrmGridRow };
 
@@ -60,11 +64,10 @@ export function toCrmRecordFromDetail(
   };
 }
 
-export const PORTAL_BADGE_CLASS: Record<
+export const PORTAL_BADGE_VARIANT: Record<
   CrmGridRow["portalAccessLabel"],
-  string
+  BadgeVariant
 > = {
-  linked:
-    "bg-emerald-50 text-emerald-800 border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900",
-  none: "bg-muted text-muted-foreground border-border",
+  linked: "success",
+  none: "secondary",
 };

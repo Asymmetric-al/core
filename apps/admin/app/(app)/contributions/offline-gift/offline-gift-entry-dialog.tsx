@@ -15,13 +15,13 @@ import {
 import {
   Field,
   FieldContent,
-  FieldLabel,
+  FieldLegend,
+  FieldTitle,
 } from "@asym/ui/components/shadcn/field";
 import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@asym/ui/components/shadcn/toggle-group";
-import { cn } from "@asym/ui/lib/utils";
 import {
   CircleAlert,
   CircleCheck,
@@ -60,9 +60,6 @@ const modeToggleOptions: {
   },
 ];
 
-const LABEL_CLASS =
-  "text-[9px] font-bold uppercase tracking-widest text-muted-foreground";
-
 const SUBMIT_TIMEOUT_MS = 15_000;
 const GENERIC_RECORDING_ERROR =
   "We couldn't record this gift. Please review the details and try again.";
@@ -95,7 +92,7 @@ export function OfflineGiftEntryDialog({
   // entries (matches the task-form pattern).
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto rounded-2xl p-0 sm:max-w-140">
+      <DialogContent scrollable className="sm:max-w-140">
         {open ? (
           <OfflineGiftEntryForm
             onClose={() => onOpenChange(false)}
@@ -185,24 +182,25 @@ function OfflineGiftEntryForm({
 
   return (
     <form
+      className="grid gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         event.stopPropagation();
         void form.handleSubmit();
       }}
     >
-      <DialogHeader className="space-y-1 border-b border-border px-6 pt-6 pb-4">
-        <DialogTitle className="flex items-center gap-2 text-base">
+      <DialogHeader className="space-y-1">
+        <div className="flex items-center gap-2">
           <HandCoins className="size-4 text-muted-foreground" />
-          Enter offline gift
-        </DialogTitle>
-        <DialogDescription className="text-xs text-muted-foreground">
+          <DialogTitle className="text-base">Enter offline gift</DialogTitle>
+        </div>
+        <DialogDescription className="text-xs">
           Record a cash, check, or stock gift received outside the online flow.
           No card is charged.
         </DialogDescription>
       </DialogHeader>
 
-      <div className="space-y-5 px-6 py-5">
+      <div className="space-y-5">
         <form.Subscribe
           selector={(state) => ({
             donorMode: state.values.donorMode,
@@ -280,7 +278,7 @@ function OfflineGiftEntryForm({
         ) : null}
       </div>
 
-      <DialogFooter className="gap-2 border-t border-border px-6 py-4 sm:gap-2">
+      <DialogFooter>
         <Button onClick={handleClose} type="button" variant="outline">
           Cancel
         </Button>
@@ -390,9 +388,10 @@ function ModeToggle({
   value: OfflineGiftFormValues["donorMode"];
   onChange: (mode: OfflineGiftFormValues["donorMode"]) => void;
 }) {
+  const hintIdPrefix = useId();
   return (
     <fieldset>
-      <legend className={cn(LABEL_CLASS, "mb-2")}>Donor</legend>
+      <FieldLegend variant="label">Donor</FieldLegend>
       <ToggleGroup
         aria-label="Donor mode"
         value={[value]}
@@ -401,29 +400,25 @@ function ModeToggle({
           if (next === "known" || next === "unknown_offline") onChange(next);
         }}
         spacing={2}
+        variant="outline"
         className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2"
       >
         {modeToggleOptions.map((option) => {
-          const active = option.mode === value;
+          const hintId = `${hintIdPrefix}-${option.mode}`;
           return (
-            <ToggleGroupItem
-              value={option.mode}
-              className={cn(
-                "flex h-auto flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-colors data-pressed:bg-primary/5 data-pressed:text-foreground",
-                active
-                  ? "border-primary bg-primary/5 ring-1 ring-primary/40"
-                  : "border-border bg-card hover:bg-accent",
-              )}
-              key={option.mode}
-              type="button"
-            >
-              <span className="text-sm font-medium text-foreground">
+            <div className="flex flex-col gap-1" key={option.mode}>
+              <ToggleGroupItem
+                aria-describedby={hintId}
+                className="w-full"
+                value={option.mode}
+                type="button"
+              >
                 {option.label}
-              </span>
-              <span className="text-xs text-muted-foreground">
+              </ToggleGroupItem>
+              <span className="text-xs text-muted-foreground" id={hintId}>
                 {option.hint}
               </span>
-            </ToggleGroupItem>
+            </div>
           );
         })}
       </ToggleGroup>
@@ -442,44 +437,44 @@ function DonorSection({
 }) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <SegBtn active={createNewDonor} onClick={() => onToggleCreate(true)}>
+      <ToggleGroup
+        aria-label="Donor record"
+        value={[createNewDonor ? "new" : "existing"]}
+        onValueChange={(values) => {
+          const next = values[0];
+          if (next === "new" || next === "existing") {
+            onToggleCreate(next === "new");
+          }
+        }}
+        spacing={2}
+        size="sm"
+        variant="outline"
+      >
+        <ToggleGroupItem value="new" type="button">
           New donor
-        </SegBtn>
-        <SegBtn active={!createNewDonor} onClick={() => onToggleCreate(false)}>
+        </ToggleGroupItem>
+        <ToggleGroupItem value="existing" type="button">
           Existing donor
-        </SegBtn>
-      </div>
+        </ToggleGroupItem>
+      </ToggleGroup>
 
       {createNewDonor ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <form.AppField name="firstName">
             {(field) => (
-              <field.TextField
-                inputClassName="rounded-xl text-sm"
-                label="First name *"
-                labelClassName={LABEL_CLASS}
-                placeholder="Ada"
-              />
+              <field.TextField label="First name *" placeholder="Ada" />
             )}
           </form.AppField>
           <form.AppField name="lastName">
             {(field) => (
-              <field.TextField
-                inputClassName="rounded-xl text-sm"
-                label="Last name *"
-                labelClassName={LABEL_CLASS}
-                placeholder="Lovelace"
-              />
+              <field.TextField label="Last name *" placeholder="Lovelace" />
             )}
           </form.AppField>
           <form.AppField name="email">
             {(field) => (
               <field.TextField
                 className="sm:col-span-2"
-                inputClassName="rounded-xl text-sm"
                 label="Email (optional)"
-                labelClassName={LABEL_CLASS}
                 placeholder="donor@example.org"
                 type="email"
               />
@@ -491,9 +486,7 @@ function DonorSection({
           {(field) => (
             <field.TextField
               description="Paste an existing donor's ID. A searchable donor picker lands with the Gate-8 data wiring."
-              inputClassName="rounded-xl text-sm"
               label="Existing donor ID *"
-              labelClassName={LABEL_CLASS}
               placeholder="donor UUID"
             />
           )}
@@ -520,37 +513,26 @@ function GiftFactsSection({
       <form.AppField name="amount">
         {(field) => (
           <field.TextField
-            inputClassName="rounded-xl text-sm"
             inputMode="decimal"
             label="Amount (USD) *"
-            labelClassName={LABEL_CLASS}
             placeholder="0.00"
             type="number"
           />
         )}
       </form.AppField>
       <form.AppField name="receivedDate">
-        {(field) => (
-          <field.TextField
-            inputClassName="rounded-xl text-sm"
-            label="Received date *"
-            labelClassName={LABEL_CLASS}
-            type="date"
-          />
-        )}
+        {(field) => <field.TextField label="Received date *" type="date" />}
       </form.AppField>
       <form.AppField name="method">
         {(field) => (
           <field.SelectField
             className="sm:col-span-2"
             label="Method *"
-            labelClassName={LABEL_CLASS}
             options={methodOptions.map((option) => ({
               label: option.label,
               value: option.value,
             }))}
             placeholder="Select method"
-            triggerClassName="rounded-xl text-sm"
           />
         )}
       </form.AppField>
@@ -567,41 +549,35 @@ function DesignationSection({
 }) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <SegBtn
-          active={designationType === "fund"}
-          onClick={() => form.setFieldValue("designationType", "fund")}
-        >
+      <ToggleGroup
+        aria-label="Designation type"
+        value={[designationType]}
+        onValueChange={(values) => {
+          const next = values[0];
+          if (next === "fund" || next === "missionary") {
+            form.setFieldValue("designationType", next);
+          }
+        }}
+        spacing={2}
+        size="sm"
+        variant="outline"
+      >
+        <ToggleGroupItem value="fund" type="button">
           Fund
-        </SegBtn>
-        <SegBtn
-          active={designationType === "missionary"}
-          onClick={() => form.setFieldValue("designationType", "missionary")}
-        >
+        </ToggleGroupItem>
+        <ToggleGroupItem value="missionary" type="button">
           Missionary
-        </SegBtn>
-      </div>
+        </ToggleGroupItem>
+      </ToggleGroup>
 
       {designationType === "fund" ? (
         <form.AppField name="fundId">
-          {(field) => (
-            <field.TextField
-              inputClassName="rounded-xl text-sm"
-              label="Fund *"
-              labelClassName={LABEL_CLASS}
-              placeholder="fund ID"
-            />
-          )}
+          {(field) => <field.TextField label="Fund *" placeholder="fund ID" />}
         </form.AppField>
       ) : (
         <form.AppField name="missionaryId">
           {(field) => (
-            <field.TextField
-              inputClassName="rounded-xl text-sm"
-              label="Missionary *"
-              labelClassName={LABEL_CLASS}
-              placeholder="missionary ID"
-            />
+            <field.TextField label="Missionary *" placeholder="missionary ID" />
           )}
         </form.AppField>
       )}
@@ -616,7 +592,6 @@ function KnownGiftOptions({ form }: { form: OfflineForm }) {
         {(field) => (
           <field.SwitchField
             label="Donor requested a tax receipt"
-            labelClassName="text-sm font-medium"
             orientation="horizontal"
           />
         )}
@@ -625,7 +600,6 @@ function KnownGiftOptions({ form }: { form: OfflineForm }) {
         {(field) => (
           <field.SwitchField
             label="Hide donor identity from the missionary"
-            labelClassName="text-sm font-medium"
             orientation="horizontal"
           />
         )}
@@ -634,7 +608,6 @@ function KnownGiftOptions({ form }: { form: OfflineForm }) {
         {(field) => (
           <field.SwitchField
             label="Hide donor identity from public reports"
-            labelClassName="text-sm font-medium"
             orientation="horizontal"
           />
         )}
@@ -649,9 +622,7 @@ function OptionalMetaSection({ form }: { form: OfflineForm }) {
       <form.AppField name="referenceNumber">
         {(field) => (
           <field.TextField
-            inputClassName="rounded-xl text-sm"
             label="Check / reference number (optional)"
-            labelClassName={LABEL_CLASS}
             placeholder="e.g. chk-4021"
           />
         )}
@@ -659,9 +630,7 @@ function OptionalMetaSection({ form }: { form: OfflineForm }) {
       <form.AppField name="internalNote">
         {(field) => (
           <field.TextareaField
-            inputClassName="min-h-16 resize-none rounded-xl text-sm"
             label="Internal note (optional)"
-            labelClassName={LABEL_CLASS}
             placeholder="Not shown to the donor"
           />
         )}
@@ -678,14 +647,12 @@ function ReceiptStatusPreview({
   const display = OFFLINE_RECEIPT_STATUS_DISPLAY[status];
   return (
     <Field data-slot="receipt-preview">
-      <FieldLabel className={LABEL_CLASS}>
-        <Receipt className="mr-1 inline size-3" /> Receipt status
-      </FieldLabel>
+      <FieldTitle>
+        <Receipt className="size-3" /> Receipt status
+      </FieldTitle>
       <FieldContent>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge className={cn("gap-1", display.className)} variant="outline">
-            {display.label}
-          </Badge>
+          <Badge variant={display.badgeVariant}>{display.label}</Badge>
           <span className="text-xs text-muted-foreground">
             {display.description}
           </span>
@@ -706,7 +673,7 @@ function OfflineGiftEntrySuccess({
 }) {
   const display = OFFLINE_RECEIPT_STATUS_DISPLAY[result.receiptStatus];
   return (
-    <div className="px-6 py-8" role="status">
+    <div className="py-2" role="status">
       <div className="flex flex-col items-center text-center">
         <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-success/10 text-success">
           <CircleCheck className="size-6" />
@@ -721,10 +688,7 @@ function OfflineGiftEntrySuccess({
           </code>{" "}
           was added.
         </p>
-        <Badge
-          className={cn("mt-3 gap-1", display.className)}
-          variant="outline"
-        >
+        <Badge className="mt-3" variant={display.badgeVariant}>
           {display.label}
         </Badge>
       </div>
@@ -741,30 +705,5 @@ function OfflineGiftEntrySuccess({
         </Button>
       </DialogFooter>
     </div>
-  );
-}
-
-function SegBtn({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      className={cn(
-        "rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
-        active
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-card text-muted-foreground hover:bg-accent",
-      )}
-      onClick={onClick}
-      type="button"
-    >
-      {children}
-    </button>
   );
 }

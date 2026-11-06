@@ -89,13 +89,13 @@ describe("#2201 criteria 4-6: required checks run and fail closed", () => {
     expect(gate).toEqual([]);
   });
   it.each("build test-unit migrate smoke test-e2e-smoke".split(" "))(
-    "%s runs on proxmox with no fork-reject step",
+    "%s runs on hosted Ubuntu without executing fork rejection",
     (id) => {
       const job = { ...jobs(CI), ...jobs(CII) }[id]!;
       const ctx = ctxFor(MG, job);
       expect(runs(job)).toBe(true);
       const labels = W.evaluateRunsOn(job["runs-on"] as string, ctx);
-      expect(labels).toEqual(["self-hosted", "linux", "x64", "proxmox"]);
+      expect(labels).toEqual(["ubuntu-latest"]);
       expect(evalIf(W.FORK_REJECT_IF, ctx)).toBe(false);
     },
   );
@@ -168,6 +168,11 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
    * reviewed file. A later spec'd step (e.g. #2250) adds exactly one entry
    * after its diff is reviewed; any unlisted fingerprint fails.
    */
+  const CI_PRINTS = [
+    { ref: "CI runner fallback", hash: "89fce96b9365d5a9" },
+    // Hosted-CI amendment: only build/test-unit runs-on become literal ubuntu-latest.
+    { ref: "Hosted CI baseline", hash: "cbe3c295f9dd6832" },
+  ] as const;
   const CII_PRINTS = [
     // develop
     { ref: "develop c541b84b", hash: "1078832efaff84e6" },
@@ -207,8 +212,10 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "#2407a after #2406", hash: "beea3b344a58ae76" },
     // GitHub-hosted runner fallback: self-hosted runs-on honour vars.CI_RUNNER_FALLBACK
     { ref: "CI runner fallback after #2407a", hash: "d5c4968b54a5018b" },
+    // Hosted-CI amendment: only the five heavy jobs' runs-on become literal ubuntu-latest.
+    { ref: "Hosted CI baseline after #2407a", hash: "e2884b2dac1415b3" },
   ] as const;
-  it("nothing but on: and test-e2e's if: changes (fingerprint)", () => {
+  it("non-trigger content matches an individually reviewed fingerprint", () => {
     const prints = [CI, CII].map((file) => {
       const { on: _on, ...rest } = doc(file);
       delete (rest.jobs as W.WorkflowJobs)["ci-gate-comment"];
@@ -218,7 +225,10 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
         .digest("hex")
         .slice(0, 16);
     });
-    expect(prints[0], "ci.yml fingerprint").toBe("89fce96b9365d5a9");
+    expect(
+      CI_PRINTS.map((p) => p.hash),
+      `ci.yml fingerprint ${prints[0]} is not reviewed`,
+    ).toContain(prints[0]);
     expect(
       CII_PRINTS.map((p) => p.hash),
       `ci-integration.yml fingerprint ${prints[1]} is not reviewed`,

@@ -2,8 +2,8 @@
  * Acceptance tests for GitHub issue #2158 — PR B (`.github/workflows/ci-integration.yml`).
  * Spec (rev 3, Blake-approved): {@link https://github.com/Asymmetric-al/core/issues/2158#issuecomment-6269823612}
  *
- * Owned by Acceptance. Implementers must not edit this file to satisfy their PR;
- * change the workflow to match the approved spec instead.
+ * Routing amended by the hosted-CI policy: direct ubuntu-latest placement;
+ * the original verification, fork and gate contracts remain in force.
  */
 
 import { describe, expect, it } from "vitest";
@@ -18,11 +18,9 @@ import {
   forkRejectStepIndex,
   ifExpression,
   isAlwaysExpression,
-  isForkAwareRunsOnExpression,
   isHostedUbuntuLatest,
   isHostedUbuntuSlim,
   isSelfHostedJob,
-  isSelfHostedRunsOn,
   jobRunsOn,
   loadWorkflowJobs,
   needsList,
@@ -31,17 +29,16 @@ import {
 
 const WORKFLOW_PATH = ".github/workflows/ci-integration.yml";
 
-type RunsOnExpectation =
-  "ubuntu-latest" | "ubuntu-slim" | "self-hosted" | "fork-aware";
+type RunsOnExpectation = "ubuntu-latest" | "ubuntu-slim";
 
-/** Spec rev 3 before/after table — `runs-on after` for every job in ci-integration.yml. */
+/** Complete job inventory, with the hosted-CI routing amendment. */
 const EXPECTED_RUNS_ON: Record<string, RunsOnExpectation> = {
-  migrate: "fork-aware",
-  smoke: "fork-aware",
-  "test-e2e-smoke": "self-hosted",
-  "test-e2e": "self-hosted",
+  migrate: "ubuntu-latest",
+  smoke: "ubuntu-latest",
+  "test-e2e-smoke": "ubuntu-latest",
+  "test-e2e": "ubuntu-latest",
   "e2e-smoke-gate": "ubuntu-slim",
-  "instant-nav": "self-hosted",
+  "instant-nav": "ubuntu-latest",
   "integration-gate": "ubuntu-slim",
   "e2e-gate": "ubuntu-latest",
 };
@@ -66,7 +63,7 @@ const MOVED_JOB_EXACT_TIMEOUT_MINUTES: Record<
   "instant-nav": 25,
 };
 
-const FORK_AWARE_REQUIRED = ["migrate", "smoke"] as const;
+const FORK_REJECT_REQUIRED = ["migrate", "smoke"] as const;
 
 const REQUIRED_CHECK_JOB_IDS = ["migrate", "smoke", "e2e-smoke-gate"] as const;
 
@@ -78,7 +75,7 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
     expect(jobIds).toEqual(Object.keys(EXPECTED_RUNS_ON).sort());
   });
 
-  describe("(a) runs-on mapping from spec rev 3 table", () => {
+  describe("(a) complete hosted runner mapping", () => {
     for (const [jobId, expected] of Object.entries(EXPECTED_RUNS_ON)) {
       it(`${jobId} → ${expected}`, () => {
         const job = jobs[jobId];
@@ -86,17 +83,11 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
 
         const runsOn = jobRunsOn(job);
         switch (expected) {
-          case "self-hosted":
-            expect(isSelfHostedRunsOn(runsOn)).toBe(true);
-            break;
           case "ubuntu-latest":
             expect(isHostedUbuntuLatest(runsOn)).toBe(true);
             break;
           case "ubuntu-slim":
             expect(isHostedUbuntuSlim(runsOn)).toBe(true);
-            break;
-          case "fork-aware":
-            expect(isForkAwareRunsOnExpression(runsOn)).toBe(true);
             break;
           default:
             throw new Error(`Unhandled expectation ${expected}`);
@@ -157,7 +148,7 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
       expect(containsSameRepoGuard(expr)).toBe(true);
     });
 
-    it("smoke keeps needs: migrate (fork path uses fork-aware runs-on, not G skip)", () => {
+    it("smoke keeps needs: migrate (fork path fails closed instead of G skip)", () => {
       expect(needsList(jobs.smoke)).toContain("migrate");
       const expr = ifExpression(jobs.smoke);
       if (expr.length > 0) {
@@ -174,8 +165,8 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
   });
 
   describe("(e) required migrate/smoke fail closed on fork PRs (spec rev 3)", () => {
-    for (const jobId of FORK_AWARE_REQUIRED) {
-      it(`${jobId} uses fork-aware runs-on and fails with maintainer message`, () => {
+    for (const jobId of FORK_REJECT_REQUIRED) {
+      it(`${jobId} uses hosted Ubuntu and fails with maintainer message`, () => {
         expect(requiredJobFailsClosedOnFork(jobs[jobId])).toBe(true);
       });
     }
@@ -223,33 +214,22 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
     });
   });
 
-  describe("spec labels on self-hosted jobs", () => {
-    it("every self-hosted job uses the proxmox label set", () => {
-      for (const jobId of MOVED_JOBS) {
-        if (
-          FORK_AWARE_REQUIRED.includes(
-            jobId as (typeof FORK_AWARE_REQUIRED)[number],
-          )
-        ) {
-          continue;
-        }
-        expect(isSelfHostedRunsOn(jobRunsOn(jobs[jobId]))).toBe(true);
-      }
-    });
-  });
-
-  describe("fork safety: every self-hosted job, evaluated per event (Reviewer MAJOR)", () => {
+  describe("fork safety: hosted jobs retain the original trust boundary", () => {
     const selfHosted = jobIds.filter((jobId) => isSelfHostedJob(jobs[jobId]));
 
-    it("auto-detected self-hosted jobs are exactly the moved jobs", () => {
-      expect(selfHosted).toEqual([...MOVED_JOBS].sort());
+    it("discovery finds no self-hosted jobs; all five former local jobs are present and literal hosted", () => {
+      expect(selfHosted).toEqual([]);
+      for (const jobId of MOVED_JOBS) {
+        expect(jobs[jobId]).toBeDefined();
+        expect(jobRunsOn(jobs[jobId])).toBe("ubuntu-latest");
+      }
     });
 
     for (const jobId of MOVED_JOBS) {
-      const forkReachable = FORK_AWARE_REQUIRED.includes(
-        jobId as (typeof FORK_AWARE_REQUIRED)[number],
+      const forkReachable = FORK_REJECT_REQUIRED.includes(
+        jobId as (typeof FORK_REJECT_REQUIRED)[number],
       );
-      it(`${jobId}: fork events ${forkReachable ? "run on hosted ubuntu-* and fail closed at step 0" : "skip it"}; same-repo events resolve to exactly proxmox`, () => {
+      it(`${jobId}: fork events ${forkReachable ? "run on hosted ubuntu-* and fail closed at step 0" : "skip it"}; same-repo events use hosted Ubuntu`, () => {
         const report = analyzeSelfHostedForkSafety(jobs[jobId]);
         expect(report.problems).toEqual([]);
         expect(report.runsForSomeSameRepo).toBe(true);

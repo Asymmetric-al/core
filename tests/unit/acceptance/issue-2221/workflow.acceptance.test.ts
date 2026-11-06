@@ -31,18 +31,18 @@ const ENV_ALLOWLIST = [
 ];
 /**
  * a200250f pins. BASE_CI_BYTES, BASE_CI_SHA256 and BASE_CI_DOC_SHA256 are
- * re-pinned for the reviewed GitHub-hosted runner fallback, which changes only
+ * re-pinned for the reviewed hosted-only amendment, which changes only
  * the build and test-unit runs-on (docs/ops/self-hosted-runners.md).
  */
-const BASE_CI_BYTES = 13805;
+const BASE_CI_BYTES = 13562;
 const BASE_CI_SHA256 =
-  "42436a45c2ac79e4b61887326ef79c73cd3ff32fce195f388bc0dbad94ee4fcf";
+  "4136be27f347a4cfe5c5dd79d61ede2f5856816ca934b5f7bf027d0fcf5d91ba";
 const BASE_CI_GATE_BLOCK_SHA256 =
   "d82da3b08054eae6565a662c59d7cef03646e90a07003929977f2b7244e087b4";
 const BASE_CI_GATE_JSON_SHA256 =
   "7bf95665df5eed573004bce53b71548f4f3815d68cbc4b6eb6a579b42fe20bfc";
 const BASE_CI_DOC_SHA256 =
-  "dfcc741f63f23ff88dcb5216b7623c08e883c6630a1422bfdfa49741d63af7f6";
+  "878cedd5e347aee42aa56472b2dec4e0b79715243f05e1e39dbfe8f84ec2516f";
 const BASE_CI_GATE_NEEDS = [
   "compilation-plan",
   "format",
@@ -354,7 +354,7 @@ describe("#2221 criterion 11: threat model intact", () => {
 });
 
 describe("#2221 I1: ci.yml change is append-only, after ci-gate", () => {
-  it("the first 13,805 bytes are the reviewed ci.yml", () => {
+  it("the first 13,562 bytes are the reviewed hosted-only ci.yml", () => {
     const source = H.text(H.CI);
     expect(source.length).toBeGreaterThan(BASE_CI_BYTES);
     expect(H.sha256(source.slice(0, BASE_CI_BYTES))).toBe(BASE_CI_SHA256);

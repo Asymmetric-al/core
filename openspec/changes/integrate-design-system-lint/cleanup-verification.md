@@ -633,23 +633,50 @@ ledger holds one batch per PR, with hashed local evidence under
   exceptions. One exception cited deleted files as supporting evidence: the
   `packages/ui` `chart.tsx` dynamic-import exception. It was bound to the
   live owners its reason already names only after that reason was
-  re-reviewed. `bun run verify:shadscan` and `bun run react-doctor:check` pass
-  on every branch. Every branch was pushed through the full pre-push
+  re-reviewed. `bun run verify:shadscan` and `bun run react-doctor:check` passed
+  at each reviewed cleanup head. This is historical evidence, not a claim
+  that later develop integrations preserve every React Doctor binding.
+  Every branch was pushed through the full pre-push
   `ci:preflight` from a standalone WSL clone.
 
 ### Acceptance and limits
 
-Task 5.4 is checked by this record, which merges last. Before merging, rebase
-on `develop` and confirm both of these:
+Task 5.4 remains unchecked until the prerequisite repairs are merged into
+`develop` and their combined tree is qualified. This record merges last.
+Before checking the task and merging, integrate current `develop` and confirm:
 
 - `bun run lint:ui apps/admin --raw` reports zero findings and warnings;
 - `tooling/eslint-config/suppressions.json` has no `apps/admin/` entries.
+- a new full-admin verification batch binds the current source hashes and
+  marks every applicable surviving admin ledger entry complete; historical
+  raw-zero batches alone do not qualify later changed or pending files.
 
-Not exercised in a browser:
+### Isolated rendering requalification, 2026-11-07
 
-- the Eve global panel, because the demo user has no Mission Control user
-  (unit tests cover it);
-- the native PDF builder, because its feature flag is off;
+PR #2539 head `166bf8ab531b63b926489b8527a7cc3f1e963f2a` includes the
+`icon-touch` Eve trigger correction from `fbaac4df85b49ac07929ff48248aa64ddff575b6`.
+An isolated Chromium harness uses the actual panel, shared Base UI components
+and Core stylesheet, with fixture-only auth, pathname and Eve transport.
+At 390, 768 and 1280px, the trigger is 44×44px, the open sheet stays within
+the viewport, Enter opens it, Escape closes it and focus returns to the
+trigger. The open dialog has zero WCAG 2 A/AA and WCAG 2.1 AA axe violations,
+and no page errors occur. This is rendered component evidence, not an
+authenticated full-route or production claim.
+
+The existing `tests/fixtures/base-ui-compliance/modernization-main.tsx`
+renders the actual native PDF builder without relying on its production
+feature flag. Running
+`bunx --no-install playwright test --config tests/fixtures/base-ui-compliance/playwright.config.ts --grep "native PDF source" --workers 1`
+at that same head passes all four projects: desktop/mobile, light/dark and
+reduced-motion coverage. The test verifies long source edits, native vertical
+resizing, stable preview bounds, preview activation and zero editor-chrome
+axe violations. The deliberately script-disabled print iframe is excluded
+from that chrome audit; this does not claim generated-document conformance.
+
+Not exercised as authenticated full-route behavior:
+
+- the Eve global panel with a live Mission Control identity;
+- the feature-flag-enabled native PDF route;
 - Payload `/web-studio`, which returns 500 without a database (the existing
   isolated CMS fixture covers the chrome);
 - Approve and Retry posting, which are disabled in code.
