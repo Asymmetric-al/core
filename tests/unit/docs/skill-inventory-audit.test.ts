@@ -715,8 +715,8 @@ describe("reviewed installed skill inventory", () => {
       skills: Array<{
         name: string;
         status: string;
+        entrypointHash?: string;
         treeHash: string;
-        entrypointHash: string;
       }>;
     };
     expect(audit.schemaVersion).toBe(1);
@@ -736,16 +736,19 @@ describe("reviewed installed skill inventory", () => {
     for (const skill of audit.skills) {
       const root = ".agents/skills/" + skill.name;
       const hash = createHash("sha256");
+      let entrypointHash: string | undefined;
       for (const file of filesUnder(root)) {
+        const contents = readFileSync(path.join(repoRoot, root, file));
+        if (file === "SKILL.md") {
+          entrypointHash = createHash("sha256").update(contents).digest("hex");
+        }
         hash.update(file);
         hash.update("\0");
-        hash.update(readFileSync(path.join(repoRoot, root, file)));
+        hash.update(contents);
         hash.update("\0");
       }
+      expect(skill.entrypointHash, skill.name).toBe(entrypointHash);
       expect(skill.treeHash, skill.name).toBe(hash.digest("hex"));
-      if (skill.name === "council") {
-        expect(skill.entrypointHash).toBe(digest(root + "/SKILL.md"));
-      }
     }
   });
 

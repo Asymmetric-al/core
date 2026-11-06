@@ -29,6 +29,13 @@ them the request and relevant context. Every delegate stays read-only even
 when the coordinator is authorized to implement fixes. Collect their
 responses and summarize the findings, disagreements, and next steps.
 
+Set a ten-minute deadline when dispatching each round. Cap it by any
+remaining time budget in the request. Use bounded waits or completion
+notifications with deadline support. At the deadline, stop waiting and
+request cancellation for this round's outstanding tasks where supported.
+Report missing coverage with the findings already received and distinguish
+unconfirmed cancellation. A timeout by itself does not start another round.
+
 For a code review, ask each delegate for a score out of 10.
 Count each full review pass as one round.
 A fresh review after fixes starts a new round.
@@ -83,13 +90,16 @@ Provenance and refresh steps live in `references/upstream.md`.
    the upstream default, subject only to the labeled native-only fallback above.
    Report actual members and missing coverage in the
    results. Never replace an explicitly requested provider or model.
-2. In T3 Code, call `orchestrator_capabilities` once per thread. Start one
-   `delegate_task` per available member in parallel with the selected
-   `target.providerInstanceId` and `target.model`. Use `target.options` for
-   advertised reasoning settings. Use a distinct `clientRequestId` per member
-   and round, reusing it on retries of that dispatch. Start a fresh task for
-   each new round. Follow each delegate's `next` and stop replaced runs with
-   `task_cancel`.
+2. In T3 Code, call `orchestrator_capabilities` once per thread, and again
+   only after an error or a user-named provider change. Start one `delegate_task` per available member
+   in parallel. Set `target.providerInstanceId` and `target.model` and use
+   `target.options` for advertised reasoning settings. Use a distinct
+   `clientRequestId` per member and round, reusing it on retries of that
+   dispatch. Start a fresh task for each new round. Use `mode: "wait"` with
+   `timeoutMs` within the remaining deadline when waiting for results, or
+   follow `next` with a separate deadline mechanism. A wait timeout leaves
+   the task running. Use `task_cancel` on outstanding task IDs from the
+   current round when it expires.
 3. Brief each delegate with the request, the diff or files in scope, and the
    applicable Core rules: root `AGENTS.md` "Code review rules", the nearest
    nested `AGENTS.md`, and the matching `docs/ai/rules/*` rulebook. Keep review

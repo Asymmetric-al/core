@@ -54,6 +54,9 @@ and runs a bounded follow-up when the request authorizes implementation.
   Preserve these boundaries alongside the adapted instructions above it.
   Its completion checklist includes the permitted labeled native-only fallback
   without allowing substitution of explicitly requested providers.
+  Each round has an elapsed-time deadline with bounded waits and honest
+  cancellation reporting, while capability discovery follows the active
+  harness's once-per-thread contract and explicit refresh conditions.
   The T3 dispatch fields and retry behavior follow the official
   [T3 target contract](https://github.com/pingdotgg/t3code/blob/6577c6b6185167c0e502fa01f9e8e8f2dee6ff25/packages/contracts/src/orchestratorMcp.ts)
   and [delegation guide](https://github.com/pingdotgg/t3code/blob/6577c6b6185167c0e502fa01f9e8e8f2dee6ff25/docs/orchestration-v2/orchestrator-mcp-server.md#delegate_task).
