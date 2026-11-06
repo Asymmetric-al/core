@@ -544,13 +544,14 @@ function readLock() {
   };
 }
 
+const expectedNames = [
+  ...baselineSkillNames,
+  "security-audit",
+  "council",
+].sort();
+
 describe("reviewed installed skill inventory", () => {
   it("accounts for every installed skill without adding unrelated pack skills", () => {
-    const expectedNames = [
-      ...baselineSkillNames,
-      "security-audit",
-      "council",
-    ].sort();
     const { skills } = readLock();
 
     for (const runtimeRoot of runtimeRoots) {
@@ -718,7 +719,7 @@ describe("reviewed installed skill inventory", () => {
       "c4d36cb029121641b8882237632d0d6da434049e",
     );
     expect(audit.skills.map((skill) => skill.name).sort()).toEqual(
-      [...baselineSkillNames, "security-audit", "council"].sort(),
+      expectedNames,
     );
     expect(new Set(audit.skills.map((skill) => skill.name)).size).toBe(
       audit.skills.length,

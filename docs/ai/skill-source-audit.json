@@ -1841,8 +1841,8 @@
       "sourcePath": "skills/council/SKILL.md",
       "rawSkillHash": "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
       "lockHash": "a1993f93b9157a8c73d4b8c16da267a3addd2bec94bcffb6b5f4caea23a8854b",
-      "entrypointHash": "cad90af8948a96bcba869996c8feb30bda5761b6145870895fcf2961ea73a949",
-      "treeHash": "51b394f9f6ca76e553b0b81587b2eeb00b0c9be9623913aa4cbeaa4d520fb081",
+      "entrypointHash": "0cbf417597d56cff139f2cfeac047e4934524272e68be5f3f0873644f43d24dd",
+      "treeHash": "d9eddec7062cf83d912e3c66a63610d5fbd90110d120cc218a740cecf1204633",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -1854,7 +1854,7 @@
         ]
       },
       "adaptations": [
-        "Complete council import with marked Core overlay; preserve upstream multi-provider review procedure and bind it to Core's instruction system."
+        "Pinned council import with opt-in discovery, authorized fixes, bounded review rounds, and disclosed provider coverage."
       ],
       "evidence": "docs/ai/skills/council/references/upstream.md",
       "reviewEvidence": [
