@@ -27,6 +27,10 @@ function listRepoFiles(path: string, relativePath = ""): string[] {
 const vendoredSkillPaths = [
   "docs/ai/skills/supabase/SKILL.md",
   "docs/ai/skills/components-build/SKILL.md",
+  "docs/ai/skills/council/SKILL.md",
+  ".agents/skills/council/SKILL.md",
+  ".cursor/skills/council/SKILL.md",
+  ".claude/skills/council/SKILL.md",
   "docs/ai/skills/emil-design-eng/SKILL.md",
   "docs/ai/skills/grill-for-unknowns/SKILL.md",
   "docs/ai/skills/resend-cli/SKILL.md",

@@ -41,6 +41,7 @@ const STEP_RUN = [
   "tests/unit/acceptance/issue-2402/crm-table-preferences.realstack.acceptance.test.ts",
   "tests/unit/acceptance/issue-2364/missionaries-reads.realstack.acceptance.test.ts",
   "tests/unit/acceptance/issue-2406/profiles-storage.realstack.acceptance.test.ts",
+  "tests/unit/acceptance/issue-2407/editor-images.realstack.acceptance.test.ts",
 ].join(" ");
 const STEP = "Verify tenant isolation (real stack)";
 const REALSTACK =
@@ -52,6 +53,12 @@ const CI_BASES = [
     ref: "c541b84b",
     bytes: 40058,
     sha256: "f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b",
+  },
+  {
+    // Reviewed hosted-only amendment changes only the CI-doc terminal pointer.
+    ref: "AL-2218 hosted CI baseline",
+    bytes: 40204,
+    sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
   },
 ] as const;
 /** "label :: regex" lines docs/security/tenant-guard.md must match (criteria 7, 11, 12, 14, 15, 17). */

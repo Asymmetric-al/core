@@ -379,7 +379,11 @@ describe("#2406 static contract", () => {
       loadWorkflowDocument(".github/workflows/ci-integration.yml"),
     ).migrate!.steps!;
     const i = steps.findIndex((s) => s.name === STEP);
-    expect(String(steps[i]!.run).split(/\s+/).at(-1)).toBe(H.REALSTACK);
+    const tokens = String(steps[i]!.run).split(/\s+/);
+    expect(tokens).toContain(H.REALSTACK);
+    expect(tokens.at(-1)).toBe(
+      "tests/unit/acceptance/issue-2407/editor-images.realstack.acceptance.test.ts",
+    );
     const { index, ...rest } = PINNED_STEP_BODIES.migrate![`name:${STEP}`]!;
     expect(index).toBe(i);
     expect(steps[i]).toEqual({ name: STEP, ...rest });

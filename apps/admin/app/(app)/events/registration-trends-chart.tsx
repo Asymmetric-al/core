@@ -20,7 +20,7 @@ const REGISTRATION_TRENDS = [
 function RegistrationTrendsChartFallback() {
   return (
     <Card className="col-span-4 overflow-hidden">
-      <CardHeader className="border-b border-border bg-muted/30">
+      <CardHeader>
         <CardTitle className="text-base font-bold">
           Registration Trends
         </CardTitle>
@@ -47,7 +47,7 @@ const RegistrationTrendsChartContent = dynamic(
     function RegistrationTrendsChartContentInner() {
       return (
         <Card className="col-span-4 overflow-hidden">
-          <CardHeader className="border-b border-border bg-muted/30">
+          <CardHeader>
             <CardTitle className="text-base font-bold">
               Registration Trends
             </CardTitle>
@@ -58,24 +58,32 @@ const RegistrationTrendsChartContent = dynamic(
                 <AreaChart data={REGISTRATION_TRENDS}>
                   <defs>
                     <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      <stop
+                        offset="5%"
+                        stopColor="var(--chart-1)"
+                        stopOpacity={0.3}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--chart-1)"
+                        stopOpacity={0}
+                      />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     vertical={false}
-                    stroke="#f1f5f9"
+                    stroke="var(--border)"
                   />
                   <XAxis
                     dataKey="date"
-                    stroke="#94a3b8"
+                    stroke="var(--muted-foreground)"
                     fontSize={11}
                     tickLine={false}
                     axisLine={false}
                   />
                   <YAxis
-                    stroke="#94a3b8"
+                    stroke="var(--muted-foreground)"
                     fontSize={11}
                     tickLine={false}
                     axisLine={false}
@@ -84,7 +92,7 @@ const RegistrationTrendsChartContent = dynamic(
                   <Area
                     type="monotone"
                     dataKey="count"
-                    stroke="#3b82f6"
+                    stroke="var(--chart-1)"
                     fillOpacity={1}
                     fill="url(#colorCount)"
                     strokeWidth={2}
