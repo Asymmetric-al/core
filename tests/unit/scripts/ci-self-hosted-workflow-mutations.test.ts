@@ -261,8 +261,8 @@ describe("MAJOR-1: fork-aware runs-on is evaluated with GitHub string comparison
   const mutated = () =>
     mutate(
       source(CI_INTEGRATION),
-      "&& 'ubuntu-latest' ||",
-      `&& ('a' < 'z' && ${PROXMOX_FROM_JSON} || 'ubuntu-latest') ||`,
+      ") && 'ubuntu-latest' ||",
+      `) && ('a' < 'z' && ${PROXMOX_FROM_JSON} || 'ubuntu-latest') ||`,
       2,
     );
 
@@ -771,7 +771,7 @@ describe("effectiveStepEnv follows the runner's precedence", () => {
 
 describe("MINOR-7: non-ASCII literals cannot fake a fork-aware runs-on", () => {
   const condition =
-    "${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest'";
+    "${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) || vars.CI_RUNNER_FALLBACK == 'github-hosted') && 'ubuntu-latest'";
 
   for (const literal of ["('ı' == 'I')", "('ſ' == 'S')"]) {
     it(`rejects ${literal} && in the fork branch of migrate/smoke runs-on`, () => {
@@ -1428,8 +1428,8 @@ describe("MAJOR-9: pinned fork-reject if; unmodelled context members fail closed
   it("an unmodelled member in the fork-aware runs-on is not fork-aware", () => {
     const text = mutate(
       source(CI_INTEGRATION),
-      "${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest'",
-      "${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && github.job != 'x' && 'ubuntu-latest'",
+      "head.repo.full_name != github.repository) || vars.CI_RUNNER_FALLBACK",
+      "head.repo.full_name != github.repository && github.job != 'x') || vars.CI_RUNNER_FALLBACK",
       2,
     );
     const jobs = jobsOf(text, "runs-on");

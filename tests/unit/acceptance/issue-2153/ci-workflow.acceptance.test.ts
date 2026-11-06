@@ -191,6 +191,6 @@ describe("#2153 criterion 10: nothing else in ci.yml changes", () => {
     const step = steps.find((s) => s.name === RESULTS_STEP);
     delete (step?.env as Record<string, unknown> | undefined)?.CI_RESULTS;
     const print = createHash("sha256").update(JSON.stringify(d)).digest("hex");
-    expect(print.slice(0, 16)).toBe("5965edc843d252bf");
+    expect(print.slice(0, 16)).toBe("8745f156be9a6a41");
   });
 });

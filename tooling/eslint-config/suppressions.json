@@ -216,33 +216,6 @@
       "count": 6
     }
   },
-  "apps/admin/app/(app)/feed/content-moderation-page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/admin/app/(app)/feed/content-moderation-sections.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 6
-    },
-    "shadcn/no-restyle": {
-      "count": 276
-    },
-    "shadcn/no-unknown-classes": {
-      "count": 3
-    }
-  },
-  "apps/admin/app/(app)/feed/org-updates/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 7
-    },
-    "shadcn/no-restyle": {
-      "count": 174
-    },
-    "shadcn/no-unknown-classes": {
-      "count": 2
-    }
-  },
   "apps/admin/app/(app)/help/about/page.tsx": {
     "shadcn/no-restyle": {
       "count": 5
