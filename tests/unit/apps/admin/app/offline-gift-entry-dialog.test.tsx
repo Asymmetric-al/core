@@ -131,6 +131,17 @@ describe("OfflineGiftEntryDialog", () => {
     );
   });
 
+  it("switches between existing donor identity and new donor name fields", () => {
+    renderDialog();
+    fireEvent.click(screen.getByRole("button", { name: "Existing donor" }));
+    expect(screen.getByLabelText("Existing donor ID *")).toBeTruthy();
+    expect(screen.queryByPlaceholderText("Ada")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "New donor" }));
+    expect(screen.getByPlaceholderText("Ada")).toBeTruthy();
+    expect(screen.getByPlaceholderText("Lovelace")).toBeTruthy();
+    expect(screen.queryByLabelText("Existing donor ID *")).toBeNull();
+  });
+
   it("restores the named entry dialog and clears the form when entering another gift", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({
       ok: true,

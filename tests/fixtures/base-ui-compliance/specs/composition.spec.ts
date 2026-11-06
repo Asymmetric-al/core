@@ -2,6 +2,54 @@ import AxeBuilder from "@axe-core/playwright";
 
 import { test, expect } from "./test";
 
+test("CRM view actions stay inside a 320px dialog", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page
+    .getByRole("button", { name: "Open tenant default confirmation" })
+    .click();
+  const dialog = page.getByRole("dialog", { name: "Set tenant default" });
+  await expect(dialog).toBeVisible();
+  const dialogBounds = await dialog.boundingBox();
+  expect(dialogBounds).not.toBeNull();
+  for (const name of ["Cancel", "Set tenant default"]) {
+    const action = dialog.getByRole("button", { name, exact: true });
+    await expect(action).toBeVisible();
+    const actionBounds = await action.boundingBox();
+    expect(actionBounds).not.toBeNull();
+    expect(actionBounds!.x).toBeGreaterThanOrEqual(dialogBounds!.x);
+    expect(actionBounds!.x + actionBounds!.width).toBeLessThanOrEqual(
+      dialogBounds!.x + dialogBounds!.width,
+    );
+  }
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+});
+
+test("CRM view names retain distinct unbroken suffixes", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.getByRole("button", { name: "Gift history views" }).click();
+  for (const suffix of ["First", "Second"]) {
+    const option = page.getByRole("menuitemradio", {
+      name: `${"SharedPrefix".repeat(20)}${suffix}`,
+      exact: true,
+    });
+    await expect(option).toBeVisible();
+    expect(
+      await option
+        .locator(".max-w-40")
+        .evaluate((element) => element.scrollWidth <= element.clientWidth),
+    ).toBe(true);
+  }
+  const rename = page
+    .getByRole("menuitem", { name: /^Rename/ })
+    .locator(".max-w-56");
+  expect(
+    await rename.evaluate(
+      (element) => element.scrollWidth <= element.clientWidth,
+    ),
+  ).toBe(true);
+});
+
 test("pending authentication action stays focused and blocks duplicate activation", async ({
   page,
 }) => {
