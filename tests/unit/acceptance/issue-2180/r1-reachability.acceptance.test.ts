@@ -1,6 +1,7 @@
 /**
  * #2180 R1 (reachability allowlist): done criteria 1, 2 and 3.
- * Owned by Acceptance; implementers must not edit. See guard-harness.ts.
+ * Hosted-CI amendment: the explicit allowed reachable set is empty.
+ * See guard-harness.ts for the preserved guard interface.
  */
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -21,7 +22,8 @@ import {
   workflow,
 } from "./guard-harness";
 
-const ALLOWED = ["ci-integration.yml", "ci.yml"];
+const ALLOWED: string[] = [];
+const CI_WORKFLOWS = ["ci-integration.yml", "ci.yml"];
 const SHA = "0123456789abcdef0123456789abcdef01234567";
 const REMOTE = `other/repo/.github/workflows/x.yml@${SHA}`;
 const callJob = (uses: string) => `    uses: ${uses}`;
@@ -32,7 +34,7 @@ describe("#2180 criterion 1: real tree passes; .yml and .yaml scanned", () => {
     expect(g.selfHostedRunnerProblems(realTree())).toEqual([]);
     expect(g.selfHostedRunnerProblems(g.loadWorkflows())).toEqual([]);
   });
-  it("reachable set is exactly [ci-integration.yml, ci.yml]", async () => {
+  it("reachable set is exactly empty under the hosted-CI policy", async () => {
     const g = await guard();
     expect(g.reachableWorkflows(realTree())).toEqual(ALLOWED);
   });
@@ -67,17 +69,18 @@ describe("#2180 criterion 1: real tree passes; .yml and .yaml scanned", () => {
       "probe",
     );
   });
-  it("an allowlisted file that stops being reachable fails R1 (set must be equal)", async () => {
-    const g = await guard();
-    const tree = mutated(
-      "ci.yml",
-      `runs-on: >-\n      \${{ vars.CI_RUNNER_FALLBACK == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}`,
-      "runs-on: ubuntu-latest",
-      2,
-    );
-    expect(g.reachableWorkflows(tree)).toEqual(["ci-integration.yml"]);
-    expectProblem(g.selfHostedRunnerProblems(tree), "ci.yml", 1);
-  });
+  for (const file of CI_WORKFLOWS) {
+    it(`reintroducing local placement in ${file} fails R1`, async () => {
+      const g = await guard();
+      const tree = mutated(
+        file,
+        "\njobs:\n",
+        `\njobs:\n  probe:\n${runsOnJob(PROXMOX)}\n`,
+      );
+      expect(g.reachableWorkflows(tree)).toEqual([file]);
+      expectProblem(g.selfHostedRunnerProblems(tree), file, 1, "probe");
+    });
+  }
 });
 
 describe("#2180 criterion 2: R1 runs-on mutations fail, naming file and job", () => {
@@ -144,10 +147,14 @@ describe("#2180 criterion 2: R1 runs-on mutations fail, naming file and job", ()
 });
 
 describe("#2180 criterion 3: reusable-workflow paths fail", () => {
-  for (const file of ALLOWED) {
-    it(`adding workflow_call to ${file} fails R2 naming it`, async () => {
+  for (const file of CI_WORKFLOWS) {
+    it(`adding local reach and workflow_call to ${file} fails R2 naming it`, async () => {
       const g = await guard();
       const tree = mutated(file, "\non:\n", "\non:\n  workflow_call:\n");
+      tree[file] = tree[file]!.replace(
+        "\njobs:\n",
+        `\njobs:\n  probe:\n${runsOnJob(PROXMOX)}\n`,
+      );
       expectProblem(
         g.selfHostedRunnerProblems(tree),
         file,
@@ -157,7 +164,7 @@ describe("#2180 criterion 3: reusable-workflow paths fail", () => {
       );
     });
   }
-  it("a hosted workflow calling ./.github/workflows/ci-integration.yml fails R1", async () => {
+  it("a hosted workflow calling a locally mutated ci-integration.yml fails R1", async () => {
     const g = await guard();
     const caller = workflow(
       "pull_request",
@@ -165,12 +172,16 @@ describe("#2180 criterion 3: reusable-workflow paths fail", () => {
       "call",
     );
     const tree = treeWith("caller.yml", caller);
+    tree["ci-integration.yml"] = tree["ci-integration.yml"]!.replace(
+      "\njobs:\n",
+      `\njobs:\n  probe:\n${runsOnJob(PROXMOX)}\n`,
+    );
     expectProblem(g.selfHostedRunnerProblems(tree), "caller.yml", 1, "call");
     expect(g.reachableWorkflows(tree)).toContain("caller.yml");
   });
-  it("transitive: A calls hosted-only B which calls ci.yml; A and B fail R1", async () => {
+  it("transitive: A calls B which calls locally mutated ci.yml; A and B fail R1", async () => {
     const g = await guard();
-    const tree = {
+    const tree: ReturnType<typeof realTree> = {
       ...realTree(),
       "a.yml": workflow(
         "pull_request",
@@ -183,6 +194,10 @@ describe("#2180 criterion 3: reusable-workflow paths fail", () => {
         "to-ci",
       ),
     };
+    tree["ci.yml"] = tree["ci.yml"]!.replace(
+      "\njobs:\n",
+      `\njobs:\n  probe:\n${runsOnJob(PROXMOX)}\n`,
+    );
     const problems = g.selfHostedRunnerProblems(tree);
     expectProblem(problems, "a.yml", 1, "to-b");
     expectProblem(problems, "b.yml", 1, "to-ci");
@@ -200,7 +215,9 @@ describe("#2180 criterion 3: reusable-workflow paths fail", () => {
       [],
     );
   });
-  const others = Object.keys(realTree()).filter((f) => !ALLOWED.includes(f));
+  const others = Object.keys(realTree()).filter(
+    (f) => !CI_WORKFLOWS.includes(f),
+  );
   for (const file of others) {
     it(`a remote reusable workflow call added to ${file} fails R1 (fails closed)`, async () => {
       const g = await guard();
@@ -213,17 +230,17 @@ describe("#2180 criterion 3: reusable-workflow paths fail", () => {
     });
   }
   // Scope ruling (#2180 gap 4): a remote reusable-workflow call fails R1 in
-  // EVERY workflow, allowlisted ones included; the 2158/2201 pins do not cover
+  // EVERY workflow, former allowlisted ones included; the 2158/2201 pins do not cover
   // it because isSelfHostedJob() is false for reusable-workflow calls.
-  for (const file of ALLOWED) {
-    it(`a remote reusable workflow call added to allowlisted ${file} fails R1 naming the job`, async () => {
+  for (const file of CI_WORKFLOWS) {
+    it(`a remote reusable workflow call added to ${file} fails R1 naming the job`, async () => {
       const g = await guard();
       const tree = mutated(
         file,
         "\njobs:\n",
         `\njobs:\n  remote:\n${callJob(REMOTE)}\n`,
       );
-      expect(g.reachableWorkflows(tree)).toEqual(ALLOWED);
+      expect(g.reachableWorkflows(tree)).toEqual([file]);
       expectProblem(g.selfHostedRunnerProblems(tree), file, 1, "remote");
     });
   }
