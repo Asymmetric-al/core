@@ -8631,14 +8631,15 @@
         "Installed implementation inspected and pinned through bun.lock; no claim of byte-identical upstream registry CSS or a tested browser resize matrix is made.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/navigation-menu-component.tsx:123; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/navigation-menu-component.tsx:123. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale."
+        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
+        "REQUALIFICATION 2026-11-05 (#2531): packages/ui/components.json only gained the shadcn studio registry entries; style is still base-maia and the navigation-menu source is unchanged, so the reason holds and the components.json hash is rebound."
       ],
       "reconsiderWhen": "Reconsider when the Base UI measurement/animation/reset contract or Maia integration is replaced, or reduced-motion coverage changes.",
       "sourceContextHash": "0fdb4ec228a5816b66ebd435dadeb706abf59d03ef20403b6e0b0b2d3aeace27",
       "sourceFileHash": "a242a37989af69aae31737feb19003004b439d589ed1d060632e5f2856ff6070",
       "evidenceFileHashes": {
         "packages/ui/components/shadcn/navigation-menu-component.tsx": "a242a37989af69aae31737feb19003004b439d589ed1d060632e5f2856ff6070",
-        "packages/ui/components.json": "b81a5f8dea6679be6141d7679863082d2400d0c5bf5b7240520e1a090a5416f0",
+        "packages/ui/components.json": "17bb8b3db270eb8767e91068ef1ec8829811771826ce78f1f97ea7e447aebea2",
         "packages/ui/components/shadcn/navigation-menu.ts": "d4ede3fd9b3a382ea89bae3cdad165edfd87b9cb45cd50359cafe0d7b73eceb5",
         "packages/ui/package.json": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577",
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",

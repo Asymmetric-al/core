@@ -10,8 +10,8 @@
 --    composite FK (tenant_id, person_id) -> persons (tenant_id, id), so a
 --    person in another tenant can't be referenced and a linked row can't be
 --    re-homed. MATCH SIMPLE skips the FK when tenant_id is NULL, so a CHECK
---    requires a tenant whenever person_id is set. profiles.tenant_id stays a
---    nullable home/UI hint (Q17); it is never an authorization input.
+--    requires a tenant whenever person_id is set. profiles.tenant_id is
+--    not authoritative; see #2267.
 -- 3. Ten reviewed field_policies rows (Q11 / OQ6): category security, denied on
 --    every surface (docs/security/field-policies/
 --    repository-supplement-v3-person-anchor.json).
@@ -19,12 +19,15 @@
 -- No index on (tenant_id, person_id) (OQ5): nothing queries it until Phase 9.
 -- donors gets no person_id; donor_merge_candidates is unchanged (Q8).
 --
--- Re-running the file changes nothing. Constraints are added NOT VALID, then
--- validated, so the brief ACCESS EXCLUSIVE lock on missionaries and profiles
--- isn't held for a scan; every existing person_id is NULL, so validation
--- passes. SET LOCAL lock_timeout = '5s' bounds the wait for those locks (and
--- the SHARE ROW EXCLUSIVE lock the FKs take on tenants). On SQLSTATE 55P03
--- nothing is applied: re-run it in a quiet window.
+-- Re-running the file changes nothing. Locks: ADD COLUMN and the CHECK ...
+-- NOT VALID adds take ACCESS EXCLUSIVE on missionaries and profiles; the FK
+-- adds take SHARE ROW EXCLUSIVE on the altered table and on persons, and the
+-- first apply's persons FK takes it on tenants. Every lock is held until
+-- COMMIT, through the VALIDATE scans; adding NOT VALID then validating in the
+-- same transaction doesn't shorten that. Both tables are small and every
+-- existing person_id is NULL, so validation passes and the hold is brief in
+-- practice. SET LOCAL lock_timeout = '5s' bounds only the wait to acquire each
+-- lock. On SQLSTATE 55P03 nothing is applied: re-run it in a quiet window.
 -- Rollback: rollback_20261025110000_person_anchor.sql.
 
 BEGIN;

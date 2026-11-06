@@ -5,6 +5,11 @@ and changes to shared components, tokens, contracts, or lint policy. It is
 subordinate to `packages/ui/AGENTS.md` and the frontend rulebook. Unrelated
 backend work and prose-only edits do not require this workflow.
 
+To fix a specific finding, start with
+[design-system-lint-fixes.md](design-system-lint-fixes.md). Every finding
+links to it. This page stays the authority for policy, boundaries, debt
+and maintenance.
+
 ## Vetted version and compatibility
 
 `@asym/eslint-config` owns the exact `@shadcn/lint@0.2.3` pin and its
@@ -19,27 +24,37 @@ source-to-build attestation.
 The root `patchedDependencies` entry applies
 `tooling/eslint-config/patches/@shadcn%2Flint@0.2.3.patch` during frozen installation.
 The tooling owner maintains five narrowly scoped repairs that remain necessary
-in the published release:
+in the published release. Each was reported upstream with a minimal
+reproduction on 2026-10-30:
 
 1. Resolve a consumer barrel through the defining component index, retaining
-   upstream `node_modules` guards and import identity.
+   upstream `node_modules` guards and import identity
+   ([#134](https://github.com/shadcn-ui/lint/issues/134)).
 2. Validate exact plugin-generated contract classes with the actual Tailwind
-   compiler. Unknown classes and broken themes still fail.
+   compiler. Unknown classes and broken themes still fail
+   ([#135](https://github.com/shadcn-ui/lint/issues/135)).
 3. Find a component's exact named, relative CVA factory in its defining file,
-   with refreshed cache data. Keep upstream local-prop and barrel fallbacks.
+   with refreshed cache data. Keep upstream local-prop and barrel fallbacks
+   ([#136](https://github.com/shadcn-ui/lint/issues/136)).
 4. Attribute native `render` target presentation to the caller only when the
    current source proves a classless Base UI Trigger wrapper. Parenthesized
    JSX is equivalent. Styled owners, custom or opaque targets, higher-order
-   components, shadowed imports and unknown implementations remain protected.
+   components, shadowed imports and unknown implementations remain protected
+   ([#129](https://github.com/shadcn-ui/lint/issues/129), with Core's
+   reproduction in
+   [a comment](https://github.com/shadcn-ui/lint/issues/129#issuecomment-6517163391)).
 5. Preserve raw Base UI namespace-member provenance through shared re-exports.
-   Local styled members and other external components keep their contracts.
+   Local styled members and other external components keep their contracts
+   ([#137](https://github.com/shadcn-ui/lint/issues/137)).
 
 These are upstream-defect repairs, not an official fixed release. The
 resolution, variant, theme and suppression suites are removal criteria:
 remove each repair only when a current unpatched upstream package passes its
 behavioral regressions. Requalify the patch on every release; an old hold is
-not sufficient justification. Core configuration calls the public ESLint
-plugin and supported options, with no private runtime API.
+not sufficient justification. Check the linked issues and release notes
+first, but a closed issue alone is not removal evidence. Core configuration
+calls the public ESLint plugin and supported options, with no private runtime
+API.
 
 The release supports Node >=20.19, ESLint >=9.30, the TypeScript ESLint parser
 
@@ -95,6 +110,23 @@ allowing dimensions, transforms, focus, hover, or press overrides. Named
 structural slots permit content arrangement; title/description slots permit
 typography; Skeleton delegates silhouette and Avatar delegates size.
 The exact executable patterns are the authority, not a duplicated list here.
+
+Finding messages keep upstream's built-in guidance, which lists each
+component's real sizes and variants and says when a scale replacement is
+exact. Core replaces that text only where upstream's advice would contradict
+Core ownership:
+
+- Raw colors: new colors belong in `packages/ui/styles/globals.css`, never
+  in an app stylesheet, and states use the semantic status tokens.
+- Dialog, Popover and Sheet content layout: a parent element cannot size a
+  portaled popup. Long dialog content uses `DialogContent scrollable`;
+  other sizing, scrolling, flex, grid or positioning goes on an element
+  inside the popup. Popover and Sheet content have no `scrollable` prop.
+
+`settings.shadcn.note` appends the fix-guide link to every finding. Keep
+each message within upstream's 500-character limit.
+`tests/unit/scripts/design-system-messages.test.ts` covers the wording
+agents rely on.
 
 Dialog, Popover and Sheet content expose width, min-width and max-width through
 their actual popup APIs. Those dimensions are caller-owned; height, scrolling,
@@ -207,8 +239,9 @@ fixtures, not broad wildcard widening.
 2. For substantive UI work, inspect raw existing findings in affected files
    before attributing all failures to the new edit.
 3. Implement or adapt registry output to Core's APIs and visual language.
-4. Run the smallest relevant workspace-aware lint check. Fix consumer usage;
-   investigate discovery and analyzer failures as tooling problems.
+4. Run the smallest relevant workspace-aware lint check. Fix consumer usage
+   with the [fix guide](design-system-lint-fixes.md); investigate discovery
+   and analyzer failures as tooling problems.
 5. After a shared component, variant, token, export, resolution, or policy
    change, expand checking to affected consumers and verify analysis health.
 6. Review policy, token, contract, exception, and debt changes separately from
@@ -242,8 +275,8 @@ bunx --no-install turbo run lint --filter=@asym/ui
 # Raw, machine-readable findings including accepted legacy debt.
 bun run lint:ui apps/donor --raw --format json --output-file .tmp-ui-lint.json
 
-# Deliberate full-run cleanup after fixing accepted findings.
-bun run lint:ui --prune-suppressions
+# After fixing accepted findings, prune the same paths you linted.
+bun run lint:ui apps/donor/app/layout.tsx --prune-suppressions
 
 # Discovery/configuration check and required broader entry points.
 bun run verify:eslint
@@ -264,9 +297,15 @@ selects that root/workspace config, then invokes native ESLint with repository
 cwd so the suppression file always uses repository-relative keys. Its supported
 flags preserve ESLint JSON diagnostics, locations, rule IDs, suggestions when
 available, and exit status: `1` for lint failure and `2` for setup/analysis
-failure. `--raw` uses an empty temporary suppression file without changing
-accepted debt. It rejects unsupported flags such as cache, configuration
-replacement, or baseline expansion.
+failure. ESLint also exits `2` when a linted file has fewer findings than its
+recorded debt; its message asks for `--prune-suppressions`. `--raw` uses an
+empty temporary suppression file without changing accepted debt. It rejects
+unsupported flags such as cache, configuration replacement, or baseline
+expansion.
+
+Plain `eslint`, editor-only results and the ESLint MCP server are not lint
+evidence here. They do not apply Core's suppression file or health probes,
+so they report accepted legacy debt as new errors.
 
 `.tmp-ui-lint.json` is ignored scratch evidence, not a committed artifact.
 Reports belong to the invocation that produced them; Turbo does not promise
@@ -320,9 +359,11 @@ an empty bulk baseline, with behavioral/rendered proof for affected surfaces.
 Track remaining work in `openspec/changes/integrate-design-system-lint/`;
 do not mark cleanup complete merely because the bounded baseline gate passes.
 
-Normal lint and CI must never enlarge accepted debt. Pruning is deliberate
-after a complete run covering the recorded scope; a scoped clean run does not
-prove unvisited entries obsolete. Review raw findings in changed code.
+Normal lint and CI must never enlarge accepted debt. After fixing recorded
+debt, prune with the same paths you linted. ESLint's prune lowers counts only
+for files in that run, and removes entries for files that no longer exist,
+so a scoped prune never changes unvisited entries. Review raw findings in
+changed code.
 Per-file/per-rule counts are not identity-level guarantees: replacing an old
 violation with a new one can retain the same count.
 
@@ -420,7 +461,8 @@ diff checks, Shadscan, motion checks, and browser/a11y verification.
 
 For a dependency upgrade, inspect the published release/exports and official
 docs, compare rule categories, contract inheritance, discovery and supported
-toolchain, then rerun the compatibility/cache suite and review raw findings.
+toolchain, message placeholders and built-in wording, then rerun the
+compatibility/cache and message suites and review raw findings.
 Pin the vetted release and review minimal lockfile changes. Reassess the Bun
 compatibility patch: remove its `patchedDependencies` entry and patch file
 only when the upstream release passes the same relative/mixed-barrel and
