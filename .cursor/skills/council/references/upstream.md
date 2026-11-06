@@ -40,24 +40,29 @@ any of them.
 
 Council fills a real catalog gap. Existing Core review skills (`code-review`,
 `review-and-ship`, `thermo-nuclear-code-quality-review`) run a single
-reviewer. Council coordinates multiple providers, collects their scores, and
-loops until they agree.
+reviewer. Council coordinates available reviewers, collects their scores,
+and runs a bounded follow-up when the request authorizes implementation.
 
 ## Core adaptations
 
-- Everything above `<!-- CORE-OVERLAY-START -->` in `SKILL.md` is the
-  upstream text, including its frontmatter, with one whitespace-only change:
-  Prettier pads the columns of the example `## Council review` table inside
-  the fenced Markdown block, as Core's `format:check` gate requires. Cells,
-  wording, and rendered output are unchanged.
-  `upstream_skill_md_sha256` above is the raw upstream hash. The adapted file
-  intentionally hashes differently.
-- The appended marked overlay (`## This repository (Asymmetric-al/core)`)
-  adds triggers, a workflow, and a checklist. It binds the skill to Core
-  review priorities, read-only delegates, secret hygiene, T3 delegation rules,
-  and outward-action authorization. It also states that an explicit member or
-  provider list in the request overrides the upstream three-provider default
-  for that run.
+- The entrypoint preserves the upstream review format and adapts discovery,
+  preflight, authorization, provider availability, and stopping rules for Core.
+  The adapted file has a different digest from the raw upstream
+  `upstream_skill_md_sha256` above.
+- The marked Core overlay sets narrow invocation, member selection, read-only
+  delegate briefs, secret hygiene, T3 delegation, and Core review priorities.
+  Preserve these boundaries alongside the adapted instructions above it.
+  Its completion checklist includes the permitted labeled native-only fallback
+  without allowing substitution of explicitly requested providers.
+  Each round has an elapsed-time deadline with bounded waits and honest
+  cancellation reporting, while capability discovery follows the active
+  harness's once-per-thread contract and explicit refresh conditions.
+  Dispatch fails closed unless filesystem and mutation-capable tool access
+  have verified enforced read-only boundaries; prompts, review roles,
+  approval modes, and writable worktrees do not establish that boundary.
+  The T3 dispatch fields and retry behavior follow the official
+  [T3 target contract](https://github.com/pingdotgg/t3code/blob/6577c6b6185167c0e502fa01f9e8e8f2dee6ff25/packages/contracts/src/orchestratorMcp.ts)
+  and [delegation guide](https://github.com/pingdotgg/t3code/blob/6577c6b6185167c0e502fa01f9e8e8f2dee6ff25/docs/orchestration-v2/orchestrator-mcp-server.md#delegate_task).
 - `LICENSE` is the upstream MIT notice, unchanged. This file holds the
   provenance record.
 
@@ -69,12 +74,14 @@ loops until they agree.
    `npx --yes skills@1.5.7 add <reviewed-tstack-checkout> --skill council --agent codex --copy -y`.
    Stage `t3dotgg/tstack` the same way to get the GitHub-form lock entry, and
    confirm the remote `HEAD` equals the reviewed commit.
-3. Replace the upstream portion of `docs/ai/skills/council/SKILL.md` with the
-   reviewed bytes. Keep the marked Core overlay and this file. Re-copy
-   `LICENSE` if it changed. Then run
+3. Reconcile the reviewed upstream diff into
+   `docs/ai/skills/council/SKILL.md`, preserving the Core adaptations and
+   marked overlay. Re-copy `LICENSE` if it changed. Then run
    `bunx prettier --write docs/ai/skills/council/SKILL.md`.
 4. Update the commit, hashes, and dates above, plus the `council` entry in
    `skills-lock.json`. Publish them together with the tree.
-5. Run `bun run skills:sync`, then the non-mutating `bun run skills:verify`.
+5. Run `bun run skills:sync` and `bun run skills:verify`, then update the
+   installed payload hashes with
+   `node scripts/update-skill-audit-hashes.mjs --skill council`.
 
 This skill is **not** updated by `bun run skills:refresh-upstream`.
