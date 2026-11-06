@@ -29,16 +29,20 @@ const ENV_ALLOWLIST = [
   "github.server_url",
   "github.token",
 ];
-/** a200250f pins. */
-const BASE_CI_BYTES = 13603;
+/**
+ * a200250f pins. BASE_CI_BYTES, BASE_CI_SHA256 and BASE_CI_DOC_SHA256 are
+ * re-pinned for the reviewed GitHub-hosted runner fallback, which changes only
+ * the build and test-unit runs-on (docs/ops/self-hosted-runners.md).
+ */
+const BASE_CI_BYTES = 13805;
 const BASE_CI_SHA256 =
-  "a3b84b0ed54bd5a5aef467171e4c093619ee3a773ed0f7882765e190d7741d0b";
+  "42436a45c2ac79e4b61887326ef79c73cd3ff32fce195f388bc0dbad94ee4fcf";
 const BASE_CI_GATE_BLOCK_SHA256 =
   "d82da3b08054eae6565a662c59d7cef03646e90a07003929977f2b7244e087b4";
 const BASE_CI_GATE_JSON_SHA256 =
   "7bf95665df5eed573004bce53b71548f4f3815d68cbc4b6eb6a579b42fe20bfc";
 const BASE_CI_DOC_SHA256 =
-  "478da834539a1e1e501eaa888bfbdc4e8109669d61652ba849831e85cde6fad9";
+  "dfcc741f63f23ff88dcb5216b7623c08e883c6630a1422bfdfa49741d63af7f6";
 const BASE_CI_GATE_NEEDS = [
   "compilation-plan",
   "format",
@@ -350,7 +354,7 @@ describe("#2221 criterion 11: threat model intact", () => {
 });
 
 describe("#2221 I1: ci.yml change is append-only, after ci-gate", () => {
-  it("the first 13,603 bytes are a200250f's ci.yml", () => {
+  it("the first 13,805 bytes are the reviewed ci.yml", () => {
     const source = H.text(H.CI);
     expect(source.length).toBeGreaterThan(BASE_CI_BYTES);
     expect(H.sha256(source.slice(0, BASE_CI_BYTES))).toBe(BASE_CI_SHA256);
@@ -364,7 +368,7 @@ describe("#2221 I1: ci.yml change is append-only, after ci-gate", () => {
     expect(keys).toEqual([H.JOB_ID]);
     expect(Object.keys(H.ciDoc().jobs ?? {}).at(-1)).toBe(H.JOB_ID);
   });
-  it("without the new job, the parsed workflow equals a200250f's", () => {
+  it("without the new job, the parsed workflow equals the reviewed ci.yml", () => {
     H.commentJob();
     const doc = H.ciDoc();
     delete (doc.jobs as W.WorkflowJobs)[H.JOB_ID];

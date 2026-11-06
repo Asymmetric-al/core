@@ -314,6 +314,8 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "#2406 Builder 9563beea", hash: "6f061d845914c44d" },
     // #2407 PR (a): develop after #2406, plus the issue-2407 real-stack path
     { ref: "#2407a after #2406", hash: "52c90c2ce23e9b71" },
+    // GitHub-hosted runner fallback: self-hosted runs-on honour vars.CI_RUNNER_FALLBACK
+    { ref: "CI runner fallback", hash: "ade0c213dc9896db" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(
