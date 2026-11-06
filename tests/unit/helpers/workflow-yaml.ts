@@ -908,9 +908,48 @@ export function labelsEqual(
   return left.every((value, index) => value === right[index]);
 }
 
+/**
+ * Repository variable that moves every self-hosted job onto a GitHub-hosted
+ * runner while the Proxmox pool is offline (docs/ops/self-hosted-runners.md,
+ * "GitHub-hosted fallback"). Only this exact value activates the fallback.
+ */
+export const RUNNER_FALLBACK_VAR = "CI_RUNNER_FALLBACK";
+export const RUNNER_FALLBACK_HOSTED = "github-hosted";
+export const RUNNER_FALLBACK_UNSET = "";
+export type RunnerFallback =
+  typeof RUNNER_FALLBACK_UNSET | typeof RUNNER_FALLBACK_HOSTED;
+/** Every modelled value of {@link RUNNER_FALLBACK_VAR}. */
+export const RUNNER_FALLBACK_VALUES: readonly RunnerFallback[] = [
+  RUNNER_FALLBACK_UNSET,
+  RUNNER_FALLBACK_HOSTED,
+];
+
+/**
+ * Self-hosted runs-on: the literal proxmox labels, or an expression that sends
+ * every same-repo event to exactly those labels while the fallback is unset
+ * and to a GitHub-hosted `ubuntu-*` runner when it is `github-hosted`.
+ */
 export function isSelfHostedRunsOn(
   runsOn: string | string[] | undefined,
 ): boolean {
+  if (typeof runsOn === "string" && runsOn.includes("${{")) {
+    try {
+      return EVENT_SCENARIOS.filter((scenario) => !scenario.fork).every(
+        (scenario) =>
+          RUNNER_FALLBACK_VALUES.every((fallback) => {
+            const labels = evaluateRunsOn(
+              runsOn,
+              scenarioContext(scenario, {}, fallback),
+            );
+            return fallback === RUNNER_FALLBACK_HOSTED
+              ? isHostedUbuntuLabels(labels)
+              : labelsEqual(labels, SELF_HOSTED_LABELS);
+          }),
+      );
+    } catch {
+      return false;
+    }
+  }
   const labels = normalizeRunsOn(runsOn);
   return labelsEqual(labels, SELF_HOSTED_LABELS);
 }
@@ -930,21 +969,28 @@ export function isHostedUbuntuSlim(
 }
 
 /**
- * Fork-aware runs-on: an expression that, evaluated for every modeled event,
- * sends fork pull requests to a GitHub-hosted `ubuntu-*` runner and every
- * same-repository event to exactly the proxmox labels.
+ * Fork-aware runs-on: an expression that, evaluated for every modeled event
+ * and every {@link RUNNER_FALLBACK_VALUES} value, sends fork pull requests to
+ * a GitHub-hosted `ubuntu-*` runner, and every same-repository event to
+ * exactly the proxmox labels while the fallback is unset (a hosted `ubuntu-*`
+ * runner when it is `github-hosted`).
  */
 export function isForkAwareRunsOnExpression(
   runsOn: string | string[] | undefined,
 ): boolean {
   if (typeof runsOn !== "string" || !runsOn.includes("${{")) return false;
   try {
-    return EVENT_SCENARIOS.every((scenario) => {
-      const labels = evaluateRunsOn(runsOn, scenarioContext(scenario, {}));
-      return scenario.fork
-        ? isHostedUbuntuLabels(labels)
-        : labelsEqual(labels, SELF_HOSTED_LABELS);
-    });
+    return EVENT_SCENARIOS.every((scenario) =>
+      RUNNER_FALLBACK_VALUES.every((fallback) => {
+        const labels = evaluateRunsOn(
+          runsOn,
+          scenarioContext(scenario, {}, fallback),
+        );
+        return scenario.fork || fallback === RUNNER_FALLBACK_HOSTED
+          ? isHostedUbuntuLabels(labels)
+          : labelsEqual(labels, SELF_HOSTED_LABELS);
+      }),
+    );
   } catch {
     return false;
   }
@@ -1197,7 +1243,9 @@ export function needsScenarios(job: WorkflowJob): NeedsState[] {
  * - `github`: the scenario's object (see {@link EVENT_SCENARIOS}).
  * - `needs.<id>.result` / `needs.<id>.outputs.*`: from the needs state given
  *   (only the job's declared needs; only the outputs supplied).
- * - `inputs`, `vars`: modelled as empty, so every member throws.
+ * - `inputs`: modelled as empty, so every member throws.
+ * - `vars`: only {@link RUNNER_FALLBACK_VAR} is modelled (default unset, which
+ *   GitHub renders as `''`); every other member throws.
  * - `env`, `secrets`, `runner`, `steps`, `matrix`, `job`, `strategy`: not
  *   contexts here, so any reference throws "Unknown context ... not modelled".
  * - Status functions: `success()`/`failure()` from the needs results,
@@ -1206,6 +1254,7 @@ export function needsScenarios(job: WorkflowJob): NeedsState[] {
 export function scenarioContext(
   scenario: EventScenario,
   needs: NeedsState,
+  runnerFallback: RunnerFallback = RUNNER_FALLBACK_UNSET,
 ): EvalContext {
   const results = Object.values(needs).map((need) => need.result);
   return {
@@ -1213,7 +1262,7 @@ export function scenarioContext(
       github: scenario.github,
       needs: needs as unknown as ExprValue,
       inputs: {},
-      vars: {},
+      vars: { [RUNNER_FALLBACK_VAR]: runnerFallback },
     },
     status: {
       success: results.every((result) => result === "success"),
@@ -1487,14 +1536,22 @@ export function analyzeSelfHostedForkSafety(
 
   for (const scenario of EVENT_SCENARIOS) {
     if (!scenario.fork) {
-      const labels = evaluateRunsOn(
-        jobRunsOn(job),
-        scenarioContext(scenario, {}),
-      );
-      if (!labelsEqual(labels, SELF_HOSTED_LABELS)) {
-        problems.push(
-          `same-repo ${scenario.label} resolves runs-on to ${JSON.stringify(labels)}`,
+      for (const fallback of RUNNER_FALLBACK_VALUES) {
+        const labels = evaluateRunsOn(
+          jobRunsOn(job),
+          scenarioContext(scenario, {}, fallback),
         );
+        const ok =
+          fallback === RUNNER_FALLBACK_HOSTED
+            ? isHostedUbuntuLabels(labels)
+            : labelsEqual(labels, SELF_HOSTED_LABELS);
+        if (!ok) {
+          problems.push(
+            fallback === RUNNER_FALLBACK_HOSTED
+              ? `same-repo ${scenario.label} with ${RUNNER_FALLBACK_VAR}=${fallback} resolves runs-on to ${JSON.stringify(labels)}`
+              : `same-repo ${scenario.label} resolves runs-on to ${JSON.stringify(labels)}`,
+          );
+        }
       }
     }
     for (const needs of needsStates) {
@@ -1509,11 +1566,16 @@ export function analyzeSelfHostedForkSafety(
         continue;
       }
       forkReachable = true;
-      const labels = evaluateRunsOn(jobRunsOn(job), ctx);
-      if (!isHostedUbuntuLabels(labels)) {
-        problems.push(
-          `fork ${scenario.label} (needs ${JSON.stringify(needs)}) runs on ${JSON.stringify(labels)}`,
+      for (const fallback of RUNNER_FALLBACK_VALUES) {
+        const labels = evaluateRunsOn(
+          jobRunsOn(job),
+          scenarioContext(scenario, needs, fallback),
         );
+        if (!isHostedUbuntuLabels(labels)) {
+          problems.push(
+            `fork ${scenario.label} (needs ${JSON.stringify(needs)}) runs on ${JSON.stringify(labels)}`,
+          );
+        }
       }
     }
   }

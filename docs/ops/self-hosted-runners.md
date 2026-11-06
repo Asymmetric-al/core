@@ -46,6 +46,40 @@ code, review it first and push the reviewed commits to a same-repo branch.
 A new workflow file or trigger that trips R1 or R2 needs a spec amendment on
 #2180, not a weaker guard.
 
+## GitHub-hosted fallback
+
+When the Proxmox pool is offline, self-hosted jobs queue indefinitely and the
+required checks (`ci-gate`, `e2e-smoke-gate`, `migrate`, `smoke`) never settle.
+To fall back to GitHub-hosted runners, set the repository variable
+`CI_RUNNER_FALLBACK` to `github-hosted`:
+
+```bash
+gh variable set CI_RUNNER_FALLBACK --repo Asymmetric-al/core --body github-hosted
+```
+
+Every self-hosted job in `ci.yml` and `ci-integration.yml` then resolves
+`runs-on` to `ubuntu-latest`. The value applies to runs created after it is
+set, so re-run or push to move queued runs. When the pool is back, return to
+Proxmox:
+
+```bash
+gh variable delete CI_RUNNER_FALLBACK --repo Asymmetric-al/core
+```
+
+- Only the exact value `github-hosted` activates the fallback. Unset, empty or
+  any other value keeps same-repo jobs on exactly the proxmox labels.
+- Fork pull requests use hosted runners whatever the variable says, and the
+  fork-reject steps and same-repo `if:` guards are unchanged.
+- The fallback only moves jobs off self-hosted runners, so it cannot widen
+  runner reach. The workflows stay on the R1 allowlist because their
+  `runs-on` remains an expression.
+- `tests/unit/helpers/workflow-yaml.ts` models the variable as unset and as
+  `github-hosted`. Every self-hosted job must resolve to proxmox when it is
+  unset and to a hosted `ubuntu-*` runner when it is `github-hosted`, so a new
+  self-hosted job that ignores the fallback fails the fork-safety harness.
+
+Readback: `gh variable list --repo Asymmetric-al/core`.
+
 ## Threat model
 
 | Threat                                                          | Control                                                                                                                                                                                                                                                                                                                                                                                              | Owner                          | Repo or settings  |

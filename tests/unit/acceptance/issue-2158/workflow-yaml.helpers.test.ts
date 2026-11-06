@@ -15,6 +15,7 @@ import {
   hostedGateFailsClosedWhenHeavyNeedsSkipped,
   isAlwaysExpression,
   isForkAwareRunsOnExpression,
+  isSelfHostedRunsOn,
   referencesSecrets,
   renderNeedsContextExpressions,
   requiredJobFailsClosedOnFork,
@@ -23,7 +24,14 @@ import {
 } from "./workflow-yaml";
 
 const G = SAME_REPO_GUARD;
-const FORK_AWARE_RUNS_ON = `\${{ ${FORK_ONLY_STEP_GUARD} && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}`;
+const PROXMOX_JSON = `fromJSON('["self-hosted", "linux", "x64", "proxmox"]')`;
+const HOSTED_FALLBACK = "vars.CI_RUNNER_FALLBACK == 'github-hosted'";
+/** Fork PRs, or any event while the GitHub-hosted fallback is on, go to ubuntu-latest. */
+const FORK_AWARE_RUNS_ON = `\${{ ((${FORK_ONLY_STEP_GUARD}) || ${HOSTED_FALLBACK}) && 'ubuntu-latest' || ${PROXMOX_JSON} }}`;
+/** Pre-fallback fork-aware ternary: right for forks, but strands same-repo jobs on an offline pool. */
+const NO_FALLBACK_RUNS_ON = `\${{ ${FORK_ONLY_STEP_GUARD} && 'ubuntu-latest' || ${PROXMOX_JSON} }}`;
+/** Static self-hosted job (fork events skipped by its if) that honours the fallback. */
+const STATIC_SELF_HOSTED_RUNS_ON = `\${{ ${HOSTED_FALLBACK} && 'ubuntu-latest' || ${PROXMOX_JSON} }}`;
 const INVERTED_RUNS_ON = `\${{ ${FORK_ONLY_STEP_GUARD} && fromJSON('["self-hosted", "linux", "x64", "proxmox"]') || 'ubuntu-latest' }}`;
 const REJECT_STEP = {
   name: "Reject fork pull requests",
@@ -169,8 +177,7 @@ fi`,
 
 describe("requiredJobFailsClosedOnFork", () => {
   const validForkFailJob: WorkflowJob = {
-    "runs-on":
-      '${{ github.event_name == \'pull_request\' && github.event.pull_request.head.repo.full_name != github.repository && \'ubuntu-latest\' || fromJSON(\'["self-hosted", "linux", "x64", "proxmox"]\') }}',
+    "runs-on": FORK_AWARE_RUNS_ON,
     steps: [
       {
         name: "Reject fork pull requests",
@@ -261,7 +268,7 @@ describe("isAlwaysExpression", () => {
 });
 
 describe("isForkAwareRunsOnExpression (evaluated per event)", () => {
-  it("accepts the fork -> ubuntu-latest / same-repo -> proxmox ternary", () => {
+  it("accepts the fork -> ubuntu-latest / same-repo -> proxmox ternary with the hosted fallback", () => {
     expect(isForkAwareRunsOnExpression(FORK_AWARE_RUNS_ON)).toBe(true);
   });
 
@@ -284,6 +291,15 @@ describe("isForkAwareRunsOnExpression (evaluated per event)", () => {
       "${{ 'pull_request head.repo.full_name ubuntu-latest self-hosted proxmox' }}",
     ],
     ["static labels", ["self-hosted", "linux", "x64", "proxmox"]],
+    ["ignores the GitHub-hosted fallback", NO_FALLBACK_RUNS_ON],
+    [
+      "inverted fallback (unset sends same-repo to hosted)",
+      `\${{ ((${FORK_ONLY_STEP_GUARD}) || vars.CI_RUNNER_FALLBACK != 'github-hosted') && 'ubuntu-latest' || ${PROXMOX_JSON} }}`,
+    ],
+    [
+      "fallback reads an unmodelled variable",
+      `\${{ ((${FORK_ONLY_STEP_GUARD}) || vars.OTHER == 'github-hosted') && 'ubuntu-latest' || ${PROXMOX_JSON} }}`,
+    ],
   ])("rejects %s", (_label, runsOn) => {
     expect(isForkAwareRunsOnExpression(runsOn)).toBe(false);
   });
@@ -374,7 +390,7 @@ describe("analyzeSelfHostedForkSafety", () => {
 
   it("accepts a static self-hosted job guarded by G (fork events skip it)", () => {
     const report = analyzeSelfHostedForkSafety({
-      "runs-on": PROXMOX,
+      "runs-on": STATIC_SELF_HOSTED_RUNS_ON,
       if: `\${{ ${G} }}`,
       env: { T: "${{ secrets.TURBO_TOKEN }}" },
       steps: [{ run: "echo hi" }],
@@ -407,6 +423,29 @@ describe("analyzeSelfHostedForkSafety", () => {
     },
   );
 
+  it("rejects a static self-hosted job that ignores the GitHub-hosted fallback", () => {
+    const report = analyzeSelfHostedForkSafety({
+      "runs-on": PROXMOX,
+      if: `\${{ ${G} }}`,
+      steps: [{ run: "echo hi" }],
+    });
+    expect(report.forkReachable).toBe(false);
+    expect(report.problems.join("\n")).toMatch(
+      /same-repo .* with CI_RUNNER_FALLBACK=github-hosted resolves runs-on to \["self-hosted"/,
+    );
+  });
+
+  it("rejects a fork-aware ternary that ignores the GitHub-hosted fallback", () => {
+    const report = analyzeSelfHostedForkSafety({
+      "runs-on": NO_FALLBACK_RUNS_ON,
+      steps: [REJECT_STEP],
+    });
+    expect(report.problems.join("\n")).toMatch(
+      /with CI_RUNNER_FALLBACK=github-hosted resolves runs-on/,
+    );
+    expect(report.problems.join("\n")).not.toMatch(/^fork /m);
+  });
+
   it("rejects an inverted fork-aware ternary", () => {
     const report = analyzeSelfHostedForkSafety({
       "runs-on": INVERTED_RUNS_ON,
@@ -434,5 +473,26 @@ describe("analyzeSelfHostedForkSafety", () => {
       steps: [{ run: "echo hi" }],
     });
     expect(report.problems).toContain("job never runs for a same-repo event");
+  });
+});
+
+describe("isSelfHostedRunsOn with the GitHub-hosted fallback", () => {
+  it.each([
+    ["static proxmox labels", ["self-hosted", "linux", "x64", "proxmox"]],
+    ["fallback-aware static expression", STATIC_SELF_HOSTED_RUNS_ON],
+    ["fallback-aware fork expression", FORK_AWARE_RUNS_ON],
+  ])("accepts %s", (_label, runsOn) => {
+    expect(isSelfHostedRunsOn(runsOn)).toBe(true);
+  });
+
+  it.each([
+    ["expression without the fallback", NO_FALLBACK_RUNS_ON],
+    [
+      "fallback that stays self-hosted",
+      `\${{ ${HOSTED_FALLBACK} && fromJSON('["self-hosted", "ubuntu-latest"]') || ${PROXMOX_JSON} }}`,
+    ],
+    ["hosted label", "ubuntu-latest"],
+  ])("rejects %s", (_label, runsOn) => {
+    expect(isSelfHostedRunsOn(runsOn)).toBe(false);
   });
 });
