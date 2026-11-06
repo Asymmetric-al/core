@@ -47,7 +47,7 @@ import { toast } from "sonner";
 
 import { EMPTY_CELL_VALUE } from "./crm-detail-shared";
 import { GiftHistorySection } from "./gift-history-section";
-import { PORTAL_BADGE_CLASS } from "./types";
+import { PORTAL_BADGE_VARIANT } from "./types";
 
 import type { CrmRecord } from "./types";
 import type { CrmDonorDetailResponse } from "@asym/database/types";
@@ -92,16 +92,15 @@ function DetailDrawerHeader({
   onSummarize: () => void;
 }) {
   return (
-    <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <User className="size-4 text-muted-foreground" />
-        <span className="truncate max-w-[200px] sm:max-w-md">{display}</span>
+    <div className="h-14 bg-card border-b border-border flex items-center justify-between gap-2 px-4 shrink-0 z-10">
+      <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground">
+        <User className="size-4 shrink-0 text-muted-foreground" />
+        <span className="truncate sm:max-w-md">{display}</span>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-9 gap-2 rounded-xl border border-border bg-card text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
           onClick={onSummarize}
           disabled={isAnalyzing}
         >
@@ -113,10 +112,9 @@ function DetailDrawerHeader({
         <div className="h-4 w-px bg-border mx-2" />
         <Button
           variant="ghost"
-          size="icon"
+          size="icon-sm"
           onClick={onClose}
           aria-label="Close CRM record details"
-          className="size-8 text-muted-foreground"
         >
           <X className="size-4" aria-hidden="true" />
         </Button>
@@ -137,11 +135,9 @@ function DetailDrawerIdentity({
       <SharedNamedViewTransition
         name={crmRecordAvatarTransitionName(contact.id)}
       >
-        <Avatar className="size-20 border-4 border-background shadow-sm">
+        <Avatar className="size-20">
           <AvatarImage src={contact.avatarUrl ?? undefined} />
-          <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xl">
-            {display[0] ?? "?"}
-          </AvatarFallback>
+          <AvatarFallback>{display[0] ?? "?"}</AvatarFallback>
         </Avatar>
       </SharedNamedViewTransition>
       <div className="space-y-1 pt-1 min-w-0">
@@ -159,24 +155,15 @@ function DetailDrawerIdentity({
           />
         </p>
         <div className="flex flex-wrap gap-2 pt-2">
-          <Badge variant="outline" className="font-semibold uppercase">
+          <Badge variant="outline">
             {contact.lifecycleStatus ?? "Unknown status"}
           </Badge>
-          <Badge
-            variant="outline"
-            className={cn(
-              "font-semibold uppercase border shadow-none",
-              PORTAL_BADGE_CLASS[contact.portalAccessLabel],
-            )}
-          >
+          <Badge variant={PORTAL_BADGE_VARIANT[contact.portalAccessLabel]}>
             {contact.portalAccessLabel === "linked"
               ? "Portal linked"
               : "No portal"}
           </Badge>
-          <Badge
-            variant="secondary"
-            className="h-5 font-semibold uppercase tracking-wider border-none bg-muted text-muted-foreground"
-          >
+          <Badge variant="secondary">
             {formatCurrency(contact.lifetimeGiving)}
           </Badge>
         </div>
@@ -204,7 +191,7 @@ function DetailDrawerSummary({
           aria-live="polite"
           className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4"
         >
-          <div className="flex items-center gap-2 text-foreground font-semibold text-xs uppercase tracking-[0.2em]">
+          <div className="flex items-center gap-2 text-foreground font-semibold text-xs uppercase tracking-widest">
             <FileText className="size-3.5 text-muted-foreground" /> Highlights
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -262,32 +249,28 @@ function DetailDrawerNoteComposer({
         placeholder="Log a note, call, or meeting..."
         value={noteBody}
         onChange={(event) => onNoteBodyChange(event.target.value)}
-        className="h-20 resize-none text-sm"
       />
       <div className="flex justify-between items-center pt-2 border-t border-muted">
         <div className="flex gap-1">
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label="Attach file to note"
             disabled
-            className="size-7 text-muted-foreground hover:text-foreground"
           >
             <Paperclip className="size-3.5" aria-hidden="true" />
           </Button>
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label="View note history"
             disabled
-            className="size-7 text-muted-foreground hover:text-foreground"
           >
             <History className="size-3.5" aria-hidden="true" />
           </Button>
         </div>
         <Button
           size="sm"
-          className="h-7 px-4 font-semibold uppercase tracking-wider"
           disabled={isSaving || !noteBody.trim()}
           onClick={onSave}
         >
@@ -327,7 +310,7 @@ function DetailDrawerTimeline({
     <div className="space-y-6 pl-4 border-l border-border ml-2">
       {timeline.map((act) => (
         <div key={act.id} className="relative group">
-          <div className="absolute -left-[21px] top-0 size-4 rounded-full border-2 border-background bg-muted z-10 transition-colors group-hover:bg-foreground" />
+          <div className="absolute -left-5.25 top-0 size-4 rounded-full border-2 border-background bg-muted z-10 transition-colors group-hover:bg-foreground" />
           <div className="pb-4 space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-foreground">
@@ -372,10 +355,7 @@ function DetailDrawerProperties({
   const tags = contact.tags ?? [];
 
   return (
-    <TabsContent
-      value="properties"
-      className="pt-6 grid grid-cols-2 gap-8 text-left"
-    >
+    <TabsContent value="properties" className="pt-6 grid grid-cols-2 gap-8">
       <div className="space-y-6">
         <div className="space-y-1">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
@@ -449,11 +429,7 @@ function DetailDrawerProperties({
               </span>
             ) : (
               tags.map((t) => (
-                <Badge
-                  key={t}
-                  variant="secondary"
-                  className="px-1.5 h-4 bg-muted text-muted-foreground border-none shadow-none"
-                >
+                <Badge key={t} variant="secondary">
                   {t}
                 </Badge>
               ))
@@ -511,10 +487,8 @@ function DetailDrawerActivityTab({
 
       {duplicateWarnings.length > 0 ? (
         <Alert>
-          <AlertTitle className="text-xs font-semibold uppercase tracking-[0.18em]">
-            Duplicate warning
-          </AlertTitle>
-          <AlertDescription className="mt-2 space-y-2 text-xs">
+          <AlertTitle>Duplicate warning</AlertTitle>
+          <AlertDescription>
             {duplicateWarnings.map((warning) => (
               <p key={warning.id} className="leading-relaxed">
                 {warning.reason}
@@ -627,67 +601,59 @@ export function DetailDrawer({
 
   return (
     <Sheet open={!!contact} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:max-w-2xl p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left">
+      <SheetContent className="w-full sm:max-w-2xl" showCloseButton={false}>
         <SheetTitle className="sr-only">
           {display}, CRM record details
         </SheetTitle>
         <SheetDescription className="sr-only">
           Constituent summary, activity, and properties for this CRM record.
         </SheetDescription>
-        <DetailDrawerHeader
-          display={display}
-          isAnalyzing={isAnalyzing}
-          onClose={onClose}
-          onSummarize={() => void summarizeContact()}
-        />
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <DetailDrawerHeader
+            display={display}
+            isAnalyzing={isAnalyzing}
+            onClose={onClose}
+            onSummarize={() => void summarizeContact()}
+          />
 
-        <ScrollArea className="flex-1">
-          <div className="p-6 space-y-8">
-            <DetailDrawerIdentity contact={contact} display={display} />
-            <DetailDrawerSummary summary={summary} />
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="p-6 space-y-8">
+              <DetailDrawerIdentity contact={contact} display={display} />
+              <DetailDrawerSummary summary={summary} />
 
-            <Tabs defaultValue="activity">
-              <TabsList className="bg-transparent h-9 p-0 gap-6 border-b border-border w-full rounded-none justify-start">
-                <TabsTrigger
-                  value="activity"
-                  className="bg-transparent border-b-2 border-transparent data-active:border-foreground data-active:text-foreground rounded-none px-0 py-2 font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
-                >
-                  Activity
-                </TabsTrigger>
-                <TabsTrigger
-                  value="properties"
-                  className="bg-transparent border-b-2 border-transparent data-active:border-foreground data-active:text-foreground rounded-none px-0 py-2 font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
-                >
-                  Properties
-                </TabsTrigger>
-              </TabsList>
+              <Tabs defaultValue="activity">
+                <TabsList variant="line">
+                  <TabsTrigger value="activity">Activity</TabsTrigger>
+                  <TabsTrigger value="properties">Properties</TabsTrigger>
+                </TabsList>
 
-              <DetailDrawerActivityTab
-                detail={detail}
-                formatDate={formatDate}
-                isDetailLoading={detailQuery.isLoading}
-                isSavingNote={createNoteMutation.isPending}
-                noteBody={noteBody}
-                noteFieldId={noteFieldId}
-                onNoteBodyChange={setNoteBody}
-                onOpenGift={onOpenGift}
-                onRefreshGifts={async () => {
-                  const refreshed = await detailQuery.refetch();
-                  if (refreshed.isError) {
-                    throw refreshed.error instanceof Error
-                      ? refreshed.error
-                      : new Error("Could not refresh the CRM gift history.");
-                  }
-                  onRowRefresh?.();
-                }}
-                onSaveNote={() => void saveNote()}
-                timeline={timeline}
-              />
+                <DetailDrawerActivityTab
+                  detail={detail}
+                  formatDate={formatDate}
+                  isDetailLoading={detailQuery.isLoading}
+                  isSavingNote={createNoteMutation.isPending}
+                  noteBody={noteBody}
+                  noteFieldId={noteFieldId}
+                  onNoteBodyChange={setNoteBody}
+                  onOpenGift={onOpenGift}
+                  onRefreshGifts={async () => {
+                    const refreshed = await detailQuery.refetch();
+                    if (refreshed.isError) {
+                      throw refreshed.error instanceof Error
+                        ? refreshed.error
+                        : new Error("Could not refresh the CRM gift history.");
+                    }
+                    onRowRefresh?.();
+                  }}
+                  onSaveNote={() => void saveNote()}
+                  timeline={timeline}
+                />
 
-              <DetailDrawerProperties contact={contact} detail={detail} />
-            </Tabs>
-          </div>
-        </ScrollArea>
+                <DetailDrawerProperties contact={contact} detail={detail} />
+              </Tabs>
+            </div>
+          </ScrollArea>
+        </div>
       </SheetContent>
     </Sheet>
   );

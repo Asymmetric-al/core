@@ -37,6 +37,12 @@ const CI_BASES = [
     bytes: 40058,
     sha256: "f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b",
   },
+  {
+    // Reviewed hosted-only amendment changes only the CI-doc terminal pointer.
+    ref: "AL-2218 hosted CI baseline",
+    bytes: 40204,
+    sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
+  },
 ] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */
