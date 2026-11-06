@@ -3,9 +3,11 @@
 -- columns and public.persons (with its policy, index and grants), in that
 -- order. No CASCADE: if anything else came to depend on persons, this stops
 -- instead of dropping it. Idempotent (IF EXISTS). Run it before #2254's
--- rollback.
+-- rollback. SET LOCAL lock_timeout = '5s' bounds the wait for each lock; on
+-- SQLSTATE 55P03 nothing is rolled back, so re-run it in a quiet window.
 
 BEGIN;
+SET LOCAL lock_timeout = '5s';
 
 DELETE FROM public.field_policies
 WHERE record_type IN ('missionaries', 'profiles')

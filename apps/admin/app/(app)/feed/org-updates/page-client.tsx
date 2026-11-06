@@ -1016,6 +1016,7 @@ function ComposeCard({
           >
             <RichTextEditor
               aria-label="Organization post content"
+              imagePurpose="feed"
               value={postContent}
               onChange={(value) =>
                 dispatchCompose({ type: "set-content", value })

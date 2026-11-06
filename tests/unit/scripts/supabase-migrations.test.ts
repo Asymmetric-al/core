@@ -174,6 +174,8 @@ else if (sql.includes("public.field_policies")) {
       "scripts",
       "docs/security/field-policies",
       "supabase/migrations",
+      // #2400: the PG17 readiness probe runs before the census.
+      "tests/integration/supabase/postgres17-upgrade-readiness-verification.sql",
     ])
       cpSync(path.join(root, rel), path.join(repo, rel), { recursive: true });
     appendFileSync(path.join(repo, MIGRATION), "-");
@@ -297,10 +299,17 @@ itPosix.each([
   "v3-third-column",
   "v3-source-edited",
 ])("fails the #2256 v3 census for %s", (mode) => {
-  expect(runVerifier("clean").status, "clean baseline must pass first").toBe(0);
+  const clean = runVerifier("clean");
+  expect(clean.status, "clean baseline must pass first").toBe(0);
   const result = runVerifier(mode);
   expect(result.status).not.toBe(0);
   expect(result.stdout).not.toContain("forward Supabase migrations");
+  // #2400 criterion 7: the failure is the census source-hash check itself.
+  if (mode === "v3-source-edited") {
+    const mismatch = `field-policy census: v3 source_sha256 mismatch for ${MIGRATION}`;
+    expect(clean.stderr).not.toContain(mismatch);
+    expect(result.stderr).toContain(mismatch);
+  }
 });
 
 itPosix(
