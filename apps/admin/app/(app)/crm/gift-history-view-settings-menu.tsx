@@ -54,19 +54,16 @@ export function GiftHistoryViewSettingsMenu({
         render={
           <Button
             variant="ghost"
-            size="icon"
-            className="size-8 text-muted-foreground"
+            size="icon-sm"
             aria-label="Gift history view settings"
           >
             <Settings2 className="size-4" aria-hidden="true" />
           </Button>
         }
       />
-      <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuContent align="end">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Columns
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Columns</DropdownMenuLabel>
           <DropdownMenuCheckboxItem
             checked={settings.columns.designation}
             onCheckedChange={(checked) =>
@@ -90,9 +87,7 @@ export function GiftHistoryViewSettingsMenu({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Sort
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Sort</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={sortValue}
             onValueChange={(value) => {
@@ -122,9 +117,7 @@ export function GiftHistoryViewSettingsMenu({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Filter
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Filter</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={settings.filtersSort.paymentStatus}
             onValueChange={(value) =>
@@ -150,9 +143,7 @@ export function GiftHistoryViewSettingsMenu({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Issues
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Issues</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={settings.filtersSort.issue}
             onValueChange={(value) =>
@@ -198,9 +189,7 @@ export function GiftHistoryViewSettingsMenu({
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Tenant default
-              </DropdownMenuLabel>
+              <DropdownMenuLabel>Tenant default</DropdownMenuLabel>
               <DropdownMenuItem onClick={onRequestSetTenantDefault}>
                 Set current settings as tenant default…
               </DropdownMenuItem>

@@ -632,11 +632,9 @@ function CrmResultsSection({
                           <SharedNamedViewTransition
                             name={crmRecordAvatarTransitionName(c.id)}
                           >
-                            <Avatar className="size-10 border border-border">
+                            <Avatar size="lg">
                               <AvatarImage src={c.avatarUrl ?? undefined} />
-                              <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
-                                {name[0] ?? "?"}
-                              </AvatarFallback>
+                              <AvatarFallback>{name[0] ?? "?"}</AvatarFallback>
                             </Avatar>
                           </SharedNamedViewTransition>
                           <div>
@@ -652,7 +650,7 @@ function CrmResultsSection({
                             </div>
                           </div>
                         </div>
-                        <Badge variant="outline" className="uppercase">
+                        <Badge variant="outline">
                           {c.lifecycleStatus ?? EMPTY_CELL_VALUE}
                         </Badge>
                       </div>

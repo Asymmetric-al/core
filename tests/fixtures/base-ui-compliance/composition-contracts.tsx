@@ -20,6 +20,10 @@ const { LabelForm } =
   await import("../../../apps/admin/features/support-hub/components/labels/LabelForm");
 const { OfflineGiftEntryDialog } =
   await import("../../../apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog");
+const { SetTenantDefaultDialog } =
+  await import("../../../apps/admin/app/(app)/crm/gift-history-dialogs");
+const { GiftHistoryViewSwitcher } =
+  await import("../../../apps/admin/app/(app)/crm/gift-history-view-switcher");
 
 export function CompositionContracts() {
   const [loading, setLoading] = useState(false);
@@ -28,6 +32,15 @@ export function CompositionContracts() {
   const [saved, setSaved] = useState("");
   const [open, setOpen] = useState(false);
   const [changes, setChanges] = useState(0);
+  const [tenantDefaultOpen, setTenantDefaultOpen] = useState(false);
+  const namedViews = ["First", "Second"].map((suffix, index) => ({
+    id: `layout-view-${index}`,
+    name: `${"SharedPrefix".repeat(20)}${suffix}`,
+    isDefault: false,
+    schemaVersion: 1 as const,
+    pinnedActionId: null,
+    settings: null,
+  }));
   return (
     <section
       id="composition-contracts"
@@ -82,6 +95,26 @@ export function CompositionContracts() {
       </output>
       <Button onClick={() => setOpen(true)}>Open offline donor modes</Button>
       <OfflineGiftEntryDialog open={open} onOpenChange={setOpen} />
+      <Button onClick={() => setTenantDefaultOpen(true)}>
+        Open tenant default confirmation
+      </Button>
+      <SetTenantDefaultDialog
+        open={tenantDefaultOpen}
+        isSaving={false}
+        onCancel={() => setTenantDefaultOpen(false)}
+        onConfirm={() => setTenantDefaultOpen(false)}
+      />
+      <GiftHistoryViewSwitcher
+        views={namedViews}
+        activeViewId={namedViews[0].id}
+        onApplyView={() => undefined}
+        onSaveCurrentAs={() => undefined}
+        onRename={() => undefined}
+        onDuplicate={() => undefined}
+        onSetDefault={() => undefined}
+        onResetToSaved={() => undefined}
+        onDelete={() => undefined}
+      />
     </section>
   );
 }

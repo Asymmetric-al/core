@@ -123,7 +123,6 @@ export function GiftInlineActionControls({
         <Button
           variant="outline"
           size="sm"
-          className="gap-2 text-xs"
           title={resolved.explanation ?? undefined}
           onClick={() => onRunOperation(rowAction)}
         >
@@ -143,19 +142,18 @@ export function GiftInlineActionControls({
           render={
             <Button
               variant="ghost"
-              size="icon"
-              className="size-8 text-muted-foreground"
+              size="icon-sm"
               aria-label="More gift actions"
             >
               <MoreHorizontal className="size-4" aria-hidden="true" />
             </Button>
           }
         />
-        <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuContent align="end">
           {groups.map((group, index) => (
             <DropdownMenuGroup key={group.category}>
               {index > 0 ? <DropdownMenuSeparator /> : null}
-              <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <DropdownMenuLabel>
                 {OPERATION_CATEGORY_LABELS[group.category]}
               </DropdownMenuLabel>
               {group.items.map(({ definition, entry }) => (
@@ -165,9 +163,6 @@ export function GiftInlineActionControls({
                   // (data-disabled:opacity-50); no extra muted color, so the
                   // blocked reason stays legible — that's the point of showing
                   // it (#270).
-                  className={
-                    entry.available ? undefined : "flex-col items-start gap-0.5"
-                  }
                   // A blocked entry keeps the same server-computed reason and
                   // next step the detail surface shows (#270), so staff learn
                   // why an action is unavailable without leaving the row.
@@ -188,7 +183,7 @@ export function GiftInlineActionControls({
                   {entry.available ? (
                     definition.title
                   ) : (
-                    <>
+                    <span className="flex w-full max-w-60 flex-col items-start gap-0.5">
                       <span className="flex w-full items-center">
                         {definition.title}
                         <DropdownMenuShortcut>Blocked</DropdownMenuShortcut>
@@ -203,7 +198,7 @@ export function GiftInlineActionControls({
                           {entry.nextStep}
                         </span>
                       ) : null}
-                    </>
+                    </span>
                   )}
                 </DropdownMenuItem>
               ))}

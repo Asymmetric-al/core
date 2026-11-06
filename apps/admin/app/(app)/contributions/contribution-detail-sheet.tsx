@@ -258,31 +258,34 @@ function ContributionDetailSheetFrame({
 }) {
   return (
     <Sheet open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
-      <SheetContent
-        showCloseButton={false}
-        className="w-full sm:max-w-lg p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left"
-      >
-        <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
-          <SheetTitle className="m-0 flex items-center gap-2 text-sm font-semibold text-foreground uppercase tracking-wider">
-            <DollarSign className="size-4 text-muted-foreground" aria-hidden />
-            Contribution Details
-          </SheetTitle>
-          <SheetDescription className="sr-only">
-            Contribution details for {donorDisplayName}, including donor,
-            receipt, staged gift, and payment information.
-          </SheetDescription>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="size-8 text-muted-foreground hover:text-foreground"
-            aria-label="Close contribution details"
-          >
-            <X className="size-4" aria-hidden="true" />
-          </Button>
-        </div>
+      <SheetContent showCloseButton={false} className="w-full sm:max-w-lg">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
+            <div className="flex items-center gap-2">
+              <DollarSign
+                className="size-4 text-muted-foreground"
+                aria-hidden
+              />
+              <SheetTitle className="m-0 text-sm font-semibold uppercase tracking-wider">
+                Contribution Details
+              </SheetTitle>
+            </div>
+            <SheetDescription className="sr-only">
+              Contribution details for {donorDisplayName}, including donor,
+              receipt, staged gift, and payment information.
+            </SheetDescription>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={onClose}
+              aria-label="Close contribution details"
+            >
+              <X className="size-4" aria-hidden="true" />
+            </Button>
+          </div>
 
-        <ScrollArea className="flex-1">{children}</ScrollArea>
+          <ScrollArea className="min-h-0 flex-1">{children}</ScrollArea>
+        </div>
       </SheetContent>
     </Sheet>
   );
@@ -321,7 +324,7 @@ function ContributionDetailErrorState({
               type="button"
               size="sm"
               variant="outline"
-              className="mt-2 gap-2"
+              className="mt-2"
               onClick={onRetry}
             >
               <RefreshCcw className="size-3.5" aria-hidden />
@@ -573,12 +576,12 @@ function ContributionDonorSummary({
   return (
     <>
       <div className="flex items-start gap-4">
-        <Avatar className="size-16 border-4 border-background shadow-sm">
+        <Avatar className="size-16">
           <AvatarImage
             src={donorAvatar ?? undefined}
             alt={resolvedDonorDisplayName}
           />
-          <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xl">
+          <AvatarFallback>
             {isAnonymous ? "?" : getInitials(resolvedDonorDisplayName)}
           </AvatarFallback>
         </Avatar>
@@ -592,10 +595,7 @@ function ContributionDonorSummary({
             </p>
           )}
           <div className="flex items-center gap-2 pt-2">
-            <Badge
-              variant="outline"
-              className="h-5 font-semibold uppercase tracking-wider shadow-none"
-            >
+            <Badge variant="outline">
               <span
                 className={cn(
                   "size-1.5 shrink-0 rounded-full mr-1.5",
@@ -604,12 +604,7 @@ function ContributionDonorSummary({
               />
               {contribution.status}
             </Badge>
-            <Badge
-              variant="secondary"
-              className="h-5 font-semibold uppercase tracking-wider border-none bg-muted text-muted-foreground"
-            >
-              {contribution.type}
-            </Badge>
+            <Badge variant="secondary">{contribution.type}</Badge>
           </div>
         </div>
       </div>
@@ -732,7 +727,7 @@ function ContributionDesignationsSection({
             Designations
           </p>
           {!designations.reconcilesToGiftAmount && (
-            <Alert className="bg-muted/40">
+            <Alert>
               <AlertDescription>
                 <p className="text-xs">
                   Designation lines do not reconcile to the gift amount. Review
@@ -849,7 +844,7 @@ function ContributionCrmPostingSection({
             Historical CRM posting
           </p>
           {crmPostState.adapterLimitation && (
-            <Alert className="bg-muted/40">
+            <Alert>
               <AlertDescription>
                 <p className="text-xs">{crmPostState.adapterLimitation}</p>
               </AlertDescription>
@@ -894,7 +889,6 @@ function ContributionCrmPostingSection({
                     isActionPending,
                     parentRetryActionPending,
                   )}
-                  className="gap-2 rounded-xl font-semibold uppercase tracking-widest"
                   onClick={() =>
                     stagedGiftId &&
                     onRetryCrmPost?.(
@@ -990,7 +984,6 @@ function ContributionCrmPostingSection({
                           isActionPending,
                           lineRetryActionPending,
                         )}
-                        className="gap-2 rounded-xl font-semibold uppercase tracking-widest"
                         onClick={() =>
                           stagedGiftId &&
                           onRetryCrmPost?.(
@@ -1044,7 +1037,7 @@ function ContributionNotesSection({
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Review reason
             </p>
-            <Alert className="bg-muted/40">
+            <Alert>
               <AlertDescription>
                 <p className="text-sm font-medium">
                   {contribution.stagedGiftReviewReason.replace(/,/g, ", ")}
@@ -1120,12 +1113,7 @@ function ContributionActionsSection({
       )}
 
       <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 rounded-xl font-semibold uppercase tracking-widest h-9"
-          onClick={handleCopyTxn}
-        >
+        <Button variant="outline" onClick={handleCopyTxn}>
           <Copy className="size-3.5" />
           Copy Transaction ID
         </Button>
@@ -1133,8 +1121,6 @@ function ContributionActionsSection({
           <Button
             focusableWhenDisabled={receiptActionPending}
             variant="outline"
-            size="sm"
-            className="gap-2 rounded-xl font-semibold uppercase tracking-widest h-9"
             disabled={!stagedGiftId || isActionPending}
             tabIndex={workflowActionTabIndex(
               isActionPending,
@@ -1152,13 +1138,11 @@ function ContributionActionsSection({
           <Button
             focusableWhenDisabled={approveActionPending}
             variant="outline"
-            size="sm"
             disabled={isActionPending}
             tabIndex={workflowActionTabIndex(
               isActionPending,
               approveActionPending,
             )}
-            className="gap-2 rounded-xl font-bold uppercase tracking-widest h-9"
             onClick={() =>
               stagedGiftId &&
               onApproveStagedGift?.(stagedGiftId, contribution.id)
@@ -1172,13 +1156,11 @@ function ContributionActionsSection({
           <Button
             focusableWhenDisabled={stagedRetryActionPending}
             variant="outline"
-            size="sm"
             disabled={isActionPending}
             tabIndex={workflowActionTabIndex(
               isActionPending,
               stagedRetryActionPending,
             )}
-            className="gap-2 rounded-xl font-bold uppercase tracking-widest h-9"
             onClick={() =>
               stagedGiftId && onRetryStagedGift?.(stagedGiftId, contribution.id)
             }
@@ -1190,10 +1172,8 @@ function ContributionActionsSection({
         {showRefundAction && (
           <Button
             variant="outline"
-            size="sm"
             disabled={!canRefund || isActionPending}
             tabIndex={isActionPending ? -1 : undefined}
-            className="gap-2 rounded-xl font-semibold uppercase tracking-widest h-9"
             onClick={() => onRefund?.(contribution.id)}
           >
             <Undo2 className="size-3.5" />
@@ -1269,7 +1249,7 @@ function ContributionRecurringSection({
             </p>
           )}
           {recurring.providerRecurrenceWithoutAgreement && (
-            <Alert className="bg-muted/40">
+            <Alert>
               <AlertDescription>
                 <p className="text-xs">
                   The payment provider reports this gift as recurring, but no
