@@ -55,7 +55,7 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
   }, [selectedScopeId, setState, state.scopeId]);
 
   return (
-    <div className="flex items-end gap-2">
+    <div className="flex flex-wrap items-end gap-2">
       {!lockKind ? (
         <div className="flex w-35 flex-col gap-1.5">
           <Select<SupportReportScopeKind>

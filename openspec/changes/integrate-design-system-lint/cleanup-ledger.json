@@ -2559,10 +2559,15 @@
           "batch": "admin-support-inbox-2026-10-30",
           "verifiedSourceSha256": "9d0a74116a4238b98d0cd661989ed59f7fa0955cc87c8f5e36e60a6680650a20",
           "supportsFileCompletion": true
+        },
+        {
+          "batch": "admin-support-inbox-review-2026-11-07",
+          "verifiedSourceSha256": "f0a2438fc314d8c7702ee67584673f5fa30772f9aac3e307ef273080e2ff3545",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "9d0a74116a4238b98d0cd661989ed59f7fa0955cc87c8f5e36e60a6680650a20",
+      "latestSourceSha256": "f0a2438fc314d8c7702ee67584673f5fa30772f9aac3e307ef273080e2ff3545",
       "includedInLatestScan": true
     },
     {
@@ -3264,10 +3269,15 @@
           "batch": "admin-support-inbox-2026-10-30",
           "verifiedSourceSha256": "b23dba0d58838ae1e230bb45bbdd1eb8ab452eb55787217b754aeb5e2867bcb3",
           "supportsFileCompletion": true
+        },
+        {
+          "batch": "admin-support-inbox-review-2026-11-07",
+          "verifiedSourceSha256": "d2050ecb6928576aa0cf751782f4c1565b5945c7059db802026e360aab26dc47",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "b23dba0d58838ae1e230bb45bbdd1eb8ab452eb55787217b754aeb5e2867bcb3",
+      "latestSourceSha256": "d2050ecb6928576aa0cf751782f4c1565b5945c7059db802026e360aab26dc47",
       "includedInLatestScan": true
     },
     {
@@ -4179,10 +4189,15 @@
           "batch": "admin-support-inbox-2026-10-30",
           "verifiedSourceSha256": "45f9dfd7b3648e70456470e44248904d03476ce6151e43cb1280763ca2f16f58",
           "supportsFileCompletion": true
+        },
+        {
+          "batch": "admin-support-inbox-review-2026-11-07",
+          "verifiedSourceSha256": "560dedb4b3ebb0662a78a341b440a6bbe13ed563ed1c566ba286771bcc63568a",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "45f9dfd7b3648e70456470e44248904d03476ce6151e43cb1280763ca2f16f58",
+      "latestSourceSha256": "560dedb4b3ebb0662a78a341b440a6bbe13ed563ed1c566ba286771bcc63568a",
       "includedInLatestScan": true
     },
     {
@@ -10063,6 +10078,31 @@
         {
           "path": ".tmp/admin-lint-5-4/support-inbox/support-inbox__support-inbox-routes.results.json",
           "sha256": "e68aee15313e111af2109f5547344781882b0d14564ec861b2e20ef482f72a8d"
+        }
+      ]
+    },
+    "admin-support-inbox-review-2026-11-07": {
+      "summary": "Scoped raw lint reports zero findings and warnings. Chromium checks verify that long assignee names stay inside the popup, report scope controls fit the card, and the saved-view action receives its own coarse-pointer taps.",
+      "evidence": [
+        {
+          "path": ".tmp/pr-2537-layout/raw-ui-lint.json",
+          "sha256": "fefc6951b26bfe9c1fd4727b670b2f9a6bd9ce4dc6385fd090a4104ae851a793"
+        },
+        {
+          "path": ".tmp/pr-2537-layout/layout-red.log",
+          "sha256": "8edfd4e46f546317438c044d31237fee4f0af91e4de4b9f6b808194ad91d97b6"
+        },
+        {
+          "path": ".tmp/pr-2537-layout/layout-green.log",
+          "sha256": "b8ce7e56c2c98d30a075cb3e3ea112e389d090962a19ead0940ddf346e38d9b2"
+        },
+        {
+          "path": ".tmp/pr-2537-layout/committed-regressions-red.log",
+          "sha256": "227c62c969b55fb6a3fcf42d279188eeefc5a361dc547498ce168920f578566b"
+        },
+        {
+          "path": ".tmp/pr-2537-layout/committed-regressions-green.log",
+          "sha256": "b63c4f3386410e63d3cb92c716f14d4e42f1cbe4e12e0c06fbc29095f7fc29e2"
         }
       ]
     }

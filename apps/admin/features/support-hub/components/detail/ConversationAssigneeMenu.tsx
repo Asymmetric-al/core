@@ -123,7 +123,7 @@ export function ConversationAssigneeMenu({
                   />
                   <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <span className="truncate">{agent.name}</span>
+                <span className="max-w-36 truncate">{agent.name}</span>
               </DropdownMenuItem>
             );
           })}

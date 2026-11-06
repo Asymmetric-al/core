@@ -116,3 +116,76 @@ test("support intake validation/reset and server GET FormData", async ({
   ).toEqual({ queueId: "", status: "", search: "receipt" });
   expect(errors).toEqual([]);
 });
+
+test.describe("Support controls at narrow widths", () => {
+  test.use({ isMobile: true, viewport: { width: 320, height: 844 } });
+
+  test("long assignee menu stays inside the viewport and still assigns", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-light");
+    await page.goto("/support.html?layout=assignee");
+    await page.getByRole("button", { name: "Unassigned" }).click();
+    const menu = page.getByRole("menu");
+    await expect(menu).toBeVisible();
+    const bounds = await menu.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
+    await menu.getByRole("menuitem", { name: /Lastname/ }).click();
+    await expect(page.locator("#support-layout-result")).toHaveText(
+      "Assigned agent-a",
+    );
+  });
+
+  test("report scope controls fit inside the card", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-light");
+    await page.goto("/support.html?layout=report");
+    const agent = page.getByRole("combobox", { name: "Agent", exact: true });
+    await expect(agent).toBeVisible();
+    const fits = await agent.evaluate((control) => {
+      const card = document.querySelector("#report-layout > div")!;
+      const style = getComputedStyle(card);
+      const contentRight =
+        card.getBoundingClientRect().right -
+        parseFloat(style.paddingRight) -
+        parseFloat(style.borderRightWidth);
+      return control.getBoundingClientRect().right <= contentRight + 1;
+    });
+    expect(fits).toBe(true);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBe(320);
+    await agent.click();
+    await expect(
+      page.getByRole("option", { name: "Camille Support" }),
+    ).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(agent).toBeFocused();
+  });
+
+  test("saved view actions own the lower edge of a 44px touch target", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-light");
+    await page.goto("/support.html?layout=saved");
+    const trigger = page.getByRole("button", {
+      name: "Saved view actions for Priority escalations",
+    });
+    await expect(trigger).toBeVisible();
+    const bounds = await trigger.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.width).toBeGreaterThanOrEqual(44);
+    expect(bounds!.height).toBeGreaterThanOrEqual(44);
+    await page.touchscreen.tap(
+      bounds!.x + bounds!.width / 2,
+      bounds!.y + bounds!.height - 2,
+    );
+    await page.getByRole("menuitem", { name: "Rename / scope" }).click();
+    await expect(page.locator("#support-layout-result")).toHaveText(
+      "Renamed priority",
+    );
+  });
+});

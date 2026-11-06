@@ -102,6 +102,25 @@ Component paths are under `apps/admin/features/support-hub/components/`;
   anything else was reviewed individually. `bun run verify:shadscan` and
   `bun run react-doctor:check` pass on this branch.
 
+## Review follow-up
+
+The `admin-support-inbox-review-2026-11-07` batch adds scoped lint and
+Chromium evidence for three controls. The browser fixture uses synthetic
+agent and saved-view data with local callbacks.
+
+- A long assignee name stays in a 220px popup at 320px and 390px. Selecting
+  the entry sends its agent ID.
+- Report scope selectors wrap inside the card at 320px. At 390px and 1280px,
+  both controls fit on one line. Escape returns focus from the agent menu.
+- Saved-view actions have a 44px by 44px coarse-pointer target within
+  their chip. A tap at the lower edge opens the intended menu, and
+  Rename targets the selected chip. The fine-pointer control is 24px by
+  24px.
+
+The committed Support browser fixture checks all three narrow cases. Both
+the original and updated source proofs remain attached to their batches.
+The final cohort scan will qualify completion against the exact source bytes.
+
 ## Known gaps and follow-ups
 
 - No `CommandDialog` or `ComboboxContent` width option and no padding-free

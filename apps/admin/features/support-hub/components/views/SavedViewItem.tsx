@@ -35,7 +35,7 @@ export function SavedViewItem({
   return (
     <div
       className={cn(
-        "inline-flex h-8 items-center gap-1 rounded-lg border bg-card px-1 text-xs font-medium",
+        "inline-flex h-8 items-center gap-1 rounded-lg border bg-card px-1 text-xs font-medium pointer-coarse:h-auto",
         isActive
           ? "border-primary text-foreground shadow-sm"
           : "border-border text-muted-foreground hover:border-border",
@@ -54,18 +54,21 @@ export function SavedViewItem({
         <span className="truncate max-w-40 block">{view.name}</span>
       </button>
       <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              aria-label={`Saved view actions for ${view.name}`}
-            >
-              <MoreHorizontal className="size-3" />
-            </Button>
-          }
-        />
+        <div className="w-6 shrink-0 pointer-coarse:w-11">
+          <DropdownMenuTrigger
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="w-full"
+                aria-label={`Saved view actions for ${view.name}`}
+              >
+                <MoreHorizontal className="size-3" />
+              </Button>
+            }
+          />
+        </div>
         <DropdownMenuContent align="end">
           <DropdownMenuItem
             closeOnClick={false}
