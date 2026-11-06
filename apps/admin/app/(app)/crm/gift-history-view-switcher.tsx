@@ -65,7 +65,7 @@ export function GiftHistoryViewSwitcher({
           >
             {views.map((view) => (
               <DropdownMenuRadioItem key={view.id} value={view.id}>
-                <span className="max-w-40">{view.name}</span>
+                <span className="max-w-40 wrap-anywhere">{view.name}</span>
                 {view.isDefault ? (
                   <DropdownMenuShortcut>Default</DropdownMenuShortcut>
                 ) : null}
@@ -87,7 +87,9 @@ export function GiftHistoryViewSwitcher({
         {activeView ? (
           <>
             <DropdownMenuItem onClick={() => onRename(activeView)}>
-              <span className="max-w-56">Rename “{activeView.name}”…</span>
+              <span className="max-w-56 wrap-anywhere">
+                Rename “{activeView.name}”…
+              </span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDuplicate(activeView)}>
               Duplicate

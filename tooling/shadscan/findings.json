@@ -268,7 +268,7 @@
         },
         {
           "path": "tests/unit/apps/admin/app/offline-gift-entry-dialog.test.tsx",
-          "sha256": "3f28cf57545ac7155f0074568e68426df6994787e9a5d531004adbdc6c2a91a7"
+          "sha256": "315b16ff599d26fcb07c74b12f262a6178b0d4ec85c39cbef81aa9c0c2a0258e"
         }
       ]
     },

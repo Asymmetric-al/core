@@ -86,7 +86,7 @@ export function SetTenantDefaultDialog({
           default for everyone in this tenant. Personal view settings are not
           changed and keep overriding the tenant default.
         </DialogDescription>
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button variant="outline" size="lg" onClick={onCancel}>
             Cancel
           </Button>

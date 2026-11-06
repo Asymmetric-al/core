@@ -160,6 +160,7 @@ describe("previewOfflineReceiptStatus", () => {
       ).toBeGreaterThan(0);
       expect(OFFLINE_RECEIPT_STATUS_DISPLAY[status].badgeVariant).toBeTruthy();
     }
+    expect(OFFLINE_RECEIPT_STATUS_DISPLAY.pending.badgeVariant).toBe("warning");
   });
 });
 

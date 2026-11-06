@@ -376,7 +376,7 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "01419b71eede2e2cee4cd1a1a2d343b4cf4b36978e71e397476aaf8cfcd55d0b",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -406,7 +406,7 @@
         "shadcn/no-restyle": 95
       },
       "initialSourceSha256": "80461389c7e1cf9c5defa89214d6c9bd300e03371accfbcf314696c31c919032",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -472,7 +472,7 @@
         "shadcn/no-restyle": 28
       },
       "initialSourceSha256": "24db0a6e4e47386eea44b8b33d8e14f3afad579cb313389c8593e87a19e15140",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -500,7 +500,7 @@
         "shadcn/no-restyle": 17
       },
       "initialSourceSha256": "5cc99a39d4d738fe500e9106cddadd14f64b03c186683f45ff6a6bb6cac0d333",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -526,7 +526,7 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "ec87c0f67c31290dac57b4342fdeed127f67e13921d17c0f1c61e383349eb29b",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -551,7 +551,7 @@
         "shadcn/no-restyle": 27
       },
       "initialSourceSha256": "af4fac7fd3d149b5fbf9a54b6a4c777572b350462dfca07f7bd3d7ae976e19f5",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-crm-contributions-2026-10-30",
@@ -570,7 +570,7 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "c31f5ab795609e5b4fef569ee8dfd3f64b9af33b14a530581bff40a5a81edc9e",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-crm-contributions-2026-10-30",
@@ -588,7 +588,7 @@
         "shadcn/no-restyle": 5
       },
       "initialSourceSha256": "661226eebf0de3bd61903bdf6d742b462c3f8c29cf6fdd203bc854543014dc83",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-crm-contributions-2026-10-30",
@@ -608,7 +608,7 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "7d7c8bf80e445ca0829d54a639f3b90938a731748d1b7c2cb0ee10a08e5a6591",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -638,7 +638,7 @@
         "shadcn/require-static-classes": 1
       },
       "initialSourceSha256": "e37d9cb41ec5f1a99af106a76fc9f4236944aaa94cb1e91c9674ea1e2b32c042",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -661,16 +661,21 @@
         "shadcn/no-restyle": 17
       },
       "initialSourceSha256": "d6b4ec272a90c0bb0ce63703597e6f657832135a81df0cd2fdccfd2a480c85b7",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-crm-contributions-2026-10-30",
           "verifiedSourceSha256": "ae478fc6dfa97018b82fb646ae9226346302f6c3957921188b2a1e1b95faae18",
           "supportsFileCompletion": true
+        },
+        {
+          "batch": "admin-crm-review-fixes-2026-11-07",
+          "verifiedSourceSha256": "4827bdd7a393325c968745367e4134f90faa057c897b5f40de0b1524de9f14a8",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "ae478fc6dfa97018b82fb646ae9226346302f6c3957921188b2a1e1b95faae18",
+      "latestSourceSha256": "4827bdd7a393325c968745367e4134f90faa057c897b5f40de0b1524de9f14a8",
       "includedInLatestScan": true
     },
     {
@@ -694,7 +699,7 @@
         "shadcn/no-restyle": 2
       },
       "initialSourceSha256": "ff617e3317e84c7b552691e6600e09749ba0e37f610bbb654c658b31e5af9700",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-crm-contributions-2026-10-30",
@@ -713,7 +718,7 @@
         "shadcn/no-restyle": 28
       },
       "initialSourceSha256": "573184bfade4783d81bb03318a2b00101c77fdb6c55802b16f5a6f06086e6af1",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-crm-contributions-2026-10-30",
@@ -731,7 +736,7 @@
         "shadcn/no-restyle": 9
       },
       "initialSourceSha256": "f3189c988399bcf719894eb3627c84e2fe426e7035458495b0e82385b03f5ff7",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -742,10 +747,15 @@
           "batch": "admin-crm-contributions-2026-10-30",
           "verifiedSourceSha256": "762b02f18062a4b0c1d415af769cfbf84b963017a99a8b47d46dfc0597a930a0",
           "supportsFileCompletion": true
+        },
+        {
+          "batch": "admin-crm-review-fixes-2026-11-07",
+          "verifiedSourceSha256": "263ad181e2060b425cc8c42e055decc0071f2847d9295623469b06fa241f906a",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "762b02f18062a4b0c1d415af769cfbf84b963017a99a8b47d46dfc0597a930a0",
+      "latestSourceSha256": "263ad181e2060b425cc8c42e055decc0071f2847d9295623469b06fa241f906a",
       "includedInLatestScan": true
     },
     {
@@ -755,7 +765,7 @@
         "shadcn/no-restyle": 14
       },
       "initialSourceSha256": "6e2ab8b6583cae9685420e093eb910e78ea8e848bfd00f7695e037a37890d11d",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -779,7 +789,7 @@
         "shadcn/no-restyle": 11
       },
       "initialSourceSha256": "a348cea00dc8eb6ca8dcf39b9df7b8e245a2c972f30b48c72ca3e5ab1d6b1308",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -803,7 +813,7 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "1ed4ac0faeef995b2c47d1e25550ab803cf32d24e9a4c0397b92d3d0413a10fc",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-crm-contributions-2026-10-30",
@@ -823,7 +833,7 @@
         "shadcn/no-restyle": 35
       },
       "initialSourceSha256": "8c9aa69e706e5364046dd91ab24be9332722b3bf1af9a9fe83d1f04adde9b433",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -847,7 +857,7 @@
         "shadcn/no-restyle": 18
       },
       "initialSourceSha256": "5c9f9ac52c17fee23838a777d6044459af19f653c8bccfdeb6acc2c4d5c34399",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -919,7 +929,7 @@
         "shadcn/no-restyle": 16
       },
       "initialSourceSha256": "f83b3ee739bbcd07ddd9606d9732ba91b728d317a98a548bbd4acc6545ed9435",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -9878,6 +9888,15 @@
         {
           "path": ".tmp/admin-lint-5-4/crm-contributions/screenshots-manifest.json",
           "sha256": "45409d0badf401682553eed80e94f76714716dc7c53bab9eb8d1dfd846497b70"
+        }
+      ]
+    },
+    "admin-crm-review-fixes-2026-11-07": {
+      "summary": "Raw lint:ui reports zero findings for the two CRM view components after the review fixes. Thirty-six focused unit tests pass; four actual-component browser regressions pass at 320px in mobile light and dark/reduced-motion modes. Historical CRM evidence is preserved. All twenty CRM/contributions entries remain pending until a matching full-scope zero-finding scan records the integrated source revisions.",
+      "evidence": [
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/composition.spec.ts",
+          "sha256": "c678de0143e7615049f9edcdb96d69ea24aa745fb8e8ea29939aefd42abe9bfc"
         }
       ]
     }
