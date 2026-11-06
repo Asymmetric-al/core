@@ -544,13 +544,14 @@ function readLock() {
   };
 }
 
+const expectedNames = [
+  ...baselineSkillNames,
+  "security-audit",
+  "council",
+].sort();
+
 describe("reviewed installed skill inventory", () => {
   it("accounts for every installed skill without adding unrelated pack skills", () => {
-    const expectedNames = [
-      ...baselineSkillNames,
-      "security-audit",
-      "council",
-    ].sort();
     const { skills } = readLock();
 
     for (const runtimeRoot of runtimeRoots) {
@@ -711,14 +712,19 @@ describe("reviewed installed skill inventory", () => {
     ) as {
       schemaVersion: number;
       baselineCommit: string;
-      skills: Array<{ name: string; status: string; treeHash: string }>;
+      skills: Array<{
+        name: string;
+        status: string;
+        entrypointHash?: string;
+        treeHash: string;
+      }>;
     };
     expect(audit.schemaVersion).toBe(1);
     expect(audit.baselineCommit).toBe(
       "c4d36cb029121641b8882237632d0d6da434049e",
     );
     expect(audit.skills.map((skill) => skill.name).sort()).toEqual(
-      [...baselineSkillNames, "security-audit", "council"].sort(),
+      expectedNames,
     );
     expect(new Set(audit.skills.map((skill) => skill.name)).size).toBe(
       audit.skills.length,
@@ -730,12 +736,18 @@ describe("reviewed installed skill inventory", () => {
     for (const skill of audit.skills) {
       const root = ".agents/skills/" + skill.name;
       const hash = createHash("sha256");
+      let entrypointHash: string | undefined;
       for (const file of filesUnder(root)) {
+        const contents = readFileSync(path.join(repoRoot, root, file));
+        if (file === "SKILL.md") {
+          entrypointHash = createHash("sha256").update(contents).digest("hex");
+        }
         hash.update(file);
         hash.update("\0");
-        hash.update(readFileSync(path.join(repoRoot, root, file)));
+        hash.update(contents);
         hash.update("\0");
       }
+      expect(skill.entrypointHash, skill.name).toBe(entrypointHash);
       expect(skill.treeHash, skill.name).toBe(hash.digest("hex"));
     }
   });

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -29,19 +30,40 @@ describe("skills lock current upstream paths", () => {
       "docs/ai/skills/council/references/upstream.md",
     );
 
+    const reviewedLockHash =
+      "a1993f93b9157a8c73d4b8c16da267a3addd2bec94bcffb6b5f4caea23a8854b";
+    const reviewedLicenseHash =
+      "8095f9a9f97d074131f6a2ce09b952d12c18b36f09f4e5df0517c4e64e82c851";
+
     expect(skills.council).toMatchObject({
       source: "t3dotgg/tstack",
       sourceType: "github",
       skillPath: "skills/council/SKILL.md",
+      computedHash: reviewedLockHash,
     });
-    expect(provenance).toContain(
-      "reviewed_commit: 1085050f3baed1ac724caa4a8166145fb2ac88af",
+    const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/u.exec(
+      provenance,
+    )?.[1];
+    expect(frontmatter).toBeDefined();
+    const metadata = frontmatter?.split(/\r?\n/u) ?? [];
+    for (const [key, value] of [
+      ["reviewed_commit", "1085050f3baed1ac724caa4a8166145fb2ac88af"],
+      [
+        "upstream_skill_md_sha256",
+        "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
+      ],
+      ["skills_lock_hash", reviewedLockHash],
+      ["upstream_license_sha256", reviewedLicenseHash],
+    ]) {
+      expect(metadata.filter((line) => line.startsWith(`${key}:`))).toEqual([
+        `${key}: ${value}`,
+      ]);
+    }
+    const license = readFileSync(
+      path.join(repoRoot, "docs/ai/skills/council/LICENSE"),
     );
-    expect(provenance).toContain(
-      `skills_lock_hash: ${skills.council?.computedHash}`,
-    );
-    expect(readRepoFile("docs/ai/skills/council/LICENSE")).toContain(
-      "Copyright (c) 2026 Theo Browne",
+    expect(createHash("sha256").update(license).digest("hex")).toBe(
+      reviewedLicenseHash,
     );
     for (const excluded of [
       "full-send",
