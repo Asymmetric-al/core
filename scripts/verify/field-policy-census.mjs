@@ -196,6 +196,7 @@ assert.equal(
     .update(readFileSync(path.join(root, person.source_path)))
     .digest("hex"),
   person.source_sha256,
+  `field-policy census: v3 source_sha256 mismatch for ${person.source_path}`,
 );
 // #2256 (Q11, OQ6): both person_id seams are security, denied on every surface.
 const personColumn = (recordType, ordinal) => ({
