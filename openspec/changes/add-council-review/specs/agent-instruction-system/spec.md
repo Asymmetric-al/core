@@ -33,3 +33,10 @@ MUST stop after at most three review rounds.
 - **THEN** the coordinator discloses the missing coverage
 - **AND** any native-only fallback is read-only, labeled, and limited to one round
 - **AND** explicitly requested unavailable providers are never replaced silently
+
+#### Scenario: A delegate exceeds the review deadline
+
+- **WHEN** a round reaches its deadline with a delegate still pending
+- **THEN** the coordinator stops waiting and reports the available findings
+  and missing coverage
+- **AND** it requests cancellation when the harness supports it

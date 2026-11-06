@@ -9,7 +9,9 @@ Use the harness's available delegation tools. T3 Code resolves providers
 through its capability tool. A harness without all default providers may
 provide one labeled native-only round when the request leaves the member
 list open. Explicit provider requirements remain authoritative. A maximum
-of three rounds permits two follow-ups without an open-ended cost.
+of three rounds permits two follow-ups. Each round stops waiting after ten
+minutes or when the request's remaining time budget expires. The coordinator
+reports missing coverage and requests cancellation where supported.
 
 ## Verification
 

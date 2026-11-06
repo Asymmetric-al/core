@@ -41,13 +41,24 @@ describe("skills lock current upstream paths", () => {
       skillPath: "skills/council/SKILL.md",
       computedHash: reviewedLockHash,
     });
-    expect(provenance).toContain(
-      "reviewed_commit: 1085050f3baed1ac724caa4a8166145fb2ac88af",
-    );
-    expect(provenance).toContain(`skills_lock_hash: ${reviewedLockHash}`);
-    expect(provenance).toContain(
-      `upstream_license_sha256: ${reviewedLicenseHash}`,
-    );
+    const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/u.exec(
+      provenance,
+    )?.[1];
+    expect(frontmatter).toBeDefined();
+    const metadata = frontmatter?.split(/\r?\n/u) ?? [];
+    for (const [key, value] of [
+      ["reviewed_commit", "1085050f3baed1ac724caa4a8166145fb2ac88af"],
+      [
+        "upstream_skill_md_sha256",
+        "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
+      ],
+      ["skills_lock_hash", reviewedLockHash],
+      ["upstream_license_sha256", reviewedLicenseHash],
+    ]) {
+      expect(metadata.filter((line) => line.startsWith(`${key}:`))).toEqual([
+        `${key}: ${value}`,
+      ]);
+    }
     const license = readFileSync(
       path.join(repoRoot, "docs/ai/skills/council/LICENSE"),
     );
