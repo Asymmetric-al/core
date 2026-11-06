@@ -571,11 +571,11 @@ describe("#2258 pins (criteria 12, 13)", () => {
       expect(section).toContain(p);
     expect(doc.slice(keyFiles)).toMatch(/principal/);
   });
-  it("13: docs/ci.md is byte-identical to develop (40,058 bytes, sha256 f636ef0f…)", () => {
+  it("13: docs/ci.md matches the reviewed hosted-only R1 pointer amendment", () => {
     const b = readFileSync("docs/ci.md");
     expect([b.length, createHash("sha256").update(b).digest("hex")]).toEqual([
-      40058,
-      "f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b",
+      40204,
+      "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
     ]);
   });
   it.todo(

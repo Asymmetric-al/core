@@ -471,4 +471,4 @@ Production branch protections and source ancestry checks are unchanged. `release
 
 ## Self-hosted runner security
 
-Only `ci.yml` and `ci-integration.yml` may reach the self-hosted Proxmox runners. The unit test `tests/unit/scripts/self-hosted-runner-guard.test.ts` enforces rules R1–R3 across every workflow file: the reachability allowlist (R1), the trigger allowlist on reachable workflows (R2) and privileged-trigger hygiene (R3). The threat model, maintainer rule and admin checklist are in [Self-hosted runner security](ops/self-hosted-runners.md).
+All seven former Proxmox CI jobs now use literal `ubuntu-latest`; the approved self-hosted-reachable workflow set (R1) is explicitly empty. The unit test `tests/unit/scripts/self-hosted-runner-guard.test.ts` enforces rules R1–R3 across every workflow file: conservative reachability (R1), trigger restrictions (R2) and privileged-trigger hygiene (R3). Proxmox infrastructure remains intact. The policy, legacy `CI_RUNNER_FALLBACK` compatibility, old-branch rollout, safe rollback, threat model and maintainer checklist are in [Self-hosted runner security](ops/self-hosted-runners.md).

@@ -92,7 +92,7 @@ export function buildProfileImageKey(input: {
   return `${input.purpose}/${input.tenantId}/${input.userId}/${crypto.randomUUID()}.${extensionForImageType(input.type)}`;
 }
 
-function getBearerToken(request: Request): string | null {
+export function getBearerToken(request: Request): string | null {
   const [scheme, ...rest] = (request.headers.get("authorization") ?? "")
     .trim()
     .split(" ");
@@ -106,7 +106,7 @@ function assertProfilesBucket(value: FormDataEntryValue | null) {
   }
 }
 
-async function validateImageFile(
+export async function validateImageFile(
   value: FormDataEntryValue | null,
 ): Promise<File & { type: ProfileImageType }> {
   if (!(value instanceof File)) {
@@ -174,7 +174,7 @@ async function readCappedBody(
   return joined;
 }
 
-async function readForm(request: Request): Promise<FormData> {
+export async function readForm(request: Request): Promise<FormData> {
   assertDeclaredLengthWithinCap(request);
   const body = await readCappedBody(request);
   try {
@@ -186,12 +186,12 @@ async function readForm(request: Request): Promise<FormData> {
   }
 }
 
-type StorageBucket = ReturnType<
+export type StorageBucket = ReturnType<
   NonNullable<ReturnType<typeof createBearerSupabaseClient>>["storage"]["from"]
 >;
 
 /** Writes once (`upsert: false`); storage detail stays server-side. */
-async function uploadOnce(
+export async function uploadOnce(
   storage: StorageBucket,
   path: string,
   file: File & { type: ProfileImageType },

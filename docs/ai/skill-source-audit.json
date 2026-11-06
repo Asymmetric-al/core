@@ -3,15 +3,15 @@
   "reviewedAt": "2026-10-22",
   "baselineCommit": "c4d36cb029121641b8882237632d0d6da434049e",
   "counts": {
-    "canonical": 134,
-    "runtimePerClient": 190,
-    "lockEntries": 150,
+    "canonical": 135,
+    "runtimePerClient": 191,
+    "lockEntries": 151,
     "outcomes": {
       "current": 89,
       "excluded": 1,
       "retained-snapshot": 12,
       "unresolved": 8,
-      "updated": 80
+      "updated": 81
     }
   },
   "treeHashAlgorithm": "SHA-256 of sorted POSIX relative path, NUL, file bytes, NUL; symlinks rejected.",
@@ -1827,6 +1827,43 @@
             "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
+        }
+      ]
+    },
+    {
+      "name": "council",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "t3dotgg/tstack",
+      "importedRef": "1085050f3baed1ac724caa4a8166145fb2ac88af",
+      "examinedRef": "1085050f3baed1ac724caa4a8166145fb2ac88af",
+      "sourcePath": "skills/council/SKILL.md",
+      "rawSkillHash": "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
+      "lockHash": "a1993f93b9157a8c73d4b8c16da267a3addd2bec94bcffb6b5f4caea23a8854b",
+      "entrypointHash": "e4cb2d138e4c5a2e04dca6b7cc3d0bc5a73fb313870e33cd71f8f264c8723a86",
+      "treeHash": "0eaae864f8302f1df0533823c05694a9d662efb9344d473d5603d1aa64708fa1",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "8095f9a9f97d074131f6a2ce09b952d12c18b36f09f4e5df0517c4e64e82c851"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned council import with opt-in discovery, authorized fixes, bounded review rounds, and disclosed provider coverage."
+      ],
+      "evidence": "docs/ai/skills/council/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/t3dotgg/tstack/tree/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/council",
+          "rawSkillSha256": "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
+          "licenseSha256": "8095f9a9f97d074131f6a2ce09b952d12c18b36f09f4e5df0517c4e64e82c851",
+          "claim": "Complete reviewed source, root MIT notice, and marked Core overlay; imported code was not executed by refresh."
         }
       ]
     },
@@ -4550,8 +4587,8 @@
       "sourcePath": "docs/ai/skills/moai-library-shadcn/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "7188477b97ecf9685c96f66170c50bf7e5f531e0a4c06e3bdd4a5bbc5b1fc219",
-      "treeHash": "e8b237a19751bb368a5cfba6f029dade7091cdbedad89257f7a010b4ec05c7aa",
+      "entrypointHash": "dd08387a8c18ad3a15520db8f8579549e215b33502fdeea27d673c959ed68593",
+      "treeHash": "4a330643374908b254be09d58a7edcbeae448a5ffc7c8b7b32c8d77b44bb3789",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",

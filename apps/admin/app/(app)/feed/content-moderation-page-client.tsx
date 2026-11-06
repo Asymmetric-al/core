@@ -2,7 +2,7 @@
 
 import { motion } from "@asym/lib/motion";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { Download, PenSquare, RefreshCw } from "lucide-react";
 import Link from "next/link";
@@ -44,7 +44,6 @@ export default function ContentModerationPage() {
             <Button
               variant="outline"
               size="icon"
-              className="rounded-xl"
               onClick={handleRefresh}
               disabled={isRefreshing}
               focusableWhenDisabled={isRefreshing}
@@ -56,24 +55,17 @@ export default function ContentModerationPage() {
             </Button>
           </motion.div>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button
-              variant="outline"
-              size="sm"
-              aria-label="Export moderation queue"
-              className="h-9 gap-2 rounded-xl border-border"
-            >
+            <Button variant="outline" aria-label="Export moderation queue">
               <Download className="size-4" />
               <span className="hidden sm:inline">Export</span>
             </Button>
           </motion.div>
-          <Link
-            href="/feed/org-updates"
-            aria-label="Org Updates"
-            className={cn(buttonVariants(), "rounded-xl font-semibold")}
+          <ButtonLink
+            render={<Link href="/feed/org-updates" aria-label="Org Updates" />}
           >
             <PenSquare className="size-4" aria-hidden />
             <span className="hidden sm:inline">Org Updates</span>
-          </Link>
+          </ButtonLink>
         </div>
       }
     >

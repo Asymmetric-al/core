@@ -51,12 +51,7 @@ export function KanbanView({
           className="shrink-0 w-80 flex flex-col h-full bg-muted/30 rounded-xl border border-border/50 overflow-hidden"
         >
           <div className="p-3 bg-muted/50 border-b border-border flex items-center justify-between">
-            <Badge
-              variant="secondary"
-              className="font-semibold uppercase tracking-[0.15em] rounded shadow-none"
-            >
-              {status}
-            </Badge>
+            <Badge variant="secondary">{status}</Badge>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
               {
                 rows.filter((r) => (r.lifecycleStatus ?? "Unknown") === status)
@@ -77,16 +72,16 @@ export function KanbanView({
                   onClick={() => onSelectRow(c)}
                   className="w-full bg-card px-4 py-3 rounded-lg border border-border shadow-sm transition-shadow hover:shadow-md cursor-pointer space-y-3 text-left"
                 >
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-between items-start gap-2">
                     <SharedNamedViewTransition
                       name={crmRecordTitleTransitionName(c.id)}
                     >
-                      <span className="font-semibold text-foreground text-xs truncate leading-none inline-block max-w-[85%]">
+                      <span className="font-semibold text-foreground text-xs truncate leading-none min-w-0">
                         {name}
                       </span>
                     </SharedNamedViewTransition>
                     <MoreHorizontal
-                      className="size-3.5 text-muted-foreground"
+                      className="size-3.5 shrink-0 text-muted-foreground"
                       aria-hidden="true"
                     />
                   </div>
@@ -107,9 +102,7 @@ export function KanbanView({
                     >
                       <Avatar className="size-4">
                         <AvatarImage src={c.avatarUrl ?? undefined} />
-                        <AvatarFallback className="text-xs font-semibold">
-                          {name[0] ?? "?"}
-                        </AvatarFallback>
+                        <AvatarFallback>{name[0] ?? "?"}</AvatarFallback>
                       </Avatar>
                     </SharedNamedViewTransition>
                   </div>

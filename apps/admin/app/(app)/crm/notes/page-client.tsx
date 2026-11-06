@@ -127,17 +127,19 @@ export default function CrmNotesPageClient() {
                 </Badge>
               ) : null}
             </div>
-            <InputGroup className="w-full sm:max-w-sm">
-              <InputGroupAddon>
-                <FileText />
-              </InputGroupAddon>
-              <InputGroupInput
-                aria-label="Search CRM notes"
-                placeholder="Search notes"
-                value={search}
-                onChange={(event) => onSearchChange(event.target.value)}
-              />
-            </InputGroup>
+            <div className="w-full sm:max-w-sm">
+              <InputGroup>
+                <InputGroupAddon>
+                  <FileText />
+                </InputGroupAddon>
+                <InputGroupInput
+                  aria-label="Search CRM notes"
+                  placeholder="Search notes"
+                  value={search}
+                  onChange={(event) => onSearchChange(event.target.value)}
+                />
+              </InputGroup>
+            </div>
           </div>
 
           {missing.length > 0 ? (
@@ -252,7 +254,6 @@ export default function CrmNotesPageClient() {
                 <FieldLabel htmlFor="crm-note-body">Body</FieldLabel>
                 <Textarea
                   id="crm-note-body"
-                  className="min-h-40 resize-y"
                   maxLength={10000}
                   value={body}
                   onChange={(event) => setBody(event.target.value)}

@@ -312,6 +312,12 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "#2364 Builder 0cf86552", hash: "4ac6a6bcd2006149" },
     // #2406: Builder 9563beea (develop 629cb71d merged) appends the issue-2406 real-stack path to tenant isolation
     { ref: "#2406 Builder 9563beea", hash: "6f061d845914c44d" },
+    // #2407 PR (a): develop after #2406, plus the issue-2407 real-stack path
+    { ref: "#2407a after #2406", hash: "52c90c2ce23e9b71" },
+    // GitHub-hosted runner fallback: self-hosted runs-on honour vars.CI_RUNNER_FALLBACK
+    { ref: "CI runner fallback", hash: "ade0c213dc9896db" },
+    // Hosted-only amendment: only the five heavy jobs' runs-on changed.
+    { ref: "AL-2218 hosted CI baseline", hash: "58e813e659a30660" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(
