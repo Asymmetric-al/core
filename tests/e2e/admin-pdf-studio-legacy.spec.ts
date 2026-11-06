@@ -46,7 +46,10 @@ test.describe("Admin PDF Studio legacy editor", () => {
     await expect(page.locator("#pdf-studio-editor")).toHaveCount(1, {
       timeout: 120_000,
     });
-    await expect(page.locator("#pdf-studio-editor iframe")).toHaveCount(1, {
+    const editorFrame = page.locator("#pdf-studio-editor iframe");
+    await expect(editorFrame).toBeVisible({ timeout: 120_000 });
+    await expect(editorFrame).toBeInViewport({
+      ratio: 0.01,
       timeout: 120_000,
     });
   });

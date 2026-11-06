@@ -1268,14 +1268,15 @@
           "batch": "redundant-base-ui180-2026-09-23",
           "verifiedSourceSha256": "3adea08d63c9d2dc16e7b26387232ce5145eaf17b7de5707073200a2f70fbfb7",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-pdf-route-2026-11-07",
+          "verifiedSourceSha256": "7568571d1e1fcf97f94a45ed5da81dd0bdff67248dd72d500aaaa856cc884fa5",
+          "supportsFileCompletion": false
         }
       ],
-      "currentFindings": {
-        "shadcn/no-arbitrary-values": 7,
-        "shadcn/no-raw-colors": 16,
-        "shadcn/no-restyle": 71
-      },
-      "latestSourceSha256": "3adea08d63c9d2dc16e7b26387232ce5145eaf17b7de5707073200a2f70fbfb7",
+      "currentFindings": {},
+      "latestSourceSha256": "7568571d1e1fcf97f94a45ed5da81dd0bdff67248dd72d500aaaa856cc884fa5",
       "includedInLatestScan": true
     },
     {
@@ -10100,6 +10101,27 @@
         {
           "path": ".tmp/admin-lint-5-4/shell-tools/shell-tools__shell-tools-shell.results.json",
           "sha256": "eedcf817940b99832b95bca5871b6f0e99ee19cea0a92e632d85d759a7c9a9f0"
+        }
+      ]
+    },
+    "admin-shell-tools-pdf-route-2026-11-07": {
+      "summary": "The PDF Studio route fills its available height. Isolated Chromium verified native editor controls and a synthetic legacy iframe at 390, 768 and 1280px in normal and Fullscreen modes. Raw lint reports zero findings or warnings on the repaired page. This scoped proof awaits the integrated full scan.",
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/pdf-route-2026-11-07/results-baseline-candidate.json",
+          "sha256": "10392804983ae180e1be07fa8f64929c8d5405f1175f2f1b4e0b9799fda650a8"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/pdf-route-2026-11-07/results-verified.json",
+          "sha256": "c01c8a9215094089c70199c0b0adf9955104e6106a077dd937ae436e38db13f1"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/pdf-route-2026-11-07/page-client-before-raw.json",
+          "sha256": "020201b431b947c36aaed19b3c72cd626dbf403acb4edeb293d8e85509d8fa08"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/pdf-route-2026-11-07/page-client-after-raw.json",
+          "sha256": "020201b431b947c36aaed19b3c72cd626dbf403acb4edeb293d8e85509d8fa08"
         }
       ]
     }

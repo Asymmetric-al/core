@@ -890,11 +890,12 @@
       "evidence": [
         "SNAPSHOT SOURCE apps/admin/app/(app)/pdf/page-client.tsx:440-478: only Undo/Redo square icon controls are visible inside the rail; text is inside TooltipContent, not the rail.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/pdf/page-client.tsx:440; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/pdf/page-client.tsx:434. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/pdf/page-client.tsx:434. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-11-07. Raw React Doctor 0.9.18 reports the same finding identity and source span after the PDF route height correction. The existing rationale and its supporting owners still apply."
       ],
       "reconsiderWhen": "Reconsider if visible prose is inserted into this container or the keycap/icon-control geometry contract changes.",
       "sourceContextHash": "da262aa91d8290b2fc22b4ea18ad11821500c7a6e74787a14b6c7a619b0aa3fd",
-      "sourceFileHash": "1685ae3ffd5e16539de3c72bfefc68dd6ff4a4e3fdae04afa1f18784982ddfe5",
+      "sourceFileHash": "7568571d1e1fcf97f94a45ed5da81dd0bdff67248dd72d500aaaa856cc884fa5",
       "evidenceFileHashes": {
         "packages/ui/components/shadcn/tooltip.tsx": "9302151a7a547235a6b864ad21e99bc97f50084b1b5cdd65c304fa674c2077f7"
       }
@@ -925,13 +926,14 @@
         "SOURCE packages/ui/styles/globals.css:328-346 applies animation-duration 0.01ms, iteration-count 1 and transition-duration 0.01ms with !important to every element/pseudo-element. Its essential spinner exception is narrowly confined to spinner-essential status indicators.",
         "SOURCE all three application styles import the shared globals (missionary via packages/missionary/styles.css). This exact CSS spinner/tooltip does not rely on the CSS policy to cover JavaScript animation.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/pdf/page-client.tsx:954; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/pdf/page-client.tsx:943. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/pdf/page-client.tsx:943. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-11-07. Raw React Doctor 0.9.18 reports the same finding identity and source span after the PDF route height correction. The existing rationale and its supporting owners still apply."
       ],
       "reconsiderWhen": "Reconsider if the shared policy/import chain is removed, a stylesheet consumer bypasses it, or this exact element gains an independent JavaScript/decorative animation.",
       "sourceContextHash": "df81a526e1212296eebba6bcb77b729f3d63d5fb3185121c806882d79d494ad9",
-      "sourceFileHash": "1685ae3ffd5e16539de3c72bfefc68dd6ff4a4e3fdae04afa1f18784982ddfe5",
+      "sourceFileHash": "7568571d1e1fcf97f94a45ed5da81dd0bdff67248dd72d500aaaa856cc884fa5",
       "evidenceFileHashes": {
-        "apps/admin/app/(app)/pdf/page-client.tsx": "1685ae3ffd5e16539de3c72bfefc68dd6ff4a4e3fdae04afa1f18784982ddfe5",
+        "apps/admin/app/(app)/pdf/page-client.tsx": "7568571d1e1fcf97f94a45ed5da81dd0bdff67248dd72d500aaaa856cc884fa5",
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
         "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -964,13 +966,14 @@
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/pdf/page-client.tsx:1059; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "OWNER RELOCATION: the diagnostic list moved byte-for-byte to NativePdfDocumentBuilderSection; it remains a read-only, stateless complete response snapshot, without per-row inputs or retained keyed state.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx:85. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound.",
+        "REQUALIFICATION 2026-11-07. Raw React Doctor 0.9.18 reports the same finding identity and source span after the PDF route height correction. The existing rationale and its supporting owners still apply."
       ],
       "reconsiderWhen": "Reconsider before adding per-row editable controls, local state/ref/focus, keyed motion, reorderable independent async ownership, or stable-record identity requirements.",
       "sourceContextHash": "a5a2951bee580434bc73c3d9c3d8fd06d696d41365f3abc19cc15ea5714a17a8",
       "sourceFileHash": "c32727fcb991a6ad835676d9f8290807ca3afa303b84b39dbecbede1d2133715",
       "evidenceFileHashes": {
-        "apps/admin/app/(app)/pdf/page-client.tsx": "1685ae3ffd5e16539de3c72bfefc68dd6ff4a4e3fdae04afa1f18784982ddfe5",
+        "apps/admin/app/(app)/pdf/page-client.tsx": "7568571d1e1fcf97f94a45ed5da81dd0bdff67248dd72d500aaaa856cc884fa5",
         "apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx": "c32727fcb991a6ad835676d9f8290807ca3afa303b84b39dbecbede1d2133715",
         "tests/fixtures/base-ui-compliance/specs/modernization-controls.spec.ts": "5e8e47de4245db605b9fdc42420d8f0348f32cf87a1a5e826bdb21703b88be08"
       }

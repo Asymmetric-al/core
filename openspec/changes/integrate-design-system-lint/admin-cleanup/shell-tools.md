@@ -91,6 +91,12 @@ suppression count was added or widened.
   `658a01e9b88370c51a473abba0b2fb2adb5dbe507fefc39f9e6be66d45f8907f`.
   The ignored report `.tmp/admin-lint-5-4/shell-tools/eve-touch-2026-11-06/results.json`
   has SHA-256 `13e36d4d1aa049177bf0a54285ac3f0b5b0ab5b1bf5144504ce8cb4a2a3e45a3`.
+- An isolated `/pdf` route test enabled the native builder and reproduced a
+  pre-existing zero-height editor. The route now fills its available height.
+  At 390, 768 and 1280px, native controls and the legacy shell with a
+  synthetic iframe remained visible in normal and Fullscreen modes. Native
+  Save, Export, keyboard Preview and diagnostics scrolling passed. The
+  report and source hash are pinned in `admin-shell-tools-pdf-route-2026-11-07`.
 - CMS chrome: `/web-studio` returns 500 on both commits in this environment
   (Payload has no database). The existing `react-cleanup-contributions`
   fixture rendered Header and Nav at 1280 and 320px with no errors or axe
@@ -115,8 +121,6 @@ suppression count was added or widened.
   - Textarea and InputGroupInput: monospace;
   - Card: interactive hover;
   - CardHeader: divider.
-- Not exercised in a browser:
-  - the native PDF builder (feature flag off);
-  - the auth loading skeleton (too fast to capture).
+- The auth loading skeleton was too fast to capture in the demo browser checks.
 
 Evidence (ignored, hashed in the ledger): `.tmp/admin-lint-5-4/shell-tools/`.
