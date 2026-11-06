@@ -188,4 +188,48 @@ test.describe("Support controls at narrow widths", () => {
       "Renamed priority",
     );
   });
+
+  test("long label names and selection boxes fit without horizontal scrolling", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-light");
+    await page.goto("/support.html?layout=labels");
+    await page.getByRole("combobox", { name: "Labels", exact: true }).click();
+    const list = page.getByRole("listbox");
+    await expect(list.getByRole("option")).toHaveCount(3);
+    for (const name of [/TierAlpha$/, /TierBeta$/, /Zeta$/]) {
+      const label = list.getByText(name);
+      const dimensions = await label.evaluate((node) => {
+        const listbox = node.closest("[role=listbox]")!;
+        const bounds = listbox.getBoundingClientRect();
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return {
+          textFits: Array.from(range.getClientRects()).every(
+            (rect) => rect.left >= bounds.left && rect.right <= bounds.right,
+          ),
+          indicatorWidth:
+            node.previousElementSibling!.getBoundingClientRect().width,
+        };
+      });
+      expect(dimensions).toEqual({ textFits: true, indicatorWidth: 16 });
+    }
+    expect(
+      await list.evaluate((node) => node.scrollWidth - node.clientWidth),
+    ).toBe(0);
+
+    const search = page.getByRole("combobox", { name: "Search labels" });
+    await search.fill("Beta");
+    await expect(list.getByRole("option")).toHaveCount(1);
+    const beta = list.getByRole("option", { name: /TierBeta$/ });
+    await search.press("ArrowDown");
+    await expect(search).toHaveAttribute(
+      "aria-activedescendant",
+      (await beta.getAttribute("id"))!,
+    );
+    await search.press("Enter");
+    await expect(page.locator("#support-layout-result")).toHaveText(
+      "escalation-beta",
+    );
+  });
 });

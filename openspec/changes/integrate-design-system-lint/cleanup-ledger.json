@@ -4096,10 +4096,15 @@
           "batch": "admin-support-inbox-2026-10-30",
           "verifiedSourceSha256": "546cde081d4003497289ec2c358db9c7a23a20c4c8cc4d11fc590256922ef19c",
           "supportsFileCompletion": true
+        },
+        {
+          "batch": "admin-support-inbox-label-review-2026-11-07",
+          "verifiedSourceSha256": "6859499d34c37a2e7443c2aa0557d31c3529789b3f128400e6dff0bd8b7308bc",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "546cde081d4003497289ec2c358db9c7a23a20c4c8cc4d11fc590256922ef19c",
+      "latestSourceSha256": "6859499d34c37a2e7443c2aa0557d31c3529789b3f128400e6dff0bd8b7308bc",
       "includedInLatestScan": true
     },
     {
@@ -10103,6 +10108,35 @@
         {
           "path": ".tmp/pr-2537-layout/committed-regressions-green.log",
           "sha256": "b63c4f3386410e63d3cb92c716f14d4e42f1cbe4e12e0c06fbc29095f7fc29e2"
+        }
+      ]
+    },
+    "admin-support-inbox-label-review-2026-11-07": {
+      "summary": "Scoped raw lint reports zero findings and warnings. Chromium checks at 320, 390 and 1280px verify that unbroken label names wrap inside the 180px filter popup, 16px selection indicators stay intact, and keyboard search selects the expected slug. The narrow repository fixture fails before the fix and passes after it.",
+      "evidence": [
+        {
+          "path": ".tmp/pr-2537-layout/2537-label-raw-ui.json",
+          "sha256": "13d6ebdca5cacdd8f763960760f6ec1d4a63ea5542ca6ab1510dc9251a3fea97"
+        },
+        {
+          "path": ".tmp/pr-2537-layout/2537-label-measured-red.log",
+          "sha256": "67963d09841cf5800897de686365a91d9081a8a9f490eccf11c594a10f2fb66d"
+        },
+        {
+          "path": ".tmp/pr-2537-layout/2537-label-measured-green.log",
+          "sha256": "aa0d97c3264bcbc6eb528912be718e03e744c7cf7ab164538cd1355d48557197"
+        },
+        {
+          "path": ".tmp/pr-2537-layout/2537-label-committed-red.log",
+          "sha256": "c75cc78d861c3186ef25e2929342dcc31176b9fe83bd1472b9ca4580a23b2780"
+        },
+        {
+          "path": ".tmp/pr-2537-layout/2537-label-final-browser.log",
+          "sha256": "b8d12b36fa0c549080d0ff1ddb3fbd161da6bec3f004925b672a9b6f88e0b3dd"
+        },
+        {
+          "path": ".tmp/pr-2537-layout/2537-label-unit.log",
+          "sha256": "7816778f69570426a67b4772912acbfa261107f1ac4627fbf82429378765ba4a"
         }
       ]
     }

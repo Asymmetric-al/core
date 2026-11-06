@@ -4,6 +4,8 @@ import { useState } from "react";
 import { ConversationAssigneeMenu } from "../../../apps/admin/features/support-hub/components/detail/ConversationAssigneeMenu";
 // eslint-disable-next-line no-restricted-imports -- AL-1864: Browser regression measures the actual filter card and selectors.
 import { ReportFilters } from "../../../apps/admin/features/support-hub/components/reports/ReportFilters";
+// eslint-disable-next-line no-restricted-imports -- AL-1864: Browser regression exercises the actual label selector with synthetic labels.
+import { LabelFilter } from "../../../apps/admin/features/support-hub/components/toolbar/LabelFilter";
 // eslint-disable-next-line no-restricted-imports -- AL-1864: Browser regression measures real saved-view hit targets.
 import { SavedViewItem } from "../../../apps/admin/features/support-hub/components/views/SavedViewItem";
 
@@ -69,6 +71,7 @@ const savedViews: SupportSavedView[] = [
 
 export function SupportControlLayouts({ surface }: { surface: string }) {
   const [result, setResult] = useState("");
+  const [labelSlugs, setLabelSlugs] = useState<string[]>([]);
 
   return (
     <main className="p-2">
@@ -96,7 +99,12 @@ export function SupportControlLayouts({ surface }: { surface: string }) {
           ))}
         </section>
       )}
-      <output id="support-layout-result">{result}</output>
+      {surface === "labels" && (
+        <LabelFilter value={labelSlugs} onValueChange={setLabelSlugs} />
+      )}
+      <output id="support-layout-result">
+        {surface === "labels" ? labelSlugs.join(",") : result}
+      </output>
     </main>
   );
 }

@@ -105,7 +105,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
                     <Check className="size-3" />
                   </ComboboxItemIndicator>
                 </span>
-                <span className="flex-1 text-xs text-foreground">
+                <span className="flex-1 wrap-anywhere text-xs text-foreground">
                   {label.name}
                 </span>
               </ComboboxItem>

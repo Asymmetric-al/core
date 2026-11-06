@@ -163,6 +163,13 @@ await build({
         ) {
           return resolve(fixtureDirectory, "support-layout-stubs.ts");
         }
+        if (
+          workspaceFile?.endsWith("/toolbar/LabelFilter.tsx") &&
+          (source === "../../hooks/use-support-labels" ||
+            source === "../labels/LabelManagerDialog")
+        ) {
+          return resolve(fixtureDirectory, "support-layout-stubs.ts");
+        }
         // This real form's mutation stub records the submitted
         // value for assertions without issuing a request to an application API.
         if (

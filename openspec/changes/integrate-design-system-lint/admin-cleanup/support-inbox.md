@@ -121,6 +121,15 @@ The committed Support browser fixture checks all three narrow cases. Both
 the original and updated source proofs remain attached to their batches.
 The final cohort scan will qualify completion against the exact source bytes.
 
+The `admin-support-inbox-label-review-2026-11-07` batch checks label
+names in the 180px popup. The narrower popup clipped the distinguishing
+end of one same-prefix name and shrank both names’ selection boxes to 2px.
+Wrapping unbroken names keeps both suffixes and the maximum 80-character
+form name inside the popup, with 16px selection boxes and no horizontal
+scrolling at 320px, 390px and 1280px. The committed 320px browser check
+also searches by suffix and verifies the selected slug. This scoped proof
+keeps completion pending until the final cohort scan.
+
 ## Known gaps and follow-ups
 
 - No `CommandDialog` or `ComboboxContent` width option and no padding-free

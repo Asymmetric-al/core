@@ -1,9 +1,30 @@
 import { useState } from "react";
 
+import type { SupportLabel } from "@asym/database/hooks";
+
 const agents = [
   { id: "agent-a", name: "W".repeat(75) + " Lastname", avatarUrl: null },
   { id: "agent-b", name: "Camille Support", avatarUrl: null },
 ];
+
+const labels = [
+  {
+    id: "label-a",
+    slug: "escalation-alpha",
+    name: "CustomerEscalationTierAlpha",
+  },
+  {
+    id: "label-b",
+    slug: "escalation-beta",
+    name: "CustomerEscalationTierBeta",
+  },
+  { id: "label-c", slug: "long-label", name: "W".repeat(76) + "Zeta" },
+].map<SupportLabel>((label) => ({
+  ...label,
+  tenantId: "tenant-a",
+  tone: "blue",
+  description: null,
+}));
 
 const reportState = {
   from: "2026-10-01T00:00:00.000Z",
@@ -23,7 +44,11 @@ export function useSupportInboxes() {
 }
 
 export function useSupportLabels() {
-  return { data: [] };
+  return { data: labels };
+}
+
+export function LabelManagerDialog() {
+  return null;
 }
 
 export function useCurrentSupportAgentId() {
