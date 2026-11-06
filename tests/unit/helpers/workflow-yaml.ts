@@ -911,7 +911,8 @@ export function labelsEqual(
 /**
  * Repository variable that moves every self-hosted job onto a GitHub-hosted
  * runner while the Proxmox pool is offline (docs/ops/self-hosted-runners.md,
- * "GitHub-hosted fallback"). Only this exact value activates the fallback.
+ * "GitHub-hosted fallback"). Only this value activates the fallback; GitHub
+ * compares it case-insensitively, as the expression evaluator models.
  */
 export const RUNNER_FALLBACK_VAR = "CI_RUNNER_FALLBACK";
 export const RUNNER_FALLBACK_HOSTED = "github-hosted";

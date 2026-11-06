@@ -5,12 +5,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  EVENT_SCENARIOS,
   FORK_FAIL_MESSAGE,
   FORK_ONLY_STEP_GUARD,
   SAME_REPO_GUARD,
   analyzeSelfHostedForkSafety,
   ciGateFailsClosedWhenHeavyNeedsSkippedOnFork,
   containsSameRepoGuard,
+  evaluateRunsOn,
   forkRejectProblems,
   hostedGateFailsClosedWhenHeavyNeedsSkipped,
   isAlwaysExpression,
@@ -19,6 +21,7 @@ import {
   referencesSecrets,
   renderNeedsContextExpressions,
   requiredJobFailsClosedOnFork,
+  scenarioContext,
   stripExpressionWrapper,
   type WorkflowJob,
 } from "./workflow-yaml";
@@ -495,4 +498,31 @@ describe("isSelfHostedRunsOn with the GitHub-hosted fallback", () => {
   ])("rejects %s", (_label, runsOn) => {
     expect(isSelfHostedRunsOn(runsOn)).toBe(false);
   });
+});
+
+describe("CI_RUNNER_FALLBACK uses GitHub's case-insensitive string equality", () => {
+  const sameRepo = EVENT_SCENARIOS.find((scenario) => !scenario.fork)!;
+  const withFallback = (value: string) => {
+    const ctx = scenarioContext(sameRepo, {});
+    (ctx.contexts.vars as Record<string, string>).CI_RUNNER_FALLBACK = value;
+    return ctx;
+  };
+
+  it.each(["github-hosted", "GITHUB-HOSTED", "GitHub-Hosted"])(
+    "%s activates the fallback",
+    (value) => {
+      expect(
+        evaluateRunsOn(STATIC_SELF_HOSTED_RUNS_ON, withFallback(value)),
+      ).toEqual(["ubuntu-latest"]);
+    },
+  );
+
+  it.each(["", "true", "github_hosted", "hosted"])(
+    "%j keeps same-repo jobs on proxmox",
+    (value) => {
+      expect(
+        evaluateRunsOn(STATIC_SELF_HOSTED_RUNS_ON, withFallback(value)),
+      ).toEqual(["self-hosted", "linux", "x64", "proxmox"]);
+    },
+  );
 });

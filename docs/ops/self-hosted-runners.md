@@ -66,8 +66,10 @@ Proxmox:
 gh variable delete CI_RUNNER_FALLBACK --repo Asymmetric-al/core
 ```
 
-- Only the exact value `github-hosted` activates the fallback. Unset, empty or
-  any other value keeps same-repo jobs on exactly the proxmox labels.
+- Only `github-hosted` activates the fallback. GitHub compares expression
+  strings case-insensitively, so a casing variant such as `GITHUB-HOSTED` also
+  activates it. Unset, empty or any other value keeps same-repo jobs on exactly
+  the proxmox labels.
 - Fork pull requests use hosted runners whatever the variable says, and the
   fork-reject steps and same-repo `if:` guards are unchanged.
 - The fallback only moves jobs off self-hosted runners, so it cannot widen
