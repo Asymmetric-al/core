@@ -83,14 +83,7 @@ export function getCrmNoteColumns(): ColumnDef<CrmNoteRow>[] {
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="State" />
       ),
-      cell: () => (
-        <Badge
-          variant="outline"
-          className="h-5 rounded-md font-semibold uppercase tracking-wide shadow-none"
-        >
-          Saved
-        </Badge>
-      ),
+      cell: () => <Badge variant="outline">Saved</Badge>,
       enableSorting: false,
       meta: { label: "State" },
       size: 110,

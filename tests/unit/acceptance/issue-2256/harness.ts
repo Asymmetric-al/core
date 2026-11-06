@@ -71,10 +71,13 @@ export const READER_FUNCTIONS: Record<string, boolean> = {
   expire_eve_retention_records: true,
   handle_new_user: true,
 };
-/** §1.3 RLS policy readers, "schema.table policy", sorted. #2406 addendum 1
- * adds the two storage.objects folder policies (they read profiles.tenant_id). */
+/** §1.3 policy rows ("schema.table policy", sorted): #2256's profiles policy,
+ * #2406's profiles-bucket folder policies, and #2407a's editor-image folder
+ * policies. Each storage policy reads profiles.tenant_id. */
 export const READER_POLICIES = [
   "public.profiles profiles staff tenant select",
+  "storage.objects editor images owner folder insert",
+  "storage.objects editor images owner folder update",
   "storage.objects profiles owner folder insert",
   "storage.objects profiles owner folder update",
 ];

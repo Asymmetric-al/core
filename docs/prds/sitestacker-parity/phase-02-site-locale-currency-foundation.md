@@ -808,7 +808,7 @@ convention, from the tombstoned phase-01 operating-foundation PRD):
    donate-path default-site path remains separately derived from auth context.
 3. **Attribution builder** — entry-method vocabulary enforcement and the caller→entry_method mapping;
    `source_code` sanitization (allowlist filtering, length cap, **CSV formula-injection
-   neutralization**, PII/raw-query rejection); default-site assignment for portal/offline/import;
+   neutralization**, PII/raw-query rejection); default-site assignment for portal and offline entry where that path is ratified; imported history never falls back to the Default Site (Phase 24 governs, D14);
    recurring inheritance.
 4. **Site provisioning & clean-start fixtures** — idempotent default-site
    creation; existing CMS content in an approved pre-production reset may be
