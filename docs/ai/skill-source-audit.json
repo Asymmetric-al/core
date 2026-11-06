@@ -1841,8 +1841,8 @@
       "sourcePath": "skills/council/SKILL.md",
       "rawSkillHash": "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
       "lockHash": "a1993f93b9157a8c73d4b8c16da267a3addd2bec94bcffb6b5f4caea23a8854b",
-      "entrypointHash": "fa1c8b23b881dc013f3b56bce8615c011da405c225d1fa717d2aad7f28800955",
-      "treeHash": "d6da651c3a4543f91395dbd7a9b358761f8c8fcb9e6d557bc8046c7d098e5e36",
+      "entrypointHash": "e4cb2d138e4c5a2e04dca6b7cc3d0bc5a73fb313870e33cd71f8f264c8723a86",
+      "treeHash": "0eaae864f8302f1df0533823c05694a9d662efb9344d473d5603d1aa64708fa1",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",

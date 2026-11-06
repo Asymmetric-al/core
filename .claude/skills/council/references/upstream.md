@@ -57,6 +57,9 @@ and runs a bounded follow-up when the request authorizes implementation.
   Each round has an elapsed-time deadline with bounded waits and honest
   cancellation reporting, while capability discovery follows the active
   harness's once-per-thread contract and explicit refresh conditions.
+  Dispatch fails closed unless filesystem and mutation-capable tool access
+  have verified enforced read-only boundaries; prompts, review roles,
+  approval modes, and writable worktrees do not establish that boundary.
   The T3 dispatch fields and retry behavior follow the official
   [T3 target contract](https://github.com/pingdotgg/t3code/blob/6577c6b6185167c0e502fa01f9e8e8f2dee6ff25/packages/contracts/src/orchestratorMcp.ts)
   and [delegation guide](https://github.com/pingdotgg/t3code/blob/6577c6b6185167c0e502fa01f9e8e8f2dee6ff25/docs/orchestration-v2/orchestrator-mcp-server.md#delegate_task).

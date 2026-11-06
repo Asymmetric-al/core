@@ -40,3 +40,12 @@ MUST stop after at most three review rounds.
 - **THEN** the coordinator stops waiting and reports the available findings
   and missing coverage
 - **AND** it requests cancellation when the harness supports it
+
+#### Scenario: A harness cannot enforce a delegate's read-only access
+
+- **WHEN** filesystem or mutation-capable tool access lacks an enforced
+  read-only boundary for a selected delegate
+- **THEN** the coordinator does not dispatch that delegate and reports the
+  missing coverage
+- **AND** a read-only brief, review role, approval mode, or writable worktree
+  is not treated as an enforced boundary

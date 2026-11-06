@@ -24,7 +24,14 @@ request authorizes implementation and the run is outside the native-only
 fallback. Otherwise include the known issues in the brief. Skip fixes to work
 the user wants to discard.
 
-After preflight, start the selected available delegates in parallel. Give
+Before dispatch, verify that the harness enforces a read-only boundary for
+each delegate's filesystem access and mutation-capable tools. A read-only
+brief, review role, approval-required mode, or writable worktree is not an
+enforced boundary. If the boundary is unavailable, do not dispatch that
+delegate; report its missing coverage. Do not invent a read-only runtime
+mode or widen permissions to obtain coverage.
+
+After preflight, start the selected eligible delegates in parallel. Give
 them the request and relevant context. Every delegate stays read-only even
 when the coordinator is authorized to implement fixes. Collect their
 responses and summarize the findings, disagreements, and next steps.
@@ -91,7 +98,8 @@ Provenance and refresh steps live in `references/upstream.md`.
    Report actual members and missing coverage in the
    results. Never replace an explicitly requested provider or model.
 2. In T3 Code, call `orchestrator_capabilities` once per thread, and again
-   only after an error or a user-named provider change. Start one `delegate_task` per available member
+   only after an error or a user-named provider change. Verify the enforced
+   read-only boundary above before starting one `delegate_task` per eligible member
    in parallel. Set `target.providerInstanceId` and `target.model` and use
    `target.options` for advertised reasoning settings. Use a distinct
    `clientRequestId` per member and round, reusing it on retries of that
@@ -120,7 +128,8 @@ Provenance and refresh steps live in `references/upstream.md`.
 - [ ] Members came from the request, the upstream default, or the permitted
       labeled native-only fallback; unavailable coverage was disclosed and
       explicitly requested providers were not substituted
-- [ ] Review delegates stayed read-only and received no secrets
+- [ ] Review delegates had verified enforced read-only boundaries and received
+      no secrets; unavailable boundaries were reported as missing coverage
 - [ ] Each result is attributed to the model that actually responded; a
       missing score reads `no score`
 - [ ] Source edits were authorized and the report states any unresolved
