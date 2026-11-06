@@ -79,8 +79,9 @@ Provenance and refresh steps live in `references/upstream.md`.
 
 1. Resolve council members from the current request first. An explicit member
    list, provider list, or count (for example "use only Claude and Codex")
-   overrides the upstream three-provider default for that run. Otherwise keep
-   the upstream default. Report actual members and missing coverage in the
+   overrides the upstream three-provider default for that run. Otherwise use
+   the upstream default, subject only to the labeled native-only fallback above.
+   Report actual members and missing coverage in the
    results. Never replace an explicitly requested provider or model.
 2. In T3 Code, call `orchestrator_capabilities` once per thread. Start one
    `delegate_task` per available member in parallel with the selected
@@ -106,8 +107,9 @@ Provenance and refresh steps live in `references/upstream.md`.
 
 ### Checklist
 
-- [ ] Members came from the request or the upstream default, and every
-      unavailable member was reported rather than substituted
+- [ ] Members came from the request, the upstream default, or the permitted
+      labeled native-only fallback; unavailable coverage was disclosed and
+      explicitly requested providers were not substituted
 - [ ] Review delegates stayed read-only and received no secrets
 - [ ] Each result is attributed to the model that actually responded; a
       missing score reads `no score`

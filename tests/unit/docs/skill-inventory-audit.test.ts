@@ -712,7 +712,12 @@ describe("reviewed installed skill inventory", () => {
     ) as {
       schemaVersion: number;
       baselineCommit: string;
-      skills: Array<{ name: string; status: string; treeHash: string }>;
+      skills: Array<{
+        name: string;
+        status: string;
+        treeHash: string;
+        entrypointHash: string;
+      }>;
     };
     expect(audit.schemaVersion).toBe(1);
     expect(audit.baselineCommit).toBe(
@@ -738,6 +743,9 @@ describe("reviewed installed skill inventory", () => {
         hash.update("\0");
       }
       expect(skill.treeHash, skill.name).toBe(hash.digest("hex"));
+      if (skill.name === "council") {
+        expect(skill.entrypointHash).toBe(digest(root + "/SKILL.md"));
+      }
     }
   });
 

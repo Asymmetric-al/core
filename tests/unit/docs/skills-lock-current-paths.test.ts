@@ -29,6 +29,9 @@ describe("skills lock current upstream paths", () => {
     const provenance = readRepoFile(
       "docs/ai/skills/council/references/upstream.md",
     );
+    const frontmatter = provenance.match(
+      /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/u,
+    )?.[1];
 
     const reviewedLockHash =
       "a1993f93b9157a8c73d4b8c16da267a3addd2bec94bcffb6b5f4caea23a8854b";
@@ -41,13 +44,15 @@ describe("skills lock current upstream paths", () => {
       skillPath: "skills/council/SKILL.md",
       computedHash: reviewedLockHash,
     });
-    expect(provenance).toContain(
-      "reviewed_commit: 1085050f3baed1ac724caa4a8166145fb2ac88af",
+    expect(frontmatter?.match(/^reviewed_commit: ([^\r\n]+)$/mu)?.[1]).toBe(
+      "1085050f3baed1ac724caa4a8166145fb2ac88af",
     );
-    expect(provenance).toContain(`skills_lock_hash: ${reviewedLockHash}`);
-    expect(provenance).toContain(
-      `upstream_license_sha256: ${reviewedLicenseHash}`,
+    expect(frontmatter?.match(/^skills_lock_hash: ([^\r\n]+)$/mu)?.[1]).toBe(
+      reviewedLockHash,
     );
+    expect(
+      frontmatter?.match(/^upstream_license_sha256: ([^\r\n]+)$/mu)?.[1],
+    ).toBe(reviewedLicenseHash);
     const license = readFileSync(
       path.join(repoRoot, "docs/ai/skills/council/LICENSE"),
     );
