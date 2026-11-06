@@ -48,8 +48,9 @@ A new workflow file or trigger that trips R1 or R2 needs a spec amendment on
 
 ## GitHub-hosted fallback
 
-When the Proxmox pool is offline, self-hosted jobs queue indefinitely and the
-required checks (`ci-gate`, `e2e-smoke-gate`, `migrate`, `smoke`) never settle.
+When the Proxmox pool is offline, self-hosted jobs stay queued until a runner
+comes online or GitHub cancels them after 24 hours, so the required checks
+(`ci-gate`, `e2e-smoke-gate`, `migrate`, `smoke`) never pass.
 To fall back to GitHub-hosted runners, set the repository variable
 `CI_RUNNER_FALLBACK` to `github-hosted`:
 
@@ -61,18 +62,20 @@ Every self-hosted job in `ci.yml` and `ci-integration.yml` then resolves
 `runs-on` to `ubuntu-latest`. GitHub reads the variable when it schedules a
 job, and only commits whose workflow files contain the fallback expression
 honour it. Runs already queued stay queued: cancel them, then re-run them if
-their commit already has the fallback workflow. A branch created before the
-fallback landed needs a new commit, such as a merge of `develop`, so its run
-uses the updated workflow. When the pool is back, return to Proxmox:
+their commit already has the fallback workflow. A re-run uses the workflow file
+from the run's original commit; if it still queues on proxmox, push a new commit
+instead. A branch created before the fallback landed needs a new commit, such
+as a merge of `develop`, so its run uses the updated workflow. When the pool is
+back, return to Proxmox:
 
 ```bash
 gh variable delete CI_RUNNER_FALLBACK --repo Asymmetric-al/core
 ```
 
-- Only `github-hosted` activates the fallback. GitHub compares expression
-  strings case-insensitively, so a casing variant such as `GITHUB-HOSTED` also
-  activates it. Unset, empty or any other value keeps same-repo jobs on exactly
-  the proxmox labels.
+- `github-hosted` activates the fallback in any letter case, because GitHub
+  compares expression strings case-insensitively (`GITHUB-HOSTED` works too).
+  Unset, empty or any other value keeps same-repo jobs on exactly the proxmox
+  labels.
 - Fork pull requests use hosted runners whatever the variable says, and the
   fork-reject steps and same-repo `if:` guards are unchanged.
 - The fallback only moves jobs off self-hosted runners, so it cannot widen
