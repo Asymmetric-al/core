@@ -91,6 +91,7 @@ export function readCompilationChanges({
 }
 
 export function validateCiGate({ results, buildRequested }) {
+  if (typeof buildRequested !== "boolean") return false;
   if (
     ![
       "plan",
@@ -129,7 +130,9 @@ function main() {
   }
   if (process.argv.includes("--gate")) {
     const results = JSON.parse(process.env.CI_RESULTS ?? "{}");
-    const buildRequested = process.env.CI_BUILD_REQUESTED !== "false";
+    const requested = process.env.CI_BUILD_REQUESTED;
+    const buildRequested =
+      requested === "true" ? true : requested === "false" ? false : undefined;
     console.log(
       `CI results: ${JSON.stringify(results)}; compilation requested: ${buildRequested}`,
     );

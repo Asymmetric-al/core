@@ -1,6 +1,7 @@
 /**
  * #2180 R2 (trigger allowlist on reachable workflows and their callers):
- * done criterion 4. Owned by Acceptance; implementers must not edit.
+ * done criterion 4. Hosted-CI amendment keeps these negative fixtures
+ * explicitly self-hosted instead of depending on real CI using local runners.
  */
 import { describe, expect, it } from "vitest";
 
@@ -31,15 +32,19 @@ const BANNED: Record<string, string> = {
 const block = (t: string) => `\n  ${t}:${BANNED[t]}`;
 const reachable = (on: string) => workflow(on, runsOnJob(PROXMOX));
 const caller = (on: string) =>
-  workflow(on, "    uses: ./.github/workflows/ci.yml", "call");
+  workflow(on, "    uses: ./.github/workflows/runner-probe.yml", "call");
 
 describe("#2180 criterion 4: R2 rejects unmodelled triggers, naming them", () => {
   for (const trigger of Object.keys(BANNED)) {
     describe(trigger, () => {
       for (const file of ["ci.yml", "ci-integration.yml"]) {
-        it(`added to ${file}`, async () => {
+        it(`added to ${file} with reintroduced local reach`, async () => {
           const g = await guard();
           const tree = mutated(file, "\non:", `\non:${block(trigger)}`);
+          tree[file] = tree[file]!.replace(
+            "\njobs:\n",
+            `\njobs:\n  probe:\n${runsOnJob(PROXMOX)}\n`,
+          );
           const problems = g.selfHostedRunnerProblems(tree);
           expectProblem(problems, file, 2, "on", trigger);
         });
@@ -51,10 +56,13 @@ describe("#2180 criterion 4: R2 rejects unmodelled triggers, naming them", () =>
         const problems = g.selfHostedRunnerProblems(tree);
         expectProblem(problems, "runner-probe.yml", 2, "on", trigger);
       });
-      it("added to a hosted caller of ci.yml", async () => {
+      it("added to a hosted caller of a locally reachable fixture", async () => {
         const g = await guard();
         const on = `\n  pull_request:${block(trigger)}`;
-        const tree = treeWith("caller.yml", caller(on));
+        const tree = {
+          ...treeWith("caller.yml", caller(on)),
+          "runner-probe.yml": reachable("push"),
+        };
         const problems = g.selfHostedRunnerProblems(tree);
         expectProblem(problems, "caller.yml", 2, "on", trigger);
       });

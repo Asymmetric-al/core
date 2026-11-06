@@ -34,10 +34,10 @@ const topLevel = () => sql().replace(DOLLAR, "$$$$");
 /** DO-block bodies (pre/post-asserts and the catalog-driven drop). */
 const doBodies = () => sql().match(DOLLAR) ?? [];
 const T5 = H.TABLES.join("|");
-/** docs/ci.md develop byte prefix (#2250's CI_BASES). */
+/** Reviewed hosted-only R1 pointer amendment to #2250's CI-doc prefix. */
 const CI_BASE = {
-  bytes: 40058,
-  sha256: "f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b",
+  bytes: 40204,
+  sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
 };
 const STEP = "Verify tenant isolation (real stack)";
 const CII = ".github/workflows/ci-integration.yml";
