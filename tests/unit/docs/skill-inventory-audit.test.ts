@@ -18,7 +18,7 @@ const retainedSnapshots = new Set([
   "pdf",
 ]);
 
-// Reviewed baseline c4d36cb029121641b8882237632d0d6da434049e; this task adds only security-audit.
+// Reviewed baseline c4d36cb029121641b8882237632d0d6da434049e; this task adds security-audit and council.
 const baselineSkillNames = [
   "accessibility-review",
   "agent-browser",
@@ -718,7 +718,7 @@ describe("reviewed installed skill inventory", () => {
       "c4d36cb029121641b8882237632d0d6da434049e",
     );
     expect(audit.skills.map((skill) => skill.name).sort()).toEqual(
-      [...baselineSkillNames, "security-audit"].sort(),
+      [...baselineSkillNames, "security-audit", "council"].sort(),
     );
     expect(new Set(audit.skills.map((skill) => skill.name)).size).toBe(
       audit.skills.length,
