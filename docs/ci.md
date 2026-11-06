@@ -472,5 +472,3 @@ Production branch protections and source ancestry checks are unchanged. `release
 ## Self-hosted runner security
 
 Only `ci.yml` and `ci-integration.yml` may reach the self-hosted Proxmox runners. The unit test `tests/unit/scripts/self-hosted-runner-guard.test.ts` enforces rules R1–R3 across every workflow file: the reachability allowlist (R1), the trigger allowlist on reachable workflows (R2) and privileged-trigger hygiene (R3). The threat model, maintainer rule and admin checklist are in [Self-hosted runner security](ops/self-hosted-runners.md).
-
-**Proxmox outage fallback:** setting the repository variable `CI_RUNNER_FALLBACK=github-hosted` moves every self-hosted job (`build` and `test-unit` in `ci.yml`; `migrate`, `smoke`, `test-e2e-smoke`, `test-e2e` and `instant-nav` in `ci-integration.yml`) onto `ubuntu-latest` until the variable is deleted. Fork pull requests are unaffected. See [GitHub-hosted fallback](ops/self-hosted-runners.md#github-hosted-fallback).
