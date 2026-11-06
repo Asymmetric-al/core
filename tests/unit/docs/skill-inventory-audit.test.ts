@@ -546,7 +546,11 @@ function readLock() {
 
 describe("reviewed installed skill inventory", () => {
   it("accounts for every installed skill without adding unrelated pack skills", () => {
-    const expectedNames = [...baselineSkillNames, "security-audit"].sort();
+    const expectedNames = [
+      ...baselineSkillNames,
+      "security-audit",
+      "council",
+    ].sort();
     const { skills } = readLock();
 
     for (const runtimeRoot of runtimeRoots) {

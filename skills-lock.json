@@ -189,6 +189,12 @@
       "computedHash": "40775510557e07ca764d32e440813185e52b529be1e4ea15c243118bd7fd4475",
       "treeHash": "fbc8f277942a85beda062bc604846d54e61c73d7e1ec49708dd20e0879c6e578"
     },
+    "council": {
+      "source": "t3dotgg/tstack",
+      "sourceType": "github",
+      "skillPath": "skills/council/SKILL.md",
+      "computedHash": "a1993f93b9157a8c73d4b8c16da267a3addd2bec94bcffb6b5f4caea23a8854b"
+    },
     "create-agent": {
       "source": "ikindacodes/ship-eve",
       "sourceType": "github",
