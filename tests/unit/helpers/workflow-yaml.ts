@@ -909,10 +909,10 @@ export function labelsEqual(
 }
 
 /**
- * Repository variable that moves every self-hosted job onto a GitHub-hosted
- * runner while the Proxmox pool is offline (docs/ops/self-hosted-runners.md,
- * "GitHub-hosted fallback"). This value activates the fallback in any letter
- * case, because GitHub compares strings case-insensitively, as the expression
+ * Legacy repository variable that moved self-hosted jobs onto a GitHub-hosted
+ * runner while the Proxmox pool was offline. Retained here to exercise the
+ * historical routing fixtures; current heavy CI jobs use literal hosted labels.
+ * This value activates the fallback in any letter case, because GitHub compares strings case-insensitively, as the expression
  * evaluator models; every other value keeps same-repo jobs on proxmox.
  */
 export const RUNNER_FALLBACK_VAR = "CI_RUNNER_FALLBACK";
@@ -1528,10 +1528,12 @@ export type ForkSafetyReport = {
 };
 
 /**
- * Evaluate a self-hosted job's `if` and `runs-on` across every modeled event
- * and needs-result combination: fork events must either skip the job or put
+ * Evaluate a legacy self-hosted or literal hosted job's `if` and `runs-on`
+ * across every modeled event and needs-result combination: fork events must either skip the job or put
  * it on a hosted `ubuntu-*` runner (then fail closed via the reject step);
- * same-repo events must always resolve to exactly the proxmox labels.
+ * same-repo events must preserve legacy fallback routing or use literal
+ * ubuntu-latest placement. Dynamic expressions never count as permanently
+ * hosted.
  */
 export function analyzeSelfHostedForkSafety(
   job: WorkflowJob,
@@ -1550,9 +1552,10 @@ export function analyzeSelfHostedForkSafety(
           scenarioContext(scenario, {}, fallback),
         );
         const ok =
-          fallback === RUNNER_FALLBACK_HOSTED
+          isHostedUbuntuLatest(jobRunsOn(job)) ||
+          (fallback === RUNNER_FALLBACK_HOSTED
             ? isHostedUbuntuLabels(labels)
-            : labelsEqual(labels, SELF_HOSTED_LABELS);
+            : labelsEqual(labels, SELF_HOSTED_LABELS));
         if (!ok) {
           problems.push(
             fallback === RUNNER_FALLBACK_HOSTED
@@ -2782,11 +2785,14 @@ export function hostedGateFailsClosedWhenHeavyNeedsSkipped(
 
 /**
  * Required checks (migrate/smoke) must run for every fork event on a hosted
- * runner (fork-aware runs-on, evaluated) and fail there via the first step,
+ * runner (literal hosted or evaluated legacy routing) and fail at the first step,
  * before anything that can read secrets.
  */
 export function requiredJobFailsClosedOnFork(job: WorkflowJob): boolean {
-  if (!isForkAwareRunsOnExpression(jobRunsOn(job))) {
+  if (
+    !isHostedUbuntuLatest(jobRunsOn(job)) &&
+    !isForkAwareRunsOnExpression(jobRunsOn(job))
+  ) {
     return false;
   }
   const report = analyzeSelfHostedForkSafety(job);
