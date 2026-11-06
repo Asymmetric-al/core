@@ -1,3 +1,5 @@
+import { spawnSync } from "node:child_process";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -50,6 +52,18 @@ describe("development compilation policy", () => {
       resolveCompilation({ ...development, changedFiles: ["bun.lock"] }),
     ).toEqual(["admin", "donor", "missionary"]);
   });
+
+  it.each(["ci.yml", "ci-integration.yml"])(
+    "requests all three apps when runner workflow %s changes",
+    (workflow) => {
+      expect(
+        resolveCompilation({
+          ...development,
+          changedFiles: [`.github/workflows/${workflow}`],
+        }),
+      ).toEqual(["admin", "donor", "missionary"]);
+    },
+  );
 
   it("compiles all apps when their shared environment loader changes", () => {
     expect(
@@ -134,6 +148,49 @@ describe("required CI gate", () => {
         buildRequested: false,
       }),
     ).toBe(true);
+  });
+
+  it.each([undefined, null, "", "true", "false", "invalid"])(
+    "rejects missing or invalid compilation planning data %j even after a successful build",
+    (buildRequested) => {
+      expect(
+        validateCiGate({
+          results: { ...results, build: "success" },
+          buildRequested,
+        }),
+      ).toBe(false);
+    },
+  );
+
+  it.each(["", "invalid", "TRUE", "FALSE"])(
+    "the executed gate rejects invalid requested output %j with otherwise successful needs",
+    (requested) => {
+      const job = loadWorkflowJobs(".github/workflows/ci.yml")["ci-gate"]!;
+      const execution = executeGateJob(
+        job,
+        {
+          results: buildNeedResultsForGateJob(job),
+          outputs: { "compilation-plan": { requested } },
+        },
+        EVENT_SCENARIOS.find((scenario) => !scenario.fork)!,
+      );
+      expect(execution.jobRan).toBe(true);
+      expect(execution.status).not.toBe(0);
+    },
+  );
+
+  it("the policy CLI rejects an absent requested output after otherwise successful needs", () => {
+    const execution = spawnSync(
+      process.execPath,
+      ["scripts/verify/ci-build-policy.mjs", "--gate"],
+      {
+        env: {
+          PATH: process.env.PATH,
+          CI_RESULTS: JSON.stringify({ ...results, build: "success" }),
+        },
+      },
+    );
+    expect(execution.status).toBe(1);
   });
 
   it.each(["failure", "cancelled", "skipped"])(

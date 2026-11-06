@@ -14,6 +14,11 @@ import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
 import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
 import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import {
@@ -225,8 +230,8 @@ export function MobilizePipelineTable({
             onClick={() => onSelectCandidate(row.original)}
             className="flex w-full items-center gap-2.5 py-1 text-left"
           >
-            <Avatar className="size-8 bg-muted border border-border rounded-lg">
-              <AvatarFallback className="text-xs font-semibold text-muted-foreground">
+            <Avatar>
+              <AvatarFallback>
                 {row.original.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -281,7 +286,6 @@ export function MobilizePipelineTable({
             <Progress
               aria-label="Training completion"
               value={row.original.readiness}
-              className="h-1.5 rounded-full"
             />
           </div>
         ),
@@ -293,8 +297,7 @@ export function MobilizePipelineTable({
             <Button
               aria-label={`Open ${row.original.name}`}
               variant="ghost"
-              size="icon"
-              className="size-8 rounded-lg"
+              size="icon-sm"
               onClick={() => onSelectCandidate(row.original)}
             >
               <MoreHorizontal className="size-4 text-muted-foreground" />
@@ -318,7 +321,7 @@ export function MobilizePipelineTable({
           }}
           className="w-full overflow-x-auto lg:w-auto"
         >
-          <TabsList className="h-auto w-max min-w-full justify-start">
+          <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="applied">Applied</TabsTrigger>
             <TabsTrigger value="vetting">Vetting</TabsTrigger>
@@ -328,15 +331,18 @@ export function MobilizePipelineTable({
         </Tabs>
 
         <div className="flex items-center gap-2 w-full lg:w-auto">
-          <div className="relative flex-1 lg:w-60">
-            <Search className="absolute left-2.5 top-2 size-3.5 text-muted-foreground" />
-            <Input
-              aria-label="Search candidates"
-              placeholder="Search candidates..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(event) => onSearchTermChange(event.target.value)}
-            />
+          <div className="flex-1 lg:w-60">
+            <InputGroup>
+              <InputGroupAddon>
+                <Search className="size-3.5 text-muted-foreground" />
+              </InputGroupAddon>
+              <InputGroupInput
+                aria-label="Search candidates"
+                placeholder="Search candidates..."
+                value={searchTerm}
+                onChange={(event) => onSearchTermChange(event.target.value)}
+              />
+            </InputGroup>
           </div>
           <Button
             aria-label="Open candidate filters"
@@ -381,15 +387,17 @@ export function MobilizeAddCandidateSheet({
   const fieldId = React.useId();
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl p-0 gap-0 flex flex-col h-full">
-        <SheetHeader className="px-6 py-5 bg-card border-b border-border">
-          <SheetTitle className="text-xl font-semibold flex items-center gap-2">
-            <Plus className="size-5 text-muted-foreground" /> New Candidate
-            Profile
-          </SheetTitle>
+      <SheetContent className="w-full sm:max-w-xl">
+        <SheetHeader>
+          <div className="flex items-center gap-2">
+            <Plus className="size-5 text-muted-foreground" />
+            <SheetTitle className="text-xl font-semibold">
+              New Candidate Profile
+            </SheetTitle>
+          </div>
           <SheetDescription>Start a new mobilization file.</SheetDescription>
         </SheetHeader>
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-6 text-left">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor={`${fieldId}-first-name`}>First Name</Label>
@@ -425,7 +433,7 @@ export function MobilizeAddCandidateSheet({
             />
           </div>
         </div>
-        <SheetFooter className="p-6 border-t bg-card mt-auto">
+        <SheetFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
@@ -447,7 +455,7 @@ export function MobilizeCandidateDetailSheet({
 }: MobilizeCandidateDetailSheetProps) {
   return (
     <Sheet open={Boolean(candidate)} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl p-0 gap-0 overflow-hidden bg-muted shadow-2xl border-l border-border flex flex-col h-full">
+      <SheetContent className="w-full sm:max-w-2xl" showCloseButton={false}>
         <SheetHeader className="sr-only">
           <SheetTitle>Candidate Profile: {candidate?.name}</SheetTitle>
           <SheetDescription>
@@ -456,12 +464,12 @@ export function MobilizeCandidateDetailSheet({
         </SheetHeader>
 
         {candidate && (
-          <>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <div className="bg-card border-b border-border p-8 pb-0">
-              <div className="flex justify-between items-start mb-6">
+              <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
                 <div className="flex gap-5">
-                  <Avatar className="size-20 border-4 border-border shadow-sm">
-                    <AvatarFallback className="text-xl bg-muted text-muted-foreground font-semibold">
+                  <Avatar className="size-20">
+                    <AvatarFallback>
                       {candidate.name.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -487,55 +495,29 @@ export function MobilizeCandidateDetailSheet({
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 rounded-xl border-border font-semibold uppercase tracking-widest"
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="h-9 rounded-xl bg-primary text-primary-foreground hover:bg-primary font-semibold uppercase tracking-widest"
-                  >
-                    Contact
-                  </Button>
+                  <Button variant="outline">Edit</Button>
+                  <Button>Contact</Button>
                 </div>
               </div>
 
               <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="bg-transparent h-auto p-0 gap-6">
-                  <TabsTrigger
-                    value="overview"
-                    className="bg-transparent border-b-2 border-transparent data-active:border-border data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-muted-foreground data-active:text-foreground transition-[color,border-color]"
-                  >
-                    Overview
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="vetting"
-                    className="bg-transparent border-b-2 border-transparent data-active:border-border data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-muted-foreground data-active:text-foreground transition-[color,border-color]"
-                  >
-                    Vetting Checklist
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="placement"
-                    className="bg-transparent border-b-2 border-transparent data-active:border-border data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-muted-foreground data-active:text-foreground transition-[color,border-color]"
-                  >
-                    Placement
-                  </TabsTrigger>
+                <TabsList variant="line">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="vetting">Vetting Checklist</TabsTrigger>
+                  <TabsTrigger value="placement">Placement</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-8">
+            <div className="min-h-0 flex-1 overflow-y-auto p-8">
               <div className="space-y-6">
-                <Card className="text-left shadow-sm">
-                  <CardHeader className="pb-3 border-b border-border">
-                    <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-semibold uppercase tracking-wider">
                       Contact Information
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-4 grid grid-cols-2 gap-6">
+                  <CardContent className="grid grid-cols-2 gap-6">
                     <div>
                       <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase font-semibold mb-1">
                         <Mail className="size-3" /> Email
@@ -563,13 +545,13 @@ export function MobilizeCandidateDetailSheet({
                   </CardContent>
                 </Card>
 
-                <Card className="text-left shadow-sm">
-                  <CardHeader className="pb-3 border-b border-border">
-                    <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-semibold uppercase tracking-wider">
                       Readiness Score
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
+                  <CardContent>
                     <div className="flex items-end justify-between mb-2">
                       <span className="text-3xl font-semibold text-foreground">
                         {candidate.readiness}%
@@ -581,7 +563,6 @@ export function MobilizeCandidateDetailSheet({
                     <Progress
                       aria-label="Training completion"
                       value={candidate.readiness}
-                      className="h-3"
                     />
                     <p className="text-xs text-muted-foreground mt-4">
                       Based on completed modules, vetting interviews, and
@@ -620,25 +601,16 @@ export function MobilizeCandidateDetailSheet({
               </div>
             </div>
 
-            <SheetFooter className="p-4 border-t bg-card flex justify-between items-center sm:justify-between">
-              <Button
-                variant="outline"
-                className="rounded-xl font-semibold uppercase tracking-widest text-destructive hover:text-destructive border-destructive/25 hover:bg-destructive/10"
-              >
-                Reject
-              </Button>
+            <SheetFooter className="items-center sm:flex-row sm:justify-between">
+              <Button variant="destructive">Reject</Button>
               <div className="flex gap-3">
-                <Button
-                  variant="ghost"
-                  className="rounded-xl font-semibold uppercase tracking-widest"
-                  onClick={() => onOpenChange(false)}
-                >
+                <Button variant="ghost" onClick={() => onOpenChange(false)}>
                   Close
                 </Button>
                 <Button>Advance Stage</Button>
               </div>
             </SheetFooter>
-          </>
+          </div>
         )}
       </SheetContent>
     </Sheet>

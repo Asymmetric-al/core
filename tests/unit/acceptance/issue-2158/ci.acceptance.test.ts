@@ -2,8 +2,8 @@
  * Acceptance tests for GitHub issue #2158 — PR A (`.github/workflows/ci.yml`).
  * Spec (rev 3, Blake-approved): {@link https://github.com/Asymmetric-al/core/issues/2158#issuecomment-6269823612}
  *
- * Owned by Acceptance. Implementers must not edit this file to satisfy their PR;
- * change the workflow to match the approved spec instead.
+ * Routing amended by the hosted-CI policy: direct ubuntu-latest placement;
+ * the original verification, fork and gate contracts remain in force.
  */
 
 import { describe, expect, it } from "vitest";
@@ -26,7 +26,6 @@ import {
   isForkAwareRunsOnExpression,
   isHostedUbuntuLatest,
   isSelfHostedJob,
-  isSelfHostedRunsOn,
   jobRunsOn,
   loadWorkflowJobs,
   needsList,
@@ -38,19 +37,16 @@ import {
 
 const WORKFLOW_PATH = ".github/workflows/ci.yml";
 
-/** Spec rev 3 before/after table — `runs-on after` for every job in ci.yml. */
-const EXPECTED_RUNS_ON: Record<
-  string,
-  "ubuntu-latest" | "self-hosted" | "workflow-call"
-> = {
+/** Complete job inventory, with the hosted-CI routing amendment. */
+const EXPECTED_RUNS_ON: Record<string, "ubuntu-latest" | "workflow-call"> = {
   "compilation-plan": "ubuntu-latest",
   format: "ubuntu-latest",
   integrity: "ubuntu-latest",
   "shadscan-report": "workflow-call",
   lint: "ubuntu-latest",
   typecheck: "ubuntu-latest",
-  build: "self-hosted",
-  "test-unit": "self-hosted",
+  build: "ubuntu-latest",
+  "test-unit": "ubuntu-latest",
   "acceptance-tests": "ubuntu-latest",
   "ci-gate": "ubuntu-latest",
   "ci-gate-comment": "ubuntu-latest",
@@ -77,7 +73,7 @@ describe("issue #2158 PR A — ci.yml acceptance", () => {
     expect(jobIds).toEqual(Object.keys(EXPECTED_RUNS_ON).sort());
   });
 
-  describe("(a) runs-on mapping from spec rev 3 table", () => {
+  describe("(a) complete hosted runner mapping", () => {
     for (const [jobId, expected] of Object.entries(EXPECTED_RUNS_ON)) {
       it(`${jobId} → ${expected}`, () => {
         const job = jobs[jobId];
@@ -90,14 +86,6 @@ describe("issue #2158 PR A — ci.yml acceptance", () => {
         }
 
         const runsOn = jobRunsOn(job);
-        if (expected === "self-hosted") {
-          expect(
-            isSelfHostedRunsOn(runsOn),
-            `expected self-hosted labels ${SELF_HOSTED_LABELS.join(", ")}; got ${JSON.stringify(runsOn)}`,
-          ).toBe(true);
-          return;
-        }
-
         expect(isHostedUbuntuLatest(runsOn)).toBe(true);
         expect(isForkAwareRunsOnExpression(runsOn)).toBe(false);
       });
@@ -277,15 +265,19 @@ describe("issue #2158 PR A — ci.yml acceptance", () => {
     });
   });
 
-  describe("fork safety: every self-hosted job, evaluated per event (Reviewer MAJOR)", () => {
+  describe("fork safety: hosted jobs retain the original trust boundary", () => {
     const selfHosted = jobIds.filter((jobId) => isSelfHostedJob(jobs[jobId]));
 
-    it("auto-detected self-hosted jobs are exactly build and test-unit", () => {
-      expect(selfHosted).toEqual(["build", "test-unit"]);
+    it("discovery finds no self-hosted jobs; both former local jobs are present and literal hosted", () => {
+      expect(selfHosted).toEqual([]);
+      for (const jobId of MOVED_JOBS) {
+        expect(jobs[jobId]).toBeDefined();
+        expect(jobRunsOn(jobs[jobId])).toBe("ubuntu-latest");
+      }
     });
 
     for (const jobId of ["build", "test-unit"]) {
-      it(`${jobId}: fork events skip it or run on hosted ubuntu-* and fail closed; same-repo events resolve to exactly proxmox`, () => {
+      it(`${jobId}: fork events skip it; same-repo events use hosted Ubuntu`, () => {
         const report = analyzeSelfHostedForkSafety(jobs[jobId]);
         expect(report.problems).toEqual([]);
         expect(report.runsForSomeSameRepo).toBe(true);

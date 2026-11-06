@@ -1,11 +1,15 @@
 # Self-hosted runner security
 
-Core is public and runs some CI jobs on self-hosted Proxmox runners
-(`[self-hosted, linux, x64, proxmox]`). A fork PR controls its own workflow
-YAML, so no file in this repository can stop a fork run from naming those
-labels. Repository checks protect what merges into `develop`. Fork runs are
-held back by GitHub settings and the maintainer rule below. Issue
-[#2180](https://github.com/Asymmetric-al/core/issues/2180) owns this runbook.
+Core is public. Its current CI revision uses GitHub-hosted runners throughout;
+the approved self-hosted-reachable workflow set is explicitly empty. Proxmox
+infrastructure remains intact, including its existing registration, controller
+and isolation settings. Older workflow revisions can still request
+`[self-hosted, linux, x64, proxmox]`. A fork PR also controls its own workflow
+YAML, so repository checks alone cannot stop it naming those labels. GitHub
+settings and the maintainer rule remain necessary. Issue
+[#2180](https://github.com/Asymmetric-al/core/issues/2180) owns this security
+contract; the hosted reliability follow-up relates to
+[#2218](https://github.com/Asymmetric-al/core/issues/2218).
 
 ## Maintainer rule
 
@@ -23,10 +27,11 @@ code, review it first and push the reviewed commits to a same-repo branch.
   anything other than a literal `ubuntu-*` label, calls a reachable local
   reusable workflow, or calls a remote reusable workflow. Expressions, matrix
   values, groups, custom labels and other hosted images fail closed. The
-  reachable set must equal `ci.yml` and `ci-integration.yml` exactly; gaining or
-  losing reach fails. Remote reusable-workflow calls fail in every file. The
-  fork-safety harness covers the self-hosted jobs inside the two allowlisted
-  files.
+  approved reachable set is **empty**: no first-party workflow may reach a
+  self-hosted runner. Remote reusable-workflow calls fail in every file. The
+  workflow harness separately asserts the seven-job inventory, hosted placement,
+  conditions and fork boundaries so the empty set cannot make those checks
+  vacuous. This intentionally tightens the previous exact two-workflow set.
 - **R2 trigger allowlist.** Every reachable workflow, including any caller of
   one, triggers only on `merge_group`, `pull_request`, `push` and
   `workflow_dispatch`. This bans `pull_request_target`, `workflow_run`,
@@ -43,14 +48,78 @@ code, review it first and push the reviewed commits to a same-repo branch.
   `inputs` contexts (such as `toJSON(github)`) to `run:` through `env:`, never
   by direct interpolation.
 
-A new workflow file or trigger that trips R1 or R2 needs a spec amendment on
-#2180, not a weaker guard.
+A new workflow file or trigger that trips R1 or R2 needs an explicit policy/spec
+amendment on #2180, not a weaker guard. The 2026-11-06 hosted-only amendment is
+recorded in `openspec/changes/make-core-ci-hosted/`; it leaves R2/R3 unchanged.
+
+## Hosted CI policy and operation
+
+These jobs now select the existing full GitHub-hosted Ubuntu VM directly:
+
+| Workflow             | Jobs                                                            | Previous same-repo default                 | Current placement       |
+| -------------------- | --------------------------------------------------------------- | ------------------------------------------ | ----------------------- |
+| `ci.yml`             | `build`, `test-unit`                                            | Proxmox unless the hosted override matched | Literal `ubuntu-latest` |
+| `ci-integration.yml` | `migrate`, `smoke`, `test-e2e-smoke`, `test-e2e`, `instant-nav` | Proxmox unless the hosted override matched | Literal `ubuntu-latest` |
+
+Existing lightweight hosted jobs retain their appropriate labels. Builds,
+PostgreSQL services and Playwright stay on full VMs. Every job retains its
+existing triggers, `if:`, `needs`, check identity, checkout ref, timeout,
+permissions, artifacts and workload. Hosted placement does not grant fork
+access: `migrate` and `smoke` still deliberately reject forks, and the other
+same-repository guards remain intact. Required gates still fail on real errors,
+cancellations, unexpected skips or missing data. Existing develop-only
+informational E2E policy and production-only verification are unchanged.
+
+**Proxmox busy/offline requires no human intervention for this workflow
+revision.** No job polls local capacity, obtains a controller response, reserves
+a local slot or waits for local startup. There is no routing job, overflow timer,
+watchdog or infrastructure-induced retry/cancellation. A healthy job lasting
+more than five minutes continues normally under its existing limit. Superseded
+PR runs retain the existing cancellation policy; other events are unchanged.
+
+Proxmox remains available to older approved workflow revisions and any separately
+authorized work under its existing security controls. Registered runner count is
+not proof of available pool capacity. Local-first CI would require a separate
+policy amendment backed by measured benefit, safe atomic assignment, isolation,
+and bounded recovery after runner loss; an online/not-busy observation is
+insufficient. This change neither modifies that infrastructure nor builds such
+an admission mechanism.
+
+GitHub outages, hosted concurrency/queue limits, provider image/package
+availability and job execution limits remain possible failures. Diagnose the
+individual job and retained logs/artifacts. Preserve truthful failures; do not
+retry assertions until green or weaken required checks. Missing caches must
+remain safe: each job checks out and installs its dependencies, and each
+integration database job bootstraps its own disposable PostgreSQL service.
+
+### Variable compatibility, old runs and rollback
+
+`CI_RUNNER_FALLBACK` is unnecessary for these permanently hosted jobs. Unset,
+empty, misspelled, unrelated, `github-hosted` and mixed-case values all select
+the same literal hosted runner. **Do not delete the repository variable** during
+rollout: older branches and already-queued runs may still depend on it.
+
+The #2641 revision uses a case-insensitive `github-hosted` comparison. On that
+older revision, unset/empty/other values restore Proxmox; earlier revisions may
+have no override at all. A re-run uses its original commit/ref and workflow
+revision, so it does not acquire the new policy. Bring current `develop` into an
+older branch and trigger a new run. An owner may cancel their own obsolete queued
+run when superseding it; do not mass-update branches or cancel unrelated work.
+
+For rollback to a version with the #2641 expressions, retain and verify
+`CI_RUNNER_FALLBACK=github-hosted` before reverting. Readback is
+`gh variable list --repo Asymmetric-al/core`; do not toggle the global variable
+for individual runs or unset-case tests. If the hosted escape path cannot be
+confirmed, preserve literal hosted placement while reverting the affected
+changes. Never recommend removing the override while restoring a local default.
+This rollout does not change branch protection, enable a production merge queue,
+publish a release or push to `production`.
 
 ## Threat model
 
 | Threat                                                          | Control                                                                                                                                                                                                                                                                                                                                                                                              | Owner                          | Repo or settings  |
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ----------------- |
-| T1 Fork `pull_request` rewrites `runs-on` in its own YAML       | A2, A3 and the maintainer rule; then A1; D-1 for the lasting fix                                                                                                                                                                                                                                                                                                                                     | Samson / Blake                 | Settings          |
+| T1 Fork `pull_request` rewrites `runs-on` in its own YAML       | A2, A3 and the maintainer rule; then A1; D-1 records deferred isolation                                                                                                                                                                                                                                                                                                                              | Samson / Blake                 | Settings          |
 | T2 `pull_request_target` path (fork checks false, secrets live) | R2 bans it on reachable workflows; R3 keeps its users hosted, checkout-free and read-only                                                                                                                                                                                                                                                                                                            | Repo guard                     | Repo              |
 | T3 `workflow_run` path (artifact poisoning in base context)     | R2; R3(b) bans artifact downloads and checkout                                                                                                                                                                                                                                                                                                                                                       | Repo guard                     | Repo              |
 | T4 `issue_comment` and review-event paths                       | R2; R3. No comment-triggered workflow exists today                                                                                                                                                                                                                                                                                                                                                   | Repo guard                     | Repo              |
@@ -59,7 +128,7 @@ A new workflow file or trigger that trips R1 or R2 needs a spec amendment on
 | T7 Reusable or remote-workflow indirection                      | R1 (transitive local calls, remote calls fail closed); R2 bans `workflow_call` on reachable files                                                                                                                                                                                                                                                                                                    | Repo guard                     | Repo              |
 | T8 Secrets exposure                                             | Fork-reachable jobs pinned by the #2158/#2201 harness; R3(e) for privileged triggers; A5 for host disk                                                                                                                                                                                                                                                                                               | Repo harness; Runner bot       | Repo and host     |
 | T9 Persistence between jobs on a reused runner                  | A5 ephemeral JIT VMs; the repo cannot verify host state                                                                                                                                                                                                                                                                                                                                              | Runner bot, reviewed by Samson | Host              |
-| T10 Token permissions                                           | Allowlisted files' `permissions` pinned by #2201; R1 means no other reachable file; R3(d); A6                                                                                                                                                                                                                                                                                                        | Repo guard; Samson / Blake     | Repo and settings |
+| T10 Token permissions                                           | Main workflows' `permissions` pinned by #2201; R1 permits no self-hosted-reachable file; R3(d); A6                                                                                                                                                                                                                                                                                                   | Repo guard; Samson / Blake     | Repo and settings |
 | T11 Cache poisoning                                             | Caches are ref-scoped; `TURBO_TOKEN` cannot reach forks; R3(c) bans caches under base-scope triggers; A5 for host caches                                                                                                                                                                                                                                                                             | Repo guard; Runner bot         | Repo and host     |
 
 ## Decisions
@@ -69,12 +138,15 @@ A new workflow file or trigger that trips R1 or R2 needs a spec amendment on
 GitHub's "Selected workflows" entries must be pinned to a branch, tag or SHA.
 PR runs use `refs/pull/<n>/merge` and merge-queue runs use `gh-readonly-queue/…`
 refs, so pinning `ci.yml@refs/heads/develop` would strand every PR and
-merge-group job. The lasting fix moves the self-hosted jobs into reusable
-workflows called by ref from `develop`/`production` and sets
+merge-group job. The previously proposed isolation option moves self-hosted
+jobs into reusable workflows called by ref from `develop`/`production` and sets
 `restricted_to_workflows: true` on the group. It rewrites `ci.yml`,
 `ci-integration.yml` and the harness, and needs an org runner group in place of
 the current repo-level runners (A1). Tracked in
-[#2231](https://github.com/Asymmetric-al/core/issues/2231).
+[#2231](https://github.com/Asymmetric-al/core/issues/2231). Hosted-only CI does
+not require this integration; it is not implemented or authorized by this
+change. Reintroducing local reach would first require a separate R1 amendment
+and proof of dependable assignment and recovery.
 
 ### D-2 Interaction-limit replacement
 
@@ -96,8 +168,8 @@ would block merges with no code change.
 Settings steps need Samson (security owner) or Blake; host steps belong to the
 Runner bot. Every command below is a read-only readback.
 
-- **A1 Runner registration (met).** The Proxmox runners are 4 JIT runners
-  registered at repository level on `Asymmetric-al/core`, labelled
+- **A1 Runner registration (historically met).** The 2026-10-23 readback
+  recorded 4 JIT runners registered at repository level on `Asymmetric-al/core`, labelled
   `self-hosted, Linux, X64, proxmox`. Repo-level registration is the A1 control:
   no other repository can schedule jobs on them. Samson ruled on 2026-10-23
   that this meets A1 (PR #2241). Readback:

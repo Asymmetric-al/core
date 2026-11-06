@@ -70,7 +70,7 @@ export function GiftHistorySection({
       {detail?.giftHistory.length ? (
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               Gift history
             </h3>
             <div className="flex items-center gap-1">

@@ -26,6 +26,25 @@ const LEAD = (id: string) =>
   );
 
 describe("#2180 criterion 8: docs/ops/self-hosted-runners.md", () => {
+  it("records the hosted-only R1 amendment and legacy variable rollout", () => {
+    const text = runbook();
+    expect(text).toMatch(/approved[^\n]*self-hosted[^\n]*set[^\n]*empty/i);
+    expect(text).toContain("CI_RUNNER_FALLBACK");
+    expect(text).toMatch(/do not delete[^\n]*variable/i);
+    expect(text).toMatch(/rollback[\s\S]*github-hosted/i);
+    expect(text).not.toMatch(/gh variable delete CI_RUNNER_FALLBACK/);
+    for (const job of [
+      "build",
+      "test-unit",
+      "migrate",
+      "smoke",
+      "test-e2e-smoke",
+      "test-e2e",
+      "instant-nav",
+    ]) {
+      expect(text).toContain(`\`${job}\``);
+    }
+  });
   it("threat table T1-T11 with control, owner and repo-vs-settings columns", () => {
     const lines = runbook().split("\n");
     for (let n = 1; n <= 11; n++) {
@@ -180,5 +199,7 @@ describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {
     );
     expect(added).toMatch(/R1\s*(?:[–-]|to)\s*R3|R1\b[\s\S]*R2\b[\s\S]*R3\b/);
     expect(added).not.toContain("@fission-ai/openspec@latest");
+    expect(added).toMatch(/approved[^\n]*self-hosted[^\n]*set[^\n]*empty/i);
+    expect(added).toContain("ubuntu-latest");
   });
 });
