@@ -18,7 +18,7 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "bc7474e4cccb36aa731dbcdee6f784e8b8a8e2c6841cec797bfb73bb931aa2a6",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -37,7 +37,7 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "2da4b36bc555b44cc52741453f5a223c194e1358dde05ab76933a399275f6d91",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -55,7 +55,7 @@
         "shadcn/no-restyle": 3
       },
       "initialSourceSha256": "e5171d30fe47f88a024be15b10f83c54cb4261703cf5740699559a592186a1d2",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -73,7 +73,7 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "82d01d206165825b9bb64146a9b5a7cdd330fa6c90fe09f255300b62537535ab",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -91,7 +91,7 @@
         "shadcn/no-restyle": 9
       },
       "initialSourceSha256": "74ff4708707cd75c9e9b7c87ae4e408d3e7d396f6d95c1742547d33777ced256",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -109,7 +109,7 @@
         "shadcn/no-restyle": 3
       },
       "initialSourceSha256": "86a4a7854c7656003b05934b1a50c566556571f46595ec993275783986f1e9fb",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -128,7 +128,7 @@
         "shadcn/no-restyle": 20
       },
       "initialSourceSha256": "d4ab08a8b52bdd600905db829dd34cb158e9e86caca705f4568db298554e674f",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -146,7 +146,7 @@
         "shadcn/no-restyle": 3
       },
       "initialSourceSha256": "0a19ced8cd95ef43b238535b4124660da95baa1094a2ce329f1468d09280ecaf",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -165,7 +165,7 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "703497ba1b3ac6979d22a7d8748a02b7aea321619b2073e9e285846cda0461eb",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -185,7 +185,7 @@
         "shadcn/no-restyle": 49
       },
       "initialSourceSha256": "5a2e036be42bb4804c5cbf44dd9a71a0ca3318103a4d3e87be1bf3bd8fa5a3fe",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -258,7 +258,7 @@
         "shadcn/no-restyle": 40
       },
       "initialSourceSha256": "1182202239edf531c3f99e38c953242cfcf853c8026f07082a6fb777ad025e2b",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -1151,7 +1151,7 @@
         "shadcn/no-restyle": 5
       },
       "initialSourceSha256": "bd2608b5e8b8c8e11daac5dda13670ca5df33cbe88428046053ad0947ed3e873",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -1237,7 +1237,7 @@
         "shadcn/no-arbitrary-values": 2
       },
       "initialSourceSha256": "c00c54d12dff2dcd547e46c0e3ecbd8d149413ac75f62dfa63866cae72090339",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -1285,7 +1285,7 @@
         "shadcn/no-restyle": 10
       },
       "initialSourceSha256": "52acc8eaaedcf55311f773e7b8743a0629799e87c5c54a0a1b8ef1403099a6af",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -1314,7 +1314,7 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "f868d85abe3a02ee96cd6df75bc83d793b4bdd448b17f21ba971c5b4e6c6013d",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -1354,7 +1354,7 @@
         "shadcn/require-static-classes": 2
       },
       "initialSourceSha256": "e714e9d2e99d84e8c4fc9aa78149c437d2ec9c28158cafa992c6438ce9f263a9",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -1384,7 +1384,7 @@
         "shadcn/no-restyle": 26
       },
       "initialSourceSha256": "9f0342fe225aaef97d9f92c660d8eab890257a9fdbf02a3ffac607f5d01d1eed",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -1700,7 +1700,7 @@
         "shadcn/no-arbitrary-values": 1
       },
       "initialSourceSha256": "4e0f1d02d878ce2c87375d7906fe35d6c8c83cfdeb2813c260345bda578959ed",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -1718,7 +1718,7 @@
         "shadcn/no-arbitrary-values": 1
       },
       "initialSourceSha256": "84426242235c7d945bd09f9ab90e5dc1775bddbdd48eb487616ce319e8cb9223",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -1758,7 +1758,7 @@
         "shadcn/no-arbitrary-values": 4
       },
       "initialSourceSha256": "c712ef766081f926a5271e78db5b278713154ca6a249eb926acf1a2697652779",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -1800,7 +1800,7 @@
         "shadcn/no-raw-colors": 7
       },
       "initialSourceSha256": "1ccd232fbe2fea11308cfc9cd631450d5a45f37e1be1af21bb345f83b017f9b9",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -1824,7 +1824,7 @@
         "shadcn/no-raw-colors": 6
       },
       "initialSourceSha256": "292f2d05a26c304eab352a589d2b112465cadb2a45b87253d5989cf749308ffb",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -1849,7 +1849,7 @@
         "shadcn/no-restyle": 65
       },
       "initialSourceSha256": "2f397416f9b0f363a5ad879ec93201cc65c22e21c5a69387982c95d0186c6ad8",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -1980,7 +1980,7 @@
         "shadcn/no-arbitrary-values": 2
       },
       "initialSourceSha256": "09932865e8136058ec86b17d8e53c092bee5605e49fa4d7b1ad2191f1bc99971",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -2209,7 +2209,7 @@
         "shadcn/require-static-classes": 1
       },
       "initialSourceSha256": "717063982d97134575a38323e6a6bb50abf7eac81f0568f38e99bd4615e0ce63",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -2289,7 +2289,7 @@
         "shadcn/require-static-classes": 1
       },
       "initialSourceSha256": "16c78d074e62106da82bd768011be4e637ba74eccb881caed118db975d1cb899",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "scale-equivalence-2026-09-22",
@@ -2341,7 +2341,7 @@
         "shadcn/no-restyle": 28
       },
       "initialSourceSha256": "4321f293f8e9603ed48d7f0e1aee3f0ce0ff2cf22a28cc31a44c53f4b1ea3ac3",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -2380,7 +2380,7 @@
         "shadcn/no-restyle": 13
       },
       "initialSourceSha256": "496bb0c4a57a5e1c6e1a2cba51fe32d93c3af6933e1ff47a0ff0636c55afd73a",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -4269,7 +4269,7 @@
         "shadcn/no-restyle": 6
       },
       "initialSourceSha256": "a52b0d40abb7ac19f0714988a33a97307751afc30c5e248b1497b6f8ac3e1a31",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -4293,7 +4293,7 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "9c7a6339057033a88a836436a40280c615251f0f32da3263e8458f8f52fbf456",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -4312,7 +4312,7 @@
         "shadcn/no-restyle": 8
       },
       "initialSourceSha256": "32f0c5a1b5f70f4b528c2164abcf4069dc6161f672b3c3090a138159f3850252",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "redundant-base-ui180-2026-09-23",
@@ -4336,7 +4336,7 @@
         "shadcn/no-restyle": 8
       },
       "initialSourceSha256": "b4a71153015c4c3562856168028db107cebbf66e70148c6f28776d5b14a671db",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -4368,7 +4368,7 @@
         "shadcn/no-unknown-classes": 1
       },
       "initialSourceSha256": "6a592dfe9df43dc650725ad25c63bd35468cd6c489733edf5fb902a4fa1b9828",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -4386,7 +4386,7 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "680b3fb09d0cfbf8c3c861f8c0183ace30f65ee948e28ead15e6b0333dab0d38",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -4405,7 +4405,7 @@
         "shadcn/no-restyle": 7
       },
       "initialSourceSha256": "08b562268822f8a5389eab639459aa5eac5618586abc4f234c26c85f961a905c",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -4423,7 +4423,7 @@
         "shadcn/no-arbitrary-values": 1
       },
       "initialSourceSha256": "1025e8d8c0eac1b51074dc93b1ebeef361654c9e15a0e98294a7f81addde73b3",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",
@@ -4458,7 +4458,7 @@
         "shadcn/no-restyle": 4
       },
       "initialSourceSha256": "81eec09b6956ddb978fdeed3604358f5c374b4a60adece2556b7f6bbf63613f4",
-      "completion": "complete",
+      "completion": "pending",
       "verification": [
         {
           "batch": "admin-shell-tools-2026-10-30",

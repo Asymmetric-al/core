@@ -80,6 +80,17 @@ suppression count was added or widened.
   - Three regressions were found and fixed during verification: Resend
     "Learn more" alignment, the Eve audit label column, and the automations
     card width at 390px (already broken before the change).
+- The original demo user could not open the Eve global panel. An isolated
+  Chromium fixture mounted the actual panel and shared components with Core
+  CSS and synthetic Mission Control and agent transport. At 390px with a
+  coarse pointer the trigger measured 48 × 48px on the baseline, 40 × 44px
+  on the original cleanup, and 44 × 44px with the shared `icon-touch` size.
+  At 390, 768 and 1280px the fixed panel preserved keyboard focus return,
+  bounded scrolling, composer reachability and the Send payload. The panel
+  source SHA-256 is
+  `658a01e9b88370c51a473abba0b2fb2adb5dbe507fefc39f9e6be66d45f8907f`.
+  The ignored report `.tmp/admin-lint-5-4/shell-tools/eve-touch-2026-11-06/results.json`
+  has SHA-256 `13e36d4d1aa049177bf0a54285ac3f0b5b0ab5b1bf5144504ce8cb4a2a3e45a3`.
 - CMS chrome: `/web-studio` returns 500 on both commits in this environment
   (Payload has no database). The existing `react-cleanup-contributions`
   fixture rendered Header and Nav at 1280 and 320px with no errors or axe
@@ -105,8 +116,6 @@ suppression count was added or widened.
   - Card: interactive hover;
   - CardHeader: divider.
 - Not exercised in a browser:
-  - the Eve global panel (the demo user has no Mission Control user; unit
-    tests cover it);
   - the native PDF builder (feature flag off);
   - the auth loading skeleton (too fast to capture).
 
