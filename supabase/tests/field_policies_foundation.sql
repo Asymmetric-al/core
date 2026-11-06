@@ -200,10 +200,10 @@ INSERT INTO expected_field_policy_supplement VALUES
   -- #2256 reviewed supplement v3: bound by working-tree hash, not a base SHA.
   ('missionaries','person_id',
    'supabase/migrations/20261025110000_person_anchor.sql',
-   'b9d7b5ef5569d35ee198ac6264a8fca91c4fd5b5e349b1da91375cf68029a875', NULL),
+   'f97ea5de4d44be60fcdecb64274e0cd749d18c1d17aa81b34e5531becd00c558', NULL),
   ('profiles','person_id',
    'supabase/migrations/20261025110000_person_anchor.sql',
-   'b9d7b5ef5569d35ee198ac6264a8fca91c4fd5b5e349b1da91375cf68029a875', NULL);
+   'f97ea5de4d44be60fcdecb64274e0cd749d18c1d17aa81b34e5531becd00c558', NULL);
 INSERT INTO expected_field_policy_columns(record_type,field_key)
   SELECT record_type,field_key FROM expected_field_policy_supplement;
 

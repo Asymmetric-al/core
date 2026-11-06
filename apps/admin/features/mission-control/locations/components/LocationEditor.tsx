@@ -5,6 +5,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Field,
   FieldContent,
+  FieldDescription,
   FieldError,
   FieldLabel,
   FieldPrimitive,
@@ -110,129 +111,122 @@ export function LocationEditor({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto sm:max-w-md">
-        <SheetHeader className="mb-6">
-          <SheetTitle className="text-xl font-black uppercase tracking-tight">
-            {location?.id ? "Edit Location" : "Add Location"}
-          </SheetTitle>
-          <SheetDescription>
-            Configure the geographical marker and its details.
-          </SheetDescription>
-        </SheetHeader>
+      <SheetContent className="sm:max-w-md">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <SheetTitle className="text-xl font-black uppercase tracking-tight">
+              {location?.id ? "Edit Location" : "Add Location"}
+            </SheetTitle>
+            <SheetDescription>
+              Configure the geographical marker and its details.
+            </SheetDescription>
+          </SheetHeader>
 
-        <form
-          className="space-y-6"
-          onSubmit={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            form.handleSubmit();
-          }}
-        >
-          <form.AppField name="title">
-            {(field) => (
-              <field.TextField
-                label="Location Title"
-                placeholder="e.g. Amazon Medical Center"
-              />
-            )}
-          </form.AppField>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <form.AppField name="lat">
-              {(field) => <field.NumberField label="Latitude" step="any" />}
-            </form.AppField>
-
-            <form.AppField name="lng">
-              {(field) => <field.NumberField label="Longitude" step="any" />}
-            </form.AppField>
-          </div>
-
-          <LocationTypeField form={form} />
-
-          <LocationLinkedEntityField
-            form={form}
-            linkedEntities={linkedEntities}
-          />
-
-          <form.AppField name="summary">
-            {(field) => (
-              <field.TextareaField
-                inputClassName="min-h-25 resize-none"
-                label="Summary"
-                placeholder="Brief description of work at this location..."
-              />
-            )}
-          </form.AppField>
-
-          <form.Field name="status">
-            {(field) => (
-              <Field
-                className="rounded-xl border border-border bg-muted/30 p-4"
-                orientation="horizontal"
-              >
-                <FieldLabel htmlFor={publishedId} className="flex-1">
-                  <div className="space-y-0.5">
-                    <div className="text-xs font-black uppercase tracking-widest text-foreground">
-                      Published
-                    </div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Visible on public map
-                    </div>
-                  </div>
-                </FieldLabel>
-                <FieldContent className="flex-none">
-                  <Switch
-                    id={publishedId}
-                    aria-label="Published"
-                    checked={field.state.value === "published"}
-                    onBlur={field.handleBlur}
-                    onCheckedChange={(checked) =>
-                      field.handleChange(checked ? "published" : "draft")
-                    }
-                  />
-                </FieldContent>
-              </Field>
-            )}
-          </form.Field>
-
-          <SheetFooter className="flex-col gap-3 border-t border-border pt-6 sm:flex-col">
-            <form.Subscribe
-              selector={(state) => ({
-                canSubmit: state.canSubmit,
-                isSubmitting: state.isSubmitting,
-              })}
-            >
-              {({ canSubmit, isSubmitting }) => (
-                <Button
-                  focusableWhenDisabled={isSaving || isSubmitting}
-                  className="w-full"
-                  disabled={!canSubmit || isSaving || isSubmitting}
-                  type="submit"
-                >
-                  {(isSaving || isSubmitting) && (
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                  )}
-                  {location?.id ? "Update Location" : "Save Location"}
-                </Button>
+          <form
+            className="space-y-6 px-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              form.handleSubmit();
+            }}
+          >
+            <form.AppField name="title">
+              {(field) => (
+                <field.TextField
+                  label="Location Title"
+                  placeholder="e.g. Amazon Medical Center"
+                />
               )}
-            </form.Subscribe>
+            </form.AppField>
 
-            {location?.id && onDelete ? (
-              <Button
-                className="w-full"
-                onClick={() => {
-                  if (location.id) {
-                    onDelete(location.id);
-                  }
-                }}
-                type="button"
-                variant="destructive"
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <form.AppField name="lat">
+                {(field) => <field.NumberField label="Latitude" step="any" />}
+              </form.AppField>
+
+              <form.AppField name="lng">
+                {(field) => <field.NumberField label="Longitude" step="any" />}
+              </form.AppField>
+            </div>
+
+            <LocationTypeField form={form} />
+
+            <LocationLinkedEntityField
+              form={form}
+              linkedEntities={linkedEntities}
+            />
+
+            <form.AppField name="summary">
+              {(field) => (
+                <field.TextareaField
+                  inputClassName="min-h-25 resize-none"
+                  label="Summary"
+                  placeholder="Brief description of work at this location..."
+                />
+              )}
+            </form.AppField>
+
+            <form.Field name="status">
+              {(field) => (
+                <FieldLabel htmlFor={publishedId}>
+                  <Field orientation="horizontal">
+                    <FieldContent>
+                      <FieldTitle>Published</FieldTitle>
+                      <FieldDescription>Visible on public map</FieldDescription>
+                    </FieldContent>
+                    <Switch
+                      id={publishedId}
+                      aria-label="Published"
+                      checked={field.state.value === "published"}
+                      onBlur={field.handleBlur}
+                      onCheckedChange={(checked) =>
+                        field.handleChange(checked ? "published" : "draft")
+                      }
+                    />
+                  </Field>
+                </FieldLabel>
+              )}
+            </form.Field>
+
+            <SheetFooter className="gap-3 px-0 pt-6">
+              <form.Subscribe
+                selector={(state) => ({
+                  canSubmit: state.canSubmit,
+                  isSubmitting: state.isSubmitting,
+                })}
               >
-                <Trash2 className="mr-2 size-4" /> Delete Marker
-              </Button>
-            ) : null}
-          </SheetFooter>
-        </form>
+                {({ canSubmit, isSubmitting }) => (
+                  <Button
+                    focusableWhenDisabled={isSaving || isSubmitting}
+                    className="w-full"
+                    disabled={!canSubmit || isSaving || isSubmitting}
+                    type="submit"
+                  >
+                    {(isSaving || isSubmitting) && (
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                    )}
+                    {location?.id ? "Update Location" : "Save Location"}
+                  </Button>
+                )}
+              </form.Subscribe>
+
+              {location?.id && onDelete ? (
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    if (location.id) {
+                      onDelete(location.id);
+                    }
+                  }}
+                  type="button"
+                  variant="destructive"
+                >
+                  <Trash2 className="mr-2 size-4" /> Delete Marker
+                </Button>
+              ) : null}
+            </SheetFooter>
+          </form>
+        </div>
       </SheetContent>
     </Sheet>
   );

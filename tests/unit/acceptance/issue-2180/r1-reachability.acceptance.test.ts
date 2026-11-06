@@ -71,7 +71,7 @@ describe("#2180 criterion 1: real tree passes; .yml and .yaml scanned", () => {
     const g = await guard();
     const tree = mutated(
       "ci.yml",
-      `runs-on: ${PROXMOX}`,
+      `runs-on: >-\n      \${{ vars.CI_RUNNER_FALLBACK == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}`,
       "runs-on: ubuntu-latest",
       2,
     );

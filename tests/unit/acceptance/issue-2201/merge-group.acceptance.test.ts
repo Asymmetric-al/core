@@ -203,6 +203,10 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "#2364 Builder 0cf86552", hash: "21073c70380a4f90" },
     // #2406: Builder 9563beea (develop 629cb71d merged) appends the issue-2406 real-stack path to tenant isolation
     { ref: "#2406 Builder 9563beea", hash: "925cfd8de36c75a3" },
+    // #2407 PR (a): develop after #2406, plus the issue-2407 real-stack path
+    { ref: "#2407a after #2406", hash: "beea3b344a58ae76" },
+    // GitHub-hosted runner fallback: self-hosted runs-on honour vars.CI_RUNNER_FALLBACK
+    { ref: "CI runner fallback after #2407a", hash: "d5c4968b54a5018b" },
   ] as const;
   it("nothing but on: and test-e2e's if: changes (fingerprint)", () => {
     const prints = [CI, CII].map((file) => {
@@ -214,7 +218,7 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
         .digest("hex")
         .slice(0, 16);
     });
-    expect(prints[0], "ci.yml fingerprint").toBe("cd62e4e85c2cc658");
+    expect(prints[0], "ci.yml fingerprint").toBe("89fce96b9365d5a9");
     expect(
       CII_PRINTS.map((p) => p.hash),
       `ci-integration.yml fingerprint ${prints[1]} is not reviewed`,

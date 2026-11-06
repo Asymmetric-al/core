@@ -22,7 +22,7 @@ concurrency:
 jobs:
   migrate:
     runs-on: >-
-      ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
+      ${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) || vars.CI_RUNNER_FALLBACK == 'github-hosted') && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
     timeout-minutes: 50
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
@@ -98,7 +98,7 @@ jobs:
       - name: Verify tenant isolation (real stack)
         env:
           TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
-        run: bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts tests/unit/acceptance/issue-2256/person-anchor.realstack.acceptance.test.ts tests/unit/acceptance/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2258/current-user-assignments.realstack.acceptance.test.ts tests/unit/acceptance/issue-2312/public-reads.realstack.acceptance.test.ts tests/unit/acceptance/issue-2402/crm-table-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2364/missionaries-reads.realstack.acceptance.test.ts tests/unit/acceptance/issue-2406/profiles-storage.realstack.acceptance.test.ts
+        run: bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts tests/unit/acceptance/issue-2256/person-anchor.realstack.acceptance.test.ts tests/unit/acceptance/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2258/current-user-assignments.realstack.acceptance.test.ts tests/unit/acceptance/issue-2312/public-reads.realstack.acceptance.test.ts tests/unit/acceptance/issue-2402/crm-table-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2364/missionaries-reads.realstack.acceptance.test.ts tests/unit/acceptance/issue-2406/profiles-storage.realstack.acceptance.test.ts tests/unit/acceptance/issue-2407/editor-images.realstack.acceptance.test.ts
       - name: Verify authz EXECUTE grants (real stack)
         env:
           TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
@@ -128,7 +128,7 @@ jobs:
         (github.event_name == 'pull_request' &&
           github.event.pull_request.head.repo.full_name != github.repository))
     runs-on: >-
-      ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
+      ${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) || vars.CI_RUNNER_FALLBACK == 'github-hosted') && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
     timeout-minutes: 10
     services:
       postgres:
@@ -185,7 +185,8 @@ jobs:
     if: >-
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, linux, x64, proxmox]
+    runs-on: >-
+      ${{ vars.CI_RUNNER_FALLBACK == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
     timeout-minutes: 25
     services:
       postgres:
@@ -283,7 +284,8 @@ jobs:
       (github.event_name != 'pull_request' ||
         github.event.pull_request.head.repo.full_name == github.repository)
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
-    runs-on: [self-hosted, linux, x64, proxmox]
+    runs-on: >-
+      ${{ vars.CI_RUNNER_FALLBACK == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
     timeout-minutes: 30
     services:
       postgres:
@@ -462,7 +464,8 @@ jobs:
       (github.event_name != 'pull_request' ||
         github.event.pull_request.head.repo.full_name == github.repository)
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
-    runs-on: [self-hosted, linux, x64, proxmox]
+    runs-on: >-
+      ${{ vars.CI_RUNNER_FALLBACK == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
     timeout-minutes: 25
     env:
       SKIP_ENV_VALIDATION: "1"
