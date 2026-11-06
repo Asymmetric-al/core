@@ -40,11 +40,15 @@ const CORPUS: [label: string, tree: () => Workflows, rules: string[]][] = [
     ["1", "2", "3"],
   ],
   [
-    "R2 workflow_call on ci.yml",
+    "R2 workflow_call on ci.yml with reintroduced local reach",
     () => ({
       ...realTree(),
       "ci.yml": mutate(
-        realTree()["ci.yml"]!,
+        mutate(
+          realTree()["ci.yml"]!,
+          "\njobs:\n",
+          `\njobs:\n  probe:\n${runsOnJob(PROXMOX)}\n`,
+        ),
         "\non:\n",
         "\non:\n  workflow_call:\n",
       ),

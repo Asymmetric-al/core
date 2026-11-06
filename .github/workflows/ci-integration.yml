@@ -21,8 +21,7 @@ concurrency:
 
 jobs:
   migrate:
-    runs-on: >-
-      ${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) || vars.CI_RUNNER_FALLBACK == 'github-hosted') && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
+    runs-on: ubuntu-latest
     timeout-minutes: 50
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
@@ -127,8 +126,7 @@ jobs:
       (needs.migrate.result == 'success' ||
         (github.event_name == 'pull_request' &&
           github.event.pull_request.head.repo.full_name != github.repository))
-    runs-on: >-
-      ${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) || vars.CI_RUNNER_FALLBACK == 'github-hosted') && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     services:
       postgres:
@@ -185,8 +183,7 @@ jobs:
     if: >-
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: >-
-      ${{ vars.CI_RUNNER_FALLBACK == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
+    runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
       postgres:
@@ -284,8 +281,7 @@ jobs:
       (github.event_name != 'pull_request' ||
         github.event.pull_request.head.repo.full_name == github.repository)
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
-    runs-on: >-
-      ${{ vars.CI_RUNNER_FALLBACK == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
       postgres:
@@ -464,8 +460,7 @@ jobs:
       (github.event_name != 'pull_request' ||
         github.event.pull_request.head.repo.full_name == github.repository)
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
-    runs-on: >-
-      ${{ vars.CI_RUNNER_FALLBACK == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
+    runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       SKIP_ENV_VALIDATION: "1"

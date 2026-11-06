@@ -7,6 +7,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  SELF_HOSTED_ALLOWLIST,
   loadWorkflows,
   reachableWorkflows,
   selfHostedRunnerProblems,
@@ -41,9 +42,10 @@ function heads(workflows: Workflows): string[] {
 }
 
 describe("self-hosted runner guard: real tree", () => {
-  it("passes, and only ci.yml and ci-integration.yml are reachable", () => {
+  it("passes with the explicitly empty approved reachability set", () => {
+    expect(SELF_HOSTED_ALLOWLIST).toEqual([]);
     expect(selfHostedRunnerProblems(real)).toEqual([]);
-    expect(reachableWorkflows(real)).toEqual(["ci-integration.yml", "ci.yml"]);
+    expect(reachableWorkflows(real)).toEqual([]);
   });
 });
 
@@ -63,7 +65,7 @@ describe("R1 reachability allowlist", () => {
   });
 
   for (const file of ["ci.yml", "ci-integration.yml"]) {
-    it(`flags a remote reusable workflow call in allowlisted ${file}`, () => {
+    it(`flags a remote reusable workflow call in ${file}`, () => {
       const mutated = edit(
         file,
         "\njobs:\n",
@@ -73,25 +75,41 @@ describe("R1 reachability allowlist", () => {
     });
   }
 
-  it("flags an allowlisted workflow that loses self-hosted reach, at on", () => {
-    let source = real["ci-integration.yml"]!;
-    source = source.replaceAll(`runs-on: ${PROXMOX}`, "runs-on: ubuntu-latest");
-    source = source.replace(
-      /runs-on: >-\n(?: {6}.*\n)+/g,
-      "runs-on: ubuntu-latest\n",
-    );
-    const mutated = tree({ "ci-integration.yml": source });
-    expect(reachableWorkflows(mutated)).toEqual(["ci.yml"]);
-    expect(heads(mutated)).toEqual(["ci-integration.yml on [R1]"]);
-  });
+  for (const file of ["ci.yml", "ci-integration.yml"]) {
+    for (const placement of [
+      PROXMOX,
+      "proxmox",
+      "${{ vars.RUNNER }}",
+      "${{ matrix.runner }}",
+      "{group: proxmox}",
+    ]) {
+      it(`rejects reintroduced ${placement} placement in ${file}`, () => {
+        const mutated = edit(
+          file,
+          "\njobs:\n",
+          `\njobs:\n${job("local", `    runs-on: ${placement}`)}\n`,
+        );
+        expect(heads(mutated)).toEqual([`${file} local [R1]`]);
+      });
+    }
+  }
 
-  it("flags allowlisted callers of reachable local workflows", () => {
-    const mutated = edit(
-      "ci.yml",
-      "\njobs:\n",
-      `\njobs:\n${call("nested", "./.github/workflows/ci-integration.yml")}\n`,
-    );
-    expect(heads(mutated)).toEqual(["ci.yml nested [R1]"]);
+  it("flags callers and callees of reachable local reusable workflows", () => {
+    const mutated = tree({
+      "caller.yml": workflow(
+        "push",
+        call("nested", "./.github/workflows/local.yml"),
+      ),
+      "local.yml": workflow(
+        "workflow_call",
+        job("local", `    runs-on: ${PROXMOX}`),
+      ),
+    });
+    expect(heads(mutated)).toEqual([
+      "caller.yml nested [R1]",
+      "local.yml local [R1]",
+      "local.yml on [R2]",
+    ]);
   });
 
   it("fails closed on a local call to a workflow outside the given map", () => {
@@ -109,10 +127,7 @@ describe("R1 reachability allowlist", () => {
     const b = workflow("push", call("to-a", "./.github/workflows/a.yml"));
     const cyclic = tree({ "a.yml": a, "b.yml": b });
     expect(selfHostedRunnerProblems(cyclic)).toEqual([]);
-    expect(reachableWorkflows(cyclic)).toEqual([
-      "ci-integration.yml",
-      "ci.yml",
-    ]);
+    expect(reachableWorkflows(cyclic)).toEqual([]);
   });
 
   it("keeps reach through a call cycle when a later job is self-hosted", () => {

@@ -316,6 +316,8 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "#2407a after #2406", hash: "52c90c2ce23e9b71" },
     // GitHub-hosted runner fallback: self-hosted runs-on honour vars.CI_RUNNER_FALLBACK
     { ref: "CI runner fallback", hash: "ade0c213dc9896db" },
+    // Hosted-only amendment: only the five heavy jobs' runs-on changed.
+    { ref: "AL-2218 hosted CI baseline", hash: "58e813e659a30660" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(

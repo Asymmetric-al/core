@@ -20,11 +20,11 @@ import {
 
 export type Workflows = Record<string, string>;
 
-/** The only workflows that may reach a self-hosted runner (R1). */
-export const SELF_HOSTED_ALLOWLIST: readonly string[] = [
-  "ci-integration.yml",
-  "ci.yml",
-];
+/**
+ * Approved self-hosted reachability set (R1): empty under the hosted CI policy.
+ * Re-admitting any workflow requires the documented policy/spec amendment.
+ */
+export const SELF_HOSTED_ALLOWLIST: readonly string[] = [];
 
 /** Events where untrusted content arrives with base-repository privileges (R3). */
 export const PRIVILEGED_TRIGGER_EVENTS: readonly string[] = [
@@ -136,17 +136,6 @@ export function reachableWorkflows(workflows: Workflows): string[] {
 function r1Problems(parsed: Parsed, reach: Map<string, boolean>): string[] {
   const problems: string[] = [];
   for (const [file, doc] of Object.entries(parsed)) {
-    const allowed = SELF_HOSTED_ALLOWLIST.includes(file);
-    if (allowed && !reach.get(file)) {
-      problems.push(
-        problem(
-          file,
-          "on",
-          1,
-          "allowlisted workflow no longer reaches a self-hosted runner; the reachable set must equal the allowlist",
-        ),
-      );
-    }
     for (const [jobId, job] of jobsOf(doc)) {
       if (isRemoteCall(job)) {
         problems.push(
@@ -169,13 +158,13 @@ function r1Problems(parsed: Parsed, reach: Map<string, boolean>): string[] {
             ),
           );
         }
-      } else if (!allowed && !isHostedJob(job)) {
+      } else if (!isHostedJob(job)) {
         problems.push(
           problem(
             file,
             jobId,
             1,
-            `runs-on ${JSON.stringify(jobRunsOn(job) ?? null)} is not a literal ubuntu-* label; only ${SELF_HOSTED_ALLOWLIST.join(" and ")} may reach a self-hosted runner`,
+            `runs-on ${JSON.stringify(jobRunsOn(job) ?? null)} is not a literal ubuntu-* label; the approved self-hosted reachability set is empty`,
           ),
         );
       }

@@ -112,10 +112,14 @@ describe("#2153 criterion 4: hosted runner, no secrets/vars/permissions", () => 
     for (const s of checkouts)
       expect(s.with?.["persist-credentials"]).toBe(false);
   });
-  it("self-hosted jobs in ci.yml are still exactly build, test-unit", () => {
+  it("hosted-only amendment keeps build and test-unit present on full Ubuntu VMs", () => {
     const all = Object.entries(jobs());
     const self = all.filter(([, j]) => W.isSelfHostedJob(j)).map(([id]) => id);
-    expect(self.sort()).toEqual(["build", "test-unit"]);
+    expect(self).toEqual([]);
+    for (const id of ["build", "test-unit"]) {
+      expect(jobs()[id], `required correctness job ${id}`).toBeDefined();
+      expect(jobs()[id]!["runs-on"]).toBe("ubuntu-latest");
+    }
   });
 });
 
@@ -191,6 +195,7 @@ describe("#2153 criterion 10: nothing else in ci.yml changes", () => {
     const step = steps.find((s) => s.name === RESULTS_STEP);
     delete (step?.env as Record<string, unknown> | undefined)?.CI_RESULTS;
     const print = createHash("sha256").update(JSON.stringify(d)).digest("hex");
-    expect(print.slice(0, 16)).toBe("8745f156be9a6a41");
+    // Hosted-only amendment: only build/test-unit runner placement changed.
+    expect(print.slice(0, 16)).toBe("4ba5d2d04cd567d3");
   });
 });
