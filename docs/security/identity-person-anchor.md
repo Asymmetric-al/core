@@ -107,6 +107,14 @@ tests, is:
     profile, or has a NULL tenant and isn't a `super_admin`. The `super_admin`
     demo fallback mirrors `getAuthContext` and is tracked in #2267; if #2267
     removes or moves it, these two policies change in the same PR.
+  - `storage.objects` `editor images owner folder insert` and
+    `editor images owner folder update`, added by #2407 (PR a). Each binds the
+    object's tenant folder segment (`editor/{tenant}/...`) to the caller's own
+    `profiles.tenant_id`, looked up by `user_id = auth.uid()`. Each fails
+    closed when the caller has no profile, or has a NULL tenant and isn't a
+    `super_admin`. The `super_admin` demo fallback mirrors `getAuthContext`
+    and is tracked in #2267; if #2267 removes or moves it, these two policies
+    change in the same PR.
 - Functions (SECURITY DEFINER unless marked INVOKER). Most bind an actor or
   referenced profile to a tenant by requiring `profiles.tenant_id` to match:
   - `enforce_contribution_operation_tenant_refs`

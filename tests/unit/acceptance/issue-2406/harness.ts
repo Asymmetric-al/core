@@ -134,6 +134,12 @@ export class Stack {
       ];
       for (const file of files) {
         if (file === FORWARD) await this.beforeForward();
+        // Criterion 9 compares every non-profiles policy with the pre-#2406
+        // snapshot, and criterion 10 rolls back only this migration. A later
+        // migration (for example #2407's document-uploads rewrite) must not
+        // run inside that window.
+        if (file.startsWith(`${MIG}/`) && file.slice(MIG.length + 1) > NAME)
+          continue;
         const r = this.psql(file);
         expect(
           r.status,
