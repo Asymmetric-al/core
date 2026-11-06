@@ -58,9 +58,12 @@ gh variable set CI_RUNNER_FALLBACK --repo Asymmetric-al/core --body github-hoste
 ```
 
 Every self-hosted job in `ci.yml` and `ci-integration.yml` then resolves
-`runs-on` to `ubuntu-latest`. The value applies to runs created after it is
-set, so re-run or push to move queued runs. When the pool is back, return to
-Proxmox:
+`runs-on` to `ubuntu-latest`. GitHub reads the variable when it schedules a
+job, and only commits whose workflow files contain the fallback expression
+honour it. Runs already queued stay queued: cancel them, then re-run them if
+their commit already has the fallback workflow. A branch created before the
+fallback landed needs a new commit, such as a merge of `develop`, so its run
+uses the updated workflow. When the pool is back, return to Proxmox:
 
 ```bash
 gh variable delete CI_RUNNER_FALLBACK --repo Asymmetric-al/core

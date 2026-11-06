@@ -1307,12 +1307,18 @@ export function isHostedUbuntuLabels(labels: readonly string[]): boolean {
   return labels.length === 1 && /^ubuntu-[a-z0-9.-]+$/.test(labels[0]!);
 }
 
-/** A job is self-hosted when any same-repo event would put it on self-hosted labels. */
+/**
+ * A job is self-hosted when any same-repo event, under either
+ * {@link RUNNER_FALLBACK_VAR} state, would put it on self-hosted labels.
+ */
 export function isSelfHostedJob(job: WorkflowJob): boolean {
   if (jobCallsReusableWorkflow(job)) return false;
   return EVENT_SCENARIOS.filter((scenario) => !scenario.fork).some((scenario) =>
-    evaluateRunsOn(jobRunsOn(job), scenarioContext(scenario, {})).includes(
-      "self-hosted",
+    RUNNER_FALLBACK_VALUES.some((fallback) =>
+      evaluateRunsOn(
+        jobRunsOn(job),
+        scenarioContext(scenario, {}, fallback),
+      ).includes("self-hosted"),
     ),
   );
 }
@@ -1555,26 +1561,27 @@ export function analyzeSelfHostedForkSafety(
         }
       }
     }
+    // The job if and runs-on are evaluated together under each fallback state,
+    // so a condition that admits forks only while the fallback is on is caught.
     for (const needs of needsStates) {
-      const ctx = scenarioContext(scenario, needs);
-      const runs = evaluateIfCondition(ifExpression(job) || undefined, ctx);
-      if (!scenario.fork) {
-        if (runs) runsForSomeSameRepo = true;
-        continue;
-      }
-      if (!runs) {
-        runsForEveryFork = false;
-        continue;
-      }
-      forkReachable = true;
       for (const fallback of RUNNER_FALLBACK_VALUES) {
-        const labels = evaluateRunsOn(
-          jobRunsOn(job),
-          scenarioContext(scenario, needs, fallback),
-        );
+        const ctx = scenarioContext(scenario, needs, fallback);
+        const runs = evaluateIfCondition(ifExpression(job) || undefined, ctx);
+        if (!scenario.fork) {
+          if (runs) runsForSomeSameRepo = true;
+          continue;
+        }
+        if (!runs) {
+          runsForEveryFork = false;
+          continue;
+        }
+        forkReachable = true;
+        const labels = evaluateRunsOn(jobRunsOn(job), ctx);
         if (!isHostedUbuntuLabels(labels)) {
           problems.push(
-            `fork ${scenario.label} (needs ${JSON.stringify(needs)}) runs on ${JSON.stringify(labels)}`,
+            fallback === RUNNER_FALLBACK_HOSTED
+              ? `fork ${scenario.label} (needs ${JSON.stringify(needs)}) with ${RUNNER_FALLBACK_VAR}=${fallback} runs on ${JSON.stringify(labels)}`
+              : `fork ${scenario.label} (needs ${JSON.stringify(needs)}) runs on ${JSON.stringify(labels)}`,
           );
         }
       }

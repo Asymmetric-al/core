@@ -17,6 +17,7 @@ import {
   hostedGateFailsClosedWhenHeavyNeedsSkipped,
   isAlwaysExpression,
   isForkAwareRunsOnExpression,
+  isSelfHostedJob,
   isSelfHostedRunsOn,
   referencesSecrets,
   renderNeedsContextExpressions,
@@ -525,4 +526,44 @@ describe("CI_RUNNER_FALLBACK uses GitHub's case-insensitive string equality", ()
       ).toEqual(["self-hosted", "linux", "x64", "proxmox"]);
     },
   );
+});
+
+describe("fork safety evaluates job if and discovery under both fallback states", () => {
+  const FORK_PR = `(${FORK_ONLY_STEP_GUARD})`;
+  /** Forks get proxmox only while the fallback is on; same-repo is otherwise correct. */
+  const FALLBACK_FORK_TO_PROXMOX = `\${{ (${FORK_PR} && ${HOSTED_FALLBACK}) && ${PROXMOX_JSON} || (${HOSTED_FALLBACK} && 'ubuntu-latest' || ${PROXMOX_JSON}) }}`;
+
+  it("flags a job whose if admits forks only while the fallback is on", () => {
+    const report = analyzeSelfHostedForkSafety({
+      "runs-on": FALLBACK_FORK_TO_PROXMOX,
+      if: `\${{ (${G}) || ${HOSTED_FALLBACK} }}`,
+      steps: [{ run: "echo hi" }],
+    });
+    expect(report.forkReachable).toBe(true);
+    expect(report.problems.join("\n")).toMatch(
+      /^fork .* with CI_RUNNER_FALLBACK=github-hosted runs on \["self-hosted"/m,
+    );
+  });
+
+  it("discovers a job that is self-hosted only while the fallback is on", () => {
+    const job: WorkflowJob = {
+      "runs-on": `\${{ ${HOSTED_FALLBACK} && ${PROXMOX_JSON} || 'ubuntu-latest' }}`,
+      if: `\${{ ${G} }}`,
+      steps: [{ run: "echo hi" }],
+    };
+    expect(isSelfHostedJob(job)).toBe(true);
+    expect(analyzeSelfHostedForkSafety(job).problems.join("\n")).toMatch(
+      /same-repo .* resolves runs-on to \["ubuntu-latest"\]/,
+    );
+  });
+
+  it("control: the real fallback-aware static job is discovered and clean", () => {
+    const job: WorkflowJob = {
+      "runs-on": STATIC_SELF_HOSTED_RUNS_ON,
+      if: `\${{ ${G} }}`,
+      steps: [{ run: "echo hi" }],
+    };
+    expect(isSelfHostedJob(job)).toBe(true);
+    expect(analyzeSelfHostedForkSafety(job).problems).toEqual([]);
+  });
 });
