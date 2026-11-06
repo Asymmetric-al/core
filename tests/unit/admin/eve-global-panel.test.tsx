@@ -109,6 +109,14 @@ describe("EveGlobalPanel", () => {
     expect(screen.queryByRole("button", { name: /open eve/i })).toBeNull();
   });
 
+  it("uses the shared 44px touch target for the global trigger", () => {
+    render(<EveGlobalPanel />);
+
+    const trigger = screen.getByRole("button", { name: /open eve/i });
+    expect(trigger.getAttribute("data-size")).toBe("icon-touch");
+    expect(trigger.classList.contains("size-11")).toBe(true);
+  });
+
   it("opens globally with a bounded text-only composer and a clear data boundary", () => {
     render(<EveGlobalPanel />);
     fireEvent.click(screen.getByRole("button", { name: /open eve/i }));

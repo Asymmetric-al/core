@@ -61,7 +61,7 @@ function EveConversation() {
         <SheetTrigger
           render={
             <Button
-              size="icon-lg"
+              size="icon-touch"
               aria-label="Open Eve assistant"
               data-testid="eve-global-trigger"
             >
