@@ -68,7 +68,6 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
             value={initials}
             onChange={(event) => setInitials(event.target.value.toUpperCase())}
             maxLength={4}
-            className="font-mono"
           />
         </div>
       </div>
@@ -83,13 +82,7 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
         />
       </div>
       <div className="flex items-center justify-end gap-2 pt-1">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onCancel}
-          className="rounded-lg text-xs"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
         <Button
@@ -98,7 +91,6 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
           size="sm"
           disabled={saveTeam.isPending || name.trim().length === 0}
           onClick={handleSave}
-          className="rounded-lg text-xs"
         >
           {team ? "Save changes" : "Create team"}
         </Button>

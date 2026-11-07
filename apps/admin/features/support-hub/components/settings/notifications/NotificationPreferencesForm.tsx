@@ -128,17 +128,21 @@ export function NotificationPreferencesForm() {
         label="Agent"
         description="Notification preferences are stored per agent."
       >
-        <SearchableSelect
-          items={[
-            ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
-          ]}
-          value={agentId}
-          onValueChange={(value) => {
-            if (value !== null) setAgentId(value);
-          }}
-          aria-label="Agent"
-          className="h-9 max-w-sm"
-        />
+        <div className="max-w-sm">
+          <SearchableSelect
+            items={[
+              ...agents.map((agent) => ({
+                value: agent.id,
+                label: agent.name,
+              })),
+            ]}
+            value={agentId}
+            onValueChange={(value) => {
+              if (value !== null) setAgentId(value);
+            }}
+            aria-label="Agent"
+          />
+        </div>
       </SettingsRow>
 
       <div className="rounded-xl border border-border">

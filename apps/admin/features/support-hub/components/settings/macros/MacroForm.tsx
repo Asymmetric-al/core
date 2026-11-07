@@ -100,13 +100,7 @@ export function MacroForm({ macro, onSaved, onCancel }: MacroFormProps) {
       <MacroActionEditor rows={actionRows} onChange={setActionRows} />
 
       <div className="flex items-center justify-end gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onCancel}
-          className="rounded-lg text-xs"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
       </div>
