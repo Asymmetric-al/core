@@ -30,18 +30,19 @@ export function useEveAgent() {
     status: parameters.has("busy") ? "streaming" : "idle",
     data: {
       messages: parameters.has("messages")
-        ? [
-            {
-              id: "fixture-assistant-message",
-              role: "assistant",
-              parts: [
-                {
-                  type: "text",
-                  text: "Fixture assistant transcript remains readable.",
-                },
-              ],
-            },
-          ]
+        ? Array.from({ length: 12 }, (_, index) => ({
+            id: "fixture-assistant-message-" + index,
+            role: "assistant",
+            parts: [
+              {
+                type: "text",
+                text:
+                  index === 0
+                    ? "Fixture assistant transcript remains readable."
+                    : "Fixture assistant reply " + (index + 1) + ".",
+              },
+            ],
+          }))
         : [],
     },
     send: async () => {},

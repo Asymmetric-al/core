@@ -89,6 +89,20 @@ for (const width of [390, 844]) {
       await expect(
         page.getByText("Fixture assistant transcript remains readable."),
       ).toBeInViewport({ ratio: 1 });
+
+      const panelBody = page.getByRole("dialog").locator("form").locator("..");
+      await transcript.hover();
+      const outerScrollTop = await panelBody.evaluate((body) => body.scrollTop);
+      const transcriptScrollTop = await transcript.evaluate(
+        (viewport) => viewport.scrollTop,
+      );
+      await page.mouse.wheel(0, 100);
+      await expect
+        .poll(() => transcript.evaluate((viewport) => viewport.scrollTop))
+        .toBeGreaterThan(transcriptScrollTop);
+      expect(await panelBody.evaluate((body) => body.scrollTop)).toBe(
+        outerScrollTop,
+      );
     });
   }
 }
