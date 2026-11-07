@@ -116,3 +116,155 @@ test("support intake validation/reset and server GET FormData", async ({
   ).toEqual({ queueId: "", status: "", search: "receipt" });
   expect(errors).toEqual([]);
 });
+
+test.describe("Support controls at narrow widths", () => {
+  test.use({ isMobile: true, viewport: { width: 320, height: 844 } });
+
+  test("long assignee menu stays inside the viewport and still assigns", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-light");
+    await page.goto("/support.html?layout=assignee");
+    await page.getByRole("button", { name: "Unassigned" }).click();
+    const menu = page.getByRole("menu");
+    await expect(menu).toBeVisible();
+    const bounds = await menu.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
+    await menu.getByRole("menuitem", { name: /Lastname/ }).click();
+    await expect(page.locator("#support-layout-result")).toHaveText(
+      "Assigned agent-a",
+    );
+  });
+
+  test("report scope controls fit inside the card", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-light");
+    await page.goto("/support.html?layout=report");
+    const agent = page.getByRole("combobox", { name: "Agent", exact: true });
+    await expect(agent).toBeVisible();
+    const fits = await agent.evaluate((control) => {
+      const card = document.querySelector("#report-layout > div")!;
+      const style = getComputedStyle(card);
+      const contentRight =
+        card.getBoundingClientRect().right -
+        parseFloat(style.paddingRight) -
+        parseFloat(style.borderRightWidth);
+      return control.getBoundingClientRect().right <= contentRight + 1;
+    });
+    expect(fits).toBe(true);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBe(320);
+    await agent.click();
+    await expect(
+      page.getByRole("option", { name: "Camille Support" }),
+    ).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(agent).toBeFocused();
+  });
+
+  test("saved view actions own the lower edge of a 44px touch target", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-light");
+    await page.goto("/support.html?layout=saved");
+    const trigger = page.getByRole("button", {
+      name: "Saved view actions for Priority escalations",
+    });
+    await expect(trigger).toBeVisible();
+    const bounds = await trigger.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.width).toBeGreaterThanOrEqual(44);
+    expect(bounds!.height).toBeGreaterThanOrEqual(44);
+    await page.touchscreen.tap(
+      bounds!.x + bounds!.width / 2,
+      bounds!.y + bounds!.height - 2,
+    );
+    await page.getByRole("menuitem", { name: "Rename / scope" }).click();
+    await expect(page.locator("#support-layout-result")).toHaveText(
+      "Renamed priority",
+    );
+  });
+
+  test("long label names and selection boxes fit without horizontal scrolling", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-light");
+    await page.goto("/support.html?layout=labels");
+    await page.getByRole("combobox", { name: "Labels", exact: true }).click();
+    const list = page.getByRole("listbox");
+    await expect(list.getByRole("option")).toHaveCount(3);
+    for (const name of [/TierAlpha$/, /TierBeta$/, /Zeta$/]) {
+      const label = list.getByText(name);
+      const dimensions = await label.evaluate((node) => {
+        const listbox = node.closest("[role=listbox]")!;
+        const bounds = listbox.getBoundingClientRect();
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return {
+          textFits: Array.from(range.getClientRects()).every(
+            (rect) => rect.left >= bounds.left && rect.right <= bounds.right,
+          ),
+          indicatorWidth:
+            node.previousElementSibling!.getBoundingClientRect().width,
+        };
+      });
+      expect(dimensions).toEqual({ textFits: true, indicatorWidth: 16 });
+    }
+    expect(
+      await list.evaluate((node) => node.scrollWidth - node.clientWidth),
+    ).toBe(0);
+
+    const search = page.getByRole("combobox", { name: "Search labels" });
+    await search.fill("Beta");
+    await expect(list.getByRole("option")).toHaveCount(1);
+    const beta = list.getByRole("option", { name: /TierBeta$/ });
+    await search.press("ArrowDown");
+    await expect(search).toHaveAttribute(
+      "aria-activedescendant",
+      (await beta.getAttribute("id"))!,
+    );
+    await search.press("Enter");
+    await expect(page.locator("#support-layout-result")).toHaveText(
+      "escalation-beta",
+    );
+  });
+
+  test("macro names fit inside the popup and the intended macro runs", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-light");
+    await page.goto("/support.html?layout=macros");
+    await page.getByRole("button", { name: "Open macros" }).click();
+    const popup = page.locator('[data-slot="popover-content"]');
+    await expect(popup.getByRole("option")).toHaveCount(3);
+    for (const name of [/PendingAlpha$/, /PendingBeta$/, /Omega$/]) {
+      const fits = await popup.getByText(name).evaluate((label) => {
+        const bounds = label
+          .closest("[data-slot=command-item]")!
+          .getBoundingClientRect();
+        const text = document.createRange();
+        text.selectNodeContents(label);
+        return Array.from(text.getClientRects()).every(
+          (rect) => rect.left >= bounds.left && rect.right <= bounds.right,
+        );
+      });
+      expect(fits).toBe(true);
+    }
+
+    const search = popup.getByPlaceholder("Search macros...");
+    await search.fill("Beta");
+    await expect(popup.getByRole("option")).toHaveCount(1);
+    await expect(
+      popup.getByRole("option", { name: /PendingBeta/ }),
+    ).toBeVisible();
+    await search.press("Enter");
+    await expect(page.locator("#support-layout-result")).toHaveText(
+      "Ran macro-1",
+    );
+    await expect(popup).toBeHidden();
+  });
+});

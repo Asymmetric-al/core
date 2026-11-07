@@ -37,10 +37,10 @@ export default function CareDirectoryPage() {
       actions={careDirectoryActions}
     >
       <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border bg-muted/30 p-5">
+        <CardHeader>
           <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
             <div>
-              <CardTitle className="text-base font-semibold text-foreground">
+              <CardTitle className="text-base font-semibold">
                 All Personnel
               </CardTitle>
               <p className="mt-1 text-sm font-medium text-muted-foreground">
@@ -48,14 +48,15 @@ export default function CareDirectoryPage() {
               </p>
             </div>
 
-            <FilterBar
-              className="w-full md:w-auto"
-              actions={
-                <Button variant="outline" size="sm">
-                  <Filter className="mr-2 size-4" /> Advanced Filters
-                </Button>
-              }
-            />
+            <div className="w-full md:w-auto">
+              <FilterBar
+                actions={
+                  <Button variant="outline" size="sm">
+                    <Filter className="mr-2 size-4" /> Advanced Filters
+                  </Button>
+                }
+              />
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
