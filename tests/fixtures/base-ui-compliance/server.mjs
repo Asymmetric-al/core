@@ -46,6 +46,26 @@ await build({
       resolveId(source, importer) {
         if (source === "virtual:base-ui-styles") return compiledCssPath;
         const workspaceFile = importer?.replaceAll("\\", "/");
+        if (
+          (source === "@tanstack/react-query" &&
+            workspaceFile?.endsWith(
+              "/web-studio/flows/MissionariesHubView.tsx",
+            )) ||
+          (source === "@asym/lib/mission-control/context" &&
+            workspaceFile?.endsWith("/admin/app/eve/global-panel.tsx")) ||
+          (source === "eve/react" &&
+            workspaceFile?.endsWith("/admin/app/eve/global-panel.tsx")) ||
+          (source === "next/navigation" &&
+            workspaceFile?.endsWith("/admin/app/eve/global-panel.tsx")) ||
+          (source === "@payloadcms/ui" &&
+            workspaceFile?.includes("/admin/src/cms-ui/web-studio/"))
+        )
+          return resolve(fixtureDirectory, "admin-shell-runtime-stub.tsx");
+        if (
+          source === "next/navigation" &&
+          workspaceFile?.endsWith("/admin/src/cms-ui/web-studio/routing.ts")
+        )
+          return resolve(fixtureDirectory, "admin-shell-runtime-stub.tsx");
         // The fixture consumes the same public adapter as the UI workspace.
         // Resolve from that owner without adding unused root dependencies.
         if (
@@ -187,6 +207,7 @@ await build({
         taskToolbar: resolve(fixtureDirectory, "task-toolbar.html"),
         faq: resolve(fixtureDirectory, "faq.html"),
         adminAvailability: resolve(fixtureDirectory, "admin-availability.html"),
+        adminShell: resolve(fixtureDirectory, "admin-shell.html"),
       },
       onwarn(warning, warn) {
         // Every imported component runs in this client-only fixture. The bundler can
