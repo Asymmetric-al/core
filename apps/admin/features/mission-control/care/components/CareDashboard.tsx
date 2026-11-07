@@ -106,16 +106,10 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
     <div className="space-y-5">
       {/* Stats Row */}
       <div className="grid-responsive-4">
-        {stats.map((stat, i) => (
-          <Card
-            key={stat.label}
-            className={cn(
-              "border-border/60 shadow-sm overflow-hidden group",
-              `stagger-${i + 1}`,
-            )}
-          >
+        {stats.map((stat) => (
+          <Card key={stat.label} className="overflow-hidden">
             <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-3">
+              <div className="group flex items-start justify-between gap-3">
                 <div className="space-y-1">
                   <div className="text-2xl font-black text-primary tracking-tight tabular-nums">
                     {stat.value}
@@ -143,22 +137,18 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
 
       <div className="grid-12">
         {/* Personnel List (Main) */}
-        <Card className="lg:col-span-8 border-border/60 shadow-sm flex flex-col">
-          <CardHeader className="border-b border-border/40 bg-muted/5 px-5 py-4">
+        <Card className="lg:col-span-8 flex flex-col">
+          <CardHeader>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-lg font-bold text-primary tracking-tight">
+                <CardTitle className="text-lg font-bold tracking-tight">
                   Health Status Feed
                 </CardTitle>
-                <CardDescription className="text-xs font-medium text-muted-foreground">
+                <CardDescription className="text-xs font-medium">
                   Recent activity and wellness updates across the team.
                 </CardDescription>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-9 font-semibold text-primary"
-              >
+              <Button variant="ghost" size="sm">
                 View History
                 <ArrowUpRight className="ml-2 size-3.5" />
               </Button>
@@ -172,13 +162,15 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
         {/* Sidebar Tools */}
         <div className="lg:col-span-4 space-y-5">
           {/* Urgent Alerts */}
-          <Card className="border-destructive/20 shadow-sm bg-destructive/[0.02] overflow-hidden">
-            <CardHeader className="border-b border-destructive/10 bg-destructive/[0.03] px-5 py-4">
-              <CardTitle className="text-base font-bold text-destructive flex items-center gap-2">
-                <div className="size-2 rounded-full bg-destructive animate-pulse" />
-                Urgent Care Alerts
+          <Card className="overflow-hidden">
+            <CardHeader>
+              <CardTitle className="text-base font-bold">
+                <div className="flex items-center gap-2">
+                  <div className="size-2 rounded-full bg-destructive animate-pulse" />
+                  Urgent Care Alerts
+                </div>
               </CardTitle>
-              <CardDescription className="text-xs font-semibold text-destructive/70">
+              <CardDescription className="text-xs font-semibold">
                 Personnel requiring immediate follow-up.
               </CardDescription>
             </CardHeader>
@@ -197,14 +189,14 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                         <span className="text-sm font-bold text-primary">
                           {alert.reasonLabel}
                         </span>
-                        <Badge className="h-4 px-1 bg-destructive text-destructive-foreground border-none font-black">
+                        <Badge variant="destructive">
                           {alert.daysOverdue}d
                         </Badge>
                       </div>
                       <p className="text-xs font-medium text-muted-foreground mt-0.5">
                         {alert.personnelName}
                       </p>
-                      <p className="text-xs text-destructive/80 mt-1">
+                      <p className="text-xs text-destructive mt-1">
                         Follow up today
                       </p>
                     </div>
@@ -215,16 +207,16 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                   No urgent care gaps right now.
                 </div>
               )}
-              <Button className="w-full font-semibold bg-destructive text-destructive-foreground hover:opacity-90 shadow-lg shadow-destructive/10 mt-2">
+              <Button variant="destructive" className="mt-2 w-full">
                 Review All Alerts ({attentionGaps.length})
               </Button>
             </CardContent>
           </Card>
 
           {/* Upcoming Birthdays */}
-          <Card className="border-border/50 shadow-sm overflow-hidden">
-            <CardHeader className="pb-3 border-b border-border/30 bg-muted/5 px-5 py-4">
-              <CardTitle className="text-sm font-semibold text-foreground">
+          <Card className="overflow-hidden">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold">
                 Upcoming Birthdays
               </CardTitle>
             </CardHeader>
@@ -260,8 +252,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                       </div>
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="size-8 rounded-lg   transition-[opacity,color] text-muted-foreground hover:text-primary"
+                        size="icon-sm"
                         aria-label={`Open ${p.name} care profile`}
                       >
                         <ArrowUpRight className="size-4" />
