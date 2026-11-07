@@ -101,9 +101,7 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
         />
       </div>
       <div className="space-y-2">
-        <UiLabel className="block" id="support-label-tone">
-          Tone
-        </UiLabel>
+        <UiLabel id="support-label-tone">Tone</UiLabel>
         <ToggleGroup
           aria-labelledby="support-label-tone"
           value={[tone]}
@@ -142,7 +140,7 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
         </ToggleGroup>
       </div>
       <div className="space-y-2">
-        <UiLabel className="block">Preview</UiLabel>
+        <UiLabel>Preview</UiLabel>
         <Badge variant={LABEL_BADGE_VARIANTS[tone]}>
           {trimmedName.length > 0 ? trimmedName : "Label preview"}
         </Badge>

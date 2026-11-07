@@ -216,7 +216,6 @@ export function SupportCommandPalette() {
       onOpenChange={(open) => (open ? palette.open() : palette.close())}
       title="Support hub commands"
       description="Run support actions, switch views, or trigger macros without leaving the keyboard."
-      className="max-w-2xl"
       showCloseButton
     >
       <CommandInput placeholder="Search support actions..." />

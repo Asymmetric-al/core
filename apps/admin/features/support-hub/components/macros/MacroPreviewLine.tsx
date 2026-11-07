@@ -30,7 +30,7 @@ export function MacroPreviewLine({ actions }: MacroPreviewLineProps) {
         <li
           key={`${action.kind}-${index}`}
           className={cn(
-            "inline-flex h-5 items-center gap-1 rounded-md border border-border bg-card px-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground",
+            "inline-flex h-5 items-center gap-1 rounded-md border border-border bg-card px-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground",
           )}
         >
           {iconFor(action)}
