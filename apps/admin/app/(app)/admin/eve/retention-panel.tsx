@@ -71,9 +71,11 @@ export function EveRetentionPanel() {
   return (
     <Card id="eve-retention">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ArchiveRestore aria-hidden="true" className="size-5" />
-          Retention and replay artifacts
+        <CardTitle>
+          <span className="flex items-center gap-2">
+            <ArchiveRestore aria-hidden="true" className="size-5" />
+            Retention and replay artifacts
+          </span>
         </CardTitle>
         <CardDescription>
           Queryable redacted metadata in Postgres; private artifact bodies stay

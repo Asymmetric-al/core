@@ -20,6 +20,8 @@
     "playwright.config.ts",
     "specs/**/*.ts",
     "pdf-modernization-main.tsx",
+    "admin-shell-main.tsx",
+    "admin-shell-runtime-stub.tsx",
     "styles.d.ts",
     "ui-utilities-main.tsx",
     "kanban-main.tsx"

@@ -172,10 +172,10 @@ export default function AdminPage() {
                     <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                       <item.icon className="size-5" />
                     </div>
-                    <CardTitle className="text-base font-bold text-foreground transition-colors group-hover:text-muted-foreground text-left">
+                    <CardTitle className="text-base font-bold">
                       {item.title}
                     </CardTitle>
-                    <CardDescription className="line-clamp-2 text-sm text-muted-foreground mt-1 text-left">
+                    <CardDescription className="line-clamp-2 text-sm mt-1">
                       {item.desc}
                     </CardDescription>
                   </CardHeader>
@@ -195,10 +195,10 @@ export default function AdminPage() {
         <div className="grid gap-4 md:grid-cols-2 text-left">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-foreground">
+              <CardTitle className="text-base font-semibold">
                 Service Operational Status
               </CardTitle>
-              <CardDescription className="text-muted-foreground">
+              <CardDescription>
                 Integration status preview. Live health checks are not
                 connected.
               </CardDescription>
@@ -223,10 +223,10 @@ export default function AdminPage() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-foreground">
+              <CardTitle className="text-base font-semibold">
                 Security Best Practices
               </CardTitle>
-              <CardDescription className="text-muted-foreground">
+              <CardDescription>
                 Essential security measures for administrators.
               </CardDescription>
             </CardHeader>
