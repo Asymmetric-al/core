@@ -130,6 +130,17 @@ scrolling at 320px, 390px and 1280px. The committed 320px browser check
 also searches by suffix and verifies the selected slug. This scoped proof
 keeps completion pending until the final cohort scan.
 
+The `admin-support-inbox-macro-review-2026-11-07` batch checks the macro
+launcher. The popup padding reduced its command area by 32px and hid
+the distinguishing suffixes of two same-prefix macro names. Both
+suffixes and the 80-character form name now wrap inside their options
+at 320px, 390px, 768px and 1280px. The committed 320px check searches
+for the suffix, runs the intended macro by keyboard, and confirms
+the popup closes. The scoped proof keeps completion pending until the
+final cohort scan. The existing spinner exception retains its exact
+diagnostic span and supporting CSS hashes. Its offset and source hash
+follow the name-span edit.
+
 ## Known gaps and follow-ups
 
 - No `CommandDialog` or `ComboboxContent` width option and no padding-free

@@ -2808,7 +2808,7 @@
       "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
       "line": 107,
       "column": 21,
-      "offset": 3536,
+      "offset": 3550,
       "length": 67,
       "endLine": 107,
       "category": "Accessibility",
@@ -2829,7 +2829,7 @@
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "89b2b4c5a7793a02fcebc7e06eee57cd37691aed86c8a58e10c119631a473b5d",
-      "sourceFileHash": "eecb575ea0a929837f3f9f0b323f43e3c9eddd6ad400f2ac4e7e98b25446498b",
+      "sourceFileHash": "c5b08a5710a7b2a55caef6fe0ea2c0d59b9a8a6fb0db5f30d3febb31d810aa6d",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",

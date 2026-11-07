@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import type { SupportLabel } from "@asym/database/hooks";
+import type { SupportLabel, SupportMacro } from "@asym/database/hooks";
 
 const agents = [
   { id: "agent-a", name: "W".repeat(75) + " Lastname", avatarUrl: null },
@@ -26,6 +26,22 @@ const labels = [
   description: null,
 }));
 
+const macroPrefix = "DonorEscalationWorkflowPrioritySyncPending";
+const macros = [
+  macroPrefix + "Alpha",
+  macroPrefix + "Beta",
+  "W".repeat(75) + "Omega",
+].map<SupportMacro>((name, index) => ({
+  id: "macro-" + index,
+  tenantId: "tenant-a",
+  ownerAgentId: null,
+  name,
+  description: null,
+  actions: [{ kind: "set_status", status: "waiting" }],
+  createdAt: "2026-10-01T00:00:00.000Z",
+  updatedAt: "2026-10-01T00:00:00.000Z",
+}));
+
 const reportState = {
   from: "2026-10-01T00:00:00.000Z",
   to: "2026-10-31T00:00:00.000Z",
@@ -49,6 +65,20 @@ export function useSupportLabels() {
 
 export function LabelManagerDialog() {
   return null;
+}
+
+export function useSupportMacros() {
+  return { data: macros };
+}
+
+export function useRunSupportMacro() {
+  return {
+    mutateAsync({ macroId }: { macroId: string }) {
+      const result = document.getElementById("support-layout-result");
+      if (result) result.textContent = "Ran " + macroId;
+      return Promise.resolve({ outcomes: [] });
+    },
+  };
 }
 
 export function useCurrentSupportAgentId() {

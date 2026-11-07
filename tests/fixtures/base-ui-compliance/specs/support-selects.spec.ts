@@ -232,4 +232,39 @@ test.describe("Support controls at narrow widths", () => {
       "escalation-beta",
     );
   });
+
+  test("macro names fit inside the popup and the intended macro runs", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-light");
+    await page.goto("/support.html?layout=macros");
+    await page.getByRole("button", { name: "Open macros" }).click();
+    const popup = page.locator('[data-slot="popover-content"]');
+    await expect(popup.getByRole("option")).toHaveCount(3);
+    for (const name of [/PendingAlpha$/, /PendingBeta$/, /Omega$/]) {
+      const fits = await popup.getByText(name).evaluate((label) => {
+        const bounds = label
+          .closest("[data-slot=command-item]")!
+          .getBoundingClientRect();
+        const text = document.createRange();
+        text.selectNodeContents(label);
+        return Array.from(text.getClientRects()).every(
+          (rect) => rect.left >= bounds.left && rect.right <= bounds.right,
+        );
+      });
+      expect(fits).toBe(true);
+    }
+
+    const search = popup.getByPlaceholder("Search macros...");
+    await search.fill("Beta");
+    await expect(popup.getByRole("option")).toHaveCount(1);
+    await expect(
+      popup.getByRole("option", { name: /PendingBeta/ }),
+    ).toBeVisible();
+    await search.press("Enter");
+    await expect(page.locator("#support-layout-result")).toHaveText(
+      "Ran macro-1",
+    );
+    await expect(popup).toBeHidden();
+  });
 });

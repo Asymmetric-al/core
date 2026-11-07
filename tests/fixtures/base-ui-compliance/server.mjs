@@ -170,6 +170,14 @@ await build({
         ) {
           return resolve(fixtureDirectory, "support-layout-stubs.ts");
         }
+        if (
+          workspaceFile?.endsWith("/macros/RunMacroPopover.tsx") &&
+          (source === "../../hooks/use-support-macros" ||
+            source === "../../hooks/use-support-mutations" ||
+            source === "../../lib/current-agent")
+        ) {
+          return resolve(fixtureDirectory, "support-layout-stubs.ts");
+        }
         // This real form's mutation stub records the submitted
         // value for assertions without issuing a request to an application API.
         if (

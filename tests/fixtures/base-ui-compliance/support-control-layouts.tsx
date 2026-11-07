@@ -2,6 +2,8 @@ import { useState } from "react";
 
 // eslint-disable-next-line no-restricted-imports -- AL-1864: Browser regression exercises the actual assignee menu with synthetic agents.
 import { ConversationAssigneeMenu } from "../../../apps/admin/features/support-hub/components/detail/ConversationAssigneeMenu";
+// eslint-disable-next-line no-restricted-imports -- AL-1864: Browser regression exercises the actual macro launcher with synthetic macros.
+import { MacroLauncher } from "../../../apps/admin/features/support-hub/components/macros/MacroLauncher";
 // eslint-disable-next-line no-restricted-imports -- AL-1864: Browser regression measures the actual filter card and selectors.
 import { ReportFilters } from "../../../apps/admin/features/support-hub/components/reports/ReportFilters";
 // eslint-disable-next-line no-restricted-imports -- AL-1864: Browser regression exercises the actual label selector with synthetic labels.
@@ -101,6 +103,11 @@ export function SupportControlLayouts({ surface }: { surface: string }) {
       )}
       {surface === "labels" && (
         <LabelFilter value={labelSlugs} onValueChange={setLabelSlugs} />
+      )}
+      {surface === "macros" && (
+        <section className="flex justify-end">
+          <MacroLauncher conversation={conversation} />
+        </section>
       )}
       <output id="support-layout-result">
         {surface === "labels" ? labelSlugs.join(",") : result}

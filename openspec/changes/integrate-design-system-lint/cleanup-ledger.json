@@ -3142,10 +3142,15 @@
           "batch": "admin-support-inbox-2026-10-30",
           "verifiedSourceSha256": "eecb575ea0a929837f3f9f0b323f43e3c9eddd6ad400f2ac4e7e98b25446498b",
           "supportsFileCompletion": true
+        },
+        {
+          "batch": "admin-support-inbox-macro-review-2026-11-07",
+          "verifiedSourceSha256": "c5b08a5710a7b2a55caef6fe0ea2c0d59b9a8a6fb0db5f30d3febb31d810aa6d",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "eecb575ea0a929837f3f9f0b323f43e3c9eddd6ad400f2ac4e7e98b25446498b",
+      "latestSourceSha256": "c5b08a5710a7b2a55caef6fe0ea2c0d59b9a8a6fb0db5f30d3febb31d810aa6d",
       "includedInLatestScan": true
     },
     {
@@ -10137,6 +10142,35 @@
         {
           "path": ".tmp/pr-2537-layout/2537-label-unit.log",
           "sha256": "7816778f69570426a67b4772912acbfa261107f1ac4627fbf82429378765ba4a"
+        }
+      ]
+    },
+    "admin-support-inbox-macro-review-2026-11-07": {
+      "summary": "Scoped raw lint reports zero findings and warnings. Chromium checks at 320, 390, 768 and 1280px verify that long macro names wrap within each option and that searching selects the intended macro. The committed narrow browser regression verifies keyboard execution and dismissal. React Doctor 0.9.18 rechecked the existing spinner diagnostic and supporting hashes.",
+      "evidence": [
+        {
+          "path": ".tmp/pr-2537-rereview/2537-macro-raw-ui.json",
+          "sha256": "1d9ea858a5992d90acc30c8d0cfe379e72d2c8cdf390d749193f012f09617851"
+        },
+        {
+          "path": ".tmp/pr-2537-rereview/2537-rereview-observed.log",
+          "sha256": "8b632e0a62b625a1451b826155c32fce5119e1abc27e14b6383334fedb0f1d3c"
+        },
+        {
+          "path": ".tmp/pr-2537-rereview/2537-macro-measured-green.log",
+          "sha256": "24f0156994f3b2d9b8d5044d095e56d6c06e922a80d038e0645f338d88ec0e21"
+        },
+        {
+          "path": ".tmp/pr-2537-rereview/2537-macro-committed-red.log",
+          "sha256": "1154237684dabd37e816ec550ec0e3c77d0bf1a3d92cae1e4869fac173ea1ca3"
+        },
+        {
+          "path": ".tmp/pr-2537-rereview/2537-macro-committed-green.log",
+          "sha256": "adc54fdbdea533ff0a830e14c0a84d0ab3688673a70425c58953d9a372701d9a"
+        },
+        {
+          "path": ".tmp/pr-2537-rereview/macro-react-doctor-proof.json",
+          "sha256": "6827726f7c7ad8ad360a25c536124755b53f9280ad105a06df0022a7dd4dbed6"
         }
       ]
     }

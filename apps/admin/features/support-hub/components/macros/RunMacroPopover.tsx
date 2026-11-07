@@ -100,7 +100,7 @@ export function RunMacroPopover({
             >
               <div className="flex w-full min-w-0 flex-col items-start gap-1">
                 <div className="flex w-full items-center justify-between gap-2">
-                  <span className="text-xs font-medium text-foreground">
+                  <span className="wrap-anywhere text-xs font-medium text-foreground">
                     {macro.name}
                   </span>
                   {busyMacroId === macro.id ? (
