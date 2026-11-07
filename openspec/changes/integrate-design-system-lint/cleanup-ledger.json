@@ -1798,10 +1798,15 @@
           "batch": "admin-shell-tools-review-2026-11-07",
           "verifiedSourceSha256": "afe39eedfa951ce2645aba54be0de99b180e616f0f86bd7f6681930ebf7ff8cb",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-eve-transcript-2026-11-07",
+          "verifiedSourceSha256": "55bc86baf0e158a1cc10c62cda6ea0e7d9f99f7447691d81bd6ed3f466651746",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "afe39eedfa951ce2645aba54be0de99b180e616f0f86bd7f6681930ebf7ff8cb",
+      "latestSourceSha256": "55bc86baf0e158a1cc10c62cda6ea0e7d9f99f7447691d81bd6ed3f466651746",
       "includedInLatestScan": true
     },
     {
@@ -10187,6 +10192,23 @@
         {
           "path": ".tmp/admin-lint-5-4/shell-tools/review-2026-11-07/exact-analyzer-requalification.json",
           "sha256": "7b994ec9ecde8f5e4bd5b941876c5b08b37a306c0dbbf44a2451bd84c0f480c7"
+        }
+      ]
+    },
+    "admin-shell-tools-eve-transcript-2026-11-07": {
+      "summary": "Isolated Chromium verified the Eve transcript stays visible and scrolls independently in short viewports while Send and Detach remain reachable. Normal viewport geometry is unchanged. Raw lint reports zero findings and warnings. This scoped proof awaits the integrated full scan.",
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/eve-transcript-2026-11-07/transcript-results-final.json",
+          "sha256": "a46356c9ce02fd349b4cd3adbabc6537d38abf7f92e0481f0654c1cd009ca0db"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/eve-transcript-2026-11-07/transcript-assertions.json",
+          "sha256": "39e61b563321e9bce4f60782827a99d0a6aa5981e21cba5a1c7d27ad8ca7e092"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/eve-transcript-2026-11-07/panel-after-raw.json",
+          "sha256": "a72d2266d39ac8da260c211535ef30062f62c676213c04031b7ed15a4ac45701"
         }
       ]
     }

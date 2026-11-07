@@ -122,6 +122,12 @@ suppression count was added or widened.
   synthetic data and providers. The legacy PDF test also requires the editor
   iframe to occupy more than one-third of the viewport height. See
   `admin-shell-tools-review-2026-11-07` for the hash-bound evidence.
+- The Eve transcript keeps a 96px minimum at short viewport heights.
+  With 40 synthetic messages, touch scrolling exposed the transcript at
+  390 × 200 and 844 × 200px, scrolled its messages independently, and
+  reached Send and Detach. Normal-height geometry and focus return matched
+  the previous version. See
+  `admin-shell-tools-eve-transcript-2026-11-07` for the evidence.
 
 ## Known gaps and follow-ups
 

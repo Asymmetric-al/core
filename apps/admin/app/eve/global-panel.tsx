@@ -90,7 +90,7 @@ function EveConversation() {
           </SheetHeader>
           <Separator />
 
-          <ScrollArea className="min-h-0 flex-1 overflow-hidden px-4">
+          <ScrollArea className="min-h-24 flex-1 overflow-hidden px-4">
             <div
               className="flex min-h-full flex-col gap-3 py-4"
               aria-live="polite"
