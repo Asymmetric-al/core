@@ -134,10 +134,15 @@
           "batch": "admin-shell-tools-2026-10-30",
           "verifiedSourceSha256": "291279e4845a590d055af7c92d5c596ef14795812d964e070875b8f96a1911d9",
           "supportsFileCompletion": true
+        },
+        {
+          "batch": "admin-shell-tools-review-2026-11-07",
+          "verifiedSourceSha256": "90d72f65622c1edaf90c2865e42cdd14c5da1a60cd0851b8db6d1991d116f53e",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "291279e4845a590d055af7c92d5c596ef14795812d964e070875b8f96a1911d9",
+      "latestSourceSha256": "90d72f65622c1edaf90c2865e42cdd14c5da1a60cd0851b8db6d1991d116f53e",
       "includedInLatestScan": true
     },
     {
@@ -1788,10 +1793,15 @@
           "batch": "admin-shell-tools-touch-integration-2026-11-07",
           "verifiedSourceSha256": "658a01e9b88370c51a473abba0b2fb2adb5dbe507fefc39f9e6be66d45f8907f",
           "supportsFileCompletion": false
+        },
+        {
+          "batch": "admin-shell-tools-review-2026-11-07",
+          "verifiedSourceSha256": "afe39eedfa951ce2645aba54be0de99b180e616f0f86bd7f6681930ebf7ff8cb",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "658a01e9b88370c51a473abba0b2fb2adb5dbe507fefc39f9e6be66d45f8907f",
+      "latestSourceSha256": "afe39eedfa951ce2645aba54be0de99b180e616f0f86bd7f6681930ebf7ff8cb",
       "includedInLatestScan": true
     },
     {
@@ -2353,10 +2363,15 @@
           "batch": "admin-shell-tools-2026-10-30",
           "verifiedSourceSha256": "8a92e472b0ba198ebd842f30acd6e587055db3f9c424f76cd0ee9968fe2fe760",
           "supportsFileCompletion": true
+        },
+        {
+          "batch": "admin-shell-tools-review-2026-11-07",
+          "verifiedSourceSha256": "08492cd7b2622dde1366f3ef42d30f6dbf7f53f1ed71826c07fd9d25e8f80872",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "8a92e472b0ba198ebd842f30acd6e587055db3f9c424f76cd0ee9968fe2fe760",
+      "latestSourceSha256": "08492cd7b2622dde1366f3ef42d30f6dbf7f53f1ed71826c07fd9d25e8f80872",
       "includedInLatestScan": true
     },
     {
@@ -4393,10 +4408,15 @@
           "batch": "admin-shell-tools-2026-10-30",
           "verifiedSourceSha256": "1b5a4a0399ed1e80fd3c297d77669e35e3f3bc3243bb9019af94e039dad9e018",
           "supportsFileCompletion": true
+        },
+        {
+          "batch": "admin-shell-tools-review-2026-11-07",
+          "verifiedSourceSha256": "5757b633534bcd23d5a6b44ca7ff32da138c93e3bd8824a0f13104c9ddf225d5",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "1b5a4a0399ed1e80fd3c297d77669e35e3f3bc3243bb9019af94e039dad9e018",
+      "latestSourceSha256": "5757b633534bcd23d5a6b44ca7ff32da138c93e3bd8824a0f13104c9ddf225d5",
       "includedInLatestScan": true
     },
     {
@@ -4412,10 +4432,15 @@
           "batch": "admin-shell-tools-2026-10-30",
           "verifiedSourceSha256": "d00a421950dedb134490b8e413a17164f2efc1eab13912c0a5cc038fde7fa56f",
           "supportsFileCompletion": true
+        },
+        {
+          "batch": "admin-shell-tools-review-2026-11-07",
+          "verifiedSourceSha256": "209564f83c9a2b51cd13703f05aff5f51abcfadd653c05f615eefd82a1c1bebd",
+          "supportsFileCompletion": false
         }
       ],
       "currentFindings": {},
-      "latestSourceSha256": "d00a421950dedb134490b8e413a17164f2efc1eab13912c0a5cc038fde7fa56f",
+      "latestSourceSha256": "209564f83c9a2b51cd13703f05aff5f51abcfadd653c05f615eefd82a1c1bebd",
       "includedInLatestScan": true
     },
     {
@@ -9332,7 +9357,12 @@
   "verificationBatches": {
     "admin-shell-tools-touch-integration-2026-11-07": {
       "summary": "The Eve floating trigger uses the existing icon-touch Button size (44px). Raw lint:ui passes for the integrated panel, and all four Eve global-panel tests pass. Browser evidence at 390px, 768px and 1280px verifies dimensions, keyboard open/close and focus return. Historical shell-tools evidence is unchanged; this modified file awaits the final integrated full-scope zero-finding scan.",
-      "evidence": []
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/eve-touch-2026-11-06/results.json",
+          "sha256": "13e36d4d1aa049177bf0a54285ac3f0b5b0ab5b1bf5144504ce8cb4a2a3e45a3"
+        }
+      ]
     },
     "scale-equivalence-2026-09-22": {
       "summary": "365 supported-scale substitutions in 305 literals across 127 files; six responsive/theme comparisons of full literals and distinct pairs; final emitted CSS and formatting verified.",
@@ -10122,6 +10152,41 @@
         {
           "path": ".tmp/admin-lint-5-4/shell-tools/pdf-route-2026-11-07/page-client-after-raw.json",
           "sha256": "020201b431b947c36aaed19b3c72cd626dbf403acb4edeb293d8e85509d8fa08"
+        }
+      ]
+    },
+    "admin-shell-tools-review-2026-11-07": {
+      "summary": "Isolated Chromium verified bounded Eve audit targets, touch access to the short Eve composer, full-width tile actions and viewport-height standalone studio shells. Raw lint has zero findings and warnings in all nine affected app files. Existing cleanup rows stay pending for the integrated full scan.",
+      "additionalSources": {
+        "apps/admin/src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx": "d88270fd47907143a8b4b01bea0fcf7e1f6249bd3ea7e11af839e13966c0e4b6",
+        "apps/admin/src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx": "c7bf708afffd9b2a2c7b66b7a01ea26694b7c556dd60298befa5ea59af424628",
+        "apps/admin/src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx": "2c312edd226b7577e83458a04f3b52065bd32a4f1c032bd8a5deadaa49658aa8",
+        "apps/admin/src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx": "828f96e0d81686bba34ebae024a4b0447dd0c651e2d681b1ef234cf4b12c4b12"
+      },
+      "evidence": [
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/review-2026-11-07/audit-results.json",
+          "sha256": "ae708a9b5c8f52079bbb3e9f294fcb8c9679b5e5fd7bbd10dcbe289f7d3e48a7"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/review-2026-11-07/panel-results-qualified.json",
+          "sha256": "5aff2c264afa15873849301cfd10b249929bf124448d408e1a7a5964bda0e771"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/review-2026-11-07/coordinate-repro.json",
+          "sha256": "2be1971a04d904b74d16a45ff2ffb688589e2c6ee68dda0d7c3b9fe6919d3d11"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/review-2026-11-07/all-custom-flows-final-formatted.json",
+          "sha256": "a93f5cd15ffb631498bbc642a25013e155ad27679670aa3f779595a5fa58d700"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/review-2026-11-07/review-raw.json",
+          "sha256": "62a3a14b382d47b54fd7fb4ff6140599f9c8664677d07912e1fd8991011b56f2"
+        },
+        {
+          "path": ".tmp/admin-lint-5-4/shell-tools/review-2026-11-07/exact-analyzer-requalification.json",
+          "sha256": "7b994ec9ecde8f5e4bd5b941876c5b08b37a306c0dbbf44a2451bd84c0f480c7"
         }
       ]
     }

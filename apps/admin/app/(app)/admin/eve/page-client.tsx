@@ -585,7 +585,7 @@ function EveAuditHistoryCard({
                         <dt className="w-28 shrink-0 text-muted-foreground">
                           Target
                         </dt>
-                        <dd className="min-w-0">
+                        <dd className="min-w-0 wrap-anywhere">
                           {event.target ?? "No external target"}
                         </dd>
                       </div>

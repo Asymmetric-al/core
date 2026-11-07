@@ -114,7 +114,11 @@ function TemplateGalleryViewContent() {
   }, [pageTypeFilter, templates]);
 
   return (
-    <StudioLayout sectionLabel="Templates" currentLabel="Gallery">
+    <StudioLayout
+      className="min-h-dvh"
+      sectionLabel="Templates"
+      currentLabel="Gallery"
+    >
       <div className="px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-8 max-w-3xl">
           <h1 className="font-semibold text-2xl tracking-tight">

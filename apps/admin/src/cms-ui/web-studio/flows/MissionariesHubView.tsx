@@ -44,7 +44,11 @@ export function MissionariesHubView() {
   });
 
   return (
-    <StudioLayout sectionLabel="Missionaries" currentLabel="Directory">
+    <StudioLayout
+      className="min-h-dvh"
+      sectionLabel="Missionaries"
+      currentLabel="Directory"
+    >
       <div className="px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-6 max-w-2xl">
           <h1 className="font-semibold text-2xl tracking-tight">

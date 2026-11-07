@@ -163,6 +163,7 @@ function MinistryUpdateCreateViewContent() {
 
   return (
     <StudioLayout
+      className="min-h-dvh"
       sectionLabel="Ministry Updates"
       currentLabel="New from template"
     >

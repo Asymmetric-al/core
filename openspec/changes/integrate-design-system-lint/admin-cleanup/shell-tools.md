@@ -110,8 +110,18 @@ suppression count was added or widened.
   rationales), as were the React Doctor exceptions bound to these files.
   Hashes were rebound only where the rationale still holds and React Doctor
   emits the same diagnostic with a byte-identical source context.
-  `bun run verify:shadscan` and `bun run react-doctor:check` pass on this
-  branch.
+  Shadscan passed on the review follow-up. The original repository-wide
+  React Doctor result predates the later cohort integrations. Scoped raw
+  requalification found the same configured diagnostics after this follow-up.
+
+- The review follow-up kept long Eve audit targets inside their card at 320,
+  390 and 768px. Touch scrolling reached Send and Detach in 200px-tall
+  viewports. At normal heights the transcript still scrolls independently.
+  Full-width tile links retain their hrefs and left-aligned labels, and the
+  six standalone Payload views fill the viewport. These browser checks used
+  synthetic data and providers. The legacy PDF test also requires the editor
+  iframe to occupy more than one-third of the viewport height. See
+  `admin-shell-tools-review-2026-11-07` for the hash-bound evidence.
 
 ## Known gaps and follow-ups
 

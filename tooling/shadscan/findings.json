@@ -548,7 +548,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/page-client.tsx",
-          "sha256": "291279e4845a590d055af7c92d5c596ef14795812d964e070875b8f96a1911d9"
+          "sha256": "90d72f65622c1edaf90c2865e42cdd14c5da1a60cd0851b8db6d1991d116f53e"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-governance-confirmation-stability.test.tsx",

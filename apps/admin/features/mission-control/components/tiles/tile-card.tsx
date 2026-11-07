@@ -59,12 +59,13 @@ export function TileCard({ tile }: TileCardProps) {
                     key={action.label}
                     variant="ghost"
                     size="sm"
+                    className="w-full"
                     render={
                       <Link href={resolveMissionControlHref(action.href)} />
                     }
                   >
                     {action.icon && <DynamicIcon name={action.icon} />}
-                    {action.label}
+                    <span className="flex-1 text-start">{action.label}</span>
                   </ButtonLink>
                 ))}
               </div>

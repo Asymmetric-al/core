@@ -57,11 +57,12 @@
         "TEST SOURCE (not run here) tests/unit/apps/admin/app/eve-governance-page.test.tsx: Dynamic module.EveGovernanceView assignment at line 30 and real-component renders at lines 37 onward.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/admin/eve/page-client.tsx:616; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/admin/eve/page-client.tsx:616. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound.",
+        "REQUALIFICATION 2026-11-07. Raw React Doctor 0.9.18 reports the same diagnostic and source span after the localized Shell Tools review correction. This rebind covers the affected source bytes."
       ],
       "reconsiderWhen": "Reconsider if this exact consumer is removed or redirected, or the test seam/export is intentionally migrated.",
       "sourceContextHash": "b037894d71e2bd30045ad54cc8cd10c6b40d82868e43e7d02aa485ad4620c9aa",
-      "sourceFileHash": "291279e4845a590d055af7c92d5c596ef14795812d964e070875b8f96a1911d9",
+      "sourceFileHash": "90d72f65622c1edaf90c2865e42cdd14c5da1a60cd0851b8db6d1991d116f53e",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/app/eve-governance-page.test.tsx": "8c7b7c9f451af84cbdd04ea832992ca34fadf81532fb5a4bdce4d8ab00b2aa56"
       }
@@ -3221,14 +3222,14 @@
       "title": "preventDefault on a form or link",
       "message": "Your users can't submit this <form> without JavaScript because onSubmit calls preventDefault(), so use a server action like `<form action={serverAction}>` to make it work either way.",
       "help": "Use `<form action>` where your framework supports it (it works without JS), or use a `<button>` instead of an `<a>` with preventDefault.",
-      "line": 189,
+      "line": 190,
       "column": 9,
-      "offset": 5584,
+      "offset": 5612,
       "length": 253,
-      "endLine": 198,
+      "endLine": 199,
       "category": "Bugs",
       "fingerprint": "e7ffd667569b56e74655c3de168868e5d4f29221b2c637a76567ea4154282566",
-      "id": "src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx::189:9::react-doctor/no-prevent-default::0fc34f6b4d32bcf96326f8d56359be2fb14865da60a123bdda86f1f755307522",
+      "id": "src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx::190:9::react-doctor/no-prevent-default::0fc34f6b4d32bcf96326f8d56359be2fb14865da60a123bdda86f1f755307522",
       "normalizedFilePath": "src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx",
       "tags": ["test-noise"],
       "target": "apps/admin",
@@ -3237,14 +3238,15 @@
         "POLICY SOURCE docs/ai/rules/frontend.md:111 selects TanStack Form + Zod for complex client forms including modal/drawer workflows; :184-203 shows preventDefault followed by form.handleSubmit.",
         "SOURCE apps/admin/src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx: exact onSubmit prevents browser navigation and invokes its existing TanStack submission owner.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx:180; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx:189. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx:189. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-11-07. Raw React Doctor 0.9.18 reports the same diagnostic and source span after the localized Shell Tools review correction. This rebind covers the affected source bytes."
       ],
       "reconsiderWhen": "Reconsider when this exact workflow is intentionally converted to a native/server-owned form, or validation, authentication, callbacks, or submission ownership changes.",
       "sourceContextHash": "d34a194cbdf2aaf0d0ab477d92627019a3d87dca65983db838936dfe13c6cf1a",
-      "sourceFileHash": "4c71facf80842e5948f1424b4490e5d00f601547867c2f7fe1cc22c104c196ec",
+      "sourceFileHash": "c7bf708afffd9b2a2c7b66b7a01ea26694b7c556dd60298befa5ea59af424628",
       "evidenceFileHashes": {
         "docs/ai/rules/frontend.md": "7a2fd29ac7320025c6347781ecee3032551fef403ceba1cf1b2764f979fb2448",
-        "apps/admin/src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx": "4c71facf80842e5948f1424b4490e5d00f601547867c2f7fe1cc22c104c196ec"
+        "apps/admin/src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx": "c7bf708afffd9b2a2c7b66b7a01ea26694b7c556dd60298befa5ea59af424628"
       }
     },
     {
@@ -3255,14 +3257,14 @@
       "title": "preventDefault on a form or link",
       "message": "Your users can't submit this <form> without JavaScript because onSubmit calls preventDefault(), so use a server action like `<form action={serverAction}>` to make it work either way.",
       "help": "Use `<form action>` where your framework supports it (it works without JS), or use a `<button>` instead of an `<a>` with preventDefault.",
-      "line": 179,
+      "line": 183,
       "column": 9,
-      "offset": 5317,
+      "offset": 5362,
       "length": 253,
-      "endLine": 188,
+      "endLine": 192,
       "category": "Bugs",
       "fingerprint": "e7ffd667569b56e74655c3de168868e5d4f29221b2c637a76567ea4154282566",
-      "id": "src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx::179:9::react-doctor/no-prevent-default::0fc34f6b4d32bcf96326f8d56359be2fb14865da60a123bdda86f1f755307522",
+      "id": "src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx::183:9::react-doctor/no-prevent-default::0fc34f6b4d32bcf96326f8d56359be2fb14865da60a123bdda86f1f755307522",
       "normalizedFilePath": "src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx",
       "tags": ["test-noise"],
       "target": "apps/admin",
@@ -3271,14 +3273,15 @@
         "POLICY SOURCE docs/ai/rules/frontend.md:111 selects TanStack Form + Zod for complex client forms including modal/drawer workflows; :184-203 shows preventDefault followed by form.handleSubmit.",
         "SOURCE apps/admin/src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx: exact onSubmit prevents browser navigation and invokes its existing TanStack submission owner.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx:170; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx:179. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx:179. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-11-07. Raw React Doctor 0.9.18 reports the same diagnostic and source span after the localized Shell Tools review correction. This rebind covers the affected source bytes."
       ],
       "reconsiderWhen": "Reconsider when this exact workflow is intentionally converted to a native/server-owned form, or validation, authentication, callbacks, or submission ownership changes.",
       "sourceContextHash": "d34a194cbdf2aaf0d0ab477d92627019a3d87dca65983db838936dfe13c6cf1a",
-      "sourceFileHash": "bb84394d8762c67ca4b5fa7bd4e1d9abfa4f02f03910c20e895eca68c22f77ff",
+      "sourceFileHash": "2c312edd226b7577e83458a04f3b52065bd32a4f1c032bd8a5deadaa49658aa8",
       "evidenceFileHashes": {
         "docs/ai/rules/frontend.md": "7a2fd29ac7320025c6347781ecee3032551fef403ceba1cf1b2764f979fb2448",
-        "apps/admin/src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx": "bb84394d8762c67ca4b5fa7bd4e1d9abfa4f02f03910c20e895eca68c22f77ff"
+        "apps/admin/src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx": "2c312edd226b7577e83458a04f3b52065bd32a4f1c032bd8a5deadaa49658aa8"
       }
     },
     {
@@ -10203,15 +10206,15 @@
       "title": "Form submit reloads the page around handleSubmit",
       "message": "This submit handler calls the form's handleSubmit without event.preventDefault(), so the browser still performs a native full-page form submission and the app reloads mid-submit. Call event.preventDefault() before handleSubmit().",
       "help": "Wrap the submit handler as onSubmit={(event) => { event.preventDefault(); form.handleSubmit(); }} because TanStack Form's handleSubmit never cancels the native submit itself.",
-      "line": 193,
+      "line": 194,
       "column": 11,
-      "offset": 5768,
+      "offset": 5796,
       "length": 180,
-      "endLine": 199,
+      "endLine": 200,
       "category": "Bugs",
       "matchByOccurrence": true,
       "fingerprint": "b6abc9ae896a7d4020d286e00ecf6c8864f78037f4ee0dc0319249c79a07ee22",
-      "id": "src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx::193:11::react-doctor/tanstack-form-on-submit-requires-prevent-default::2197bb0fe6dde967781df6fd44be9da31be4a2082e2e7d69c41d8d3cd450ccbc",
+      "id": "src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx::194:11::react-doctor/tanstack-form-on-submit-requires-prevent-default::2197bb0fe6dde967781df6fd44be9da31be4a2082e2e7d69c41d8d3cd450ccbc",
       "normalizedFilePath": "src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -10219,11 +10222,12 @@
       "evidence": [
         "SOURCE apps/admin/src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx: the onSubmit callback begins with e.preventDefault(), before all early returns and the TanStack submission.",
         "REGRESSION cms-create-feedback.test.tsx renders all four actual forms and exercises pending deduplication, failed requests, retained input and retries.",
-        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here."
+        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here.",
+        "REQUALIFICATION 2026-11-07. Raw React Doctor 0.9.18 reports the same diagnostic and source span after the localized Shell Tools review correction. This rebind covers the affected source bytes."
       ],
       "reconsiderWhen": "Reconsider if this exact submit handler is moved, wrapped, reordered or ceases to prevent native navigation before returning/submitting.",
       "sourceContextHash": "9d3e27d5989e67caab1d3071b991d53d252567c4d17769e47509d64c6921e611",
-      "sourceFileHash": "ab14ee3b26aca7140243677fe858516b325d698d324ccd8af890eb003b68cff9",
+      "sourceFileHash": "d88270fd47907143a8b4b01bea0fcf7e1f6249bd3ea7e11af839e13966c0e4b6",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/cms-create-feedback.test.tsx": "9ed49656e2f08976252ab1257ea95e8d67e448f5cb2a069a8566975c1840e016"
       }
@@ -10236,15 +10240,15 @@
       "title": "Form submit reloads the page around handleSubmit",
       "message": "This submit handler calls the form's handleSubmit without event.preventDefault(), so the browser still performs a native full-page form submission and the app reloads mid-submit. Call event.preventDefault() before handleSubmit().",
       "help": "Wrap the submit handler as onSubmit={(event) => { event.preventDefault(); form.handleSubmit(); }} because TanStack Form's handleSubmit never cancels the native submit itself.",
-      "line": 191,
+      "line": 192,
       "column": 11,
-      "offset": 5647,
+      "offset": 5675,
       "length": 180,
-      "endLine": 197,
+      "endLine": 198,
       "category": "Bugs",
       "matchByOccurrence": true,
       "fingerprint": "b6abc9ae896a7d4020d286e00ecf6c8864f78037f4ee0dc0319249c79a07ee22",
-      "id": "src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx::191:11::react-doctor/tanstack-form-on-submit-requires-prevent-default::2197bb0fe6dde967781df6fd44be9da31be4a2082e2e7d69c41d8d3cd450ccbc",
+      "id": "src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx::192:11::react-doctor/tanstack-form-on-submit-requires-prevent-default::2197bb0fe6dde967781df6fd44be9da31be4a2082e2e7d69c41d8d3cd450ccbc",
       "normalizedFilePath": "src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -10252,11 +10256,12 @@
       "evidence": [
         "SOURCE apps/admin/src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx: the onSubmit callback begins with e.preventDefault(), before all early returns and the TanStack submission.",
         "REGRESSION cms-create-feedback.test.tsx renders all four actual forms and exercises pending deduplication, failed requests, retained input and retries.",
-        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here."
+        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here.",
+        "REQUALIFICATION 2026-11-07. Raw React Doctor 0.9.18 reports the same diagnostic and source span after the localized Shell Tools review correction. This rebind covers the affected source bytes."
       ],
       "reconsiderWhen": "Reconsider if this exact submit handler is moved, wrapped, reordered or ceases to prevent native navigation before returning/submitting.",
       "sourceContextHash": "9d3e27d5989e67caab1d3071b991d53d252567c4d17769e47509d64c6921e611",
-      "sourceFileHash": "4c71facf80842e5948f1424b4490e5d00f601547867c2f7fe1cc22c104c196ec",
+      "sourceFileHash": "c7bf708afffd9b2a2c7b66b7a01ea26694b7c556dd60298befa5ea59af424628",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/cms-create-feedback.test.tsx": "9ed49656e2f08976252ab1257ea95e8d67e448f5cb2a069a8566975c1840e016"
       }
@@ -10269,15 +10274,15 @@
       "title": "Form submit reloads the page around handleSubmit",
       "message": "This submit handler calls the form's handleSubmit without event.preventDefault(), so the browser still performs a native full-page form submission and the app reloads mid-submit. Call event.preventDefault() before handleSubmit().",
       "help": "Wrap the submit handler as onSubmit={(event) => { event.preventDefault(); form.handleSubmit(); }} because TanStack Form's handleSubmit never cancels the native submit itself.",
-      "line": 181,
+      "line": 185,
       "column": 11,
-      "offset": 5380,
+      "offset": 5425,
       "length": 180,
-      "endLine": 187,
+      "endLine": 191,
       "category": "Bugs",
       "matchByOccurrence": true,
       "fingerprint": "b6abc9ae896a7d4020d286e00ecf6c8864f78037f4ee0dc0319249c79a07ee22",
-      "id": "src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx::181:11::react-doctor/tanstack-form-on-submit-requires-prevent-default::2197bb0fe6dde967781df6fd44be9da31be4a2082e2e7d69c41d8d3cd450ccbc",
+      "id": "src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx::185:11::react-doctor/tanstack-form-on-submit-requires-prevent-default::2197bb0fe6dde967781df6fd44be9da31be4a2082e2e7d69c41d8d3cd450ccbc",
       "normalizedFilePath": "src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -10285,11 +10290,12 @@
       "evidence": [
         "SOURCE apps/admin/src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx: the onSubmit callback begins with e.preventDefault(), before all early returns and the TanStack submission.",
         "REGRESSION cms-create-feedback.test.tsx renders all four actual forms and exercises pending deduplication, failed requests, retained input and retries.",
-        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here."
+        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here.",
+        "REQUALIFICATION 2026-11-07. Raw React Doctor 0.9.18 reports the same diagnostic and source span after the localized Shell Tools review correction. This rebind covers the affected source bytes."
       ],
       "reconsiderWhen": "Reconsider if this exact submit handler is moved, wrapped, reordered or ceases to prevent native navigation before returning/submitting.",
       "sourceContextHash": "9d3e27d5989e67caab1d3071b991d53d252567c4d17769e47509d64c6921e611",
-      "sourceFileHash": "bb84394d8762c67ca4b5fa7bd4e1d9abfa4f02f03910c20e895eca68c22f77ff",
+      "sourceFileHash": "2c312edd226b7577e83458a04f3b52065bd32a4f1c032bd8a5deadaa49658aa8",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/cms-create-feedback.test.tsx": "9ed49656e2f08976252ab1257ea95e8d67e448f5cb2a069a8566975c1840e016"
       }
@@ -10302,15 +10308,15 @@
       "title": "Form submit reloads the page around handleSubmit",
       "message": "This submit handler calls the form's handleSubmit without event.preventDefault(), so the browser still performs a native full-page form submission and the app reloads mid-submit. Call event.preventDefault() before handleSubmit().",
       "help": "Wrap the submit handler as onSubmit={(event) => { event.preventDefault(); form.handleSubmit(); }} because TanStack Form's handleSubmit never cancels the native submit itself.",
-      "line": 168,
+      "line": 172,
       "column": 11,
-      "offset": 5124,
+      "offset": 5169,
       "length": 180,
-      "endLine": 174,
+      "endLine": 178,
       "category": "Bugs",
       "matchByOccurrence": true,
       "fingerprint": "b6abc9ae896a7d4020d286e00ecf6c8864f78037f4ee0dc0319249c79a07ee22",
-      "id": "src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx::168:11::react-doctor/tanstack-form-on-submit-requires-prevent-default::2197bb0fe6dde967781df6fd44be9da31be4a2082e2e7d69c41d8d3cd450ccbc",
+      "id": "src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx::172:11::react-doctor/tanstack-form-on-submit-requires-prevent-default::2197bb0fe6dde967781df6fd44be9da31be4a2082e2e7d69c41d8d3cd450ccbc",
       "normalizedFilePath": "src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -10318,11 +10324,12 @@
       "evidence": [
         "SOURCE apps/admin/src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx: the onSubmit callback begins with e.preventDefault(), before all early returns and the TanStack submission.",
         "REGRESSION cms-create-feedback.test.tsx renders all four actual forms and exercises pending deduplication, failed requests, retained input and retries.",
-        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here."
+        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here.",
+        "REQUALIFICATION 2026-11-07. Raw React Doctor 0.9.18 reports the same diagnostic and source span after the localized Shell Tools review correction. This rebind covers the affected source bytes."
       ],
       "reconsiderWhen": "Reconsider if this exact submit handler is moved, wrapped, reordered or ceases to prevent native navigation before returning/submitting.",
       "sourceContextHash": "9d3e27d5989e67caab1d3071b991d53d252567c4d17769e47509d64c6921e611",
-      "sourceFileHash": "838be8e70f94863bc750f70d5930cf0ba0a35284c77c5cea1ba64cdc0fb63006",
+      "sourceFileHash": "828f96e0d81686bba34ebae024a4b0447dd0c651e2d681b1ef234cf4b12c4b12",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/cms-create-feedback.test.tsx": "9ed49656e2f08976252ab1257ea95e8d67e448f5cb2a069a8566975c1840e016"
       }

@@ -74,7 +74,7 @@ function EveConversation() {
         aria-describedby="eve-global-description"
         className="w-full sm:max-w-md"
       >
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
           <SheetHeader>
             <SheetTitle>
               <span className="flex items-center gap-2">
@@ -90,7 +90,7 @@ function EveConversation() {
           </SheetHeader>
           <Separator />
 
-          <ScrollArea className="min-h-0 flex-1 px-4">
+          <ScrollArea className="min-h-0 flex-1 overflow-hidden px-4">
             <div
               className="flex min-h-full flex-col gap-3 py-4"
               aria-live="polite"

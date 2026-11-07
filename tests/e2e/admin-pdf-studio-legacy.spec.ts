@@ -52,5 +52,15 @@ test.describe("Admin PDF Studio legacy editor", () => {
       ratio: 0.01,
       timeout: 120_000,
     });
+    await expect
+      .poll(
+        () =>
+          editorFrame.evaluate(
+            (frame) =>
+              frame.getBoundingClientRect().height / window.innerHeight,
+          ),
+        { timeout: 120_000 },
+      )
+      .toBeGreaterThan(1 / 3);
   });
 });
