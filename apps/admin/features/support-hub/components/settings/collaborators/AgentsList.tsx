@@ -23,7 +23,7 @@ export function AgentsList() {
         <ul className="flex flex-col divide-y divide-border">
           {agents.map((agent) => (
             <li key={agent.id} className="flex items-center gap-3 py-2.5">
-              <Avatar className="size-9 ring-1 ring-border">
+              <Avatar className="size-9">
                 {agent.avatarUrl ? (
                   <AvatarImage src={agent.avatarUrl} alt={agent.name} />
                 ) : null}

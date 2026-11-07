@@ -72,12 +72,11 @@ export function SavedViewsList() {
               <Button
                 type="button"
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
                 onClick={() => void handleDelete(view)}
                 aria-label={`Delete ${view.name}`}
-                className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-3.5 text-destructive" />
               </Button>
             </li>
           ))}

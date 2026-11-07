@@ -96,18 +96,21 @@ export function TimezoneScheduler({
   const working = isRemoteWorkingHours();
 
   return (
-    <Card className="border-border shadow-sm overflow-hidden bg-muted/50">
-      <CardHeader className="pb-2 border-b border-border bg-card">
+    <Card className="overflow-hidden">
+      <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-            <Clock className="size-3.5" /> Timezone Check
+          <CardTitle className="text-sm font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-2">
+              <Clock className="size-3.5 text-muted-foreground" /> Timezone
+              Check
+            </div>
           </CardTitle>
           <Badge variant={working ? "success" : "secondary"}>
             {working ? "Within Working Hours" : "Outside Working Hours"}
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 flex-1 space-y-1">
             <p className="text-xs font-bold text-muted-foreground uppercase">
@@ -150,7 +153,7 @@ export function TimezoneScheduler({
               Recommended contact: 2PM - 4PM (Your Time)
             </span>
           </div>
-          <Button variant="ghost" size="sm" className="text-info">
+          <Button variant="ghost" size="sm">
             Schedule Call
           </Button>
         </div>

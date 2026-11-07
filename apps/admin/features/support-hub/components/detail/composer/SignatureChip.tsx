@@ -28,7 +28,7 @@ export function SignatureChip({
     <label
       htmlFor={id}
       className={cn(
-        "inline-flex h-8 cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-2 text-[12px] font-medium text-foreground",
+        "inline-flex h-8 cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-2 text-xs font-medium text-foreground",
         enabled && "border-success/30 bg-success/10 text-success",
       )}
     >
@@ -38,7 +38,8 @@ export function SignatureChip({
         id={id}
         checked={enabled}
         onCheckedChange={onChange}
-        className="ml-1 scale-75"
+        size="sm"
+        className="ml-1"
       />
     </label>
   );

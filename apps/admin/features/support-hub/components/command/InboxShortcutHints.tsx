@@ -12,7 +12,7 @@ import { SUPPORT_INBOX_KEYMAP } from "../../lib/keymap";
 export function InboxShortcutHints() {
   return (
     <div className="border-t border-border px-3 py-2">
-      <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
         Keyboard shortcuts
       </p>
       <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-muted-foreground">
@@ -22,7 +22,7 @@ export function InboxShortcutHints() {
             className="flex items-center justify-between gap-2"
           >
             <span>{entry.label}</span>
-            <Kbd className="font-mono text-xs">{entry.chord}</Kbd>
+            <Kbd>{entry.chord}</Kbd>
           </li>
         ))}
       </ul>

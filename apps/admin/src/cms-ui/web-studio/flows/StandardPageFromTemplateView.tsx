@@ -141,7 +141,11 @@ function StandardPageFromTemplateViewContent() {
   });
 
   return (
-    <StudioLayout sectionLabel="Pages" currentLabel="New from template">
+    <StudioLayout
+      className="min-h-dvh"
+      sectionLabel="Pages"
+      currentLabel="New from template"
+    >
       <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
         <h1 className="font-semibold text-xl tracking-tight">
           Create standard page

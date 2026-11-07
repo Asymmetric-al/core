@@ -7,6 +7,8 @@ import { NewTicketForm } from "../../../apps/admin/app/(app)/support/tickets/new
 // eslint-disable-next-line no-restricted-imports -- AL-1894: Browser fixture exercises the actual server-produced GET form with an inert loader.
 import SupportTicketsPage from "../../../apps/admin/app/(app)/support/tickets/page";
 
+import { SupportControlLayouts } from "./support-control-layouts";
+
 import "virtual:base-ui-styles";
 
 const filterPage = await SupportTicketsPage({
@@ -16,17 +18,26 @@ const filterPage = await SupportTicketsPage({
     search: "receipt",
   }),
 });
+const layout = new URLSearchParams(window.location.search).get("layout");
 createRoot(document.getElementById("root")!).render(
-  <main className="mx-auto max-w-3xl space-y-8 p-6">
-    <section id="intake">
-      <h1 className="mb-4 text-xl font-semibold">Support intake</h1>
-      <NewTicketForm
-        contacts={[
-          { id: "contact-1", name: "Ada Lovelace", email: "ada@example.test" },
-        ]}
-        queues={supportHubReadModel.queues}
-      />
-    </section>
-    <section id="filters">{filterPage}</section>
-  </main>,
+  layout ? (
+    <SupportControlLayouts surface={layout} />
+  ) : (
+    <main className="mx-auto max-w-3xl space-y-8 p-6">
+      <section id="intake">
+        <h1 className="mb-4 text-xl font-semibold">Support intake</h1>
+        <NewTicketForm
+          contacts={[
+            {
+              id: "contact-1",
+              name: "Ada Lovelace",
+              email: "ada@example.test",
+            },
+          ]}
+          queues={supportHubReadModel.queues}
+        />
+      </section>
+      <section id="filters">{filterPage}</section>
+    </main>
+  ),
 );

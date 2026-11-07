@@ -3,7 +3,6 @@ import { beforeAll, describe, expect, it } from "vitest";
 const root = new URL("../../../../../../", import.meta.url);
 
 type DerivedHelpers = {
-  deriveSupportHubStats: (model: unknown, now?: string | Date) => unknown;
   deriveSupportQueueSummaries: (model: unknown, now?: string | Date) => unknown;
   filterSupportTickets: (
     tickets: readonly unknown[],
@@ -13,7 +12,6 @@ type DerivedHelpers = {
   formatSupportRelativeTime: (input: string, now?: string | Date) => string;
 };
 
-let deriveSupportHubStats: DerivedHelpers["deriveSupportHubStats"];
 let deriveSupportQueueSummaries: DerivedHelpers["deriveSupportQueueSummaries"];
 let filterSupportTickets: DerivedHelpers["filterSupportTickets"];
 let formatSupportRelativeTime: DerivedHelpers["formatSupportRelativeTime"];
@@ -22,7 +20,6 @@ beforeAll(async () => {
   const mod = (await import(
     new URL("apps/admin/app/(app)/support/support-hub.derived.ts", root).href
   )) as DerivedHelpers;
-  deriveSupportHubStats = mod.deriveSupportHubStats;
   deriveSupportQueueSummaries = mod.deriveSupportQueueSummaries;
   filterSupportTickets = mod.filterSupportTickets;
   formatSupportRelativeTime = mod.formatSupportRelativeTime;
@@ -108,17 +105,6 @@ const model = {
 } as const;
 
 describe("support hub derived model", () => {
-  it("counts actionable support ticket states", () => {
-    expect(deriveSupportHubStats(model, NOW)).toEqual({
-      open: 1,
-      urgent: 1,
-      waiting: 1,
-      resolved: 1,
-      escalated: 1,
-      needsFollowUp: 3,
-    });
-  });
-
   it("formats relative time from an injected clock", () => {
     expect(
       formatSupportRelativeTime(

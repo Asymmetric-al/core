@@ -48,7 +48,6 @@ export function BusinessHoursList() {
             variant="outline"
             size="sm"
             onClick={() => setEditing("new")}
-            className="rounded-lg text-xs"
           >
             <Plus className="size-3.5" />
             New schedule
@@ -89,22 +88,20 @@ export function BusinessHoursList() {
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() => setEditing(row)}
                   aria-label={`Edit ${row.name}`}
-                  className="size-8 text-muted-foreground hover:text-foreground"
                 >
                   <Pencil className="size-3.5" />
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() => void handleDelete(row)}
                   aria-label={`Delete ${row.name}`}
-                  className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
-                  <Trash2 className="size-3.5" />
+                  <Trash2 className="size-3.5 text-destructive" />
                 </Button>
               </li>
             ))}

@@ -1713,7 +1713,7 @@ export default function PDFStudio() {
         "flex flex-col bg-background",
         isFullscreen
           ? "fixed inset-0 z-50 overflow-hidden"
-          : "flex-1 min-h-0 overflow-hidden",
+          : "h-full min-h-0 overflow-hidden",
       )}
     >
       <PDFStudioHeaderSection

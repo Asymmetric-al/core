@@ -61,9 +61,7 @@ export function BoardColumn({
         <span className="flex items-center gap-2">
           <span aria-hidden className={cn("size-2 rounded-full", tone.dot)} />
           <h3 className="text-sm font-medium text-foreground">{label}</h3>
-          <Badge variant="secondary" className="min-w-6 tabular-nums">
-            {count}
-          </Badge>
+          <Badge variant="secondary">{count}</Badge>
         </span>
       </header>
       <p className="mb-3 hidden text-xs text-muted-foreground lg:block">

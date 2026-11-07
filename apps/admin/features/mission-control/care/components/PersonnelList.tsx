@@ -62,11 +62,9 @@ const columns: ColumnDef<CarePersonnel>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex items-center gap-3 py-1">
-        <Avatar className="size-9 border border-border/50 shadow-sm ring-2 ring-background">
+        <Avatar className="size-9">
           <AvatarImage src={row.original.avatarUrl} />
-          <AvatarFallback className="text-xs font-black bg-primary text-primary-foreground">
-            {row.original.initials}
-          </AvatarFallback>
+          <AvatarFallback>{row.original.initials}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col min-w-0">
           <span className="font-bold text-sm text-primary truncate tracking-tight">

@@ -178,7 +178,7 @@ function LaunchManifestImportSection({
       </Label>
       <Textarea
         id="eve-launch-manifest"
-        className="mt-2 min-h-32 font-mono text-xs"
+        className="mt-2"
         value={manifestJson}
         placeholder='{"schemaVersion":"eve-launch-manifest-v1", ...}'
         onChange={(event) => onManifestJsonChange(event.target.value)}
@@ -584,9 +584,11 @@ export function EveLaunchReadinessPanel() {
   return (
     <Card id="eve-launch-readiness">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Rocket aria-hidden="true" className="size-5" />
-          Launch readiness
+        <CardTitle>
+          <span className="flex items-center gap-2">
+            <Rocket aria-hidden="true" className="size-5" />
+            Launch readiness
+          </span>
         </CardTitle>
         <CardDescription>
           Target-bound evidence, two-person review, explicit activation, and a

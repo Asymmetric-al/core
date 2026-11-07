@@ -182,7 +182,7 @@ patterns grow.
 - `packages/api/src/reads/*`
 - `packages/api/package.json` exports for `./reads/*`
 - `apps/admin/app/(app)/page.tsx`
-- `apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx`
+- `apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx` (since removed — it had no importer)
 - `apps/admin/app/(app)/contributions/page.tsx`
 - `apps/admin/app/(app)/contributions/main-body.tsx`
 - `apps/admin/app/(app)/contributions/use-admin-contributions.ts`

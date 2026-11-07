@@ -256,14 +256,12 @@ function MissionControlReadiness({
   role: Role;
 }) {
   return (
-    <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <Card className="overflow-hidden border-border bg-card text-card-foreground shadow-sm">
+    <section className="flex flex-col gap-4 xl:flex-row">
+      <Card className="min-w-0 flex-1 overflow-hidden">
         <CardContent className="p-5 sm:p-6">
           <div className="flex flex-col gap-5">
             <div className="max-w-3xl space-y-3">
-              <Badge variant="secondary" className="w-fit">
-                Mission Control dashboard
-              </Badge>
+              <Badge variant="secondary">Mission Control dashboard</Badge>
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                   Mission Control
@@ -296,11 +294,13 @@ function MissionControlReadiness({
         </CardContent>
       </Card>
 
-      <Card className="border-border bg-card shadow-sm">
+      <Card className="xl:w-80 xl:shrink-0">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Settings2 className="size-4 text-muted-foreground" />
-            Your workspace
+          <CardTitle className="text-base">
+            <span className="flex items-center gap-2">
+              <Settings2 className="size-4 text-muted-foreground" />
+              Your workspace
+            </span>
           </CardTitle>
           <CardDescription>
             Explore the tools available to your current role.
@@ -350,7 +350,7 @@ function MissionControlReadiness({
                     <div
                       key={tile.id}
                       className={cn(
-                        "flex items-start gap-3 rounded-2xl border p-3 transition-[border-color,background-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
+                        "flex items-start gap-3 rounded-2xl border p-3 transition-colors duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
                         hasAccess
                           ? "border-border bg-card shadow-sm hover:border-ring/30"
                           : "border-border/60 bg-muted/30 opacity-70",
@@ -392,10 +392,10 @@ function MissionControlMetrics({
   overviewMetrics: OverviewMetric[];
 }) {
   return (
-    <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="grid gap-3 sm:grid-cols-3">
+    <section className="flex flex-col gap-4 xl:flex-row xl:items-start">
+      <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-3">
         {overviewMetrics.map((metric) => (
-          <Card key={metric.id} className="border-border bg-card shadow-sm">
+          <Card key={metric.id}>
             <CardContent className="flex items-start justify-between gap-4 p-4">
               <div>
                 <p className="text-sm font-semibold text-foreground">
@@ -427,11 +427,13 @@ function MissionControlMetrics({
         ))}
       </div>
 
-      <Card className="border-border bg-card shadow-sm">
+      <Card className="xl:w-80 xl:shrink-0">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Clock3 className="size-4 text-warning" />
-            Priority scan
+          <CardTitle className="text-base">
+            <span className="flex items-center gap-2">
+              <Clock3 className="size-4 text-warning" />
+              Priority scan
+            </span>
           </CardTitle>
           <CardDescription>
             Use the first minute to decide where attention goes.
@@ -536,8 +538,8 @@ function MissionControlWorkflows() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
-        <Card className="border-border bg-card shadow-sm">
+      <div className="grid gap-4 xl:grid-cols-7">
+        <Card className="xl:col-span-4">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Ministry health trend</CardTitle>
             <CardDescription>
@@ -555,17 +557,15 @@ function MissionControlWorkflows() {
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {[
-                ["Giving", "bg-[var(--chart-1)]/10 text-foreground"],
-                ["Engagement", "bg-[var(--chart-2)]/10 text-foreground"],
-                ["Care", "bg-[var(--chart-5)]/10 text-foreground"],
-              ].map(([label, className]) => (
-                <Badge
-                  key={label}
-                  className={cn(
-                    "border-none text-xs font-semibold hover:bg-current/10",
-                    className,
-                  )}
-                >
+                ["Giving", "bg-chart-1"],
+                ["Engagement", "bg-chart-2"],
+                ["Care", "bg-chart-5"],
+              ].map(([label, dotClassName]) => (
+                <Badge key={label} variant="outline">
+                  <span
+                    aria-hidden="true"
+                    className={cn("size-2 rounded-full", dotClassName)}
+                  />
                   {label}
                 </Badge>
               ))}
@@ -573,7 +573,7 @@ function MissionControlWorkflows() {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-card shadow-sm">
+        <Card className="xl:col-span-3">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Health distribution</CardTitle>
             <CardDescription>
