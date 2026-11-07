@@ -191,9 +191,11 @@ export function AutomationRuleForm({
             if (value !== null) setTrigger(value);
           }}
         >
-          <SelectTrigger aria-label="Trigger" className="h-9 max-w-sm">
-            <SelectValue />
-          </SelectTrigger>
+          <div className="max-w-sm">
+            <SelectTrigger aria-label="Trigger">
+              <SelectValue />
+            </SelectTrigger>
+          </div>
           <SelectContent>
             {SUPPORT_AUTOMATION_TRIGGERS.map((kind) => (
               <SelectItem key={kind} value={kind}>
@@ -212,9 +214,8 @@ export function AutomationRuleForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            size="xs"
             onClick={handleAddCondition}
-            className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
           >
             <Plus className="size-3" />
             Add condition
@@ -256,9 +257,8 @@ export function AutomationRuleForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            size="xs"
             onClick={handleAddAction}
-            className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
           >
             <Plus className="size-3" />
             Add action
@@ -293,13 +293,7 @@ export function AutomationRuleForm({
       <AutomationDryRunPreview rule={previewRule} />
 
       <div className="flex items-center justify-end gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onCancel}
-          className="rounded-lg text-xs"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
       </div>

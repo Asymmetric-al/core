@@ -153,7 +153,11 @@ function ProjectPageCreateViewContent() {
   });
 
   return (
-    <StudioLayout sectionLabel="Project Pages" currentLabel="New project page">
+    <StudioLayout
+      className="min-h-dvh"
+      sectionLabel="Project Pages"
+      currentLabel="New project page"
+    >
       <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
         <h1 className="font-semibold text-xl tracking-tight">
           Fund-backed project page

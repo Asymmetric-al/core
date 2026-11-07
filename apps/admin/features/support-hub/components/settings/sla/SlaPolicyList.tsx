@@ -65,7 +65,6 @@ export function SlaPolicyList() {
             variant="outline"
             size="sm"
             onClick={() => setEditing("new")}
-            className="rounded-lg text-xs"
           >
             <Plus className="size-3.5" />
             New policy
@@ -107,33 +106,30 @@ export function SlaPolicyList() {
                   <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
+                    size="icon-sm"
                     onClick={() => void handleMakeDefault(row)}
                     aria-label={`Make ${row.name} default`}
-                    className="size-8 text-warning hover:bg-warning/10 hover:text-warning"
                   >
-                    <Star className="size-3.5" />
+                    <Star className="size-3.5 text-warning" />
                   </Button>
                 ) : null}
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() => setEditing(row)}
                   aria-label={`Edit ${row.name}`}
-                  className="size-8 text-muted-foreground hover:text-foreground"
                 >
                   <Pencil className="size-3.5" />
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() => void handleDelete(row)}
                   aria-label={`Delete ${row.name}`}
-                  className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
-                  <Trash2 className="size-3.5" />
+                  <Trash2 className="size-3.5 text-destructive" />
                 </Button>
               </li>
             ))}

@@ -100,14 +100,12 @@ function BoardCardAssignee({
 }) {
   if (conversation.assignee) {
     return (
-      <Avatar className="size-6 border border-border">
+      <Avatar size="sm">
         <AvatarImage
           src={conversation.assignee.avatarUrl ?? undefined}
           alt={conversation.assignee.name}
         />
-        <AvatarFallback className="text-xs font-semibold">
-          {conversation.assignee.name.charAt(0)}
-        </AvatarFallback>
+        <AvatarFallback>{conversation.assignee.name.charAt(0)}</AvatarFallback>
       </Avatar>
     );
   }

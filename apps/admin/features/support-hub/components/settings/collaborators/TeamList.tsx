@@ -46,7 +46,6 @@ export function TeamList() {
           variant="outline"
           size="sm"
           onClick={() => setEditing("new")}
-          className="rounded-lg text-xs"
         >
           <Plus className="size-3.5" />
           New team
@@ -59,12 +58,7 @@ export function TeamList() {
           title="No teams yet"
           description="Create the first team to enable macro and automation team routing."
           action={
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => setEditing("new")}
-              className="rounded-lg text-xs"
-            >
+            <Button type="button" size="sm" onClick={() => setEditing("new")}>
               Create a team
             </Button>
           }
@@ -89,22 +83,20 @@ export function TeamList() {
               <Button
                 type="button"
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
                 onClick={() => setEditing(team)}
                 aria-label={`Edit ${team.name}`}
-                className="size-8 text-muted-foreground hover:text-foreground"
               >
                 <Pencil className="size-3.5" />
               </Button>
               <Button
                 type="button"
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
                 onClick={() => void handleDelete(team)}
                 aria-label={`Remove ${team.name}`}
-                className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-3.5 text-destructive" />
               </Button>
             </li>
           ))}

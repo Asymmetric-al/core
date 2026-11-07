@@ -34,7 +34,7 @@ export function SupportFailureBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="flex items-start justify-between gap-3 rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-warning shadow-sm"
+      className="flex items-start justify-between gap-3 rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-foreground shadow-sm"
     >
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
@@ -53,7 +53,6 @@ export function SupportFailureBanner() {
           onClick={() => void handleRetry()}
           disabled={retrying}
           focusableWhenDisabled={retrying}
-          className="rounded-lg font-bold uppercase tracking-wider text-warning hover:bg-warning/15"
         >
           <RefreshCw
             className={retrying ? "size-3.5 animate-spin" : "size-3.5"}
@@ -63,10 +62,9 @@ export function SupportFailureBanner() {
         <Button
           type="button"
           variant="ghost"
-          size="icon"
+          size="icon-sm"
           onClick={clear}
           aria-label="Dismiss failure"
-          className="size-8 text-warning hover:bg-warning/15"
         >
           <X className="size-3.5" />
         </Button>

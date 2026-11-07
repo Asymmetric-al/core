@@ -32,6 +32,11 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
   Select,
@@ -160,8 +165,8 @@ function EntryEditor({
   const [category, setCategory] = useState(entry.category);
   return (
     <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
-      <div className="grid gap-3 md:grid-cols-[1fr_14rem]">
-        <div>
+      <div className="flex flex-col gap-3 md:flex-row">
+        <div className="min-w-0 md:flex-1">
           <Label htmlFor={`memory-title-${entry.id}`}>Title</Label>
           <Input
             id={`memory-title-${entry.id}`}
@@ -169,7 +174,7 @@ function EntryEditor({
             onChange={(event) => setTitle(event.target.value)}
           />
         </div>
-        <div>
+        <div className="md:w-56 md:shrink-0">
           <Select<EveAdminMemoryCategory>
             items={LABELS}
             value={category}
@@ -341,9 +346,11 @@ function MemoryProfileSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle id="eve-memory-title" className="flex items-center gap-2">
-          <Brain aria-hidden="true" className="size-5" />
-          Private admin memory
+        <CardTitle id="eve-memory-title">
+          <span className="flex items-center gap-2">
+            <Brain aria-hidden="true" className="size-5" />
+            Private admin memory
+          </span>
         </CardTitle>
         <CardDescription>
           Human-controlled advisory context for your preferences, project
@@ -367,8 +374,8 @@ function MemoryProfileSection({
             <AlertDescription>{mutation.error.message}</AlertDescription>
           </Alert>
         ) : null}
-        <div className="grid gap-4 md:grid-cols-[1fr_14rem]">
-          <div>
+        <div className="flex flex-col gap-4 md:flex-row">
+          <div className="min-w-0 md:flex-1">
             <Label htmlFor="new-memory-title">Title</Label>
             <Input
               id="new-memory-title"
@@ -377,7 +384,7 @@ function MemoryProfileSection({
               maxLength={120}
             />
           </div>
-          <div>
+          <div className="md:w-56 md:shrink-0">
             <Select<EveAdminMemoryCategory>
               items={LABELS}
               value={category}
@@ -540,21 +547,21 @@ function MemoryEntriesSection({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row">
-          <div className="relative flex-1">
-            <Search
-              aria-hidden="true"
-              className="absolute left-3 top-2.5 size-4 text-muted-foreground"
-            />
+          <div className="flex-1">
             <Label className="sr-only" htmlFor="memory-search">
               Search private memory
             </Label>
-            <Input
-              id="memory-search"
-              className="pl-9"
-              value={queryText}
-              onChange={(event) => setQueryText(event.target.value)}
-              placeholder="Search title or context"
-            />
+            <InputGroup>
+              <InputGroupAddon>
+                <Search aria-hidden="true" className="size-4" />
+              </InputGroupAddon>
+              <InputGroupInput
+                id="memory-search"
+                value={queryText}
+                onChange={(event) => setQueryText(event.target.value)}
+                placeholder="Search title or context"
+              />
+            </InputGroup>
           </div>
           <Button
             variant="outline"
@@ -733,9 +740,11 @@ function MemoryControlsSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <History aria-hidden="true" className="size-5" />
-          Immutable history
+        <CardTitle>
+          <span className="flex items-center gap-2">
+            <History aria-hidden="true" className="size-5" />
+            Immutable history
+          </span>
         </CardTitle>
         <CardDescription>
           Created, edited, and deleted versions are recorded separately from run

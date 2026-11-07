@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import {
   DefaultEditView,
@@ -93,8 +93,6 @@ function isRecentDocPreferenceEntry(
     candidate.title.length > 0
   );
 }
-
-const ghostSmLinkClass = buttonVariants({ variant: "ghost", size: "sm" });
 
 export type NativeCollectionEditViewProps = DocumentViewClientProps & {
   studioCollection: WebStudioCollectionSlug;
@@ -489,18 +487,13 @@ function NativeCollectionEditHeader({
           {heading}
         </h1>
         {showSlugChip && slugOrIdentifier ? (
-          <Badge variant="secondary" className="font-mono uppercase">
-            {slugOrIdentifier}
-          </Badge>
+          <Badge variant="secondary">{slugOrIdentifier}</Badge>
         ) : null}
-        <Badge variant="outline" className="uppercase">
-          {statusLabel}
-        </Badge>
+        <Badge variant="outline">{statusLabel}</Badge>
         <Badge
           variant={
             primaryState?.tone === "danger" ? "destructive" : "secondary"
           }
-          className="uppercase"
         >
           {primaryState?.label}
         </Badge>
@@ -559,34 +552,42 @@ function NativeCollectionEditActions({
         type="button"
         variant="outline"
         size="sm"
-        className="font-semibold"
         onClick={onOpenSettings}
       >
         <Settings2 className="mr-2 size-4" />
         Workspace
       </Button>
       {collectionSlug ? (
-        <Link
-          href={`/web-studio/collections/${collectionSlug}`}
-          className={ghostSmLinkClass}
+        <ButtonLink
+          variant="ghost"
+          size="sm"
+          render={<Link href={`/web-studio/collections/${collectionSlug}`} />}
         >
           Back to list
-        </Link>
+        </ButtonLink>
       ) : null}
       {versionsHref ? (
-        <Link href={versionsHref} className={ghostSmLinkClass}>
+        <ButtonLink
+          variant="ghost"
+          size="sm"
+          render={<Link href={versionsHref} />}
+        >
           Versions
-        </Link>
+        </ButtonLink>
       ) : null}
       {apiHref ? (
-        <Link href={apiHref} className={ghostSmLinkClass}>
+        <ButtonLink variant="ghost" size="sm" render={<Link href={apiHref} />}>
           API
-        </Link>
+        </ButtonLink>
       ) : null}
       {livePreviewHref ? (
-        <Link href={livePreviewHref} className={ghostSmLinkClass}>
+        <ButtonLink
+          variant="ghost"
+          size="sm"
+          render={<Link href={livePreviewHref} />}
+        >
           Live preview
-        </Link>
+        </ButtonLink>
       ) : null}
     </div>
   );
@@ -614,7 +615,7 @@ function NativeCollectionInspector({
   publicPreviewURL: string | null;
 }) {
   return (
-    <aside className="mt-6 hidden rounded-lg border border-border bg-muted/30 p-4 text-muted-foreground text-xs lg:mt-0 lg:block">
+    <aside className="mt-6 hidden rounded-lg border border-border bg-muted/30 p-4 text-muted-foreground text-xs lg:mt-0 lg:block lg:w-1/3 lg:max-w-80 lg:shrink-0">
       <p className="mb-2 font-semibold text-foreground">Inspector</p>
       <p>
         Document fields remain on Payload&apos;s document form engine while Web
@@ -642,9 +643,7 @@ function NativeCollectionInspector({
               {item.icon}
               {item.label}
             </span>
-            <span className="max-w-[11rem] truncate text-right">
-              {item.value}
-            </span>
+            <span className="max-w-44 truncate text-right">{item.value}</span>
           </li>
         ))}
       </ul>
@@ -656,32 +655,30 @@ function NativeCollectionInspector({
         </ul>
       ) : null}
       {previewSupported && previewURL ? (
-        <a
+        <ButtonLink
           href={previewURL}
           target="_blank"
           rel="noreferrer"
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "mt-4 w-full",
-          )}
+          variant="outline"
+          size="sm"
+          className="mt-4 w-full"
         >
           <ExternalLink className="mr-2 size-4" />
           Open preview
-        </a>
+        </ButtonLink>
       ) : null}
       {publicPreviewURL && data?._status === "published" ? (
-        <a
+        <ButtonLink
           href={publicPreviewURL}
           target="_blank"
           rel="noreferrer"
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            "mt-2 w-full",
-          )}
+          variant="ghost"
+          size="sm"
+          className="mt-2 w-full"
         >
           <ExternalLink className="mr-2 size-4" />
           Open published page
-        </a>
+        </ButtonLink>
       ) : null}
     </aside>
   );
@@ -745,7 +742,10 @@ export function NativeCollectionEditView({
   }, [model.authenticatedPreviewURL, previewURL, setPreviewURL]);
 
   return (
-    <div data-web-studio-native-document="true">
+    <div
+      data-web-studio-native-document="true"
+      className="flex flex-1 flex-col"
+    >
       <StudioLayout
         sectionLabel={studioConfig.sectionLabel}
         currentLabel={model.heading}
@@ -765,11 +765,10 @@ export function NativeCollectionEditView({
         <div
           className={cn(
             "px-2 py-6 sm:px-4 lg:px-6",
-            workspace.inspectorOpen &&
-              "lg:grid lg:grid-cols-[minmax(0,1fr)_min(320px,32%)] lg:gap-6",
+            workspace.inspectorOpen && "lg:flex lg:gap-6",
           )}
         >
-          <div className="payload-native-edit min-w-0 rounded-lg border border-border bg-card shadow-sm">
+          <div className="payload-native-edit min-w-0 rounded-lg border border-border bg-card shadow-sm lg:flex-1">
             <div ref={setStateTarget} />
             <DefaultEditView
               {...props}

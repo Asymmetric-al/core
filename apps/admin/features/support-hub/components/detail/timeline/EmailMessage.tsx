@@ -19,39 +19,24 @@ import type {
   SupportMessage,
   SupportMessageDeliveryState,
 } from "../../../types";
+import type { ComponentProps } from "react";
+
+type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 
 interface EmailMessageProps {
   message: SupportMessage;
 }
 
 const DELIVERY_TONES: Partial<
-  Record<SupportMessageDeliveryState, { tone: string; label: string }>
+  Record<SupportMessageDeliveryState, { variant: BadgeVariant; label: string }>
 > = {
-  draft: {
-    tone: "border-warning/30 bg-warning/10 text-warning",
-    label: "Draft",
-  },
-  queued: {
-    tone: "border-border bg-muted text-foreground",
-    label: "Queued",
-  },
-  sending: {
-    tone: "border-border bg-muted text-foreground",
-    label: "Sending",
-  },
-  sent: { tone: "border-border bg-muted text-foreground", label: "Sent" },
-  delivered: {
-    tone: "border-success/30 bg-success/10 text-success",
-    label: "Delivered",
-  },
-  bounced: {
-    tone: "border-destructive/30 bg-destructive/10 text-destructive",
-    label: "Bounced",
-  },
-  failed: {
-    tone: "border-destructive/30 bg-destructive/10 text-destructive",
-    label: "Failed",
-  },
+  draft: { variant: "warning", label: "Draft" },
+  queued: { variant: "secondary", label: "Queued" },
+  sending: { variant: "secondary", label: "Sending" },
+  sent: { variant: "secondary", label: "Sent" },
+  delivered: { variant: "success", label: "Delivered" },
+  bounced: { variant: "destructive-subtle", label: "Bounced" },
+  failed: { variant: "destructive-subtle", label: "Failed" },
 };
 
 function emailMessageChrome(message: SupportMessage) {
@@ -87,14 +72,12 @@ function EmailMessageHeader({
 
   return (
     <header className="flex flex-wrap items-start gap-3 border-b border-border px-4 py-3">
-      <Avatar className="size-9 border border-border">
+      <Avatar className="size-9">
         <AvatarImage
           src={message.author.avatarUrl ?? undefined}
           alt={message.author.name}
         />
-        <AvatarFallback className="text-xs font-semibold">
-          {message.author.name.charAt(0)}
-        </AvatarFallback>
+        <AvatarFallback>{message.author.name.charAt(0)}</AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5 text-xs text-foreground">
@@ -111,10 +94,7 @@ function EmailMessageHeader({
             </Badge>
           ) : null}
           {!isDraft && DELIVERY_TONES[message.deliveryState] ? (
-            <Badge
-              variant="outline"
-              className={DELIVERY_TONES[message.deliveryState]?.tone}
-            >
+            <Badge variant={DELIVERY_TONES[message.deliveryState]?.variant}>
               {DELIVERY_TONES[message.deliveryState]?.label}
             </Badge>
           ) : null}
@@ -153,7 +133,7 @@ function EmailMessageAttachmentsFooter({
           className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-foreground"
         >
           <Paperclip className="size-3 text-muted-foreground" />
-          <span className="max-w-[200px] truncate">{attachment.filename}</span>
+          <span className="max-w-50 truncate">{attachment.filename}</span>
         </span>
       ))}
       {showInboundAttachmentState(message) ? (
@@ -194,20 +174,11 @@ export function EmailMessage({ message }: EmailMessageProps) {
 
 const INBOUND_ATTACHMENT_TONES: Record<
   "pending" | "retrying" | "failed",
-  { tone: string; label: string }
+  { variant: BadgeVariant; label: string }
 > = {
-  pending: {
-    tone: "border-border bg-muted text-muted-foreground",
-    label: "Attachments pending",
-  },
-  retrying: {
-    tone: "border-border bg-muted text-muted-foreground",
-    label: "Attachments retrying",
-  },
-  failed: {
-    tone: "border-warning/30 bg-warning/10 text-warning",
-    label: "Attachments unavailable",
-  },
+  pending: { variant: "secondary", label: "Attachments pending" },
+  retrying: { variant: "secondary", label: "Attachments retrying" },
+  failed: { variant: "warning", label: "Attachments unavailable" },
 };
 
 function showInboundAttachmentState(
@@ -261,7 +232,7 @@ function InboundAttachmentState({
 
   return (
     <span className="inline-flex items-center gap-1.5">
-      <Badge variant="outline" className={config.tone}>
+      <Badge variant={config.variant}>
         <Paperclip className="size-3" />
         {retryState === "requested" ? "Attachments retrying" : config.label}
       </Badge>

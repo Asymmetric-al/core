@@ -59,7 +59,7 @@ export function ConversationPriorityMenu({
           </Button>
         }
       />
-      <DropdownMenuContent align="end" className="w-40">
+      <DropdownMenuContent align="end">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Priority</DropdownMenuLabel>
 

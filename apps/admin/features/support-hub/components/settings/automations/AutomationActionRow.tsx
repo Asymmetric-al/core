@@ -61,9 +61,11 @@ export function AutomationActionRow({
           if (value !== null) handleKindChange(value);
         }}
       >
-        <SelectTrigger aria-label="Action type" className="h-8 min-w-45">
-          <SelectValue />
-        </SelectTrigger>
+        <div className="min-w-45">
+          <SelectTrigger aria-label="Action type" className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+        </div>
         <SelectContent>
           {SUPPORT_AUTOMATION_ACTION_KINDS.map((kind) => (
             <SelectItem key={kind} value={kind}>
@@ -74,60 +76,69 @@ export function AutomationActionRow({
       </Select>
 
       {action.kind === "assign_agent" ? (
-        <SearchableSelect
-          items={[
-            ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
-          ]}
-          value={action.agentId}
-          onValueChange={(value) => {
-            if (value === null) {
-              return;
-            }
-            onChange({ kind: "assign_agent", agentId: value });
-          }}
-          aria-label="Assigned agent"
-          className="h-8 min-w-50"
-          placeholder="Pick an agent"
-        />
+        <div className="min-w-50 flex-1">
+          <SearchableSelect
+            items={[
+              ...agents.map((agent) => ({
+                value: agent.id,
+                label: agent.name,
+              })),
+            ]}
+            value={action.agentId}
+            onValueChange={(value) => {
+              if (value === null) {
+                return;
+              }
+              onChange({ kind: "assign_agent", agentId: value });
+            }}
+            aria-label="Assigned agent"
+            placeholder="Pick an agent"
+          />
+        </div>
       ) : null}
 
       {action.kind === "assign_team" ? (
-        <SearchableSelect
-          items={[
-            ...(teams.data ?? []).map((team) => ({
-              value: team.id,
-              label: team.name,
-            })),
-          ]}
-          value={action.teamId}
-          onValueChange={(value) => {
-            if (value === null) {
-              return;
-            }
-            onChange({ kind: "assign_team", teamId: value });
-          }}
-          aria-label="Assigned team"
-          className="h-8 min-w-50"
-          placeholder="Pick a team"
-        />
+        <div className="min-w-50 flex-1">
+          <SearchableSelect
+            items={[
+              ...(teams.data ?? []).map((team) => ({
+                value: team.id,
+                label: team.name,
+              })),
+            ]}
+            value={action.teamId}
+            onValueChange={(value) => {
+              if (value === null) {
+                return;
+              }
+              onChange({ kind: "assign_team", teamId: value });
+            }}
+            aria-label="Assigned team"
+            placeholder="Pick a team"
+          />
+        </div>
       ) : null}
 
       {action.kind === "add_label" ? (
-        <SearchableSelect
-          items={[
-            ...labels.map((label) => ({ value: label.id, label: label.name })),
-          ]}
-          value={action.labelId}
-          onValueChange={(value) => {
-            if (value === null) {
-              return;
-            }
-            onChange({ kind: "add_label", labelId: value });
-          }}
-          aria-label="Label to add"
-          className="h-8 min-w-50"
-          placeholder="Pick a label"
-        />
+        <div className="min-w-50 flex-1">
+          <SearchableSelect
+            items={[
+              ...labels.map((label) => ({
+                value: label.id,
+                label: label.name,
+              })),
+            ]}
+            value={action.labelId}
+            onValueChange={(value) => {
+              if (value === null) {
+                return;
+              }
+              onChange({ kind: "add_label", labelId: value });
+            }}
+            aria-label="Label to add"
+            placeholder="Pick a label"
+          />
+        </div>
       ) : null}
 
       {action.kind === "set_priority" ? (
@@ -147,9 +158,11 @@ export function AutomationActionRow({
             });
           }}
         >
-          <SelectTrigger aria-label="Priority" className="h-8 min-w-35">
-            <SelectValue />
-          </SelectTrigger>
+          <div className="min-w-35">
+            <SelectTrigger aria-label="Priority" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+          </div>
           <SelectContent>
             {SUPPORT_PRIORITIES.map((priority) => (
               <SelectItem key={priority} value={priority}>
@@ -177,9 +190,11 @@ export function AutomationActionRow({
             });
           }}
         >
-          <SelectTrigger aria-label="Status" className="h-8 min-w-35">
-            <SelectValue />
-          </SelectTrigger>
+          <div className="min-w-35">
+            <SelectTrigger aria-label="Status" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+          </div>
           <SelectContent>
             {SUPPORT_CONVERSATION_STATUSES.map((status) => (
               <SelectItem key={status} value={status}>
@@ -191,47 +206,51 @@ export function AutomationActionRow({
       ) : null}
 
       {action.kind === "snooze" ? (
-        <Input
-          type="number"
-          min={1}
-          value={action.hours}
-          onChange={(event) =>
-            onChange({
-              kind: "snooze",
-              hours: Number(event.target.value) || 1,
-            })
-          }
-          className="h-8 w-30 font-mono"
-        />
+        <div className="w-30">
+          <Input
+            type="number"
+            min={1}
+            value={action.hours}
+            onChange={(event) =>
+              onChange({
+                kind: "snooze",
+                hours: Number(event.target.value) || 1,
+              })
+            }
+          />
+        </div>
       ) : null}
 
       {action.kind === "run_macro" ? (
-        <SearchableSelect
-          items={[
-            ...macros.map((macro) => ({ value: macro.id, label: macro.name })),
-          ]}
-          value={action.macroId}
-          onValueChange={(value) => {
-            if (value === null) {
-              return;
-            }
-            onChange({ kind: "run_macro", macroId: value });
-          }}
-          aria-label="Macro to run"
-          className="h-8 min-w-55"
-          placeholder="Pick a macro"
-        />
+        <div className="min-w-55 flex-1">
+          <SearchableSelect
+            items={[
+              ...macros.map((macro) => ({
+                value: macro.id,
+                label: macro.name,
+              })),
+            ]}
+            value={action.macroId}
+            onValueChange={(value) => {
+              if (value === null) {
+                return;
+              }
+              onChange({ kind: "run_macro", macroId: value });
+            }}
+            aria-label="Macro to run"
+            placeholder="Pick a macro"
+          />
+        </div>
       ) : null}
 
       <Button
         type="button"
         variant="ghost"
-        size="icon"
+        size="icon-sm"
         onClick={onRemove}
         aria-label="Remove action"
-        className="size-7 text-destructive hover:bg-destructive/10"
       >
-        <Trash2 className="size-3.5" />
+        <Trash2 className="size-3.5 text-destructive" />
       </Button>
     </li>
   );

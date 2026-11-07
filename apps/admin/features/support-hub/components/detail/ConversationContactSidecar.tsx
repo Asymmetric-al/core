@@ -31,17 +31,15 @@ export function ConversationContactSidecar({
 
   return (
     <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
-      <Avatar className="size-10 border border-border">
+      <Avatar size="lg">
         <AvatarImage src={undefined} alt={name} />
-        <AvatarFallback className="text-xs font-semibold text-foreground">
-          {initials}
-        </AvatarFallback>
+        <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-semibold text-foreground">{name}</p>
-        <p className="truncate text-xs text-muted-foreground">
-          <Mail className="mr-1 inline size-3 align-[-2px] text-muted-foreground" />
-          {conversation.externalContactEmail}
+        <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+          <Mail className="size-3 shrink-0 text-muted-foreground" />
+          <span className="truncate">{conversation.externalContactEmail}</span>
         </p>
         <ConversationCrmLinks
           contact={conversation.contact}

@@ -45,10 +45,7 @@ function KpiSkeletonRow() {
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {[0, 1, 2, 3].map((index) => (
-        <Skeleton
-          key={index}
-          className="h-23 rounded-2xl border border-border"
-        />
+        <Skeleton key={index} className="h-23 rounded-2xl" />
       ))}
     </div>
   );
@@ -158,7 +155,6 @@ export function ReportsPageView({
                     variant="ghost"
                     size="icon"
                     onClick={() => setSummary(null)}
-                    className="rounded-full text-muted-foreground hover:text-foreground"
                   >
                     <X className="size-5" />
                   </Button>
@@ -183,7 +179,7 @@ export function ReportsPageView({
         )}
 
         {showEmptyState ? (
-          <Empty className="rounded-2xl border border-dashed">
+          <Empty>
             <EmptyHeader>
               <EmptyTitle>No completed giving to report yet</EmptyTitle>
               <EmptyDescription>

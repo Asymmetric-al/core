@@ -161,6 +161,7 @@ function MissionaryGivingCreateViewContent() {
 
   return (
     <StudioLayout
+      className="min-h-dvh"
       sectionLabel="Missionary Pages"
       currentLabel="New giving page"
     >

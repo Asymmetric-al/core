@@ -29,7 +29,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
-import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import {
   Item,
   ItemActions,
@@ -63,7 +67,7 @@ function formatCount(value: number): string {
 
 function LoadingStatCard() {
   return (
-    <Card className="border-border bg-card shadow-sm">
+    <Card>
       <CardContent aria-busy="true" className="p-6">
         <div className="flex items-center justify-between pb-2">
           <Skeleton className="h-3 w-24" />
@@ -90,7 +94,7 @@ function StatCard({
   valueClassName?: string;
 }) {
   return (
-    <Card className="border-border bg-card text-card-foreground shadow-sm">
+    <Card>
       <CardContent className="p-6">
         <div className="flex flex-row items-center justify-between pb-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -242,7 +246,7 @@ function AutomationRulesEmptyState({
   title: string;
 }) {
   return (
-    <Empty className="border-0 py-14">
+    <Empty className="py-14">
       <EmptyHeader>
         <EmptyMedia variant="icon">{icon}</EmptyMedia>
         <EmptyTitle>{title}</EmptyTitle>
@@ -265,22 +269,15 @@ function AutomationRuleRow({
 
   return (
     <Fragment key={rule.id ?? `${rule.name}-${index}`}>
-      <Item
-        className="flex-nowrap rounded-none border-0"
-        role="listitem"
-        size="default"
-      >
-        <ItemMedia
-          className="size-9 rounded-lg border border-border bg-muted text-muted-foreground"
-          variant="icon"
-        >
+      <Item role="listitem" size="default">
+        <ItemMedia variant="icon">
           <Zap aria-hidden="true" className="size-4" />
         </ItemMedia>
         <ItemContent className="min-w-0">
           <ItemTitle className="max-w-full truncate font-semibold">
             {rule.name}
           </ItemTitle>
-          <ItemDescription className="truncate text-xs text-muted-foreground">
+          <ItemDescription className="truncate text-xs">
             Trigger: {formatTriggerKind(rule.trigger.kind)}
           </ItemDescription>
         </ItemContent>
@@ -376,11 +373,11 @@ function AutomationRulesCard({
 
   return (
     <motion.div
-      className="md:col-span-4"
+      className="min-w-0 md:col-span-4"
       {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT * 4, 12)}
     >
-      <Card className="border-border bg-card shadow-sm">
-        <CardHeader className="flex flex-col gap-4 border-b border-border sm:flex-row sm:items-center sm:justify-between">
+      <Card>
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="text-base font-semibold">
               Automation Rules
@@ -389,23 +386,23 @@ function AutomationRulesCard({
               Rules configured for Mission Control automations.
             </CardDescription>
           </div>
-          <div className="relative w-full sm:w-56">
+          <div className="w-full sm:w-56">
             <Label className="sr-only" htmlFor="automation-rule-filter">
               Filter automation rules
             </Label>
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground"
-            />
-            <Input
-              className="h-8 bg-background pl-8 text-xs"
-              disabled={isLoading || isBlocked || allRuleCount === 0}
-              id="automation-rule-filter"
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Filter rules..."
-              type="search"
-              value={search}
-            />
+            <InputGroup>
+              <InputGroupAddon>
+                <Search aria-hidden="true" className="size-3.5" />
+              </InputGroupAddon>
+              <InputGroupInput
+                disabled={isLoading || isBlocked || allRuleCount === 0}
+                id="automation-rule-filter"
+                onChange={(event) => onSearchChange(event.target.value)}
+                placeholder="Filter rules..."
+                type="search"
+                value={search}
+              />
+            </InputGroup>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -433,11 +430,11 @@ function IntegrationTelemetryCard({
 
   return (
     <motion.div
-      className="md:col-span-3"
+      className="min-w-0 md:col-span-3"
       {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT * 5, 12)}
     >
-      <Card className="border-border bg-card shadow-sm">
-        <CardHeader className="border-b border-border">
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base font-semibold">
             Connection Telemetry
           </CardTitle>
@@ -494,14 +491,14 @@ function AutomationBestPracticesCard() {
 
   return (
     <motion.div {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT * 6, 12)}>
-      <Card className="border-border bg-card text-left">
+      <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <CardTitle className="text-sm font-semibold uppercase tracking-wide">
             Automation Guardrails
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <ul className="ml-2 list-inside list-disc space-y-1">
+        <CardContent className="space-y-2">
+          <ul className="ml-2 list-inside list-disc space-y-1 text-sm text-muted-foreground">
             <li>
               Use{" "}
               <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">

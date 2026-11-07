@@ -108,13 +108,12 @@ export function AutomationDryRunPreview({
         <Button
           type="button"
           variant="outline"
-          size="sm"
+          size="xs"
           disabled={rows.length === 0}
           onClick={() => {
             const next = rows[Math.floor(Math.random() * rows.length)];
             if (next) setSelectedConversationId(next.id);
           }}
-          className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
         >
           Pick another
         </Button>
@@ -130,7 +129,6 @@ export function AutomationDryRunPreview({
         }}
         disabled={rows.length === 0}
         aria-label="Conversation to test"
-        className="h-9"
         placeholder="Choose a conversation to test"
       />
 

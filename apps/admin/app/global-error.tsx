@@ -24,7 +24,7 @@ export default function GlobalError({
         <title>Admin error</title>
         <main className="flex min-h-dvh items-center justify-center p-6">
           <section className="w-full max-w-110 rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
-            <p className="mb-3 text-xs font-extrabold uppercase tracking-[0.14em] text-muted-foreground">
+            <p className="mb-3 text-xs font-extrabold uppercase tracking-widest text-muted-foreground">
               Mission Control
             </p>
             <h1 className="mb-3 text-3xl font-semibold">
