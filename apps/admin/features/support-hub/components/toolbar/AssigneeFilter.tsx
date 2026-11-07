@@ -37,34 +37,33 @@ export function AssigneeFilter({ value, onValueChange }: AssigneeFilterProps) {
   };
 
   return (
-    <SearchableSelect
-      renderOption={(option) => {
-        const agent = agents.find((entry) => entry.id === option.value);
-        return agent ? (
-          <span className="flex items-center gap-2">
-            <Avatar className="size-5">
-              <AvatarImage src={agent.avatarUrl ?? undefined} alt="" />
-              <AvatarFallback className="text-xs">
-                {agent.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <span>{agent.name}</span>
-          </span>
-        ) : (
-          option.label
-        );
-      }}
-      items={[
-        { value: ANY_VALUE, label: "Any assignee" },
-        { value: "me", label: "Assigned to me" },
-        { value: "unassigned", label: "Unassigned" },
-        ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
-      ]}
-      value={selectValue}
-      onValueChange={handleChange}
-      aria-label="Assignee filter"
-      className="w-45"
-      placeholder="Any assignee"
-    />
+    <div className="w-45">
+      <SearchableSelect
+        renderOption={(option) => {
+          const agent = agents.find((entry) => entry.id === option.value);
+          return agent ? (
+            <span className="flex items-center gap-2">
+              <Avatar className="size-5">
+                <AvatarImage src={agent.avatarUrl ?? undefined} alt="" />
+                <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <span>{agent.name}</span>
+            </span>
+          ) : (
+            option.label
+          );
+        }}
+        items={[
+          { value: ANY_VALUE, label: "Any assignee" },
+          { value: "me", label: "Assigned to me" },
+          { value: "unassigned", label: "Unassigned" },
+          ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
+        ]}
+        value={selectValue}
+        onValueChange={handleChange}
+        aria-label="Assignee filter"
+        placeholder="Any assignee"
+      />
+    </div>
   );
 }

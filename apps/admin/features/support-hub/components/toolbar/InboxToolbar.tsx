@@ -42,30 +42,32 @@ export function InboxToolbar() {
 
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <InputGroup className="w-full max-w-md">
-        <InputGroupAddon>
-          <Search aria-hidden="true" />
-        </InputGroupAddon>
-        <InputGroupInput
-          value={searchDraft}
-          onChange={(event) => setSearchDraft(event.target.value)}
-          placeholder="Search by donor, subject, or email..."
-          aria-label="Search conversations"
-        />
-        {searchDraft.length > 0 ? (
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Clear search"
-              onClick={() => setSearchDraft("")}
-            >
-              <X aria-hidden="true" />
-            </InputGroupButton>
+      <div className="w-full max-w-md">
+        <InputGroup>
+          <InputGroupAddon>
+            <Search aria-hidden="true" />
           </InputGroupAddon>
-        ) : null}
-      </InputGroup>
+          <InputGroupInput
+            value={searchDraft}
+            onChange={(event) => setSearchDraft(event.target.value)}
+            placeholder="Search by donor, subject, or email..."
+            aria-label="Search conversations"
+          />
+          {searchDraft.length > 0 ? (
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Clear search"
+                onClick={() => setSearchDraft("")}
+              >
+                <X aria-hidden="true" />
+              </InputGroupButton>
+            </InputGroupAddon>
+          ) : null}
+        </InputGroup>
+      </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <StatusFilter

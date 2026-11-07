@@ -119,64 +119,68 @@ export function SlaPolicyForm({
         description="Target minutes from inbound email to first agent reply."
         htmlFor="sla-first"
       >
-        <Input
-          id="sla-first"
-          type="number"
-          min={1}
-          value={first}
-          onChange={(event) => setFirst(Number(event.target.value))}
-          className="max-w-35 font-mono"
-        />
+        <div className="max-w-35">
+          <Input
+            id="sla-first"
+            type="number"
+            min={1}
+            value={first}
+            onChange={(event) => setFirst(Number(event.target.value))}
+          />
+        </div>
       </SettingsRow>
       <SettingsRow
         label="Next response (min)"
         description="Target minutes between subsequent replies."
         htmlFor="sla-next"
       >
-        <Input
-          id="sla-next"
-          type="number"
-          min={1}
-          value={next}
-          onChange={(event) => setNext(Number(event.target.value))}
-          className="max-w-35 font-mono"
-        />
+        <div className="max-w-35">
+          <Input
+            id="sla-next"
+            type="number"
+            min={1}
+            value={next}
+            onChange={(event) => setNext(Number(event.target.value))}
+          />
+        </div>
       </SettingsRow>
       <SettingsRow
         label="Resolution (min)"
         description="Target minutes from inbound to resolution."
         htmlFor="sla-resolution"
       >
-        <Input
-          id="sla-resolution"
-          type="number"
-          min={1}
-          value={resolution}
-          onChange={(event) => setResolution(Number(event.target.value))}
-          className="max-w-35 font-mono"
-        />
+        <div className="max-w-35">
+          <Input
+            id="sla-resolution"
+            type="number"
+            min={1}
+            value={resolution}
+            onChange={(event) => setResolution(Number(event.target.value))}
+          />
+        </div>
       </SettingsRow>
       <SettingsRow
         control
         label="Business hours"
         description="SLA timers pause outside of these hours when set."
       >
-        <SearchableSelect
-          items={[
-            { value: "none", label: "24/7 coverage" },
-            ...(businessHours.data ?? []).map((row) => ({
-              value: row.id,
-              label: row.name,
-            })),
-          ]}
-          value={businessHoursId ?? "none"}
-          onValueChange={(value) => {
-            if (value === null) return;
-            setBusinessHoursId(value === "none" ? null : value);
-          }}
-          aria-label="Business hours"
-          className="h-9 max-w-sm"
-        />
+        <div className="max-w-sm">
+          <SearchableSelect
+            items={[
+              { value: "none", label: "24/7 coverage" },
+              ...(businessHours.data ?? []).map((row) => ({
+                value: row.id,
+                label: row.name,
+              })),
+            ]}
+            value={businessHoursId ?? "none"}
+            onValueChange={(value) => {
+              if (value === null) return;
+              setBusinessHoursId(value === "none" ? null : value);
+            }}
+            aria-label="Business hours"
+          />
+        </div>
       </SettingsRow>
       <SettingsRow
         label="Default"
@@ -195,13 +199,7 @@ export function SlaPolicyForm({
       </SettingsRow>
 
       <div className="flex items-center justify-end gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onCancel}
-          className="rounded-lg text-xs"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
       </div>

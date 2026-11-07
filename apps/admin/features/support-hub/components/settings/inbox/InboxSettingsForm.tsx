@@ -140,21 +140,22 @@ export function InboxSettingsForm() {
         description="Resolve conversations that are pending with no reply for this many days."
       >
         <div className="flex items-center gap-2">
-          <Input
-            type="number"
-            min={1}
-            max={365}
-            value={draft.autoResolveAfterDays ?? ""}
-            onChange={(event) =>
-              setDraft({
-                ...draft,
-                autoResolveAfterDays: event.target.value
-                  ? Number(event.target.value)
-                  : null,
-              })
-            }
-            className="w-30 font-mono"
-          />
+          <div className="w-30">
+            <Input
+              type="number"
+              min={1}
+              max={365}
+              value={draft.autoResolveAfterDays ?? ""}
+              onChange={(event) =>
+                setDraft({
+                  ...draft,
+                  autoResolveAfterDays: event.target.value
+                    ? Number(event.target.value)
+                    : null,
+                })
+              }
+            />
+          </div>
           <span className="text-xs text-muted-foreground">days</span>
         </div>
       </SettingsRow>
@@ -203,19 +204,20 @@ function InboxDefaultSelection({
 }) {
   return (
     <SettingsRow control label={label} description={description}>
-      <SearchableSelect
-        items={[
-          { value: "none", label: emptyLabel },
-          ...options.map((row) => ({ value: row.id, label: row.name })),
-        ]}
-        value={value ?? "none"}
-        onValueChange={(nextValue) => {
-          if (nextValue === null) return;
-          onChange(nextValue === "none" ? null : nextValue);
-        }}
-        aria-label={label}
-        className="h-9 max-w-sm"
-      />
+      <div className="max-w-sm">
+        <SearchableSelect
+          items={[
+            { value: "none", label: emptyLabel },
+            ...options.map((row) => ({ value: row.id, label: row.name })),
+          ]}
+          value={value ?? "none"}
+          onValueChange={(nextValue) => {
+            if (nextValue === null) return;
+            onChange(nextValue === "none" ? null : nextValue);
+          }}
+          aria-label={label}
+        />
+      </div>
     </SettingsRow>
   );
 }

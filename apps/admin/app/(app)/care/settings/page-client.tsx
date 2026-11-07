@@ -4,7 +4,7 @@ import { siteConfig } from "@asym/config/site-client";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -88,14 +88,14 @@ const ALERT_PREFERENCES: AlertPreference[] = [
 function RegionalLocalizationCard() {
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="border-b border-border bg-muted/30">
+      <CardHeader>
         <div className="flex items-center gap-3">
           <Globe className="size-5 text-muted-foreground" />
           <div>
-            <CardTitle className="text-lg font-semibold text-foreground">
+            <CardTitle className="text-lg font-semibold">
               Regional Localization
             </CardTitle>
-            <CardDescription className="text-xs font-medium text-muted-foreground">
+            <CardDescription className="text-xs font-medium">
               Define your default focus area and timezone.
             </CardDescription>
           </div>
@@ -104,12 +104,7 @@ function RegionalLocalizationCard() {
       <CardContent className="pt-6 space-y-6">
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2 text-left">
-            <Label
-              htmlFor="region"
-              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1"
-            >
-              Default Region
-            </Label>
+            <Label htmlFor="region">Default Region</Label>
             <Select
               items={[
                 { value: "africa", label: "Africa" },
@@ -131,12 +126,7 @@ function RegionalLocalizationCard() {
             </Select>
           </div>
           <div className="space-y-2 text-left">
-            <Label
-              htmlFor="timezone"
-              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1"
-            >
-              My Timezone
-            </Label>
+            <Label htmlFor="timezone">My Timezone</Label>
             <Select
               items={[
                 { value: "utc-8", label: "Pacific Time (PT)" },
@@ -166,14 +156,14 @@ function RegionalLocalizationCard() {
 function ConnectedServicesCard() {
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="border-b border-border bg-muted/30">
+      <CardHeader>
         <div className="flex items-center gap-3">
           <LinkIcon className="size-5 text-muted-foreground" />
           <div>
-            <CardTitle className="text-lg font-semibold text-foreground">
+            <CardTitle className="text-lg font-semibold">
               Connected Services
             </CardTitle>
-            <CardDescription className="text-xs font-medium text-muted-foreground">
+            <CardDescription className="text-xs font-medium">
               Sync check-ins and appointments with external tools.
             </CardDescription>
           </div>
@@ -219,14 +209,14 @@ function AlertPreferencesCard() {
   const preferenceId = React.useId();
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="border-b border-border bg-muted/30">
+      <CardHeader>
         <div className="flex items-center gap-3">
           <Bell className="size-5 text-muted-foreground" />
           <div>
-            <CardTitle className="text-lg font-semibold text-foreground">
+            <CardTitle className="text-lg font-semibold">
               Alert Preferences
             </CardTitle>
-            <CardDescription className="text-xs font-medium text-muted-foreground">
+            <CardDescription className="text-xs font-medium">
               Manage how you receive wellness and crisis updates.
             </CardDescription>
           </div>
@@ -241,7 +231,6 @@ function AlertPreferencesCard() {
             <div className="space-y-0.5 text-left">
               <Label
                 htmlFor={`${preferenceId}-${pref.label.replace(/\W+/g, "-")}`}
-                className="text-sm font-semibold text-foreground"
               >
                 {pref.label}
               </Label>
@@ -270,42 +259,46 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
   const pendingActionLabelId = useId();
 
   return (
-    <Card className="sticky top-6 overflow-hidden">
-      <CardContent className="p-6 space-y-5">
-        <div className="space-y-2">
-          <h3 className="font-semibold text-xl tracking-tight">Save Changes</h3>
-          <p className="text-xs font-medium text-muted-foreground leading-relaxed">
-            Update your global preferences. Changes apply immediately across the
-            Member Care module.
-          </p>
-        </div>
-        <Button
-          aria-labelledby={`${pendingActionLabelId}-0`}
-          focusableWhenDisabled={saving}
-          onClick={onSave}
-          disabled={saving}
-          className="w-full"
-        >
-          <span id={`${pendingActionLabelId}-0`} className="sr-only">
-            {saving ? "Updating..." : "Update Settings"}
-          </span>
-          {saving ? (
-            "Updating..."
-          ) : (
-            <>
-              <Save className="mr-2 size-4" /> Update Settings
-            </>
-          )}
-        </Button>
-        <div className="pt-5 border-t border-border flex items-start gap-3">
-          <Shield className="size-4 text-muted-foreground shrink-0" />
-          <p className="text-xs font-medium text-muted-foreground text-left leading-relaxed">
-            Your data access is restricted to authorized personnel records.
-            Pastoral notes are stored securely.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="sticky top-6">
+      <Card className="overflow-hidden">
+        <CardContent className="p-6 space-y-5">
+          <div className="space-y-2">
+            <h3 className="font-semibold text-xl tracking-tight">
+              Save Changes
+            </h3>
+            <p className="text-xs font-medium text-muted-foreground leading-relaxed">
+              Update your global preferences. Changes apply immediately across
+              the Member Care module.
+            </p>
+          </div>
+          <Button
+            aria-labelledby={`${pendingActionLabelId}-0`}
+            focusableWhenDisabled={saving}
+            onClick={onSave}
+            disabled={saving}
+            className="w-full"
+          >
+            <span id={`${pendingActionLabelId}-0`} className="sr-only">
+              {saving ? "Updating..." : "Update Settings"}
+            </span>
+            {saving ? (
+              "Updating..."
+            ) : (
+              <>
+                <Save className="mr-2 size-4" /> Update Settings
+              </>
+            )}
+          </Button>
+          <div className="pt-5 border-t border-border flex items-start gap-3">
+            <Shield className="size-4 text-muted-foreground shrink-0" />
+            <p className="text-xs font-medium text-muted-foreground text-left leading-relaxed">
+              Your data access is restricted to authorized personnel records.
+              Pastoral notes are stored securely.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -338,20 +331,16 @@ function ModuleInfoCard() {
                 {siteConfig.name}
               </span>
             </div>
-            <a
+            <ButtonLink
+              variant="outline"
               href={siteConfig.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={cn(
-                buttonVariants({
-                  variant: "outline",
-                  className: "group w-full",
-                }),
-              )}
+              className="w-full"
             >
               Visit Home Page
-              <ExternalLink className="ml-2 size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </a>
+              <ExternalLink className="ml-2 size-3" />
+            </ButtonLink>
           </div>
         </div>
       </CardContent>

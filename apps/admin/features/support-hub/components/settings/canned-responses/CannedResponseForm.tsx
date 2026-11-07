@@ -93,7 +93,6 @@ export function CannedResponseForm({
           onChange={(event) => setShortCode(event.target.value)}
           maxLength={40}
           placeholder="receipt"
-          className="font-mono"
         />
       </SettingsRow>
       <SettingsRow
@@ -121,13 +120,7 @@ export function CannedResponseForm({
       </SettingsRow>
 
       <div className="flex items-center justify-end gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onCancel}
-          className="rounded-lg text-xs"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
       </div>

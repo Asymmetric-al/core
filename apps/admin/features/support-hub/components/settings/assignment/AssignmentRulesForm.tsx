@@ -94,22 +94,26 @@ export function AssignmentRulesForm() {
         label="Fallback agent"
         description="Pick an agent to receive a conversation if round-robin can't find anyone. (Applied by the Phase 7 server-side evaluator.)"
       >
-        <SearchableSelect
-          items={[
-            ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
-          ]}
-          value={fallbackAgent}
-          onValueChange={(value) => {
-            if (value === null) {
-              return;
-            }
-            setFallbackAgent(value);
-          }}
-          disabled
-          aria-label="Fallback agent"
-          className="h-9 max-w-sm"
-          placeholder="Configured in a later phase"
-        />
+        <div className="max-w-sm">
+          <SearchableSelect
+            items={[
+              ...agents.map((agent) => ({
+                value: agent.id,
+                label: agent.name,
+              })),
+            ]}
+            value={fallbackAgent}
+            onValueChange={(value) => {
+              if (value === null) {
+                return;
+              }
+              setFallbackAgent(value);
+            }}
+            disabled
+            aria-label="Fallback agent"
+            placeholder="Configured in a later phase"
+          />
+        </div>
       </SettingsRow>
       <SettingsToolbar
         isDirty={isDirty}

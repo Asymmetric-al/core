@@ -1226,11 +1226,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/support/loading.tsx:5; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:5. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:5. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "6918c4560886d6895ad2c41e5d4544ad6f61c8a589ce399db3e45fb1e60e7014",
-      "sourceFileHash": "1af9cd4c57d8513316e5728577ed2501bd4f76e535159de6494c191a34982054",
+      "sourceFileHash": "e5e64321b0639e0d515ab38a1e7605f1cd3473c6f031514f0a7c1c5ca0f72609",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1265,11 +1266,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/support/loading.tsx:6; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:6. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:6. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "3615d88649f9cd10b4d1019e2b3442bbac49ae3fa286681346a67f1de2538a33",
-      "sourceFileHash": "1af9cd4c57d8513316e5728577ed2501bd4f76e535159de6494c191a34982054",
+      "sourceFileHash": "e5e64321b0639e0d515ab38a1e7605f1cd3473c6f031514f0a7c1c5ca0f72609",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1304,11 +1306,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/support/loading.tsx:11; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:11. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:11. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "bb59b2406b38ac05fa6c31381ef0fa5ce15c5ea0b82965718011d9074f42c933",
-      "sourceFileHash": "1af9cd4c57d8513316e5728577ed2501bd4f76e535159de6494c191a34982054",
+      "sourceFileHash": "e5e64321b0639e0d515ab38a1e7605f1cd3473c6f031514f0a7c1c5ca0f72609",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1343,11 +1346,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/support/loading.tsx:12; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:12. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:12. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "8a8734624f51a5af0981bb94d2453265c8dcf6786685839c0e2419cd16d5796d",
-      "sourceFileHash": "1af9cd4c57d8513316e5728577ed2501bd4f76e535159de6494c191a34982054",
+      "sourceFileHash": "e5e64321b0639e0d515ab38a1e7605f1cd3473c6f031514f0a7c1c5ca0f72609",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1382,11 +1386,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/support/loading.tsx:17; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:17. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:17. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "c77726edc1e5e83c07f7849e0af7db3a13822f8dd5fbab6de2f61ab53d540631",
-      "sourceFileHash": "1af9cd4c57d8513316e5728577ed2501bd4f76e535159de6494c191a34982054",
+      "sourceFileHash": "e5e64321b0639e0d515ab38a1e7605f1cd3473c6f031514f0a7c1c5ca0f72609",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1421,11 +1426,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/support/loading.tsx:27; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:27. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:27. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "3c26ac1aaca326f825facfe6fe971051a6eac3f3fa461c13e74a77a977dfbabe",
-      "sourceFileHash": "1af9cd4c57d8513316e5728577ed2501bd4f76e535159de6494c191a34982054",
+      "sourceFileHash": "e5e64321b0639e0d515ab38a1e7605f1cd3473c6f031514f0a7c1c5ca0f72609",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1445,11 +1451,11 @@
       "line": 33,
       "column": 11,
       "offset": 1283,
-      "length": 79,
+      "length": 100,
       "endLine": 33,
       "category": "Accessibility",
       "matchByOccurrence": true,
-      "fingerprint": "9270479b8d3c54458c4f09acc5227fe54cb9ad9d67857291fa7500ec101b4c8b",
+      "fingerprint": "80f0cec02af2636a0658b628e3fa47367f69a47aa9632d7c3a6ea72f8b769133",
       "id": "app/(app)/support/loading.tsx::33:11::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
       "normalizedFilePath": "app/(app)/support/loading.tsx",
       "tags": [],
@@ -1460,11 +1466,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/support/loading.tsx:33; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:33. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:33. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): the same animate-pulse skeleton block now also carries xl flex sizing classes from the grid-to-flex layout change. It is still a plain Tailwind pulse covered by Core's global reduced-motion policy; context, whole-file and supporting hashes are rebound after review."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
-      "sourceContextHash": "9270479b8d3c54458c4f09acc5227fe54cb9ad9d67857291fa7500ec101b4c8b",
-      "sourceFileHash": "1af9cd4c57d8513316e5728577ed2501bd4f76e535159de6494c191a34982054",
+      "sourceContextHash": "80f0cec02af2636a0658b628e3fa47367f69a47aa9632d7c3a6ea72f8b769133",
+      "sourceFileHash": "e5e64321b0639e0d515ab38a1e7605f1cd3473c6f031514f0a7c1c5ca0f72609",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1483,7 +1490,7 @@
       "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
       "line": 35,
       "column": 13,
-      "offset": 1413,
+      "offset": 1454,
       "length": 79,
       "endLine": 35,
       "category": "Accessibility",
@@ -1499,11 +1506,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/support/loading.tsx:35; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:35. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:35. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "396e30688306fa6725abdaeedff7a84e74e35530f20b6337ed0eae925e00672d",
-      "sourceFileHash": "1af9cd4c57d8513316e5728577ed2501bd4f76e535159de6494c191a34982054",
+      "sourceFileHash": "e5e64321b0639e0d515ab38a1e7605f1cd3473c6f031514f0a7c1c5ca0f72609",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1522,7 +1530,7 @@
       "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
       "line": 36,
       "column": 13,
-      "offset": 1505,
+      "offset": 1546,
       "length": 79,
       "endLine": 36,
       "category": "Accessibility",
@@ -1538,11 +1546,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/support/loading.tsx:36; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:36. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/support/loading.tsx:36. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "8615c83251ddc7cc082dfb3226b5c78764f05da3ce09b15e659a6c43dce3e858",
-      "sourceFileHash": "1af9cd4c57d8513316e5728577ed2501bd4f76e535159de6494c191a34982054",
+      "sourceFileHash": "e5e64321b0639e0d515ab38a1e7605f1cd3473c6f031514f0a7c1c5ca0f72609",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -1965,274 +1974,6 @@
       }
     },
     {
-      "filePath": "features/mission-control/care/components/CareDashboard.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-ungated-tailwind-animation",
-      "severity": "warning",
-      "title": "Tailwind animation ignores reduced motion",
-      "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
-      "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 178,
-      "column": 17,
-      "offset": 5730,
-      "length": 68,
-      "endLine": 178,
-      "category": "Accessibility",
-      "matchByOccurrence": true,
-      "fingerprint": "bebba8b9d759f75f2164761f6c31dda40698885b480883865e7f3df3dd7c5013",
-      "id": "features/mission-control/care/components/CareDashboard.tsx::178:17::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
-      "normalizedFilePath": "features/mission-control/care/components/CareDashboard.tsx",
-      "tags": [],
-      "target": "apps/admin",
-      "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/CareDashboard.tsx:178: exact animation utility from this diagnostic.",
-        "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
-        "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/CareDashboard.tsx:178; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/CareDashboard.tsx:178. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
-      "sourceContextHash": "bebba8b9d759f75f2164761f6c31dda40698885b480883865e7f3df3dd7c5013",
-      "sourceFileHash": "e075f7c217bd1be9e9b4031b9402c8257d147f8cdf440d8e1a5bb94116128932",
-      "evidenceFileHashes": {
-        "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
-        "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/missionary/app/globals.css": "d485b63268c150354ceb803a7ec4194be2b15efe44d9018d1df0b5797171190f",
-        "packages/missionary/styles.css": "3ca5d4c35aaabc57dadc0f65f32176aaedbe1c2130824078275b56b4ed630d55"
-      }
-    },
-    {
-      "filePath": "features/mission-control/care/components/CareTools.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-cramped-container-padding",
-      "severity": "warning",
-      "title": "Bounded text container has cramped padding",
-      "message": "This visible container leaves only 6px around its text. Use at least 8px of padding.",
-      "help": "Give text at least 8px of space inside a visible border or colored surface.",
-      "line": 70,
-      "column": 11,
-      "offset": 2161,
-      "length": 194,
-      "endLine": 70,
-      "category": "Accessibility",
-      "matchByOccurrence": true,
-      "fingerprint": "c052ff0902ba1508a11b9c0f43cc8891a3fd7b1aeb4daed60f0773f8809a0955",
-      "id": "features/mission-control/care/components/CareTools.tsx::70:11::react-doctor/no-cramped-container-padding::9b3b7ced65b58ba56d75427e89598ee974d2ced72ff9e8d6b396710cc523aff2",
-      "normalizedFilePath": "features/mission-control/care/components/CareTools.tsx",
-      "tags": ["design", "test-noise"],
-      "target": "apps/admin",
-      "reason": "This exact element is a compact keyboard keycap hint, not a body-copy container. Its 6px horizontal inset exceeds the shared Kbd contract (px-1), while the fixed height centers the short glyph.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/CareTools.tsx:69-72: one keyboard accelerator glyph, fixed h-6 and px-1.5.",
-        "SOURCE packages/ui/components/shadcn/kbd.tsx:3-13: shared keycap uses h-5, px-1, and text-xs.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/CareTools.tsx:70; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/CareTools.tsx:70. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if visible prose is inserted into this container or the keycap/icon-control geometry contract changes.",
-      "sourceContextHash": "c052ff0902ba1508a11b9c0f43cc8891a3fd7b1aeb4daed60f0773f8809a0955",
-      "sourceFileHash": "4f6ee44f34aa9940b6f457d6d24ebc450d5398a24c9540024c476caa8ea123eb",
-      "evidenceFileHashes": {
-        "packages/ui/components/shadcn/kbd.tsx": "18a41f27e84f79bba58bdace8dc820d6d2165a3690dfcc8d60517d23cf515b15"
-      }
-    },
-    {
-      "filePath": "features/mission-control/care/components/PersonnelProfile.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-ungated-tailwind-animation",
-      "severity": "warning",
-      "title": "Tailwind animation ignores reduced motion",
-      "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
-      "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 167,
-      "column": 5,
-      "offset": 5045,
-      "length": 101,
-      "endLine": 170,
-      "category": "Accessibility",
-      "matchByOccurrence": true,
-      "fingerprint": "6cb1dbf227c19e41a324ef69f9c3ad977f76ddff828ca70e2fe2a527dc5b632b",
-      "id": "features/mission-control/care/components/PersonnelProfile.tsx::167:5::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
-      "normalizedFilePath": "features/mission-control/care/components/PersonnelProfile.tsx",
-      "tags": [],
-      "target": "apps/admin",
-      "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:169: exact animation utility from this diagnostic.",
-        "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
-        "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:169; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:167. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
-      "sourceContextHash": "50938d12e6f679d6292207dab4fa610d0f3ff9dafd823ca87ca2aad2396cf061",
-      "sourceFileHash": "98d8303689be7189dadb5d4e021a8ebc4b591ccd0de513e2013e341521ae1e71",
-      "evidenceFileHashes": {
-        "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
-        "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/missionary/app/globals.css": "d485b63268c150354ceb803a7ec4194be2b15efe44d9018d1df0b5797171190f",
-        "packages/missionary/styles.css": "3ca5d4c35aaabc57dadc0f65f32176aaedbe1c2130824078275b56b4ed630d55"
-      }
-    },
-    {
-      "filePath": "features/mission-control/care/components/PersonnelProfile.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-ungated-tailwind-animation",
-      "severity": "warning",
-      "title": "Tailwind animation ignores reduced motion",
-      "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
-      "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 356,
-      "column": 5,
-      "offset": 12566,
-      "length": 94,
-      "endLine": 359,
-      "category": "Accessibility",
-      "matchByOccurrence": true,
-      "fingerprint": "99ee5f9a1236a19ae96aa5591608dc543435e6d286a463e3a867ff556028f41c",
-      "id": "features/mission-control/care/components/PersonnelProfile.tsx::356:5::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
-      "normalizedFilePath": "features/mission-control/care/components/PersonnelProfile.tsx",
-      "tags": [],
-      "target": "apps/admin",
-      "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:358: exact animation utility from this diagnostic.",
-        "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
-        "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:358; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:356. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
-      "sourceContextHash": "df973771a8f7c0119391e5a690b9380b6bceb2eb7c62f67c7a3fe7e1c3dc4eb7",
-      "sourceFileHash": "98d8303689be7189dadb5d4e021a8ebc4b591ccd0de513e2013e341521ae1e71",
-      "evidenceFileHashes": {
-        "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
-        "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/missionary/app/globals.css": "d485b63268c150354ceb803a7ec4194be2b15efe44d9018d1df0b5797171190f",
-        "packages/missionary/styles.css": "3ca5d4c35aaabc57dadc0f65f32176aaedbe1c2130824078275b56b4ed630d55"
-      }
-    },
-    {
-      "filePath": "features/mission-control/care/components/PersonnelProfile.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-ungated-tailwind-animation",
-      "severity": "warning",
-      "title": "Tailwind animation ignores reduced motion",
-      "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
-      "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 446,
-      "column": 5,
-      "offset": 15863,
-      "length": 75,
-      "endLine": 446,
-      "category": "Accessibility",
-      "matchByOccurrence": true,
-      "fingerprint": "874dbeceb0767ebf25e0100eb8a6c021112bab430269b86dacf9357be6bba66b",
-      "id": "features/mission-control/care/components/PersonnelProfile.tsx::446:5::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
-      "normalizedFilePath": "features/mission-control/care/components/PersonnelProfile.tsx",
-      "tags": [],
-      "target": "apps/admin",
-      "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:447: exact animation utility from this diagnostic.",
-        "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
-        "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:448; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:446. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
-      "sourceContextHash": "874dbeceb0767ebf25e0100eb8a6c021112bab430269b86dacf9357be6bba66b",
-      "sourceFileHash": "98d8303689be7189dadb5d4e021a8ebc4b591ccd0de513e2013e341521ae1e71",
-      "evidenceFileHashes": {
-        "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
-        "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/missionary/app/globals.css": "d485b63268c150354ceb803a7ec4194be2b15efe44d9018d1df0b5797171190f",
-        "packages/missionary/styles.css": "3ca5d4c35aaabc57dadc0f65f32176aaedbe1c2130824078275b56b4ed630d55"
-      }
-    },
-    {
-      "filePath": "features/mission-control/care/components/PersonnelProfile.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-ungated-tailwind-animation",
-      "severity": "warning",
-      "title": "Tailwind animation ignores reduced motion",
-      "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
-      "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 540,
-      "column": 5,
-      "offset": 19246,
-      "length": 101,
-      "endLine": 543,
-      "category": "Accessibility",
-      "matchByOccurrence": true,
-      "fingerprint": "ba04be93ca3c36f2c30a013a7749c1b1f180b51a0d3dc90cbafdd51eaae1afd2",
-      "id": "features/mission-control/care/components/PersonnelProfile.tsx::540:5::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
-      "normalizedFilePath": "features/mission-control/care/components/PersonnelProfile.tsx",
-      "tags": [],
-      "target": "apps/admin",
-      "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:540: exact animation utility from this diagnostic.",
-        "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
-        "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:541; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:540. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
-      "sourceContextHash": "e1ce8caca87d165247bcf78f934b9a0fc37bb1e8a45470e8e79fb3f432a49da7",
-      "sourceFileHash": "98d8303689be7189dadb5d4e021a8ebc4b591ccd0de513e2013e341521ae1e71",
-      "evidenceFileHashes": {
-        "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
-        "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/missionary/app/globals.css": "d485b63268c150354ceb803a7ec4194be2b15efe44d9018d1df0b5797171190f",
-        "packages/missionary/styles.css": "3ca5d4c35aaabc57dadc0f65f32176aaedbe1c2130824078275b56b4ed630d55"
-      }
-    },
-    {
-      "filePath": "features/mission-control/care/components/PersonnelProfile.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-ungated-tailwind-animation",
-      "severity": "warning",
-      "title": "Tailwind animation ignores reduced motion",
-      "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
-      "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 605,
-      "column": 5,
-      "offset": 21323,
-      "length": 95,
-      "endLine": 608,
-      "category": "Accessibility",
-      "matchByOccurrence": true,
-      "fingerprint": "7f6e3a401f0c9a01eb380412b7fda67ab93c6c1917d53a01590c0bf615a484f6",
-      "id": "features/mission-control/care/components/PersonnelProfile.tsx::605:5::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
-      "normalizedFilePath": "features/mission-control/care/components/PersonnelProfile.tsx",
-      "tags": [],
-      "target": "apps/admin",
-      "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:603: exact animation utility from this diagnostic.",
-        "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
-        "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:604; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/PersonnelProfile.tsx:605. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
-      "sourceContextHash": "fe75681912f6865e1232a04e3b1556e431c74d8a98ad3ec388ce4dbc62611ecc",
-      "sourceFileHash": "98d8303689be7189dadb5d4e021a8ebc4b591ccd0de513e2013e341521ae1e71",
-      "evidenceFileHashes": {
-        "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
-        "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/missionary/app/globals.css": "d485b63268c150354ceb803a7ec4194be2b15efe44d9018d1df0b5797171190f",
-        "packages/missionary/styles.css": "3ca5d4c35aaabc57dadc0f65f32176aaedbe1c2130824078275b56b4ed630d55"
-      }
-    },
-    {
       "filePath": "features/mission-control/care/components/UI.tsx",
       "plugin": "react-doctor",
       "rule": "jsx-props-no-spreading",
@@ -2304,6 +2045,81 @@
         "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
         "apps/missionary/app/globals.css": "d485b63268c150354ceb803a7ec4194be2b15efe44d9018d1df0b5797171190f",
         "packages/missionary/styles.css": "3ca5d4c35aaabc57dadc0f65f32176aaedbe1c2130824078275b56b4ed630d55"
+      }
+    },
+    {
+      "filePath": "features/mission-control/care/components/CareDashboard.tsx",
+      "plugin": "react-doctor",
+      "rule": "no-ungated-tailwind-animation",
+      "severity": "warning",
+      "title": "Tailwind animation ignores reduced motion",
+      "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
+      "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
+      "line": 169,
+      "column": 19,
+      "offset": 5259,
+      "length": 68,
+      "endLine": 169,
+      "category": "Accessibility",
+      "matchByOccurrence": true,
+      "fingerprint": "bebba8b9d759f75f2164761f6c31dda40698885b480883865e7f3df3dd7c5013",
+      "id": "features/mission-control/care/components/CareDashboard.tsx::169:19::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
+      "normalizedFilePath": "features/mission-control/care/components/CareDashboard.tsx",
+      "tags": [],
+      "target": "apps/admin",
+      "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
+      "evidence": [
+        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/CareDashboard.tsx:178: exact animation utility from this diagnostic.",
+        "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
+        "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
+        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/CareDashboard.tsx:178; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/CareDashboard.tsx:178. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
+      ],
+      "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
+      "sourceContextHash": "bebba8b9d759f75f2164761f6c31dda40698885b480883865e7f3df3dd7c5013",
+      "sourceFileHash": "1029d5d7ba2deae8815e296e2700766e101894b343649ab4bda9ce2b5a9c57d0",
+      "evidenceFileHashes": {
+        "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
+        "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
+        "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
+        "apps/missionary/app/globals.css": "d485b63268c150354ceb803a7ec4194be2b15efe44d9018d1df0b5797171190f",
+        "packages/missionary/styles.css": "3ca5d4c35aaabc57dadc0f65f32176aaedbe1c2130824078275b56b4ed630d55"
+      }
+    },
+    {
+      "filePath": "features/mission-control/care/components/CareTools.tsx",
+      "plugin": "react-doctor",
+      "rule": "no-cramped-container-padding",
+      "severity": "warning",
+      "title": "Bounded text container has cramped padding",
+      "message": "This visible container leaves only 6px around its text. Use at least 8px of padding.",
+      "help": "Give text at least 8px of space inside a visible border or colored surface.",
+      "line": 67,
+      "column": 11,
+      "offset": 2004,
+      "length": 194,
+      "endLine": 67,
+      "category": "Accessibility",
+      "matchByOccurrence": true,
+      "fingerprint": "c052ff0902ba1508a11b9c0f43cc8891a3fd7b1aeb4daed60f0773f8809a0955",
+      "id": "features/mission-control/care/components/CareTools.tsx::67:11::react-doctor/no-cramped-container-padding::9b3b7ced65b58ba56d75427e89598ee974d2ced72ff9e8d6b396710cc523aff2",
+      "normalizedFilePath": "features/mission-control/care/components/CareTools.tsx",
+      "tags": ["design", "test-noise"],
+      "target": "apps/admin",
+      "reason": "This exact element is a compact keyboard keycap hint, not a body-copy container. Its 6px horizontal inset exceeds the shared Kbd contract (px-1), while the fixed height centers the short glyph.",
+      "evidence": [
+        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/CareTools.tsx:69-72: one keyboard accelerator glyph, fixed h-6 and px-1.5.",
+        "SOURCE packages/ui/components/shadcn/kbd.tsx:3-13: shared keycap uses h-5, px-1, and text-xs.",
+        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/CareTools.tsx:70; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/CareTools.tsx:70. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
+      ],
+      "reconsiderWhen": "Reconsider if visible prose is inserted into this container or the keycap/icon-control geometry contract changes.",
+      "sourceContextHash": "c052ff0902ba1508a11b9c0f43cc8891a3fd7b1aeb4daed60f0773f8809a0955",
+      "sourceFileHash": "8a86a4ca324415d4ba96c03684c7bd336e6f98bef4bbfb95c386462411133847",
+      "evidenceFileHashes": {
+        "packages/ui/components/shadcn/kbd.tsx": "18a41f27e84f79bba58bdace8dc820d6d2165a3690dfcc8d60517d23cf515b15"
       }
     },
     {
@@ -2565,14 +2381,14 @@
       "title": "Props spread onto element",
       "message": "You can't tell what props reach this element when you spread them.",
       "help": "List each prop explicitly so consumers can see the component API instead of receiving hidden spread props.",
-      "line": 212,
+      "line": 210,
       "column": 7,
-      "offset": 5753,
+      "offset": 5669,
       "length": 20,
-      "endLine": 212,
+      "endLine": 210,
       "category": "Maintainability",
       "fingerprint": "420db9b4426b93a2ea1c4a5926fc14afa42732ad7a02f51ce4a29c0f2c1665e9",
-      "id": "features/support-hub/components/board/BoardCard.tsx::212:7::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
+      "id": "features/support-hub/components/board/BoardCard.tsx::210:7::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
       "normalizedFilePath": "features/support-hub/components/board/BoardCard.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -2582,13 +2398,14 @@
         "SOURCE use-board-dnd.ts explicitly describes its getter props as spread-on contracts and supplies draggable, onDragStart and onDragEnd. SOURCE SupportBoardView.tsx invokes the getter and passes the resulting object to the designated owner.",
         "The forwarding preserves native DnD ownership and handler identity. This does not justify other closed local object spreads.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/support-hub/components/board/BoardCard.tsx:228; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/board/BoardCard.tsx:212. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/board/BoardCard.tsx:212. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the getter contract or ownership is retired, replaced by a different DnD adapter, or fields stop being forwarded to the designated handle/drop zone.",
       "sourceContextHash": "420db9b4426b93a2ea1c4a5926fc14afa42732ad7a02f51ce4a29c0f2c1665e9",
-      "sourceFileHash": "63f5ccfe1be56f3090c94b843373df198063ee66b99af01ae971c9135995e742",
+      "sourceFileHash": "03b3c69302f4056f2f8e37c4501f9f84da31569798361d70702e24df6eaf8330",
       "evidenceFileHashes": {
-        "apps/admin/features/support-hub/components/board/BoardCard.tsx": "63f5ccfe1be56f3090c94b843373df198063ee66b99af01ae971c9135995e742",
+        "apps/admin/features/support-hub/components/board/BoardCard.tsx": "03b3c69302f4056f2f8e37c4501f9f84da31569798361d70702e24df6eaf8330",
         "apps/admin/features/support-hub/components/board/use-board-dnd.ts": "ac69fb387b76beafe2820bcee8c863892d18c6da480ee47b06a24e77728be569",
         "apps/admin/features/support-hub/components/board/SupportBoardView.tsx": "8db614465158635ac8868ce565ba552c7cdb8a8040435c50cfe5e271866bb9d8"
       }
@@ -2618,13 +2435,14 @@
         "SOURCE use-board-dnd.ts explicitly describes its getter props as spread-on contracts and supplies onDragOver/onDragEnter/onDragLeave/onDrop and aria-dropeffect. SOURCE SupportBoardView.tsx invokes the getter and passes the resulting object to the designated owner.",
         "The forwarding preserves native DnD ownership and handler identity. This does not justify other closed local object spreads.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/support-hub/components/board/BoardColumn.tsx:58; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/board/BoardColumn.tsx:58. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/board/BoardColumn.tsx:58. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the getter contract or ownership is retired, replaced by a different DnD adapter, or fields stop being forwarded to the designated handle/drop zone.",
       "sourceContextHash": "b0538eb1cb8612cdbf00d9e99b5dce65d923c7c2ac60670c1ef13556a70a3e3a",
-      "sourceFileHash": "d47bba6d98a7b70ffe9bf561504133909ccddcd5c813b3405bf7406825dabb82",
+      "sourceFileHash": "2522829ff0349065126a57a98f0f8320644be48ee2889d4e22e68f91783fa47b",
       "evidenceFileHashes": {
-        "apps/admin/features/support-hub/components/board/BoardColumn.tsx": "d47bba6d98a7b70ffe9bf561504133909ccddcd5c813b3405bf7406825dabb82",
+        "apps/admin/features/support-hub/components/board/BoardColumn.tsx": "2522829ff0349065126a57a98f0f8320644be48ee2889d4e22e68f91783fa47b",
         "apps/admin/features/support-hub/components/board/use-board-dnd.ts": "ac69fb387b76beafe2820bcee8c863892d18c6da480ee47b06a24e77728be569",
         "apps/admin/features/support-hub/components/board/SupportBoardView.tsx": "8db614465158635ac8868ce565ba552c7cdb8a8040435c50cfe5e271866bb9d8"
       }
@@ -2691,11 +2509,12 @@
       "evidence": [
         "Current source and real-component tests below verify the stated ownership; see PR validation report for results and limits.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx:73; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx:73. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx:73. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the callback updates parent React state, transfers domain data or changes/restores focus ownership incorrectly.",
       "sourceContextHash": "6f57069256994c5d990e67fe1b49f154b083665548406b9007ce879aac9fd1c6",
-      "sourceFileHash": "a494f0d2372cdb07b9384960bec85f19adb37f01fc1cfd2eb9dbd82be6697d97",
+      "sourceFileHash": "c7503fd59fe2f98d1a0882f40b9ccf29158fe16e26cc1b1e5172072762c87b50",
       "evidenceFileHashes": {
         "apps/admin/features/support-hub/components/detail/composer/extensions/use-suggestion-renderer.tsx": "3a1c6429900f21d8168d43444ffb2a970c88dcad54f1968972f927f0c3a5e992",
         "tests/unit/apps/admin/features/support-hub/components/suggestion-list-a11y.test.tsx": "892376388e4c40faeac9b25ee2523a41215c5dd73230b864b2edf3de6e42493f",
@@ -2725,11 +2544,12 @@
       "evidence": [
         "Current source and real-component tests below verify the stated ownership; see PR validation report for results and limits.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx:73; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx:73. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx:73. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the callback updates parent React state, transfers domain data or changes/restores focus ownership incorrectly.",
       "sourceContextHash": "6f57069256994c5d990e67fe1b49f154b083665548406b9007ce879aac9fd1c6",
-      "sourceFileHash": "a494f0d2372cdb07b9384960bec85f19adb37f01fc1cfd2eb9dbd82be6697d97",
+      "sourceFileHash": "c7503fd59fe2f98d1a0882f40b9ccf29158fe16e26cc1b1e5172072762c87b50",
       "evidenceFileHashes": {
         "apps/admin/features/support-hub/components/detail/composer/extensions/use-suggestion-renderer.tsx": "3a1c6429900f21d8168d43444ffb2a970c88dcad54f1968972f927f0c3a5e992",
         "tests/unit/apps/admin/features/support-hub/components/suggestion-list-a11y.test.tsx": "892376388e4c40faeac9b25ee2523a41215c5dd73230b864b2edf3de6e42493f",
@@ -2759,11 +2579,12 @@
       "evidence": [
         "Current source and real-component tests below verify the stated ownership; see PR validation report for results and limits.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx:73; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx:73. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx:73. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the callback updates parent React state, transfers domain data or changes/restores focus ownership incorrectly.",
       "sourceContextHash": "6f57069256994c5d990e67fe1b49f154b083665548406b9007ce879aac9fd1c6",
-      "sourceFileHash": "a494f0d2372cdb07b9384960bec85f19adb37f01fc1cfd2eb9dbd82be6697d97",
+      "sourceFileHash": "c7503fd59fe2f98d1a0882f40b9ccf29158fe16e26cc1b1e5172072762c87b50",
       "evidenceFileHashes": {
         "apps/admin/features/support-hub/components/detail/composer/extensions/use-suggestion-renderer.tsx": "3a1c6429900f21d8168d43444ffb2a970c88dcad54f1968972f927f0c3a5e992",
         "tests/unit/apps/admin/features/support-hub/components/suggestion-list-a11y.test.tsx": "892376388e4c40faeac9b25ee2523a41215c5dd73230b864b2edf3de6e42493f",
@@ -2793,13 +2614,14 @@
       "evidence": [
         "SOURCE apps/admin/features/support-hub/components/macros/MacroPreviewLine.tsx: complete row body inspected, including controls and ownership conditions.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/support-hub/components/macros/MacroPreviewLine.tsx:31; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/macros/MacroPreviewLine.tsx:31. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/macros/MacroPreviewLine.tsx:31. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider before adding per-row editable controls, local state/ref/focus, keyed motion, reorderable independent async ownership, or stable-record identity requirements.",
       "sourceContextHash": "4b88145ec4991aa4603af5b8406dbc3def506b3b306399bc1b3ba69e363ff50b",
-      "sourceFileHash": "41d11540f5db17c3637d67e856d70cd342441cd41714a5e1817383a98840bc64",
+      "sourceFileHash": "b5b9e9eb786fb90f286667bf645e8729b30da141ddb727057e6c08be582a9bcb",
       "evidenceFileHashes": {
-        "apps/admin/features/support-hub/components/macros/MacroPreviewLine.tsx": "41d11540f5db17c3637d67e856d70cd342441cd41714a5e1817383a98840bc64"
+        "apps/admin/features/support-hub/components/macros/MacroPreviewLine.tsx": "b5b9e9eb786fb90f286667bf645e8729b30da141ddb727057e6c08be582a9bcb"
       }
     },
     {
@@ -2811,14 +2633,14 @@
       "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
       "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
       "line": 107,
-      "column": 19,
-      "offset": 3505,
+      "column": 21,
+      "offset": 3550,
       "length": 67,
       "endLine": 107,
       "category": "Accessibility",
       "matchByOccurrence": true,
       "fingerprint": "89b2b4c5a7793a02fcebc7e06eee57cd37691aed86c8a58e10c119631a473b5d",
-      "id": "features/support-hub/components/macros/RunMacroPopover.tsx::107:19::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
+      "id": "features/support-hub/components/macros/RunMacroPopover.tsx::107:21::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
       "normalizedFilePath": "features/support-hub/components/macros/RunMacroPopover.tsx",
       "tags": [],
       "target": "apps/admin",
@@ -2828,11 +2650,12 @@
         "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/support-hub/components/macros/RunMacroPopover.tsx:107; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/macros/RunMacroPopover.tsx:107. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/macros/RunMacroPopover.tsx:107. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "89b2b4c5a7793a02fcebc7e06eee57cd37691aed86c8a58e10c119631a473b5d",
-      "sourceFileHash": "b8fe4b1cfa56b7ed3eed2f72a631f11b0ad8caa8f1ae9e0b65eecdf5df5c0861",
+      "sourceFileHash": "c5b08a5710a7b2a55caef6fe0ea2c0d59b9a8a6fb0db5f30d3febb31d810aa6d",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -2942,13 +2765,14 @@
       "evidence": [
         "SOURCE apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx: complete row body inspected, including controls and ownership conditions.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx:50; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx:50. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx:50. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider before adding per-row editable controls, local state/ref/focus, keyed motion, reorderable independent async ownership, or stable-record identity requirements.",
       "sourceContextHash": "dca99bc28ef11c9d72caaa70356ae58b214263351a7c2c10bf2cc95ed6d5cb84",
-      "sourceFileHash": "350f8c013c0eac3a08eda075a1694401eeca99d12861bf68b599778838cb3a1b",
+      "sourceFileHash": "36114ced29768c7b04e49a5220b33d9e732f67c4444f981903b4605fd5888343",
       "evidenceFileHashes": {
-        "apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx": "350f8c013c0eac3a08eda075a1694401eeca99d12861bf68b599778838cb3a1b",
+        "apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx": "36114ced29768c7b04e49a5220b33d9e732f67c4444f981903b4605fd5888343",
         "apps/admin/features/support-hub/lib/automation-engine.ts": "27feb27107bf3bdc6fdd21b77b4223233380551b146267b0ee810769555926d2",
         "tests/unit/apps/admin/features/support-hub/automation-engine.test.ts": "7c3f680f8883219b84c1741d53ed37eaafea806096754b37fba57e19bcd426ad"
       }
@@ -2977,13 +2801,14 @@
         "SOURCE TeamForm.tsx:21-24 initializes fields and readonly slug; :33-36 saves snapshot slug or derives only when absent.",
         "CURRENT SOURCE TeamList.tsx:115-117 keys TeamForm by editingTeam?.id ?? \"new-team\". Missing this key was a real defect, not an exception.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/support-hub/components/settings/collaborators/TeamForm.tsx:22; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/settings/collaborators/TeamForm.tsx:22. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/support-hub/components/settings/collaborators/TeamForm.tsx:22. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if slug becomes editable, record switching stops resetting draft ownership, or deliberate slug migration is added.",
       "sourceContextHash": "2dded012b9e731907f782ace55bae1a43498c6db4400550443bee6f594bfb197",
-      "sourceFileHash": "fa403ddcf7647aa9e26eb582aa14dff7295287242751c64bf6c8ec79c9d1b939",
+      "sourceFileHash": "6fe9ec8deef81699a196824f64d35744dca66cca2b75ba5d9b2c997d00236749",
       "evidenceFileHashes": {
-        "apps/admin/features/support-hub/components/settings/collaborators/TeamList.tsx": "f30e6b477f1b748e49328ec67986d11dd77ddc33f158086728b252fcbc65350b",
+        "apps/admin/features/support-hub/components/settings/collaborators/TeamList.tsx": "6c37f9128349909bd8b335ffcfa9f894ced5b5d4b4941b8895b1a3b4b05c622b",
         "tests/unit/apps/admin/support-team-draft-ownership.test.tsx": "97ce99cc0f5eea18f9f9e31b255758037eb75801c11d8ff7139a6843dbd000fa"
       }
     },
@@ -10157,11 +9982,12 @@
       "evidence": [
         "SOURCE createClockStore owns subscribe/getSnapshot and timer cleanup; useSyncExternalStore consumes the retained store.",
         "REGRESSION timezone-scheduler.test.tsx exercises hydration, advancing ticks and cleanup.",
-        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here."
+        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if clock identity, lazy initialization, subscription ownership or hook destructuring changes.",
       "sourceContextHash": "3240a65affd0da36d1861a01a9e71c3959ba3b195969eedae067ec81b7b51f9d",
-      "sourceFileHash": "db38ed6359cf6a34a1d09325c12f07c0825ede8597acb4d194c95c4d249c6323",
+      "sourceFileHash": "d080594a880585ef0b86df23d5d97fe9f0d7589d381fb0f14c81f3f46b959a6b",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/features/care/timezone-scheduler.test.tsx": "0f0b67fcdd63f0a66ae863785565a474d9f7c3112bd3f914af28682484847658"
       }
@@ -10189,11 +10015,12 @@
       "evidence": [
         "SOURCE getServerTimeSnapshot returns null; localTime and localTimeStr require a non-null timestamp. The timer starts in subscribe and is cleared on unsubscribe.",
         "REGRESSION timezone-scheduler.test.tsx checks matching hydration, later ticks and cleanup.",
-        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here."
+        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here.",
+        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if the server snapshot, placeholder guard, locale/time-zone selection or subscription lifecycle changes.",
       "sourceContextHash": "e05574200578f1c6df5aa1bea1b8febf43d8b10ee0427e0695faabc2422cd5f5",
-      "sourceFileHash": "db38ed6359cf6a34a1d09325c12f07c0825ede8597acb4d194c95c4d249c6323",
+      "sourceFileHash": "d080594a880585ef0b86df23d5d97fe9f0d7589d381fb0f14c81f3f46b959a6b",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/features/care/timezone-scheduler.test.tsx": "0f0b67fcdd63f0a66ae863785565a474d9f7c3112bd3f914af28682484847658"
       }
