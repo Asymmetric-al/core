@@ -4101,6 +4101,39 @@
       "id": "package.json::0:0::react-doctor/unused-dependency::8a16f31c5bb1ed9826132fef3fa27de3f4db0feaae3f2b6f87d721a4f25e79d7",
       "normalizedFilePath": "package.json",
       "tags": ["project-analysis"],
+      "target": "apps/donor",
+      "reason": "The application retains its shipped next-themes declaration for current app-level theme capability discovery. Runtime imports remain owned by the shared UI provider and controls. Removing the declaration makes Shadscan 0.17.0 misclassify that mounted shared theme as not applicable; no additional provider or dependency version is introduced.",
+      "evidence": [
+        "Current source and real-component tests below verify the stated ownership; see PR validation report for results and limits.",
+        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/donor/package.json:0; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/donor/package.json:0. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+      ],
+      "reconsiderWhen": "Reconsider when Shadscan recognizes workspace-owned theme dependencies/providers or the app removes its shared theme capability.",
+      "sourceContextHash": "6a6a0ad044fe7dca3347629e7c32f0008711fe5c9e38691f32e189c16af999df",
+      "sourceFileHash": "6a6a0ad044fe7dca3347629e7c32f0008711fe5c9e38691f32e189c16af999df",
+      "evidenceFileHashes": {
+        "packages/ui/lib/theme-provider.tsx": "6dfd8652d01c3bfba40acd556dbc97801c5aea4e627247dbf5639a9a4ef12984",
+        "packages/ui/package.json": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577",
+        "tooling/shadscan/policy.json": "5c090f262649c089244a88a3c6fb28f2b2ec296965af044bc673d334bb7b2e02",
+        "docs/guides/development/shadscan.md": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4",
+        "apps/donor/app/layout.tsx": "a194fc7668652d5d0ad8f29b5058a08364a9e4a4a87cd227e9f64f6e8f847224"
+      }
+    },
+    {
+      "filePath": "package.json",
+      "plugin": "react-doctor",
+      "rule": "unused-dependency",
+      "severity": "warning",
+      "title": "Dependency has no discovered use",
+      "message": "Unused dependency: `next-themes`",
+      "help": "Remove this dependency after checking source, scripts, configuration, CI, and generated consumers.",
+      "line": 0,
+      "column": 0,
+      "category": "Maintainability",
+      "fingerprint": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96",
+      "id": "package.json::0:0::react-doctor/unused-dependency::8a16f31c5bb1ed9826132fef3fa27de3f4db0feaae3f2b6f87d721a4f25e79d7",
+      "normalizedFilePath": "package.json",
+      "tags": ["project-analysis"],
       "target": "apps/missionary",
       "reason": "The application retains its shipped next-themes declaration for current app-level theme capability discovery. Runtime imports remain owned by the shared UI provider and controls. Removing the declaration makes Shadscan 0.17.0 misclassify that mounted shared theme as not applicable; no additional provider or dependency version is introduced.",
       "evidence": [
