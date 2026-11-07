@@ -41,8 +41,6 @@ const runtimeProperties = [
   ],
   ["apps/missionary", "app/profile/profile-preview.tsx", ["width", "height"]],
   // Existing chart height APIs feed Recharts' measured parent container.
-  ["apps/admin", "components/dashboard/charts/revenue-chart.tsx", ["height"]],
-  ["apps/admin", "components/dashboard/charts/weekly-chart.tsx", ["height"]],
   ["apps/admin", "app/(app)/reports/reports-charts.tsx", ["height"]],
 ];
 

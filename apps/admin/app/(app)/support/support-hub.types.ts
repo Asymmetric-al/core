@@ -73,15 +73,6 @@ export interface SupportTicketFilter {
   search?: string;
 }
 
-export interface SupportHubStats {
-  open: number;
-  urgent: number;
-  waiting: number;
-  resolved: number;
-  escalated: number;
-  needsFollowUp: number;
-}
-
 export interface SupportQueueSummary {
   id: SupportQueueId;
   label: string;
