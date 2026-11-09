@@ -420,7 +420,7 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   chip (`active/inactive/archived/deceased`; `merged` read from the Phase 4
   tombstone); duplicate-warning banner (Phase 4 duplicate candidates → Phase 4
   #514; amended 2026-11-10 per the 2026-10-24 Q8 ruling: the store is
-  `donor_merge_candidates`, and the Twenty-era `crm_merge_candidates` stays dormant); portal/claim chip (Phase 4 claimed/unclaimed/invited socket);
+  `donor_merge_candidates`, and the Twenty-era `crm_merge_candidates` is not extended: no application code writes it, though tenant staff keep direct INSERT and UPDATE policies on it); portal/claim chip (Phase 4 claimed/unclaimed/invited socket);
   owner/assignment chip (**N role-qualified assignees + ONE primary, reading
   assignment edges only**); tags chips; privacy role-gate indicator; and a
   reserved header **action-slot registry** (print/PDF exports → Phases 18/19;

@@ -83,8 +83,9 @@ points to that phase's ratified ownership source.
    `scripts/` and `.env.example`, plus the ESLint client-import ban. The
    `crm-core` prohibition still forbids restoration that no marker detects.
 3. **Duplicate candidates (2026-10-24 Q8).** The ruling moved candidates to
-   `donor_merge_candidates`; `crm_merge_candidates` takes no new writes and is
-   only a read-only compatibility source for one CRM detail warning. It had not
+   `donor_merge_candidates`. No application code writes `crm_merge_candidates`,
+   but its RLS policies still grant tenant staff direct INSERT and UPDATE, and
+   one CRM detail warning still reads it. It had not
    reached the Phase 1 merge row, ADR-0001 or the Phase 4, 8 and 9 PRDs.
 4. **Provider-link carrier.** `crm_record_links` is the ratified carrier (Phase
    30 D9) but is still Twenty-shaped. Phase 1, `CONTEXT.md` and the Phase 14 PRD
@@ -128,7 +129,7 @@ reads or vendor-era vocabulary with an owner:
 | Surface                                                                                                                  | Owner and tracking                                          |
 | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
 | `crm_record_links` Twenty-shaped columns and staff write policies                                                        | Carrier owner (open decision); revoke #2295; Phase 30 #2554 |
-| `crm_merge_candidates` reads in CRM detail duplicate warnings                                                            | Phase 4 #513/#514/#515 (Q8 store); Phase 9 #626             |
+| `crm_merge_candidates` reads in CRM detail duplicate warnings; its staff INSERT/UPDATE policies                          | Phase 4 #513/#514/#515 (Q8 store); Phase 9 #626             |
 | Contribution detail "CRM post status", "Historical CRM posting", the CRM post-state filter, `crm_post_failed` vocabulary | Phase 13 cutover #695; contribution-operations owner        |
 | `staged_gifts.twenty_record_id`/`crm_post_status`, `donation_crm_links` reads                                            | Phase 13 #695                                               |
 | CRM reports `sync-failures` slice; `reconciliation.crmWriteMode`                                                         | Phase 9 #623 or Phase 13 #695                               |

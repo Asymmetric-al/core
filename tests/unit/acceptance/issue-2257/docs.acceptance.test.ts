@@ -39,7 +39,7 @@ describe("#2257 criterion 10: ADR-0001 Phase 9 re-confirm", () => {
     // AL-2645 reconciliation later amended it; pin that current content so a
     // revert of those corrections also fails.
     expect(sha(read(`${PRD}9-full-crm-depth-relationship-graph.md`))).toBe(
-      "31195c6c1ffa254cfe2f9e9f775a81b0ba57134dade95e7f3a1d302cd36abb05",
+      "bab8005ca769a52695ec31cb53ed9dcc78da08295b96b897f5234757a2213642",
     );
   });
   it("records the ruling, kept values + consumer, lockstep rule and parity test", () => {
