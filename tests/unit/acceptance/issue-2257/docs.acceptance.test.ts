@@ -35,14 +35,11 @@ describe("#2257 criterion 10: ADR-0001 Phase 9 re-confirm", () => {
     expect(sha(`${read(ADR).split("\n").slice(0, 138).join("\n")}\n`)).toBe(
       "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174",
     );
-    // #2257 left the Phase 9 PRD unchanged (first digest). Later authorized
-    // revisions are listed by reference so this proof survives them.
-    const phase9Revisions = [
-      "5ad79f0a72d146c98777bb5cbcbe1c8956ff9f88a7c485653276cb6548d5773b", // develop at #2257
-      "31195c6c1ffa254cfe2f9e9f775a81b0ba57134dade95e7f3a1d302cd36abb05", // AL-2645 reconciliation
-    ];
-    expect(phase9Revisions).toContain(
-      sha(read(`${PRD}9-full-crm-depth-relationship-graph.md`)),
+    // #2257 left the Phase 9 PRD unchanged at digest 5ad79f0a…5773b. The
+    // AL-2645 reconciliation later amended it; pin that current content so a
+    // revert of those corrections also fails.
+    expect(sha(read(`${PRD}9-full-crm-depth-relationship-graph.md`))).toBe(
+      "31195c6c1ffa254cfe2f9e9f775a81b0ba57134dade95e7f3a1d302cd36abb05",
     );
   });
   it("records the ruling, kept values + consumer, lockstep rule and parity test", () => {

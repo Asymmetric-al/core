@@ -21,7 +21,9 @@ migration application, deployment, qualification or credential revocation.
 - Issues: a snapshot of all 1,967 issues (bodies) taken 2026-11-09; issue
   amendments re-read the live body immediately before editing.
 - Runtime: code, migrations, tests and the data-boundary guard were classified
-  read-only; no code changed.
+  read-only; no runtime or migration code changed. One acceptance fixture
+  (`tests/unit/acceptance/issue-2257/docs.acceptance.test.ts`) now pins the
+  reconciled Phase 9 PRD digest.
 - External: a names-only Vercel inventory on 2026-11-09 (below).
 
 Limits: grill, research and captured-evidence files were classified by pattern
@@ -81,7 +83,8 @@ points to that phase's ratified ownership source.
    `scripts/` and `.env.example`, plus the ESLint client-import ban. The
    `crm-core` prohibition still forbids restoration that no marker detects.
 3. **Duplicate candidates (2026-10-24 Q8).** The ruling moved candidates to
-   `donor_merge_candidates`, leaving `crm_merge_candidates` dormant. It had not
+   `donor_merge_candidates`; `crm_merge_candidates` takes no new writes and is
+   only a read-only compatibility source for one CRM detail warning. It had not
    reached the Phase 1 merge row, ADR-0001 or the Phase 4, 8 and 9 PRDs.
 4. **Provider-link carrier.** `crm_record_links` is the ratified carrier (Phase
    30 D9) but is still Twenty-shaped. Phase 1, `CONTEXT.md` and the Phase 14 PRD
@@ -94,7 +97,8 @@ points to that phase's ratified ownership source.
    carries the Twenty-bound `donation_crm_links` into the ledger.
 6. **Phase 1 completeness.** A routing section points every ratified phase that
    introduced record types to its owner source, adds no new ruling, and marks
-   Phases 31–44 as owed at grooming.
+   Phase 41 to its adopted contract and Phases 31–40 and 42–44 as owed at
+   grooming or binding qualification.
 7. **Status indexes.** Roadmap status for Phases 27 and 30 (projections
    regenerated), the Phase 30 chapter pointer and settled open decisions, and
    the Phase 30 owner constraint on importer build-versus-adopt.

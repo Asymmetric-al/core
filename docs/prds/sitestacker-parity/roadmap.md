@@ -4400,7 +4400,7 @@ CMS imports use Phase 23's governed no-write import plan and create private D12 
 
 Begin with a complete low-risk source-to-Party import and exact repeat import, then add relationship/custom-data and source-qualified money/document/content targets. Keep preview and commit separate and make uncertainty visible per row. Long operations must recover after a closed browser without requiring a fresh import identity.
 
-Use the shared accessible grid and file controls. Choose an embedded importer or native implementation only after evaluating the required data boundary, source validation hooks and lifecycle. Provide clear counts for accepted, rejected, pending and unchanged work, with a cause-owned next action rather than a generic failed batch.
+Use the shared accessible grid and file controls. Phase 30 Q11 (Implementation Decision 22) settled this: files are read inside Asym, with no hosted or embedded importer service. _(Updated 2026-11-10; this sentence previously said to choose an embedded importer or native implementation after evaluating the data boundary, source validation hooks and lifecycle.)_ Provide clear counts for accepted, rejected, pending and unchanged work, with a cause-owned next action rather than a generic failed batch.
 
 <a id="phase-30-boundaries-and-guardrails"></a>
 
@@ -4485,7 +4485,7 @@ Phase 34 uses only registered purpose-qualified connector actions, not raw HTTP 
 
 #### Implementation and user experience
 
-Deliver one end-to-end connection and source operation with visible scope, event delivery, failure and revocation. Then add the API/resource catalog and additional provider adapters. Decide build-versus-adopt for OAuth/token lifecycle and webhook delivery alongside Phase 30's importer choice; do not accidentally build three unrelated infrastructure products.
+Deliver one end-to-end connection and source operation with visible scope, event delivery, failure and revocation. Then add the API/resource catalog and additional provider adapters. Decide build-versus-adopt for OAuth/token lifecycle and webhook delivery consistently with Phase 30's settled in-Asym importer (Q11; updated 2026-11-10); do not accidentally build three unrelated infrastructure products.
 
 Make connection state understandable: connected does not mean synchronized, delivered or business-complete. A repair should name the owner and affected operation. Preserve accepted requests across downtime and reconcile missed/out-of-order events through bounded source readback. Treat incoming payloads as untrusted and validate signature, schema, event action and scope before scheduling work.
 

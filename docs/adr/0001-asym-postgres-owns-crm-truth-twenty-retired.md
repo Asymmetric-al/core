@@ -147,7 +147,8 @@ The full record-type ownership table lives in
 - **Duplicate candidates:** per the 2026-10-24 Q8 ruling
   (`docs/security/identity-person-anchor.md`; #2256), the Phase 4 dedupe
   and merge workbench uses `donor_merge_candidates`. `crm_merge_candidates`
-  is not extended and stays dormant legacy data.
+  is not extended and takes no new writes; the current CRM detail duplicate
+  warning still reads it until #514/#626 replace that read.
 - **Outbound-queue pattern:** the `crm_outbound_jobs` implementation was
   dropped with the sync stack
   (`supabase/migrations/20260818010000_retire_twenty_crm_runtime.sql`, PR
