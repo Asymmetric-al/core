@@ -146,9 +146,9 @@ describe("p3-stack pack import", () => {
     expect(read("docs/ai/skills/p3-tdd/SKILL.md")).toContain(
       "`docs/ai/skills/tdd/SKILL.md` stays authoritative",
     );
-    expect(read("docs/ai/skills/make-bot-ui/SKILL.md")).toContain(
-      "Bind to `127.0.0.1`",
-    );
+    const botUi = read("docs/ai/skills/make-bot-ui/SKILL.md");
+    expect(botUi).toContain("Bind to `127.0.0.1`");
+    expect(botUi).toContain("require authenticated, CSRF-resistant requests");
     const help = read("docs/ai/skills/p3-help/SKILL.md");
     expect(help).toContain("explicit-only, so do not start it from here");
     expect(help).toContain("It never starts `p3-mode`");
@@ -177,6 +177,13 @@ describe("p3-stack pack import", () => {
         (family !== undefined && adapter.includes("`" + family + "_*`"));
       expect(mapped, tool).toBe(true);
     }
+    expect(adapter).toContain("**One writer per branch.**");
+    expect(adapter).toContain("continuous watching is unavailable");
+    expect(adapter).toContain("`baseRef`, branch, or PR head SHA");
+    expect(adapter).toContain("plain `git worktree remove <path>`");
+    expect(read("docs/ai/skills/p3-mode/SKILL.md")).toContain(
+      "Verifier and swarm verdicts stay in the local report",
+    );
     expect(adapter).toContain("## Model roles");
     expect(adapter).toContain("`~/.agents/p3-models.md`");
     expect(read("docs/ai/skills/swarm/SKILL.md")).toContain(
@@ -288,6 +295,10 @@ describe("pr-review-toolkit adaptation", () => {
       "docs/ai/skills/review-pr/references/agents/",
     );
     expect(skill).toContain("by its actual impact");
+    expect(skill).toContain("staged, unstaged, and untracked changes");
+    expect(skill).toContain(
+      "Run `pr-test-analyzer` whenever the change alters behavior",
+    );
     expect(skill).not.toContain("Map Critical to P0");
     expect(lock.skills["review-pr"]).toBeUndefined();
   });

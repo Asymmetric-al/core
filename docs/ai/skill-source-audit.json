@@ -4936,8 +4936,8 @@
       "sourcePath": "skills/make-bot-ui/SKILL.md",
       "rawSkillHash": "0eb82323e4315bf73eaf3b6cba5487bce2ade130852c113dede593e12dda0bc0",
       "lockHash": "07e2586b99a6f26d93ef71beb5f1d1961abe92e41f3f2bc03ba887a7064979e9",
-      "entrypointHash": "2b1267072ac2a79ea235dde9393fd30fb707047a769496ec75d126157090e058",
-      "treeHash": "8a9d2a70a2febee922950e06a2d3700e3c15407bc309dd0e16da314c4d155699",
+      "entrypointHash": "ed9c8c8293dfffc8e4e9dd89767d309cc04608d14f4d109fb7726c961601f857",
+      "treeHash": "fd7c31d6b936a4b16965c0a6ca95cd8c9cacea3f4654c200675a7ddc2f195831",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -6252,8 +6252,8 @@
       "sourcePath": "skills/p3-mode/SKILL.md",
       "rawSkillHash": "804902c52be09d48429a4e67f95d4243fce6b198dea2012ba41d1fe0f1622cba",
       "lockHash": "a1a7f767f90a4b9cafcefb4ee0a7462abf71f0b3c999c1e53ce1a69917db397f",
-      "entrypointHash": "d0ca971fb6e985cf9726856d92bae6ef1591b63dd89b17b922b932131d04eb5e",
-      "treeHash": "10f892866b7908098a5baf9d17dcfd279cd0db5e84a710a367f7301e84d2bb94",
+      "entrypointHash": "36cdcd5f13e25cc17d134e2506872bbd10841a01257c8550615a09312122c517",
+      "treeHash": "00f06a0bcfdd19f20f3e37737c93c9a83e11644f29693be8b18813ad7eb39f11",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -9011,8 +9011,8 @@
       "sourcePath": "plugins/pr-review-toolkit/commands/review-pr.md",
       "rawSkillHash": "5e70c17293a044e1bf9d092c80b5da8b4fd5802ebb07dc53993dec4ba7ce2fc4",
       "lockHash": null,
-      "entrypointHash": "d0eb01cf2e5b94023eec85b72a8af4056dc1bcffc3b6aea713489ca73e0d0e48",
-      "treeHash": "cb08993574bb56cbd83c8f4db01fda916a12fbbdb66ff4d364326f448dc167b6",
+      "entrypointHash": "583c690621a7abe09e9d8448bc7b9ba4b381267bfce1f02da41d89a336fae9ed",
+      "treeHash": "a73d11bb828c2096af0fe97f236e97af2a83e90948dc99818fb5427bb2a57a52",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",

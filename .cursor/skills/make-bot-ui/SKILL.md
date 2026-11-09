@@ -97,7 +97,7 @@ Vendored from [p3-stack](https://github.com/uzairansaruzi/p3-stack) (MIT) at com
 - The T3 Code tools named above map to Claude Code, Codex, and Cursor in `docs/ai/skills/p3-mode/references/core-adapter.md`. Read it before you delegate, watch a PR, schedule work, or drive a preview outside T3 Code.
 - Confirm before outward-facing or hard-to-reverse actions such as pushing, merging, deploying, deleting, or posting messages, unless the user authorized that action for this task.
 - Never build or expose this against Core's product apps, admin surfaces, or any Core environment data. It is for a separate, personal bot UI.
-- Ask before installing system software. Never run `curl ... | sudo sh` or `sudo tailscale up` without the user's explicit yes for that command. Bind to `127.0.0.1` unless the user explicitly approves wider exposure.
+- Ask before installing system software. Never run `curl ... | sudo sh` or `sudo tailscale up` without the user's explicit yes for that command. Bind to `127.0.0.1` unless the user explicitly approves wider exposure. With wider exposure, require authenticated, CSRF-resistant requests from the browser and check that the caller may run each action before the server calls the webhook.
 - Keep the webhook URL, tokens, and logs outside this repository and out of commits, chat, and logs. Follow root `AGENTS.md` on secrets.
 
 Edit this canonical copy in `docs/ai/skills/make-bot-ui/`, then run `bun run skills:sync` and `bun run skills:verify`.
