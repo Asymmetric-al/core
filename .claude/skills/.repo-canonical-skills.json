@@ -7,10 +7,14 @@
     "animate-expo",
     "animation-vocabulary",
     "apple-design",
+    "architect",
+    "arena",
     "ask-matt",
     "ask-sonner",
+    "automate-me",
     "babysit",
     "base-ui",
+    "benchmark-checklist",
     "bendc-frontend-guidelines",
     "better-accessibility",
     "better-colors",
@@ -19,6 +23,8 @@
     "better-typography",
     "better-ui",
     "better-writing",
+    "blast-radius",
+    "bro",
     "cache-components",
     "check-compiler-errors",
     "cms-migration",
@@ -28,8 +34,10 @@
     "components-build",
     "control-cli",
     "control-ui",
+    "correct",
     "council",
     "create-agent",
+    "create-verification-skill",
     "design-an-interface",
     "design-taste-frontend",
     "deslop",
@@ -41,6 +49,7 @@
     "emil-design-engineering",
     "emil-prototype",
     "eve",
+    "figure-it-out",
     "find-animation-opportunities",
     "find-skills",
     "fix-ci",
@@ -51,6 +60,7 @@
     "grill-me",
     "grill-with-docs",
     "grilling",
+    "how",
     "idempotency-handling",
     "impeccable",
     "implement",
@@ -71,7 +81,10 @@
     "inngest-steps",
     "inngest-v3-v4-migration",
     "interface-review",
+    "interrogate",
     "loop-on-ci",
+    "maintain-verification-skill",
+    "make-bot-ui",
     "make-pr-easy-to-review",
     "migrate-to-shoehorn",
     "moai-library-shadcn",
@@ -82,6 +95,7 @@
     "nextjs-app-architecture",
     "nextjs-app-router",
     "nextjs-supabase-auth",
+    "no-comments",
     "npm-deps-cleanup",
     "obsidian-vault",
     "openspec-apply-change",
@@ -91,18 +105,48 @@
     "openspec-sync-specs",
     "openspec-update-change",
     "openspec-verify-change",
+    "p3-help",
+    "p3-mode",
+    "p3-tdd",
+    "p3-teach",
     "payload",
     "pick-ui-library",
     "playwright-best-practices",
     "playwright-cli",
     "pr-review-canvas",
     "prd-to-plan",
+    "principle-attack-the-premise",
+    "principle-boundary-discipline",
+    "principle-build-the-lever",
+    "principle-encode-lessons-in-structure",
+    "principle-exhaust-the-design-space",
+    "principle-experience-first",
+    "principle-explain-the-number",
+    "principle-fix-root-causes",
+    "principle-foundational-thinking",
+    "principle-guard-the-context-window",
+    "principle-laziness-protocol",
+    "principle-make-operations-idempotent",
+    "principle-migrate-callers-then-delete-legacy-apis",
+    "principle-minimize-reader-load",
+    "principle-model-the-domain",
+    "principle-never-block-on-the-human",
+    "principle-outcome-oriented-execution",
+    "principle-prove-it-works",
+    "principle-redesign-from-first-principles",
+    "principle-separate-before-serializing-shared-state",
+    "principle-sequence-verifiable-units",
+    "principle-subtract-before-you-add",
+    "principle-test-behavior-not-implementation",
+    "principle-type-system-discipline",
     "prototype",
     "qa",
     "react-component-dev",
     "react-doctor",
+    "recall",
     "rechart",
     "redesign-existing-projects",
+    "reflect",
     "repo-entry",
     "request-refactor-plan",
     "research",
@@ -111,21 +155,28 @@
     "reui",
     "review-and-ship",
     "review-animations",
+    "review-pr",
     "run-smoke-tests",
     "samson-factory",
     "security-audit",
     "setup-matt-pocock-skills",
+    "setup-p3",
     "setup-pre-commit",
+    "show-me-your-work",
     "supabase",
     "supabase-postgres-best-practices",
+    "swarm",
     "tdd",
+    "technical-writing",
     "test-driven-development",
     "thermo-nuclear-code-quality-review",
     "tiptap",
     "to-spec",
     "to-tickets",
     "triage",
+    "typescript-best-practices",
     "ubiquitous-language",
+    "unslop",
     "vercel-react-best-practices",
     "vercel-react-view-transitions",
     "verify-this",
@@ -133,6 +184,7 @@
     "wayfinder",
     "weekly-review",
     "what-did-i-get-done",
+    "why",
     "workflow-from-chats",
     "write-swift",
     "writing-great-skills"
@@ -167,6 +219,21 @@
       "references/LICENSE.md",
       "references/upstream.md"
     ],
+    "architect": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/design-red-flags.md",
+      "references/rationale-template.md",
+      "references/runner-prompt.md",
+      "references/upstream.md"
+    ],
+    "arena": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
     "ask-matt": [
       "PHASE-BOUNDARIES.md",
       "SKILL.md",
@@ -180,6 +247,12 @@
       "references/LICENSE.md",
       "references/upstream.md"
     ],
+    "automate-me": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
     "babysit": [
       "SKILL.md",
       "references/upstream.md",
@@ -188,6 +261,12 @@
     "base-ui": [
       "SKILL.md",
       "reference-links.md"
+    ],
+    "benchmark-checklist": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
     ],
     "bendc-frontend-guidelines": [
       "SKILL.md",
@@ -264,6 +343,18 @@
       "references/LICENSE.md",
       "references/upstream.md"
     ],
+    "blast-radius": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "bro": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
     "cache-components": [
       "SKILL.md"
     ],
@@ -324,6 +415,12 @@
       "SKILL.md",
       "references/upstream.md"
     ],
+    "correct": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
     "council": [
       "LICENSE",
       "SKILL.md",
@@ -332,6 +429,15 @@
     "create-agent": [
       "SKILL.md",
       "reference.md",
+      "references/upstream.md"
+    ],
+    "create-verification-skill": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/feature-map-example/README.md",
+      "references/feature-map-example/create-note.md",
+      "references/feature-map-example/search.md",
       "references/upstream.md"
     ],
     "design-an-interface": [
@@ -439,6 +545,12 @@
       "references/UPSTREAM-NOTICE",
       "references/upstream.md"
     ],
+    "figure-it-out": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
     "find-animation-opportunities": [
       "SKILL.md",
       "references/upstream.md"
@@ -494,6 +606,14 @@
       "SKILL.md",
       "agents/openai.yaml",
       "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "how": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/explainer-prompt.md",
+      "references/explorer-prompt.md",
       "references/upstream.md"
     ],
     "idempotency-handling": [
@@ -661,8 +781,30 @@
       "removed-signals.md",
       "scope-resolution.md"
     ],
+    "interrogate": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/code-quality-review.md",
+      "references/lead-judgment.md",
+      "references/reviewer-prompt.md",
+      "references/rubric.md",
+      "references/upstream.md"
+    ],
     "loop-on-ci": [
       "SKILL.md",
+      "references/upstream.md"
+    ],
+    "maintain-verification-skill": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "make-bot-ui": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "make-pr-easy-to-review": [
@@ -762,6 +904,12 @@
     "nextjs-supabase-auth": [
       "SKILL.md"
     ],
+    "no-comments": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
     "npm-deps-cleanup": [
       "SKILL.md",
       "references/upstream.md"
@@ -804,6 +952,56 @@
     "openspec-verify-change": [
       "SKILL.md",
       "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "p3-help": [
+      "LICENSE",
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "p3-mode": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "playbooks/authoring-a-skill.md",
+      "playbooks/autonomous-run.md",
+      "playbooks/autopilot-full.md",
+      "playbooks/autopilot-stack.md",
+      "playbooks/babysit.md",
+      "playbooks/bug-fix.md",
+      "playbooks/eval.md",
+      "playbooks/feature.md",
+      "playbooks/hillclimb.md",
+      "playbooks/investigation.md",
+      "playbooks/multi-phase-plan.md",
+      "playbooks/opening-a-pr.md",
+      "playbooks/orchestrate.md",
+      "playbooks/pause-safely.md",
+      "playbooks/perf-issue.md",
+      "playbooks/prototype.md",
+      "playbooks/refactoring.md",
+      "playbooks/runtime-forensics.md",
+      "playbooks/session-pickup.md",
+      "playbooks/shipping.md",
+      "playbooks/trace-forensics.md",
+      "playbooks/visual-parity.md",
+      "playbooks/worktree-cleanup.md",
+      "references/agents/comment-sicko.md",
+      "references/agents/p3-agent.md",
+      "references/bugbot-triage.md",
+      "references/core-adapter.md",
+      "references/upstream.md"
+    ],
+    "p3-tdd": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "p3-teach": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "payload": [
@@ -894,6 +1092,150 @@
       "SKILL.md",
       "references/upstream.md"
     ],
+    "principle-attack-the-premise": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-boundary-discipline": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-build-the-lever": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-encode-lessons-in-structure": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-exhaust-the-design-space": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-experience-first": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-explain-the-number": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-fix-root-causes": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-foundational-thinking": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-guard-the-context-window": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-laziness-protocol": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-make-operations-idempotent": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-migrate-callers-then-delete-legacy-apis": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-minimize-reader-load": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-model-the-domain": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-never-block-on-the-human": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-outcome-oriented-execution": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-prove-it-works": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-redesign-from-first-principles": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-separate-before-serializing-shared-state": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-sequence-verifiable-units": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-subtract-before-you-add": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-test-behavior-not-implementation": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "principle-type-system-discipline": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
     "prototype": [
       "LOGIC.md",
       "SKILL.md",
@@ -913,12 +1255,28 @@
     "react-doctor": [
       "SKILL.md"
     ],
+    "recall": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
     "rechart": [
       "SKILL.md"
     ],
     "redesign-existing-projects": [
       "SKILL.md",
       "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "reflect": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/divergent-reviewer.md",
+      "references/judgment-reviewer.md",
+      "references/synthesizer.md",
+      "references/tooling-reviewer.md",
       "references/upstream.md"
     ],
     "repo-entry": [
@@ -995,6 +1353,18 @@
       "references/LICENSE.md",
       "references/upstream.md"
     ],
+    "review-pr": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/agents/code-reviewer.md",
+      "references/agents/code-simplifier.md",
+      "references/agents/comment-analyzer.md",
+      "references/agents/pr-test-analyzer.md",
+      "references/agents/silent-failure-hunter.md",
+      "references/agents/type-design-analyzer.md",
+      "references/upstream.md"
+    ],
     "run-smoke-tests": [
       "SKILL.md",
       "references/upstream.md"
@@ -1038,11 +1408,25 @@
       "references/upstream.md",
       "triage-labels.md"
     ],
+    "setup-p3": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
     "setup-pre-commit": [
       "SKILL.md",
       "agents/openai.yaml",
       "references/UPSTREAM-LICENSE",
       "references/upstream.md"
+    ],
+    "show-me-your-work": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/decision-log-template.tsv",
+      "references/upstream.md",
+      "scripts/log.sh"
     ],
     "supabase": [
       "CHANGELOG.md",
@@ -1092,6 +1476,12 @@
       "references/security-rls-performance.md",
       "references/upstream.md"
     ],
+    "swarm": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
     "tdd": [
       "SKILL.md",
       "agents/openai.yaml",
@@ -1099,6 +1489,12 @@
       "references/LICENSE.md",
       "references/upstream.md",
       "tests.md"
+    ],
+    "technical-writing": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
     ],
     "test-driven-development": [
       "SKILL.md",
@@ -1139,9 +1535,22 @@
       "references/LICENSE.md",
       "references/upstream.md"
     ],
+    "typescript-best-practices": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/patterns.md",
+      "references/upstream.md"
+    ],
     "ubiquitous-language": [
       "SKILL.md",
       "references/UPSTREAM-LICENSE",
+      "references/upstream.md"
+    ],
+    "unslop": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "vercel-react-best-practices": [
@@ -1254,6 +1663,24 @@
     ],
     "what-did-i-get-done": [
       "SKILL.md",
+      "references/upstream.md"
+    ],
+    "why": [
+      "LICENSE",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/epistemics.md",
+      "references/investigator-prompt.md",
+      "references/source-playbook.md",
+      "references/sources/code-archaeology.md",
+      "references/sources/databricks.md",
+      "references/sources/datadog.md",
+      "references/sources/incident-postmortem.md",
+      "references/sources/linear.md",
+      "references/sources/notion.md",
+      "references/sources/sentry.md",
+      "references/sources/slack.md",
+      "references/synthesizer-prompt.md",
       "references/upstream.md"
     ],
     "workflow-from-chats": [
