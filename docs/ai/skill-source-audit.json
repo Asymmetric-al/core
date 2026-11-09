@@ -3,15 +3,15 @@
   "reviewedAt": "2026-10-22",
   "baselineCommit": "c4d36cb029121641b8882237632d0d6da434049e",
   "counts": {
-    "canonical": 135,
-    "runtimePerClient": 191,
-    "lockEntries": 151,
+    "canonical": 187,
+    "runtimePerClient": 243,
+    "lockEntries": 202,
     "outcomes": {
       "current": 89,
       "excluded": 1,
       "retained-snapshot": 12,
       "unresolved": 8,
-      "updated": 81
+      "updated": 133
     }
   },
   "treeHashAlgorithm": "SHA-256 of sorted POSIX relative path, NUL, file bytes, NUL; symlinks rejected.",
@@ -449,6 +449,43 @@
       ]
     },
     {
+      "name": "architect",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/architect/SKILL.md",
+      "rawSkillHash": "19e3691d9f84f4172352fe4f621e2627cf02be93f3a294f1cc596079fbcda557",
+      "lockHash": "fb104c11e805acacc2889cdddbdff16ec10f31087b50ea32393b1bbae843e490",
+      "entrypointHash": "6b65e8d95ce1c85a19edba78b1c18b093b590eaf4ef003b27c2a5641768c0a27",
+      "treeHash": "eab90c3e6265bf2052bc9aece8608066b07914135b387b864002cb0022fbdcaa",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/architect/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/architect",
+          "rawSkillSha256": "19e3691d9f84f4172352fe4f621e2627cf02be93f3a294f1cc596079fbcda557",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
       "name": "architecture-patterns",
       "status": "updated",
       "ownership": "ecosystem",
@@ -497,6 +534,43 @@
             "references/upstream.md": "cb1b7b803c2cc871ad25dc792415349909b46f7734d1b1b61896fa2e8c1a2511"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
+        }
+      ]
+    },
+    {
+      "name": "arena",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/arena/SKILL.md",
+      "rawSkillHash": "37566425e21221746e3ebede42baee8a64c6497d29f33f92c4c0cac085c09edf",
+      "lockHash": "b2a0a219cf148e6d02273c75f81ad2882ae4bc3b8cfb78e662cc1f2acd8591de",
+      "entrypointHash": "22463b4f971951776ad313d9ea709d48f3747705648b415c2f123e1d41fd1cdc",
+      "treeHash": "738f88bf260b175f9f67b0334d9638efeaa62460ed0b99ff271619df53dc6b32",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/arena/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/arena",
+          "rawSkillSha256": "37566425e21221746e3ebede42baee8a64c6497d29f33f92c4c0cac085c09edf",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -603,6 +677,43 @@
             "references/upstream.md": "e65ab0ee348cd3845af86707a26c12e6d0fe2c13d147181ca0201deefffdf7e0"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
+        }
+      ]
+    },
+    {
+      "name": "automate-me",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/automate-me/SKILL.md",
+      "rawSkillHash": "3a5f2e7276518eadcdc16ca39e030df100cfe2b1922ec03a3ea07fd876318ddd",
+      "lockHash": "de450eff9df7b24e5de034f0214ee353838705677d8eaf3bc1593f550adf3cd7",
+      "entrypointHash": "6f995f66bee04b1677262e16443e758876a91d5f4290d3dc8a6597247659986f",
+      "treeHash": "b50cceaa4f1b4c738487a623b3c18ef19d624e4dd36326cf0c613104d5b38009",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/automate-me/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/automate-me",
+          "rawSkillSha256": "3a5f2e7276518eadcdc16ca39e030df100cfe2b1922ec03a3ea07fd876318ddd",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -735,6 +846,43 @@
             "references/upstream.md": "ce0660d096caae6bba0550b2d71ef6a7fe28af1b012ac47d67b742b756a9751a"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
+        }
+      ]
+    },
+    {
+      "name": "benchmark-checklist",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/benchmark-checklist/SKILL.md",
+      "rawSkillHash": "30457a34d56a7d354173cf5ed59b5e5e88378844e0a56a6824403d4ac00e7a43",
+      "lockHash": "8e828eb0ff72fa31f2291606e3b58c3ca1e4bbba9efc5182da814139abe9cdb9",
+      "entrypointHash": "657f53049378ec9923b0cbeb2dde4f7a460d28073f7fd6b3a5e3024e0ceceb43",
+      "treeHash": "672dd9b12c733ef477486234f48ccd696689ae37538bb561c7f7546fa8f66ef1",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/benchmark-checklist/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/benchmark-checklist",
+          "rawSkillSha256": "30457a34d56a7d354173cf5ed59b5e5e88378844e0a56a6824403d4ac00e7a43",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -1195,6 +1343,80 @@
             "references/upstream.md": "9d599237eed35bf9de3eb6fffc03839c4f84489fe185c2bac6dbfa37f6e97065"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
+        }
+      ]
+    },
+    {
+      "name": "blast-radius",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/blast-radius/SKILL.md",
+      "rawSkillHash": "0de8e33e647415702b5d90c88cea0e0f881e80e67c5363d37bd0742fe31a9d60",
+      "lockHash": "096b15df3df2d8923430ef0b8d77ca4edcf4feeeb8658c59032dbda02840e2ad",
+      "entrypointHash": "bbbfa0285922987e7a6f4ef4fae2cd4fd1ce8517e8636a929368bdc33374bae3",
+      "treeHash": "55f67b4c1e5ddf83db7ea955edf40c84722bd3bdee7b96d0ca756259b8e15eb7",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/blast-radius/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/blast-radius",
+          "rawSkillSha256": "0de8e33e647415702b5d90c88cea0e0f881e80e67c5363d37bd0742fe31a9d60",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "bro",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/bro/SKILL.md",
+      "rawSkillHash": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb",
+      "lockHash": "b651827a1c11465d79500780e53414fdccffd12ce3b640138dee2d04133a9a33",
+      "entrypointHash": "02c24768a155f6f8041428a961c982fc45ae7fac23f894832731c9b1eeaaf8fa",
+      "treeHash": "4fc89043eb353c03b1ccd62d9c63bc9f2592a7902a51ddc02633a818adf85693",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/bro/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/bro",
+          "rawSkillSha256": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -1831,6 +2053,43 @@
       ]
     },
     {
+      "name": "correct",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/correct/SKILL.md",
+      "rawSkillHash": "bf482bacc972b3f124a4af8bf9364b4b3e280cb5845e44c326ea4f4565e5c904",
+      "lockHash": "61c8a417f95b6e3cc198cd869ba92ab5d65c68fcc4e3191a302a5a9f24bc2645",
+      "entrypointHash": "222d449a0b72fad63961839db0e934f717775538c75295e81e874ad590423bcf",
+      "treeHash": "ff3bdb7e6d68d17d839865352979906ef1c3b5635b90a07deb9127e424f049f5",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/correct/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/correct",
+          "rawSkillSha256": "bf482bacc972b3f124a4af8bf9364b4b3e280cb5845e44c326ea4f4565e5c904",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
       "name": "council",
       "status": "updated",
       "ownership": "canonical",
@@ -1896,6 +2155,43 @@
           "url": "https://github.com/ikindacodes/ship-eve/tree/ac7d476a99d2880dde794e7cb8b4a50fbd2b6628",
           "path": "skills/create-agent/SKILL.md",
           "finding": "Source path absent; no successor adopted."
+        }
+      ]
+    },
+    {
+      "name": "create-verification-skill",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/create-verification-skill/SKILL.md",
+      "rawSkillHash": "527975b6a53b736cd382c30512faf7913e42e667988ef3c975cc4ee352f73bdd",
+      "lockHash": "e46d85a4a1f1aab6b475aa0059231e8eb7b60d76688afa83b87e98619f75382b",
+      "entrypointHash": "7d30218a570113be9a9b39e43baefee14c1d6d49f8998a6d7e34069cd33cedbb",
+      "treeHash": "330e8eb982134b0f4140278678921ff4e481f226882d8423b5b96ab683da1a3e",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/create-verification-skill/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/create-verification-skill",
+          "rawSkillSha256": "527975b6a53b736cd382c30512faf7913e42e667988ef3c975cc4ee352f73bdd",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -2696,6 +2992,43 @@
       ]
     },
     {
+      "name": "figure-it-out",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/figure-it-out/SKILL.md",
+      "rawSkillHash": "78bd277948ba29579e3210ee31b0c04e49b830fcca726ff105f3eaee7051c541",
+      "lockHash": "1e02345c81cc4dc7115f9bf2267f56880c78a2b0f6f079443e1d7b5e3539e3a6",
+      "entrypointHash": "7c3c13db2513d5f4518221ec78b2bb619e04d7821efae48a5acd462f58e99252",
+      "treeHash": "696c553f8d99e2d288e387f54bfd3d5f182d674a0ff1660ff24a61ea07769812",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/figure-it-out/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/figure-it-out",
+          "rawSkillSha256": "78bd277948ba29579e3210ee31b0c04e49b830fcca726ff105f3eaee7051c541",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
       "name": "find-animation-opportunities",
       "status": "current",
       "ownership": "canonical",
@@ -3362,6 +3695,43 @@
             "references/upstream.md": "3e37d4fdd695fbe38a748aa337caf473950baa553bf806422bc92e19959d8197"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
+        }
+      ]
+    },
+    {
+      "name": "how",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/how/SKILL.md",
+      "rawSkillHash": "6cadb05df7d418ba7b0af1500d1b8847f928235cef9e10ec88e178108f036e8d",
+      "lockHash": "98f2332fb2cd34b22ce93fa49e8c029d6e83d31d6792d02356585801b81df4d8",
+      "entrypointHash": "0916310b2a88a39b93884e61ae1397a735a7f0416d7c5c1f64acc1f7ab7f4d69",
+      "treeHash": "d7bdf2da0039f51f1f5913d717d732daea296bd4d0577c28f4c65175a359820b",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/how/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/how",
+          "rawSkillSha256": "6cadb05df7d418ba7b0af1500d1b8847f928235cef9e10ec88e178108f036e8d",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -4334,6 +4704,43 @@
       ]
     },
     {
+      "name": "interrogate",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/interrogate/SKILL.md",
+      "rawSkillHash": "70fe8a2262d367da33a6384c18c52335c07e1e32f466ffb077cc7d46bd5fa681",
+      "lockHash": "54dc857d501ad8c2e83da63095aa4be8ce1d23bc8549f04d6d66f23651492604",
+      "entrypointHash": "ae1d0ec1534c1529867b8ac579559673b056cc089776a5ce305687683e3247dd",
+      "treeHash": "3a45ebb6f1e488bc5e7ac9c135b9ec62bf7cb21d468499880737c1dabf289c15",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/interrogate/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/interrogate",
+          "rawSkillSha256": "70fe8a2262d367da33a6384c18c52335c07e1e32f466ffb077cc7d46bd5fa681",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
       "name": "lint-and-validate",
       "status": "current",
       "ownership": "ecosystem",
@@ -4478,6 +4885,80 @@
             "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
+        }
+      ]
+    },
+    {
+      "name": "maintain-verification-skill",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/maintain-verification-skill/SKILL.md",
+      "rawSkillHash": "604416b3eeae2e82824342ba3f782b54f6ce971df02a6a98c242a3bfae3b5a6d",
+      "lockHash": "9c97c98e65c759bad481c615bf647fcd76a357ad8651d8240c85e0d6d19c84cc",
+      "entrypointHash": "21845fbf3b66c237753faf5dd4e734571687e1ac261fb58aacff67c7561d3764",
+      "treeHash": "a293a2cb2ab3625218a2a12a50e8b6f3d342d1df03912ee1c2cbc97eabf55f1c",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/maintain-verification-skill/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/maintain-verification-skill",
+          "rawSkillSha256": "604416b3eeae2e82824342ba3f782b54f6ce971df02a6a98c242a3bfae3b5a6d",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "make-bot-ui",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/make-bot-ui/SKILL.md",
+      "rawSkillHash": "0eb82323e4315bf73eaf3b6cba5487bce2ade130852c113dede593e12dda0bc0",
+      "lockHash": "07e2586b99a6f26d93ef71beb5f1d1961abe92e41f3f2bc03ba887a7064979e9",
+      "entrypointHash": "2b1267072ac2a79ea235dde9393fd30fb707047a769496ec75d126157090e058",
+      "treeHash": "8a9d2a70a2febee922950e06a2d3700e3c15407bc309dd0e16da314c4d155699",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/make-bot-ui/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/make-bot-ui",
+          "rawSkillSha256": "0eb82323e4315bf73eaf3b6cba5487bce2ade130852c113dede593e12dda0bc0",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -5252,6 +5733,43 @@
       ]
     },
     {
+      "name": "no-comments",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/no-comments/SKILL.md",
+      "rawSkillHash": "41c9b4e2a85f295ff96329736faf5c3af53579aa38c606d5139568d11662d2f7",
+      "lockHash": "13acb25431f0285d427900bb0b86380911d43314a989ede51cfabf7f51bee0cd",
+      "entrypointHash": "b5930b0a2a9d2242dd75c3d007fa96dd34adc9bb8e802d653eb3a4ca9cfd168a",
+      "treeHash": "7f007bfcf3315b2326327f63e679bd228577f2f6ecb82e8da5e970559d50056a",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/no-comments/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/no-comments",
+          "rawSkillSha256": "41c9b4e2a85f295ff96329736faf5c3af53579aa38c606d5139568d11662d2f7",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
       "name": "nodejs-backend-patterns",
       "status": "updated",
       "ownership": "ecosystem",
@@ -5683,6 +6201,156 @@
             "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
+        }
+      ]
+    },
+    {
+      "name": "p3-help",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/p3-help/SKILL.md",
+      "rawSkillHash": "ff493dafd42049dc568a1d6ba594d9f471811c37f97e1879cf5c46f2f9fe4580",
+      "lockHash": "06a97c6711a21883b604adec80d09cb093b2c7156b4f5d294246c9ed945211bd",
+      "entrypointHash": "02dff8a140e8adca1d760434800418c048df17472dbc1255feb3c660332cd0ae",
+      "treeHash": "f9dfba28b3df7947b332171457379b782fdb947a14c8edd278e6740effcbfa56",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/p3-help/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/p3-help",
+          "rawSkillSha256": "ff493dafd42049dc568a1d6ba594d9f471811c37f97e1879cf5c46f2f9fe4580",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "p3-mode",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/p3-mode/SKILL.md",
+      "rawSkillHash": "804902c52be09d48429a4e67f95d4243fce6b198dea2012ba41d1fe0f1622cba",
+      "lockHash": "a1a7f767f90a4b9cafcefb4ee0a7462abf71f0b3c999c1e53ce1a69917db397f",
+      "entrypointHash": "2c818e9c99b61fa933be7bbf027b6e58d16bf52491fcd6a9d5022dc9b6db8592",
+      "treeHash": "afc1181e8dff187ddffba102e7141513b8b1a0bc1656820c9cb6f34e662cb27b",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/p3-mode/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/p3-mode",
+          "rawSkillSha256": "804902c52be09d48429a4e67f95d4243fce6b198dea2012ba41d1fe0f1622cba",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "p3-tdd",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/tdd/SKILL.md",
+      "rawSkillHash": "eeb868e2dfebee528d730a67d7b17498fac4bb85dec2e38bc5c5176aca4d5d2f",
+      "lockHash": "d3316fbb89ac596c91bb8d529180393c3b69fb6408f7d5cdccb74ead97cbf188",
+      "entrypointHash": "7a91cce4b17c36b2be9739f6762dea3267e9f012b0cf84a16729323542e9a5be",
+      "treeHash": "6edaec38bd5e925f7834017214bcf51f77543b4a871c6af1ad00576dffe7d86e",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries.",
+        "Renamed from upstream tdd to p3-tdd because Core already has a different tdd skill."
+      ],
+      "evidence": "docs/ai/skills/p3-tdd/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/tdd",
+          "rawSkillSha256": "eeb868e2dfebee528d730a67d7b17498fac4bb85dec2e38bc5c5176aca4d5d2f",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "p3-teach",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/teach/SKILL.md",
+      "rawSkillHash": "8d939f29eeb7bd29a07765dfd2dd8303ad656b9fcff57f3487f5611380fcd944",
+      "lockHash": "cb3658d7fd85b822fabfaad04d8d840668a3a592fa4c486cd663a94a57ee720b",
+      "entrypointHash": "bad6566748064fdd1b89492556bb41bc4172b4f39dae0cd98bdca24205425c3f",
+      "treeHash": "9e8c2d7cd74f246c41e1777e5a21facfbf9e79d1cd54405b78def888dafcc12b",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries.",
+        "Renamed from upstream teach to p3-teach because Core already has a different teach skill."
+      ],
+      "evidence": "docs/ai/skills/p3-teach/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/teach",
+          "rawSkillSha256": "8d939f29eeb7bd29a07765dfd2dd8303ad656b9fcff57f3487f5611380fcd944",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -6404,6 +7072,894 @@
       }
     },
     {
+      "name": "principle-attack-the-premise",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-attack-the-premise/SKILL.md",
+      "rawSkillHash": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3",
+      "lockHash": "3221a3db4e40420696747af169813e685cfe831cf473f00e205cb78ee576e449",
+      "entrypointHash": "169dcff2217228770147d2f10520c53abe83e1d079e1371dbcab6232ce67fb93",
+      "treeHash": "58a63d7a2a360dd070824edd386802a901bd1c1da6b66859451de46c7abc714f",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-attack-the-premise/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-attack-the-premise",
+          "rawSkillSha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-boundary-discipline",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-boundary-discipline/SKILL.md",
+      "rawSkillHash": "62ac2862c2caa22dd14531f51c9c6bb445ceb198ca98a687e25b4d47c1f10a28",
+      "lockHash": "51f995752ff3bad613526eb7779872e01d01ac141a88c9ca050075a074ee5b70",
+      "entrypointHash": "db4487bcef1d2fe7e67c2c5ad810ec8782e69626ece8c1292b7860e203205f0d",
+      "treeHash": "366cc3241dc59ce27ad4e72b85cacbda3ae2834c7b7ee9010a553ded819a6820",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-boundary-discipline/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-boundary-discipline",
+          "rawSkillSha256": "62ac2862c2caa22dd14531f51c9c6bb445ceb198ca98a687e25b4d47c1f10a28",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-build-the-lever",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-build-the-lever/SKILL.md",
+      "rawSkillHash": "8f1e55098552611d7821a0ac4f1f18e0c3583c74cd4ff41488b600b43a0b1f22",
+      "lockHash": "f4ba7f4c1cd83ff8d1669f4f4b162aee28328a5e1e562a4d5efd1cc59c739224",
+      "entrypointHash": "deabd62778593b71bd989f0a380f9d92135af848e5dbe5d4031ee519d623ccdc",
+      "treeHash": "e34db744b94e6c09e641930411781352c3b0ebe4ec5792896a162bcbaf910a41",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-build-the-lever/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-build-the-lever",
+          "rawSkillSha256": "8f1e55098552611d7821a0ac4f1f18e0c3583c74cd4ff41488b600b43a0b1f22",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-encode-lessons-in-structure",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-encode-lessons-in-structure/SKILL.md",
+      "rawSkillHash": "77044c83a9ac6df78fc643887ea5f1f11f082adaf14b717c060cdaed03cce863",
+      "lockHash": "13cb9b8bbf0aecd3c03a30803bbdfc012f6123f1a7d44db134bc8cce88a02d63",
+      "entrypointHash": "de3fc8e7fd66eb8e4eef4c7702d6068df4777e613bf56d726472735ba0fe277b",
+      "treeHash": "20a83c9f667d94e820b714c8462223c656cce0c9ae9c3e209514d44fa183d81b",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-encode-lessons-in-structure/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-encode-lessons-in-structure",
+          "rawSkillSha256": "77044c83a9ac6df78fc643887ea5f1f11f082adaf14b717c060cdaed03cce863",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-exhaust-the-design-space",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-exhaust-the-design-space/SKILL.md",
+      "rawSkillHash": "8583310d7297b7823d75494faa57b003564d436807febecdecbd8321abe5cf6e",
+      "lockHash": "bf5f30c97afa75da12e1f982bffc3176d2172bd124072f6d9e74d06b0cf2b965",
+      "entrypointHash": "f79a97a65f7f741ff9488b6cbaf37f56850f5c433953bd02d2a4596555ecbf6a",
+      "treeHash": "1b6a1c929955d52281c5752b2f7d8d1d96c2617919f1861e31651ac57ce0b6a6",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-exhaust-the-design-space/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-exhaust-the-design-space",
+          "rawSkillSha256": "8583310d7297b7823d75494faa57b003564d436807febecdecbd8321abe5cf6e",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-experience-first",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-experience-first/SKILL.md",
+      "rawSkillHash": "58903529d733b1c1a7c9ccf127d45ef3c7d0d9f0b81164a4dc6b80efe6f2912b",
+      "lockHash": "bd0254d8a460c145a148214cbc136f84dbba6edc9acc48c00a8af660efc88856",
+      "entrypointHash": "3c485a40f590673e00f5efd6541c5e79288479742567fdf2027b1400082d0926",
+      "treeHash": "3cbf65c4ee795de43db63da57d2adfe8d0dbb04f0763fca24bdb00b8c97a3fdd",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-experience-first/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-experience-first",
+          "rawSkillSha256": "58903529d733b1c1a7c9ccf127d45ef3c7d0d9f0b81164a4dc6b80efe6f2912b",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-explain-the-number",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-explain-the-number/SKILL.md",
+      "rawSkillHash": "5aac99e7ce0bb1b37e2579acf4fe88c32a1456d9d46afd4a57cfe1df9092e89c",
+      "lockHash": "f30555e8418101845a097d98fd3b6f9d5d435c220d047ac492f3b91ca30b1dee",
+      "entrypointHash": "6ae799c18ef29310dbc38d29559d0d3700413cc05e4a3eb1162a236fb276369b",
+      "treeHash": "ad834188e4340fee902da3846c5d0d72cde358fd46901fa827d09a431640e763",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-explain-the-number/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-explain-the-number",
+          "rawSkillSha256": "5aac99e7ce0bb1b37e2579acf4fe88c32a1456d9d46afd4a57cfe1df9092e89c",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-fix-root-causes",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-fix-root-causes/SKILL.md",
+      "rawSkillHash": "ba4cd38da1dcc8fe5432feb64457cba95594736a9b21b2ebf8f8c52aee068707",
+      "lockHash": "a6fe6d14109670ba52904a95a18711816b7cf464f2730fa6d34ed5d9f362edb6",
+      "entrypointHash": "4892658f827d1155e5d4315874430048999430be3cf37bf854d255ebc6f674d7",
+      "treeHash": "16e84f7fc79fa70eb8b938ab00eeeeb3d77d836860fe3baadd0eb45ea254e21b",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-fix-root-causes/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-fix-root-causes",
+          "rawSkillSha256": "ba4cd38da1dcc8fe5432feb64457cba95594736a9b21b2ebf8f8c52aee068707",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-foundational-thinking",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-foundational-thinking/SKILL.md",
+      "rawSkillHash": "864b827e8199d946ce58beca0f89c4ed4099ed6e426fb698a3aaa45de2a9eea2",
+      "lockHash": "bb6beaf165b3a3a454c20d243e5be96b0a7b2a8bc7b217be3d214a70a3bf3f14",
+      "entrypointHash": "2ae299c851c060d13699faaabfb58c5a56f5423cd2aafb2e95c688c70f4890d5",
+      "treeHash": "be6c82b28074c395657f48b16bd6fbbada4c64f29745c2b8d2d61e5e9ebfb614",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-foundational-thinking/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-foundational-thinking",
+          "rawSkillSha256": "864b827e8199d946ce58beca0f89c4ed4099ed6e426fb698a3aaa45de2a9eea2",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-guard-the-context-window",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-guard-the-context-window/SKILL.md",
+      "rawSkillHash": "33e362c79e5d07ee4dbea4ed18fc03c838a8a09fea19a502c550cc6045c036ea",
+      "lockHash": "3cfb17d353360761a61558f48964be6e01efd029ebe923e670f4e70322d9d48c",
+      "entrypointHash": "a65f612d8ce8d7dcc9ba77aa0ce8881a8eeffa3159fba55d59e6f179fecae619",
+      "treeHash": "7f4b341f4c37f6f0d2f1d5e16c53ef333c35c02e3c23deebeeaa7990418c7561",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-guard-the-context-window/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-guard-the-context-window",
+          "rawSkillSha256": "33e362c79e5d07ee4dbea4ed18fc03c838a8a09fea19a502c550cc6045c036ea",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-laziness-protocol",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-laziness-protocol/SKILL.md",
+      "rawSkillHash": "9006579e9e3f33955d17569733db688ae65f22577dc3b21803d219a5a8445aff",
+      "lockHash": "5c6a19fca468569ee4f31fe71148a1c09e36d4b4c7d3ee30d05ebc7c4e840ea8",
+      "entrypointHash": "1b74b2c3fbf318a42c5e0f3619ac2552d9c28b97a92d0555d565f6140f070cd4",
+      "treeHash": "cc62cebf7de57b25e7252ee4658a92e9361464b7329da968549468b2f6a8a8c7",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-laziness-protocol/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-laziness-protocol",
+          "rawSkillSha256": "9006579e9e3f33955d17569733db688ae65f22577dc3b21803d219a5a8445aff",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-make-operations-idempotent",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-make-operations-idempotent/SKILL.md",
+      "rawSkillHash": "540738217c3da7bf513b9886924ad6a2bc77e58be867f5bd2e1831c74bf2ce70",
+      "lockHash": "8293bf10530fdffa13216645432989a14b3ca4a1b6a6f0e12bf9a141ba48f802",
+      "entrypointHash": "171e91291db6fc9713e7aad8dba7742f8be943e3c0256ae704fdc6fc5055f34f",
+      "treeHash": "52449e2784357acc59f4a5a7a7f18feae621c31f93a562a346d1cfd8b8153be0",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-make-operations-idempotent/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-make-operations-idempotent",
+          "rawSkillSha256": "540738217c3da7bf513b9886924ad6a2bc77e58be867f5bd2e1831c74bf2ce70",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-migrate-callers-then-delete-legacy-apis",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "rawSkillHash": "09978915a4a11990cf0a9a02d9c08cc59e0b7a04c5c24b83aa560fbe4146f75b",
+      "lockHash": "fc645cc45560cb8e0fd655759a9d11553605942c014910e33a3c2182da276e96",
+      "entrypointHash": "6ea394265e2bb4cbe45394b1ff16d0f2f063fcaa82075a17243f8e9df9787d5f",
+      "treeHash": "b0d5d35491389ef9179c7399434f364bc689f9fb97c272c0e87d1dd33819e635",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-migrate-callers-then-delete-legacy-apis/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-migrate-callers-then-delete-legacy-apis",
+          "rawSkillSha256": "09978915a4a11990cf0a9a02d9c08cc59e0b7a04c5c24b83aa560fbe4146f75b",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-minimize-reader-load",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-minimize-reader-load/SKILL.md",
+      "rawSkillHash": "42551c5dc74cd578163c148da552db3ff67d29b78600ef216bfd311fb828fe69",
+      "lockHash": "094bf45ca1440596057715d2124c96534917087b730a4ba25c0314eff2447368",
+      "entrypointHash": "85c08f163b155e1126d790cc323611eb152fd6e62664261a0fd5ad8ec7f7c62c",
+      "treeHash": "06958d3009bf90b92bfd3d4e431129de2fdf0c82eb68d71e5177e3dad48f5ed6",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-minimize-reader-load/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-minimize-reader-load",
+          "rawSkillSha256": "42551c5dc74cd578163c148da552db3ff67d29b78600ef216bfd311fb828fe69",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-model-the-domain",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-model-the-domain/SKILL.md",
+      "rawSkillHash": "bbadbb9a723fac3f76e782ae45665eb94058ec10993e4bae36d4dc6b0e4eac07",
+      "lockHash": "ecefa086214024c8ea375193657a2464aa0f2c582e327c3f507db6ea35506a56",
+      "entrypointHash": "6745ca105493b454aec883b6381383783122f3e6b90192fdd005f5add1724c41",
+      "treeHash": "a0d98d662eac038ae4b5ad00bfa23f54a9547b8eba289eafee4e28d9a89ca0be",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-model-the-domain/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-model-the-domain",
+          "rawSkillSha256": "bbadbb9a723fac3f76e782ae45665eb94058ec10993e4bae36d4dc6b0e4eac07",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-never-block-on-the-human",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-never-block-on-the-human/SKILL.md",
+      "rawSkillHash": "f2764bb9338cbfc788c903cf4b9cd0a5f4042d3a04dd6d59cbd525d9beaadd0a",
+      "lockHash": "fcee298eea871f7bc7edd19bfa2067d9a6eb326e239ea2507c6cfd1750906ce1",
+      "entrypointHash": "00649ed89936c9caf01cc48b949766050156b670e9dafaea167aa673373b48b7",
+      "treeHash": "b75850f14b9bf68045c30684ef0fdd022a7a42e544c4155adcda4d22b7a7faf9",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-never-block-on-the-human/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-never-block-on-the-human",
+          "rawSkillSha256": "f2764bb9338cbfc788c903cf4b9cd0a5f4042d3a04dd6d59cbd525d9beaadd0a",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-outcome-oriented-execution",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-outcome-oriented-execution/SKILL.md",
+      "rawSkillHash": "10eb91633aa570355ba4bb37088fcade2b22e498df7a58edc749e65bc5a78e2d",
+      "lockHash": "c6ba3d622fe1e3d28a83d391ceaa150aaeafac9c935c154df9b1826f6423bc0b",
+      "entrypointHash": "607e962e6d37f5cb0330760529ef2d09de90daeffdf6631f943b07db3032672b",
+      "treeHash": "fd7c857f642a8d0997d324d4bfac558279a422581f7dfe62c8e0b29ffe44b073",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-outcome-oriented-execution/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-outcome-oriented-execution",
+          "rawSkillSha256": "10eb91633aa570355ba4bb37088fcade2b22e498df7a58edc749e65bc5a78e2d",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-prove-it-works",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-prove-it-works/SKILL.md",
+      "rawSkillHash": "ec79a15025bac8d33d62011c54f3b612733fd2a024e623b531b3637aa75070e2",
+      "lockHash": "6777a72ed3c15bbd73f0d264ba4eb701e5e733de70dd519c72fc2698a32379a2",
+      "entrypointHash": "4847ed47088b9256839bfe5ea15bb9ea16ff6b52e06b64784aad412e8b0a0b9e",
+      "treeHash": "6dce611371810792802afcafa9a4cfe983c3580054262687256eec2279560dda",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-prove-it-works/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-prove-it-works",
+          "rawSkillSha256": "ec79a15025bac8d33d62011c54f3b612733fd2a024e623b531b3637aa75070e2",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-redesign-from-first-principles",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-redesign-from-first-principles/SKILL.md",
+      "rawSkillHash": "a1c7fd0a96b40e12a74bceb0e6bb20a9666dd844dcabfb624acb27da23b929fe",
+      "lockHash": "149fec5da594ae56df069d2e79a01a2d1e003c49770d79fc683096d559c94213",
+      "entrypointHash": "f4a0472088e1eba7995b272faf106c403344ebd0d1d0d37a8b117aa9ce6838ea",
+      "treeHash": "f02335f69211f50d1bfcf66c45181f6c90ad169c32f4c655653cb17d4c4f08aa",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-redesign-from-first-principles/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-redesign-from-first-principles",
+          "rawSkillSha256": "a1c7fd0a96b40e12a74bceb0e6bb20a9666dd844dcabfb624acb27da23b929fe",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-separate-before-serializing-shared-state",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "rawSkillHash": "05294b40448e927c5da1c7b6f5c6b9fed3744637e3833d2d948b9154a9dd00bb",
+      "lockHash": "d372812c2617e5226df5bd60950dd9d3e8f5758a9a1e4fefc63114ad53253769",
+      "entrypointHash": "3fe080aafaf1cf19ca1853c40041a7b2c293e5fd20c2e898ca69bcd14a431c35",
+      "treeHash": "fe592a848cea954d267751fc613248fb7d506a80e2af30cc63c54c85199b3c29",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-separate-before-serializing-shared-state/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-separate-before-serializing-shared-state",
+          "rawSkillSha256": "05294b40448e927c5da1c7b6f5c6b9fed3744637e3833d2d948b9154a9dd00bb",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-sequence-verifiable-units",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-sequence-verifiable-units/SKILL.md",
+      "rawSkillHash": "2c27d9dc085e5673eb23448b33e69f7110999558e9eeb9eaf54ba75c3eee4ea3",
+      "lockHash": "390596c072b2c4853f9e1ea41735f1cc3b6daf0e2cf9c2961a44a1f7e52e5c26",
+      "entrypointHash": "4f1c0a25b1126630b679b0c45b8a000f4d0118234d54c15bd675aed48de60f1f",
+      "treeHash": "c25c2bb8af75f6cc3e2efa8ed8211a6d98cf702c669a63265fd68cbf4b8f7758",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-sequence-verifiable-units/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-sequence-verifiable-units",
+          "rawSkillSha256": "2c27d9dc085e5673eb23448b33e69f7110999558e9eeb9eaf54ba75c3eee4ea3",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-subtract-before-you-add",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-subtract-before-you-add/SKILL.md",
+      "rawSkillHash": "a983a50e732c1ed315eba7aaf47a61329e31c4794eb1ab9d25d9945265b31e03",
+      "lockHash": "c85188049e825fe715bb76bb0aa53adfa7f2f719a0b52db2b0c72daf6dd9aac7",
+      "entrypointHash": "ddb1c192d1a0c6057663b65262c5a206000deae6a5c1a0884fd54e5b761b1eb2",
+      "treeHash": "7b66c424b37781bf4a65f44fc691d768adec3ef2fcac2c6560edcb368f22a24e",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-subtract-before-you-add/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-subtract-before-you-add",
+          "rawSkillSha256": "a983a50e732c1ed315eba7aaf47a61329e31c4794eb1ab9d25d9945265b31e03",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-test-behavior-not-implementation",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-test-behavior-not-implementation/SKILL.md",
+      "rawSkillHash": "87e40efe4e486f7ea639d2ed1fc0abe6c93b8fd0e89a81218086909d2470a52e",
+      "lockHash": "41a7140188cc96559c6af4bde7ca3e9611458490846d2dc446776e962ad9f430",
+      "entrypointHash": "9ea599e691d4c648ff06344f9e4a042ff4b49390c6f8d6ce7eb26e8e1f900542",
+      "treeHash": "9c796f895dbfaf35c99391aeec681960d29ef7ece40630b9af03a191d9b3df6f",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-test-behavior-not-implementation/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-test-behavior-not-implementation",
+          "rawSkillSha256": "87e40efe4e486f7ea639d2ed1fc0abe6c93b8fd0e89a81218086909d2470a52e",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
+      "name": "principle-type-system-discipline",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/principle-type-system-discipline/SKILL.md",
+      "rawSkillHash": "c83da8031ffb4c86410030d3e261f659598fca2b7d8158fd9dc269d70a3a025e",
+      "lockHash": "dbd4efbb3e6da61329f23b43301b8aa73fde79d6fca75be3d518f51abfd30e32",
+      "entrypointHash": "b027a6f000c56dbc590aeed3be753679e80e2b9335bc72eefdd0426e3680510d",
+      "treeHash": "cf45578411a8a71f77ca82976a4760327e27b77d18fa21b69df56ec3fe7c4b43",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/principle-type-system-discipline/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/principle-type-system-discipline",
+          "rawSkillSha256": "c83da8031ffb4c86410030d3e261f659598fca2b7d8158fd9dc269d70a3a025e",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
       "name": "prompt-engineering-patterns",
       "status": "updated",
       "ownership": "ecosystem",
@@ -6780,6 +8336,43 @@
       ]
     },
     {
+      "name": "recall",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/recall/SKILL.md",
+      "rawSkillHash": "2638acbe99bdb189353d20ceb499ead4ab331de2e2e9a4f7946475d715b1cbe2",
+      "lockHash": "323e317a930d6561041d2bc7a7c1bc1872a3aef85e586ecbc4e5807c5c9313a5",
+      "entrypointHash": "b4c5b50d4d14702ac81a35bd871d3b52234fd0380328d3c4d536a3cf3b1d3b3c",
+      "treeHash": "6634a467b59216e93c26a32b97a00bee32bdef0b05f00ac765a58f15ab7f05a9",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/recall/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/recall",
+          "rawSkillSha256": "2638acbe99bdb189353d20ceb499ead4ab331de2e2e9a4f7946475d715b1cbe2",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
       "name": "rechart",
       "status": "current",
       "ownership": "canonical",
@@ -6857,6 +8450,43 @@
           "historicalAttributedRef": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
           "entrypointHash": "a04e96510c39040574356e812812b86ce4c9bc94d9dee22de43cb3563a8617e4",
           "claim": "Historical installed snapshot retained; raw upstream bytes were not revalidated in this review. Local provenance maintenance does not imply upstream freshness."
+        }
+      ]
+    },
+    {
+      "name": "reflect",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/reflect/SKILL.md",
+      "rawSkillHash": "ca6d2d9e825b79abf05c018d815a2843bc1ccbfbe2e13236df6189e120d72f8b",
+      "lockHash": "56600bd05fd71dccf491d49ca5d1e4a16a5e2090ada8198ccf051109abac2179",
+      "entrypointHash": "979a8bb8195684e96557e82a9479888fb3d75883283fe6be63c924cdce4f65f6",
+      "treeHash": "028a36962ebf0f3ceefd8f30db2692eed48ad2e62a4ea043a8fc8d2932141b27",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/reflect/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/reflect",
+          "rawSkillSha256": "ca6d2d9e825b79abf05c018d815a2843bc1ccbfbe2e13236df6189e120d72f8b",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -7371,6 +9001,43 @@
       ]
     },
     {
+      "name": "review-pr",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "anthropics/claude-plugins-official",
+      "importedRef": "0412be76f50ab4f4f8abff3753efa9269fbbca5b",
+      "examinedRef": "0412be76f50ab4f4f8abff3753efa9269fbbca5b",
+      "sourcePath": "plugins/pr-review-toolkit/commands/review-pr.md",
+      "rawSkillHash": "5e70c17293a044e1bf9d092c80b5da8b4fd5802ebb07dc53993dec4ba7ce2fc4",
+      "lockHash": null,
+      "entrypointHash": "fd91e1a2faf318dde7221188a96c87bc7170130c3bfde57df176c9fceb1e1898",
+      "treeHash": "dfee9e3671f55b22da6c9eac84333a507fd01e8095cf26ff27cf5fc46812ad8b",
+      "license": {
+        "identifier": "Apache-2.0",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+          }
+        ]
+      },
+      "adaptations": [
+        "Claude Code plugin command converted to an explicit-only skill with Apache-2.0 change notices; the six upstream agent prompts are kept under references/agents/ and launched by Core-authored native subagents in .cursor/agents/ (generated into .claude/agents/); the marked Core overlay sets scope, client dispatch, read-only reviewers, severity mapping, and output limits."
+      ],
+      "evidence": "docs/ai/skills/review-pr/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/anthropics/claude-plugins-official/tree/0412be76f50ab4f4f8abff3753efa9269fbbca5b/plugins/pr-review-toolkit",
+          "rawSkillSha256": "5e70c17293a044e1bf9d092c80b5da8b4fd5802ebb07dc53993dec4ba7ce2fc4",
+          "licenseSha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "claim": "Complete reviewed plugin inventory (six agents, one command, LICENSE); prompts unchanged apart from Prettier whitespace; no plugin code executed."
+        }
+      ]
+    },
+    {
       "name": "run-smoke-tests",
       "status": "current",
       "ownership": "canonical",
@@ -7599,6 +9266,43 @@
       ]
     },
     {
+      "name": "setup-p3",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/setup-p3/SKILL.md",
+      "rawSkillHash": "ac64e7bb633ac1b897bb54eca4e0306ed53eba03c624188ee8dab062465209e4",
+      "lockHash": "f5d2db156866c4f8021ec454ec3a5421f1686dff7f0431c1561067431b588bb9",
+      "entrypointHash": "1c8e07bf68a50ecc4d201aafae6ac97547db01048197244bb06c138f12737786",
+      "treeHash": "87493a54567ee049171e4286aa51ada716171b104a7b052db656344ba404b7df",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/setup-p3/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/setup-p3",
+          "rawSkillSha256": "ac64e7bb633ac1b897bb54eca4e0306ed53eba03c624188ee8dab062465209e4",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
       "name": "setup-pre-commit",
       "status": "current",
       "ownership": "canonical",
@@ -7764,6 +9468,43 @@
           "dataTableSha256": "93be0c64337a48e5245a4924f69890b37d4c5478a3196d2a9e8b9a8c26a2dd70",
           "reinstallFixture": "tests/unit/scripts/ecosystem-skill-adapters.test.ts",
           "fixtureOutcome": "4 tests pass, including real upstream-shaped examples restored to all three runtime fixtures and idempotence."
+        }
+      ]
+    },
+    {
+      "name": "show-me-your-work",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/show-me-your-work/SKILL.md",
+      "rawSkillHash": "884d7406bf94a1d158eaa8477d588eccdd63dda71e6576d1bc530a5a4aba951e",
+      "lockHash": "cac3188a77d495c7ec7ec1383ba23aa1660bc589ff44a86f183bf013c24e097c",
+      "entrypointHash": "8505b8867fdbe245feccc02a2a125ed7b52b507235024be3f96c2295abe74599",
+      "treeHash": "d5c19c4d85e5fc9fe2ab24fede19b2139aaeecb3db06995e9e8abe979161f65f",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/show-me-your-work/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/show-me-your-work",
+          "rawSkillSha256": "884d7406bf94a1d158eaa8477d588eccdd63dda71e6576d1bc530a5a4aba951e",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -8102,6 +9843,43 @@
       ]
     },
     {
+      "name": "swarm",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/swarm/SKILL.md",
+      "rawSkillHash": "d5401e191b19699680fe7e3101cbed75f93f316d3af89417a66393e315cd0dcb",
+      "lockHash": "ae3e547b7ffc6b2c4f1c5edc68deb6dc2fb690c2b7fc50d1de5670e5664c9adc",
+      "entrypointHash": "bd50f54f7714008b931488578318cc52f0a38d3f192e4202d2d5f91b3bd2c7a8",
+      "treeHash": "c820323b868cfbbcd87656d29078235e07169639855729aec2dd02e6c7597995",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/swarm/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/swarm",
+          "rawSkillSha256": "d5401e191b19699680fe7e3101cbed75f93f316d3af89417a66393e315cd0dcb",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
       "name": "systematic-debugging",
       "status": "updated",
       "ownership": "ecosystem",
@@ -8363,6 +10141,43 @@
             "references/upstream.md": "03e65ab15c01c8e7e564b1908d95fba3628ba1a9fe09bb2cbde2bf767ac66373"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
+        }
+      ]
+    },
+    {
+      "name": "technical-writing",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/technical-writing/SKILL.md",
+      "rawSkillHash": "f5c512ffeec70bc4e0dee50f7bb4c26742e1be77967a6e8b15d1921e1c209ceb",
+      "lockHash": "d8ecca1f5bfa2d531f5ead6da72001b320d293eebd4435a2e3e11f79fa3f6949",
+      "entrypointHash": "ed99b8ec44d589ffb5c778abb6914d5e3dd61ade9c65d02a2c5a76036206e4c6",
+      "treeHash": "aa23f8fb9fab014b13eb8efec454702bef1257bdd1278b1bf6f2bd9091702a69",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/technical-writing/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/technical-writing",
+          "rawSkillSha256": "f5c512ffeec70bc4e0dee50f7bb4c26742e1be77967a6e8b15d1921e1c209ceb",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -8757,6 +10572,43 @@
       ]
     },
     {
+      "name": "typescript-best-practices",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/typescript-best-practices/SKILL.md",
+      "rawSkillHash": "a40da091ebac92080cf0ed142051d2bef35e56358084511d599f1097c58f5c73",
+      "lockHash": "9342ceb2c46711036e583bceb7dc75d6816d05836ed776d62b40ad1ac597ed86",
+      "entrypointHash": "b4bd6ddee2827d266485506104f3c7aee0ce6ec634d43af12835d56073fc72e1",
+      "treeHash": "08084e4fb48f227bfba27222884ca08e1d3e09f3b392473283b0772c85d5fd7c",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/typescript-best-practices/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/typescript-best-practices",
+          "rawSkillSha256": "a40da091ebac92080cf0ed142051d2bef35e56358084511d599f1097c58f5c73",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
+        }
+      ]
+    },
+    {
       "name": "typescript-expert",
       "status": "updated",
       "ownership": "ecosystem",
@@ -8861,6 +10713,43 @@
           "upstreamPath": "LICENSE",
           "target": "docs/ai/skills/ubiquitous-language/references/UPSTREAM-LICENSE",
           "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+        }
+      ]
+    },
+    {
+      "name": "unslop",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/unslop/SKILL.md",
+      "rawSkillHash": "195411d320b5b328f9f642baf59757ed19aaf0931c0838740e0aca273d538dc1",
+      "lockHash": "6018ca8c329ba87c6b4298207f58d6b773fe23e44ff52a00a9a4d160c19bedc0",
+      "entrypointHash": "cfa10553bcf32667bd199c3b1a8893616214b6e6c46bf4b67b9215171fc74097",
+      "treeHash": "a96b8221eaf2b7d48d38256eef69d3c9e02bb83177e05a811f0e9c716fd5832d",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/unslop/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/unslop",
+          "rawSkillSha256": "195411d320b5b328f9f642baf59757ed19aaf0931c0838740e0aca273d538dc1",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },
@@ -9492,6 +11381,43 @@
             "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
+        }
+      ]
+    },
+    {
+      "name": "why",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "uzairansaruzi/p3-stack",
+      "importedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "examinedRef": "09909ebb5c0125e27fad3e57d96b81e832696d69",
+      "sourcePath": "skills/why/SKILL.md",
+      "rawSkillHash": "a9bdf1092bda14777725e3999a2e385844d859fff8f9706b3de5641ed91d0370",
+      "lockHash": "67c5d0f735ab34d57bca98364520277f9c12871011b0a449ea47233635ef7596",
+      "entrypointHash": "c09b1536de5400207f59d2a04ad0c925dfc27d738f101cfe86c0bc2d454e29cf",
+      "treeHash": "55f73c73a7630b57c326198239ba652dc53359a0feb14a2217e64c2f84540f2f",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned p3-stack pack import with explicit-only discovery (Codex agents/openai.yaml policy), a marked Core overlay mapping T3 Code tools through docs/ai/skills/p3-mode/references/core-adapter.md, and Core authorization, branch, and destructive-command boundaries."
+      ],
+      "evidence": "docs/ai/skills/why/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/uzairansaruzi/p3-stack/tree/09909ebb5c0125e27fad3e57d96b81e832696d69/skills/why",
+          "rawSkillSha256": "a9bdf1092bda14777725e3999a2e385844d859fff8f9706b3de5641ed91d0370",
+          "licenseSha256": "84195d1f9f76cc9ad7c1290981473fc725d9d255dfccc9bbe40d5639928158e2",
+          "claim": "Complete reviewed source, root MIT notice, documented path and base-branch adaptations, and marked Core overlay; imported code was not executed by the import."
         }
       ]
     },

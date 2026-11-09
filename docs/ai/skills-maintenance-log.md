@@ -1,6 +1,21 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-10-23
+Last updated: 2026-11-09
+
+## p3-stack and pr-review-toolkit import - 2026-11-09
+
+Imported all 51 skills of `uzairansaruzi/p3-stack` at
+`09909ebb5c0125e27fad3e57d96b81e832696d69` (MIT) as canonical skills, with
+`tdd` and `teach` renamed to `p3-tdd` and `p3-teach`. The 51 lock entries were
+written by `skills@1.5.7` and each matches the CLI folder hash of the LF
+upstream tree. Every skill except `p3-help` is explicit-only in all clients.
+`docs/ai/skills/p3-mode/references/core-adapter.md` maps the pack's T3 Code
+tools to Claude Code, Codex, and Cursor and restates Core's authorization,
+branch, and destructive-command rules. Adapted Anthropic's `pr-review-toolkit`
+plugin at `0412be76f50ab4f4f8abff3753efa9269fbbca5b` (Apache-2.0) as the
+explicit-only `review-pr` skill plus six native subagent launchers in
+`.cursor/agents/`. Provenance, every rewrite, and the refresh workflows live in
+each pack's `references/upstream.md`. The import ran no upstream code.
 
 ## Component guidance compatibility review - 2026-10-23 (AL-1965)
 

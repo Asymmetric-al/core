@@ -70,6 +70,10 @@ docs/ai/skills/nestjs-best-practices/
 docs/ai/skills/playwright-best-practices/
 docs/ai/skills/payloadcms-payload/reference/
 
+# Vendored p3-stack rule list keeps upstream's non-contiguous, citable rule
+# numbers (other skills cite "unslop rule 14"); Prettier would renumber it.
+docs/ai/skills/unslop/SKILL.md
+
 # Local Supabase CLI temp state
 supabase/.temp/
 
