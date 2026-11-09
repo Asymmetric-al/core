@@ -139,6 +139,25 @@ The full record-type ownership table lives in
 
 ## Amendments
 
+### 2026-11-10: Decision 3 reuse list reconciled with later rulings
+
+- **No new decision.** This records later accepted rulings and merged
+  changes that supersede parts of Decision 3's 2026-07-06 reuse list. Where
+  that wording differs, it is dated history.
+- **Duplicate candidates:** per the 2026-10-24 Q8 ruling
+  (`docs/security/identity-person-anchor.md`; #2256), the Phase 4 dedupe
+  and merge workbench uses `donor_merge_candidates`. `crm_merge_candidates`
+  is not extended and stays dormant legacy data.
+- **Outbound-queue pattern:** the `crm_outbound_jobs` implementation was
+  dropped with the sync stack
+  (`supabase/migrations/20260818010000_retire_twenty_crm_runtime.sql`, PR
+  #1328 → #1327 → #1325). A future provider sync needs its own accepted
+  design.
+- **`crm_record_links`:** retained as the ratified provider and source-binding
+  carrier (Phase 30 D9) but not yet generalized. Its use conditions and the
+  open question of which phase generalizes it are recorded in the Phase 1
+  provider rule.
+
 ### 2026-10-24: Phase 9 re-confirm of the CRM identity-link enum extension (#569 → #2257)
 
 - **Ruling:** Samson (factory lead), under Blake's charter, ruled on

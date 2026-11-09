@@ -42,10 +42,10 @@ dependency entirely (ADR-0001, 2026-07-06).**
 | Missionaries | Asym Postgres (`missionaries`) | `packages/api` missionary services | Asym | Standard service-layer correction + audit |
 | Households, organizations, churches (parties) | Asym Postgres (Phase 7: `households`, org profiles, `org_contacts`) | `packages/api` (Phase 7) | Asym | Phase 4 merge contract extended to party children |
 | Relationship graph (typed edges between records) | Asym Postgres (Phase 9 net-new) | `packages/api` CRM services (Phase 9) | Asym | Phase 9 relationship management + audit |
-| CRM notes | Asym Postgres (Phase 9 net-new; withdrawn from the Twenty path) | `packages/api` CRM services (Phase 9) | Asym | Ordinary row edits + audit; no provider reconcile |
+| CRM notes | Asym Postgres `crm_notes` (interim native table delivered by PR #1325, not yet party-keyed; Phase 9 §D reshapes it to the party-keyed contract through #616; withdrawn from the Twenty path) | `packages/api` CRM services (Phase 9) | Asym | Ordinary row edits + audit; no provider reconcile |
 | CRM tasks | Asym Postgres (`mission_control_tasks`, `missionary_tasks`) | Existing task services | Asym | Existing task flows |
 | CRM activity timeline | Asym Postgres (Phase 9 net-new; composes source-truth events) | Emitting services write facts; timeline composes | Underlying source of each fact | Recompose from sources |
-| Duplicate candidates & merge state | Asym Postgres (`crm_merge_candidates`, `merge_operations`) | Phase 4 dedupe scan + merge workbench | Asym; merges never auto-run | Reversible un-merge (Phase 4) |
+| Duplicate candidates & merge state | Asym Postgres (`donor_merge_candidates` for same-tenant donor pairs, per the 2026-10-24 Q8 ruling; Phase 4 `merge_operations` as planned; the Twenty-era `crm_merge_candidates` is dormant legacy data under ADR-0001) | Phase 4 dedupe scan + merge workbench | Asym; merges never auto-run | Reversible un-merge (Phase 4) |
 | Contribution money: gifts, designation allocations, refunds/returns | Asym Postgres Phase 13 ledger; Stripe owns exact processor execution and provider observations | Donate paths + contribution operations (`packages/api`); signed Stripe evidence proves provider outcomes | Asym source-domain gift meaning; Stripe only for what the processor executed | Source-owned append-only postings/reversals; re-ingest exact provider evidence without allowing it to rewrite legal donor, designation, or gift truth |
 | Noncash Contribution, asset/disposition source facts, Noncash Support Realization, and closed Field Account effect | Phase 13 owns the original noncash Contribution, legal donor, purpose, gift date, valuation, receipt, supporter, and fundraising truth; Phase 15 owns canonical append-only asset-lot, disposition, proceeds, finality, evidence, and correction truth; Phase 21 D21 owns only the immutable derivative realization manifest and D2/D11-closed Field Account occurrence; Phase 20 alone owns any later separately certified accounting admission | Phase 13/15 source commands preserve the original gift and exact disposition projection; D21 may derive only an exact source-final Realized Support Basis, which D2/D11 admits once through a CAS-guarded Support Cycle close; no disposition row itself posts money or accounting | Each named source wins only its facts; D21 wins realization coverage and Field Account effect; Phase 20 wins a later qualified Accounting Release; QBO/Xero wins asset derecognition, gain/loss, cash, posted books, and final reconciliation | Re-ingest or append Phase 15 source evidence, append a non-overlapping D21 manifest successor/adverse correction, use D5 for valid purpose succession and D17 for pre-cutover coverage, and later use Phase 20 only with positive nonduplicate posting proof; never use valuation as support, create a second gift, fuzzy-map a lot, mutate a close, or post both disposition and derivative effect |
 | Automatic recurring intent and schedules | Asym Postgres (Phase 16 recurring group/cohort/line, schedule epochs, occurrences and commands) | Phase 16 services own intent and scoped mutations; Stripe executes authorized leg/item bindings, generates ordinary renewals, and returns evidence | Asym intent and append-only command/epoch history; provider events prove execution, never intent | Reconcile provider-generated ordinary renewals and scoped mutation/recovery commands to exact bindings; quarantine unknown/control-loss state; formal proof-gated cutover |
@@ -99,9 +99,11 @@ dependency entirely (ADR-0001, 2026-07-06).**
 | Public Support Progress Profile Versions and public projections | Phase 22 D6 owns the page-local profile, compatible source selection, disclosure choice, projection composition, and omission/exception state; Phase 13 owns corrected gross-received, exact-period, typed-count, and campaign-goal facts; Phase 16 owns active-commitment projections; Phase 28 owns Support-Raising Goal Versions; Phase 15 contributes only through admitted Phase 13 facts; Phase 10 owns privacy/safety eligibility | A released Phase 22 page pins exactly one immutable profile selecting no progress or one compatible metric; the server-side reader composes a disposable privacy-safe projection from owner-domain facts | Each source owner wins corrections to its fact; Phase 22 wins only binding/composition; Phase 10 wins public eligibility. Phase 20, Phase 21, and Phase 33 are ineligible as public-progress authority | Replace the profile prospectively through a new release; recompute from corrected owner facts; omit the smallest unsafe, stale, incompatible, or uncomputable widget and open a cause-owned staff exception; never blend receipts and commitments, infer Field Account availability, expose raw source tables, or silently fall back |
 | Public Content Sharing Attestations | Phase 22 D26 owns only the code-owned statement and candidate-bound evidence meaning; D4/D5 owns the exact immutable Public Content Release Candidate and deliberate submit/publish command; D2 pins a Page candidate in its Page Release Manifest; D11 pins an Update candidate in its Audience Release Manifest and projection; Phase 10 owns known direct objections, `do_not_publish`, restricted-person rules, and current safety; Phase 12 owns current actor authorization | The actual currently authorized submitter creates one constant-size immutable fact atomically inside the existing candidate through the existing D4/D5 final command; D2 or D11 references that exact candidate and attestation at release | D26 wins only what the actor confirmed, with which statement/version, at which time, for which exact scope, digest, and action. Phase 10 safety and direct preferences, Phase 12 authorization, D4/D5 review, D2/D11 release, and D9 media processing remain independently authoritative | Append a new candidate with its own attestation after any material edit, clone, import, translation, scope change, or statement successor; use D9/D2/D11/D18 for adverse containment and correction. Never mutate or inherit evidence, fabricate legacy confirmation, create a D26 table or Page Boolean, or treat attested as verified, consent-complete, safe, reviewed, approved, released, or public |
 | Public Page Locale Lineages, current Site-family presentation heads, Public Page Family Presentation Activations, and activation manifests | Phase 22 D27 owns the one Site-scoped Page identity per exact D17 source-qualified typed subject, subordinate Page × Phase-24-owned locale lineages, one current D3 profile head per exact Tenant × Legal Entity × environment × Site × Page Family, and the immutable compatible family-activation and manifest semantics; D3 owns profile-version content; D2 owns Page × locale release/reach truth and immutable baseline pins; D4/D5/D26 own candidate, review, and attestation; Phase 24 owns locale availability/configuration; Phase 5 owns runtime primitives; D18 owns Public Ministry composition | A compatible D3 successor is shadow-compiled against the complete current non-retired released Page × enabled-locale cohort, then one short idempotent CAS re-proves actor, scope, D2/D3 heads, Site × family epoch, exact release-head-set digest, generation, compatibility, and coherent artifacts before atomically advancing the family presentation head; each locale's editorial release remains independent | D27 wins Page-versus-locale identity and compatible family-presentation activation only; D3 wins profile content, D2 wins content/reach releases, Phase 24 wins locale configuration, and D18/Phase 5 win semantic/runtime composition. No profile activation becomes translation, edit, attestation, review, publication, reach, route, safety, Giving, or financial truth | Keep the prior complete family generation current on any mismatch; append a successor activation or use the ordinary Page × locale release path for migration-required change; re-prove the exact cohort after races. Never copy layout JSON per Page/locale, partially activate a family, auto-translate, use public locale fallback, overwrite locale content, republish editorial meaning, or infer a missing locale |
-| Files | Storage provider holds **bytes**; Asym owns metadata/permissions (Phase 29) | Future file-manager services | Asym for metadata, always | Re-link/reissue from Asym metadata |
+| Files and documents | Storage provider holds **bytes** only; Asym Postgres owns document identity, exact versions, classification, provenance, uses and disposition evidence, while each owning business source keeps the document's purpose, admitted recipient authority, acceptance and records meaning, and Phase 12 owns current authorization (Phase 29 Implementation Decisions 1, 2 and 9) | Source-owned server commands invoking Phase 29 shared custody (ratified specification; not implemented) | The owning business source for meaning, access and acceptance; Phase 29 custody for physical byte state; a storage path or provider object id is a link, never document identity | Owner-authorized recovery that proves bytes separately from metadata and reapplies current restrictions before serving; no guessed backfill or fabricated provenance |
 | Workflow / process truth | Asym Postgres; **Inngest = execution infrastructure only** | Workflow services (Phase 34) | Asym | Durable-workflow replay from Asym state |
-| ~~Twenty CRM~~ | **Retired (ADR-0001).** No surface may read or write it | No permitted runtime path; native CRM replacement/removal merged in PR #1325 | Asym Postgres remains the only CRM authority; possible external remnants grant no authority | Runtime removal is complete; exact external variable/key/workspace cleanup remains unverified in `complete-twenty-crm-retirement/tasks.md` |
+| ~~Twenty CRM~~ | **Retired (ADR-0001).** No surface may read or write it | No permitted runtime path; native CRM replacement/removal merged in PR #1325 | Asym Postgres remains the only CRM authority; external remnants grant no authority | Runtime removal is complete. A 2026-11-09 names-only inventory found retired `TWENTY_*`/`CRM_SYNC_*` names still configured in the `admin` production environment; their removal and the vendor key/workspace disposition remain open in #602 and `complete-twenty-crm-retirement/tasks.md` |
+
+_Row updates (2026-11-10): three rows above replace earlier wording, kept here as dated history. CRM notes previously named "Asym Postgres (Phase 9 net-new; withdrawn from the Twenty path)" as its system of record. Duplicate candidates & merge state previously named "Asym Postgres (`crm_merge_candidates`, `merge_operations`)". Files previously read "Storage provider holds **bytes**; Asym owns metadata/permissions (Phase 29) | Future file-manager services | Asym for metadata, always | Re-link/reissue from Asym metadata"._
 
 **Provider rule (generalizes the last rows):** a provider may _execute_ an
 action (charge a card, deliver an email, store bytes, host a login) and Asym
@@ -113,6 +115,25 @@ invoice, payment method, and charge identifiers are execution evidence only.
 They never replace the Commitment Party, donor authorization, Asym schedule,
 expected occurrence, fulfillment, or posted contribution truth.
 
+**Current carrier state (recorded 2026-11-10).** The generalized
+`crm_record_links` pattern is ratified direction, not current schema. The
+integrated table still has NOT NULL `twenty_object_name`/`twenty_record_id`
+columns, a `crm_provider` default of `'twenty'`, a Twenty-keyed unique index
+and staff INSERT/UPDATE policies
+(`supabase/migrations/20260508000413_crm_identity_mapping.sql`);
+`20260818010000_retire_twenty_crm_runtime.sql` dropped only its provider
+CHECK and re-commented the table as a retained leftover-link store. Phase 30 D9 keeps it as the ratified carrier for CRM/Party source
+bindings and imported provenance, but no new binding is written to it as
+trusted provenance until its owner generalizes the row model after a
+census, direct staff writes are revoked (#2295; Phase 30 O7) and a typed,
+audited binding command exists. Which phase performs that
+generalization is an open owner decision: the Phase 30 binding ticket
+(#2554) assigns the carrier and its command to the Phase 4 and Phase 9
+owners, while the Phase 31 owner constraints describe its connector
+registry as generalizing the table. Duplicate
+candidates no longer use this family: the Twenty-era `crm_merge_candidates`
+is dormant (2026-10-24 Q8 ruling).
+
 ## Evidence & the one open verification item
 
 - Repo evidence for "production Twenty was never live": three independent
@@ -121,9 +142,14 @@ expected occurrence, fulfillment, or posted contribution truth.
 - **Open item (Lane 2, human check):** the 2026-05-14 follow-up evidence file
   records `TWENTY_API_URL` / `TWENTY_API_KEY` / `TWENTY_WEBHOOK_SECRET`
   configured in the Vercel production/admin project, while the same-day env
-  audit found no `TWENTY_*` keys in production runtime. The cleanup ticket
-  (#602) must verify and revoke these entries and record the outcome per the
-  Phase 0 Built/Live/Confirmed discipline.
+  audit found no `TWENTY_*` keys in production runtime. A 2026-11-09
+  names-only inventory (authenticated Vercel CLI; no values read) resolves the
+  discrepancy: those three names and the five retired `CRM_SYNC_*` names are
+  still configured in the `admin` production environment, no other `admin`,
+  `donor` or `missionary` environment lists one, and current runtime source
+  reads none of them. The cleanup ticket (#602) still requires an authorized
+  operator to remove the entries, revoke the Twenty credentials and record the
+  outcome per the Phase 0 Built/Live/Confirmed discipline.
 
 ## What changed where (congruence pointers)
 
@@ -146,7 +172,10 @@ wording and are not instructions to restore a vendor runtime.
   Twenty runtime-removal/guard stack into `develop` on August 19 at
   `7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd`. Notes read/write local
   `crm_notes`; relationships query local Asym sources. The data-boundary guard
-  rejects restoration of Twenty clients and retired environment fields.
+  rejects its known retired markers (raw CRM client imports and the retired
+  `TWENTY_*`/`CRM_SYNC_*` names) in `apps/`, `packages/` and `scripts/` source
+  and `.env.example`; the `crm-core` prohibition still covers restoration that
+  no marker detects.
 - **Guides:** `docs/guides/features/twenty-crm-integration/**` and
   `docs/guides/operations/twenty-crm-cutover.md` are historical/retired material,
   not active deployment, rollback or integration instructions. Current CRM
@@ -173,28 +202,68 @@ old provider modules to satisfy the historical inventory.
 Reusable Asym-owned boundaries remain, including `crm/auth/access.ts`,
 `crm/commands/log.ts`, local notes/relationships services and duplicate/
 normalization helpers. Retained schema/comments/provider identifiers are
-migration or compatibility evidence only; any later change follows their
+migration or compatibility evidence only, except that `crm_record_links` remains
+the ratified, not yet generalized source-binding carrier under Phase 30 D9 (see
+the provider rule); any later change follows their
 source-owned migration and retention rules. Archive history is already present
 at the exact path above. The August merge does not prove hosted migration,
 external service disposal or credential revocation.
 
-**Still unverified:** inventory and remove any remaining Vercel `TWENTY_*` /
-retired `CRM_SYNC_*` settings, revoke the old Twenty development credential and
-resolve the proof workspace/records under authorized access. The exact remaining
-blocker and evidence live in
-`openspec/changes/complete-twenty-crm-retirement/tasks.md`. Never print secrets,
-claim no external copy exists, or report this cleanup complete from a code merge.
+**Still outstanding:** the 2026-11-09 inventory found the retired `TWENTY_*` and
+`CRM_SYNC_*` settings still configured in the Vercel `admin` production
+environment. Remove them, revoke the old Twenty development credential and
+resolve the proof workspace/records under authorized access. The exact evidence
+and remaining action live in
+`openspec/changes/complete-twenty-crm-retirement/tasks.md` and #602. Never print
+secrets, claim no external copy exists, or report this cleanup complete from a
+code merge.
 
 ## Open items
 
-1. **External cleanup proof:** resolve the Lane 2 Vercel discrepancy and the
-   remaining credential/workspace disposition with exact current evidence.
+1. **External cleanup:** remove the retired `admin` production variables found
+   on 2026-11-09 and record the credential/workspace disposition with exact
+   evidence (#602).
 2. **Phase 8 implementation acceptance:** the July 7 re-groom is settled, but
    its new operations/data-health contracts still need their own source, test
    and deployment evidence. Re-groom completion is not product completion.
 3. **Current issue status:** consult the tracker when dispatching; preserve
    the July issue-re-scoping history without treating it as current labels or
    an authorization to resume withdrawn vendor work.
+
+## Ownership routing for later ratified phases (recorded 2026-11-10)
+
+The standing rule requires each phase that introduces record types to extend
+this matrix. Several ratified phases recorded that ownership in their own
+specification without a routing entry here. Each row below routes record
+families to their ratified owner source. It adds no new ruling: the cited
+source governs those records, and any difference between this summary and the
+source is a defect to correct here. Ratified planning is not implementation,
+qualification or activation. Phases 16–22, 25 and 26 are already covered by
+rows and dated amendments in this document.
+
+<!-- prettier-ignore -->
+| Phase | Record families | System of record and boundary | Governing source |
+| --- | --- | --- | --- |
+| 2 | Sites (identity, tenant, currency facets, default flag) and Site presentation | Asym Postgres `public.sites` is the operational source of truth; Payload `cms.sites` holds presentation only under the same UUID. Per-contribution attribution (site, entry method, source code) is committed and owned by the Phase 13 ledger | [Phase 2 A3](./phase-02-site-locale-currency-foundation.md); Phase 13 and Phase 24 rows below |
+| 3 | Field policies, surface registry and policy change requests | Asym Postgres (`field_policies`, `field_policy_change_requests`) behind the fail-closed, subtract-only resolver; Phase 12 extends the configurable permission side | [Phase 3 data model](./phase-03-minimum-permission-role-scoped-projection-foundation.md) |
+| 4 | Account claim requests, accepted claim bindings and legacy account invitations | Asym Postgres (`account_claim_requests`, `legacy_account_invitations`); the Phase 4 claim command owns the accepted principal-to-Party/donor binding and possession policy; Supabase Auth remains the principal and session owner and never substitutes for the accepted binding; Phase 12 owns current access | [Phase 4 A2 and data model](./phase-04-identity-account-claiming-foundation.md) |
+| 6 | Contact suppressions and send-time consent snapshots | Asym Postgres: typed `email_suppressions` is the one "don't contact" source of truth with provider-unsubscribe provenance; consent is snapshotted at send. Providers never own consent | [Phase 6 A8/A9](./phase-06-shared-communication-event-model.md) |
+| 8 | CRM operations summary and escalations (`crm_operations_summary`, `crm_escalations`) | Asym Postgres operational records over Asym's own runtime ledgers and the Phase 4 duplicate-candidate count, with composite keys and FORCE RLS; no provider-health, write-gate or provider-idempotency table exists | [Phase 8 data model](./phase-08-crm-operating-foundation.md) |
+| 7, 14 | Donor credit: contribution credits, DAF sponsors and payer aliases, tributes and notify parties, matching expectancies and settlements | Asym Postgres; recognition never changes the Phase 13 legal donor or money, and no external system owns credit, tribute or matching truth | [Phase 7 A8/A11](./phase-07-receipt-statement-compliance-and-donor-credit.md); [Phase 14 Ownership-Matrix extension](./phase-14-donor-credit-operations.md) |
+| 9 | CRM edit audit for party, relationship and note changes | Asym Postgres `crm_audit_events`, written inside the Phase 9 CRM write transaction; not `crm_command_logs` | [Phase 9 §D](./phase-09-full-crm-depth-relationship-graph.md) |
+| 10 | Security level, restricted identity (`party_restricted`), country risk, publishing consent, sensitive-read audit and identity-access grants | Asym Postgres tenant relations with composite keys and FORCE RLS; one private read-only platform reference relation | [Phase 10 §D](./phase-10-sensitive-data-safety.md) |
+| 11 | Custom field definitions, field policies, values and custom collections | Asym Postgres; Asym-owned product truth with no tenant-triggered DDL | [Phase 11 PRD](./phase-11-custom-fields-custom-collections.md) |
+| 12 | Configurable permission records (capability registry, groups, grants, change requests, audit) | Asym Postgres; code-generated registry rows follow committed source | [Phase 12 Data Model & Ownership-Matrix Extension](./phase-12-full-role-permission-configuration.md); full rows owed by #666 |
+| 13 | Giving-operations records (settlement account binding, source codes and attribution, campaigns and goals, carts, fee-cover configuration, derived progress) | Asym Postgres; Stripe executes and is linked by id only | [Phase 13 Ownership-Matrix extension](./phase-13-campaign-designation-contribution-ledger-giving-cart.md); full rows owed by #691 |
+| 15 | Offline gift-entry batches, tender details, templates, validation runs and deposit groups | Asym Postgres staging and operational records; committed gifts exist only in the Phase 13 ledger | [Phase 15 Ownership-Matrix extension](./phase-15-offline-gift-batch-entry.md) |
+| 17 | Platform communication scope records (`platform_communication_scopes`, `platform_email_settings`, platform Resend secret revisions and evidence) | Asym Postgres, service-only, with no tenant id; never a tenant fallback | [Phase 17 data model](./phase-17-system-messages-template-management.md); complements the dated Phase 17 amendment below |
+| 23 | Web Studio Page identity and revisions, placement and paths, navigation, presentation, scheduling, content lists, library, forms and public media identity | Asym Postgres per Phase 23 D1–D36; Payload is a content-engine adapter, never public-runtime, continuity or release authority | [Phase 23 specification and decision log](./phase-23-web-studio-cms.md) |
+| 24 | Site lifecycle and Brand Versions, operational domains, Site Locales, issued giving addresses, Tenant Donor Portal host and Account Brand | Asym Postgres per D1–D18 and D57–D84; a Site, host or brand never establishes authorization, money or a separate donor identity | [Phase 24 bounded ownership](./phase-24-multi-site-management.md) |
+| 27 | Continuing partnerships, stage lists, partnership requests and responses, appeals, giving-pattern bands, staff-assignment policy | Asym Postgres over Phase 9 Party and assignment identity; money, intake and commitments stay with Phases 13, 15 and 16 | [Phase 27 Implementation Decisions](./phase-27-donor-development.md) |
+| 28 | Restricted preparation, referrals, self-import bindings, native newsletters, support-raising goals and coaching, resources, follow-up purposes | Existing owners per the Phase 28 owner reconciliation; no second CRM, ledger or subscriber master | [Phase 28 Implementation Decisions](./phase-28-missionary-workspace-depth.md) and [owner reconciliation](./phase-28-missionary-workspace-depth/owner-reconciliation.md) |
+| 29 | Files and documents | See the Files and documents row | [Phase 29 Implementation Decisions](./phase-29-files-documents.md) |
+| 30 | Imports, Switch records, staging and reversal evidence; Source Record Bindings | Asym Postgres; Phase 30 owns import mechanics while target owners keep meaning and every target write; exact source bytes are Phase 29 custody; bindings follow the provider-rule carrier conditions above | [Phase 30 Implementation Decisions](./phase-30-imports-migration.md) |
+| 31–44 | Connectors, newsletter sync, reports, workflows, triggers, peer-to-peer, events and groups, care, field experience, stewardship, mobilization, hybrid web, SMS and enterprise identity | Rows are owed when grooming or binding qualification ratifies their record types; the existing Workflow, Files and provider rows already bind them | [Roadmap](./roadmap.md) phase sections |
 
 ## Dated Phase 17 ownership amendment (2026-07-19)
 

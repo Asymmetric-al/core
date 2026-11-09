@@ -338,7 +338,7 @@ const { virtualizer, virtualItems, totalSize, isEnabled } =
 ### Mission Control admin cache tags
 
 - The canonical tag registry for admin domains is `ADMIN_CACHE_TAGS` in `packages/api/src/shared/cache-tags.ts`, with the naming convention `admin:<domain>`, `admin:<domain>:tenant:<tenantId>`, and `admin:<domain>:<resource>`.
-- Admin mutation handlers (CRM notes/sync/webhooks, contributions staged gifts/replay/reconcile) call `revalidateAdminCrmCache` / `revalidateAdminContributionsCache` after successful writes, alongside the client-side `queryClient.invalidateQueries` they already trigger. Until a domain has `'use cache'` reads, revalidation is a safe no-op.
+- Admin mutation handlers (CRM notes, contributions staged gifts/replay/reconcile) call `revalidateAdminCrmCache` / `revalidateAdminContributionsCache` after successful writes, alongside the client-side `queryClient.invalidateQueries` they already trigger. Until a domain has `'use cache'` reads, revalidation is a safe no-op.
 - Future cached admin reads must `cacheTag` the broad domain tag, the tenant tag, and the most specific resource tag, so the existing revalidation calls keep them fresh.
 
 ## Counter Mutation Consistency Pattern

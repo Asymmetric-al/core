@@ -47,9 +47,12 @@ route Supabase scope but follow the same delegation pattern.
 
 The Twenty CRM integration is retired
 ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)).
-Asym Postgres owns all CRM truth. Remaining Twenty client code is not a valid
-product path; do not restore it. Remove it through the accepted retirement
-change rather than wrapping it as a generic provider adapter.
+Asym Postgres owns all CRM truth. The Twenty client code was removed from
+`develop` by PR #1325 (merged 2026-08-19); do not restore it or rewrap it as
+a generic provider adapter. Retained compatibility identifiers such as
+`staged_gifts.twenty_record_id` belong to their owning domains and do not
+authorize vendor calls. External provider cleanup proof stays with
+`openspec/changes/complete-twenty-crm-retirement` task 4.5 (#602).
 
 ## Missionaries reads
 

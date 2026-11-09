@@ -2781,9 +2781,11 @@ accountability, automatic assessment task, automatic clearing, erased assessment
 
 **Provider link (record link)**:
 A row linking an Asym record to an external provider object by id (the
-`crm_record_links` pattern, generalized — Stripe now, Mailchimp later). A
-provider id is a link, not an identity: losing or re-pointing it never
-changes who a record is or what money happened.
+`crm_record_links` carrier pattern). A provider id is a link, not an
+identity: losing or re-pointing it never changes who a record is or what
+money happened. The integrated table is not yet generalized: it still has
+Twenty-era columns, and its use waits on the conditions in the Phase 1
+provider rule (Phase 30 D9).
 _Avoid_: provider ids as primary identity, provider records as truth
 
 **Custom field** (Phase 11):
