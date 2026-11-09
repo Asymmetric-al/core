@@ -56,8 +56,8 @@ Use the operating system's temporary directory where a skill names `/tmp`.
 - **Destructive commands.** Never run `git reset --hard`, `git clean`,
   `git worktree remove --force`, `rm -rf`, or simulator and cache deletion
   against a checkout or worktree you did not create in this task, or one with
-  uncommitted or unpushed work. Other sessions keep live worktrees on this
-  machine.
+  uncommitted or unpushed work. Other agents and people may have live work in other
+  worktrees and checkouts.
 - **TDD.** Core's TDD rule in root `AGENTS.md` and
   `docs/ai/skills/tdd/SKILL.md` wins over any p3-stack step that skips a test.
 - **Skills.** Canonical skills live in `docs/ai/skills/<name>/`. A new or edited

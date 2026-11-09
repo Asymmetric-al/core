@@ -8,7 +8,8 @@ model: inherit
 
 This is a reviewer from Anthropic's pr-review-toolkit plugin (Apache-2.0).
 Modified by Asymmetric-al/core: this file is a thin launcher with Core
-discovery wording. The upstream prompt is unchanged in
+discovery wording. The upstream prompt, unchanged apart from Prettier
+whitespace, is in
 `docs/ai/skills/review-pr/references/agents/type-design-analyzer.md`.
 
 1. Read `docs/ai/skills/review-pr/references/agents/type-design-analyzer.md` in full and

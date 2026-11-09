@@ -6252,8 +6252,8 @@
       "sourcePath": "skills/p3-mode/SKILL.md",
       "rawSkillHash": "804902c52be09d48429a4e67f95d4243fce6b198dea2012ba41d1fe0f1622cba",
       "lockHash": "a1a7f767f90a4b9cafcefb4ee0a7462abf71f0b3c999c1e53ce1a69917db397f",
-      "entrypointHash": "2c818e9c99b61fa933be7bbf027b6e58d16bf52491fcd6a9d5022dc9b6db8592",
-      "treeHash": "afc1181e8dff187ddffba102e7141513b8b1a0bc1656820c9cb6f34e662cb27b",
+      "entrypointHash": "d0ca971fb6e985cf9726856d92bae6ef1591b63dd89b17b922b932131d04eb5e",
+      "treeHash": "4ac724323b14545f5575cc88bffb9e31da53ca54c93809fb83d5bf24fc1a0085",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
