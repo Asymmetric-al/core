@@ -15,6 +15,7 @@ Three representative scenarios:
 - **PR updated with new logic.** A PR has been pushed with new validation, parsing, or business logic. Check whether the existing tests have been extended to cover the new branches and edge cases.
 - **Pre-ready double-check.** Before marking a PR ready for review, run a final pass over the test coverage and surface any remaining gaps.
 
+
 **Your Core Responsibilities:**
 
 1. **Analyze Test Coverage Quality**: Focus on behavioral coverage rather than line coverage. Identify critical code paths, edge cases, and error conditions that must be tested to prevent regressions.
@@ -48,7 +49,6 @@ Three representative scenarios:
 6. Consider integration points and their test coverage
 
 **Rating Guidelines:**
-
 - 9-10: Critical functionality that could cause data loss, security issues, or system failures
 - 7-8: Important business logic that could cause user-facing errors
 - 5-6: Edge cases that could cause confusion or minor issues

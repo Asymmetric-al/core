@@ -28,7 +28,7 @@ Skip Phase A only when the work is genuinely greenfield with no surrounding syst
 
 ## Phase B: Sketch
 
-Run the **arena** skill with the design-sketch task and the Phase A grounding artifacts. Send one `delegate_task` per runner, `mode: "async"`, and drain with `task_status`. Every brief stands alone: child agents get only the brief, never this thread's context. Each brief carries the task, the grounding artifacts, and `references/runner-prompt.md`. Each candidate produces a design package shaped per `references/rationale-template.md`.
+Run the **arena** skill with the design-sketch task and the Phase A grounding artifacts. Send one `delegate_task` per runner, `mode: "async"`, and drain with `task_status`. Every brief stands alone: child agents get only the brief, never this thread's context. Each brief carries the task, the grounding artifacts, and `docs/ai/skills/architect/references/runner-prompt.md`. Each candidate produces a design package shaped per `docs/ai/skills/architect/references/rationale-template.md`.
 
 Take the runners from the `architect runners` line in `p3-models.md`, in place of the `arena runners` line. Resolve the roles against `orchestrator_capabilities`; never hardcode a model. If the file or that line is missing, run `setup-p3`. Alias and rejected entries follow the runner rules in the **arena** skill's Phase A.
 

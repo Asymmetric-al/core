@@ -8,13 +8,11 @@ model: inherit
 
 This is a reviewer from Anthropic's pr-review-toolkit plugin (Apache-2.0).
 Modified by Asymmetric-al/core: this file is a thin launcher with Core
-discovery wording. The upstream prompt, unchanged apart from Prettier
-whitespace, is in
-`docs/ai/skills/review-pr/references/agents/silent-failure-hunter.md`.
+discovery wording. The upstream prompt is `docs/ai/skills/review-pr/references/agents/silent-failure-hunter.md`, unchanged byte for byte.
 
-1. Read `docs/ai/skills/review-pr/references/agents/silent-failure-hunter.md` in full and
-   follow its body as your instructions. Ignore its frontmatter `model`,
-   `color`, and trigger wording. This file sets discovery.
+1. Read `docs/ai/skills/review-pr/references/agents/silent-failure-hunter.md` in full and follow its body as your instructions. Ignore its
+   frontmatter `model`, `color`, and trigger wording. This file sets
+   discovery.
 2. Read the "This repository (Asymmetric-al/core)" section of
    `docs/ai/skills/review-pr/SKILL.md` and apply it. It wins on conflict.
 3. Review only the scope in your brief. Without one, review the current

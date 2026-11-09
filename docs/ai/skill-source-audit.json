@@ -459,8 +459,8 @@
       "sourcePath": "skills/architect/SKILL.md",
       "rawSkillHash": "19e3691d9f84f4172352fe4f621e2627cf02be93f3a294f1cc596079fbcda557",
       "lockHash": "fb104c11e805acacc2889cdddbdff16ec10f31087b50ea32393b1bbae843e490",
-      "entrypointHash": "6b65e8d95ce1c85a19edba78b1c18b093b590eaf4ef003b27c2a5641768c0a27",
-      "treeHash": "eab90c3e6265bf2052bc9aece8608066b07914135b387b864002cb0022fbdcaa",
+      "entrypointHash": "ae8c32ec9cd3cd60c2634b184f725517580c474d694d7fd2a161bfd368d13757",
+      "treeHash": "34694abc4c21e4a310deaad2a8858099e84cdd1b63e05ee30060109b5abf4995",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -6215,8 +6215,8 @@
       "sourcePath": "skills/p3-help/SKILL.md",
       "rawSkillHash": "ff493dafd42049dc568a1d6ba594d9f471811c37f97e1879cf5c46f2f9fe4580",
       "lockHash": "06a97c6711a21883b604adec80d09cb093b2c7156b4f5d294246c9ed945211bd",
-      "entrypointHash": "02dff8a140e8adca1d760434800418c048df17472dbc1255feb3c660332cd0ae",
-      "treeHash": "f9dfba28b3df7947b332171457379b782fdb947a14c8edd278e6740effcbfa56",
+      "entrypointHash": "e2ef4574d96b3a10a773c7c5155abd43748fc02cd03cb4375cb1d26f4c0eb44d",
+      "treeHash": "990b96dc069c0adacf88d0f82a8b5eb709c17fed267b3a93784f93443f4daf28",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -6253,7 +6253,7 @@
       "rawSkillHash": "804902c52be09d48429a4e67f95d4243fce6b198dea2012ba41d1fe0f1622cba",
       "lockHash": "a1a7f767f90a4b9cafcefb4ee0a7462abf71f0b3c999c1e53ce1a69917db397f",
       "entrypointHash": "d0ca971fb6e985cf9726856d92bae6ef1591b63dd89b17b922b932131d04eb5e",
-      "treeHash": "4ac724323b14545f5575cc88bffb9e31da53ca54c93809fb83d5bf24fc1a0085",
+      "treeHash": "10f892866b7908098a5baf9d17dcfd279cd0db5e84a710a367f7301e84d2bb94",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -9011,8 +9011,8 @@
       "sourcePath": "plugins/pr-review-toolkit/commands/review-pr.md",
       "rawSkillHash": "5e70c17293a044e1bf9d092c80b5da8b4fd5802ebb07dc53993dec4ba7ce2fc4",
       "lockHash": null,
-      "entrypointHash": "fd91e1a2faf318dde7221188a96c87bc7170130c3bfde57df176c9fceb1e1898",
-      "treeHash": "dfee9e3671f55b22da6c9eac84333a507fd01e8095cf26ff27cf5fc46812ad8b",
+      "entrypointHash": "d0eb01cf2e5b94023eec85b72a8af4056dc1bcffc3b6aea713489ca73e0d0e48",
+      "treeHash": "cb08993574bb56cbd83c8f4db01fda916a12fbbdb66ff4d364326f448dc167b6",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",
@@ -9024,7 +9024,7 @@
         ]
       },
       "adaptations": [
-        "Claude Code plugin command converted to an explicit-only skill with Apache-2.0 change notices; the six upstream agent prompts are kept under references/agents/ and launched by Core-authored native subagents in .cursor/agents/ (generated into .claude/agents/); the marked Core overlay sets scope, client dispatch, read-only reviewers, severity mapping, and output limits."
+        "Claude Code plugin command converted to an explicit-only skill with Apache-2.0 change notices; the six upstream agent prompts are kept byte-identical under references/agents/ and launched by Core-authored native subagents in .cursor/agents/ (upstream code-reviewer published as pr-code-reviewer) (generated into .claude/agents/); the marked Core overlay sets scope, client dispatch, read-only reviewers, severity mapping, and output limits."
       ],
       "evidence": "docs/ai/skills/review-pr/references/upstream.md",
       "reviewEvidence": [
@@ -9033,7 +9033,7 @@
           "url": "https://github.com/anthropics/claude-plugins-official/tree/0412be76f50ab4f4f8abff3753efa9269fbbca5b/plugins/pr-review-toolkit",
           "rawSkillSha256": "5e70c17293a044e1bf9d092c80b5da8b4fd5802ebb07dc53993dec4ba7ce2fc4",
           "licenseSha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-          "claim": "Complete reviewed plugin inventory (six agents, one command, LICENSE); prompts unchanged apart from Prettier whitespace; no plugin code executed."
+          "claim": "Complete reviewed plugin inventory (six agents, one command, LICENSE); the six prompts are byte-identical to upstream; no plugin code executed."
         }
       ]
     },
@@ -9276,8 +9276,8 @@
       "sourcePath": "skills/setup-p3/SKILL.md",
       "rawSkillHash": "ac64e7bb633ac1b897bb54eca4e0306ed53eba03c624188ee8dab062465209e4",
       "lockHash": "f5d2db156866c4f8021ec454ec3a5421f1686dff7f0431c1561067431b588bb9",
-      "entrypointHash": "1c8e07bf68a50ecc4d201aafae6ac97547db01048197244bb06c138f12737786",
-      "treeHash": "87493a54567ee049171e4286aa51ada716171b104a7b052db656344ba404b7df",
+      "entrypointHash": "7252e42c203e81c9235050d4dac4754ab4bb752814f68ac68869a0eb3ea29291",
+      "treeHash": "9eb52de32b8a72d84897f0ab8720564d19b49c5fbbf7ed660a920f5c6f434940",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -9482,8 +9482,8 @@
       "sourcePath": "skills/show-me-your-work/SKILL.md",
       "rawSkillHash": "884d7406bf94a1d158eaa8477d588eccdd63dda71e6576d1bc530a5a4aba951e",
       "lockHash": "cac3188a77d495c7ec7ec1383ba23aa1660bc589ff44a86f183bf013c24e097c",
-      "entrypointHash": "8505b8867fdbe245feccc02a2a125ed7b52b507235024be3f96c2295abe74599",
-      "treeHash": "d5c19c4d85e5fc9fe2ab24fede19b2139aaeecb3db06995e9e8abe979161f65f",
+      "entrypointHash": "04563130649c34b84e889e32ee9e0b1c97cf7f2bcad82e1d4446e0d6f1890954",
+      "treeHash": "6b7db2271348aefa71001331e65d77f98547885137ffe5a76cdb5f72d0f2e7a5",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -9853,8 +9853,8 @@
       "sourcePath": "skills/swarm/SKILL.md",
       "rawSkillHash": "d5401e191b19699680fe7e3101cbed75f93f316d3af89417a66393e315cd0dcb",
       "lockHash": "ae3e547b7ffc6b2c4f1c5edc68deb6dc2fb690c2b7fc50d1de5670e5664c9adc",
-      "entrypointHash": "bd50f54f7714008b931488578318cc52f0a38d3f192e4202d2d5f91b3bd2c7a8",
-      "treeHash": "c820323b868cfbbcd87656d29078235e07169639855729aec2dd02e6c7597995",
+      "entrypointHash": "0d69e9c17ebc2a776374154a2b3ab60d5424340d9b1acd8858c796592fc29ec9",
+      "treeHash": "f10a84caf265d2b7a42960d6d84292863f42220a3777bd85e95af6155220476d",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",

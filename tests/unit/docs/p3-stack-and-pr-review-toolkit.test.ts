@@ -15,14 +15,36 @@ const renamed: Record<string, string> = {
   "p3-tdd": "tdd",
   "p3-teach": "teach",
 };
-const reviewers = [
-  "code-reviewer",
-  "code-simplifier",
-  "comment-analyzer",
-  "pr-test-analyzer",
-  "silent-failure-hunter",
-  "type-design-analyzer",
-];
+// Upstream prompt file -> [published launcher name, upstream LF sha256].
+const reviewers: Record<string, [string, string]> = {
+  "code-reviewer": [
+    "pr-code-reviewer",
+    "019395c3ce457460115cc703e2f4a86fed4bbe560dc58355051c4d877155d366",
+  ],
+  "code-simplifier": [
+    "code-simplifier",
+    "976ddb22b84bc5a714216531a75db5e73169554add6b953442beeedb49b56891",
+  ],
+  "comment-analyzer": [
+    "comment-analyzer",
+    "4a9c1f2eb8234a4b9231983e75739663d512e1aed242388964a165a719b84698",
+  ],
+  "pr-test-analyzer": [
+    "pr-test-analyzer",
+    "fcb1cde9ba7b21694b508766a8d6a79bc91bed9982f828f816210059934f46b4",
+  ],
+  "silent-failure-hunter": [
+    "silent-failure-hunter",
+    "fa9b0daec5a267e7e66435cc48b3328301fc9f70c3af259fe248881327a1babc",
+  ],
+  "type-design-analyzer": [
+    "type-design-analyzer",
+    "c1cf67843d3c4fd27ddf6b24aa92521414b16c01610e7f7e87212c7b8681198d",
+  ],
+};
+// T3 Code tools the pack names; each needs a Core adapter mapping.
+const t3ToolPattern =
+  /\b(?:t3_[a-z_]+|delegate_task|task_status|task_cancel|orchestrator_capabilities|watch_pull_request|unwatch_pull_request|schedule_task|run_scheduled_task_now|delete_scheduled_task|link_pull_request|list_thread_pull_requests|request_secret|preview_[a-z_]+|device_[a-z_]+)\b/gu;
 
 function read(relativePath: string) {
   return readFileSync(path.join(repoRoot, relativePath), "utf8");
@@ -127,6 +149,39 @@ describe("p3-stack pack import", () => {
     expect(read("docs/ai/skills/make-bot-ui/SKILL.md")).toContain(
       "Bind to `127.0.0.1`",
     );
+    const help = read("docs/ai/skills/p3-help/SKILL.md");
+    expect(help).toContain("explicit-only, so do not start it from here");
+    expect(help).toContain("It never starts `p3-mode`");
+    expect(help).not.toContain("do the work under it");
+  });
+
+  it("maps every T3 Code tool the pack names in the Core adapter", () => {
+    const adapter = read("docs/ai/skills/p3-mode/references/core-adapter.md");
+    const tools = new Set<string>();
+    for (const name of p3Skills) {
+      const root = `docs/ai/skills/${name}`;
+      for (const file of filesUnder(root)) {
+        if (!file.endsWith(".md") || file === "references/core-adapter.md")
+          continue;
+        for (const match of read(`${root}/${file}`).matchAll(t3ToolPattern))
+          tools.add(match[0]);
+      }
+    }
+    expect(tools.size).toBeGreaterThan(20);
+    for (const tool of tools) {
+      const family = /^(t3_queue|t3_pending_request|preview|device)_/u.exec(
+        tool,
+      )?.[1];
+      const mapped =
+        adapter.includes("`" + tool + "`") ||
+        (family !== undefined && adapter.includes("`" + family + "_*`"));
+      expect(mapped, tool).toBe(true);
+    }
+    expect(adapter).toContain("## Model roles");
+    expect(adapter).toContain("`~/.agents/p3-models.md`");
+    expect(read("docs/ai/skills/swarm/SKILL.md")).toContain(
+      "`auto`, `inherit`, or `inherit-parent`, omit `target`",
+    );
   });
 
   it("does not displace Core's own tdd and teach skills", () => {
@@ -195,6 +250,13 @@ describe("p3-stack pack import", () => {
     const gitignore = read(".gitignore");
     expect(gitignore).toContain("/p3-models.md");
     expect(gitignore).toContain("/orchestrate/");
+    expect(gitignore).toMatch(/^decision\.tsv\r?$/mu);
+    expect(read("docs/ai/skills/show-me-your-work/SKILL.md")).toContain(
+      "`docs/ai/skills/show-me-your-work/scripts/log.sh <logfile>",
+    );
+    expect(read("docs/ai/skills/architect/SKILL.md")).toContain(
+      "`docs/ai/skills/architect/references/runner-prompt.md`",
+    );
   });
 });
 
@@ -214,14 +276,32 @@ describe("pr-review-toolkit adaptation", () => {
     expect(skill).toContain("Modified by Asymmetric-al/core");
     expect(skill).toContain("<!-- CORE-OVERLAY-END -->");
     expect(filesUnder("docs/ai/skills/review-pr/references/agents")).toEqual(
-      reviewers.map((name) => `${name}.md`),
+      Object.keys(reviewers).map((name) => `${name}.md`),
     );
+    // Byte-identical upstream prompts carry no Apache-2.0 modification.
+    for (const [upstream, [, hash]] of Object.entries(reviewers))
+      expect(
+        sha256(`docs/ai/skills/review-pr/references/agents/${upstream}.md`),
+        upstream,
+      ).toBe(hash);
+    expect(read(".prettierignore")).toContain(
+      "docs/ai/skills/review-pr/references/agents/",
+    );
+    expect(skill).toContain("by its actual impact");
+    expect(skill).not.toContain("Map Critical to P0");
     expect(lock.skills["review-pr"]).toBeUndefined();
   });
 
-  it.each(reviewers)(
+  it("does not reuse Cursor's existing code-reviewer agent name", () => {
+    for (const root of [".cursor/agents", ".claude/agents"])
+      expect(existsSync(path.join(repoRoot, root, "code-reviewer.md"))).toBe(
+        false,
+      );
+  });
+
+  it.each(Object.entries(reviewers))(
     "publishes %s as a Core launcher for Cursor and Claude Code",
-    (name) => {
+    (upstream, [name]) => {
       const launcher = read(`.cursor/agents/${name}.md`);
       const metadata = frontmatter(launcher);
       expect(metadata).toContain(`name: ${name}`);
@@ -232,8 +312,9 @@ describe("pr-review-toolkit adaptation", () => {
         name === "code-simplifier" ? "Edits files in scope." : "Read-only.",
       );
       expect(launcher).toContain(
-        `docs/ai/skills/review-pr/references/agents/${name}.md`,
+        `docs/ai/skills/review-pr/references/agents/${upstream}.md`,
       );
+      expect(launcher).toContain("unchanged byte for byte");
       expect(launcher).toContain("Modified by Asymmetric-al/core");
       expect(read(`.claude/agents/${name}.md`)).toBe(launcher);
     },

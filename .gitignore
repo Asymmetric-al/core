@@ -67,6 +67,7 @@ docs/ai/working-set.md
 # (docs/ai/skills/p3-mode/references/core-adapter.md)
 /p3-models.md
 /orchestrate/
+decision.tsv
 
 # Python
 __pycache__/

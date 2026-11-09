@@ -35,7 +35,7 @@ ts	phase	decision	why	evidence	result
 
 Write each entry the way you'd tell a teammate what you did. Plain words, concrete actions, no AI speak or abstract jargon (the **unslop** skill applies to log text too).
 
-Use the helper `scripts/log.sh <logfile> <phase> <decision> <why> <evidence> <result>`. It stamps `ts`, writes the header on first use, strips stray tabs/newlines, and prefixes any cell starting with `=`, `+`, `-`, or `@` with a single quote. A bare `printf` appending a row works too, but mind those same bytes if cells come from generated or user-supplied text.
+Use the helper `docs/ai/skills/show-me-your-work/scripts/log.sh <logfile> <phase> <decision> <why> <evidence> <result>`. It stamps `ts`, writes the header on first use, strips stray tabs/newlines, and prefixes any cell starting with `=`, `+`, `-`, or `@` with a single quote. A bare `printf` appending a row works too, but mind those same bytes if cells come from generated or user-supplied text.
 
 Log decision points and checkpoints, not every action: a fork chosen, a unit completed with its verification result, a pivot or revert with its trigger, a blocker surfaced, a gate fixed. For loop runs, one row per iteration. Skip the trivial and self-evident.
 
@@ -92,7 +92,7 @@ Vendored from [p3-stack](https://github.com/uzairansaruzi/p3-stack) (MIT) at com
 - Explicit invocation only: use it when the user invokes `/show-me-your-work` (Claude Code, Cursor, T3 Code) or `$show-me-your-work` (Codex), or when an invoked p3-stack skill routes here. Do not route other work to it.
 - The T3 Code tools named above map to Claude Code, Codex, and Cursor in `docs/ai/skills/p3-mode/references/core-adapter.md`. Read it before you delegate, watch a PR, schedule work, or drive a preview outside T3 Code.
 - Confirm before outward-facing or hard-to-reverse actions such as pushing, merging, deploying, deleting, or posting messages, unless the user authorized that action for this task.
-- The decision log stays local and uncommitted unless the user asks to commit it. `scripts/log.sh` needs bash (Git Bash or WSL on Windows).
+- The decision log stays local and uncommitted unless the user asks to commit it. `docs/ai/skills/show-me-your-work/scripts/log.sh` needs bash (Git Bash or WSL on Windows).
 
 Edit this canonical copy in `docs/ai/skills/show-me-your-work/`, then run `bun run skills:sync` and `bun run skills:verify`.
 

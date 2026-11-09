@@ -224,20 +224,20 @@ On conflict, the current user request, root `AGENTS.md`, the nearest nested `AGE
 
 1. **Scope.** Use the PR or files the user named (`gh pr diff <number>`). Otherwise review the current branch against `origin/develop` plus staged and unstaged changes, not only `git diff`.
 2. **Reviewers.** The six reviewer prompts are in `references/agents/`. Dispatch them by client:
-   - Claude Code and Cursor: the project subagents `code-reviewer`, `code-simplifier`, `comment-analyzer`, `pr-test-analyzer`, `silent-failure-hunter`, and `type-design-analyzer`, published from `.cursor/agents/` to `.claude/agents/`.
+   - Claude Code and Cursor: the project subagents `pr-code-reviewer` (upstream `code-reviewer`, renamed because Cursor already registers a different `code-reviewer`), `code-simplifier`, `comment-analyzer`, `pr-test-analyzer`, `silent-failure-hunter`, and `type-design-analyzer`, published from `.cursor/agents/` to `.claude/agents/`.
    - Codex: a subagent per reviewer whose brief is that reviewer's prompt, the scope, and this overlay, when the session has subagent tools. Otherwise run each reviewer yourself, one at a time.
    - T3 Code: one `delegate_task` per reviewer with the same self-contained brief.
 3. **Read-only reviewers.** Every reviewer except `code-simplifier` only reports. Run `code-simplifier` only when the user asked for the `simplify` aspect and authorized edits. Never run it beside another writer. After it edits, run the checks for the touched packages and report what changed.
 4. **Project rules.** Where a reviewer prompt says `CLAUDE.md`, read root `AGENTS.md` (`CLAUDE.md` imports it), the nearest nested `AGENTS.md`, and the matching rulebooks under `docs/ai/rules/`. Tests follow `docs/ai/rules/testing.md` and Core's TDD rule. Types follow `docs/ai/rules/typescript-future-proofing.md`.
 5. **Upstream-only conventions.** `silent-failure-hunter` names `logForDebugging`, `logError`, `logEvent`, and `constants/errorIds.ts`. They come from the upstream project and do not exist in Core. Judge error handling against the touched package's existing logging and Sentry use and Core's product-safety invariants. `code-simplifier` lists example standards (the `function` keyword, explicit return types, avoiding `try`/`catch`). Apply Core's ESLint, Prettier, and rulebook conventions instead of that list.
-6. **Severity.** Map Critical to P0, Important to P1, and Suggestions to P2 from `docs/ai/rules/review-bots.md`. Every behavior finding needs `file:line` evidence. Rank data loss, tenant or auth bypass, money, payment, or webhook errors, migration hazards, crashes, and regressions first.
+6. **Severity.** Classify every finding with the rubric in `docs/ai/rules/review-bots.md` by its actual impact. Treat the reviewers' own labels and scores (Critical, Important, 1-10 ratings, confidence) as inputs, not as the P-level. P0 is only for data loss, a security, auth, or permission bypass, a payment or webhook error, a migration hazard, a crash, or a broken core flow. A misleading comment or a broad `catch` is P1 or P2 unless its impact meets that bar. Every behavior finding needs `file:line` evidence.
 7. **Output.** Report locally. Post PR comments or reviews only when the user asks. Never put secrets, `.env` values, or tokens in a reviewer brief.
 
 ### Checklist
 
 - [ ] Scope covers the branch against `origin/develop` or the named PR
 - [ ] Reviewers stayed read-only, except an authorized `code-simplifier` run
-- [ ] Findings carry severity and `file:line` evidence
+- [ ] Findings carry a Core P-level judged by impact and `file:line` evidence
 - [ ] Nothing was posted, pushed, or committed without the user's request
 
 Edit this canonical copy in `docs/ai/skills/review-pr/`, then run `bun run skills:sync` and `bun run skills:verify`. Edit the native subagents in `.cursor/agents/`, never in `.claude/agents/`.

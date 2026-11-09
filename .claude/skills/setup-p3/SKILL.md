@@ -82,7 +82,7 @@ Vendored from [p3-stack](https://github.com/uzairansaruzi/p3-stack) (MIT) at com
 - The T3 Code tools named above map to Claude Code, Codex, and Cursor in `docs/ai/skills/p3-mode/references/core-adapter.md`. Read it before you delegate, watch a PR, schedule work, or drive a preview outside T3 Code.
 - Confirm before outward-facing or hard-to-reverse actions such as pushing, merging, deploying, deleting, or posting messages, unless the user authorized that action for this task.
 - Outside T3 Code there is no `orchestrator_capabilities`. Do not invent model IDs. Every role then runs `inherit-parent`, which is also the behavior when `p3-models.md` is absent.
-- Prefer the global `~/.agents/p3-models.md`. A project-root `p3-models.md` is personal configuration. It is gitignored here and is never committed.
+- Either location works. Every p3-stack skill reads the repository-root `p3-models.md` first and falls back to `~/.agents/p3-models.md`, as `docs/ai/skills/p3-mode/references/core-adapter.md` states. A project-root file is personal configuration. It is gitignored here and is never committed.
 
 Edit this canonical copy in `docs/ai/skills/setup-p3/`, then run `bun run skills:sync` and `bun run skills:verify`.
 

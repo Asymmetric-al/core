@@ -83,9 +83,22 @@ Prettier would renumber its deliberately non-contiguous, citable rule list.
 3. **Base branch.** Branch instructions that name `main` use `develop` in
    `automate-me`, `interrogate`, `no-comments`, `comment-sicko.md`, and the
    `autopilot-full`, `multi-phase-plan`, and `opening-a-pr` playbooks.
-4. **Upstream link fix.** `architect/references/runner-prompt.md` links
-   `rationale-template.md` relative to its own directory. Upstream doubled the
-   `references/` segment.
+4. **Upstream fixes.** These repair upstream defects that review found.
+   - `architect/references/runner-prompt.md` links `rationale-template.md`
+     relative to its own directory. Upstream doubled the `references/`
+     segment.
+   - `architect` passes its runner prompt and rationale template to delegates
+     by repository path, because a delegate resolves a bare `references/` path
+     from the repository root.
+   - `swarm` treats `inherit-parent`, the value `setup-p3` writes, as the
+     parent model, as `arena` and `interrogate` already do.
+   - `show-me-your-work` names its helper by repository path,
+     `docs/ai/skills/show-me-your-work/scripts/log.sh`.
+   - The `hillclimb` playbook keeps its per-attempt `decision.tsv` as a
+     separate log beside the six-column show-me-your-work trail, and
+     `.gitignore` ignores `decision.tsv` as the playbook promises.
+   - `p3-help` no longer starts `p3-mode` for a work request. `p3-mode` is
+     explicit-only here, so `p3-help` tells the user to invoke it.
 5. **Overlays.** Each `SKILL.md` ends with a marked Core overlay
    (`<!-- CORE-OVERLAY-START -->` to `<!-- CORE-OVERLAY-END -->`) holding
    invocation, authorization, and skill-specific Core rules.

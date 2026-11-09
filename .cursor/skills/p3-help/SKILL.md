@@ -7,7 +7,7 @@ description: Guides users through p3-stack setup, /p3-mode, and picking the skil
 
 Answer the user's question about p3-stack, hand them a prompt they can send, and link the file the answer came from. For a help question, don't start the work. The user asked how, and a p3-stack run spends real tokens, so let them send the prompt.
 
-A message that asks for work, such as "use p3-stack to fix this bug", is not a help question. Read [`p3-mode`](../p3-mode/SKILL.md), do the work under it, and mention once that invoking `/p3-mode` keeps the work in this style.
+A message that asks for work, such as "use p3-stack to fix this bug", is not a help question. In this repository `p3-mode` is explicit-only, so do not start it from here. Tell the user that invoking [`/p3-mode`](../p3-mode/SKILL.md) (`$p3-mode` in Codex) runs the work in this style.
 
 This file maps questions to the skills and playbooks that hold the answers. Those files own the details. Read the file you route to before you quote it, and trust it when it disagrees with this map. The links here are relative to this skill directory, so give the user the file's repository path under `docs/ai/skills/`.
 
@@ -120,7 +120,7 @@ Lead with the answer. Give at most one example prompt in a code block, then the 
 
 Vendored from [p3-stack](https://github.com/uzairansaruzi/p3-stack) (MIT) at commit `09909eb`. Provenance is in `references/upstream.md`. On conflict, the current user request, root `AGENTS.md`, the nearest nested `AGENTS.md`, and the matching `docs/ai/rules/*` rulebook win over this skill.
 
-- Use it when the user asks about p3-stack itself or asks for work under p3-stack by name. Do not route other requests to p3-stack.
+- Use it only to answer questions about p3-stack itself. It never starts `p3-mode` or other p3-stack work on its own. The user starts that with `/p3-mode` (`$p3-mode` in Codex).
 - The T3 Code tools named above map to Claude Code, Codex, and Cursor in `docs/ai/skills/p3-mode/references/core-adapter.md`. Read it before you delegate, watch a PR, schedule work, or drive a preview outside T3 Code.
 - Confirm before outward-facing or hard-to-reverse actions such as pushing, merging, deploying, deleting, or posting messages, unless the user authorized that action for this task.
 - Here `/p3-tdd` and `/p3-teach` are the pack's `tdd` and `teach`, renamed because Core already has different skills with those names. Core's own `tdd` stays the authoritative TDD workflow.

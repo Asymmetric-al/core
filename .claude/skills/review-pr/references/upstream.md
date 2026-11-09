@@ -39,7 +39,7 @@ copies by hand.
 | Upstream file                             | sha256 (LF)                                                        | Core location                                                                                       |
 | ----------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
 | `commands/review-pr.md`                   | `5e70c17293a044e1bf9d092c80b5da8b4fd5802ebb07dc53993dec4ba7ce2fc4` | `SKILL.md` (adapted: new frontmatter plus the marked Core overlay)                                  |
-| `agents/code-reviewer.md`                 | `019395c3ce457460115cc703e2f4a86fed4bbe560dc58355051c4d877155d366` | `references/agents/code-reviewer.md`, launched by `.cursor/agents/code-reviewer.md`                 |
+| `agents/code-reviewer.md`                 | `019395c3ce457460115cc703e2f4a86fed4bbe560dc58355051c4d877155d366` | `references/agents/code-reviewer.md`, launched by `.cursor/agents/pr-code-reviewer.md` (renamed)    |
 | `agents/code-simplifier.md`               | `976ddb22b84bc5a714216531a75db5e73169554add6b953442beeedb49b56891` | `references/agents/code-simplifier.md`, launched by `.cursor/agents/code-simplifier.md`             |
 | `agents/comment-analyzer.md`              | `4a9c1f2eb8234a4b9231983e75739663d512e1aed242388964a165a719b84698` | `references/agents/comment-analyzer.md`, launched by `.cursor/agents/comment-analyzer.md`           |
 | `agents/pr-test-analyzer.md`              | `fcb1cde9ba7b21694b508766a8d6a79bc91bed9982f828f816210059934f46b4` | `references/agents/pr-test-analyzer.md`, launched by `.cursor/agents/pr-test-analyzer.md`           |
@@ -76,9 +76,14 @@ carries that notice.
   they do not take triggers from `code-review`, `council`, or other review
   skills. Upstream descriptions asked for proactive, automatic use, and
   `code-simplifier` edits code, so Core does not keep them.
-- `references/agents/*.md`: upstream prompts, unchanged apart from Prettier
-  formatting. Their Anthropic-internal conventions are neutralized by the
-  overlay rather than edited.
+- `references/agents/*.md`: upstream prompts, unchanged byte for byte. They
+  match the hashes above, and `.prettierignore` keeps formatting from
+  modifying them, so they need no modification notice. Their
+  Anthropic-internal conventions are neutralized by the overlay rather than
+  edited.
+- `.cursor/agents/pr-code-reviewer.md`: the upstream `code-reviewer` agent is
+  published as `pr-code-reviewer` because Cursor already registers a different
+  `code-reviewer` agent. The other five keep their upstream names.
 
 ## Refresh workflow
 
@@ -89,7 +94,8 @@ This skill is **not** updated by `bun run skills:refresh-upstream`.
    then `git sparse-checkout set plugins/pr-review-toolkit`. Review
    `git log -- plugins/pr-review-toolkit` and the `LICENSE` since the reviewed
    commit.
-2. Copy changed agent prompts into `references/agents/` and the command body
+2. Copy changed agent prompts into `references/agents/` byte for byte (do not
+   format them) and the command body
    into `SKILL.md` above the overlay. Add or remove launchers in
    `.cursor/agents/` when upstream adds or removes an agent. Re-copy `LICENSE`
    if it changed.
