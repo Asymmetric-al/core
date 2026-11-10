@@ -45,3 +45,19 @@
       Task 3.5 records the outstanding human blocker, not completed credential
       removal or provider revocation. No external cleanup is claimed by the
       merged implementation or this documentation reconciliation.
+
+  Evidence (2026-11-09, names only; no values read or printed): an
+  authenticated Vercel CLI (64.5.0) listed environment-variable names for team
+  `asymmetric-al` projects `admin`, `donor` and `missionary` in the
+  production, preview and development environments. `admin` production still
+  lists `TWENTY_API_URL`, `TWENTY_API_KEY`, `TWENTY_WEBHOOK_SECRET`,
+  `CRM_SYNC_INBOUND_ENABLED`, `CRM_SYNC_OUTBOUND_ENABLED`,
+  `CRM_SYNC_REPLAY_ENABLED`, `CRM_SYNC_RECONCILIATION_ENABLED` and
+  `CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS`. No other listed environment contains a
+  `TWENTY_*` or `CRM_SYNC_*` name, and current runtime source reads none of
+  them. The cleanup is therefore incomplete, not merely unverified. Remaining:
+  an operator with authorized production access removes those eight `admin`
+  production entries; an operator with Twenty Cloud access revokes the old
+  development API key and webhook secret and resolves the proof workspace and
+  records; then both record the outcome here and on #602. Twenty Cloud was not
+  accessible to this check, and custom environments were not enumerated.

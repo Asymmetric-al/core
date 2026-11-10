@@ -85,10 +85,10 @@ consumers are never whole-phase prerequisites of their own foundations.
 | **24** | `multi-site-management` | [Full Multi-Site, Language & Currency Management](./phase-24-multi-site-management.md) | 2, 5, 13, 20, 23 | 17 | Tenant settings, Web Studio, Contributions settings | `PRD exists` (implementation-ready 2026-09-01; spec [#1431](https://github.com/Asymmetric-al/core/issues/1431); [OpenSpec](../../../openspec/changes/add-multi-site-management/proposal.md); tickets [#1432–#1557](https://github.com/Asymmetric-al/core/issues/1432) published and dependency-governed; P24-01/#1432 sole ready frontier; 125 successors blocked; D1–D18 and D57–D84 scope-frozen; D19–D55 preserved cross-phase evidence; D56 deferred; not implemented); original source PR remains unmerged; affected P25 consumers require accepted owner contracts and qualified producer implementation |
 | **25** | `donor-portal-depth` | [Donor Dashboard Depth](./phase-25-donor-dashboard-depth.md) | Baseline/start: 3, 4, 6, 7, 13.<br>Before affected consumer dispatch: exact P9, P10, P12, P14, P16, P17, P18, P19 and P22–24 producers from S04/S06 require final accepted contracts plus implemented, qualified owner seams. Q25 also requires the bounded P28/P12 guest-recipient projection and P32 external-enrollment exclusion before dispatch; neither whole future phase is a prerequisite. P22–24-dependent and Q25 consumers remain not dispatch-ready until their exact producer gates pass. Unaffected safe slices remain independent. | 17/19 are required for affected consumers, not optional enhancements; apply the scoped producer gates in the preceding cell. | Donor Portal | `PRD exists` (spec #1563; Q01–Q29 ratified, Q30 accepted; scoped source-owner prerequisites; not implemented; 88 native implementation issues #1565–#1652 under #1563; no blanket dispatch readiness) |
 | **26** | `support-hub` | Support Hub & Conversation Management | 6, 3, 4, 9, 17; 23 (selected lanes) | — | Support Hub, communication services, `packages/api` | `PRD exists` — [ratified specification #1656](https://github.com/Asymmetric-al/core/issues/1656); D1–D40 complete, including D27-C and D29-X01; 4 native index issues #1658–#1661 and 199 implementation leaves #1662–#1860 under #1656; implementation and release proof outstanding |
-| **27** | `donor-development` | [Donor Development & Portfolio Management](#phase-27) | **9**, 3, 6, 13 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **27** | `donor-development` | [Donor Development & Portfolio Management](#phase-27) | **9**, 3, 6, 13 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | `PRD exists` ([specification](phase-27-donor-development.md), [#1992](https://github.com/Asymmetric-al/core/issues/1992); D1–D30 settled; implementation issues published; not implemented) |
 | **28** | `missionary-workspace-depth` | [Missionary Workspace Depth & Support-Raising CRM](#phase-28) | 9, 13, 16, 6, 3, 27 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | formal Phase 28 specification; source qualification and implementation pending |
 | **29** | `files-documents` | [File Manager & Document Management](#phase-29) | 3, 9 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | PRD exists ([full specification](phase-29-files-documents.md), AL-2429; Q01–Q67 fully ratified; implementation and source/native/provider/user qualification pending) |
-| **30** | `imports-migration` | [Imports & Migration Tools](#phase-30) | 9, 13, 11, 29, 4, 3 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **30** | `imports-migration` | [Imports & Migration Tools](#phase-30) | 9, 13, 11, 29, 4, 3 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | `PRD exists` ([specification](phase-30-imports-migration.md), [#2543](https://github.com/Asymmetric-al/core/issues/2543); Q1–Q21 founder-ratified; implementation issues published; implementation, source qualification and activation pending) |
 | **31** | `platform-api` | [Platform API, Webhooks & Connector Framework](#phase-31) | 1, 3, 4, 6 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
 | **32** | `newsletter-sync` | [Mailchimp / Newsletter Sync with Suppression Handling](#phase-32) | 6, 3, 28, 4, 31 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
 | **33** | `reporting-bi` | [Reporting & BI / Report Studio](#phase-33) | 9, 13, 7, 6, 3 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
@@ -4325,6 +4325,14 @@ Read the [complete retained Phase 29 owner obligations](../program-roadmap/owner
 
 ### Phase 30 — Imports & Migration Tools (`imports-migration`)
 
+The [full Phase 30 specification](phase-30-imports-migration.md), published through
+[AL-2543](https://github.com/Asymmetric-al/core/issues/2543), formalizes the
+founder-ratified Q1–Q21 with their recorded amendments. Its source-owned
+contracts, acceptance and activation gates govern implementation together with
+`openspec/changes/add-imports-migration/` and the ratified record in
+`docs/features/imports-migration/`; this chapter is the orientation summary. No
+feature implementation or activation is claimed.
+
 <a id="phase-30-what-this-phase-is"></a>
 
 #### What this phase is
@@ -4392,7 +4400,7 @@ CMS imports use Phase 23's governed no-write import plan and create private D12 
 
 Begin with a complete low-risk source-to-Party import and exact repeat import, then add relationship/custom-data and source-qualified money/document/content targets. Keep preview and commit separate and make uncertainty visible per row. Long operations must recover after a closed browser without requiring a fresh import identity.
 
-Use the shared accessible grid and file controls. Choose an embedded importer or native implementation only after evaluating the required data boundary, source validation hooks and lifecycle. Provide clear counts for accepted, rejected, pending and unchanged work, with a cause-owned next action rather than a generic failed batch.
+Use the shared accessible grid and file controls. Phase 30 Q11 (Implementation Decision 22) settled this: files are read inside Asym, with no hosted or embedded importer service. _(Updated 2026-11-10; this sentence previously said to choose an embedded importer or native implementation after evaluating the data boundary, source validation hooks and lifecycle.)_ Provide clear counts for accepted, rejected, pending and unchanged work, with a cause-owned next action rather than a generic failed batch.
 
 <a id="phase-30-boundaries-and-guardrails"></a>
 
@@ -4412,7 +4420,7 @@ Run a representative SiteStacker migration with reviewed exceptions and recovery
 
 #### Open decisions
 
-Choose importer build-versus-adopt, the first supported source export profiles, mapping-assistance data handling, per-target chunking and safe reversal policies. Resolve unsupported legacy fields and whether a target supports update, append, merge or reference-only import. Any uncertainty in historic finance, media rights or identity is decided by its existing owner, not by this transport phase.
+The [full specification](phase-30-imports-migration.md) settles importer build-versus-adopt (files are read inside Asym, with no hosted or embedded importer service and no AI [Q11]), the first source profiles (SiteStacker Direct support plus per-tenant Import templates [Q1], [Q3]) and import reversal (Prepare reversal for 30 days through owner correction paths [Q18]); per-profile Size limits are qualified behind one shared reader seam [Q15], [Q21]. Resolve unsupported legacy fields and whether a target supports update, append, merge or reference-only import. Any uncertainty in historic finance, media rights or identity is decided by its existing owner, not by this transport phase.
 
 The bounded Phase 28 D17 reviewer and restricted-preparation target are already
 selected: qualify those exact contracts without reopening them as general
@@ -4477,7 +4485,7 @@ Phase 34 uses only registered purpose-qualified connector actions, not raw HTTP 
 
 #### Implementation and user experience
 
-Deliver one end-to-end connection and source operation with visible scope, event delivery, failure and revocation. Then add the API/resource catalog and additional provider adapters. Decide build-versus-adopt for OAuth/token lifecycle and webhook delivery alongside Phase 30's importer choice; do not accidentally build three unrelated infrastructure products.
+Deliver one end-to-end connection and source operation with visible scope, event delivery, failure and revocation. Then add the API/resource catalog and additional provider adapters. Decide build-versus-adopt for OAuth/token lifecycle and webhook delivery consistently with Phase 30's settled in-Asym importer (Q11; updated 2026-11-10); do not accidentally build three unrelated infrastructure products.
 
 Make connection state understandable: connected does not mean synchronized, delivered or business-complete. A repair should name the owner and affected operation. Preserve accepted requests across downtime and reconcile missed/out-of-order events through bounded source readback. Treat incoming payloads as untrusted and validate signature, schema, event action and scope before scheduling work.
 

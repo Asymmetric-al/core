@@ -360,7 +360,9 @@ define domain truth.
   downloads. A later AI enhancement must use Phase 40's suggestion ledger,
   classification, evidence, and human-commit contract; imported PII never
   leaves its governed boundary merely to improve mapping. Build-vs-embed is
-  decided at grooming.
+  settled by Phase 30 Q11: files are read inside Asym, with no hosted or
+  embedded importer service and no AI in v1 (Phase 30 Implementation
+  Decision 22; updated 2026-11-10).
 - **Dry-run/preview**: exactly what would be created/updated/skipped/merged,
   per-row detail, before anything commits.
 - **Dedupe everywhere, consistently**: matching rules (exact/fuzzy per
