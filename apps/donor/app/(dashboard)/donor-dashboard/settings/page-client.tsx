@@ -40,7 +40,7 @@ import { Switch } from "@asym/ui/components/shadcn/switch";
 import { TabsContent } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
 import { Loader2, Lock, Mail, UserRound } from "lucide-react";
-import React, { useId, useState } from "react";
+import React, { useId, useRef, useState } from "react";
 
 type TabId = "profile" | "email" | "security";
 
@@ -448,6 +448,14 @@ function EmailPrivacyTab() {
   const snapshot = useDonorPortalSnapshot();
   const update = useUpdateDonorPortal();
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
+  const saveQueue = useRef<Record<"news" | "showName", Promise<void>>>({
+    news: Promise.resolve(),
+    showName: Promise.resolve(),
+  });
+  const saveGeneration = useRef<Record<"news" | "showName", number>>({
+    news: 0,
+    showName: 0,
+  });
   // Shown optimistically while a save is in flight; the snapshot wins after.
   const [pending, setPending] = useState<{
     news?: boolean;
@@ -470,16 +478,29 @@ function EmailPrivacyTab() {
     value: boolean,
     patch: Parameters<typeof update.mutateAsync>[0],
   ) => {
+    const generation = saveGeneration.current[key] + 1;
+    saveGeneration.current[key] = generation;
     setPending((current) => ({ ...current, [key]: value }));
     setStatus("idle");
-    try {
-      await update.mutateAsync(patch);
-      setStatus("saved");
-    } catch {
-      setStatus("error");
-    } finally {
-      setPending((current) => ({ ...current, [key]: undefined }));
-    }
+    const previous = saveQueue.current[key].catch(() => undefined);
+    const next = previous.then(async () => {
+      try {
+        await update.mutateAsync(patch);
+        if (saveGeneration.current[key] === generation) {
+          setStatus("saved");
+        }
+      } catch {
+        if (saveGeneration.current[key] === generation) {
+          setStatus("error");
+        }
+      } finally {
+        if (saveGeneration.current[key] === generation) {
+          setPending((current) => ({ ...current, [key]: undefined }));
+        }
+      }
+    });
+    saveQueue.current[key] = next.catch(() => undefined);
+    await next;
   };
 
   return (

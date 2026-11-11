@@ -49,7 +49,11 @@ describe("monthlyGivingSeries", () => {
     process.env.TZ = "America/Los_Angeles";
   });
   afterAll(() => {
-    process.env.TZ = originalTz;
+    if (originalTz === undefined) {
+      delete process.env.TZ;
+    } else {
+      process.env.TZ = originalTz;
+    }
   });
 
   it("keeps a New Year's Eve evening gift in December of the selected year", () => {
@@ -66,5 +70,15 @@ describe("monthlyGivingSeries", () => {
     expect(series).toHaveLength(12);
     expect(series[0]).toEqual({ month: "Jan", amount: 20.5 });
     expect(series[11]).toEqual({ month: "Dec", amount: 50 });
+  });
+
+  it("keeps date-only New Year's gifts in January of the selected year", () => {
+    const series = monthlyGivingSeries(
+      [{ date: "2026-01-01", amount: 25, status: "Paid" }],
+      "2026",
+    );
+
+    expect(series[0]).toEqual({ month: "Jan", amount: 25 });
+    expect(series[11]).toEqual({ month: "Dec", amount: 0 });
   });
 });
