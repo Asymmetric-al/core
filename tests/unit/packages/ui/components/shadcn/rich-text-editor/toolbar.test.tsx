@@ -124,12 +124,12 @@ describe("rich-text-editor/toolbar", () => {
     expect(
       screen.getByRole("toolbar", { name: "Text formatting" }),
     ).toBeTruthy();
-    const bold = screen.getByRole("button", { name: "Bold (Ctrl+B)" });
+    const bold = screen.getByRole("button", { name: "Bold" });
     bold.focus();
     fireEvent.keyDown(bold, { key: "ArrowRight" });
     await waitFor(() =>
       expect(document.activeElement).toBe(
-        screen.getByRole("button", { name: "Italic (Ctrl+I)" }),
+        screen.getByRole("button", { name: "Italic" }),
       ),
     );
     fireEvent.keyDown(document.activeElement!, { key: "ArrowRight" });
@@ -149,22 +149,71 @@ describe("rich-text-editor/toolbar", () => {
     ).toHaveLength(1);
   });
 
+  it("wraps its tools onto more lines instead of hiding them off-screen", () => {
+    const { editor } = createEditorMock();
+    render(
+      <EditorToolbar
+        editor={editor as never}
+        tools={["bold", "italic", "link", "image", "undo", "redo"]}
+        onImageClick={() => {}}
+      />,
+    );
+    const toolbar = screen.getByRole("toolbar", { name: "Text formatting" });
+    const row = toolbar.querySelector("[data-toolbar-row]");
+    expect(row?.className).toContain("flex-wrap");
+    expect(row?.contains(screen.getByRole("button", { name: "Undo" }))).toBe(
+      true,
+    );
+    expect(toolbar.closest("[data-slot=scroll-area]")).toBeNull();
+  });
+
   it("exposes history commands as actions and blocks disabled activation", () => {
     const { editor, calls } = createEditorMock({
       canUndo: false,
       canRedo: false,
     });
     render(<EditorToolbar editor={editor as never} tools={["undo", "redo"]} />);
-    const undo = screen.getByRole("button", { name: "Undo (Ctrl+Z)" });
+    const undo = screen.getByRole("button", { name: "Undo" });
     expect(undo.hasAttribute("aria-pressed")).toBe(false);
     fireEvent.click(undo);
     expect(calls).not.toContain("undo");
   });
+  it("names each control plainly and announces its keyboard shortcut", () => {
+    const { editor } = createEditorMock();
+    render(
+      <EditorToolbar
+        editor={editor as never}
+        tools={["bold", "heading", "bulletList", "redo"]}
+      />,
+    );
+    // jsdom reports a non-Apple platform, so shortcuts use Control.
+    expect(
+      screen
+        .getByRole("button", { name: "Bold" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+B");
+    expect(
+      screen
+        .getByRole("button", { name: "Heading" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+Alt+1");
+    expect(
+      screen
+        .getByRole("button", { name: "Bulleted list" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+Shift+8");
+    expect(
+      screen
+        .getByRole("button", { name: "Redo" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+Shift+Z");
+  });
+
   it("renders default tools and hides image without image handlers", () => {
     const { editor } = createEditorMock();
     render(<EditorToolbar editor={editor as never} />);
 
-    expect(screen.getByLabelText("Bold (Ctrl+B)")).toBeTruthy();
+    expect(screen.getByLabelText("Bold")).toBeTruthy();
     expect(screen.queryByLabelText("Insert image")).toBeNull();
     expect(screen.queryByLabelText("Upload image")).toBeNull();
   });
@@ -192,14 +241,14 @@ describe("rich-text-editor/toolbar", () => {
       />,
     );
 
-    fireEvent.click(screen.getByLabelText("Bold (Ctrl+B)"));
-    fireEvent.click(screen.getByLabelText("Italic (Ctrl+I)"));
-    fireEvent.click(screen.getByLabelText("Underline (Ctrl+U)"));
-    fireEvent.click(screen.getByLabelText("Heading 1"));
-    fireEvent.click(screen.getByLabelText("Heading 2"));
+    fireEvent.click(screen.getByLabelText("Bold"));
+    fireEvent.click(screen.getByLabelText("Italic"));
+    fireEvent.click(screen.getByLabelText("Underline"));
+    fireEvent.click(screen.getByLabelText("Heading"));
+    fireEvent.click(screen.getByLabelText("Subheading"));
     fireEvent.click(screen.getByLabelText("Quote"));
-    fireEvent.click(screen.getByLabelText("Bullet List"));
-    fireEvent.click(screen.getByLabelText("Numbered List"));
+    fireEvent.click(screen.getByLabelText("Bulleted list"));
+    fireEvent.click(screen.getByLabelText("Numbered list"));
 
     expect(calls).toEqual(
       expect.arrayContaining([
@@ -214,14 +263,12 @@ describe("rich-text-editor/toolbar", () => {
       ]),
     );
 
-    expect(
-      screen.getByLabelText("Undo (Ctrl+Z)").getAttribute("data-disabled"),
-    ).toBe("");
-    expect(
-      screen
-        .getByLabelText("Redo (Ctrl+Shift+Z)")
-        .getAttribute("data-disabled"),
-    ).toBe("");
+    expect(screen.getByLabelText("Undo").getAttribute("data-disabled")).toBe(
+      "",
+    );
+    expect(screen.getByLabelText("Redo").getAttribute("data-disabled")).toBe(
+      "",
+    );
   });
 
   it("supports link add/update/remove and rejects invalid links", async () => {

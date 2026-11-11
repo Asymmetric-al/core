@@ -348,6 +348,33 @@
   --sidebar-ring: oklch(0.94 0.002 265);
 }
 
+/*
+ * Edge fade for horizontally scrolling ScrollArea viewports (ScrollArea
+ * edgeFade="x"). Base UI publishes how far content overflows each edge, so a
+ * side only fades while content is hidden past it. The gradient is an alpha
+ * mask (black = visible), not a theme color.
+ */
+@utility scroll-fade-x {
+  --scroll-fade-size: calc(var(--spacing) * 6);
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black min(var(--scroll-fade-size), var(--scroll-area-overflow-x-start, 0px)),
+    black
+      calc(
+        100% -
+          min(var(--scroll-fade-size), var(--scroll-area-overflow-x-end, 0px))
+      ),
+    transparent 100%
+  );
+
+  /* A mask also clips the viewport's own focus ring and outline (painted
+     outside its box), so drop it while the viewport has keyboard focus. */
+  &:focus-visible {
+    mask-image: none;
+  }
+}
+
 /* Preserve the task board's viewport allocation without arbitrary utilities. */
 @utility task-board-height {
   height: calc(100vh - --spacing(80));

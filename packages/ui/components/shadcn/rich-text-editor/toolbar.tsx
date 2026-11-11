@@ -24,6 +24,7 @@ import { useOptionalEditorContext } from "./editor-context";
 import { getUrlFromString } from "./helpers";
 import { Button } from "../button";
 import { Input } from "../input";
+import { Kbd, KbdGroup } from "../kbd";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { Separator } from "../separator";
 import { Toggle } from "../toggle";
@@ -158,7 +159,8 @@ function EditorToolbarFormattingSection({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={toolbarState.isBold}
-          tooltip="Bold (Ctrl+B)"
+          tooltip="Bold"
+          shortcut="Mod+B"
         >
           <Bold className="size-3.5" />
         </ToolbarButton>
@@ -167,7 +169,8 @@ function EditorToolbarFormattingSection({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
           active={toolbarState.isItalic}
-          tooltip="Italic (Ctrl+I)"
+          tooltip="Italic"
+          shortcut="Mod+I"
         >
           <Italic className="size-3.5" />
         </ToolbarButton>
@@ -176,7 +179,8 @@ function EditorToolbarFormattingSection({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           active={toolbarState.isUnderline}
-          tooltip="Underline (Ctrl+U)"
+          tooltip="Underline"
+          shortcut="Mod+U"
         >
           <Underline className="size-3.5" />
         </ToolbarButton>
@@ -208,7 +212,8 @@ function EditorToolbarHeadingsSection({
               editor.chain().focus().toggleHeading({ level: 1 }).run()
             }
             active={toolbarState.isHeading1}
-            tooltip="Heading 1"
+            tooltip="Heading"
+            shortcut="Mod+Alt+1"
           >
             <Heading1 className="size-3.5" />
           </ToolbarButton>
@@ -217,7 +222,8 @@ function EditorToolbarHeadingsSection({
               editor.chain().focus().toggleHeading({ level: 2 }).run()
             }
             active={toolbarState.isHeading2}
-            tooltip="Heading 2"
+            tooltip="Subheading"
+            shortcut="Mod+Alt+2"
           >
             <Heading2 className="size-3.5" />
           </ToolbarButton>
@@ -228,6 +234,7 @@ function EditorToolbarHeadingsSection({
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           active={toolbarState.isBlockquote}
           tooltip="Quote"
+          shortcut="Mod+Shift+B"
         >
           <Quote className="size-3.5" />
         </ToolbarButton>
@@ -256,7 +263,8 @@ function EditorToolbarListsSection({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           active={toolbarState.isBulletList}
-          tooltip="Bullet List"
+          tooltip="Bulleted list"
+          shortcut="Mod+Shift+8"
         >
           <List className="size-3.5" />
         </ToolbarButton>
@@ -265,7 +273,8 @@ function EditorToolbarListsSection({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           active={toolbarState.isOrderedList}
-          tooltip="Numbered List"
+          tooltip="Numbered list"
+          shortcut="Mod+Shift+7"
         >
           <ListOrdered className="size-3.5" />
         </ToolbarButton>
@@ -331,7 +340,8 @@ function EditorToolbarHistorySection({
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!toolbarState.canUndo}
-          tooltip="Undo (Ctrl+Z)"
+          tooltip="Undo"
+          shortcut="Mod+Z"
         >
           <Undo2 className="size-3.5" />
         </ToolbarButton>
@@ -340,7 +350,8 @@ function EditorToolbarHistorySection({
         <ToolbarButton
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!toolbarState.canRedo}
-          tooltip="Redo (Ctrl+Shift+Z)"
+          tooltip="Redo"
+          shortcut="Mod+Shift+Z"
         >
           <Redo2 className="size-3.5" />
         </ToolbarButton>
@@ -365,98 +376,105 @@ function EditorToolbarSectionList({
   const sectionIds = editorToolbarSectionIds(enabledTools);
 
   return (
-    <div className="overflow-x-auto px-3 py-2 sm:px-4">
+    <div className="px-3 py-2 sm:px-4">
       <Toolbar aria-label="Text formatting">
-        {sectionIds.map((sectionId, index) => {
-          switch (sectionId) {
-            case "formatting":
-              return (
-                <React.Fragment key={sectionId}>
-                  {index > 0 && (
-                    <Separator
-                      orientation="vertical"
-                      className="h-4 mx-1.5 bg-border/60"
+        {/* The tools wrap onto more lines on narrow screens, so none are out
+            of view. Arrow keys still move across every tool in order. */}
+        <div
+          data-toolbar-row=""
+          className="flex min-w-0 flex-1 flex-wrap items-center gap-y-1"
+        >
+          {sectionIds.map((sectionId, index) => {
+            switch (sectionId) {
+              case "formatting":
+                return (
+                  <React.Fragment key={sectionId}>
+                    {index > 0 && (
+                      <Separator
+                        orientation="vertical"
+                        className="h-4 mx-1.5 bg-border/60"
+                      />
+                    )}
+                    <EditorToolbarFormattingSection
+                      editor={editor}
+                      enabledTools={enabledTools}
+                      toolbarState={toolbarState}
                     />
-                  )}
-                  <EditorToolbarFormattingSection
-                    editor={editor}
-                    enabledTools={enabledTools}
-                    toolbarState={toolbarState}
-                  />
-                </React.Fragment>
-              );
-            case "headings":
-              return (
-                <React.Fragment key={sectionId}>
-                  {index > 0 && (
-                    <Separator
-                      orientation="vertical"
-                      className="h-4 mx-1.5 bg-border/60"
+                  </React.Fragment>
+                );
+              case "headings":
+                return (
+                  <React.Fragment key={sectionId}>
+                    {index > 0 && (
+                      <Separator
+                        orientation="vertical"
+                        className="h-4 mx-1.5 bg-border/60"
+                      />
+                    )}
+                    <EditorToolbarHeadingsSection
+                      editor={editor}
+                      enabledTools={enabledTools}
+                      toolbarState={toolbarState}
                     />
-                  )}
-                  <EditorToolbarHeadingsSection
-                    editor={editor}
-                    enabledTools={enabledTools}
-                    toolbarState={toolbarState}
-                  />
-                </React.Fragment>
-              );
-            case "lists":
-              return (
-                <React.Fragment key={sectionId}>
-                  {index > 0 && (
-                    <Separator
-                      orientation="vertical"
-                      className="h-4 mx-1.5 bg-border/60"
+                  </React.Fragment>
+                );
+              case "lists":
+                return (
+                  <React.Fragment key={sectionId}>
+                    {index > 0 && (
+                      <Separator
+                        orientation="vertical"
+                        className="h-4 mx-1.5 bg-border/60"
+                      />
+                    )}
+                    <EditorToolbarListsSection
+                      editor={editor}
+                      enabledTools={enabledTools}
+                      toolbarState={toolbarState}
                     />
-                  )}
-                  <EditorToolbarListsSection
-                    editor={editor}
-                    enabledTools={enabledTools}
-                    toolbarState={toolbarState}
-                  />
-                </React.Fragment>
-              );
-            case "media":
-              return (
-                <React.Fragment key={sectionId}>
-                  {index > 0 && (
-                    <Separator
-                      orientation="vertical"
-                      className="h-4 mx-1.5 bg-border/60"
+                  </React.Fragment>
+                );
+              case "media":
+                return (
+                  <React.Fragment key={sectionId}>
+                    {index > 0 && (
+                      <Separator
+                        orientation="vertical"
+                        className="h-4 mx-1.5 bg-border/60"
+                      />
+                    )}
+                    <EditorToolbarMediaSection
+                      editor={editor}
+                      enabledTools={enabledTools}
+                      toolbarState={toolbarState}
+                      onImageUpload={onImageUpload}
+                      onImageClick={onImageClick}
                     />
-                  )}
-                  <EditorToolbarMediaSection
-                    editor={editor}
-                    enabledTools={enabledTools}
-                    toolbarState={toolbarState}
-                    onImageUpload={onImageUpload}
-                    onImageClick={onImageClick}
-                  />
-                </React.Fragment>
-              );
-            case "history":
-              return (
-                <React.Fragment key={sectionId}>
-                  {index > 0 && (
-                    <Separator
-                      orientation="vertical"
-                      className="h-4 mx-1.5 bg-border/60"
+                  </React.Fragment>
+                );
+              case "history":
+                return (
+                  <React.Fragment key={sectionId}>
+                    {index > 0 && (
+                      <Separator
+                        orientation="vertical"
+                        className="h-4 mx-1.5 bg-border/60"
+                      />
+                    )}
+                    <EditorToolbarHistorySection
+                      editor={editor}
+                      enabledTools={enabledTools}
+                      toolbarState={toolbarState}
                     />
-                  )}
-                  <EditorToolbarHistorySection
-                    editor={editor}
-                    enabledTools={enabledTools}
-                    toolbarState={toolbarState}
-                  />
-                </React.Fragment>
-              );
-            default: {
-              const _exhaustive: never = sectionId;
-              return _exhaustive;
+                  </React.Fragment>
+                );
+              default: {
+                const _exhaustive: never = sectionId;
+                return _exhaustive;
+              }
             }
-          }
-        })}
+          })}
+        </div>
       </Toolbar>
     </div>
   );
@@ -524,21 +542,51 @@ export function EditorToolbar({
   );
 }
 
+/** True on Macs and iOS, where shortcuts use Command rather than Control. */
+function isApplePlatform() {
+  if (typeof navigator === "undefined") return false;
+  return /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
+}
+
+/**
+ * "Mod+Shift+Z" as keys to show (⌘ ⇧ Z on Apple, Ctrl Shift Z elsewhere) and
+ * as an aria-keyshortcuts value ("Meta+Shift+Z" / "Control+Shift+Z"). The
+ * toolbar only renders in the browser, so reading the platform is safe.
+ */
+function describeShortcut(shortcut: string) {
+  const apple = isApplePlatform();
+  const parts = shortcut.split("+");
+  const display: Record<string, string> = apple
+    ? { Mod: "⌘", Shift: "⇧", Alt: "⌥" }
+    : { Mod: "Ctrl", Shift: "Shift", Alt: "Alt" };
+  return {
+    keys: parts.map((part) => display[part] ?? part),
+    aria: parts
+      .map((part) => (part === "Mod" ? (apple ? "Meta" : "Control") : part))
+      .join("+"),
+  };
+}
+
 function ToolbarButton({
   onClick,
   active,
   tooltip,
+  shortcut,
   disabled,
   children,
   className,
 }: {
   onClick: () => void;
   active?: boolean;
+  /** The control's name, shown in the tooltip and used as its label. */
   tooltip: string;
+  /** Keyboard shortcut in "Mod+Shift+Z" form. */
+  shortcut?: string;
   disabled?: boolean;
   children: React.ReactNode;
   className?: string;
 }) {
+  const keys = shortcut ? describeShortcut(shortcut) : null;
   return (
     <Tooltip>
       <TooltipTrigger
@@ -547,6 +595,7 @@ function ToolbarButton({
             disabled={disabled}
             focusableWhenDisabled={false}
             aria-label={tooltip}
+            aria-keyshortcuts={keys?.aria}
             render={
               active === undefined ? (
                 <Button
@@ -574,8 +623,15 @@ function ToolbarButton({
           </ToolbarItem>
         }
       />
-      <TooltipContent side="top" className="text-xs">
-        <p>{tooltip}</p>
+      <TooltipContent side="top">
+        <span>{tooltip}</span>
+        {keys ? (
+          <KbdGroup>
+            {keys.keys.map((key) => (
+              <Kbd key={key}>{key}</Kbd>
+            ))}
+          </KbdGroup>
+        ) : null}
       </TooltipContent>
     </Tooltip>
   );

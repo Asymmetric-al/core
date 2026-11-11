@@ -28,6 +28,8 @@ export interface FullLoginCardProps {
   forgotPasswordHref?: string;
   registerHref?: string;
   showRegisterLink?: boolean;
+  /** Shown in place of the register link when there is no self sign-up. */
+  accountNote?: React.ReactNode;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
@@ -46,6 +48,7 @@ export function FullLoginCard({
   forgotPasswordHref = "/forgot-password",
   registerHref = "/register",
   showRegisterLink = true,
+  accountNote,
   onEmailChange,
   onPasswordChange,
   onSubmit,
@@ -55,10 +58,14 @@ export function FullLoginCard({
   const reduceMotion = useReducedMotion();
 
   return (
+    // The server can't know the visitor's motion preference, so the first
+    // frame is the same for everyone; reduced motion just skips the easing.
     <motion.div
-      initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      transition={
+        reduceMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }
+      }
     >
       <AuthCard className="backdrop-blur">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-linear-to-b from-muted to-transparent" />
@@ -167,6 +174,10 @@ export function FullLoginCard({
               >
                 Register
               </Link>
+            </p>
+          ) : accountNote ? (
+            <p className="text-center text-sm text-muted-foreground">
+              {accountNote}
             </p>
           ) : null}
         </AuthCardContent>

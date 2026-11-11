@@ -33,10 +33,14 @@ export function DemoOnlyLoginCard({
   const reduceMotion = useReducedMotion();
 
   return (
+    // The server can't know the visitor's motion preference, so the first
+    // frame is the same for everyone; reduced motion just skips the easing.
     <motion.div
-      initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      transition={
+        reduceMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }
+      }
     >
       <AuthCard>
         <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-linear-to-b from-muted to-transparent" />

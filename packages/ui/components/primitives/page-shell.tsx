@@ -35,31 +35,34 @@ export function PageShell({
   const reduceMotion = useReducedMotion();
   const withinRouteVt = useWithinViewTransitionRouteLayer();
 
-  const headerMotion =
-    reduceMotion || withinRouteVt
-      ? {
-          initial: { opacity: 1, y: 0 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0 },
-        }
-      : {
-          initial: { opacity: 0, y: -8 },
-          animate: { opacity: 1, y: 0 },
-          transition: transitionStandard,
-        };
+  // The server can't know the motion preference, so the starting state must
+  // not depend on it (or hydration mismatches); reduced motion just skips the
+  // movement. Inside a route view transition the route owns the entrance.
+  const headerMotion = withinRouteVt
+    ? {
+        initial: { opacity: 1, y: 0 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0 },
+      }
+    : {
+        initial: { opacity: 0, y: -8 },
+        animate: { opacity: 1, y: 0 },
+        transition: reduceMotion ? { duration: 0 } : transitionStandard,
+      };
 
-  const actionsMotion =
-    reduceMotion || withinRouteVt
-      ? {
-          initial: { opacity: 1, x: 0 },
-          animate: { opacity: 1, x: 0 },
-          transition: { duration: 0 },
-        }
-      : {
-          initial: { opacity: 0, x: 12 },
-          animate: { opacity: 1, x: 0 },
-          transition: { ...transitionStandard, delay: 0.08 },
-        };
+  const actionsMotion = withinRouteVt
+    ? {
+        initial: { opacity: 1, x: 0 },
+        animate: { opacity: 1, x: 0 },
+        transition: { duration: 0 },
+      }
+    : {
+        initial: { opacity: 0, x: 12 },
+        animate: { opacity: 1, x: 0 },
+        transition: reduceMotion
+          ? { duration: 0 }
+          : { ...transitionStandard, delay: 0.08 },
+      };
 
   return (
     <div
