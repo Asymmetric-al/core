@@ -35,8 +35,11 @@ describe("#2257 criterion 10: ADR-0001 Phase 9 re-confirm", () => {
     expect(sha(`${read(ADR).split("\n").slice(0, 138).join("\n")}\n`)).toBe(
       "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174",
     );
+    // #2257 left the Phase 9 PRD unchanged at digest 5ad79f0a…5773b. The
+    // AL-2645 reconciliation later amended it; pin that current content so a
+    // revert of those corrections also fails.
     expect(sha(read(`${PRD}9-full-crm-depth-relationship-graph.md`))).toBe(
-      "5ad79f0a72d146c98777bb5cbcbe1c8956ff9f88a7c485653276cb6548d5773b",
+      "bab8005ca769a52695ec31cb53ed9dcc78da08295b96b897f5234757a2213642",
     );
   });
   it("records the ruling, kept values + consumer, lockstep rule and parity test", () => {

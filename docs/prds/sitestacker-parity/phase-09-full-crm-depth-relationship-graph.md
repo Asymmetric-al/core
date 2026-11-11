@@ -16,7 +16,7 @@ implementation and qualification remain separately unproved.
 > party spine). **Phase 8 is a SOFT dependency**: CRM writes are plain Asym
 > writes with **no provider gate** (ADR-0001 §4 withdrew `crm_write_gates` as a
 > Twenty enabler); the only Phase 8 coupling is the Audit-tab ops-indicator
-> socket, whose content the re-groomed Phase 8 (#603, pending) owns.
+> socket, whose content the re-groomed Phase 8 owns (re-groom #603 completed 2026-07-07; its PRD defines no per-record Audit-tab content yet, so the socket keeps rendering nothing until Phase 8 defines it).
 > **Charter / matrix:** `docs/prds/sitestacker-parity/README.md`,
 > `parity-matrix.md`, `phase-map.md` (row 9)
 > **Title:** "Full CRM Depth & Relationship Graph" **ratified 2026-07-06**
@@ -418,8 +418,9 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   **Header (live):** consent badges (`do_not_contact`/`do_not_email` +
   per-address deliverability from `email_suppressions`); lifecycle-status
   chip (`active/inactive/archived/deceased`; `merged` read from the Phase 4
-  tombstone); duplicate-warning banner (`crm_merge_candidates` → Phase 4
-  #514); portal/claim chip (Phase 4 claimed/unclaimed/invited socket);
+  tombstone); duplicate-warning banner (Phase 4 duplicate candidates → Phase 4
+  #514; amended 2026-11-10 per the 2026-10-24 Q8 ruling: the store is
+  `donor_merge_candidates`, and the Twenty-era `crm_merge_candidates` is not extended: no application code writes it, though tenant staff keep direct INSERT and UPDATE policies on it); portal/claim chip (Phase 4 claimed/unclaimed/invited socket);
   owner/assignment chip (**N role-qualified assignees + ONE primary, reading
   assignment edges only**); tags chips; privacy role-gate indicator; and a
   reserved header **action-slot registry** (print/PDF exports → Phases 18/19;
@@ -587,7 +588,7 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   provider-idempotency log, no `crm_write_gates` dependency — CRM writes have
   no Phase 8 prerequisite; the Audit-tab ops-indicator socket reads whatever
   the Phase 8 re-groom defines, and Phase 9 must not invent a gate.**
-  `crm_command_logs` stays reserved for future async provider commands only.
+  `crm_command_logs` is not Phase 9's write-path or audit carrier (Phase 9 audits through `crm_audit_events`, §D). With no CRM provider after ADR-0001 it is not reserved for provider commands; it remains the audited Asym CRM command boundary (Phase 8 A8 acknowledge/snooze; the interim PR #1325 notes service) per `supabase/migrations/20260818010000_retire_twenty_crm_runtime.sql`.
   The donate-path idempotency header remains money-path-only. Ordinary
   personal-contact Name/Phone writes instead use B17's expected source revision
   and narrow change-record correlation for duplicate/lost-response recovery;
@@ -794,7 +795,7 @@ pinned_at NULL, edited_at NULL, created_at/updated_at, deleted_at NULL)`.
   reservation); @-mentions → later (zero schema cost — marks live in body
   jsonb; `crm_note_mentions` named as the future fan-out table); edit history
   = the audit event's before/after snapshots (`edited_at` flag only);
-  threaded note comments rejected (tasks own discussion).
+  threaded note comments rejected (tasks own discussion). _Dated note (2026-11-10): PR #1325 (merged 2026-08-19) already created an interim native `public.crm_notes` (`supabase/migrations/20260818000000_crm_notes.sql`) in a different shape — `title` NOT NULL, text `body`, polymorphic text `linked_record_id`/`linked_record_type`/`linked_record_label`, no `party_id`, SELECT/INSERT grants only, command audit through `crm_command_logs`. #616 must reach the columns above through an explicit forward migration that reshapes or replaces that table (a `CREATE TABLE IF NOT EXISTS` would silently no-op); the disposition of existing rows is an open owner decision, not settled here._
 - `crm_activity_events(id, tenant_id, party_id [composite FK], event_type
 CHECK [seeded], actor_profile_id NULL, actor_kind CHECK (human|system)
 DEFAULT 'system', subject_type/subject_id [pointer — diffs live in the

@@ -2,9 +2,9 @@
 
 > **RETIRED (2026-07-06) — do not merge, do not build from this change.**
 > Withdrawn by founder ruling
-> [ADR-0001](../../../docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
+> [ADR-0001](../../../../docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
 > (see also the
-> [Phase 1 Source-of-Truth Ownership Matrix](../../../docs/prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md)):
+> [Phase 1 Source-of-Truth Ownership Matrix](../../../../docs/prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md)):
 > Asym Postgres is the system of record for all CRM truth and Twenty CRM is
 > retired as a product dependency. Production never held Twenty data. The spec
 > deltas under `specs/` are withdrawn and must never be merged into
@@ -12,6 +12,13 @@
 > cleanup ticket, which will also archive this package. The document below is
 > preserved unedited as the historical record of what was proposed and
 > partially implemented.
+>
+> **Status note (2026-11-10):** the 2026-07-06 banner sentence about dormant
+> code describes that date. The Twenty runtime was removed through PR #1325
+> (merged 2026-08-19), and this package is already archived at its current
+> path; do not archive it again. Remaining external closeout is tracked by
+> [#602](https://github.com/Asymmetric-al/core/issues/602) and
+> [`complete-twenty-crm-retirement`](../../complete-twenty-crm-retirement/tasks.md).
 
 ## Why
 

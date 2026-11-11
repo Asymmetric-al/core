@@ -196,7 +196,7 @@
       "slug": "donor-development",
       "name": "Donor Development & Portfolio Management",
       "startingDependencies": "**9**, 3, 6, 13",
-      "status": "roadmap scope adopted; phase grooming/qualification required"
+      "status": "`PRD exists` ([specification](phase-27-donor-development.md), [#1992](https://github.com/Asymmetric-al/core/issues/1992); D1\u2013D30 settled; implementation issues published; not implemented)"
     },
     {
       "phase": 28,
@@ -217,7 +217,7 @@
       "slug": "imports-migration",
       "name": "Imports & Migration Tools",
       "startingDependencies": "9, 13, 11, 29, 4, 3",
-      "status": "roadmap scope adopted; phase grooming/qualification required"
+      "status": "`PRD exists` ([specification](phase-30-imports-migration.md), [#2543](https://github.com/Asymmetric-al/core/issues/2543); Q1\u2013Q21 founder-ratified; implementation issues published; implementation, source qualification and activation pending)"
     },
     {
       "phase": 31,

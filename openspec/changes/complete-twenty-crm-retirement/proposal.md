@@ -19,7 +19,16 @@ context, not the current implementation or a remaining vendor cutover plan.
 - Mission Control is the native staff CRM experience; `packages/api` owns the
   business boundary, tenant-safe local reads and authoritative local writes.
 - Live Twenty clients, routes, webhooks, sync, projections, health checks and
-  environment fields were removed; the non-regression guard rejects restoration.
+  environment fields were removed. The non-regression guard
+  (`scripts/verify/data-boundary-check.mjs`) rejects a fixed list of known
+  retired markers: raw CRM client import paths, five retired `TWENTY_*`
+  names, five retired `CRM_SYNC_*` names and the `NEXT_PUBLIC_TWENTY_` prefix,
+  in `apps/`, `packages/` and `scripts/` TypeScript/JavaScript source and
+  `.env.example`. ESLint separately blocks raw CRM client
+  imports in app code. The guard does not scan documentation, OpenSpec, tests
+  or migrations, and it cannot detect a differently named vendor client, route,
+  credential or sync path; the `crm-core` prohibition and review still forbid
+  restoring any of them.
 - `crm-core` remains an active capability. Provider identifiers retained for
   compatibility are references, never vendor authority or permission to sync.
 - ADR-0001, archived OpenSpec and dated evidence retain historical provenance.
@@ -49,9 +58,12 @@ retained here:
 ### External cleanup
 
 The external Vercel variable and Twenty Cloud key/workspace cleanup is not
-proved complete. Verify exact environments with authorized tooling and record
-the result in `tasks.md`; do not expose secrets or infer cleanup from code
-deletion. This change stays active for that explicit closeout work.
+complete. A 2026-11-09 names-only inventory found the retired `TWENTY_*` and
+`CRM_SYNC_*` names still configured in the `admin` production environment
+(task 4.5). Removal and credential revocation need separately authorized
+production and vendor access; record the outcome in `tasks.md` and #602, do
+not expose secrets, and do not infer cleanup from code deletion. This change
+stays active for that explicit closeout work.
 
 ## Capabilities And Impact
 

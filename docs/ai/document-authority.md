@@ -185,13 +185,24 @@ Keep historical migration records, captured evidence and any still-required
 read-only compatibility identifiers until their source-owned migration removes
 them. Such identifiers do not authorize vendor calls or future Twenty writes.
 Generated database types must follow their generation/migration workflow, not
-search-and-replace. The data-boundary guard must continue prohibiting restoration
-of vendor clients/credentials/routes/sync.
+search-and-replace. The data-boundary guard must keep rejecting its known retired
+markers (raw CRM client imports and the retired `TWENTY_*`/`CRM_SYNC_*` names in
+`apps/`, `packages/`, `scripts/` and `.env.example`). It is a marker scan, not
+proof of absence: the `crm-core` prohibition still forbids restoring vendor
+clients, credentials, routes or sync that no marker detects.
 
-External removal of old Vercel variables or a vendor key/workspace needs exact
-environment inventory and authorized access. Its unverified status remains in
-`openspec/changes/complete-twenty-crm-retirement/tasks.md`; a documentation change
-does not claim credential revocation, data disposal or deployment completion.
+A 2026-11-09 names-only inventory found the retired `TWENTY_*` and `CRM_SYNC_*`
+names still configured in the `admin` production environment. Removing them and
+revoking the old vendor key/workspace needs authorized access. The evidence and
+remaining action live in
+`openspec/changes/complete-twenty-crm-retirement/tasks.md` and #602; a
+documentation change does not claim credential revocation, data disposal or
+deployment completion.
+
+The [November 10 reconciliation](audits/2026-11-10-crm-ownership-roadmap-reconciliation.md)
+records the phase-by-phase screen, the corrections, the remaining compatibility
+reads with their owners and the open owner decisions, including who generalizes
+the still Twenty-shaped `crm_record_links` carrier.
 
 ## Settled choices and qualification boundaries
 

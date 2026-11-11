@@ -21,7 +21,7 @@ function readLock() {
 
 describe("skills lock current upstream paths", () => {
   it("keeps the current lockfile skill names", () => {
-    expect(Object.keys(readLock().skills)).toHaveLength(151);
+    expect(Object.keys(readLock().skills)).toHaveLength(202);
   });
 
   it("pins the reviewed tstack council source without the rest of the pack", () => {
