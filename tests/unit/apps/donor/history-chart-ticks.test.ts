@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Pure chart helper at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: Pure chart helper at its app boundary.
 import {
   phoneMonthTicks,
   roundTicks,

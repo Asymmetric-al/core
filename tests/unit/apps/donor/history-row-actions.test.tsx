@@ -15,7 +15,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-// eslint-disable-next-line no-restricted-imports -- Verify the donor history row cells at their app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: Verify the donor history row cells at their app boundary.
 import { columns } from "../../../../apps/donor/app/(dashboard)/donor-dashboard/history/columns";
 
 import type { Transaction } from "../../../../apps/donor/app/(dashboard)/donor-dashboard/history/types";

@@ -9,9 +9,9 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- The header owns the trigger that opens the mobile drawer.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: The header owns the trigger that opens the mobile drawer.
 import { AppHeader } from "../../../../apps/missionary/components/app-header";
-// eslint-disable-next-line no-restricted-imports -- Exercise the actual missionary sidebar in its expanded, icon and mobile forms.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: Exercise the actual missionary sidebar in its expanded, icon and mobile forms.
 import { AppSidebar } from "../../../../apps/missionary/components/app-sidebar";
 import { SidebarProvider } from "../../../../packages/ui/components/shadcn/sidebar";
 

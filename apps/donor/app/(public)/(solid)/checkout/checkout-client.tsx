@@ -11,7 +11,6 @@ import {
   resolveCheckoutFundId,
 } from "@asym/lib/payments/checkout-designations";
 import { formatCurrency } from "@asym/lib/utils";
-import { LabeledField } from "@asym/ui/components/primitives/labeled-field";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
   Avatar,
@@ -25,6 +24,7 @@ import {
   Field,
   FieldContent,
   FieldDescription,
+  FieldError,
   FieldLabel,
   FieldTitle,
 } from "@asym/ui/components/shadcn/field";
@@ -137,6 +137,43 @@ type DonorInfoErrors = Partial<Record<keyof DonorInfo, string>>;
 
 const DONOR_INFO_FIELDS = ["firstName", "lastName", "email"] as const;
 // Deliberately loose: one @, something before it, and a dotted domain.
+/** A donor detail with its label, hint and error tied to the input by id. */
+function DetailsField({
+  id,
+  label,
+  error,
+  description,
+  ...inputProps
+}: React.ComponentProps<typeof Input> & {
+  id: string;
+  label: string;
+  error?: string;
+  description?: string;
+}) {
+  const errorId = `${id}-error`;
+  const descriptionId = `${id}-description`;
+  return (
+    <Field data-invalid={error ? true : undefined}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Input
+        {...inputProps}
+        id={id}
+        aria-invalid={Boolean(error)}
+        aria-describedby={
+          error ? errorId : description ? descriptionId : undefined
+        }
+      />
+      <div className="min-h-4">
+        {error ? (
+          <FieldError id={errorId}>{error}</FieldError>
+        ) : description ? (
+          <FieldDescription id={descriptionId}>{description}</FieldDescription>
+        ) : null}
+      </div>
+    </Field>
+  );
+}
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const trimDonorInfo = (info: DonorInfo): DonorInfo => ({
@@ -854,41 +891,41 @@ function DetailsStep({
       >
         <div className="bg-muted p-6 sm:p-12 rounded-3xl border border-border space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <LabeledField label="First Name" error={errors.firstName}>
-              <Input
-                name="firstName"
-                value={donorInfo.firstName}
-                onChange={(e) => updateField("firstName", e.target.value)}
-                placeholder="Jane"
-                autoComplete="given-name"
-              />
-            </LabeledField>
-            <LabeledField label="Last Name" error={errors.lastName}>
-              <Input
-                name="lastName"
-                value={donorInfo.lastName}
-                onChange={(e) => updateField("lastName", e.target.value)}
-                placeholder="Doe"
-                autoComplete="family-name"
-              />
-            </LabeledField>
+            <DetailsField
+              id="checkout-first-name"
+              label="First Name"
+              error={errors.firstName}
+              name="firstName"
+              value={donorInfo.firstName}
+              onChange={(e) => updateField("firstName", e.target.value)}
+              placeholder="Jane"
+              autoComplete="given-name"
+            />
+            <DetailsField
+              id="checkout-last-name"
+              label="Last Name"
+              error={errors.lastName}
+              name="lastName"
+              value={donorInfo.lastName}
+              onChange={(e) => updateField("lastName", e.target.value)}
+              placeholder="Doe"
+              autoComplete="family-name"
+            />
           </div>
-          <LabeledField
+          <DetailsField
+            id="checkout-email"
             label="Email Address"
             error={errors.email}
             description="Your receipt is sent here."
-          >
-            <Input
-              name="email"
-              type="email"
-              inputMode="email"
-              value={donorInfo.email}
-              onChange={(e) => updateField("email", e.target.value)}
-              placeholder="jane.doe@example.com"
-              autoComplete="email"
-              spellCheck={false}
-            />
-          </LabeledField>
+            name="email"
+            type="email"
+            inputMode="email"
+            value={donorInfo.email}
+            onChange={(e) => updateField("email", e.target.value)}
+            placeholder="jane.doe@example.com"
+            autoComplete="email"
+            spellCheck={false}
+          />
         </div>
 
         <div className="flex flex-col sm:flex-row gap-6">

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Partner roster columns at their app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: Partner roster columns at their app boundary.
 import { createDonorColumns } from "../../../../apps/missionary/app/donors/donors-page-columns";
 
 // The roster sorts through its own Sort menu. Headers that look sortable (or

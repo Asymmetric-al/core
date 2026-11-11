@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Verify the missionary partner money formatter at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: Verify the missionary partner money formatter at its app boundary.
 import { formatCurrency } from "../../../../apps/missionary/app/donors/donors-model";
 import {
   formatCents,

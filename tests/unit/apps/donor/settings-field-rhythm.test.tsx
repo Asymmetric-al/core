@@ -43,7 +43,7 @@ vi.mock("@asym/ui/components/primitives/image-upload", () => ({
   ImageUpload: () => null,
 }));
 
-// eslint-disable-next-line no-restricted-imports -- The real donor settings page at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: The real donor settings page at its app boundary.
 import DonorSettingsPage from "../../../../apps/donor/app/(dashboard)/donor-dashboard/settings/page-client";
 
 afterEach(cleanup);
@@ -95,4 +95,26 @@ it("puts the read-only sign-in email after the fields people can edit", () => {
   expect(
     phone.compareDocumentPosition(email) & Node.DOCUMENT_POSITION_FOLLOWING,
   ).toBeTruthy();
+});
+
+// Each field is tied to its visible label by `for`/`id`, which assistive
+// technology and static audits both read, not only through a wrapper.
+it("ties every details field to its visible label explicitly", () => {
+  render(<DonorSettingsPage />);
+  for (const name of [
+    "First name",
+    "Last name",
+    "Phone",
+    "Street address",
+    "Apartment, suite",
+    "City",
+    "State",
+    "ZIP code",
+    "Country",
+  ]) {
+    const field = screen.getByRole("textbox", { name });
+    expect(field.id, name).toMatch(/^settings-/);
+    const label = document.querySelector(`label[for="${field.id}"]`);
+    expect(label?.textContent, name).toBe(name);
+  }
 });

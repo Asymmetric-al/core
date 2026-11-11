@@ -61,7 +61,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-// eslint-disable-next-line no-restricted-imports -- The actual donor overview at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: The actual donor overview at its app boundary.
 import { DonorDashboardMainBody } from "../../../../apps/donor/features/donor/components/donor-dashboard-main-body";
 
 afterEach(cleanup);

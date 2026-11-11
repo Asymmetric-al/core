@@ -3,7 +3,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Verify the donor dashboard's featured story at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: Verify the donor dashboard's featured story at its app boundary.
 import { FeaturedUpdateHero } from "../../../../apps/donor/features/donor/components/featured-update-hero";
 
 import type { DonorFeedPost } from "../../../../packages/database/hooks/donor-feed-posts";

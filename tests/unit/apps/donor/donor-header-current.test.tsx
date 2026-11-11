@@ -35,7 +35,7 @@ vi.mock("@asym/lib/hooks", () => ({
   }),
 }));
 
-// eslint-disable-next-line no-restricted-imports -- The real donor portal header at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: The real donor portal header at its app boundary.
 import { DonorPortalHeader } from "../../../../apps/donor/features/donor/components/donor-portal-header";
 
 afterEach(() => {

@@ -1588,6 +1588,20 @@ describe("CheckoutPageClient donor details", () => {
     expect(screen.getByText("Enter your first name.")).toBeTruthy();
     expect(screen.getByText("Enter your last name.")).toBeTruthy();
     expect(screen.getByText("Enter your email address.")).toBeTruthy();
+    // Each field is tied to its label and its error explicitly.
+    for (const [name, error] of [
+      ["First Name", "Enter your first name."],
+      ["Last Name", "Enter your last name."],
+      ["Email Address", "Enter your email address."],
+    ] as const) {
+      const field = screen.getByRole("textbox", { name });
+      expect(field.id, name).toMatch(/^checkout-/);
+      expect(document.querySelector(`label[for="${field.id}"]`)).not.toBeNull();
+      const describedBy = field.getAttribute("aria-describedby") ?? "";
+      expect(document.getElementById(describedBy)?.textContent, name).toBe(
+        error,
+      );
+    }
     expect(document.activeElement).toBe(firstName);
     expect(screen.queryByRole("heading", { name: "Secure Payment." })).toBe(
       null,

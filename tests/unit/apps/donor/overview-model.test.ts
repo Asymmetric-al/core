@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Pure donor overview model at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: Pure donor overview model at its app boundary.
 import {
   giveHref,
   givenThisYear,

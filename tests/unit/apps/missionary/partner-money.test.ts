@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Verify the Partners page money formatter at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: Verify the Partners page money formatter at its app boundary.
 import { formatCurrency } from "../../../../apps/missionary/app/donors/donors-model";
 
 // Partner money is stored as integer cents. An exact amount always shows its

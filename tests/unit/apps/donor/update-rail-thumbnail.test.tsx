@@ -13,7 +13,7 @@ vi.mock("next/image", () => ({
     onError?: () => void;
     src: string;
   }) => (
-    // eslint-disable-next-line @next/next/no-img-element -- Test double for next/image.
+    // eslint-disable-next-line @next/next/no-img-element -- AL-1931: Test double for next/image.
     <img alt={alt} src={src} onError={onError} data-testid="thumb" />
   ),
 }));

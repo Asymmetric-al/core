@@ -54,7 +54,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-// eslint-disable-next-line no-restricted-imports -- The real donor history page at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: The real donor history page at its app boundary.
 import DonorHistoryPage from "../../../../apps/donor/app/(dashboard)/donor-dashboard/history/page-content";
 
 beforeEach(() => {
@@ -177,4 +177,22 @@ it("keeps the year summary short on phones so the records start sooner", () => {
   // Every figure is still there.
   expect(screen.getByText("$756.67")).toBeTruthy();
   expect(screen.getByText(/Not counted: 1 processing/)).toBeTruthy();
+});
+
+it("says so in the table when a year has no months to list", async () => {
+  const { MonthlyGivingTable } = await import(
+    // eslint-disable-next-line no-restricted-imports -- AL-1931: The real hidden chart table at its app boundary.
+    "../../../../apps/donor/app/(dashboard)/donor-dashboard/history/monthly-giving-table"
+  );
+  render(
+    <MonthlyGivingTable
+      caption="Paid gifts by month in 2026"
+      year="2026"
+      data={[]}
+    />,
+  );
+  const table = screen.getByRole("table", {
+    name: "Paid gifts by month in 2026",
+  });
+  expect(within(table).getByRole("cell").textContent).toBe("No gifts in 2026.");
 });

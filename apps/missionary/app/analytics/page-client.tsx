@@ -112,6 +112,11 @@ function YearOverYearTable({ months }: { months: YearOverYearMonth[] }) {
           </tr>
         </thead>
         <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={3}>No months to show.</td>
+            </tr>
+          ) : null}
           {rows.map((month) => (
             <tr key={month.key}>
               <th scope="row">{month.name}</th>

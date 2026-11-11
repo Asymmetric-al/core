@@ -26,7 +26,7 @@ vi.mock("@asym/database/hooks", () => ({
   useDonorHistoryTransactions: () => ({ data: [], isLoading: false }),
 }));
 
-// eslint-disable-next-line no-restricted-imports -- The real donor history table at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: The real donor history table at its app boundary.
 import { HistoryTransactionsCard } from "../../../../apps/donor/app/(dashboard)/donor-dashboard/history/page-content";
 
 const transactions: Transaction[] = [

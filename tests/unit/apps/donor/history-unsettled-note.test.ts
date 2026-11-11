@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Verify the donor history summary's reconciliation note at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: Verify the donor history summary's reconciliation note at its app boundary.
 import {
   monthlyGivingSeries,
   unsettledNote,

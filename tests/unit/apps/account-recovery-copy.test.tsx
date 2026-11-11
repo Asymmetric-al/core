@@ -8,11 +8,11 @@ vi.mock("@asym/auth/auth-screen", () => ({
 }));
 vi.mock("@asym/env", () => ({ serverEnv: { DEMO_ONLY_LOGIN: false } }));
 
-// eslint-disable-next-line no-restricted-imports -- The donor recovery page is the unit under test.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: The donor recovery page is the unit under test.
 import DonorForgotPasswordPage from "../../../apps/donor/app/(auth)/forgot-password/page";
-// eslint-disable-next-line no-restricted-imports -- The missionary login page decides whether to offer registration.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: The missionary login page decides whether to offer registration.
 import MissionaryLoginPage from "../../../apps/missionary/app/(auth)/login/page";
-// eslint-disable-next-line no-restricted-imports -- The missionary recovery page is the unit under test.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: The missionary recovery page is the unit under test.
 import MissionaryForgotPasswordPage from "../../../apps/missionary/app/forgot-password/page";
 import { FullLoginCard } from "../../../packages/ui/components/auth/FullLoginCard";
 

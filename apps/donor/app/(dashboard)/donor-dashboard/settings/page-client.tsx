@@ -15,7 +15,6 @@ import { ChangePasswordForm } from "@asym/ui/components/auth/change-password-for
 import { SignOutOtherSessions } from "@asym/ui/components/auth/sign-out-other-sessions";
 import { PageHeader } from "@asym/ui/components/page-header";
 import { ImageUpload } from "@asym/ui/components/primitives/image-upload";
-import { LabeledField } from "@asym/ui/components/primitives/labeled-field";
 import { ReadOnlyField } from "@asym/ui/components/primitives/read-only-field";
 import { UnsavedChangesGuard } from "@asym/ui/components/primitives/unsaved-changes-guard";
 import { SettingsCard, SettingsLayout } from "@asym/ui/components/settings";
@@ -197,32 +196,38 @@ function DetailsCard({
     >
       <FieldGroup>
         <div className="grid gap-4 md:grid-cols-2">
-          <LabeledField label="First name">
+          <Field>
+            <FieldLabel htmlFor="settings-first-name">First name</FieldLabel>
             <Input
+              id="settings-first-name"
               autoComplete="given-name"
               value={form.firstName}
               onChange={(event) =>
                 onFieldChange("firstName", event.target.value)
               }
             />
-          </LabeledField>
-          <LabeledField label="Last name">
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="settings-last-name">Last name</FieldLabel>
             <Input
+              id="settings-last-name"
               autoComplete="family-name"
               value={form.lastName}
               onChange={(event) =>
                 onFieldChange("lastName", event.target.value)
               }
             />
-          </LabeledField>
-          <LabeledField label="Phone">
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="settings-phone">Phone</FieldLabel>
             <Input
+              id="settings-phone"
               type="tel"
               autoComplete="tel"
               value={form.phone}
               onChange={(event) => onFieldChange("phone", event.target.value)}
             />
-          </LabeledField>
+          </Field>
           <ReadOnlyField
             label="Sign-in email"
             value={form.email}
@@ -236,59 +241,75 @@ function DetailsCard({
             Optional. Missionaries you support can use it to send you letters.
           </FieldDescription>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <LabeledField label="Street address" className="col-span-2">
+            <Field className="col-span-2">
+              <FieldLabel htmlFor="settings-street-address">
+                Street address
+              </FieldLabel>
               <Input
+                id="settings-street-address"
                 autoComplete="address-line1"
                 value={address.street}
                 onChange={(event) =>
                   onAddressChange("street", event.target.value)
                 }
               />
-            </LabeledField>
-            <LabeledField label="Apartment, suite" className="col-span-2">
+            </Field>
+            <Field className="col-span-2">
+              <FieldLabel htmlFor="settings-apartment-suite">
+                Apartment, suite
+              </FieldLabel>
               <Input
+                id="settings-apartment-suite"
                 autoComplete="address-line2"
                 value={address.street2}
                 onChange={(event) =>
                   onAddressChange("street2", event.target.value)
                 }
               />
-            </LabeledField>
-            <LabeledField label="City" className="col-span-2 md:col-span-1">
+            </Field>
+            <Field className="col-span-2 md:col-span-1">
+              <FieldLabel htmlFor="settings-city">City</FieldLabel>
               <Input
+                id="settings-city"
                 autoComplete="address-level2"
                 value={address.city}
                 onChange={(event) =>
                   onAddressChange("city", event.target.value)
                 }
               />
-            </LabeledField>
-            <LabeledField label="State">
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="settings-state">State</FieldLabel>
               <Input
+                id="settings-state"
                 autoComplete="address-level1"
                 value={address.state}
                 onChange={(event) =>
                   onAddressChange("state", event.target.value)
                 }
               />
-            </LabeledField>
-            <LabeledField label="ZIP code">
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="settings-zip-code">ZIP code</FieldLabel>
               <Input
+                id="settings-zip-code"
                 autoComplete="postal-code"
                 inputMode="numeric"
                 value={address.zip}
                 onChange={(event) => onAddressChange("zip", event.target.value)}
               />
-            </LabeledField>
-            <LabeledField label="Country" className="col-span-2 md:col-span-1">
+            </Field>
+            <Field className="col-span-2 md:col-span-1">
+              <FieldLabel htmlFor="settings-country">Country</FieldLabel>
               <Input
+                id="settings-country"
                 autoComplete="country-name"
                 value={address.country}
                 onChange={(event) =>
                   onAddressChange("country", event.target.value)
                 }
               />
-            </LabeledField>
+            </Field>
           </div>
         </FieldSet>
       </FieldGroup>

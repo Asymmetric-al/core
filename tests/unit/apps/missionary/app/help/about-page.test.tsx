@@ -20,7 +20,7 @@ vi.mock("@asym/lib/build-info", () => ({
     `https://github.com/Asymmetric-al/core/blob/${ref}/LICENSE`,
 }));
 
-// eslint-disable-next-line no-restricted-imports -- Server page rendered at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1931: Server page rendered at its app boundary.
 import AboutPage from "../../../../../../apps/missionary/app/help/about/page";
 
 afterEach(cleanup);

@@ -30,6 +30,11 @@ export function MonthlyGivingTable({
           </tr>
         </thead>
         <tbody>
+          {data.length === 0 ? (
+            <tr>
+              <td colSpan={2}>{`No gifts in ${year}.`}</td>
+            </tr>
+          ) : null}
           {data.map((point, monthIndex) => (
             <tr key={point.month}>
               <th scope="row">
