@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { buildMissionaryPortalSnapshot } from "../../../../../packages/api/src/missionary-portal/model";
+import {
+  buildMissionaryPortalSnapshot,
+  mapMissionaryTask,
+} from "../../../../../packages/api/src/missionary-portal/model";
 
 describe("missionary portal model", () => {
   it("returns support context without staff-only donor fields", () => {
@@ -75,6 +78,53 @@ describe("missionary portal model", () => {
           has_active_pledge: true,
           giving_preferences: { defaultAnonymousToRecipient: false },
         },
+        {
+          id: "donor-2",
+          name: "Quarterly Partner",
+          email: "quarterly@example.com",
+          phone: null,
+          mobile: null,
+          preferred_contact: "email",
+          avatar_url: null,
+          location: null,
+          status: "lapsed",
+          total_given: 30_000,
+          last_gift_date: "2026-01-01T00:00:00.000Z",
+          last_gift_amount: 30_000,
+          gift_count: 1,
+          frequency: "quarterly",
+          tags: [],
+          has_active_pledge: true,
+          giving_preferences: { defaultAnonymousToRecipient: false },
+        },
+      ],
+      // Monthly support counts each partner's active commitment once,
+      // normalised to a month (as the Partners page does).
+      pledges: [
+        {
+          donor_id: "donor-1",
+          amount: 20_000,
+          frequency: "monthly",
+          status: "active",
+        },
+        {
+          donor_id: "donor-1",
+          amount: 9_000,
+          frequency: "monthly",
+          status: "active",
+        },
+        {
+          donor_id: "donor-2",
+          amount: 30_000,
+          frequency: "quarterly",
+          status: "active",
+        },
+        {
+          donor_id: "donor-2",
+          amount: 50_000,
+          frequency: "monthly",
+          status: "cancelled",
+        },
       ],
       tasks: [
         {
@@ -121,8 +171,11 @@ describe("missionary portal model", () => {
     expect(snapshot.support).toMatchObject({
       goalCents: 600_000,
       raisedCents: 450_000,
-      recurringMonthlyCents: 20_000,
-      percentFunded: 75,
+      // $200 monthly + $300 quarterly ($100/month) committed.
+      recurringMonthlyCents: 30_000,
+      // Funded against the monthly goal, not lifetime funding.
+      percentFunded: 5,
+      // Lapsed partners aren't counted as active.
       activeDonorCount: 1,
       giftCount: 1,
     });
@@ -158,5 +211,55 @@ describe("missionary portal model", () => {
       title: "Ministry update",
       engagementCount: 6,
     });
+  });
+});
+
+describe("mapMissionaryTask legacy values", () => {
+  const row = {
+    id: "task-1",
+    missionary_id: "missionary-1",
+    donor_id: null,
+    title: "Follow up",
+    description: null,
+    task_type: "call",
+    status: "not_started",
+    priority: "none",
+    sort_key: 1,
+    due_date: null,
+    completed_at: null,
+    is_auto_generated: false,
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
+    donor: null,
+  };
+
+  // The database column is unconstrained and the seed writes "pending",
+  // "cancelled", "note" and "report" (the older packages/config task
+  // vocabulary), none of which the task UI can render.
+  it("maps legacy statuses and types onto the task model", () => {
+    expect(mapMissionaryTask({ ...row, status: "pending" }).status).toBe(
+      "not_started",
+    );
+    expect(mapMissionaryTask({ ...row, status: "cancelled" }).status).toBe(
+      "deferred",
+    );
+    expect(mapMissionaryTask({ ...row, status: "mystery" }).status).toBe(
+      "not_started",
+    );
+    expect(mapMissionaryTask({ ...row, status: "in_progress" }).status).toBe(
+      "in_progress",
+    );
+    expect(mapMissionaryTask({ ...row, task_type: "note" }).task_type).toBe(
+      "to_do",
+    );
+    expect(mapMissionaryTask({ ...row, task_type: "email" }).task_type).toBe(
+      "email",
+    );
+    expect(mapMissionaryTask({ ...row, priority: "urgent" }).priority).toBe(
+      "high",
+    );
+    expect(mapMissionaryTask({ ...row, priority: "mystery" }).priority).toBe(
+      "none",
+    );
   });
 });

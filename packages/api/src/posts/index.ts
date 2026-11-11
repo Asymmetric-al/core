@@ -2,6 +2,7 @@ import {
   getAuthContext,
   hasAnyContextRole,
   requireAuth,
+  requireRole,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -9,10 +10,11 @@ import {
   fetchUserPostInteractions,
   toUserPostInteractionSets,
 } from "@asym/database/supabase/post-interactions";
-import { cacheLife, cacheTag } from "next/cache";
+import { cacheLife, cacheTag, revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { postsQuerySchema } from "../schemas/posts";
+import { createMissionaryPost } from "./create";
+import { postsQuerySchema, postWriteSchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
 import { toErrorResponse } from "../shared/http-errors";
 
@@ -22,6 +24,8 @@ interface FeedPostsQuery {
   offset: number;
   limit: number;
   missionaryId?: string | null;
+  /** Caller's profile; scopes the audience rule and is part of the cache key. */
+  viewerProfileId: string;
 }
 
 function getAdminClientOrThrow() {
@@ -38,6 +42,7 @@ async function getCachedFeedPosts({
   offset,
   limit,
   missionaryId,
+  viewerProfileId,
 }: FeedPostsQuery) {
   "use cache";
 
@@ -63,6 +68,11 @@ async function getCachedFeedPosts({
   if (missionaryId) {
     query = query.eq("missionary_id", missionaryId);
   }
+  // This read bypasses RLS and no audience (partner) check exists here yet,
+  // so fail closed with or without a missionary filter: public posts (what
+  // browser RLS exposes) plus the caller's own posts, which a missionary must
+  // still see to manage partners-only ones.
+  query = query.or(`visibility.eq.public,missionary_id.eq.${viewerProfileId}`);
 
   const { data: posts, error } = await query;
   if (error) {
@@ -113,6 +123,7 @@ export async function GET(request: NextRequest) {
       offset,
       limit,
       missionaryId: effectiveMissionaryId,
+      viewerProfileId: ctx.profileId,
     });
 
     const postIds = posts.map((post: { id: string }) => post.id);
@@ -140,7 +151,39 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/** Read-only demo: post creation disabled. */
-export async function POST(_request: NextRequest) {
-  return NextResponse.json({ error: "Read-only demo" }, { status: 403 });
+/** A missionary publishes (or saves as a draft) one of their own updates. */
+export async function POST(request: NextRequest) {
+  try {
+    const auth = await getAuthContext(request);
+    requireRole(auth, ["missionary"]);
+    const ctx = auth as AuthenticatedContext;
+
+    const parsed = postWriteSchema.safeParse(
+      await request.json().catch(() => null),
+    );
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid update" },
+        { status: 400 },
+      );
+    }
+
+    const result = await createMissionaryPost({
+      supabaseAdmin: getAdminClientOrThrow(),
+      auth: ctx,
+      input: parsed.data,
+      request,
+    });
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.status },
+      );
+    }
+
+    revalidateTag(CACHE_TAGS.tenantPosts(ctx.tenantId), "max");
+    return NextResponse.json({ post: result.post }, { status: 201 });
+  } catch (e) {
+    return toErrorResponse(e);
+  }
 }

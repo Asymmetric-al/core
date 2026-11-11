@@ -153,7 +153,7 @@ export interface DonorPledgeSourceRow {
   payment_method?: string | null;
 }
 
-const ANONYMOUS_DONOR_NAME = "Anonymous donor";
+const ANONYMOUS_DONOR_NAME = "Anonymous partner";
 
 function normalizeDonorType(
   value: string | null | undefined,
@@ -322,6 +322,20 @@ function mapPledge(pledge: DonorPledgeSourceRow): MissionaryRecurringDonation {
   };
 }
 
+/** The earliest parseable date, as given; empty when there is none. */
+function earliestDate(dates: Array<string | null | undefined>) {
+  let earliest = "";
+  let earliestTime = Number.POSITIVE_INFINITY;
+  for (const date of dates) {
+    if (!date) continue;
+    const time = Date.parse(date);
+    if (Number.isNaN(time) || time >= earliestTime) continue;
+    earliest = date;
+    earliestTime = time;
+  }
+  return earliest;
+}
+
 /**
  * Build the redacted donor rows for a missionary. Pure — unit-testable with no
  * DB. Scopes to `missionaryProfileId`, then for each donor that is anonymous to
@@ -341,6 +355,17 @@ export function buildMissionaryDonorRows(input: {
     const list = activitiesByDonor.get(activity.donor_id) ?? [];
     list.push(mapActivity(activity));
     activitiesByDonor.set(activity.donor_id, list);
+  }
+
+  // Gift dates, so "partner since" can't be later than their first gift.
+  const giftDatesByDonor = new Map<string, string[]>();
+  for (const activity of input.activities) {
+    if (!activity.donor_id || !activity.amount || activity.amount <= 0) {
+      continue;
+    }
+    const list = giftDatesByDonor.get(activity.donor_id) ?? [];
+    list.push(activity.date ?? activity.created_at);
+    giftDatesByDonor.set(activity.donor_id, list);
   }
 
   const pledgesByDonor = new Map<string, MissionaryRecurringDonation[]>();
@@ -371,8 +396,19 @@ export function buildMissionaryDonorRows(input: {
         frequency: normalizeFrequency(donor.frequency),
         score: donor.score ?? 0,
         recurring_donations: pledgesByDonor.get(donor.id) ?? [],
-        has_active_pledge: donor.has_active_pledge ?? false,
-        joined_date: donor.joined_date ?? donor.created_at ?? "",
+        // From this missionary's pledges, not the stored (unmaintained) flag.
+        has_active_pledge: (pledgesByDonor.get(donor.id) ?? []).some(
+          (pledge) => pledge.status.toLowerCase() === "active",
+        ),
+        // A partner since their record, first pledge or first gift,
+        // whichever came first.
+        joined_date: earliestDate([
+          donor.joined_date ?? donor.created_at,
+          ...(pledgesByDonor.get(donor.id) ?? []).map(
+            (pledge) => pledge.start_date,
+          ),
+          ...(giftDatesByDonor.get(donor.id) ?? []),
+        ]),
       };
 
       if (anonymous) {
@@ -542,10 +578,16 @@ export async function getMissionaryDonorRows(input: {
     input.supabaseAdmin
       .from("donor_pledges")
       .select(
-        "id, donor_id, missionary_id, amount, frequency, status, start_date, created_at, end_date, next_payment_date, total_paid, total_expected, payments_completed, payments_remaining, payment_method",
+        "id, donor_id, missionary_id, amount, frequency, status, start_date, created_at, end_date, next_payment_date, total_paid, total_expected, payments_completed, payments_remaining, payment_method, missionary:missionaries!inner(profile_id)",
       )
       .eq("tenant_id", input.tenantId)
+      // Pledges name the missionaries row (not the profile); scope through its
+      // profile so a partner's gifts to other missionaries aren't counted here.
+      .eq("missionary.profile_id", input.profileId)
       .in("donor_id", donorIds)
+      // Newest first, so each partner's current commitment is the one the
+      // monthly total counts (matching the dashboard).
+      .order("created_at", { ascending: false })
       .limit(RELATED_ROWS_LIMIT),
   ]);
 

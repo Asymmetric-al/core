@@ -1,5 +1,27 @@
 import { z } from "zod";
 
+const optionalLine = (max: number) =>
+  z.preprocess((value) => {
+    if (typeof value !== "string") return value;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }, z.string().max(max).optional());
+
+/**
+ * A donor's mailing address, in the shape the missionary app's partner
+ * screens already read (street, street2, city, state, zip, country).
+ */
+export const donorAddressSchema = z
+  .object({
+    street: z.string().trim().min(1, "Enter the street address.").max(200),
+    street2: optionalLine(200),
+    city: z.string().trim().min(1, "Enter the city.").max(120),
+    state: optionalLine(80),
+    zip: optionalLine(20),
+    country: optionalLine(80),
+  })
+  .strict();
+
 export const donorPortalPatchSchema = z
   .object({
     firstName: z.string().trim().max(120).optional(),
@@ -14,6 +36,7 @@ export const donorPortalPatchSchema = z
     doNotContact: z.boolean().optional(),
     doNotEmail: z.boolean().optional(),
     givingPreferences: z.record(z.string(), z.unknown()).optional(),
+    address: donorAddressSchema.nullable().optional(),
   })
   .strict();
 
@@ -85,6 +108,7 @@ export function buildDonorSettingsPatch(
   if (parsed.givingPreferences !== undefined) {
     patch.givingPreferences = parsed.givingPreferences;
   }
+  if (parsed.address !== undefined) patch.address = parsed.address;
 
   return patch;
 }
@@ -92,11 +116,44 @@ export function buildDonorSettingsPatch(
 export type DonorProfileSettingsPatchResult =
   { ok: true; patch: DonorSettingsPatch } | { ok: false; errorMessage: string };
 
+export type DonorAddressFormState = {
+  street: string;
+  street2: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+};
+
+/** The address part of a profile save: a full address, null to clear, or an error. */
+function addressPatch(
+  address: DonorAddressFormState,
+):
+  | { ok: true; value: DonorAddressFormState | null }
+  | { ok: false; errorMessage: string } {
+  const values = Object.values(address).map((value) => value.trim());
+  if (values.every((value) => !value)) return { ok: true, value: null };
+  if (!address.street.trim()) {
+    return {
+      ok: false,
+      errorMessage: "Add the street address, or clear the whole address.",
+    };
+  }
+  if (!address.city.trim()) {
+    return {
+      ok: false,
+      errorMessage: "Add the city, or clear the whole address.",
+    };
+  }
+  return { ok: true, value: address };
+}
+
 export function buildDonorProfileSettingsPatch(input: {
   firstName: string;
   lastName: string;
   phone: string;
   avatarUrl: string;
+  address?: DonorAddressFormState;
 }): DonorProfileSettingsPatchResult {
   const firstName = input.firstName.trim();
   const lastName = input.lastName.trim();
@@ -108,12 +165,18 @@ export function buildDonorProfileSettingsPatch(input: {
     return { ok: false, errorMessage: "Last name is required." };
   }
 
+  const address = input.address ? addressPatch(input.address) : undefined;
+  if (address && !address.ok) {
+    return { ok: false, errorMessage: address.errorMessage };
+  }
+
   const patch = {
     firstName,
     lastName,
     displayName: `${firstName} ${lastName}`,
     phone: input.phone.trim() || null,
     avatarUrl: input.avatarUrl.trim() || null,
+    ...(address ? { address: address.value } : {}),
   };
 
   const parsedPatch = donorPortalPatchSchema.safeParse(patch);

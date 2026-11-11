@@ -61,6 +61,18 @@ function parseCookieHeader(cookieHeader: string | null) {
     });
 }
 
+const DEFAULT_HISTORY_MONTHS = 13;
+const MAX_HISTORY_MONTHS = 25;
+
+/** `?months=` as a whole number from 1 to 25; 13 when absent or invalid. */
+export function historyMonthsParam(request: { url: string }): number {
+  const raw = new URL(request.url).searchParams.get("months");
+  const months = raw === null ? Number.NaN : Number(raw);
+  return Number.isInteger(months) && months >= 1 && months <= MAX_HISTORY_MONTHS
+    ? months
+    : DEFAULT_HISTORY_MONTHS;
+}
+
 function isPermissionError(error: PermissionErrorLike | null) {
   if (!error) return false;
   if (
@@ -243,14 +255,18 @@ export async function GET(
       );
     }
 
-    const thirteenMonthsAgo = new Date();
-    thirteenMonthsAgo.setMonth(thirteenMonthsAgo.getMonth() - 13);
+    // 13 months feeds the dashboard; analytics asks for 25 so it can
+    // compare a full year with the one before. Bounded so the window can't
+    // be used to pull an unbounded history.
+    const months = historyMonthsParam(request);
+    const windowStart = new Date();
+    windowStart.setMonth(windowStart.getMonth() - months);
 
     const { data, error } = await dataReader
       .from("donations")
-      .select("id, amount, donation_type, created_at, status")
+      .select("id, amount, donation_type, created_at, status, donor_id")
       .eq("missionary_id", missionary.id)
-      .gte("created_at", thirteenMonthsAgo.toISOString())
+      .gte("created_at", windowStart.toISOString())
       .order("created_at", { ascending: true });
 
     if (error) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import type { PostWithAuthor } from "../types/database";
 
@@ -16,6 +16,8 @@ interface DonorRecentUpdate {
   time: string;
   image?: string;
   avatar: string;
+  /** The author's photo, for when the update has none. */
+  authorAvatar?: string;
 }
 
 /**
@@ -40,6 +42,8 @@ export interface DonorFeedPostsOptions {
   missionaryId?: string | null;
   /** Page size (defaults to the endpoint's own default of 10). */
   limit?: number;
+  /** Updates to skip, for paging (defaults to 0). */
+  offset?: number;
   /** Post status filter (defaults to "published"). */
   status?: string;
   /** React Query `enabled` toggle. */
@@ -53,6 +57,9 @@ async function fetchDonorFeedPostsResponse(
   params.set("status", options.status ?? "published");
   if (typeof options.limit === "number") {
     params.set("limit", String(options.limit));
+  }
+  if (options.offset) {
+    params.set("offset", String(options.offset));
   }
   if (options.missionaryId) {
     params.set("missionaryId", options.missionaryId);
@@ -109,6 +116,55 @@ export function useDonorFeedPosts(options: DonorFeedPostsOptions = {}) {
   };
 }
 
+/** Updates per page on the donor Updates feed. */
+export const DONOR_FEED_PAGE_SIZE = 20;
+
+/**
+ * The donor Updates feed, a page at a time. The endpoint returns a bare list,
+ * so a full page means there may be more; a short page is the end of the feed.
+ */
+export function useDonorFeedPostPages(
+  options: Omit<DonorFeedPostsOptions, "limit"> = {},
+) {
+  const { enabled = true, ...fetchOptions } = options;
+
+  const query = useInfiniteQuery({
+    queryKey: [
+      DONOR_FEED_POSTS_QUERY_KEY,
+      "pages",
+      fetchOptions.missionaryId ?? null,
+      fetchOptions.status ?? "published",
+      DONOR_FEED_PAGE_SIZE,
+    ],
+    queryFn: ({ pageParam }) =>
+      fetchDonorFeedPostsResponse({
+        ...fetchOptions,
+        limit: DONOR_FEED_PAGE_SIZE,
+        offset: pageParam,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < DONOR_FEED_PAGE_SIZE
+        ? undefined
+        : allPages.length * DONOR_FEED_PAGE_SIZE,
+    enabled,
+    staleTime: 30_000,
+  });
+
+  return {
+    data: (query.data?.pages.flat() ?? []) as PostWithAuthor[],
+    isLoading: query.isLoading,
+    error: (query.error as Error | null) ?? null,
+    hasMore: query.hasNextPage,
+    isLoadingMore: query.isFetchingNextPage,
+    loadMore: () => {
+      if (query.hasNextPage && !query.isFetchingNextPage) {
+        void query.fetchNextPage();
+      }
+    },
+  };
+}
+
 // --- Pure view mappers (shared by the feed page + dashboard widget) ---
 
 /**
@@ -145,10 +201,27 @@ export function postInitials(post: PostWithAuthor): string {
 }
 
 /**
- * A short, plain-text title derived from the post's (HTML) content: tags are
- * stripped, whitespace collapsed, and the result truncated with an ellipsis.
+ * A feed row as `GET /api/posts` returns it (`select *`): it also carries the
+ * author's headline and category, which the shared `Post` type omits.
  */
-export function postTitle(post: PostWithAuthor, maxLength = 80): string {
+export type DonorFeedPost = PostWithAuthor & {
+  title?: string | null;
+  post_type?: string | null;
+};
+
+/** The author's category label (e.g. "Prayer Request"), if any. */
+export function postCategory(post: DonorFeedPost): string | undefined {
+  return post.post_type?.trim() || undefined;
+}
+
+/**
+ * The post's own headline when the author supplied one; otherwise a short,
+ * plain-text title derived from the (HTML) content: tags are stripped,
+ * whitespace collapsed, and the result truncated with an ellipsis.
+ */
+export function postTitle(post: DonorFeedPost, maxLength = 80): string {
+  const ownTitle = post.title?.trim();
+  if (ownTitle) return ownTitle;
   const text = post.content
     .replace(/<[^>]*>/g, " ")
     .replace(/\s+/g, " ")
@@ -156,6 +229,18 @@ export function postTitle(post: PostWithAuthor, maxLength = 80): string {
   if (text.length === 0) return "Ministry Update";
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength)}…`;
+}
+
+/**
+ * Reading-time estimate from the post's (HTML) body at about 200 words a
+ * minute, never less than one minute.
+ */
+export function postReadTime(post: PostWithAuthor): string {
+  const words = post.content
+    .replace(/<[^>]*>/g, " ")
+    .split(/\s+/)
+    .filter(Boolean).length;
+  return `${Math.max(1, Math.round(words / 200))} min read`;
 }
 
 /** Image URLs from the post's media (videos excluded). */
@@ -181,5 +266,8 @@ export function mapToRecentUpdate(
     time: formatPostRelativeTime(post.created_at, now),
     ...(image ? { image } : {}),
     avatar: postInitials(post),
+    ...(post.author?.avatar_url
+      ? { authorAvatar: post.author.avatar_url }
+      : {}),
   };
 }

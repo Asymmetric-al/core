@@ -107,7 +107,23 @@ export type MissionaryPortalPostRow = {
   like_count: number | null;
   prayer_count: number | null;
   comment_count: number | null;
+  image_url?: string | null;
+  media?: unknown;
 };
+
+/** The update's picture: its image, or the first image it carries. */
+function postImageUrl(post: MissionaryPortalPostRow): string | null {
+  if (post.image_url) return post.image_url;
+  if (!Array.isArray(post.media)) return null;
+  const image = post.media.find(
+    (item): item is { type: string; url: string } =>
+      typeof item === "object" &&
+      item !== null &&
+      (item as { type?: unknown }).type === "image" &&
+      typeof (item as { url?: unknown }).url === "string",
+  );
+  return image?.url ?? null;
+}
 
 export type MissionaryPortalSnapshot = {
   profile: {
@@ -130,6 +146,8 @@ export type MissionaryPortalSnapshot = {
     goalCents: number;
     raisedCents: number;
     recurringMonthlyCents: number;
+    /** Partners with an active recurring gift to this missionary. */
+    monthlyPartnerCount: number;
     percentFunded: number;
     activeDonorCount: number;
     giftCount: number;
@@ -202,6 +220,8 @@ export type MissionaryPortalUpdate = {
   id: string;
   title: string;
   excerpt: string;
+  postType: string;
+  imageUrl: string | null;
   visibility: string;
   status: string;
   createdAt: string | null;
@@ -258,6 +278,48 @@ function excerpt(value: string | null | undefined): string {
     : normalized;
 }
 
+// The task UI renders only these values, but the columns are unconstrained and
+// older rows use "pending", "cancelled", "urgent" and other types, so map them
+// to the nearest supported value on read.
+const TASK_STATUSES = new Set([
+  "not_started",
+  "in_progress",
+  "waiting",
+  "completed",
+  "deferred",
+]);
+const LEGACY_TASK_STATUSES: Record<string, string> = {
+  pending: "not_started",
+  cancelled: "deferred",
+  canceled: "deferred",
+};
+const TASK_TYPES = new Set([
+  "call",
+  "email",
+  "to_do",
+  "follow_up",
+  "thank_you",
+  "meeting",
+]);
+const TASK_PRIORITIES = new Set(["none", "low", "medium", "high"]);
+
+function normalizeTaskStatus(status: string | null): string {
+  const value = status?.trim().toLowerCase() ?? "";
+  if (TASK_STATUSES.has(value)) return value;
+  return LEGACY_TASK_STATUSES[value] ?? "not_started";
+}
+
+function normalizeTaskType(taskType: string | null): string {
+  const value = taskType?.trim().toLowerCase() ?? "";
+  return TASK_TYPES.has(value) ? value : "to_do";
+}
+
+function normalizeTaskPriority(priority: string | null): string {
+  const value = priority?.trim().toLowerCase() ?? "";
+  if (TASK_PRIORITIES.has(value)) return value;
+  return value === "urgent" ? "high" : "none";
+}
+
 export function mapMissionaryTask(
   row: MissionaryPortalTaskRow,
 ): MissionaryPortalTask {
@@ -267,9 +329,9 @@ export function mapMissionaryTask(
     donor_id: row.donor_id,
     title: row.title,
     description: row.description,
-    task_type: row.task_type || "to_do",
-    status: row.status || "not_started",
-    priority: row.priority || "none",
+    task_type: normalizeTaskType(row.task_type),
+    status: normalizeTaskStatus(row.status),
+    priority: normalizeTaskPriority(row.priority),
     sort_key: row.sort_key ?? 0,
     due_date: row.due_date,
     completed_at: row.completed_at,
@@ -295,11 +357,53 @@ export function mapMissionaryTask(
   };
 }
 
+/** The pledge fields monthly support is computed from. */
+export type MissionaryPortalPledgeRow = {
+  donor_id: string;
+  amount: number | null;
+  frequency: string | null;
+  status: string | null;
+};
+
+const MONTHS_PER_PERIOD: Record<string, number> = {
+  monthly: 1,
+  quarterly: 3,
+  annually: 12,
+  annual: 12,
+  yearly: 12,
+};
+
+/**
+ * Committed monthly support from this missionary's pledges: each partner's
+ * newest active recurring pledge, normalised to a month. Anonymous partners
+ * count too — the total names no one. Home and Partners both read these.
+ */
+function committedPledges(pledges: readonly MissionaryPortalPledgeRow[]) {
+  const byDonor = new Map<string, number>();
+  for (const pledge of pledges) {
+    if (pledge.status?.toLowerCase() !== "active") continue;
+    if (byDonor.has(pledge.donor_id)) continue;
+    const months = MONTHS_PER_PERIOD[pledge.frequency?.toLowerCase() ?? ""];
+    if (!months) continue;
+    byDonor.set(pledge.donor_id, Math.max(0, pledge.amount ?? 0) / months);
+  }
+  return byDonor;
+}
+
+export function monthlyCommittedCents(
+  pledges: readonly MissionaryPortalPledgeRow[],
+): number {
+  let total = 0;
+  for (const monthly of committedPledges(pledges).values()) total += monthly;
+  return Math.round(total);
+}
+
 export function buildMissionaryPortalSnapshot(input: {
   profile: MissionaryPortalProfileRow;
   missionary: MissionaryPortalMissionaryRow;
   donations: MissionaryPortalDonationRow[];
   donors: MissionaryPortalDonorRow[];
+  pledges?: MissionaryPortalPledgeRow[];
   tasks: MissionaryPortalTaskRow[];
   posts: MissionaryPortalPostRow[];
 }): MissionaryPortalSnapshot {
@@ -331,6 +435,15 @@ export function buildMissionaryPortalSnapshot(input: {
       ),
     );
 
+  // When pledges are loaded, "gives monthly" follows the same active pledges
+  // as committed support; the stored donor flag is a stale denormalisation.
+  const pledgedDonorIds = input.pledges
+    ? new Set(
+        input.pledges
+          .filter((pledge) => pledge.status?.toLowerCase() === "active")
+          .map((pledge) => pledge.donor_id),
+      )
+    : null;
   const donorRelationships = input.donors.map((donor) =>
     redactDonorRelationshipForMissionary(
       {
@@ -348,22 +461,24 @@ export function buildMissionaryPortalSnapshot(input: {
         giftCount: donor.gift_count ?? 0,
         frequency: donor.frequency,
         tags: donor.tags ?? [],
-        hasActivePledge: Boolean(donor.has_active_pledge),
+        hasActivePledge: pledgedDonorIds
+          ? pledgedDonorIds.has(donor.id)
+          : Boolean(donor.has_active_pledge),
       },
       anonymousDonorIds.has(donor.id),
     ),
   );
 
-  const recurringMonthlyCents = gifts
-    .filter((gift) => gift.type === "Recurring")
-    .reduce((sum, gift) => sum + gift.amountCents, 0);
+  const recurringMonthlyCents = monthlyCommittedCents(input.pledges ?? []);
   const raisedCents =
     input.missionary.current_funding ??
     gifts.reduce((sum, gift) => sum + gift.amountCents, 0);
   const goalCents = input.missionary.funding_goal ?? 0;
+  // The goal is a monthly support goal, so progress is committed monthly
+  // support against it, not lifetime funding.
   const percentFunded =
     goalCents > 0
-      ? Math.min(100, Math.round((raisedCents / goalCents) * 100))
+      ? Math.min(100, Math.round((recurringMonthlyCents / goalCents) * 100))
       : 0;
   const displayName =
     displayNameFromParts(input.profile) || input.profile.email || "Missionary";
@@ -389,9 +504,11 @@ export function buildMissionaryPortalSnapshot(input: {
       goalCents,
       raisedCents,
       recurringMonthlyCents,
+      monthlyPartnerCount: committedPledges(input.pledges ?? []).size,
       percentFunded,
+      // Active partners only, as on the Partners page (not lapsed or at risk).
       activeDonorCount: donorRelationships.filter(
-        (donor) => donor.status !== "inactive",
+        (donor) => donor.status.toLowerCase() === "active",
       ).length,
       giftCount: gifts.length,
       lastGiftAt: gifts[0]?.date ?? null,
@@ -403,6 +520,8 @@ export function buildMissionaryPortalSnapshot(input: {
       id: post.id,
       title: post.title || "Ministry update",
       excerpt: excerpt(post.content),
+      postType: post.post_type || "Update",
+      imageUrl: postImageUrl(post),
       visibility: post.visibility || "public",
       status: post.status || "published",
       createdAt: post.created_at,

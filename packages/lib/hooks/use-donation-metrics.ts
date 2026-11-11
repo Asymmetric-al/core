@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 /**
  * Types for donation metrics and chart data
@@ -13,6 +13,8 @@ export interface ChartDataPoint {
 
 export interface MonthlyChartDataPoint {
   month: string;
+  /** Calendar year of the month, so labels can tell years apart. */
+  year: number;
   recurring: number;
   oneTime: number;
   offline: number;
@@ -21,9 +23,19 @@ export interface MonthlyChartDataPoint {
 
 export interface MetricData {
   total: number;
-  change: number;
+  /** Percent change vs the prior period; null when the prior period had no gifts. */
+  change: number | null;
   trend: "up" | "down" | "neutral";
   data: ChartDataPoint[];
+}
+
+/** One gift as the metrics API returns it, in any status (cents). */
+export interface MetricsGift {
+  amountCents: number;
+  date: string;
+  donorId: string | null;
+  type: DonationType;
+  status: string;
 }
 
 export interface DonationMetrics {
@@ -31,11 +43,30 @@ export interface DonationMetrics {
   lastMonth: MetricData;
   yearToDate: MetricData;
   monthlyBreakdown: MonthlyChartDataPoint[];
+  /** Every gift in the requested window, for analytics. */
+  gifts: MetricsGift[];
   isLoading: boolean;
   error: Error | null;
+  /** Fetch the gifts again, e.g. after a failed load. */
+  retry: () => void;
 }
 
 export type DonationType = "recurring" | "one_time" | "offline";
+
+/** Months of gifts the metrics API returns (and the giving chart spans). */
+const HISTORY_MONTHS = 13;
+
+/**
+ * Calendar keys in the viewer's time zone, not UTC: a gift at 11pm on the
+ * last day of a month belongs to that month wherever the viewer is.
+ */
+function localMonthKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function localDayKey(date: Date): string {
+  return `${localMonthKey(date)}-${String(date.getDate()).padStart(2, "0")}`;
+}
 
 interface RawDonation {
   id: string;
@@ -43,6 +74,7 @@ interface RawDonation {
   donation_type: DonationType;
   created_at: string;
   status: string;
+  donor_id?: string | null;
 }
 
 /**
@@ -57,7 +89,7 @@ function aggregateByDay(
 
   const current = new Date(startDate);
   while (current <= endDate) {
-    const key = current.toISOString().split("T")[0] ?? "";
+    const key = localDayKey(current);
     dayMap.set(key, 0);
     current.setDate(current.getDate() + 1);
   }
@@ -65,7 +97,7 @@ function aggregateByDay(
   donations.forEach((d) => {
     const date = new Date(d.created_at);
     if (date >= startDate && date <= endDate && d.status === "completed") {
-      const key = date.toISOString().split("T")[0] ?? "";
+      const key = localDayKey(date);
       dayMap.set(key, (dayMap.get(key) ?? 0) + Number(d.amount));
     }
   });
@@ -91,14 +123,14 @@ function aggregateByMonth(
 
   for (let i = months - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = d.toISOString().slice(0, 7);
+    const key = localMonthKey(d);
     monthMap.set(key, { recurring: 0, oneTime: 0, offline: 0 });
   }
 
   donations.forEach((d) => {
     if (d.status !== "completed") return;
     const date = new Date(d.created_at);
-    const key = date.toISOString().slice(0, 7);
+    const key = localMonthKey(date);
     const entry = monthMap.get(key);
     if (entry) {
       const amount = Number(d.amount);
@@ -120,6 +152,7 @@ function aggregateByMonth(
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, { recurring, oneTime, offline }]) => ({
       month: formatMonth(key),
+      year: Number(key.slice(0, 4)),
       recurring,
       oneTime,
       offline,
@@ -144,12 +177,10 @@ function formatMonth(isoMonth: string): string {
 function calculateChange(
   current: number,
   previous: number,
-): { change: number; trend: "up" | "down" | "neutral" } {
+): { change: number | null; trend: "up" | "down" | "neutral" } {
   if (previous === 0) {
-    return {
-      change: current > 0 ? 100 : 0,
-      trend: current > 0 ? "up" : "neutral",
-    };
+    // No prior amount to compare against: a percentage would be invented.
+    return { change: null, trend: "neutral" };
   }
   const change = ((current - previous) / previous) * 100;
   return {
@@ -164,10 +195,18 @@ function calculateChange(
  * @param missionaryId - The UUID of the missionary
  * @returns Donation metrics including this month, last month, YTD totals, and monthly breakdown
  */
-export function useDonationMetrics(missionaryId: string): DonationMetrics {
+export function useDonationMetrics(
+  missionaryId: string,
+  options: { months?: number } = {},
+): DonationMetrics {
+  const months = options.months ?? HISTORY_MONTHS;
+  // The API defaults to HISTORY_MONTHS, so only a wider window is asked for.
+  const query = options.months === undefined ? "" : `?months=${months}`;
   const [donations, setDonations] = useState<RawDonation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => setAttempt((count) => count + 1), []);
 
   useEffect(() => {
     if (!missionaryId) {
@@ -184,7 +223,7 @@ export function useDonationMetrics(missionaryId: string): DonationMetrics {
         setError(null);
 
         const response = await fetch(
-          `/api/missionaries/${missionaryId}/metrics`,
+          `/api/missionaries/${missionaryId}/metrics${query}`,
           { signal: controller.signal },
         );
 
@@ -225,13 +264,16 @@ export function useDonationMetrics(missionaryId: string): DonationMetrics {
       isMounted = false;
       controller.abort();
     };
-  }, [missionaryId]);
+  }, [missionaryId, query, attempt]);
 
-  const metrics = useMemo((): Omit<DonationMetrics, "isLoading" | "error"> => {
+  const metrics = useMemo((): Omit<
+    DonationMetrics,
+    "isLoading" | "error" | "retry"
+  > => {
     const now = new Date();
 
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
@@ -241,7 +283,6 @@ export function useDonationMetrics(missionaryId: string): DonationMetrics {
       now.getMonth() - 2,
       1,
     );
-    const twoMonthsAgoEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0);
 
     const yearStart = new Date(now.getFullYear(), 0, 1);
     const lastYearStart = new Date(now.getFullYear() - 1, 0, 1);
@@ -250,24 +291,36 @@ export function useDonationMetrics(missionaryId: string): DonationMetrics {
       now.getMonth(),
       now.getDate(),
     );
+    // The metrics API returns `months` of gifts (see
+    // packages/api/src/missionaries/metrics.ts).
+    const historyStart = new Date(now);
+    historyStart.setMonth(historyStart.getMonth() - months);
 
+    // Half-open [start, end) windows: a month ends where the next one starts,
+    // so gifts made during a month's last day are counted.
     const sumPeriod = (start: Date, end: Date) =>
       donations
         .filter((d) => {
           const date = new Date(d.created_at);
-          return date >= start && date <= end && d.status === "completed";
+          return date >= start && date < end && d.status === "completed";
         })
         .reduce((sum, d) => sum + Number(d.amount), 0);
 
-    const thisMonthTotal = sumPeriod(thisMonthStart, thisMonthEnd);
-    const lastMonthTotal = sumPeriod(lastMonthStart, lastMonthEnd);
-    const twoMonthsAgoTotal = sumPeriod(twoMonthsAgoStart, twoMonthsAgoEnd);
+    const thisMonthTotal = sumPeriod(thisMonthStart, nextMonthStart);
+    const lastMonthTotal = sumPeriod(lastMonthStart, thisMonthStart);
+    const twoMonthsAgoTotal = sumPeriod(twoMonthsAgoStart, lastMonthStart);
     const ytdTotal = sumPeriod(yearStart, now);
     const lastYtdTotal = sumPeriod(lastYearStart, lastYearSameDay);
 
     const thisMonthChange = calculateChange(thisMonthTotal, lastMonthTotal);
     const lastMonthChange = calculateChange(lastMonthTotal, twoMonthsAgoTotal);
-    const ytdChange = calculateChange(ytdTotal, lastYtdTotal);
+    // Last year's year-to-date window starts before the fetched history for
+    // every month after January; a partial prior total would give a wrong
+    // percentage, so report no comparison instead.
+    const ytdChange: Pick<MetricData, "change" | "trend"> =
+      lastYearStart < historyStart
+        ? { change: null, trend: "neutral" }
+        : calculateChange(ytdTotal, lastYtdTotal);
 
     return {
       thisMonth: {
@@ -285,13 +338,21 @@ export function useDonationMetrics(missionaryId: string): DonationMetrics {
         ...ytdChange,
         data: aggregateByDay(donations, yearStart, now),
       },
-      monthlyBreakdown: aggregateByMonth(donations, 13),
+      monthlyBreakdown: aggregateByMonth(donations, HISTORY_MONTHS),
+      gifts: donations.map((d) => ({
+        amountCents: Number(d.amount),
+        date: d.created_at,
+        donorId: d.donor_id ?? null,
+        type: d.donation_type,
+        status: d.status,
+      })),
     };
-  }, [donations]);
+  }, [donations, months]);
 
   return {
     ...metrics,
     isLoading,
     error,
+    retry,
   };
 }

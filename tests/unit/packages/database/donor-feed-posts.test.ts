@@ -8,12 +8,12 @@ import {
   postAuthorName,
   postImages,
   postInitials,
+  postReadTime,
+  type DonorFeedPost,
   postTitle,
 } from "../../../../packages/database/hooks/donor-feed-posts";
 
-import type { PostWithAuthor } from "../../../../packages/database/types/database";
-
-function makePost(overrides: Partial<PostWithAuthor> = {}): PostWithAuthor {
+function makePost(overrides: Partial<DonorFeedPost> = {}): DonorFeedPost {
   return {
     id: "11111111-1111-1111-1111-111111111111",
     tenant_id: "tenant-1",
@@ -121,6 +121,43 @@ describe("postTitle", () => {
   it("falls back for empty content", () => {
     expect(postTitle(makePost({ content: "   " }))).toBe("Ministry Update");
   });
+
+  it("prefers the post's own title over a body excerpt", () => {
+    const post = makePost({
+      title: "  Wells completed in Kajiado  ",
+      content: "<p>Clean water is flowing in the northern village.</p>",
+    });
+    expect(postTitle(post)).toBe("Wells completed in Kajiado");
+  });
+
+  it("derives a title from the body when the post title is blank", () => {
+    const post = makePost({ title: "   ", content: "<p>Short note.</p>" });
+    expect(postTitle(post)).toBe("Short note.");
+  });
+});
+
+describe("postReadTime", () => {
+  it("counts whitespace-separated words across paragraphs", () => {
+    const paragraph = Array.from({ length: 250 }, () => "word").join(" ");
+    const post = makePost({
+      content: `<p>${paragraph}</p><p>${paragraph}</p><p>${paragraph}</p><p>${paragraph}</p>`,
+    });
+    // 1,000 words at about 200 words a minute.
+    expect(postReadTime(post)).toBe("5 min read");
+  });
+
+  it("does not split on letters such as s", () => {
+    const sentence = Array.from({ length: 400 }, () => "sisters").join(" ");
+    expect(postReadTime(makePost({ content: `<p>${sentence}</p>` }))).toBe(
+      "2 min read",
+    );
+  });
+
+  it("never reports less than one minute", () => {
+    expect(postReadTime(makePost({ content: "<p>Short note.</p>" }))).toBe(
+      "1 min read",
+    );
+  });
 });
 
 describe("postImages", () => {
@@ -153,6 +190,7 @@ describe("mapToRecentUpdate", () => {
       time: "3h ago",
       image: "https://cdn.example/a.jpg",
       avatar: "GM",
+      authorAvatar: "https://cdn.example/grace.jpg",
     });
   });
 

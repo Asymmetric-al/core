@@ -142,7 +142,7 @@ describe("redactDonorRelationshipForMissionary", () => {
     );
   });
 
-  it("anonymous donor → Anonymous donor + ZERO identifiers, stats preserved", () => {
+  it("anonymous donor → Anonymous partner + ZERO identifiers, stats preserved", () => {
     const out = redactDonorRelationshipForMissionary(donorRel, true);
     expect(out.displayName).toBe(ANONYMOUS_DONOR_LABEL);
     expect(out.email).toBeNull();
@@ -184,7 +184,7 @@ describe("redactTaskDonorForMissionary", () => {
     email: "ada@example.com",
     avatar_url: "https://cdn/x.png",
   };
-  it("anonymous → Anonymous donor, no email/avatar", () => {
+  it("anonymous → Anonymous partner, no email/avatar", () => {
     const out = redactTaskDonorForMissionary(donor, true);
     expect(out?.name).toBe(ANONYMOUS_DONOR_LABEL);
     expect(out?.email).toBeNull();
@@ -198,7 +198,7 @@ describe("redactTaskDonorForMissionary", () => {
 });
 
 describe("projectPublicDonorDisplayName (§7.3)", () => {
-  it("Anonymous donor when anonymous to public, else the name", () => {
+  it("Anonymous partner when anonymous to public, else the name", () => {
     expect(projectPublicDonorDisplayName("Ada", true)).toBe(
       ANONYMOUS_DONOR_LABEL,
     );

@@ -4,6 +4,7 @@ import {
   type MissionaryPortalDonationRow,
   type MissionaryPortalDonorRow,
   type MissionaryPortalMissionaryRow,
+  type MissionaryPortalPledgeRow,
   type MissionaryPortalPostRow,
   type MissionaryPortalProfileRow,
   type MissionaryPortalSnapshot,
@@ -104,7 +105,9 @@ const POST_SELECT = `
   created_at,
   like_count,
   prayer_count,
-  comment_count
+  comment_count,
+  image_url,
+  media
 `;
 
 function assertResult<T>(
@@ -231,6 +234,26 @@ export async function getMissionaryPortalSnapshot(input: {
       >,
     ]);
 
+  const donors = assertArrayResult(
+    donorsResult,
+    "Unable to load missionary donor relationships",
+  );
+  // Pledges name the missionaries row (not the profile), like donations.
+  // Scoping by donor alone would count a partner's recurring gifts to other
+  // missionaries as this missionary's support. Newest first so each
+  // partner's current commitment is the one counted.
+  const pledges = assertArrayResult(
+    (await input.supabaseAdmin
+      .from("donor_pledges")
+      .select("donor_id, amount, frequency, status")
+      .eq("tenant_id", input.tenantId)
+      .eq("missionary_id", missionary.id)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(500)) as unknown as SupabaseResult<MissionaryPortalPledgeRow[]>,
+    "Unable to load missionary pledges",
+  );
+
   return buildMissionaryPortalSnapshot({
     profile,
     missionary,
@@ -238,10 +261,8 @@ export async function getMissionaryPortalSnapshot(input: {
       donationsResult,
       "Unable to load missionary gifts",
     ),
-    donors: assertArrayResult(
-      donorsResult,
-      "Unable to load missionary donor relationships",
-    ),
+    donors,
+    pledges,
     tasks: normalizeTaskRows(
       assertArrayResult(tasksResult, "Unable to load missionary tasks"),
     ),
