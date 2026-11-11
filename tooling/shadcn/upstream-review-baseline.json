@@ -1221,9 +1221,9 @@
       "path": "components/shadcn/scroll-area.tsx",
       "diffComponent": "scroll-area",
       "owners": ["scroll-area"],
-      "localSha256": "1c6592bf42e9250c0dd6314f9e5d220ea123876c1408a72da25bfc6a927ed440",
-      "diffSha256": "396d222a5221b51220f4e23bf5d5cf47200e84660ae0e208b8b274ca58860904",
-      "reason": "Preserve state callbacks and current orientation scrollbar ownership; upstream changes orientation attributes, imports and visuals. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "15370077e7c2278337275c649625d76249d6c6b6c4a67c8a109003acc52d64ce",
+      "diffSha256": "3920f2f266d23fda173c7497fe917c72f55d73e1a262aca27c1ca294ed299633",
+      "reason": "Preserve state callbacks and current orientation scrollbar ownership; upstream changes orientation attributes, imports and visuals. Core preserves functional className state callbacks through mergeBaseUIClassName and adds an opt-in edgeFade=\"x\" viewport mask (scroll-fade-x utility in globals.css, removed on focus-visible) for horizontally scrolling rows.",
       "proofs": [
         "packages/ui/components/shadcn/scroll-area.tsx",
         "docs/ai/rules/frontend.md"
@@ -1864,7 +1864,7 @@
     },
     {
       "path": "packages/ui/components/primitives/filter-bar.tsx",
-      "localSha256": "5e7ea04a72cdfc8b9c326a2c276307948e3c31cbdd76fd096e5461055ab95639",
+      "localSha256": "36ed1a957fb411c3dd24f64700b7d6494ee4b9d573e28c7803713333a08ea040",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/filter-bar.tsx",
@@ -1927,7 +1927,7 @@
     },
     {
       "path": "packages/ui/components/primitives/page-shell.tsx",
-      "localSha256": "49f4946f8373e936981d52dc620596f9216527dcee270cc24eeb8919d4363a9c",
+      "localSha256": "3ce1b3c9de1816211a2b6549c4df58a2c5a3895e39bafe8ab2d7edf9d6ac51c4",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/page-shell.tsx",
@@ -2154,7 +2154,7 @@
     },
     {
       "path": "packages/ui/styles/globals.css",
-      "localSha256": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
+      "localSha256": "09ba277a080f43aab755d0e106f646dfcbfdf5ed097f9e9f913b54d826da42fb",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": ["packages/ui/styles/globals.css", "docs/ai/rules/frontend.md"]
     }
@@ -2182,7 +2182,7 @@
     },
     {
       "path": "packages/ui/components/primitives/filter-bar.tsx",
-      "sha256": "5e7ea04a72cdfc8b9c326a2c276307948e3c31cbdd76fd096e5461055ab95639"
+      "sha256": "36ed1a957fb411c3dd24f64700b7d6494ee4b9d573e28c7803713333a08ea040"
     },
     {
       "path": "packages/ui/components/primitives/image-cropper-helpers.ts",
@@ -2210,7 +2210,7 @@
     },
     {
       "path": "packages/ui/components/primitives/page-shell.tsx",
-      "sha256": "49f4946f8373e936981d52dc620596f9216527dcee270cc24eeb8919d4363a9c"
+      "sha256": "3ce1b3c9de1816211a2b6549c4df58a2c5a3895e39bafe8ab2d7edf9d6ac51c4"
     },
     {
       "path": "packages/ui/components/primitives/responsive-container.tsx",
@@ -2446,7 +2446,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/rich-text-editor/index.ts",
-      "sha256": "5143b220ec677ef0a51977080c457631f5f4e416b038e9b14e7e39fb95015042"
+      "sha256": "14a2062afa1e4cc54918c11a26e0f78eb63e32097748e4237395d0a2bac43f4b"
     },
     {
       "path": "packages/ui/components/shadcn/ripple-button.tsx",
@@ -2454,7 +2454,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/scroll-area.tsx",
-      "sha256": "1c6592bf42e9250c0dd6314f9e5d220ea123876c1408a72da25bfc6a927ed440"
+      "sha256": "15370077e7c2278337275c649625d76249d6c6b6c4a67c8a109003acc52d64ce"
     },
     {
       "path": "packages/ui/components/shadcn/searchable-select.tsx",
@@ -2562,7 +2562,7 @@
     },
     {
       "path": "packages/ui/styles/globals.css",
-      "sha256": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c"
+      "sha256": "09ba277a080f43aab755d0e106f646dfcbfdf5ed097f9e9f913b54d826da42fb"
     },
     {
       "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
@@ -2582,7 +2582,7 @@
     },
     {
       "path": "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts",
-      "sha256": "b7d464d2c93a7664b0369abc2bf367ccf2cc26034980b9f3a5edc4b6bcae6d44"
+      "sha256": "92d5f572de169b607952958b75b391864143d9f1fc2279e787df59027ca7d0fa"
     },
     {
       "path": "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx",
@@ -2618,7 +2618,7 @@
     },
     {
       "path": "tests/unit/packages/ui/base-ui-select-nullability.test.tsx",
-      "sha256": "64c087a7b007e33810d81aadf1892afa1697816116373d0fdba0f59225cb8922"
+      "sha256": "1f65a9b28b09fb60e9714f77b79aee99753b066b9e79592e8cbc325ce36bce91"
     },
     {
       "path": "tests/unit/packages/ui/components/shadcn/data-table-behavior.test.tsx",

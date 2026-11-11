@@ -116,16 +116,17 @@ describe("UI route cleanup contracts", () => {
       "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx",
     );
 
-    expect(source).toContain(
-      'aria-label={post.saved ? "Remove from bookmarks" : "Save this post"}',
-    );
-    // The rendered save/remove names and Saved filtering are exercised in
-    // donor/feed-heading-structure.test.tsx; the icon toggle also exposes state.
-    expect(source).toContain("aria-pressed={Boolean(post.saved)}");
+    // Bookmarks were local-only (lost on reload), so they were removed; the
+    // type filter chips expose their state instead.
+    expect(source).not.toContain("Save this post");
+    expect(source).toContain("aria-pressed={category === value}");
     expect(source).toContain("<ReactionBar");
     expect(source).not.toMatch(/aria-label="Open post actions"/);
     expect(source).not.toMatch(/aria-label="Share post"/);
-    expect(source).toMatch(/transition-\[filter\]/);
+    // Feed photos show in colour without hover (grayscale-until-hover never
+    // resolved on touch screens); any motion that remains stays targeted.
+    expect(source).not.toMatch(/grayscale/);
+    expect(source).not.toMatch(/transition-all/);
   });
 
   it("keeps donor history page and chart cells on targeted motion", () => {
@@ -133,20 +134,24 @@ describe("UI route cleanup contracts", () => {
       "apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx",
     );
 
-    expect(source).toMatch(/transition-opacity/);
+    // The decorative hover fade on chart cells was removed with the
+    // single-series month strip; the page entrance stays and nothing uses
+    // transition-all.
     expect(source).toMatch(/animate-in fade-in duration-300/);
+    expect(source).not.toMatch(/transition-all/);
   });
 
   it("keeps missionary analytics chart colors on Maia CSS variables (no one-off hex)", () => {
     const source = readRepoFile(
-      "apps/missionary/app/analytics/page-client.tsx",
+      "apps/missionary/app/analytics/analytics-charts.tsx",
     );
 
     // Chart colors must resolve from Maia/shadcn design tokens, never a
-    // one-off hex literal. Series use distinct central chart tokens; axis
-    // labels and the tooltip cursor retain their neutral semantic colors.
+    // one-off hex literal. This year uses the central chart token; the year
+    // before is the neutral muted token (chart-2 means "one-time" elsewhere);
+    // axis labels and the tooltip cursor keep their neutral semantic colors.
     expect(source).toMatch(/var\(--chart-1\)/);
-    expect(source).toMatch(/var\(--chart-2\)/);
+    expect(source).not.toMatch(/var\(--chart-2\)/);
     expect(source).toMatch(/var\(--muted-foreground\)/);
     expect(source).toMatch(/var\(--muted\)/);
     // The mock "At Risk" donut segment (the former one-off #eab308 amber) was

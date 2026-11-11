@@ -104,23 +104,9 @@ describe("QuickGive width handoff", () => {
   });
 });
 
-describe("wallet and sibling strip exits", () => {
-  it("removes the ACH nudge from flow on dismiss", () => {
-    const source = readRepo(
-      "apps",
-      "donor",
-      "app",
-      "(dashboard)",
-      "donor-dashboard",
-      "wallet",
-      "page-client.tsx",
-    );
-    const banner = extractFunction(source, "ACHNudgeBanner");
-    const presence = openingTagBefore(banner, "{visible &&");
-    expect(presence).toContain("AnimatePresence");
-    expect(presence).toMatch(/mode=["']popLayout["']/);
-  });
-
+// The wallet no longer has a dismissible ACH nudge (it lists the donor's real
+// payment methods), so only the sibling strips are checked here.
+describe("sibling strip exits", () => {
   it.each([
     {
       name: "moderation flag-reason strip",
@@ -144,17 +130,6 @@ describe("wallet and sibling strip exits", () => {
         "feed",
         "org-updates",
         "page-client.tsx",
-      ] as const,
-      marker: "{selectedMedia.length > 0 &&",
-    },
-    {
-      name: "worker-feed compose media strip",
-      parts: [
-        "apps",
-        "missionary",
-        "app",
-        "feed",
-        "worker-feed-page-client.tsx",
       ] as const,
       marker: "{selectedMedia.length > 0 &&",
     },

@@ -277,3 +277,82 @@ describe("donation metrics request cancellation", () => {
     expect(signals[1]?.aborted).toBe(true);
   });
 });
+
+describe("donation metrics period change", () => {
+  // A percentage needs a prior amount. With no gifts in the prior period the
+  // change is unknown (null), not "+100%".
+  it("reports no change figure when the prior period had no gifts", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ donations: [donation(5000)] }),
+      }),
+    );
+
+    const { result } = renderHook(() => useDonationMetrics(MISSIONARY_A));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.thisMonth.total).toBe(5000);
+    expect(result.current.thisMonth.change).toBeNull();
+    expect(result.current.thisMonth.trend).toBe("neutral");
+    // Last month had no gifts and neither did the month before it.
+    expect(result.current.lastMonth.change).toBeNull();
+  });
+});
+
+describe("donation metrics period windows", () => {
+  function giftAt(id: string, date: Date, amount: number) {
+    return {
+      id,
+      amount,
+      donation_type: "one_time" as const,
+      created_at: date.toISOString(),
+      status: "completed",
+    };
+  }
+
+  function serve(donations: unknown[]) {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue({ ok: true, json: async () => ({ donations }) }),
+    );
+  }
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("counts a gift made during the last day of a month in that month", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 10, 9, 12));
+    serve([giftAt("oct-31", new Date(2026, 9, 31, 15), 5000)]);
+
+    const { result } = renderHook(() => useDonationMetrics(MISSIONARY_A));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.lastMonth.total).toBe(5000);
+  });
+
+  // The metrics API returns 13 months of gifts, which never covers all of last
+  // year's year-to-date window after January. A partial prior total would
+  // produce a wrong percentage, so no comparison is reported instead.
+  it("reports no year-to-date comparison when last year's window predates the history", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 10, 9, 12));
+    serve([
+      giftAt("prior", new Date(2025, 9, 20, 12), 4000),
+      giftAt("current", new Date(2026, 2, 1, 12), 9000),
+    ]);
+
+    const { result } = renderHook(() => useDonationMetrics(MISSIONARY_A));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.yearToDate.total).toBe(9000);
+    expect(result.current.yearToDate.change).toBeNull();
+  });
+});

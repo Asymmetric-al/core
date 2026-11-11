@@ -10,13 +10,13 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
  * fixture. Authenticated /login redirects require a real Supabase user.
  */
 async function expectStandaloneAccountFrame(page: Page) {
-  // AppHeader and DashboardFooter are nested inside SidebarInset's main, so
-  // banner/contentinfo roles alone would miss the original unwanted shell.
+  // AppHeader is nested inside SidebarInset's main, so banner roles alone
+  // would miss the original unwanted shell.
   await expect(page.locator("header, footer")).toHaveCount(0);
   await expect(page.locator('[data-slot="sidebar-wrapper"]')).toHaveCount(0);
   await expect(page.locator('[data-slot="sidebar"]')).toHaveCount(0);
   await expect(page.locator('[data-slot="sidebar-inset"]')).toHaveCount(0);
-  await expect(page.getByTestId("auth-signout")).toHaveCount(0);
+  await expect(page.getByTestId("account-menu")).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Search missionary pages" }),
   ).toHaveCount(0);
@@ -48,7 +48,7 @@ async function enterDemoWorkspace(page: Page, next = "/") {
   await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
   await page.getByRole("button", { name: "Demo Access" }).click();
   await page.waitForURL((url) => `${url.pathname}${url.search}` === next);
-  await expect(page.getByTestId("auth-signout")).toBeVisible();
+  await expect(page.getByTestId("account-menu")).toBeVisible();
 }
 
 function watchHydrationErrors(page: Page) {
@@ -151,7 +151,7 @@ test("account links preserve invitation-only registration and unavailable passwo
   const openPasswordHelp = async () => {
     await page.getByRole("link", { name: "Forgot password?" }).click();
     await expect(
-      page.getByRole("heading", { name: "Forgot password?" }),
+      page.getByRole("heading", { name: "Can’t sign in?" }),
     ).toBeVisible();
     await expectStandaloneAccountFrame(page);
   };
@@ -159,27 +159,29 @@ test("account links preserve invitation-only registration and unavailable passwo
   else await openPasswordHelp();
   await expect(page).toHaveURL(/\/forgot-password$/);
   await expect(
-    page.getByRole("heading", { name: "Forgot password?" }),
+    page.getByRole("heading", { name: "Can’t sign in?" }),
   ).toBeVisible();
   await expect(
-    page.getByText("Password reset is not enabled yet", { exact: false }),
+    page.getByText("organization’s administrator manages missionary accounts", {
+      exact: false,
+    }),
   ).toBeVisible();
   await expectStandaloneAccountFrame(page);
-  await page.getByRole("link", { name: "Back to login" }).click();
+  await page.getByRole("link", { name: "Back to sign in" }).click();
   await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
   await expectStandaloneAccountFrame(page);
-  if (rigActive) {
-    await instant(page, async () => {
-      await page.getByRole("link", { name: "Register", exact: true }).click();
-      // This route's completed invitation-only content can be prefetched.
-      await expect(
-        page.getByRole("heading", { name: "Registration unavailable" }),
-      ).toBeVisible();
-      await expectStandaloneAccountFrame(page);
-    });
-  } else {
-    await page.getByRole("link", { name: "Register", exact: true }).click();
-  }
+  // Registration is by invitation, so sign-in says so instead of linking to
+  // a page that only says registration is unavailable.
+  await expect(
+    page.getByRole("link", { name: "Register", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText(
+      "Missionary accounts are set up by invitation from your organization.",
+    ),
+  ).toBeVisible();
+  // A direct or old /register link still lands on the invitation-only page.
+  await page.goto("/register");
   await expect(
     page.getByRole("heading", { name: "Registration unavailable" }),
   ).toBeVisible();
@@ -205,14 +207,14 @@ test("protected deep links retain their validated destination through the author
   await expectStandaloneAccountFrame(page);
   await page.getByRole("button", { name: "Demo Access" }).click();
   await expect(page).toHaveURL(/\/settings\?tab=account$/);
-  await expect(page.getByTestId("auth-signout")).toBeVisible();
+  await expect(page.getByTestId("account-menu")).toBeVisible();
   await expect(page.locator('[data-slot="sidebar"]')).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Search missionary pages" }),
   ).toBeVisible();
   await page.reload();
   await expect(page).toHaveURL(/\/settings\?tab=account$/);
-  await expect(page.getByTestId("auth-signout")).toBeVisible();
+  await expect(page.getByTestId("account-menu")).toBeVisible();
   await capture(page, testInfo, "fixture-protected-return");
 });
 
@@ -235,6 +237,7 @@ test("mobile workspace sign-out removes sidebar portals and shortcuts and demo s
   ).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByTestId("account-menu").click();
   await page.getByTestId("auth-signout").click();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
@@ -324,23 +327,24 @@ test("Boneyard keeps its capture frame while existing workspace help retains chr
   page,
 }, testInfo) => {
   await page.goto("/boneyard/tasks");
-  await expect(
-    page.getByRole("heading", { name: "Mission Tasks" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tasks" })).toBeVisible();
   await expect(page.locator('[data-slot="sidebar-wrapper"]')).toHaveCount(0);
-  await expect(page.getByTestId("auth-signout")).toHaveCount(0);
+  await expect(page.getByTestId("account-menu")).toHaveCount(0);
   await capture(page, testInfo, "boneyard-capture-frame");
 
   await enterDemoWorkspace(page, "/settings");
-  await page.getByRole("button", { name: "Help", exact: true }).click();
-  await page.getByRole("menuitem", { name: "About", exact: true }).click();
+  await page.getByTestId("account-menu").click();
+  await page
+    .getByRole("menuitem", { name: "About this app", exact: true })
+    .click();
   await expect(
-    page.getByRole("heading", { name: "About asymmetric.al" }),
+    page.getByRole("heading", { name: "About this app" }),
   ).toBeVisible();
   await expect(page.locator('[data-slot="sidebar-wrapper"]')).toHaveCount(1);
   await expect(page.locator("header")).toHaveCount(1);
-  await expect(page.locator("footer")).toHaveCount(1);
-  await expect(page.getByTestId("auth-signout")).toBeVisible();
+  // The workspace has no footer.
+  await expect(page.locator("footer")).toHaveCount(0);
+  await expect(page.getByTestId("account-menu")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Search missionary pages" }),
   ).toBeVisible();

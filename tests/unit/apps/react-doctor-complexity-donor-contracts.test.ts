@@ -9,30 +9,30 @@ function readRepoFile(path: string) {
 }
 
 describe("donor high-complexity extraction contracts", () => {
-  it("keeps settings ProfileTab on loading, error, avatar, and form siblings", () => {
+  it("keeps settings ProfileTab on loading, error, photo, and details siblings", () => {
     const source = readRepoFile(
       "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx",
     );
 
     expect(source).toContain("type ProfileFormFields = {");
-    expect(source).toContain("function ProfileTabLoading(");
-    expect(source).toContain("function ProfileTabError(");
-    expect(source).toContain("function ProfileAvatarCard(");
-    expect(source).toContain("function ProfilePersonalInfoCard(");
-    expect(source).toContain("const ProfileTab = () => {");
-    expect(source).toContain("<ProfileTabLoading");
-    expect(source).toContain("<ProfileTabError");
-    expect(source).toContain("<ProfileAvatarCard");
-    expect(source).toContain("<ProfilePersonalInfoCard");
+    expect(source).toContain("function TabLoading(");
+    expect(source).toContain("function TabError(");
+    expect(source).toContain("function PhotoCard(");
+    expect(source).toContain("function DetailsCard(");
+    expect(source).toContain("function ProfileTab() {");
     expect(source).toContain("void handleSave();");
 
     const profileTab = source.slice(
-      source.indexOf("const ProfileTab = () => {"),
-      source.indexOf("interface NotificationPreferences"),
+      source.indexOf("function ProfileTab() {"),
+      source.indexOf("function PreferenceSwitch("),
     );
     expect(profileTab).toContain("buildProfileFormState({");
+    expect(profileTab).toContain("<TabLoading");
+    expect(profileTab).toContain("<TabError");
+    expect(profileTab).toContain("<PhotoCard");
+    expect(profileTab).toContain("<DetailsCard");
+    // The form fields live in DetailsCard, not in the tab itself.
     expect(profileTab).not.toContain('htmlFor="firstName"');
-    expect(profileTab).not.toContain('triggerAriaLabel="Upload public avatar"');
   });
 
   it("keeps checkout payment pane, missing-target, and active flow as siblings", () => {

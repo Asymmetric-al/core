@@ -36,6 +36,12 @@ test("session guard flow: login, persistence, /login redirect, sign out", async 
     .poll(() => new URL(page.url()).pathname, { timeout: 20000 })
     .toBe(expectedHomePath!);
 
+  // Donor and missionary apps keep sign-out in the account menu; Mission
+  // Control still shows it in its header.
+  const accountMenu = page.getByTestId("account-menu").first();
+  if (await accountMenu.isVisible({ timeout: 10000 }).catch(() => false)) {
+    await accountMenu.click();
+  }
   const signOutButton = page.getByTestId("auth-signout").first();
   await expect(signOutButton).toBeVisible({ timeout: 10000 });
   await signOutButton.click();
