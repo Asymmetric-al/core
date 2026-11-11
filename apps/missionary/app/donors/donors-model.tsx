@@ -20,10 +20,10 @@ import {
 import type { ActivityType, GiftType, RecurringStatus } from "./donor-types";
 import type { ElementType } from "react";
 
-const NUMBER_FORMATTER_1 = new Intl.NumberFormat("en-US", {
+const NUMBER_FORMATTER_CENTS = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
-  minimumFractionDigits: 0,
+  minimumFractionDigits: 2,
 });
 
 export type {
@@ -111,25 +111,13 @@ export const AVAILABLE_TAGS = [
   },
 ] as const;
 
-export function formatCurrency(value: number | null | undefined) {
-  if (value === null || value === undefined) return "$0";
-
-  return NUMBER_FORMATTER_1.format(value);
-}
-
-export function getStatusColor(status: string) {
-  switch (status) {
-    case "Active":
-      return "bg-success";
-    case "Lapsed":
-      return "bg-muted-foreground";
-    case "New":
-      return "bg-info";
-    case "At Risk":
-      return "bg-warning";
-    default:
-      return "bg-muted-foreground";
-  }
+/**
+ * Partner money is stored as integer cents; display it in dollars. Exact
+ * amounts always show their cents ("$110.00", "$125.50"), as the donor app
+ * does, so a figure never reads rounder than what was given.
+ */
+export function formatCurrency(cents: number | null | undefined) {
+  return NUMBER_FORMATTER_CENTS.format((cents ?? 0) / 100);
 }
 
 type StatusBadgeVariant = "success" | "info" | "warning" | "secondary";

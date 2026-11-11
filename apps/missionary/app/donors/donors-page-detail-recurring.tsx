@@ -47,7 +47,7 @@ export function DonorsPageDetailRecurring() {
       >
         <div>
           <h3 className="text-sm font-semibold text-foreground">
-            Recurring Donations
+            Recurring gifts
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
             Scheduled giving commitments for this partner
@@ -157,7 +157,7 @@ export function DonorsPageDetailRecurring() {
                       className="bg-card p-3 rounded-xl border border-primary/20 text-center lg:text-right"
                     >
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                        Next Payment
+                        Next gift
                       </p>
                       <p className="text-lg font-semibold text-foreground">
                         {format(

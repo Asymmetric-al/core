@@ -6,8 +6,10 @@ import {
   useWithinViewTransitionRouteLayer,
 } from "@asym/lib/view-transitions";
 import { PageHeader } from "@asym/ui/components/page-header";
+import { UnsavedChangesGuard } from "@asym/ui/components/primitives/unsaved-changes-guard";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { AlertCircle } from "lucide-react";
+import { useRef } from "react";
 
 import { ProfileFormColumn } from "./profile-form-column";
 import {
@@ -17,11 +19,16 @@ import {
   staggerContainer,
 } from "./profile-motion";
 import { ProfilePreviewColumn } from "./profile-preview";
-import { ProfileHeaderActions, ProfileSkeleton } from "./profile-primitives";
+import {
+  ProfileHeaderActions,
+  ProfileSkeleton,
+  UnsavedChangesBar,
+} from "./profile-primitives";
 import { useProfilePageView } from "./use-profile-page-view";
 
 export function ProfilePageClient() {
   const vm = useProfilePageView();
+  const headerRef = useRef<HTMLDivElement>(null);
   // Route VT owns the entrance when active (incl. the shared title morph);
   // only stagger on plain mounts.
   const withinRouteVt = useWithinViewTransitionRouteLayer();
@@ -48,7 +55,7 @@ export function ProfilePageClient() {
         </motion.div>
         <p className="text-muted-foreground">{vm.fetchError}</p>
         <Button onClick={() => window.location.reload()} variant="outline">
-          Try Again
+          Try again
         </Button>
       </motion.div>
     );
@@ -56,25 +63,29 @@ export function ProfilePageClient() {
 
   return (
     <LayoutGroup>
+      <UnsavedChangesGuard when={vm.hasChanges} />
       <motion.div
         className="space-y-6 pb-20"
         initial={withinRouteVt ? false : "initial"}
         animate="animate"
         variants={staggerContainer}
       >
-        <motion.div variants={fadeInUp} transition={gentleTransition}>
+        <motion.div
+          ref={headerRef}
+          tabIndex={-1}
+          className="outline-none"
+          variants={fadeInUp}
+          transition={gentleTransition}
+        >
           <PageHeader
-            title="Profile"
+            title="Giving page"
             titleViewTransitionName={MISSIONARY_SETTINGS_HEADER_VT_NAME}
-            description="Update your information and how you appear to supporters."
+            description="Edit what supporters will see on your giving page. It isn’t live for supporters yet."
           >
             <ProfileHeaderActions
-              copiedLink={vm.copiedLink}
-              profile={vm.profile}
               hasChanges={vm.hasChanges}
               isSaving={vm.isSaving}
               saveSuccess={vm.saveSuccess}
-              onCopyLink={vm.handleCopyLink}
               onDiscard={vm.handleDiscard}
               onSave={vm.handleSave}
             />
@@ -98,6 +109,18 @@ export function ProfilePageClient() {
             setPreviewMode={vm.setPreviewMode}
           />
         </div>
+
+        {vm.hasChanges ? (
+          <UnsavedChangesBar returnFocusTo={headerRef}>
+            <ProfileHeaderActions
+              hasChanges={vm.hasChanges}
+              isSaving={vm.isSaving}
+              saveSuccess={vm.saveSuccess}
+              onDiscard={vm.handleDiscard}
+              onSave={vm.handleSave}
+            />
+          </UnsavedChangesBar>
+        ) : null}
       </motion.div>
     </LayoutGroup>
   );

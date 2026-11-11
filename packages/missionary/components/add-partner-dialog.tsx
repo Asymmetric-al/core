@@ -106,7 +106,7 @@ export function AddPartnerDialog({
       {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent className="sm:max-w-125" scrollable>
         <DialogHeader>
-          <DialogTitle>Add New Partner</DialogTitle>
+          <DialogTitle>Add partner</DialogTitle>
           <DialogDescription>
             Enter the details for your new ministry partner
           </DialogDescription>
@@ -125,8 +125,8 @@ export function AddPartnerDialog({
               {(field) => (
                 <field.TextField
                   className="sm:col-span-2"
-                  label="Full Name / Org Name"
-                  placeholder="Enter name"
+                  label="Name"
+                  placeholder="Person, family or church"
                 />
               )}
             </form.AppField>
@@ -134,7 +134,7 @@ export function AddPartnerDialog({
             <form.AppField name="email">
               {(field) => (
                 <field.TextField
-                  label="Email Address"
+                  label="Email"
                   placeholder="email@example.com"
                   type="email"
                 />
@@ -143,17 +143,14 @@ export function AddPartnerDialog({
 
             <form.AppField name="phone">
               {(field) => (
-                <field.TextField
-                  label="Phone Number"
-                  placeholder="(555) 000-0000"
-                />
+                <field.TextField label="Phone" placeholder="(555) 000-0000" />
               )}
             </form.AppField>
 
             <form.AppField name="type">
               {(field) => (
                 <field.SelectField
-                  label="Partner Type"
+                  label="Partner type"
                   options={PARTNER_TYPE_OPTIONS}
                   placeholder="Select type"
                 />
@@ -163,7 +160,7 @@ export function AddPartnerDialog({
             <form.AppField name="frequency">
               {(field) => (
                 <field.SelectField
-                  label="Giving Frequency"
+                  label="Giving frequency"
                   options={PARTNER_FREQUENCY_OPTIONS}
                   placeholder="Select frequency"
                 />
@@ -174,7 +171,7 @@ export function AddPartnerDialog({
               {(field) => (
                 <field.TextField
                   className="sm:col-span-2"
-                  label="Location (City, State)"
+                  label="Location"
                   placeholder="Denver, CO"
                 />
               )}

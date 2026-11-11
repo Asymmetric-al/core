@@ -1,15 +1,17 @@
 "use client";
 
+import { refreshPendingFollowRequestCount } from "@asym/database/hooks";
 import { fetchJsonResult, fetchResult } from "@asym/lib/http/fetch-result";
 import { isPostContentEmpty } from "@asym/ui/components/shadcn/rich-text-editor";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { normalizeVisibility, placeSavedPost } from "./feed-model";
+
 import type {
   FollowerRequest,
   Post,
   PostStatus,
-  SecurityLevel,
   Visibility,
   WorkerFeedUiState,
 } from "./feed-model";
@@ -34,6 +36,7 @@ function publishedFeedErrorMessage(failure: FetchFailure): string {
 
 type WorkerFeedPageViewModel = {
   postType: string;
+  postTitle: string;
   postContent: string;
   activeTab: PostStatus;
   isLoading: boolean;
@@ -43,30 +46,50 @@ type WorkerFeedPageViewModel = {
   postPrivacy: Visibility;
   selectedMedia: MediaItem[];
   isUploading: boolean;
-  securityLevel: SecurityLevel;
   isLoadingRequests: boolean;
   setPostType: (value: SetStateAction<string>) => void;
+  setPostTitle: (value: SetStateAction<string>) => void;
   setPostContent: (value: SetStateAction<string>) => void;
   setActiveTab: (value: SetStateAction<PostStatus>) => void;
   setEditingPostId: (value: SetStateAction<string | null>) => void;
   setPostPrivacy: (value: SetStateAction<Visibility>) => void;
   setSelectedMedia: (value: SetStateAction<MediaItem[]>) => void;
-  setSecurityLevel: (value: SetStateAction<SecurityLevel>) => void;
   posts: Post[];
   drafts: Post[];
   pendingRequests: FollowerRequest[];
   feedError: string | null;
+  /** True when drafts couldn't be loaded (not the same as having none). */
+  draftsError: boolean;
+  /** True until drafts have loaded, so the tab never claims there are none. */
+  isLoadingDrafts: boolean;
+  /** Writing in the composer that leaving the page would lose. */
+  hasUnsavedWriting: boolean;
+  /** True when follow requests couldn't be loaded. */
+  requestsError: boolean;
   reloadPosts: () => Promise<void>;
-  simulateUpload: () => Promise<void>;
+  reloadDrafts: () => Promise<void>;
+  reloadRequests: () => Promise<void>;
+  /** Another post the missionary asked to edit while writing unsaved work. */
+  pendingEdit: Post | null;
+  requestEditPost: (post: Post) => void;
+  confirmEditPost: () => void;
+  cancelEditPost: () => void;
   handlePost: (status?: PostStatus) => Promise<void>;
   handleEditDraft: (draft: Post) => void;
-  handleDeletePost: (postId: string) => Promise<void>;
-  handleResolveRequest: (id: string, approved: boolean) => void;
+  cancelEditing: () => void;
+  /** The update waiting for delete confirmation, if any. */
+  pendingDelete: Post | null;
+  isDeleting: boolean;
+  requestDeletePost: (postId: string) => void;
+  cancelDeletePost: () => void;
+  confirmDeletePost: () => Promise<void>;
+  handleResolveRequest: (id: string, approved: boolean) => Promise<void>;
 };
 
 export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   const [uiState, setUiState] = useState<WorkerFeedUiState>({
     postType: "Update",
+    postTitle: "",
     postContent: "",
     activeTab: "published",
     isLoading: true,
@@ -76,11 +99,11 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     postPrivacy: "public",
     selectedMedia: [],
     isUploading: false,
-    securityLevel: "medium",
     isLoadingRequests: true,
   });
   const {
     postType,
+    postTitle,
     postContent,
     activeTab,
     isLoading,
@@ -90,7 +113,6 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     postPrivacy,
     selectedMedia,
     isUploading,
-    securityLevel,
     isLoadingRequests,
   } = uiState;
 
@@ -116,6 +138,10 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
 
   const setPostType = useCallback(
     (value: React.SetStateAction<string>) => setUiField("postType", value),
+    [setUiField],
+  );
+  const setPostTitle = useCallback(
+    (value: React.SetStateAction<string>) => setUiField("postTitle", value),
     [setUiField],
   );
   const setPostContent = useCallback(
@@ -154,15 +180,6 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
       setUiField("selectedMedia", value),
     [setUiField],
   );
-  const setIsUploading = useCallback(
-    (value: React.SetStateAction<boolean>) => setUiField("isUploading", value),
-    [setUiField],
-  );
-  const setSecurityLevel = useCallback(
-    (value: React.SetStateAction<SecurityLevel>) =>
-      setUiField("securityLevel", value),
-    [setUiField],
-  );
   const setIsLoadingRequests = useCallback(
     (value: React.SetStateAction<boolean>) =>
       setUiField("isLoadingRequests", value),
@@ -173,6 +190,10 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   const [posts, setPosts] = useState<Post[]>([]);
   const [drafts, setDrafts] = useState<Post[]>([]);
   const [feedError, setFeedError] = useState<string | null>(null);
+  const [draftsError, setDraftsError] = useState(false);
+  const [isLoadingDrafts, setIsLoadingDrafts] = useState(true);
+  const [requestsError, setRequestsError] = useState(false);
+  const [pendingEdit, setPendingEdit] = useState<Post | null>(null);
   const [followerRequests, setFollowerRequests] = useState<FollowerRequest[]>(
     [],
   );
@@ -182,26 +203,8 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     [followerRequests],
   );
 
-  const simulateUpload = async () => {
-    setIsUploading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    const demoImages = [
-      "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=1200",
-      "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1200",
-      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=1200",
-      "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=1200",
-    ];
-    const randomImage =
-      demoImages[Math.floor(Math.random() * demoImages.length)];
-    if (!randomImage) {
-      setIsUploading(false);
-      toast.error("Failed to upload image");
-      return;
-    }
-    setSelectedMedia((prev) => [...prev, { url: randomImage, type: "image" }]);
-    setIsUploading(false);
-    toast.success("Image uploaded successfully!");
-  };
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Requests go through the never-throwing fetch helpers, so no try/finally
   // is needed (the React Compiler cannot lower those yet). Every state
@@ -227,16 +230,23 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         if (status === "published") {
           setPosts(result.data.posts || []);
           setFeedError(null);
-        } else setDrafts(result.data.posts || []);
+        } else {
+          setDrafts(result.data.posts || []);
+          setDraftsError(false);
+        }
       } else {
         console.error("Failed to fetch posts:", toError(result.error));
         if (status === "published") {
           setFeedError(publishedFeedErrorMessage(result.error));
+        } else {
+          setDraftsError(true);
         }
         toast.error("Could not load feed", { id: "worker-feed-load-error" });
       }
       if (status === "published") {
         setIsLoading(false);
+      } else {
+        setIsLoadingDrafts(false);
       }
     },
     [setIsLoading],
@@ -246,6 +256,33 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     setIsLoading(true);
     await loadPosts("published");
   }, [loadPosts, setIsLoading]);
+
+  const reloadDrafts = useCallback(async () => {
+    setIsLoadingDrafts(true);
+    await loadPosts("draft");
+  }, [loadPosts]);
+
+  const loadFollowerRequests = useCallback(async () => {
+    const result = await fetchJsonResult<{ requests?: FollowerRequest[] }>(
+      "/api/follower-requests?status=pending",
+    );
+    if (result.ok) {
+      setFollowerRequests(result.data.requests || []);
+      setRequestsError(false);
+    } else {
+      console.error(
+        "Failed to fetch follower requests:",
+        toError(result.error),
+      );
+      setRequestsError(true);
+    }
+  }, []);
+
+  const reloadRequests = useCallback(async () => {
+    setIsLoadingRequests(true);
+    await loadFollowerRequests();
+    setIsLoadingRequests(false);
+  }, [loadFollowerRequests, setIsLoadingRequests]);
 
   useEffect(() => {
     let cancelled = false;
@@ -266,16 +303,23 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         if (status === "published") {
           setPosts(result.data.posts || []);
           setFeedError(null);
-        } else setDrafts(result.data.posts || []);
+        } else {
+          setDrafts(result.data.posts || []);
+          setDraftsError(false);
+        }
       } else {
         console.error("Failed to fetch posts:", toError(result.error));
         if (status === "published") {
           setFeedError(publishedFeedErrorMessage(result.error));
+        } else {
+          setDraftsError(true);
         }
         toast.error("Could not load feed", { id: "worker-feed-load-error" });
       }
       if (status === "published") {
         setIsLoading(false);
+      } else {
+        setIsLoadingDrafts(false);
       }
     };
 
@@ -291,6 +335,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
           "Failed to fetch follower requests:",
           toError(result.error),
         );
+        setRequestsError(true);
         toast.error("Could not load follower requests", {
           id: "worker-feed-follower-requests-load-error",
         });
@@ -320,6 +365,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          title: postTitle,
           content: postContent,
           post_type: postType,
           visibility: postPrivacy,
@@ -330,103 +376,188 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
 
       if (result.ok) {
         const { post } = result.data;
+        const wasPublished = posts.some((item) => item.id === post.id);
+        const published = (post.status ?? status) === "published";
+        // The post joins the list for its saved status, whichever tab is open.
+        setPosts((prev) => placeSavedPost(prev, post, published));
+        setDrafts((prev) => placeSavedPost(prev, post, !published));
 
-        if (status === "published") {
-          if (editingPostId && activeTab === "draft") {
-            setDrafts((prev) => prev.filter((d) => d.id !== editingPostId));
-            setPosts((prev) => [post, ...prev]);
-          } else {
-            setPosts((prev) =>
-              editingPostId
-                ? prev.map((p) => (p.id === editingPostId ? post : p))
-                : [post, ...prev],
-            );
-          }
-          toast.success(
-            editingPostId ? "Update updated!" : "Update published!",
-          );
+        if (published) {
+          toast.success(wasPublished ? "Changes saved" : "Update published");
         } else {
-          setDrafts((prev) =>
-            editingPostId
-              ? prev.map((p) => (p.id === editingPostId ? post : p))
-              : [post, ...prev],
-          );
           setLastSaved(new Date());
-          toast.success("Draft saved!");
+          toast.success("Draft saved");
         }
 
+        setPostTitle("");
         setPostContent("");
         setEditingPostId(null);
         setPostType("Update");
         setSelectedMedia([]);
       } else {
-        toast.error("Failed to save");
+        toast.error("Couldn’t save your update. Try again.");
       }
       setIsSaving(false);
     },
     [
-      activeTab,
       editingPostId,
       postContent,
       postPrivacy,
+      postTitle,
       postType,
+      posts,
       selectedMedia,
       setEditingPostId,
       setIsSaving,
       setLastSaved,
       setPostContent,
+      setPostTitle,
       setPostType,
       setSelectedMedia,
     ],
   );
 
+  // Autosave writes status "draft", so it only runs while editing an existing
+  // draft; otherwise it would create drafts unasked or unpublish a post.
+  const isEditingDraft =
+    editingPostId !== null &&
+    drafts.some((draft) => draft.id === editingPostId);
+
+  // Unlike handlePost, autosave leaves the composer as it is.
+  const autosaveDraft = useCallback(async () => {
+    if (!editingPostId) return;
+    const result = await fetchJsonResult<{ post: Post }>(
+      `/api/posts/${editingPostId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: postTitle,
+          content: postContent,
+          post_type: postType,
+          visibility: postPrivacy,
+          status: "draft",
+          media: selectedMedia,
+        }),
+      },
+    );
+    if (!result.ok) return;
+    const { post } = result.data;
+    setDrafts((prev) => placeSavedPost(prev, post, true));
+    setLastSaved(new Date());
+  }, [
+    editingPostId,
+    postContent,
+    postPrivacy,
+    postTitle,
+    postType,
+    selectedMedia,
+    setLastSaved,
+  ]);
+
   useEffect(() => {
-    if (
-      isPostContentEmpty(postContent) ||
-      isSaving ||
-      (activeTab === "published" && !editingPostId)
-    )
-      return;
+    if (isPostContentEmpty(postContent) || isSaving || !isEditingDraft) return;
 
     const timer = setTimeout(() => {
-      handlePost("draft");
+      void autosaveDraft();
     }, 30000);
 
     return () => clearTimeout(timer);
-  }, [activeTab, editingPostId, handlePost, isSaving, postContent]);
+  }, [autosaveDraft, isEditingDraft, isSaving, postContent]);
 
   const handleEditDraft = (draft: Post) => {
+    setPostTitle(draft.title ?? "");
     setPostContent(draft.content);
     setPostType(draft.post_type);
-    setPostPrivacy(draft.visibility);
+    setPostPrivacy(normalizeVisibility(draft.visibility));
+    // Saving sends media, so load what the post already has.
+    setSelectedMedia(draft.media ?? []);
     setEditingPostId(draft.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    toast.info("Editing draft...");
   };
 
-  const handleDeletePost = async (postId: string) => {
-    if (!confirm("Are you sure you want to delete this?")) return;
+  // Opening another post replaces the composer, so unsaved writing is
+  // confirmed first.
+  const hasUnsavedWriting =
+    !isPostContentEmpty(postContent) ||
+    postTitle.trim() !== "" ||
+    selectedMedia.length > 0;
+  const requestEditPost = (post: Post) => {
+    if (hasUnsavedWriting && post.id !== editingPostId) {
+      setPendingEdit(post);
+      return;
+    }
+    handleEditDraft(post);
+  };
+  const confirmEditPost = () => {
+    if (pendingEdit) handleEditDraft(pendingEdit);
+    setPendingEdit(null);
+  };
+  const cancelEditPost = () => setPendingEdit(null);
 
+  // Leaving the page with unsaved writing asks the browser to confirm.
+  useEffect(() => {
+    if (!hasUnsavedWriting || isSaving) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [hasUnsavedWriting, isSaving]);
+
+  const cancelEditing = () => {
+    setEditingPostId(null);
+    setPostTitle("");
+    setPostContent("");
+    setPostType("Update");
+    setSelectedMedia([]);
+  };
+
+  const pendingDelete =
+    [...posts, ...drafts].find((post) => post.id === pendingDeleteId) ?? null;
+  const requestDeletePost = (postId: string) => setPendingDeleteId(postId);
+  const cancelDeletePost = () => setPendingDeleteId(null);
+  const confirmDeletePost = async () => {
+    const postId = pendingDeleteId;
+    if (!postId) return;
+    setIsDeleting(true);
     const result = await fetchResult(`/api/posts/${postId}`, {
       method: "DELETE",
     });
+    setIsDeleting(false);
     if (!result.ok) {
-      toast.error("Failed to delete");
+      toast.error("Couldn’t delete that update. Try again.");
       return;
     }
-
+    setPendingDeleteId(null);
     setPosts((prev) => prev.filter((p) => p.id !== postId));
     setDrafts((prev) => prev.filter((p) => p.id !== postId));
-    toast.success("Post deleted");
+    if (editingPostId === postId) cancelEditing();
+    toast.success("Update deleted");
   };
 
-  const handleResolveRequest = (id: string, approved: boolean) => {
+  // Optimistic: the request leaves the list and returns if the server refuses.
+  const handleResolveRequest = async (id: string, approved: boolean) => {
+    const request = followerRequests.find((f) => f.id === id);
     setFollowerRequests((prev) => prev.filter((f) => f.id !== id));
-    toast.success(approved ? "Follower accepted" : "Request removed");
+    const result = await fetchResult(`/api/follower-requests/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: approved ? "approved" : "rejected" }),
+    });
+    if (!result.ok) {
+      if (request) setFollowerRequests((prev) => [request, ...prev]);
+      toast.error("Couldn’t update that request. Try again.");
+      return;
+    }
+    void refreshPendingFollowRequestCount();
+    const name = request?.name ?? "They";
+    toast.success(
+      approved ? `${name} can now follow your updates` : "Request declined",
+    );
   };
 
   return {
     postType,
+    postTitle,
     postContent,
     activeTab,
     isLoading,
@@ -436,24 +567,37 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     postPrivacy,
     selectedMedia,
     isUploading,
-    securityLevel,
     isLoadingRequests,
     setPostType,
+    setPostTitle,
     setPostContent,
     setActiveTab,
     setEditingPostId,
     setPostPrivacy,
     setSelectedMedia,
-    setSecurityLevel,
     posts,
     drafts,
     pendingRequests,
     feedError,
+    draftsError,
+    isLoadingDrafts,
+    hasUnsavedWriting,
+    requestsError,
     reloadPosts,
-    simulateUpload,
+    reloadDrafts,
+    reloadRequests,
+    pendingEdit,
+    requestEditPost,
+    confirmEditPost,
+    cancelEditPost,
     handlePost,
     handleEditDraft,
-    handleDeletePost,
+    cancelEditing,
+    pendingDelete,
+    isDeleting,
+    requestDeletePost,
+    cancelDeletePost,
+    confirmDeletePost,
     handleResolveRequest,
   };
 }

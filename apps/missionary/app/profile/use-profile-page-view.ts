@@ -17,7 +17,6 @@ import {
   asObject,
   asString,
   BIO_MAX_WORDS,
-  BIO_MIN_WORDS,
   countWords,
   initialProfile,
   mapApiProfileToProfileData,
@@ -35,7 +34,6 @@ type ProfilePageUiState = {
   isSaving: boolean;
   previewMode: PreviewMode;
   saveSuccess: boolean;
-  copiedLink: boolean;
   validationErrors: ValidationErrors;
 };
 
@@ -46,7 +44,6 @@ type ProfilePageUiAction =
       payload: PreviewMode | ((prev: PreviewMode) => PreviewMode);
     }
   | { type: "SET_SAVE_SUCCESS"; payload: boolean }
-  | { type: "SET_COPIED_LINK"; payload: boolean }
   | {
       type: "SET_VALIDATION_ERRORS";
       payload:
@@ -69,8 +66,6 @@ function profilePageUiReducer(
     }
     case "SET_SAVE_SUCCESS":
       return { ...state, saveSuccess: action.payload };
-    case "SET_COPIED_LINK":
-      return { ...state, copiedLink: action.payload };
     case "SET_VALIDATION_ERRORS": {
       const next =
         typeof action.payload === "function"
@@ -87,7 +82,6 @@ const initialUiState: ProfilePageUiState = {
   isSaving: false,
   previewMode: "mobile",
   saveSuccess: false,
-  copiedLink: false,
   validationErrors: {},
 };
 
@@ -101,19 +95,16 @@ type ProfilePageViewModel = {
   hasChanges: boolean;
   isSaving: boolean;
   saveSuccess: boolean;
-  copiedLink: boolean;
   previewMode: PreviewMode;
   setPreviewMode: (value: React.SetStateAction<PreviewMode>) => void;
   updateProfile: (field: keyof ProfileData, value: string) => void;
   handleSave: () => Promise<void>;
   handleDiscard: () => void;
-  handleCopyLink: () => Promise<void>;
 };
 
 export function useProfilePageView(): ProfilePageViewModel {
   const [uiState, dispatch] = useReducer(profilePageUiReducer, initialUiState);
-  const { isSaving, previewMode, saveSuccess, copiedLink, validationErrors } =
-    uiState;
+  const { isSaving, previewMode, saveSuccess, validationErrors } = uiState;
 
   const setIsSaving = useCallback((value: boolean) => {
     dispatch({ type: "SET_IS_SAVING", payload: value });
@@ -126,9 +117,6 @@ export function useProfilePageView(): ProfilePageViewModel {
   );
   const setSaveSuccess = useCallback((value: boolean) => {
     dispatch({ type: "SET_SAVE_SUCCESS", payload: value });
-  }, []);
-  const setCopiedLink = useCallback((value: boolean) => {
-    dispatch({ type: "SET_COPIED_LINK", payload: value });
   }, []);
   const setValidationErrors = useCallback(
     (value: React.SetStateAction<ValidationErrors>) => {
@@ -175,6 +163,14 @@ export function useProfilePageView(): ProfilePageViewModel {
   const bioWordCount = countWords(profile.bio);
   const hasChanges = hasProfileChanges(profile, originalProfile);
 
+  // Leaving with unsaved edits asks the browser to confirm first.
+  useEffect(() => {
+    if (!hasChanges) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [hasChanges]);
+
   const fetchError = profileQuery.error
     ? profileQuery.error instanceof Error
       ? profileQuery.error.message
@@ -187,7 +183,7 @@ export function useProfilePageView(): ProfilePageViewModel {
 
   const isLoading = profileQuery.isPending;
 
-  // Profile Photos calls `updateProfile(field, url); handleSave()` in one
+  // The photo uploader calls `updateProfile(field, url); handleSave()` in one
   // event. Keep a live snapshot so save reads that pending edit instead of
   // the previous render's `profile` closure.
   const draftRef = useRef(draft);
@@ -229,9 +225,7 @@ export function useProfilePageView(): ProfilePageViewModel {
 
       if (data.bio) {
         const wordCount = countWords(data.bio);
-        if (wordCount < BIO_MIN_WORDS) {
-          errors.bio = `Please write at least ${BIO_MIN_WORDS} words (currently ${wordCount})`;
-        } else if (wordCount > BIO_MAX_WORDS) {
+        if (wordCount > BIO_MAX_WORDS) {
           errors.bio = `Please keep under ${BIO_MAX_WORDS} words (currently ${wordCount})`;
         }
       }
@@ -404,14 +398,6 @@ export function useProfilePageView(): ProfilePageViewModel {
     toast.info("Changes discarded");
   }, [setIsSaving, setValidationErrors]);
 
-  const handleCopyLink = useCallback(async () => {
-    const link = `${window.location.origin}/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`;
-    await navigator.clipboard.writeText(link);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
-    toast.success("Link copied!");
-  }, [profile.firstName, profile.lastName, setCopiedLink]);
-
   return {
     isLoading,
     fetchError,
@@ -422,12 +408,10 @@ export function useProfilePageView(): ProfilePageViewModel {
     hasChanges,
     isSaving,
     saveSuccess,
-    copiedLink,
     previewMode,
     setPreviewMode,
     updateProfile,
     handleSave,
     handleDiscard,
-    handleCopyLink,
   };
 }

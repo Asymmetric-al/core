@@ -12,6 +12,7 @@ import {
   getDonorEmailHref,
   getGivingHistoryRows,
   hasDonorsActiveFilters,
+  nextPartnerLinkStep,
   removeTagSelection,
   toPartnerSafeDonor,
   toggleTagSelection,
@@ -291,7 +292,7 @@ describe("donors page model helpers", () => {
     const safe = toPartnerSafeDonor(poisoned);
 
     expect(safe.name).toBe(ANONYMOUS_DONOR_LABEL);
-    expect(safe.initials).toBe("AD");
+    expect(safe.initials).toBe("AP");
     expect(safe.email).toBe("");
     expect(safe.phone).toBe("");
     expect(safe.mobile).toBeUndefined();
@@ -361,5 +362,51 @@ describe("donors page model helpers", () => {
     expect(getDonorEmailHref("")).toBeNull();
     expect(getDonorEmailHref("   ")).toBeNull();
     expect(getDonorEmailHref(undefined)).toBeNull();
+  });
+});
+
+describe("nextPartnerLinkStep", () => {
+  const loaded = { isLoading: false, hasError: false, isLoadingMore: false };
+
+  it("waits while the list is still loading or has failed", () => {
+    expect(
+      nextPartnerLinkStep("p-9", [], {
+        ...loaded,
+        isLoading: true,
+        hasMore: true,
+      }),
+    ).toBe("wait");
+    expect(
+      nextPartnerLinkStep("p-9", [], {
+        ...loaded,
+        hasError: true,
+        hasMore: true,
+      }),
+    ).toBe("wait");
+  });
+
+  it("opens a partner who is already loaded", () => {
+    expect(
+      nextPartnerLinkStep("p-2", ["p-1", "p-2"], { ...loaded, hasMore: true }),
+    ).toBe("open");
+  });
+
+  it("loads the next page while the partner may still be on it", () => {
+    expect(
+      nextPartnerLinkStep("p-99", ["p-1"], { ...loaded, hasMore: true }),
+    ).toBe("load-more");
+    expect(
+      nextPartnerLinkStep("p-99", ["p-1"], {
+        ...loaded,
+        hasMore: true,
+        isLoadingMore: true,
+      }),
+    ).toBe("wait");
+  });
+
+  it("reports a partner who isn't in the whole list", () => {
+    expect(
+      nextPartnerLinkStep("p-99", ["p-1"], { ...loaded, hasMore: false }),
+    ).toBe("missing");
   });
 });

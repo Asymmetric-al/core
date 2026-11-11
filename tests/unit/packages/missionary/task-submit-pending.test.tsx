@@ -82,7 +82,7 @@ it.each([
       />,
     );
     if (!editing) {
-      fireEvent.change(screen.getByRole("textbox", { name: /Task Title/ }), {
+      fireEvent.change(screen.getByRole("textbox", { name: /Title/ }), {
         target: { value: task.title },
       });
     }

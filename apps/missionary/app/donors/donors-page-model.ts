@@ -41,6 +41,29 @@ export function hasDonorsActiveFilters(filters: DonorsPageFilterState) {
   );
 }
 
+export type PartnerLinkStep = "wait" | "open" | "load-more" | "missing";
+
+/**
+ * What to do with a link that names one partner (`/donors?partner=<id>`).
+ * Partners load a page at a time, so a partner who isn't loaded yet may be
+ * on a later page; only once every page is in can they be called missing.
+ */
+export function nextPartnerLinkStep(
+  partnerId: string,
+  loadedIds: readonly string[],
+  list: {
+    isLoading: boolean;
+    hasError: boolean;
+    hasMore: boolean;
+    isLoadingMore: boolean;
+  },
+): PartnerLinkStep {
+  if (list.isLoading || list.hasError) return "wait";
+  if (loadedIds.includes(partnerId)) return "open";
+  if (list.isLoadingMore) return "wait";
+  return list.hasMore ? "load-more" : "missing";
+}
+
 export function applyDonorsStatFilter(
   filterType: DonorsStatFilterType,
 ): DonorsStatFilterState {
@@ -100,7 +123,7 @@ export function createTagEditorDraft(committedTags?: string[]): string[] {
   return [...(committedTags ?? [])];
 }
 
-export const ANONYMOUS_DONOR_LABEL = "Anonymous donor";
+export const ANONYMOUS_DONOR_LABEL = "Anonymous partner";
 
 function anonymousDonorInitials(label: string) {
   return (

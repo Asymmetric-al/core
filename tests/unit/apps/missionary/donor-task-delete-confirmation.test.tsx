@@ -54,7 +54,7 @@ afterEach(cleanup);
 it("keeps Add Task disabled until the initial list finishes loading", () => {
   tasks.loading = true;
   const view = render(<DonorTasks donorId="donor-anna" donorName="Anna" />);
-  const add = screen.getByRole("button", { name: "Add Task" });
+  const add = screen.getByRole("button", { name: "Add task" });
   expect(add.getAttribute("aria-disabled")).toBe("true");
   tasks.loading = false;
   view.rerender(<DonorTasks donorId="donor-anna" donorName="Anna" />);
@@ -79,7 +79,7 @@ it("keeps confirmation and keyboard focus through a task refresh", async () => {
   await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
   await waitFor(() =>
     expect(document.activeElement).toBe(
-      screen.getByRole("button", { name: "Add Task" }),
+      screen.getByRole("button", { name: "Add task" }),
     ),
   );
 });
@@ -213,7 +213,7 @@ it("performs one explicit deletion, keeps pending feedback and recovers focus af
   await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
   await waitFor(() =>
     expect(document.activeElement).toBe(
-      screen.getByRole("button", { name: "Add Task" }),
+      screen.getByRole("button", { name: "Add task" }),
     ),
   );
 });

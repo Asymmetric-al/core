@@ -15,6 +15,19 @@ import TasksPage from "../../../../../../apps/missionary/app/tasks/page-client";
 import type { Task } from "@asym/lib/hooks/use-tasks";
 import type { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
 
+// jsdom has no matchMedia; the page picks its first view from screen width.
+const media = vi.hoisted(() => ({ phone: false }));
+vi.stubGlobal("matchMedia", (query: string) => ({
+  matches: media.phone && query.includes("max-width"),
+  media: query,
+  onchange: null,
+  addEventListener() {},
+  removeEventListener() {},
+  addListener() {},
+  removeListener() {},
+  dispatchEvent: () => false,
+}));
+
 const hooks = vi.hoisted(() => ({
   tasks: [] as Task[],
   moveTask: vi.fn(),

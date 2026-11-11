@@ -37,3 +37,23 @@ it("announces metric loading and failures without presenting a failed request as
     "Unable to load donation metrics",
   );
 });
+
+it("shows no comparison instead of an invented percentage", async () => {
+  vi.resetModules();
+  vi.doMock("@asym/lib/hooks", () => ({
+    useDonationMetrics: () => ({
+      isLoading: false,
+      error: null,
+      thisMonth: { total: 5000, change: null, trend: "neutral", data: [] },
+      lastMonth: { total: 0, change: 0, trend: "neutral", data: [] },
+      yearToDate: { total: 5000, change: 12.5, trend: "up", data: [] },
+    }),
+  }));
+  const { MetricTiles: Tiles } =
+    await import("../../../../packages/missionary/components/metric-tiles");
+  render(<Tiles missionaryId="fixture" />);
+  expect(screen.getAllByText("No prior-period comparison")).toHaveLength(1);
+  expect(screen.queryByText("+100.0%")).toBeNull();
+  expect(screen.getByText("+12.5%")).toBeTruthy();
+  vi.doUnmock("@asym/lib/hooks");
+});

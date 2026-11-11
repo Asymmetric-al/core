@@ -411,3 +411,286 @@ describe("published request ownership", () => {
     expect(result.current.isLoading).toBe(false);
   });
 });
+
+describe("composer autosave", () => {
+  const published = {
+    id: "post-live",
+    content: "<p>Live update</p>",
+    post_type: "Update",
+    visibility: "public",
+    status: "published",
+    media: [],
+    created_at: "2026-01-29T12:00:00Z",
+  };
+  const draft = { ...published, id: "post-draft", status: "draft" };
+
+  function mockFeed() {
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.startsWith("/api/posts?status=published")) {
+        return jsonResponse(200, { posts: [published] });
+      }
+      if (url.startsWith("/api/posts?status=draft")) {
+        return jsonResponse(200, { posts: [draft] });
+      }
+      if (url.startsWith("/api/follower-requests")) {
+        return jsonResponse(200, { requests: [] });
+      }
+      if (url.startsWith("/api/posts/")) {
+        return jsonResponse(200, { post: draft });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+  }
+
+  function patchCalls() {
+    return fetchMock.mock.calls.filter(
+      ([, init]) => (init as RequestInit | undefined)?.method === "PATCH",
+    );
+  }
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // Autosave writes status "draft". Running it while editing a published
+  // update would silently unpublish it, so autosave is limited to drafts.
+  it("never autosaves an edited published update as a draft", async () => {
+    mockFeed();
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.posts).toHaveLength(1));
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+
+    act(() => result.current.handleEditDraft(published as never));
+    act(() => result.current.setPostContent("<p>Live update, edited</p>"));
+    act(() => vi.advanceTimersByTime(31_000));
+
+    expect(patchCalls()).toEqual([]);
+  });
+
+  it("still autosaves an edited draft", async () => {
+    mockFeed();
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.drafts).toHaveLength(1));
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+
+    act(() => result.current.handleEditDraft(draft as never));
+    act(() => result.current.setPostContent("<p>Draft, edited</p>"));
+    act(() => vi.advanceTimersByTime(31_000));
+
+    expect(patchCalls()).toHaveLength(1);
+    const [url, init] = patchCalls()[0]!;
+    expect(String(url)).toBe("/api/posts/post-draft");
+    expect(JSON.parse(String((init as RequestInit).body)).status).toBe("draft");
+  });
+
+  it("keeps the writer editing after an autosave", async () => {
+    mockFeed();
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.drafts).toHaveLength(1));
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+
+    act(() => result.current.handleEditDraft(draft as never));
+    act(() => result.current.setPostTitle("Rainy season"));
+    act(() => result.current.setPostContent("<p>Draft, edited</p>"));
+    await act(async () => {
+      vi.advanceTimersByTime(31_000);
+    });
+    vi.useRealTimers();
+
+    await waitFor(() => expect(patchCalls()).toHaveLength(1));
+    await waitFor(() => expect(result.current.lastSaved).not.toBeNull());
+    expect(result.current.editingPostId).toBe("post-draft");
+    expect(result.current.postTitle).toBe("Rainy season");
+    expect(result.current.postContent).toBe("<p>Draft, edited</p>");
+  });
+});
+
+describe("saving moves a post to the list for its saved status", () => {
+  const live = {
+    id: "post-live",
+    content: "<p>Live update</p>",
+    post_type: "Update",
+    visibility: "public",
+    status: "published",
+    media: [],
+    created_at: "2026-01-29T12:00:00Z",
+  };
+  const draft = { ...live, id: "post-draft", status: "draft" };
+
+  function mockSave(saved: Record<string, unknown>) {
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.startsWith("/api/posts?status=published")) {
+        return jsonResponse(200, { posts: [live] });
+      }
+      if (url.startsWith("/api/posts?status=draft")) {
+        return jsonResponse(200, { posts: [draft] });
+      }
+      if (url.startsWith("/api/follower-requests")) {
+        return jsonResponse(200, { requests: [] });
+      }
+      if (url.startsWith("/api/posts/")) {
+        return jsonResponse(200, { post: saved });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+  }
+
+  it("moves a published update into drafts when it is saved as a draft", async () => {
+    mockSave({ ...live, status: "draft", content: "<p>Back to draft</p>" });
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.posts).toHaveLength(1));
+
+    act(() => result.current.handleEditDraft(live as never));
+    act(() => result.current.setPostContent("<p>Back to draft</p>"));
+    await act(() => result.current.handlePost("draft"));
+
+    expect(result.current.posts.map((post) => post.id)).toEqual([]);
+    expect(result.current.drafts.map((post) => post.id)).toEqual([
+      "post-live",
+      "post-draft",
+    ]);
+  });
+
+  it("moves a draft into the feed when published from the Published tab", async () => {
+    mockSave({ ...draft, status: "published" });
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.drafts).toHaveLength(1));
+
+    expect(result.current.activeTab).toBe("published");
+    act(() => result.current.handleEditDraft(draft as never));
+    await act(() => result.current.handlePost("published"));
+
+    expect(result.current.drafts).toEqual([]);
+    expect(result.current.posts.map((post) => post.id)).toEqual([
+      "post-draft",
+      "post-live",
+    ]);
+  });
+});
+
+describe("follower requests", () => {
+  const request = {
+    id: "req-1",
+    name: "Logan Rivera",
+    status: "pending",
+    created_at: "2026-11-01T10:00:00.000Z",
+  };
+
+  function serve(patchStatus: number) {
+    fetchMock.mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.startsWith("/api/posts")) return jsonResponse(200, { posts: [] });
+      if (url.startsWith("/api/follower-requests?")) {
+        return jsonResponse(200, { requests: [request] });
+      }
+      if (url === "/api/follower-requests/req-1" && init?.method === "PATCH") {
+        return jsonResponse(
+          patchStatus,
+          patchStatus === 200 ? { request } : { error: "nope" },
+        );
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+  }
+
+  it("saves an approval on the server", async () => {
+    serve(200);
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.pendingRequests).toHaveLength(1));
+
+    await act(async () => {
+      await result.current.handleResolveRequest("req-1", true);
+    });
+
+    const patch = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        url === "/api/follower-requests/req-1" && init?.method === "PATCH",
+    );
+    expect(JSON.parse(String(patch?.[1]?.body))).toEqual({
+      status: "approved",
+    });
+    expect(result.current.pendingRequests).toHaveLength(0);
+    expect(toast.success).toHaveBeenCalledWith(
+      "Logan Rivera can now follow your updates",
+    );
+  });
+
+  it("saves a decline on the server", async () => {
+    serve(200);
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.pendingRequests).toHaveLength(1));
+    await act(async () => {
+      await result.current.handleResolveRequest("req-1", false);
+    });
+    const patch = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        url === "/api/follower-requests/req-1" && init?.method === "PATCH",
+    );
+    expect(JSON.parse(String(patch?.[1]?.body))).toEqual({
+      status: "rejected",
+    });
+  });
+
+  it("puts the request back and says so when the server refuses", async () => {
+    serve(500);
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.pendingRequests).toHaveLength(1));
+    await act(async () => {
+      await result.current.handleResolveRequest("req-1", true);
+    });
+    expect(result.current.pendingRequests).toHaveLength(1);
+    expect(toast.error).toHaveBeenCalledWith(
+      "Couldn’t update that request. Try again.",
+    );
+  });
+});
+
+describe("drafts loading", () => {
+  it("reports drafts as loading until they arrive, so the tab never claims there are none", async () => {
+    let releaseDrafts: (response: Response) => void = () => {};
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.startsWith("/api/posts?status=published")) {
+        return jsonResponse(200, { posts: [] });
+      }
+      if (url.startsWith("/api/posts?status=draft")) {
+        return new Promise<Response>((resolve) => {
+          releaseDrafts = resolve;
+        });
+      }
+      if (url.startsWith("/api/follower-requests")) {
+        return jsonResponse(200, { requests: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.isLoadingDrafts).toBe(true);
+
+    await act(async () => {
+      releaseDrafts(jsonResponse(200, { posts: [] }));
+    });
+    await waitFor(() => expect(result.current.isLoadingDrafts).toBe(false));
+  });
+});
+
+describe("unsaved writing", () => {
+  it("reports writing that would be lost by leaving the page", async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.startsWith("/api/posts")) return jsonResponse(200, { posts: [] });
+      if (url.startsWith("/api/follower-requests")) {
+        return jsonResponse(200, { requests: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.hasUnsavedWriting).toBe(false);
+    act(() => result.current.setPostContent("<p>Rainy season</p>"));
+    expect(result.current.hasUnsavedWriting).toBe(true);
+  });
+});

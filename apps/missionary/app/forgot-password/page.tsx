@@ -11,11 +11,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Account help",
+  title: "Can’t sign in?",
   description:
-    "Reset access to the missionary portal. Contact your administrator for access support.",
+    "Your organization’s administrator manages missionary accounts and can help you sign in.",
 };
 
+// Email password reset isn't built yet, and there is no support inbox, so
+// this page names the person who can actually restore access.
 export default function ForgotPasswordPage() {
   return (
     <main className="flex min-h-dvh items-center justify-center bg-muted px-4 py-8">
@@ -23,12 +25,13 @@ export default function ForgotPasswordPage() {
         <CardHeader>
           <CardTitle>
             <h1 className="text-xl font-semibold tracking-tight">
-              Forgot password?
+              Can’t sign in?
             </h1>
           </CardTitle>
           <CardDescription>
-            Password reset is not enabled yet in this environment. Contact your
-            administrator for access support.
+            Resetting your password by email isn’t available yet. Your
+            organization’s administrator manages missionary accounts and can
+            help you get back in.
           </CardDescription>
         </CardHeader>
         <CardFooter>
@@ -36,7 +39,7 @@ export default function ForgotPasswordPage() {
             href="/login"
             className={buttonVariants({ variant: "outline" })}
           >
-            Back to login
+            Back to sign in
           </Link>
         </CardFooter>
       </Card>

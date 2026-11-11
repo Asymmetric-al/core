@@ -201,7 +201,7 @@ describe("useProfilePageView", () => {
     const coverUrl = "https://cdn.example/new-cover.jpg";
     fetchMock.mockResolvedValueOnce(jsonResponse(200, { ok: true }));
 
-    // Profile Photos calls updateProfile(field, url); handleSave() in one
+    // The photo uploader calls updateProfile(field, url); handleSave() in one
     // event. The save must read that pending edit, not the previous render.
     await act(async () => {
       result.current.updateProfile("coverUrl", coverUrl);

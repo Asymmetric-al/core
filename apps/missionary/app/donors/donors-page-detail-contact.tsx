@@ -110,7 +110,7 @@ function DonorContactHeader({
       className="flex items-center justify-between mb-2"
     >
       <h3 className="text-sm font-semibold text-foreground">
-        Contact Information
+        Contact information
       </h3>
       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
         <Button
@@ -308,7 +308,7 @@ function DonorMailingAddress({
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
-              Mailing Address
+              Mailing address
             </p>
             {selectedDonor.address?.street ? (
               <>
@@ -471,7 +471,7 @@ function DonorPersonalDetails({
           className="p-4 bg-muted/50 rounded-2xl border border-border"
         >
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-            Internal Notes
+            Internal notes
           </p>
           <p className="text-sm text-foreground">{selectedDonor.notes}</p>
         </motion.div>

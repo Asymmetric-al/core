@@ -117,12 +117,13 @@ describe("missionary Partners page module shape", () => {
     expect(page).not.toContain("under RLS");
   });
 
-  it("keeps Export disabled until an export handler exists", () => {
+  it("exports the partners shown as a CSV", () => {
     const header = readRepoFile(
       "apps/missionary/app/donors/donors-page-header.tsx",
     );
 
-    expect(header).toMatch(/<Button[\s\S]*disabled[\s\S]*>[\s\S]*Export/);
+    expect(header).toContain("downloadPartnersCsv(filtered)");
+    expect(header).not.toContain("Export is not available yet");
   });
 
   it("names loading, error, filter, sort, and pressable controls", () => {
@@ -174,10 +175,10 @@ describe("missionary Partners page module shape", () => {
     expect(detail).toContain("DonorsPageDetailContact");
     expect(detail).toContain("DonorsPageDetailRecurring");
     expect(detail).not.toContain("No activity recorded yet");
-    expect(detail).not.toContain("Mailing Address");
+    expect(detail).not.toContain("Mailing address");
     expect(detail).not.toContain("Scheduled giving commitments");
     expect(overview).toContain("No activity recorded yet");
-    expect(contact).toContain("Mailing Address");
+    expect(contact).toContain("Mailing address");
     expect(contact).toContain("CONTACT_COLOR_CLASSES");
     expect(contact).toContain("hover:text-primary");
     expect(contact).not.toMatch(
