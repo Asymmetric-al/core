@@ -3,6 +3,7 @@
 // Match the app refs correctness rule when shared root lint runs this file.
 /* eslint react-hooks/refs: "error" */
 
+import { knownDonorRecipient } from "@asym/database/hooks";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
@@ -10,6 +11,7 @@ import {
   resolveCheckoutFundId,
 } from "@asym/lib/payments/checkout-designations";
 import { formatCurrency } from "@asym/lib/utils";
+import { LabeledField } from "@asym/ui/components/primitives/labeled-field";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
   Avatar,
@@ -67,12 +69,12 @@ import {
   Landmark,
   Wallet,
   Zap,
-  Activity,
   Shield,
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import React, {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -131,6 +133,50 @@ type DonorInfo = {
   firstName: string;
   lastName: string;
 };
+type DonorInfoErrors = Partial<Record<keyof DonorInfo, string>>;
+
+const DONOR_INFO_FIELDS = ["firstName", "lastName", "email"] as const;
+// Deliberately loose: one @, something before it, and a dotted domain.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const trimDonorInfo = (info: DonorInfo): DonorInfo => ({
+  email: info.email.trim(),
+  firstName: info.firstName.trim(),
+  lastName: info.lastName.trim(),
+});
+
+const validateDonorInfo = (info: DonorInfo): DonorInfoErrors => {
+  const errors: DonorInfoErrors = {};
+  if (!info.firstName) errors.firstName = "Enter your first name.";
+  if (!info.lastName) errors.lastName = "Enter your last name.";
+  if (!info.email) errors.email = "Enter your email address.";
+  else if (!EMAIL_PATTERN.test(info.email))
+    errors.email = "Enter an email address like name@example.com.";
+  return errors;
+};
+
+/**
+ * Each checkout step replaces the last one, so the flow hands every step
+ * heading a ref that focuses it when the donor arrives there by Next or Back.
+ */
+const StepHeadingFocusContext = React.createContext<
+  React.RefCallback<HTMLHeadingElement> | undefined
+>(undefined);
+
+function StepHeading({
+  className,
+  ...props
+}: Omit<React.ComponentProps<"h1">, "ref" | "tabIndex">) {
+  const focusOnArrival = React.useContext(StepHeadingFocusContext);
+  return (
+    <h1
+      ref={focusOnArrival}
+      tabIndex={-1}
+      className={cn("outline-none", className)}
+      {...props}
+    />
+  );
+}
 type CheckoutState = {
   amount: number;
   coverFees: boolean;
@@ -357,6 +403,8 @@ const normalizeCheckoutSearchParams = (
 
 interface SummaryCardProps {
   worker: { title?: string; image?: string } | null;
+  /** Set when the gift came from a sample worker profile. */
+  sampleProfileTitle?: string | null;
   amount: number;
   frequency: Frequency;
   coverFees: boolean;
@@ -366,6 +414,7 @@ interface SummaryCardProps {
 
 function SummaryCard({
   worker,
+  sampleProfileTitle,
   amount,
   frequency,
   coverFees,
@@ -390,6 +439,12 @@ function SummaryCard({
             </p>
           </div>
         </div>
+        {sampleProfileTitle ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            {sampleProfileTitle} is a sample profile. Your gift goes to the
+            missionary account it’s linked to in this demo organization.
+          </p>
+        ) : null}
       </div>
 
       <div className="p-8 space-y-6">
@@ -627,9 +682,9 @@ function ConfigStep({
         <span className="text-sm font-medium text-foreground">
           Set Up Support
         </span>
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
+        <StepHeading className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
           Your Gift.
-        </h1>
+        </StepHeading>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
           Configure the amount of your one-time gift.
         </p>
@@ -748,6 +803,28 @@ function DetailsStep({
   onDonorInfoChange: (patch: Partial<DonorInfo>) => void;
   onNext: () => void;
 }) {
+  const [errors, setErrors] = useState<DonorInfoErrors>({});
+
+  const updateField = (field: keyof DonorInfo, value: string) => {
+    onDonorInfoChange({ [field]: value });
+    if (errors[field]) setErrors((current) => ({ ...current, [field]: "" }));
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = trimDonorInfo(donorInfo);
+    const nextErrors = validateDonorInfo(trimmed);
+    setErrors(nextErrors);
+    const firstInvalid = DONOR_INFO_FIELDS.find((field) => nextErrors[field]);
+    if (firstInvalid) {
+      const control = event.currentTarget.elements.namedItem(firstInvalid);
+      if (control instanceof HTMLElement) control.focus();
+      return;
+    }
+    onDonorInfoChange(trimmed);
+    onNext();
+  };
+
   return (
     <motion.div
       key="details"
@@ -761,66 +838,68 @@ function DetailsStep({
         <span className="text-sm font-medium text-foreground">
           Donor Information
         </span>
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
+        <StepHeading className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
           Your Details.
-        </h1>
+        </StepHeading>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
           Information for tax receipts and donation tracking.
         </p>
       </header>
 
-      <div className="bg-muted p-6 sm:p-12 rounded-3xl border border-border space-y-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div className="space-y-4">
-            <Label htmlFor="first-name">First Name</Label>
-            <Input
-              id="first-name"
-              value={donorInfo.firstName}
-              onChange={(e) => onDonorInfoChange({ firstName: e.target.value })}
-              placeholder="Jane"
-              autoComplete="given-name"
-            />
+      <form
+        noValidate
+        aria-label="Your details"
+        onSubmit={handleSubmit}
+        className="space-y-12"
+      >
+        <div className="bg-muted p-6 sm:p-12 rounded-3xl border border-border space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <LabeledField label="First Name" error={errors.firstName}>
+              <Input
+                name="firstName"
+                value={donorInfo.firstName}
+                onChange={(e) => updateField("firstName", e.target.value)}
+                placeholder="Jane"
+                autoComplete="given-name"
+              />
+            </LabeledField>
+            <LabeledField label="Last Name" error={errors.lastName}>
+              <Input
+                name="lastName"
+                value={donorInfo.lastName}
+                onChange={(e) => updateField("lastName", e.target.value)}
+                placeholder="Doe"
+                autoComplete="family-name"
+              />
+            </LabeledField>
           </div>
-          <div className="space-y-4">
-            <Label htmlFor="last-name">Last Name</Label>
+          <LabeledField
+            label="Email Address"
+            error={errors.email}
+            description="Your receipt is sent here."
+          >
             <Input
-              id="last-name"
-              value={donorInfo.lastName}
-              onChange={(e) => onDonorInfoChange({ lastName: e.target.value })}
-              placeholder="Doe"
-              autoComplete="family-name"
+              name="email"
+              type="email"
+              inputMode="email"
+              value={donorInfo.email}
+              onChange={(e) => updateField("email", e.target.value)}
+              placeholder="jane.doe@example.com"
+              autoComplete="email"
+              spellCheck={false}
             />
-          </div>
+          </LabeledField>
         </div>
-        <div className="space-y-4">
-          <Label htmlFor="email">Email Address</Label>
-          <Input
-            id="email"
-            type="email"
-            value={donorInfo.email}
-            onChange={(e) => onDonorInfoChange({ email: e.target.value })}
-            placeholder="jane.doe@example.com"
-            autoComplete="email"
-          />
-        </div>
-      </div>
 
-      <div className="flex flex-col sm:flex-row gap-6">
-        <Button variant="outline" onClick={onBack} size="lg">
-          Back
-        </Button>
-        <Button
-          variant="maia"
-          onClick={onNext}
-          disabled={
-            !donorInfo.firstName || !donorInfo.lastName || !donorInfo.email
-          }
-          size="lg"
-          className="grow"
-        >
-          Continue to Payment
-        </Button>
-      </div>
+        <div className="flex flex-col sm:flex-row gap-6">
+          <Button type="button" variant="outline" onClick={onBack} size="lg">
+            Back
+          </Button>
+          <Button type="submit" variant="maia" size="lg" className="grow">
+            Continue to Payment
+          </Button>
+        </div>
+      </form>
     </motion.div>
   );
 }
@@ -871,9 +950,9 @@ function PaymentStep({
         <span className="text-sm font-medium text-foreground">
           Payment Information
         </span>
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
+        <StepHeading className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
           Secure Payment.
-        </h1>
+        </StepHeading>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
           Safely authorize your contribution.
         </p>
@@ -994,14 +1073,10 @@ function PaymentStep({
                     Instant Bank Link
                   </h3>
                   <p className="text-foreground/80 max-w-sm mx-auto leading-relaxed">
-                    Securely connect your bank account via Stripe Financial
-                    Connections to maximize your impact with 0% credit card
-                    fees.
+                    Paying by bank transfer isn&apos;t available yet. Choose
+                    Card to complete your gift.
                   </p>
                 </div>
-                <Button variant="maia" size="lg">
-                  Connect Securely
-                </Button>
               </motion.div>
             )}
           </TabsContent>
@@ -1012,12 +1087,16 @@ function PaymentStep({
                 key="wallet"
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center justify-center h-full min-h-75"
+                className="flex flex-col items-center justify-center gap-4 h-full min-h-75 text-center"
               >
-                <Button variant="maia" size="lg">
-                  <Wallet data-icon="inline-start" aria-hidden="true" /> Pay
-                  with Apple Pay
-                </Button>
+                <Wallet
+                  className="size-10 text-foreground"
+                  aria-hidden="true"
+                />
+                <p className="text-foreground/80 max-w-sm mx-auto leading-relaxed">
+                  Paying with Apple Pay or Google Pay isn&apos;t available yet.
+                  Choose Card to complete your gift.
+                </p>
               </motion.div>
             )}
           </TabsContent>
@@ -1065,7 +1144,9 @@ function PaymentStep({
         <Button
           variant="maia"
           onClick={() => onConfirmPayment(stripe, elements)}
-          disabled={isProcessing}
+          // Only card payments are implemented; the other tabs explain that,
+          // so Confirm is not offered as an action that can only fail.
+          disabled={isProcessing || paymentMethod !== "card"}
           focusableWhenDisabled={isProcessing}
           aria-labelledby={paymentLabelId}
           size="lg"
@@ -1131,9 +1212,9 @@ function CheckoutConfigurationError({ message }: { message: string | null }) {
         <span className="text-sm font-medium text-foreground">
           Payment Information
         </span>
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
+        <StepHeading className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
           Secure Payment.
-        </h1>
+        </StepHeading>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
           Safely authorize your contribution.
         </p>
@@ -1183,24 +1264,28 @@ function resolveCheckoutSummaryWorkerTitle({
   return "Urgent Needs";
 }
 
+/** Reached with no recipient (a bare or outdated checkout link). */
 function CheckoutMissingTargetState() {
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-card">
-      <div className="text-center space-y-6">
+    <div className="min-h-dvh flex items-center justify-center bg-card px-6">
+      <div className="text-center space-y-6 max-w-md">
         <div className="size-20 bg-background rounded-3xl flex items-center justify-center mx-auto border border-border shadow-sm">
-          <Activity className="size-8 text-muted-foreground" />
+          <Heart className="size-8 text-muted-foreground" aria-hidden="true" />
         </div>
-        <h2 className="text-3xl font-semibold text-foreground font-syne">
-          Target Unspecified
-        </h2>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold text-foreground font-display text-balance">
+            Choose who you’d like to support
+          </h1>
+          <p className="text-muted-foreground leading-relaxed">
+            This link doesn’t say who the gift is for. Pick a missionary from
+            the directory to start your gift.
+          </p>
+        </div>
         <Link
           href="/workers"
-          className={cn(
-            buttonVariants(),
-            "rounded-full px-8 h-12 font-semibold font-syne text-[10px] bg-invert hover:bg-invert",
-          )}
+          className={cn(buttonVariants({ size: "lg" }), "rounded-full px-8")}
         >
-          View Missionaries
+          Find a missionary
         </Link>
       </div>
     </div>
@@ -1307,6 +1392,7 @@ function CheckoutActiveFlow({
   step,
   total,
   worker,
+  sampleProfileTitle,
 }: {
   amount: number;
   calculatedFees: number;
@@ -1326,64 +1412,91 @@ function CheckoutActiveFlow({
   step: Step;
   total: number;
   worker: { image?: string; title?: string } | null;
+  sampleProfileTitle: string | null;
 }) {
-  const summaryWorker = worker || {
-    title: resolveCheckoutSummaryWorkerTitle({
-      hasGeneralGivingTarget,
-      missionaryId,
-    }),
-  };
+  // A donor arriving from their dashboard sees who they already support.
+  const knownRecipient = knownDonorRecipient(missionaryId);
+  const summaryWorker =
+    worker ||
+    (knownRecipient
+      ? {
+          title: knownRecipient.name,
+          image: knownRecipient.avatarUrl ?? undefined,
+        }
+      : {
+          title: resolveCheckoutSummaryWorkerTitle({
+            hasGeneralGivingTarget,
+            missionaryId,
+          }),
+        });
+
+  // Headings that mount with the flow are the first view and leave focus
+  // where the browser put it; later ones were reached by Next or Back. The
+  // cleanup keeps a StrictMode remount from counting as an arrival.
+  const flowCommittedRef = useRef(false);
+  useEffect(() => {
+    flowCommittedRef.current = true;
+    return () => {
+      flowCommittedRef.current = false;
+    };
+  }, []);
+  const focusOnArrival = useCallback((node: HTMLHeadingElement | null) => {
+    if (node && flowCommittedRef.current) node.focus({ preventScroll: true });
+  }, []);
 
   return (
-    <div className="min-h-dvh bg-background font-sans pb-24 pt-24 selection:bg-invert/10">
-      <div className="container mx-auto px-6 max-w-7xl">
-        <StepIndicator currentStep={step} />
+    <StepHeadingFocusContext value={focusOnArrival}>
+      <div className="min-h-dvh bg-background font-sans pb-24 pt-24 selection:bg-invert/10">
+        <div className="container mx-auto px-6 max-w-7xl">
+          <StepIndicator currentStep={step} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
-          <div className="lg:col-span-7 space-y-16">
-            <AnimatePresence mode="wait">
-              {step === "config" ? (
-                <ConfigStep
-                  amount={amount}
-                  calculatedFees={calculatedFees}
-                  coverFees={coverFees}
-                  customAmount={customAmount}
-                  onAmountSelect={onAmountSelect}
-                  onCoverFeesChange={onCoverFeesChange}
-                  onCustomAmountChange={onCustomAmountChange}
-                  onNext={onNext}
-                />
-              ) : null}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
+            <div className="lg:col-span-7 space-y-16">
+              <AnimatePresence mode="wait">
+                {step === "config" ? (
+                  <ConfigStep
+                    amount={amount}
+                    calculatedFees={calculatedFees}
+                    coverFees={coverFees}
+                    customAmount={customAmount}
+                    onAmountSelect={onAmountSelect}
+                    onCoverFeesChange={onCoverFeesChange}
+                    onCustomAmountChange={onCustomAmountChange}
+                    onNext={onNext}
+                  />
+                ) : null}
 
-              {step === "details" ? (
-                <DetailsStep
-                  donorInfo={donorInfo}
-                  onBack={onBack}
-                  onDonorInfoChange={onDonorInfoChange}
-                  onNext={onNext}
-                />
-              ) : null}
+                {step === "details" ? (
+                  <DetailsStep
+                    donorInfo={donorInfo}
+                    onBack={onBack}
+                    onDonorInfoChange={onDonorInfoChange}
+                    onNext={onNext}
+                  />
+                ) : null}
 
-              {step === "payment" ? paymentPane : null}
-            </AnimatePresence>
+                {step === "payment" ? paymentPane : null}
+              </AnimatePresence>
+            </div>
+
+            <aside
+              aria-label="Contribution summary"
+              className="lg:col-span-5 min-w-0 lg:sticky lg:top-32 self-start"
+            >
+              <SummaryCard
+                worker={summaryWorker}
+                sampleProfileTitle={sampleProfileTitle}
+                amount={amount}
+                frequency={frequency}
+                coverFees={coverFees}
+                fees={calculatedFees}
+                total={total}
+              />
+            </aside>
           </div>
-
-          <aside
-            aria-label="Contribution summary"
-            className="lg:col-span-5 min-w-0 lg:sticky lg:top-32 self-start"
-          >
-            <SummaryCard
-              worker={summaryWorker}
-              amount={amount}
-              frequency={frequency}
-              coverFees={coverFees}
-              fees={calculatedFees}
-              total={total}
-            />
-          </aside>
         </div>
       </div>
-    </div>
+    </StepHeadingFocusContext>
   );
 }
 
@@ -1438,6 +1551,7 @@ function CheckoutFlowView({
       step={flow.step}
       total={flow.total}
       worker={flow.worker}
+      sampleProfileTitle={flow.sampleProfileTitle}
     />
   );
 }
@@ -1498,7 +1612,8 @@ function createCheckoutPaymentSubmission({
   currentRequestFingerprint: string;
   donorInfo: DonorInfo;
   total: number;
-  worker: ReturnType<typeof getFieldWorkerById> | null;
+  /** Who the gift goes to; only the title is used, for the confirmation. */
+  worker: { title?: string } | null;
   paymentAttemptIdRef: React.RefObject<number>;
   checkoutState: CheckoutState;
   currentRequestFingerprintRef: React.RefObject<string>;
@@ -1888,7 +2003,12 @@ function useCheckoutModel({
   const workerId = searchParams.workerId;
   const missionaryId = searchParams.missionaryId;
   const initialAmount = searchParams.amount;
-  const worker = workerId ? getFieldWorkerById(workerId) : null;
+  const worker = (workerId ? getFieldWorkerById(workerId) : null) ?? null;
+  // Public worker profiles are sample content. A gift from one goes to the
+  // missionary account the link designates (`missionary_id`), so the
+  // summary says so instead of implying the sample is the recipient.
+  const sampleProfileTitle =
+    missionaryId && worker?.title ? worker.title : null;
   const fundId = searchParams.fundId;
   const hasGeneralGivingTarget = isGeneralCheckoutAlias(searchParams.fundLabel);
   const hasGivingTarget = Boolean(
@@ -2181,6 +2301,7 @@ function useCheckoutModel({
       step: step,
       total: total,
       worker: worker ?? null,
+      sampleProfileTitle,
     } satisfies React.ComponentProps<typeof CheckoutActiveFlow>,
   };
 }

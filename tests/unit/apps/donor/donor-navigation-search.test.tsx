@@ -5,100 +5,113 @@ import {
   cleanup,
   fireEvent,
   render,
+  screen,
   waitFor,
+  within,
 } from "@testing-library/react";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 
-const navigation = vi.hoisted(() => ({ push: vi.fn(), signOut: vi.fn() }));
+const navigation = vi.hoisted(() => ({
+  pathname: "/donor-dashboard/history",
+  signOut: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/donor-dashboard",
-  useRouter: () => ({ push: navigation.push }),
+  usePathname: () => navigation.pathname,
+  useRouter: () => ({ push: vi.fn() }),
 }));
 vi.mock("@asym/auth/client-session", () => ({
   signOutClientSession: navigation.signOut,
 }));
-
-import { DonorSubNav } from "../../../../apps/donor/features/donor/components/DonorSubNav";
-
-const scrollDescriptor = Object.getOwnPropertyDescriptor(
-  HTMLElement.prototype,
-  "scrollIntoView",
-);
-beforeEach(() => {
-  Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
-    configurable: true,
-    value: vi.fn(),
-  });
-  vi.stubGlobal(
-    "ResizeObserver",
-    class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
+vi.mock("@asym/database/hooks", () => ({
+  useDonorPortalSnapshot: () => ({ data: undefined }),
+}));
+vi.mock("@asym/lib/hooks", () => ({
+  useAuth: () => ({
+    user: null,
+    loading: false,
+    profile: {
+      first_name: "Avery",
+      last_name: "Lopez",
+      email: "avery@example.test",
+      avatar_url: null,
     },
-  );
-});
+  }),
+}));
 
-it("keeps sign-out pending and prevents a duplicate session operation", async () => {
-  let finish = () => {};
-  navigation.signOut.mockImplementation(
-    () =>
-      new Promise<void>((resolve) => {
-        finish = resolve;
-      }),
-  );
-  const view = render(<DonorSubNav />);
-  const button = view.getByRole("button", { name: "Sign out", exact: true });
-  fireEvent.click(button);
-  await waitFor(() =>
-    expect(view.getByRole("button", { name: "Signing out…" })).toBeTruthy(),
-  );
-  const pending = view.getByRole("button", { name: "Signing out…" });
-  expect(pending.getAttribute("aria-disabled")).toBe("true");
-  expect(pending.getAttribute("aria-busy")).toBe("true");
-  expect(view.getByRole("status").textContent).toBe("Signing out…");
-  fireEvent.click(pending);
-  expect(navigation.signOut).toHaveBeenCalledTimes(1);
-  await act(async () => finish());
-  await waitFor(() =>
-    expect(
-      view.getByRole("button", { name: "Sign out", exact: true }),
-    ).toBeTruthy(),
-  );
-});
+import { DonorPortalHeader } from "../../../../apps/donor/features/donor/components/donor-portal-header";
+
 afterEach(() => {
   cleanup();
-  vi.unstubAllGlobals();
-  if (scrollDescriptor)
-    Object.defineProperty(
-      HTMLElement.prototype,
-      "scrollIntoView",
-      scrollDescriptor,
-    );
-  else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+  vi.clearAllMocks();
+  navigation.pathname = "/donor-dashboard/history";
 });
 
-it("searches only donor workspace pages through the existing router", async () => {
-  const view = render(<DonorSubNav />);
-  fireEvent.click(view.getByRole("button", { name: "Search donor pages" }));
-  const search = await view.findByRole("combobox", {
-    name: "Search donor navigation",
+it("names every portal section once and marks the current one", () => {
+  render(<DonorPortalHeader />);
+  // Desktop tabs and the phone tab bar share one name; only one shows per width.
+  const [tabs, phone] = screen.getAllByRole("navigation", {
+    name: "Donor workspace",
   });
-  expect(view.getAllByRole("option").map((item) => item.textContent)).toEqual([
+  // Below xl a tab shows its short name; its full name is the xl one.
+  expect(
+    within(tabs!)
+      .getAllByRole("link")
+      .map(
+        (link) =>
+          link.querySelector(".xl\\:inline")?.textContent ?? link.textContent,
+      ),
+  ).toEqual([
     "Overview",
-    "Donation History",
-    "Ministry Updates",
-    "Recurring Giving",
-    "Wallet",
-    "Settings",
+    "Updates",
+    "Giving history",
+    "Recurring gifts",
+    "Payment methods",
   ]);
   expect(
-    view.queryByRole("option", { name: /Sign out|Admin|Checkout/ }),
+    within(phone!)
+      .getAllByRole("link")
+      .map((link) => link.textContent),
+  ).toEqual(["Overview", "Updates", "Giving", "Recurring", "Payments"]);
+  expect(
+    within(tabs!)
+      .getByRole("link", { name: /Giving history/ })
+      .getAttribute("aria-current"),
+  ).toBe("page");
+  expect(
+    within(tabs!)
+      .getByRole("link", { name: "Overview" })
+      .getAttribute("aria-current"),
   ).toBeNull();
-  fireEvent.change(search, { target: { value: "settings" } });
-  fireEvent.click(await view.findByRole("option", { name: "Settings" }));
-  expect(navigation.push).toHaveBeenCalledExactlyOnceWith(
-    "/donor-dashboard/settings",
+});
+
+it("keeps Give and the account menu in the header, with sign-out inside the menu", async () => {
+  let finish = () => {};
+  navigation.signOut.mockImplementation(
+    () => new Promise<void>((resolve) => (finish = resolve)),
   );
-  await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
+  render(<DonorPortalHeader />);
+  expect(screen.getByRole("link", { name: "Give" }).getAttribute("href")).toBe(
+    "/workers",
+  );
+  // Sign-out is not a top-level control any more.
+  expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Account menu for Avery Lopez" }),
+  );
+  const menu = await screen.findByRole("menu");
+  expect(within(menu).getByText("avery@example.test")).toBeTruthy();
+  // Settings is a header link of its own, so it can show when it's current.
+  expect(within(menu).queryByRole("menuitem", { name: "Settings" })).toBeNull();
+  expect(
+    within(screen.getByRole("banner"))
+      .getByRole("link", { name: "Settings" })
+      .getAttribute("href"),
+  ).toBe("/donor-dashboard/settings");
+  fireEvent.click(within(menu).getByRole("menuitem", { name: "Sign out" }));
+  await waitFor(() =>
+    expect(screen.getByRole("status").textContent).toBe("Signing out…"),
+  );
+  expect(navigation.signOut).toHaveBeenCalledTimes(1);
+  await act(async () => finish());
 });

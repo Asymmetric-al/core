@@ -6,6 +6,11 @@ import {
   workerHeroImageTransitionName,
   workerTitleTransitionName,
 } from "@asym/lib/view-transitions";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
@@ -34,6 +39,7 @@ import {
   Sparkles,
   Activity,
   ArrowRight,
+  Info,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -407,6 +413,17 @@ function WorkerDirectoryResults({
 }) {
   return (
     <div className="container-responsive py-16 sm:py-20 lg:py-24">
+      {/* The directory is static demo data (@asym/mock-data). */}
+      <Alert variant="info" role="note" className="mb-8 sm:mb-12">
+        <Info aria-hidden="true" />
+        <AlertTitle>Sample profiles</AlertTitle>
+        <AlertDescription>
+          <p>
+            Everyone in this directory is demo content, including their stories,
+            photos and funding progress.
+          </p>
+        </AlertDescription>
+      </Alert>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-12 gap-4 sm:gap-6">
         <div className="space-y-1 sm:space-y-2">
           <span className="text-sm font-medium text-muted-foreground ">

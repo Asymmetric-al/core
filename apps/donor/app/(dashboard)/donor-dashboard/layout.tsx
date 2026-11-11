@@ -1,12 +1,12 @@
 import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
-import { Footer } from "@asym/ui/components/public/footer";
-import { Navbar } from "@asym/ui/components/public/navbar";
+import { siteConfig } from "@asym/config/site-client";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { DonorSubNav } from "../../../features/donor/components/DonorSubNav";
+import { DonorPortalHeader } from "../../../features/donor/components/donor-portal-header";
 
 import type { Metadata } from "next";
 
@@ -30,9 +30,8 @@ export default function DonorDashboardLayout({
 }) {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <Navbar variant="solid" />
-      <div className="flex flex-1 flex-col pt-16">
-        <DonorSubNav />
+      <DonorPortalHeader />
+      <div className="flex flex-1 flex-col">
         <main id="main-content" className="flex-1 pt-8 pb-20">
           <RouteMainViewTransitionBoundary className="container-responsive">
             {/*
@@ -48,8 +47,33 @@ export default function DonorDashboardLayout({
           </RouteMainViewTransitionBoundary>
         </main>
       </div>
-      <Footer />
+      <DonorPortalFooter />
     </div>
+  );
+}
+
+/** A quiet footer for signed-in donors: the legal pages and help. */
+function DonorPortalFooter() {
+  const links = [
+    { label: "Privacy", href: "/privacy" },
+    { label: "Terms", href: "/terms" },
+    { label: "Help", href: "/help/about" },
+  ];
+  return (
+    <footer className="border-t border-border pb-20 md:pb-0">
+      <div className="container-responsive flex flex-col gap-2 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <p>{siteConfig.name}</p>
+        <ul className="flex gap-4">
+          {links.map((link) => (
+            <li key={link.href}>
+              <Link href={link.href} className="hover:text-foreground">
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </footer>
   );
 }
 

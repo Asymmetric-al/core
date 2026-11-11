@@ -23,7 +23,6 @@ import {
   Users,
   ShieldCheck,
   Heart,
-  Mail,
   Sparkles,
   X,
 } from "lucide-react";
@@ -380,17 +379,17 @@ export function FAQPageClient() {
               Still have questions?
             </h2>
             <p className="text-invert-foreground/75 text-lg max-w-md font-light leading-relaxed">
-              Can&apos;t find the answer you&apos;re looking for? Our Donor
-              Relations team is here to help personally.
+              Your gifts, receipts and saved payment methods are all in the
+              donor portal.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full md:w-auto">
             <Link
-              href="/contact"
+              href="/donor-dashboard"
               className={cn(buttonVariants({ variant: "inverse", size: "lg" }))}
             >
-              <Mail className="mr-2 size-5" /> Email Support
+              Open the donor portal
             </Link>
           </div>
         </div>

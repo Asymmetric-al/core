@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
@@ -28,11 +29,36 @@ vi.mock("@asym/database/hooks", () => ({
         phone: null,
         avatarUrl: null,
       },
+      donor: {
+        doNotEmail: false,
+        givingPreferences: {
+          causes: ["water"],
+          defaultAnonymousToRecipient: false,
+        },
+        address: {
+          street: "12 Elm St",
+          street2: "",
+          city: "Portland",
+          state: "OR",
+          zip: "97201",
+          country: "",
+        },
+      },
     },
   }),
   useUpdateDonorPortal: () => ({
     isPending: fixture.pending,
     mutateAsync: fixture.mutateAsync,
+  }),
+}));
+vi.mock("@asym/database/supabase", () => ({
+  createBrowserClient: () => ({
+    auth: {
+      getUser: vi.fn(),
+      signInWithPassword: vi.fn(),
+      updateUser: vi.fn(),
+      signOut: vi.fn(),
+    },
   }),
 }));
 vi.mock("@asym/lib/view-transitions", () => ({
@@ -62,11 +88,11 @@ it("announces profile saving and completion while keeping the save action disabl
       }),
   );
   const view = render(<DonorSettingsPage />);
-  fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
   fixture.pending = true;
   view.rerender(<DonorSettingsPage />);
-  expect(screen.getByRole("status").textContent).toBe("Saving profile…");
-  const save = screen.getByRole("button", { name: "Saving..." });
+  expect(screen.getByRole("status").textContent).toBe("Saving…");
+  const save = screen.getByRole("button", { name: "Saving…" });
   expect(save.getAttribute("aria-disabled")).toBe("true");
   fireEvent.click(save);
   expect(fixture.mutateAsync).toHaveBeenCalledTimes(1);
@@ -75,93 +101,131 @@ it("announces profile saving and completion while keeping the save action disabl
   });
   fixture.pending = false;
   view.rerender(<DonorSettingsPage />);
-  expect(screen.getByRole("status").textContent).toBe("Profile saved.");
+  expect(screen.getByRole("status").textContent).toBe("Saved.");
 });
 
 it.each([false, true])(
-  "gives profile, notification and security sections keyboard-operated tabs and named panels (desktop=%s)",
+  "gives profile, email & privacy and security sections keyboard-operated tabs and named panels (desktop=%s)",
   async (desktop) => {
     fixture.desktop = desktop;
     render(<DonorSettingsPage />);
-    const profile = screen.getByRole("tab", { name: "My Profile" });
+    const profile = screen.getByRole("tab", { name: "Profile" });
     expect(profile.getAttribute("aria-selected")).toBe("true");
-    expect(screen.getByRole("tabpanel", { name: "My Profile" })).toBeTruthy();
+    expect(screen.getByRole("tabpanel", { name: "Profile" })).toBeTruthy();
     profile.focus();
     fireEvent.keyDown(profile, { key: desktop ? "ArrowDown" : "ArrowRight" });
-    const notifications = screen.getByRole("tab", { name: "Notifications" });
-    await waitFor(() => expect(document.activeElement).toBe(notifications));
+    const email = screen.getByRole("tab", { name: "Email & privacy" });
+    await waitFor(() => expect(document.activeElement).toBe(email));
     // jsdom has no native Enter-to-click default; activate the focused tab.
-    fireEvent.click(notifications);
-    await waitFor(() => {
-      expect(notifications.getAttribute("aria-selected")).toBe("true");
-      expect(
-        screen.getByRole("tabpanel", { name: "Notifications" }),
-      ).toBeTruthy();
-    });
-    fireEvent.click(screen.getByRole("tab", { name: "Security" }));
+    fireEvent.click(email);
     await waitFor(() =>
-      expect(screen.getByRole("tabpanel", { name: "Security" })).toBeTruthy(),
+      expect(
+        screen.getByRole("tabpanel", { name: "Email & privacy" }),
+      ).toBeTruthy(),
     );
-    const password = screen.getByLabelText("Current Password");
-    fireEvent.change(password, { target: { value: "unchanged-password" } });
-    fireEvent.click(
-      screen.getByRole("button", { name: "Show Current Password" }),
-    );
-    expect(password.getAttribute("type")).toBe("text");
-    expect((password as HTMLInputElement).value).toBe("unchanged-password");
+    fireEvent.click(screen.getByRole("tab", { name: "Security" }));
+    const security = await screen.findByRole("tabpanel", { name: "Security" });
+    // Real security controls only: no two-factor or session placeholders.
     expect(
-      screen
-        .getByRole("button", { name: "Hide Current Password" })
-        .getAttribute("aria-pressed"),
-    ).toBe("true");
-    fireEvent.click(
-      screen.getByRole("button", { name: "Hide Current Password" }),
-    );
-    expect(password.getAttribute("type")).toBe("password");
+      within(security).getByRole("form", { name: "Change password" }),
+    ).toBeTruthy();
+    expect(
+      within(security).getByRole("button", { name: "Sign out other devices" }),
+    ).toBeTruthy();
+    expect(within(security).queryByText(/not available/i)).toBeNull();
+    expect(within(security).queryByText(/two-factor/i)).toBeNull();
+    expect(within(security).queryByText(/contact support/i)).toBeNull();
   },
 );
 
-it("preserves edited profile values through validation, snapshot rerenders, a save failure and retry", async () => {
-  fixture.mutateAsync
-    .mockRejectedValueOnce(new Error("save unavailable"))
-    .mockResolvedValueOnce(undefined);
-  const view = render(<DonorSettingsPage />);
-  const firstName = screen.getByRole("textbox", { name: "First Name" });
-  const lastName = screen.getByRole("textbox", { name: "Last Name" });
-  const phone = screen.getByRole("textbox", { name: "Phone Number" });
-  fireEvent.change(firstName, { target: { value: "" } });
-  fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
-  expect(screen.getByRole("alert").textContent).toBe("First name is required.");
-  expect(fixture.mutateAsync).not.toHaveBeenCalled();
-  fireEvent.change(firstName, { target: { value: "Pat" } });
-  fireEvent.change(lastName, { target: { value: "Garcia" } });
-  fireEvent.change(phone, { target: { value: "555-2020" } });
-  view.rerender(<DonorSettingsPage />);
-  expect((firstName as HTMLInputElement).value).toBe("Pat");
-  expect((lastName as HTMLInputElement).value).toBe("Garcia");
-  expect(
-    screen
-      .getByRole("textbox", { name: "Email Address" })
-      .hasAttribute("disabled"),
-  ).toBe(true);
-  fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+it("saves the mailing address with the profile", async () => {
+  fixture.mutateAsync.mockResolvedValue(undefined);
+  render(<DonorSettingsPage />);
+  fireEvent.change(screen.getByRole("textbox", { name: "Apartment, suite" }), {
+    target: { value: "Apt 4" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
   await waitFor(() =>
-    expect(screen.getByRole("alert").textContent).toBe(
-      "Couldn't save your changes.",
+    expect(fixture.mutateAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: {
+          street: "12 Elm St",
+          street2: "Apt 4",
+          city: "Portland",
+          state: "OR",
+          zip: "97201",
+        },
+      }),
     ),
   );
-  expect(fixture.mutateAsync).toHaveBeenLastCalledWith({
-    firstName: "Pat",
-    lastName: "Garcia",
-    displayName: "Pat Garcia",
-    phone: "555-2020",
-    avatarUrl: null,
+});
+
+it("asks for a street and city before saving a partial address", async () => {
+  render(<DonorSettingsPage />);
+  fireEvent.change(screen.getByRole("textbox", { name: "Street address" }), {
+    target: { value: "" },
   });
-  expect((firstName as HTMLInputElement).value).toBe("Pat");
-  expect((phone as HTMLInputElement).value).toBe("555-2020");
-  fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
-  await waitFor(() =>
-    expect(screen.getByRole("status").textContent).toBe("Profile saved."),
+  fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+  expect(
+    await screen.findByText(
+      "Add the street address, or clear the whole address.",
+    ),
+  ).toBeTruthy();
+  expect(fixture.mutateAsync).not.toHaveBeenCalled();
+});
+
+it("saves email and privacy choices as soon as they change", async () => {
+  fixture.mutateAsync.mockResolvedValue(undefined);
+  render(<DonorSettingsPage />);
+  fireEvent.click(screen.getByRole("tab", { name: "Email & privacy" }));
+  const panel = await screen.findByRole("tabpanel", {
+    name: "Email & privacy",
+  });
+
+  fireEvent.click(
+    within(panel).getByRole("switch", { name: "News and appeals" }),
   );
-  expect(fixture.mutateAsync).toHaveBeenCalledTimes(2);
+  await waitFor(() =>
+    expect(fixture.mutateAsync).toHaveBeenCalledWith({ doNotEmail: true }),
+  );
+
+  fireEvent.click(
+    within(panel).getByRole("switch", {
+      name: "Show my name to the missionaries I support",
+    }),
+  );
+  await waitFor(() =>
+    expect(fixture.mutateAsync).toHaveBeenCalledWith({
+      givingPreferences: {
+        causes: ["water"],
+        defaultAnonymousToRecipient: true,
+      },
+    }),
+  );
+  // Nothing on this tab pretends to control emails no one sends.
+  expect(
+    within(panel).queryByText(/sms|video stories|monthly statements/i),
+  ).toBeNull();
+});
+
+it("shows the sign-in email as text the organization manages", () => {
+  render(<DonorSettingsPage />);
+  const email = screen.getByRole("group", { name: "Sign-in email" });
+  expect(email.textContent).toContain("fixture@example.test");
+  expect(screen.queryByRole("textbox", { name: "Sign-in email" })).toBeNull();
+});
+
+it("keeps unsaved profile edits when the donor checks another tab", async () => {
+  fixture.desktop = true;
+  render(<DonorSettingsPage />);
+  fireEvent.change(screen.getByLabelText("First name"), {
+    target: { value: "Ava" },
+  });
+  fireEvent.click(screen.getByRole("tab", { name: "Email & privacy" }));
+  fireEvent.click(screen.getByRole("tab", { name: "Profile" }));
+  await waitFor(() =>
+    expect(
+      (screen.getByLabelText("First name") as HTMLInputElement).value,
+    ).toBe("Ava"),
+  );
 });
