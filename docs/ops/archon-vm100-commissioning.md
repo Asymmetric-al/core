@@ -947,10 +947,15 @@ it.
 | 21:54 | #2207's publish failed the pre-push gate at `format`; the factory ran a repair round and reviewed again           |
 | 22:18 | #2207 published as PR #2660: both reviews clear, final acceptance passed                                          |
 | 22:39 | #2207 ready (PR #2660)                                                                                            |
-| 22:42 | Intake paused as the final recorded checkpoint                                                                    |
+| 22:42 | Intake paused as a recorded checkpoint; the fourth review round ran on this state                                 |
+| 23:29 | Release `2cfd7082` installed from commit `629fffb17` (defects 31 to 33); intake stayed paused                     |
+| 23:29 | #2239 stopped, moved to the new release and reopened, to have the factory review its candidate again              |
+| 23:32 | Timer pass started that round: both reviews clear with no finding, final acceptance passed, pre-push gate passed  |
+| 23:42 | PR #2659 republished with its description rewritten; 23:52 #2239 ready again                                      |
 
-PR #2660 (issue #2207) at 22:42: head `b28f1911`, mergeable, clean, all 24
-checks successful on that head, no review thread, no required approval. The
+PR #2660 (issue #2207) at 22:42: head `b28f1911`, mergeable, clean, 24
+checks successful and 3 skipped on that head, no review thread, no required
+approval. The
 bots reported no finding; CodeRabbit and Codex reviewed this head. Its
 description states the reviews with the corrected wording (defect 27).
 
@@ -1047,8 +1052,8 @@ round, repaired test-first in commit `3387942ac`, and were in release
     committed nothing straight to the implementer, as the existing rule for a
     failed step already did. Only the run that records acceptance tests may
     commit them, so that round would have set the tests aside and blocked the
-    issue. This was reproduced in a test, not seen live. Such a round now
-    defines acceptance again, after an interruption, a failed step or a stop.
+    issue. This was reproduced in a test, not seen live. The first repair
+    (define acceptance again) was replaced by defect 31's.
 27. The pull request said "Micaiah CLEAR" for a review sealed with a finding
     that Samson assessed as not material (PR #2659). The description now says
     that findings were raised and not upheld, and a long brief ends at a line
@@ -1067,8 +1072,26 @@ round, repaired test-first in commit `3387942ac`, and were in release
     and the reset directory were missing.
 
 Defects 26 to 30 were found by the third review round, repaired test-first in
-commit `3c79dc7b4`, and are in release `52dcbf1c`, whose 103 installed pack
-files hash identically to that commit.
+commit `3c79dc7b4`, and were in release `52dcbf1c`, whose 103 installed pack
+files hashed identically to that commit.
+
+31. Defect 26 had a third way in that its repair missed: pre-commit hooks
+    rejecting a round's first commit. The cause was one rule in the commit
+    step (a run could commit only acceptance tests recorded in that same
+    run). The commit step now carries every acceptance test the work item
+    records that no commit holds yet, and only with exactly the recorded
+    content; a changed one still blocks. A round that defined acceptance and
+    committed nothing goes to the implementer again, as first designed.
+32. A stray file that was staged and in no commit made the cleanup before a
+    commit fail. It is now unstaged and kept as evidence.
+33. The semicolon rule of defect 29 also joined "#50; #51 is required" into
+    one list. Only a bare list of issues is a list now.
+
+Defects 31 to 33 were found by the fourth review round, repaired test-first in
+commit `629fffb17`, and are in release `2cfd7082`, whose 103 installed pack
+files hash identically to that commit. One suggestion of that round was not
+taken: blocking on files left outside an issue's assigned paths is deliberate
+and keeps its test; the runbook says what to do when it happens.
 
 Console (release 7): saving a scope erased the per-issue end states that limit
 what may merge; 38 pack refusal codes were shown as "effect unknown"; the work
@@ -1100,12 +1123,18 @@ unattended use on a wider scope, 8 for the exercise) and Gemini 4 Carbon
 "changes still required" (7 and 8); GPT-6.1 Sol again did not run (usage
 limit). Both confirmed that #2239 was delivered unattended and that the
 installed release matched its commit. Their findings are defects 26 to 30.
-The result of the review of the final state below is in the description of
-pull request #2651.
+
+A fourth round reviewed commit `942b8687d` and the 22:44 state. Claude Fable
+5.2 and Gemini 4 Carbon both answered "changes still required" (6 and 7.5 out
+of 10 for unattended use on a wider scope; 8 and 8.5 for the exercise), for
+defect 31; GPT-6.1 Sol did not run (usage limit). Both confirmed that #2207
+recovered from the deliberate restart by itself, that PR #2660 is ready and
+that the installed release matched its commit. The result of the review of
+the final state below is in the description of pull request #2651.
 
 ### Operator interventions in this pass
 
-Every operator action from 13:22 to 22:42, by kind:
+Every operator action from 13:22 to 23:52, by kind:
 
 - **Scope:** approved at 13:22 (2206, 2215, 2228 added), at 19:24 (2239, 2208
   added) and at 21:25 (2205, 2207 added).
@@ -1113,12 +1142,13 @@ Every operator action from 13:22 to 22:42, by kind:
   intake start at 14:11, the only pass the timer did not start), paused
   15:15, resumed 17:13, paused 18:02, resumed 19:24, paused 20:43, resumed
   21:25, paused 22:42.
-- **Releases:** six installs, each with an engine restart: 13:55, 14:11,
-  17:13 (`620140dd`), 18:25 (`345cc035`), 19:21 (`d44390a5`) and 21:24
-  (`52dcbf1c`).
+- **Releases:** seven installs, each with an engine restart: 13:55, 14:11,
+  17:13 (`620140dd`), 18:25 (`345cc035`), 19:21 (`d44390a5`), 21:24
+  (`52dcbf1c`) and 23:29 (`2cfd7082`).
 - **Moving issues to a new release:** `adopt-policy` then `retry` or `reopen`
   for #2206 and #2215 at 17:13, for #2215 and #2228 at 18:26, and
-  `adopt-policy` then `retry` for #2228 at 19:21 and 19:22.
+  `adopt-policy` then `retry` for #2228 at 19:21 and 19:22, and `stop`,
+  `adopt-policy` and `reopen` for #2239 at 23:29.
 - **Stops:** #2215 at 15:15, and #2215 and #2228 at 18:07, to settle them
   before the 17:13 and 18:25 installs.
 - **Configuration:** the check-queue wait raised to 30 minutes in the
@@ -1145,9 +1175,16 @@ Automatic selection of the next issue, two issues side by side, recovery from
 an engine restart (a waiting round, and a round in review with a leftover
 container) and the blocked notice each ran with no operator. Recovery of a
 round interrupted after its candidate was committed (defect 21) was proven on
-the running system at 21:48 with #2207. The rule for a round interrupted
-between acceptance and the first commit (defect 26) is tested and was not
-exercised live.
+the running system at 21:48 with #2207. The rule for a round that ends
+between acceptance and its first commit (defects 26 and 31) is tested against
+real repositories in the test suite and was not exercised live.
+
+The final release `2cfd7082` was exercised by the re-review of #2239 at 23:32
+(freeze of the recorded candidate, both reviews, final acceptance, pre-push
+gate, publication, readiness). That run was started by an operator through the
+documented update steps and built nothing new: no issue has gone from
+admission to a ready pull request on `2cfd7082` itself. #2239 did so on
+`d44390a5` and #2207 on `52dcbf1c`.
 
 ### Still open
 
@@ -1186,14 +1223,21 @@ exercised live.
 - **Finished workspaces** (about 3 GB each) are not pruned.
 - **Not exercised live:** identity drift, an interrupted publish or merge, the
   engine's handling of a real usage limit under two lanes, a failed required
-  check on a published head, and an interruption between acceptance and the
-  first commit (defect 26).
-- **One unexplained retry.** #2207's first publish after the restart failed
-  the pre-push gate at `format`; the same commit passed it two rounds later.
-  The factory recovered by itself at the cost of one round. The cause was not
-  established.
-- **PR #2659** still says "Micaiah CLEAR" and has CodeRabbit's deploy-checklist
-  request unanswered (defects 27 and 28 were repaired afterwards).
+  check on a published head, a round that ends between acceptance and its
+  first commit (defects 26 and 31), and a full delivery on the final release.
+- **A crashed gate tool costs a round.** #2207's first publish after the
+  restart failed the pre-push gate at `format` because the Prettier process
+  crashed (SIGSEGV) in the check container. The factory treated it as a
+  failed gate, ran a repair round that changed nothing and passed the gate on
+  the same commit. It does not tell a crashed tool from a failed check.
+- **A narrow window remains:** a round interrupted between its commit and the
+  record of that commit starts again from the recorded state, and the
+  unrecorded commit is left out of the branch.
+- **Files left outside an issue's paths block it** (`acceptance-strays`), by
+  design; the runbook has the steps.
+- **PR #2659:** its description was rewritten by the factory at 23:42 and is
+  accurate. CodeRabbit's deploy-checklist request there is still unanswered:
+  the guidance of defect 28 applies to new feedback and was not triggered.
 - **#2205 needs a decision:** the check it asks for cannot pass unless
   protected skill documents are edited, which the issue does not authorize.
 - **This pass merged nothing.** The factory's own merge was proven once, on

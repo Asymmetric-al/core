@@ -7,11 +7,11 @@ evidence and open checks: [commissioning record](archon-vm100-commissioning.md).
 The paths and commands below are operating guidance, not a fresh readback of
 the installed release or services.
 
-## Current state - 12 November 2026, 22:45 UTC
+## Current state - 12 November 2026, 23:55 UTC
 
 Intake is **paused** (`final checkpoint`), nothing is running, and nothing new
-is admitted. Release `52dcbf1caeab6576` is installed, built from commit
-`3c79dc7b4`. The scope holds issues 2205, 2206, 2207, 2208, 2215, 2228, 2233,
+is admitted. Release `2cfd7082f6ec0443` is installed, built from commit
+`629fffb17`. The scope holds issues 2205, 2206, 2207, 2208, 2215, 2228, 2233,
 2234 and 2239, all to a ready pull request (2233 was allowed to merge):
 
 | Issue | State                                                                |
@@ -28,8 +28,8 @@ is admitted. Release `52dcbf1caeab6576` is installed, built from commit
 
 The five open pull requests wait for the owner; the factory merges only an
 issue whose approved end state is `MERGED`. To admit more work, approve a
-scope and run `factory resume-intake`. #2206, #2215, #2228 and #2239 are bound
-to earlier releases: to have the factory work on one of their open pull
+scope and run `factory resume-intake`. #2206, #2207, #2215 and #2228 are bound
+to earlier releases (#2239 is on the installed one): to have the factory work on one of their open pull
 requests again, stop it, `adopt-policy`, then `reopen` (Updates, step 7),
 which reviews the candidate again. Do not do that for an issue whose pull
 request is already merged. Before changing a release, read the open checks in
