@@ -20,9 +20,9 @@ narrower route.
 - Add the native policy to the 20 skills and regenerate the runtime mirrors
   and installed-payload hashes.
 - Add a catalog test: every explicit-only skill carries the native policy.
-- Make the policy survive an upstream refresh. The managed adapter derives it
-  from Core's explicit-only frontmatter and creates the metadata file when
-  upstream ships none. The two directly copied skills preserve the file.
+- Make the policy survive an upstream refresh. Both refresh paths derive it
+  from the final explicit-only frontmatter and create the metadata file when
+  upstream ships none.
 - Route domain reading in `tdd`, `diagnosing-bugs` and
   `improve-codebase-architecture` through `docs/agents/domain.md`, and replace
   the full-suite instruction in `implement` with the repository gate policy.
@@ -32,10 +32,10 @@ narrower route.
 
 - No skill is added, removed or reclassified. Model-invocable skills stay
   model-invocable.
-- `skills-lock.json` is unchanged; its hashes describe upstream sources.
-- The Cursor Team Kit refresh path gains no preservation step. A refresh that
-  drops the policy from `pr-review-canvas` or
-  `thermo-nuclear-code-quality-review` fails the catalog test instead.
+- `skills-lock.json` is unchanged; its hashes describe upstream sources. The
+  `treeHash` it records for `pr-review-canvas` and
+  `thermo-nuclear-code-quality-review` predates the new metadata file. No
+  script reads that value, and the next Cursor Team Kit refresh rewrites it.
 
 ## Impact
 

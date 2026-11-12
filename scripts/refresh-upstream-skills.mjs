@@ -13,6 +13,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   applyManagedSkillCompatibility,
+  ensureExplicitOnlyNativePolicy,
   formatManagedSkillOutput,
 } from "./lib/managed-skill-compatibility.mjs";
 import {
@@ -164,19 +165,13 @@ const upstreamSources = [
     sourceGroup: "nicobailon/grill-for-unknowns",
     skillName: "grill-for-unknowns",
     from: path.join(repoRoot, ".agents", "skills", "grill-for-unknowns"),
-    // Core marks this skill explicit-only; upstream ships no Codex metadata.
-    preserve: ["references/upstream.md", "agents/openai.yaml"],
+    preserve: ["references/upstream.md"],
   },
   {
     sourceGroup: "anthropics/skills",
     skillName: "frontend-design",
     from: path.join(repoRoot, ".agents", "skills", "frontend-design"),
-    // Core marks this skill explicit-only; upstream ships no Codex metadata.
-    preserve: [
-      "references/upstream.md",
-      "references/LICENSE.md",
-      "agents/openai.yaml",
-    ],
+    preserve: ["references/upstream.md", "references/LICENSE.md"],
   },
   {
     sourceGroup: "mattpocock/skills",
@@ -2681,6 +2676,8 @@ async function prepareGithubSkillRefresh({
     await formatSkillTarget(staging);
     await restoreCoreOverlay(staging, preservedCoreOverlay, skillName);
     await applyPostRefreshReplacements(skillName, staging);
+    // The final frontmatter is settled here; keep Codex's native policy in step.
+    await ensureExplicitOnlyNativePolicy(staging);
 
     const hash = await sha256File(path.join(staging, "SKILL.md"));
     await writeUpstreamMetadata({
@@ -3026,6 +3023,8 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
     await applyManagedSkillCompatibility(skillName, staging);
     await restoreCoreOverlay(staging, preservedCoreOverlay, skillName);
     await applyPostRefreshReplacements(skillName, staging);
+    // The final frontmatter is settled here; keep Codex's native policy in step.
+    await ensureExplicitOnlyNativePolicy(staging);
     await formatManagedSkillOutput(skillName, staging);
     await assertPostRefreshCompatibility(skillName, staging);
     await assertReviewedSkillFileModes(skillName, staging);

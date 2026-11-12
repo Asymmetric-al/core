@@ -3,8 +3,9 @@
 - [x] 1.1 Add a catalog test that fails for an explicit-only skill without
       native Codex policy.
 - [x] 1.2 Add the policy to the 20 canonical skills.
-- [x] 1.3 Derive the policy in the managed refresh adapter, create missing
-      metadata, and preserve it for the two directly copied skills.
+- [x] 1.3 Derive the policy from the final frontmatter in one shared step,
+      create missing metadata, and call it from the managed adapter and both
+      refresh paths.
 - [x] 1.4 Regenerate runtime mirrors and installed-payload hashes.
 
 ## 2. Imported skill wording

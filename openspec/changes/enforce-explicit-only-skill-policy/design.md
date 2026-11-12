@@ -9,10 +9,13 @@ decided separately.
   metadata get the policy appended.
 - **Refresh.** `scripts/lib/managed-skill-compatibility.mjs` already wrote the
   policy for two flagged skills and skipped silently when the file was
-  missing. It now applies whenever the configured Core frontmatter is
-  explicit-only and creates the file when needed. `frontend-design` and
-  `grill-for-unknowns` are copied without the adapter, so their preserve lists
-  keep the file.
+  missing. One exported step, `ensureExplicitOnlyNativePolicy`, now reads the
+  final `SKILL.md` and writes the policy whenever its frontmatter is
+  explicit-only, creating the file when needed. The managed adapter calls it,
+  and so do both refresh paths in `scripts/refresh-upstream-skills.mjs` after
+  their last frontmatter replacement, including the GitHub clone path that
+  never runs the adapter. Only an active key counts; a commented-out key is
+  not treated as a policy.
 - **Guard.** `tests/unit/docs/explicit-only-skill-policy.test.ts` checks both
   the canonical tree and the Codex runtime tree, so a refresh on any path that
   drops the policy fails with the fix in its message.

@@ -11,7 +11,10 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { applyManagedSkillCompatibility } from "../../../scripts/lib/managed-skill-compatibility.mjs";
+import {
+  applyManagedSkillCompatibility,
+  ensureExplicitOnlyNativePolicy,
+} from "../../../scripts/lib/managed-skill-compatibility.mjs";
 
 const repo = process.cwd();
 const fixtureRoot = path.join(repo, "tests/fixtures/managed-skill-refresh");
@@ -44,6 +47,26 @@ async function restoredSkill(name: string) {
 
 const metadata = (root: string) =>
   readFile(path.join(root, "agents/openai.yaml"), "utf8");
+
+async function skillTree(frontmatter: string, openaiYaml?: string) {
+  await mkdir(path.join(repo, ".tmp"), { recursive: true });
+  const root = await mkdtemp(path.join(repo, ".tmp/explicit-policy-test-"));
+  roots.push(root);
+  await writeFile(
+    path.join(root, "SKILL.md"),
+    `---
+${frontmatter}
+---
+
+# Fixture
+`,
+  );
+  if (openaiYaml !== undefined) {
+    await mkdir(path.join(root, "agents"), { recursive: true });
+    await writeFile(path.join(root, "agents/openai.yaml"), openaiYaml);
+  }
+  return root;
+}
 
 afterEach(async () => {
   for (const root of roots.splice(0))
@@ -110,5 +133,64 @@ describe("explicit-only policy after an upstream refresh", () => {
       "disable-model-invocation: true",
     );
     await expect(metadata(root)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+});
+
+// Both refresh paths call this once the final SKILL.md is settled, including
+// the GitHub clone path that never runs the managed adapter.
+describe("native policy derived from the final frontmatter", () => {
+  const explicitOnly =
+    "name: fixture\ndescription: Fixture.\ndisable-model-invocation: true";
+
+  it("creates the policy for an explicit-only skill without metadata", async () => {
+    const root = await skillTree(explicitOnly);
+
+    expect(await ensureExplicitOnlyNativePolicy(root)).toBe(true);
+    expect(await metadata(root)).toBe(NATIVE_EXPLICIT_POLICY);
+  });
+
+  it("leaves a model-invocable skill without native policy", async () => {
+    const root = await skillTree("name: fixture\ndescription: Fixture.");
+
+    expect(await ensureExplicitOnlyNativePolicy(root)).toBe(false);
+    await expect(metadata(root)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("turns an active true policy off and keeps its indentation", async () => {
+    const root = await skillTree(
+      explicitOnly,
+      'interface:\n  display_name: "Fixture"\npolicy:\n    allow_implicit_invocation: true\n',
+    );
+
+    await ensureExplicitOnlyNativePolicy(root);
+
+    expect(await metadata(root)).toBe(
+      'interface:\n  display_name: "Fixture"\npolicy:\n    allow_implicit_invocation: false\n',
+    );
+  });
+
+  it("does not mistake a commented-out key for an active policy", async () => {
+    const root = await skillTree(
+      explicitOnly,
+      'interface:\n  display_name: "Fixture"\n# allow_implicit_invocation: false\n',
+    );
+
+    await ensureExplicitOnlyNativePolicy(root);
+
+    expect(await metadata(root)).toBe(
+      'interface:\n  display_name: "Fixture"\n# allow_implicit_invocation: false\n\n' +
+        NATIVE_EXPLICIT_POLICY,
+    );
+  });
+
+  it("is idempotent and reports a tree without an entrypoint", async () => {
+    const root = await skillTree(explicitOnly);
+    await ensureExplicitOnlyNativePolicy(root);
+    const first = await metadata(root);
+    await ensureExplicitOnlyNativePolicy(root);
+    expect(await metadata(root)).toBe(first);
+
+    await rm(path.join(root, "SKILL.md"));
+    expect(await ensureExplicitOnlyNativePolicy(root)).toBe(false);
   });
 });

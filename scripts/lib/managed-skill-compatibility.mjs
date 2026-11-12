@@ -176,44 +176,66 @@ export async function applyManagedSkillCompatibility(skillName, targetRoot) {
     }
     await writeFile(file, content, "utf8");
   }
-  // Codex ignores `disable-model-invocation` and allows implicit invocation
-  // unless agents/openai.yaml says otherwise, so Core's explicit-only
-  // frontmatter implies the native policy even when upstream ships no metadata.
-  const explicitOnly =
-    skill.explicitPolicy === true ||
-    /^disable-model-invocation:\s*true\s*$/mu.test(skill.frontmatter ?? "");
-  if (explicitOnly) {
-    const metadataPath = path.join(targetRoot, "agents/openai.yaml");
-    let metadata = "";
-    try {
-      metadata = (await readFile(metadataPath, "utf8")).replaceAll(
-        "\r\n",
-        "\n",
-      );
-    } catch (error) {
-      if (error.code !== "ENOENT") throw error;
-    }
-    if (/allow_implicit_invocation:/u.test(metadata))
-      metadata = metadata.replace(
-        /allow_implicit_invocation:\s*(?:true|false)/u,
-        "allow_implicit_invocation: false",
-      );
-    else if (/^policy:\s*$/mu.test(metadata))
-      metadata = metadata.replace(
-        /^policy:\s*$/mu,
-        "policy:\n  allow_implicit_invocation: false",
-      );
-    else
-      metadata =
-        (metadata.trim() ? metadata.trimEnd() + "\n\n" : "") +
-        "policy:\n  allow_implicit_invocation: false\n";
-    await mkdir(path.dirname(metadataPath), { recursive: true });
-    await writeFile(metadataPath, metadata, "utf8");
-  }
+  if (skill.explicitPolicy === true)
+    await writeNativeExplicitPolicy(targetRoot);
+  else await ensureExplicitOnlyNativePolicy(targetRoot);
   if (skillName === "design-taste-frontend") {
     await applyTastePreviewCompatibility(targetRoot);
     await applyTasteChartCompatibility(targetRoot);
   }
+}
+
+/**
+ * Set `policy.allow_implicit_invocation: false` in agents/openai.yaml, keeping
+ * any other metadata upstream ships and creating the file when there is none.
+ * Only an active key counts; a commented-out key is left alone.
+ */
+async function writeNativeExplicitPolicy(targetRoot) {
+  const metadataPath = path.join(targetRoot, "agents/openai.yaml");
+  let metadata = "";
+  try {
+    metadata = (await readFile(metadataPath, "utf8")).replaceAll("\r\n", "\n");
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  if (/^[ \t]*allow_implicit_invocation:/mu.test(metadata))
+    metadata = metadata.replace(
+      /^([ \t]*)allow_implicit_invocation:.*$/mu,
+      "$1allow_implicit_invocation: false",
+    );
+  else if (/^policy:\s*$/mu.test(metadata))
+    metadata = metadata.replace(
+      /^policy:\s*$/mu,
+      "policy:\n  allow_implicit_invocation: false",
+    );
+  else
+    metadata =
+      (metadata.trim() ? metadata.trimEnd() + "\n\n" : "") +
+      "policy:\n  allow_implicit_invocation: false\n";
+  await mkdir(path.dirname(metadataPath), { recursive: true });
+  await writeFile(metadataPath, metadata, "utf8");
+}
+
+/**
+ * Codex ignores `disable-model-invocation` and allows implicit invocation
+ * unless agents/openai.yaml says otherwise. Call this once a refresh has
+ * settled the final SKILL.md, so the native policy follows Core's explicit-only
+ * decision on every refresh path. Returns whether the skill is explicit-only.
+ */
+export async function ensureExplicitOnlyNativePolicy(targetRoot) {
+  let entrypoint;
+  try {
+    entrypoint = await readFile(path.join(targetRoot, "SKILL.md"), "utf8");
+  } catch (error) {
+    if (error.code === "ENOENT") return false;
+    throw error;
+  }
+  const frontmatter =
+    /^---\r?\n([\s\S]*?)\r?\n---/u.exec(entrypoint)?.[1] ?? "";
+  if (!/^disable-model-invocation:\s*true\s*$/mu.test(frontmatter))
+    return false;
+  await writeNativeExplicitPolicy(targetRoot);
+  return true;
 }
 
 /** Format only after existing recipe/fence and Core replacement passes. */
