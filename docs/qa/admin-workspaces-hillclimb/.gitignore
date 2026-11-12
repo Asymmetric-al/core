@@ -1,0 +1,9 @@
+# UI hillclimb evidence: screenshots, comparison sheets and snapshot copies.
+# Kept on disk for reviewers; ignored so repo-wide scans (git ls-files
+# --others, Tailwind's source detection) do not read ~450 MB of evidence.
+candidate-*/
+original/
+comparisons/
+survey-*/
+*-wip/
+snapshots/*-checkpoint/
