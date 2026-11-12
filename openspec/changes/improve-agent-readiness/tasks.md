@@ -37,7 +37,13 @@
       `verify:openspec-deltas` pass; protected paths keep their blob hashes.
 - [x] 4.2 Unit: `tests/unit/docs` and `tests/unit/scripts` pass on Linux, and
       the acceptance wrapper passes.
-- [x] 4.3 Runtime: Claude Code loads a scoped `AGENTS.md` through the new
-      import, and a Cursor session no longer applies the compiled guides.
-- [ ] 4.4 Readiness: the pre-push `bun run ci:preflight` and pull-request CI
+- [x] 4.3 Runtime, Claude Code: reading a file in a newly covered directory
+      loaded that directory's `AGENTS.md` through the new import. Observed for
+      `packages/api`, `packages/auth`, `packages/database`, `packages/ui`,
+      `supabase` and `scripts`; `apps/missionary` displayed the import line.
+- [x] 4.4 Runtime, Cursor: a session listed the six skill guides among its
+      always-applied rules before the change and none after it. This is the
+      session's report of its own context on 2026-11-13, not a deterministic
+      check.
+- [ ] 4.5 Readiness: the pre-push `bun run ci:preflight` and pull-request CI
       pass.

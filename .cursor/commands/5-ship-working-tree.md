@@ -27,6 +27,7 @@
   - Format: `<ticket?>-<kebab-summary>` (ticket optional, e.g. `al-123-...`)
 - **Local quality gates should run before opening/marking a PR ready.**
   - For this repo, the canonical PR readiness gate is `bun run ci:preflight` (`docs/ai/rules/general.md`; stage order in `docs/ci.md`). Its build stage is conditional, so do not add an unconditional `bun run build`.
+  - The local gate assumes a `develop` base. CI builds every app for any other base, so run `bun run ci:preflight -- --full` when the pull-request base is not `develop`.
   - If formatting fails, fix with `bun run format`, then re-run `bun run format:check`.
 - **Secrets safety is mandatory.** If secret-like content is detected, stop and require explicit user override.
 - **CODEOWNERS must drive reviewer selection.**
@@ -271,7 +272,7 @@ Run the repo readiness gate:
 bun run ci:preflight
 ```
 
-`ci:preflight` runs format, integrity, lint, typecheck and unit stages and compiles only when the change requires it. Use `bun run ci:preflight -- --full` only for an explicit QA or release checkpoint.
+`ci:preflight` runs format, integrity, lint, typecheck and unit stages and compiles only when the change requires it. It stops at the first failed stage and has no resume option. Use `bun run ci:preflight -- --full` for an explicit QA or release checkpoint, and whenever the pull-request base is not `develop`.
 
 #### If `format:check` fails
 
@@ -292,7 +293,7 @@ bun run format:check
 3. Classify the result:
 
 - **Case A — fixed and diff is reasonable** (mostly within your staged/expected files):
-  - Continue with the remaining `ci:preflight` stages.
+  - Rerun `bun run ci:preflight` from the start.
 - **Case B — fixed but touched many pre-existing/unrelated files** (repo-wide drift):
   - The command must stop and ask which path to take (see “Gate stop decision” below).
 - **Case C — still failing**:
