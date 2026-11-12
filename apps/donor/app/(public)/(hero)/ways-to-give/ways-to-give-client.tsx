@@ -15,8 +15,8 @@ import {
 import Link from "next/link";
 import React from "react";
 
-// Other giving methods this site doesn't take yet. Listed so donors aren't
-// left looking for them, without buttons that go nowhere.
+// Giving methods this site doesn't take yet, listed so donors aren't left
+// looking for them.
 const NOT_YET_ONLINE = [
   { Icon: Repeat, label: "Monthly giving" },
   { Icon: Landmark, label: "Bank transfers" },

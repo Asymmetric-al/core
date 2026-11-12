@@ -33,8 +33,6 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
-type RecurringGift = DonorPortalRecurringGift;
-
 const FREQUENCY_WORDS: Record<string, string> = {
   weekly: "a week",
   monthly: "a month",
@@ -44,7 +42,7 @@ const FREQUENCY_WORDS: Record<string, string> = {
   yearly: "a year",
 };
 
-function giftAmount(gift: RecurringGift) {
+function giftAmount(gift: DonorPortalRecurringGift) {
   if (
     !Number.isSafeInteger(gift.amountCents) ||
     gift.amountCents < 0 ||
@@ -74,23 +72,19 @@ function expiryState(
   return lastDay <= twoMonths ? "soon" : "ok";
 }
 
-function methodName(method: DonorWalletPaymentMethod) {
-  return `${method.brand} ending in ${method.last4}`;
-}
-
 function PaymentMethodItem({
   method,
   gifts,
   now,
 }: {
   method: DonorWalletPaymentMethod;
-  gifts: RecurringGift[];
+  gifts: DonorPortalRecurringGift[];
   now: Date;
 }) {
   const expiry = expiryState(method, now);
   const giftCount = method.recurringGiftIds.length;
   const Icon = method.kind === "bank" ? Landmark : CreditCard;
-  const name = methodName(method);
+  const name = `${method.brand} ending in ${method.last4}`;
 
   return (
     <li aria-label={name}>
@@ -280,7 +274,9 @@ export default function WalletPage() {
               now={now}
               gifts={method.recurringGiftIds
                 .map((id) => gifts.get(id))
-                .filter((gift): gift is RecurringGift => Boolean(gift))}
+                .filter((gift): gift is DonorPortalRecurringGift =>
+                  Boolean(gift),
+                )}
             />
           ))}
         </ul>

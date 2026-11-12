@@ -130,13 +130,13 @@ class DraftStore {
     if (!this.active) return;
     this.unwritable.add(resource);
     this.automaticBlocked.add(resource);
-    if (!read)
-      this.generations.set(resource, (this.generations.get(resource) ?? 0) + 1);
     if (read) {
       this.discard(resource);
       this.unreadable.add(resource);
       for (const save of this.saves)
         if (save.resource === resource) this.saves.delete(save);
+    } else {
+      this.generations.set(resource, (this.generations.get(resource) ?? 0) + 1);
     }
     this.publish();
   }

@@ -685,9 +685,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   };
   const cancelEditPost = () => setPendingEdit(null);
 
-  const cancelEditing = () => {
-    resetComposer();
-  };
+  const cancelEditing = resetComposer;
 
   const pendingDelete =
     [...posts, ...drafts].find((post) => post.id === pendingDeleteId) ?? null;

@@ -217,34 +217,37 @@ export function CommentsDialog({
           </ScrollArea>
 
           {canComment ? (
-            <form onSubmit={handleSubmit} className="flex gap-2 border-t pt-4">
-              <Input
-                value={content}
-                onChange={(event) => setContent(event.target.value)}
-                placeholder="Add a comment..."
-                required
-                disabled={addComment.isPending}
-                aria-label="Comment text"
-              />
-              <Button
-                type="submit"
-                size="icon"
-                disabled={!content.trim() || addComment.isPending}
-                focusableWhenDisabled={addComment.isPending}
-                aria-label="Send comment"
+            <>
+              <form
+                onSubmit={handleSubmit}
+                className="flex gap-2 border-t pt-4"
               >
-                {addComment.isPending ? (
-                  <Spinner aria-hidden="true" />
-                ) : (
-                  <Send className="size-4" />
-                )}
-              </Button>
-            </form>
-          ) : null}
-          {canComment ? (
-            <p role="status" aria-atomic="true" className="sr-only">
-              {addComment.isPending ? "Sending comment…" : ""}
-            </p>
+                <Input
+                  value={content}
+                  onChange={(event) => setContent(event.target.value)}
+                  placeholder="Add a comment..."
+                  required
+                  disabled={addComment.isPending}
+                  aria-label="Comment text"
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  disabled={!content.trim() || addComment.isPending}
+                  focusableWhenDisabled={addComment.isPending}
+                  aria-label="Send comment"
+                >
+                  {addComment.isPending ? (
+                    <Spinner aria-hidden="true" />
+                  ) : (
+                    <Send className="size-4" />
+                  )}
+                </Button>
+              </form>
+              <p role="status" aria-atomic="true" className="sr-only">
+                {addComment.isPending ? "Sending comment…" : ""}
+              </p>
+            </>
           ) : null}
         </div>
       </DialogContent>

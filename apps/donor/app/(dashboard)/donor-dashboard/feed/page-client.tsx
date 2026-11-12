@@ -237,15 +237,6 @@ function toFeedPost(post: PostWithAuthor): Post {
 /** The shared `scroll-fade-x` fade width (calc(var(--spacing) * 6)). */
 const CHIP_REVEAL_INSET = 24;
 
-/** Whether focus came from the keyboard (browsers without :focus-visible say yes). */
-function isKeyboardFocus(element: HTMLElement) {
-  try {
-    return element.matches(":focus-visible");
-  } catch {
-    return true;
-  }
-}
-
 /**
  * Scrolls a keyboard-focused chip clear of the faded edge of the chip row, so
  * the whole chip and its focus ring show. Only the row scrolls, never the
@@ -258,7 +249,7 @@ function revealFocusedChip(event: React.FocusEvent<HTMLElement>) {
     '[data-slot="scroll-area-viewport"]',
   );
   if (!rail || !(chip instanceof HTMLElement) || chip === rail) return;
-  if (!isKeyboardFocus(chip)) return;
+  if (!chip.matches(":focus-visible")) return;
   const railBounds = rail.getBoundingClientRect();
   const chipBounds = chip.getBoundingClientRect();
   if (chipBounds.right > railBounds.right - CHIP_REVEAL_INSET) {
@@ -398,7 +389,6 @@ export default function DonorFeedPage() {
   }, [posts]);
 
   return (
-    // One centred reading column, header included.
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-20">
       <PageHeader
         title="Updates"

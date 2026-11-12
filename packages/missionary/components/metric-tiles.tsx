@@ -62,8 +62,6 @@ function MetricTile({
     return <MetricTileSkeleton title={title} />;
   }
 
-  const chartData = data;
-
   return (
     <Card>
       <CardContent className="p-0 flex flex-row items-stretch min-h-24">
@@ -101,9 +99,9 @@ function MetricTile({
             <React.Suspense
               fallback={<div aria-hidden className="size-full bg-muted/30" />}
             >
-              {chartData.length > 0 ? (
+              {data.length > 0 ? (
                 <MetricSparkline
-                  chartData={chartData}
+                  chartData={data}
                   color={color}
                   gradientId={gradientId}
                 />

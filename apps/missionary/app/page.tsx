@@ -8,6 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function MissionaryDashboardPage() {
-  // The app shell already provides the container and section padding.
   return <DashboardHome />;
 }

@@ -158,14 +158,15 @@ export function useDonorFeedPostPages(
     enabled,
     staleTime: 30_000,
   });
+  const denied = accessDenied(query.error);
 
   return {
-    data: accessDenied(query.error) ? [] : (query.data?.pages.flat() ?? []),
+    data: denied ? [] : (query.data?.pages.flat() ?? []),
     isLoading: query.isLoading,
     error: query.error,
     hasMore: query.hasNextPage,
     isLoadingMore: query.isFetchingNextPage,
-    accessDenied: accessDenied(query.error),
+    accessDenied: denied,
     isNextPageError: query.isFetchNextPageError,
     retry: () => {
       if (query.isFetchNextPageError) {
@@ -292,8 +293,8 @@ export function postTitle(post: DonorFeedPost, maxLength = 80): string {
 }
 
 /**
- * Reading-time estimate from the post's (HTML) body at about 200 words a
- * minute, never less than one minute.
+ * Reading-time estimate from the post's body at about 200 words a minute,
+ * never less than one minute.
  */
 export function postReadTime(post: PostWithAuthor): string {
   const words = postPlainText(post.content).split(" ").filter(Boolean).length;

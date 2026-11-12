@@ -373,7 +373,7 @@ const PERIODS_PER_YEAR: Record<string, number> = {
 /**
  * Committed monthly support from this missionary's pledges: each partner's
  * newest active recurring pledge, normalised to a month. Anonymous partners
- * count too — the total names no one. Home and Partners both read these.
+ * count too — the total names no one.
  */
 function committedPledges(pledges: readonly MissionaryPortalPledgeRow[]) {
   const byDonor = new Map<string, MissionaryPortalPledgeRow>();

@@ -73,12 +73,13 @@ export function GivingBreakdownChartContent({
   }
 
   const currency = moneyCurrency(metrics.currency);
-  if (!currency)
+  if (!currency) {
     return (
       <p className="flex h-64 items-center justify-center text-sm text-muted-foreground">
         {MONEY_UNAVAILABLE}
       </p>
     );
+  }
 
   const hasData = monthlyBreakdown.some((m) => m.total > 0);
 

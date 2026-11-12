@@ -171,7 +171,6 @@ function TaskListSkeleton() {
   );
 }
 
-/** One summary count. Figures only report; the list tabs do the filtering. */
 function SummaryFigure({
   label,
   value,

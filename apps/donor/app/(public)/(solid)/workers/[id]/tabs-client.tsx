@@ -46,7 +46,6 @@ export function TabsClient({ storyContent, updatesContent }: TabsClientProps) {
             "data-active:after:bg-foreground",
           )}
         >
-          {/* No "New" badge: the journal holds static sample updates. */}
           Field Journal
         </TabsTrigger>
       </TabsList>

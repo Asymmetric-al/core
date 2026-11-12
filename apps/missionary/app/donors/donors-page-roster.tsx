@@ -106,7 +106,6 @@ export function DonorsPageRoster() {
     () => ({ openId: selectedId, open: selectFromRow }),
     [selectedId, selectFromRow],
   );
-  // The open partner's row is the table's one selected row.
   const tableState = React.useMemo(
     (): { rowSelection: RowSelectionState } => ({
       rowSelection: selectedId ? { [selectedId]: true } : {},
@@ -580,7 +579,7 @@ function DonorRosterResults({
           columns={DONOR_COLUMNS}
           data={filteredDonors}
           // The open partner's row is the selected row: a muted fill, with a
-          // primary edge on its photo, as the Tasks page marks its active card.
+          // primary edge on its photo.
           state={tableState}
           // The Partner cell already carries lifetime giving; the narrow list
           // keeps Partner + Status so neither is clipped.

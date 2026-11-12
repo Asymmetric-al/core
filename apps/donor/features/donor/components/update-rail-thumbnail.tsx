@@ -11,7 +11,7 @@ interface UpdateRailThumbnailProps {
 }
 
 /**
- * Small thumbnail for the dashboard "Ministry Updates" rail. Remote post
+ * Small thumbnail for the dashboard's updates rail. Remote post
  * images can be unavailable, so a failed load falls back to the author's
  * initials instead of a broken-image icon.
  */

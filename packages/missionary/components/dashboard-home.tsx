@@ -219,8 +219,6 @@ function DashboardHomeContent({
     <HomeFrame title={title} description={description}>
       <div className="section-gap">
         {belowHeaderSlot}
-        {/* Phones read top to bottom; wide screens pair the cards in two
-            rows. */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
           {/* On phones, urgent work is read before the totals. Wide screens
               place each card explicitly, so source order only sets reading

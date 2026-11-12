@@ -146,7 +146,7 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
 
             <div className="flex items-center justify-between pt-3 border-t border-border">
               <div className="flex items-center gap-4">
-                {/* Static counts, not controls: no pointer or hover affordance. */}
+                {/* Static counts, not controls. */}
                 <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   <Heart className="size-3.5" aria-hidden="true" />
                   {update.likes}

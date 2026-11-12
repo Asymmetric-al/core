@@ -28,6 +28,8 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
+import { todayDateInputValue } from "@/lib/dates";
+
 const ACTIVE = new Set(["active", "processing", "trialing"]);
 const PAUSED = new Set(["paused"]);
 
@@ -75,9 +77,7 @@ export function monthlyEquivalent(gifts: DonorPortalRecurringGift[]) {
 
 /** "Next gift today" for today, otherwise the date. */
 function nextGiftLabel(date: string) {
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  return date.slice(0, 10) === today
+  return date.slice(0, 10) === todayDateInputValue()
     ? "Next gift today"
     : `Next gift ${formatPledgeDate(date)}`;
 }

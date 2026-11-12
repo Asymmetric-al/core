@@ -1,10 +1,8 @@
 /** Whether a sign-in was triggered by an unfinished gift. */
 function isCheckoutPath(nextPath: string | null): boolean {
   if (!nextPath) return false;
-  const pathname = nextPath.split(/[?#]/, 1)[0];
-  return (
-    pathname === "/checkout" || pathname?.startsWith("/checkout/") === true
-  );
+  const pathname = nextPath.split(/[?#]/, 1)[0] ?? "";
+  return pathname === "/checkout" || pathname.startsWith("/checkout/");
 }
 
 /**

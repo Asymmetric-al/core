@@ -248,9 +248,9 @@ export async function getMissionaryPortalSnapshot(input: {
   );
   // Pledges name the missionaries row (not the profile), like donations.
   // Scoping by donor alone would count a partner's recurring gifts to other
-  // missionaries as this missionary's support. Newest first so each
-  // partner's current commitment is the one counted. Read every page: the
-  // totals are money, so they can't stop at a row limit.
+  // missionaries as this missionary's support. Read every page: the totals
+  // are money, so they can't stop at a row limit. Page by immutable primary
+  // key so cancellations cannot shift offsets.
   const pledges: PledgePageRow[] = [];
   let afterId: string | undefined;
   for (;;) {
@@ -272,8 +272,7 @@ export async function getMissionaryPortalSnapshot(input: {
     if (!last || page.length < PLEDGE_PAGE_SIZE) break;
     afterId = last.id;
   }
-  // Page by immutable primary key so cancellations cannot shift offsets.
-  // Restore the existing newest-first choice per donor after collecting rows.
+  // Newest first, so each partner's current commitment is the one counted.
   pledges.sort((a, b) => {
     if (a.created_at !== b.created_at) {
       if (a.created_at === null) return -1;

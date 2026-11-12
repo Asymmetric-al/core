@@ -923,7 +923,7 @@
         },
         {
           "path": "apps/missionary/components/navigation-items.ts",
-          "sha256": "d9340f61e13f76c2fb22d7559095653d1f2296c4fb2e15da10f5c808348219c1"
+          "sha256": "36056f04e3ca5c0292168f3da5e833d7102c03752be66bafccc1940543054697"
         },
         {
           "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
@@ -985,7 +985,7 @@
         },
         {
           "path": "apps/missionary/components/navigation-items.ts",
-          "sha256": "d9340f61e13f76c2fb22d7559095653d1f2296c4fb2e15da10f5c808348219c1"
+          "sha256": "36056f04e3ca5c0292168f3da5e833d7102c03752be66bafccc1940543054697"
         },
         {
           "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
@@ -2455,7 +2455,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/donors/donors-page-roster.tsx",
-          "sha256": "ea39de670cb0e422a4fa3e80c364728e6b0179645fdee31a4af0edbf4da07b93"
+          "sha256": "8a1f1ebc087123dd423a0f37f249915276c9272451a121ecc050ab72007ed0b4"
         },
         {
           "path": "apps/missionary/app/donors/donors-page-states.tsx",
