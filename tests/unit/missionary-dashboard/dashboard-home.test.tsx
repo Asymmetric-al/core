@@ -268,6 +268,28 @@ describe("missionary home", () => {
     expect(within(card).queryByRole("link")).toBeNull();
   });
 
+  it("says no partner has committed yet instead of an unavailable amount", () => {
+    setup({
+      data: {
+        ...snapshot,
+        support: {
+          ...snapshot.support,
+          recurringMonthlyCents: null,
+          recurringCurrency: null,
+          monthlyPartnerCount: 0,
+        },
+      },
+    });
+    show();
+    const card = screen.getByRole("region", { name: "Monthly support" });
+    expect(
+      within(card).getByText("No partners have committed monthly support yet."),
+    ).toBeTruthy();
+    expect(within(card).queryByText("Unavailable")).toBeNull();
+    expect(within(card).queryByText(/Goal comparison unavailable/)).toBeNull();
+    expect(within(card).queryByRole("meter")).toBeNull();
+  });
+
   it("says the giving totals couldn't load instead of showing $0", () => {
     setup();
     const retry = vi.fn();

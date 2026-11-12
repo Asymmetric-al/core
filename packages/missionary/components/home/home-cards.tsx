@@ -149,6 +149,8 @@ export function SupportCard({
   const covered = progress?.covered ?? 0;
   const percent = progress?.percent ?? 0;
   const stillNeeded = progress?.remaining ?? null;
+  // No commitments have no currency to show a zero in.
+  const noCommitments = monthlyPartners === 0;
 
   return (
     <RegionCard
@@ -158,17 +160,23 @@ export function SupportCard({
     >
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-3">
-          <p className="flex flex-wrap items-baseline gap-x-2">
-            <span className="text-4xl font-semibold tracking-tight tabular-nums text-foreground">
-              {formatCents(committedCents, committedCurrency)}
-            </span>
-            <span className="text-muted-foreground">
-              {hasGoal
-                ? `a month of your ${formatCents(goalCents, goalCurrency)} goal`
-                : "a month"}
-            </span>
-          </p>
-          {hasGoal ? (
+          {noCommitments ? (
+            <p className="text-muted-foreground">
+              No partners have committed monthly support yet.
+            </p>
+          ) : (
+            <p className="flex flex-wrap items-baseline gap-x-2">
+              <span className="text-4xl font-semibold tracking-tight tabular-nums text-foreground">
+                {formatCents(committedCents, committedCurrency)}
+              </span>
+              <span className="text-muted-foreground">
+                {hasGoal
+                  ? `a month of your ${formatCents(goalCents, goalCurrency)} goal`
+                  : "a month"}
+              </span>
+            </p>
+          )}
+          {noCommitments ? null : hasGoal ? (
             <>
               <Meter
                 value={covered}
