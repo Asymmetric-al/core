@@ -265,11 +265,11 @@ export function useGiftHistoryViewController({
           toast.error(
             error instanceof Error
               ? error.message
-              : "Failed to save the tenant default.",
+              : "Failed to save the organization default.",
           );
         },
         onSuccess: () => {
-          toast.success("Tenant default updated for gift history.");
+          toast.success("Organization default updated for gift history.");
         },
       },
     );

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 
+import { useSupportTeams } from "./use-support-agents";
 import { useSupportBusinessHours } from "./use-support-inbox-settings";
 import { useSupportLabels } from "./use-support-labels";
 import { supportApiGet, supportApiQueryDefaults } from "../lib/api-client";
@@ -26,6 +27,7 @@ interface UseSupportReportsReturn {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  refetch: () => Promise<unknown>;
 }
 
 interface UseSupportReportOptions {
@@ -52,6 +54,9 @@ export function useSupportReport(
   });
   const labels = useSupportLabels();
   const businessHours = useSupportBusinessHours();
+  const teams = useSupportTeams();
+  const teamScope = request.scope.kind === "team";
+  const teamSelected = teams.data.some((team) => team.id === request.scope.id);
 
   const data = React.useMemo<SupportReportSeries>(() => {
     const defaultBiz =
@@ -75,9 +80,27 @@ export function useSupportReport(
   ]);
 
   const isLoading =
-    query.isLoading || labels.isLoading || businessHours.isLoading;
-  const isReady = query.isSuccess && labels.isReady && businessHours.isReady;
-  const isError = query.isError || labels.isError || businessHours.isError;
+    query.isLoading ||
+    labels.isLoading ||
+    businessHours.isLoading ||
+    (teamScope && (teams.isLoading || !teamSelected));
+  const isReady =
+    query.isSuccess &&
+    labels.isReady &&
+    businessHours.isReady &&
+    (!teamScope || (teams.isReady && teamSelected));
+  const isError =
+    query.isError ||
+    labels.isError ||
+    businessHours.isError ||
+    (teamScope && teams.isError);
 
-  return { data, isLoading, isReady, isError };
+  const refetch = async () =>
+    Promise.all([
+      ...(query.isError ? [query.refetch()] : []),
+      ...(labels.isError ? [labels.refetch()] : []),
+      ...(businessHours.isError ? [businessHours.refetch()] : []),
+      ...(teamScope && teams.isError ? [teams.refetch()] : []),
+    ]);
+  return { data, isLoading, isReady, isError, refetch };
 }

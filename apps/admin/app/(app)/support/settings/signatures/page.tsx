@@ -1,16 +1,15 @@
-"use client";
+import type { Metadata } from "next";
 
 import { SignatureList } from "@/features/support-hub/components/settings/signatures/SignatureList";
-import { SupportWorkspaceShell } from "@/features/support-hub/components/workspace";
+
+export const metadata: Metadata = {
+  title: "Signatures · Support settings",
+};
 
 export default function SupportSettingsSignaturesPage() {
   return (
-    <SupportWorkspaceShell
-      section="settings"
-      title="Signatures"
-      description="Default signatures per agent and for the workspace."
-    >
+    <>
       <SignatureList />
-    </SupportWorkspaceShell>
+    </>
   );
 }

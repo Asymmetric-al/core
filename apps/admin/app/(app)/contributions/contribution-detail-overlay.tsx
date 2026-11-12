@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import {
   contributionDetailQueryKey,
+  INVALID_CONTRIBUTION_LINK_MESSAGE,
   invalidateContributionOperationQueries,
   isContributionGiftParam,
   useContributionDetail,
@@ -186,10 +187,12 @@ function contributionFromDetail(detail: ContributionDetail): Contribution {
         : crmPostStatus === "failed" || crmPostStatus === "blocked"
           ? "review"
           : "unreconciled",
+    // Only a processor reference counts as a transaction ID (matches the
+    // list row projection).
     transactionId:
       detail.payment.stripe.paymentIntentId ??
       detail.payment.stripe.chargeId ??
-      detail.id,
+      null,
     externalTransactionId: detail.payment.stripe.chargeId,
     processorTransactionId: detail.payment.stripe.paymentIntentId,
     notes: null,
@@ -203,13 +206,11 @@ function useContributionDetailOverlayActions({
   detailRevision,
   donationId,
   onActionSuccess,
-  onClose,
 }: {
   sourceSurface: ContributionSourceSurface;
   detailRevision: string | null | undefined;
   donationId: string | null;
   onActionSuccess?: () => void;
-  onClose: () => void;
 }) {
   const queryClient = useQueryClient();
 
@@ -230,6 +231,8 @@ function useContributionDetailOverlayActions({
     }
   };
 
+  // Successful actions keep the sheet open: the shared invalidation refreshes
+  // the gift in place, so the staffer sees the result beside the toast.
   const approveMutation = useMutation({
     mutationFn: (input: { contributionId: string; stagedGiftId: string }) =>
       postContributionOperation({
@@ -248,7 +251,6 @@ function useContributionDetailOverlayActions({
       toast.success("Gift queued for finance posting.");
       await invalidateContributionOperationQueries(queryClient);
       onActionSuccess?.();
-      onClose();
     },
   });
   const retryMutation = useMutation({
@@ -273,7 +275,6 @@ function useContributionDetailOverlayActions({
       toast.success("Gift retry queued.");
       await invalidateContributionOperationQueries(queryClient);
       onActionSuccess?.();
-      onClose();
     },
   });
   const receiptMutation = useMutation({
@@ -294,7 +295,6 @@ function useContributionDetailOverlayActions({
       toast.success("Receipt send recorded.");
       await invalidateContributionOperationQueries(queryClient);
       onActionSuccess?.();
-      onClose();
     },
   });
 
@@ -331,7 +331,6 @@ export function ContributionDetailOverlay({
       detailRevision: detailQuery.data?.revision,
       donationId,
       onActionSuccess,
-      onClose,
     });
 
   // Refund entry point (issue #265): the sheet's "Refund gift" action opens
@@ -439,7 +438,7 @@ function resolveOverlayDetailError(
   error: unknown,
 ): string | null {
   return donationId && !validDonationId
-    ? "Invalid contribution link."
+    ? INVALID_CONTRIBUTION_LINK_MESSAGE
     : isError
       ? error instanceof Error
         ? error.message

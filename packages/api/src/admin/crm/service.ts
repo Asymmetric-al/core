@@ -1,3 +1,4 @@
+import { expandStoredValueSpellings } from "./filter-variants";
 import { buildCrmGridRow } from "./model";
 import {
   encodeCrmCursor,
@@ -49,12 +50,17 @@ function applyBaseFilters<TQuery extends DonorQueryBuilder<TQuery>>(
 ): TQuery {
   const { filters, search } = params;
 
+  // Writers stored these columns in several spellings (`at_risk`, `At Risk`),
+  // so each filter value matches all of them.
   if (filters.recordTypes.length > 0) {
-    query = query.in("type", filters.recordTypes);
+    query = query.in("type", expandStoredValueSpellings(filters.recordTypes));
   }
 
   if (filters.lifecycleStatuses.length > 0) {
-    query = query.in("status", filters.lifecycleStatuses);
+    query = query.in(
+      "status",
+      expandStoredValueSpellings(filters.lifecycleStatuses),
+    );
   }
 
   if (filters.tags.length > 0) {
@@ -126,7 +132,11 @@ function getCursorValue(donor: DonorRow, field: CrmSortField) {
   }
 }
 
-async function fetchMissionaryNames(
+/**
+ * Owner names for CRM records. `donors.missionary_id` is a profile id, so
+ * owners are named from profiles (shared by the list and the detail read).
+ */
+export async function fetchMissionaryNames(
   supabaseAdmin: AdminSupabase,
   missionaryProfileIds: string[],
 ) {

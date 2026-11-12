@@ -7,6 +7,7 @@ import {
   getSupportSummary,
   getSupportTicket,
   listSupportTickets,
+  listSupportContacts,
 } from "./service";
 
 import type {
@@ -89,4 +90,15 @@ export async function loadSupportTicketDetail(
     queues: model.queues,
     ticket,
   };
+}
+
+export async function loadSupportContacts(): Promise<SupportContact[]> {
+  const { supabaseAdmin, tenantId } = await getSupportLoaderContext();
+  return listSupportContacts(supabaseAdmin, tenantId);
+}
+
+export async function loadSupportTicketIntake() {
+  const { supabaseAdmin, tenantId } = await getSupportLoaderContext();
+  const model = await getSupportMetadata(supabaseAdmin, tenantId);
+  return { contacts: model.contacts, queues: model.queues };
 }

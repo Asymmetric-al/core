@@ -8,14 +8,16 @@ export const EditorAccessibility = Extension.create<{ label: string }>({
     return { label: "Editor content" };
   },
   addProseMirrorPlugins() {
+    const { editor, options } = this;
     return [
       new Plugin({
         key: new PluginKey("coreEditorAccessibility"),
         props: {
-          attributes: {
-            "aria-label": this.options.label,
+          attributes: (): Record<string, string> => ({
+            "aria-label": options.label,
             "aria-multiline": "true",
-          },
+            ...(editor.isEditable ? {} : { "aria-readonly": "true" }),
+          }),
         },
       }),
     ];

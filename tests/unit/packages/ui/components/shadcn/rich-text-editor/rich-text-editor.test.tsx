@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   EditorContent,
   EditorRoot,
+  EditorToolbar,
+  LegacyRichTextEditor,
   useEditorContext,
 } from "../../../../../../../packages/ui/components/shadcn/rich-text-editor";
 
@@ -275,5 +277,83 @@ describe("rich-text-editor/rich-text-editor", () => {
     );
 
     expect(screen.getByTestId("has-editor").textContent).toBe("true");
+  });
+
+  it("shows read-only content at full strength with no formatting controls", async () => {
+    const { container } = render(
+      <EditorRoot
+        aria-label="Care note"
+        value="<p>Visited on Tuesday</p>"
+        onChange={vi.fn()}
+        readOnly
+      >
+        <EditorToolbar />
+        <EditorContent />
+      </EditorRoot>,
+    );
+
+    const textbox = await screen.findByRole("textbox", { name: "Care note" });
+    expect(textbox.getAttribute("contenteditable")).toBe("false");
+    expect(textbox.getAttribute("aria-readonly")).toBe("true");
+    expect(screen.queryByRole("toolbar")).toBeNull();
+    const root = container.querySelector('[data-slot="rich-text-editor"]');
+    expect(root?.className).not.toContain("opacity-50");
+  });
+
+  it("marks a disabled editor for assistive tech and keeps its prompt readable", async () => {
+    render(
+      <EditorRoot
+        aria-label="Reply"
+        value=""
+        onChange={vi.fn()}
+        disabled
+        placeholder="Write a reply…"
+      >
+        <EditorToolbar tools={["bold"]} />
+        <EditorContent />
+      </EditorRoot>,
+    );
+
+    const textbox = await screen.findByRole("textbox", { name: "Reply" });
+    expect(textbox.getAttribute("aria-disabled")).toBe("true");
+    expect(textbox.getAttribute("aria-placeholder")).toBe("Write a reply…");
+    expect(
+      screen
+        .getByRole("button", { name: "Bold" })
+        .hasAttribute("data-disabled"),
+    ).toBe(true);
+  });
+
+  it("does not report a change when only the disabled state flips", async () => {
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <EditorRoot value="<p>Legacy note</p>" onChange={onChange}>
+        <EditorContent />
+      </EditorRoot>,
+    );
+    await screen.findByText("Legacy note");
+
+    rerender(
+      <EditorRoot value="<p>Legacy note</p>" onChange={onChange} disabled>
+        <EditorContent />
+      </EditorRoot>,
+    );
+    await waitFor(() => {
+      expect(document.querySelector('[contenteditable="false"]')).toBeTruthy();
+    });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("dims a disabled legacy editor once, not twice", async () => {
+    const { container } = render(
+      <LegacyRichTextEditor value="" onChange={vi.fn()} disabled />,
+    );
+    await waitFor(() => {
+      expect(container.querySelector('[contenteditable="false"]')).toBeTruthy();
+    });
+    const dimmed = [...container.querySelectorAll("div")].filter((node) =>
+      node.classList.contains("opacity-50"),
+    );
+    expect(dimmed).toHaveLength(1);
   });
 });

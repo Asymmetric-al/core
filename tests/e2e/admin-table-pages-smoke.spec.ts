@@ -111,7 +111,11 @@ test.describe("Admin table pages smoke", () => {
         await expect(page.getByText(emptyState).first()).toBeVisible({
           timeout: 120_000,
         });
-        await expect(page.getByText(/Asym Postgres/i).first()).toBeVisible();
+        await expect(
+          page
+            .getByRole("group", { name: "Data sources" })
+            .getByText("Mission Control"),
+        ).toBeVisible();
         await expect(page.getByText("Twenty CRM", { exact: true })).toHaveCount(
           0,
         );
@@ -144,7 +148,7 @@ test.describe("Admin table pages smoke", () => {
       await page.setViewportSize({ width: 1280, height: 900 });
     });
 
-    test("search filters contacts and reset shows rows again", async ({
+    test("search filters records and clearing shows rows again", async ({
       page,
     }) => {
       await ensureAdminDemo(page);
@@ -152,38 +156,36 @@ test.describe("Admin table pages smoke", () => {
       await page.waitForLoadState("domcontentloaded");
       await expect(page.locator("#__next_error__")).toHaveCount(0);
 
-      const search = page.getByPlaceholder("Search contacts...");
+      const search = page.getByRole("searchbox", {
+        name: "Search CRM records",
+      });
       await expect(search).toBeVisible();
 
       await search.fill("__no_such_contact__");
-      await expect(
-        page.getByRole("row", { name: /No results found/i }),
-      ).toBeVisible();
+      await expect(page.getByText("No matching records")).toBeVisible();
 
-      await search.fill("");
+      await page.getByRole("button", { name: "Clear search" }).click();
       await expect(
-        page.getByRole("row", { name: /Alice Johnson/i }).first(),
+        page.getByRole("button", { name: /Alice Johnson/i }).first(),
       ).toBeVisible();
     });
 
-    test("pagination advances and returns across pages", async ({ page }) => {
+    test("shows every loaded record without client pagination", async ({
+      page,
+    }) => {
       await ensureAdminDemo(page);
       await page.goto(adminPath("/crm"));
       await page.waitForLoadState("domcontentloaded");
 
-      await expect(page.getByText("Page 1 of 2")).toBeVisible();
+      const records = page.getByRole("region", { name: "CRM records" });
       await expect(
-        page.getByRole("row", { name: /Alice Johnson/i }).first(),
+        records.getByRole("button", { name: /Alice Johnson/i }).first(),
       ).toBeVisible();
-
-      await page.getByRole("button", { name: "Go to next page" }).click();
-      await expect(page.getByText("Page 2 of 2")).toBeVisible();
+      // The ReUI grid renders loaded pages in one scroll body (no 10-row page).
+      await expect(page.getByText(/^Page \d+ of \d+$/)).toHaveCount(0);
       await expect(
-        page.getByRole("row", { name: /Frank Miller/i }).first(),
-      ).toBeVisible();
-
-      await page.getByRole("button", { name: "Go to previous page" }).click();
-      await expect(page.getByText("Page 1 of 2")).toBeVisible();
+        records.getByRole("button", { name: /Frank Miller/i }).first(),
+      ).toBeAttached();
     });
   });
 

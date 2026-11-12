@@ -11,6 +11,24 @@ import {
 const root = process.cwd();
 
 describe("Core design-system lint", () => {
+  it("excludes the generated Payload import map without exempting authored CMS modules", async () => {
+    const generated = path.join(
+      root,
+      "apps/admin/app/(payload)/web-studio/importMap.js",
+    );
+    const authored = path.join(
+      root,
+      "apps/admin/src/cms-ui/web-studio/generated-boundary-probe.tsx",
+    );
+    for (const cwd of [root, path.join(root, "apps/admin")]) {
+      const eslint = new ESLint({ cwd });
+      expect(await eslint.isPathIgnored(generated)).toBe(true);
+      const config = await eslint.calculateConfigForFile(authored);
+      expect(config.rules["import-x/no-duplicates"][0]).toBe(2);
+      expect(config.rules["no-restricted-imports"][0]).toBe(2);
+    }
+  });
+
   it("accepts existing motion token references and the pinned-table border seam only in its implementation", async () => {
     const eslint = new ESLint({
       cwd: root,

@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { resolveConfiguredDonorOrigin } from "../../../apps/admin/src/cms-ui/web-studio/adapters/resolve-donor-origin";
+import { getWebStudioCollectionConfig } from "../../../apps/admin/src/cms-ui/web-studio/collections/config";
 
 import {
   buildWebStudioAuthenticatedPreviewPath,
@@ -94,17 +96,36 @@ describe("resolveDonorOrigin", () => {
     process.env.NEXT_PUBLIC_DONOR_URL = "https://public.example/";
     process.env.DONOR_APP_URL = "https://server-only.example/";
     expect(resolveDonorOrigin()).toBe("https://public.example");
+    expect(resolveConfiguredDonorOrigin()).toBe("https://public.example");
   });
 
   it("falls back to DONOR_APP_URL when NEXT_PUBLIC_DONOR_URL is unset", () => {
     delete process.env.NEXT_PUBLIC_DONOR_URL;
     process.env.DONOR_APP_URL = "https://donor-only.example/app/";
     expect(resolveDonorOrigin()).toBe("https://donor-only.example/app");
+    expect(resolveConfiguredDonorOrigin()).toBe(
+      "https://donor-only.example/app",
+    );
   });
 
   it("uses dev default when neither env is set", () => {
     delete process.env.NEXT_PUBLIC_DONOR_URL;
     delete process.env.DONOR_APP_URL;
     expect(resolveDonorOrigin()).toBe("http://127.0.0.1:3000");
+    expect(resolveConfiguredDonorOrigin()).toBeNull();
   });
 });
+
+it.each(["missionary-giving-pages", "project-pages"] as const)(
+  "keeps private preview without inventing a public reader for %s",
+  (collection) => {
+    const config = getWebStudioCollectionConfig(collection);
+    expect(config.previewMode).not.toBe("none");
+    expect(
+      config.previewPathForData?.({
+        missionaryId: "missionary",
+        slug: "project",
+      }) ?? null,
+    ).toBeNull();
+  },
+);

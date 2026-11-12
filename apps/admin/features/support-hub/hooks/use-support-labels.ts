@@ -16,6 +16,8 @@ export function useSupportLabels(): {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  /** Loads the data again, e.g. after a failed load. */
+  refetch: () => Promise<unknown>;
 } {
   const query = useQuery({
     queryKey: supportHubQueryKeys.labels,
@@ -28,5 +30,6 @@ export function useSupportLabels(): {
     isLoading: query.isLoading,
     isReady: query.isSuccess,
     isError: query.isError,
+    refetch: query.refetch,
   };
 }

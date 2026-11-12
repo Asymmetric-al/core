@@ -4,8 +4,9 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@asym/ui/components/shadcn/toggle-group";
-import { cn } from "@asym/ui/lib/utils";
 import { LayoutGrid, Table as TableIcon } from "lucide-react";
+
+import { INBOX_LAYOUT_LABELS } from "../../lib/status-labels";
 
 import type { SupportInboxLayout } from "../../types";
 
@@ -19,8 +20,8 @@ const OPTIONS: {
   label: string;
   icon: typeof LayoutGrid;
 }[] = [
-  { value: "board", label: "Board", icon: LayoutGrid },
-  { value: "table", label: "Table", icon: TableIcon },
+  { value: "board", label: INBOX_LAYOUT_LABELS.board, icon: LayoutGrid },
+  { value: "table", label: INBOX_LAYOUT_LABELS.table, icon: TableIcon },
 ];
 
 /**
@@ -28,34 +29,26 @@ const OPTIONS: {
  */
 export function LayoutToggle({ value, onValueChange }: LayoutToggleProps) {
   return (
+    // Same outline segmented control as the shared grid's layout toggle.
     <ToggleGroup
       value={[value]}
       onValueChange={(values) => {
         const next = values[0];
         if (next === "board" || next === "table") onValueChange(next);
       }}
-      spacing={1}
+      variant="outline"
+      size="sm"
       aria-label="Inbox layout"
-      className="inline-flex h-10 items-center gap-0 rounded-xl border border-border bg-background p-1"
     >
       {OPTIONS.map((option) => {
-        const isActive = option.value === value;
         const Icon = option.icon;
         return (
           <ToggleGroupItem
             key={option.value}
-            type="button"
-            size="sm"
             value={option.value}
             aria-label={option.label}
-            className={cn(
-              "h-8 gap-1.5 rounded-lg px-3 text-xs font-semibold uppercase tracking-wider data-pressed:bg-foreground data-pressed:text-background",
-              isActive
-                ? "hover:bg-foreground hover:text-background"
-                : "text-muted-foreground hover:text-foreground",
-            )}
           >
-            <Icon className="size-3.5" />
+            <Icon aria-hidden="true" />
             <span className="hidden sm:inline">{option.label}</span>
           </ToggleGroupItem>
         );

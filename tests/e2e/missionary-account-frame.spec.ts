@@ -190,7 +190,7 @@ test("account links preserve invitation-only registration and unavailable passwo
     page.getByRole("button", { name: "Create Account" }),
   ).toHaveCount(0);
   await expectStandaloneAccountFrame(page);
-  await page.getByRole("link", { name: "Sign In", exact: true }).click();
+  await page.getByRole("link", { name: "Sign in", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
   await expectStandaloneAccountFrame(page);
 });

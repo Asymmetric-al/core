@@ -1,6 +1,7 @@
 import { EMPTY_SUPPORT_CONTACT_REF } from "@asym/database/collections/support-hub.schema";
 import { getAdminClient } from "@asym/database/supabase/admin";
 
+import { SupportCannedResponseError } from "../canned-response-error";
 import {
   getSupportHubRequestTenantId,
   runWithSupportHubTenant,
@@ -138,6 +139,17 @@ function assertDb(
   operation: string,
 ): void {
   if (!error) return;
+  if (
+    error.code === "23505" &&
+    error.message?.includes(
+      "support_canned_responses_tenant_owner_short_code_uq",
+    )
+  ) {
+    throw new SupportCannedResponseError(
+      "This shortcode is already in use.",
+      409,
+    );
+  }
   throw new Error(`${operation}: ${error.message ?? error.code ?? "failed"}`);
 }
 

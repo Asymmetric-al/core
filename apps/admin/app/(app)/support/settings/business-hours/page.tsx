@@ -1,16 +1,15 @@
-"use client";
+import type { Metadata } from "next";
 
 import { BusinessHoursList } from "@/features/support-hub/components/settings/business-hours/BusinessHoursList";
-import { SupportWorkspaceShell } from "@/features/support-hub/components/workspace";
+
+export const metadata: Metadata = {
+  title: "Business hours · Support settings",
+};
 
 export default function SupportSettingsBusinessHoursPage() {
   return (
-    <SupportWorkspaceShell
-      section="settings"
-      title="Business hours"
-      description="Weekly coverage + holidays for the donor care team."
-    >
+    <>
       <BusinessHoursList />
-    </SupportWorkspaceShell>
+    </>
   );
 }

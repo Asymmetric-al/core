@@ -256,6 +256,10 @@ describe("support-hub selectors", () => {
       stats.buckets.find((bucket) => bucket.status === status)?.count ?? 0;
 
     expect(stats.total).toBe(3);
+    expect(stats.totalDelta).toBeNull();
+    expect(stats.buckets.every((bucket) => bucket.deltaPercent === null)).toBe(
+      true,
+    );
     expect(bucketByStatus("open")).toBe(2);
     expect(bucketByStatus("resolved")).toBe(1);
     expect(stats.pastDueCount).toBe(1);

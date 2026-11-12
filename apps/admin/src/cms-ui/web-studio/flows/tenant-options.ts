@@ -37,7 +37,7 @@ export async function loadTenantOptions({
   const tenantsUrl = buildTenantOptionsUrl({ apiRoute, serverURL });
   const res = await fetch(tenantsUrl, { credentials: "include" });
   if (!res.ok) {
-    throw new Error("Failed to load tenants");
+    throw new Error("Organizations didn't load. Try again.");
   }
   const json = (await res.json()) as { docs?: TenantOption[] };
   return (json.docs ?? []).map((tenant) => ({

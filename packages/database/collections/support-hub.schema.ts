@@ -60,6 +60,7 @@ export const SUPPORT_REPORT_SLICES = [
   "resolution",
   "label-mix",
   "agent-mix",
+  "team-mix",
   "messages-received",
   "messages-sent",
   "customer-waiting",

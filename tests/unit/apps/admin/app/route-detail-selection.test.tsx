@@ -60,6 +60,7 @@ vi.mock("next/navigation", async () => {
 });
 
 vi.mock("@asym/database/hooks", () => ({
+  useAdminCrmTagOptions: () => ({ data: [] }),
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "detail"],
   ADMIN_CRM_RECORDS_QUERY_KEY: ["admin", "crm"],
   MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY: ["admin", "attention"],
@@ -86,6 +87,7 @@ vi.mock("@asym/ui/components/boneyard-skeleton", () => ({
 }));
 vi.mock("../../../../../apps/admin/app/(app)/contributions/main-body", () => ({
   ContributionsPageActions: () => null,
+  hasContributionsPageActions: () => false,
   ContributionsMainBody: ({
     onOpenContributionById,
   }: {
@@ -122,39 +124,72 @@ vi.mock("@asym/ui/components/shadcn/data-table", () => ({
     </>
   ),
 }));
-vi.mock("../../../../../apps/admin/app/(app)/crm/columns", () => ({
-  getCrmColumns: () => [],
+// The CRM grid is the shared ReUI DataGridPanel; render each row as one
+// "Open {name}" control wired to the panel's row-click contract.
+vi.mock("@asym/ui/components/data-grid-panel", async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import("@asym/ui/components/data-grid-panel")
+  >()),
+  DataGridPanel: ({
+    table,
+    onRowClick,
+  }: {
+    table: { options: { data: CrmGridRow[] } };
+    onRowClick: (row: CrmGridRow) => void;
+  }) => (
+    <>
+      {table.options.data.map((row) => (
+        <button key={row.id} type="button" onClick={() => onRowClick(row)}>
+          Open {row.displayName}
+        </button>
+      ))}
+    </>
+  ),
 }));
+vi.mock(
+  "../../../../../apps/admin/app/(app)/crm/columns",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("../../../../../apps/admin/app/(app)/crm/columns")
+    >()),
+    getCrmColumns: () => [],
+  }),
+);
 vi.mock("../../../../../apps/admin/app/(app)/crm/detail-drawer", () => ({
+  // A closing drawer (open=false, sliding out) is no longer the selection;
+  // the records workspace suite covers its slide-out lifecycle.
   DetailDrawer: ({
     contact,
+    open = true,
     onClose,
     onOpenGift,
   }: {
     contact: CrmGridRow;
+    open?: boolean;
     onClose: () => void;
     onOpenGift: (id: string) => void;
-  }) => (
-    <>
-      <div role="dialog" aria-label="Donor details">
-        <span>{contact.displayName}</span>
-        <span>{contact.email}</span>
-        <span>{contact.phone}</span>
-        {contact.lifetimeGiving != null && (
-          <span>Lifetime giving: {contact.lifetimeGiving}</span>
-        )}
-      </div>
-      <button type="button" onClick={onClose}>
-        Close donor
-      </button>
-      <button type="button" onClick={() => onOpenGift(GIFT_A)}>
-        Open donor gift A
-      </button>
-      <button type="button" onClick={() => onOpenGift(GIFT_B)}>
-        Open donor gift B
-      </button>
-    </>
-  ),
+  }) =>
+    open ? (
+      <>
+        <div role="dialog" aria-label="Donor details">
+          <span>{contact.displayName}</span>
+          <span>{contact.email}</span>
+          <span>{contact.phone}</span>
+          {contact.lifetimeGiving != null && (
+            <span>Lifetime giving: {contact.lifetimeGiving}</span>
+          )}
+        </div>
+        <button type="button" onClick={onClose}>
+          Close donor
+        </button>
+        <button type="button" onClick={() => onOpenGift(GIFT_A)}>
+          Open donor gift A
+        </button>
+        <button type="button" onClick={() => onOpenGift(GIFT_B)}>
+          Open donor gift B
+        </button>
+      </>
+    ) : null,
 }));
 vi.mock(
   "../../../../../apps/admin/app/(app)/contributions/contribution-detail-overlay",
@@ -271,6 +306,17 @@ describe("route-owned detail selection", () => {
       isLoading: false,
     });
     queries.detail.mockReturnValue({ data: undefined, isPending: true });
+    // jsdom has no matchMedia; the CRM toolbar reads the phone breakpoint.
+    window.matchMedia ??= ((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    })) as typeof window.matchMedia;
   });
 
   afterEach(() => {

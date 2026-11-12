@@ -139,8 +139,13 @@ vi.mock(
   "../../../../apps/admin/features/support-hub/hooks/use-support-notification-preferences",
   () => ({
     useSupportNotificationPreferences: () => ({
+      data: preferences,
       for: (id: string) =>
         preferences.find((row) => row.agentId === id) ?? null,
+      // A support admin, who may pick any agent.
+      access: { agentId: null, canManageAll: true },
+      isLoading: false,
+      isError: false,
     }),
   }),
 );
@@ -230,15 +235,15 @@ function saveChanges() {
 describe("SearchableSelect consumer null policies", () => {
   it("keeps the selected agent and unsaved preferences on implicit null", async () => {
     const view = render(<NotificationPreferencesForm />);
-    fireEvent.click(screen.getByRole("switch", { name: "Daily digest" }));
+    fireEvent.click(screen.getByRole("switch", { name: "SLA warnings" }));
     agentRows.current = [];
     view.rerender(<NotificationPreferencesForm />);
     emitImplicitNull("Agent");
     expect(
       screen
-        .getByRole("switch", { name: "Daily digest" })
+        .getByRole("switch", { name: "SLA warnings" })
         .getAttribute("aria-checked"),
-    ).toBe("true");
+    ).toBe("false");
     agentRows.current = agents;
     view.rerender(<NotificationPreferencesForm />);
     expect(
@@ -246,13 +251,16 @@ describe("SearchableSelect consumer null policies", () => {
     ).toContain("Grace");
     expect(
       screen
-        .getByRole("switch", { name: "Daily digest" })
+        .getByRole("switch", { name: "SLA warnings" })
         .getAttribute("aria-checked"),
-    ).toBe("true");
+    ).toBe("false");
     saveChanges();
     await waitFor(() =>
       expect(saves.notifications).toHaveBeenCalledWith(
-        expect.objectContaining({ agentId: "agent-2", emailDailyDigest: true }),
+        expect.objectContaining({
+          agentId: "agent-2",
+          inAppSlaWarnings: false,
+        }),
       ),
     );
     await choose("Agent", "Ada");
@@ -261,9 +269,9 @@ describe("SearchableSelect consumer null policies", () => {
     ).toContain("Ada");
     expect(
       screen
-        .getByRole("switch", { name: "Daily digest" })
+        .getByRole("switch", { name: "SLA warnings" })
         .getAttribute("aria-checked"),
-    ).toBe("false");
+    ).toBe("true");
   });
 
   it.each([
@@ -283,20 +291,19 @@ describe("SearchableSelect consumer null policies", () => {
       label: "Business hours",
       field: "defaultBusinessHoursId",
       value: "hours-1",
-      empty: "24/7 coverage",
+      empty: "No default schedule",
     },
   ])(
     "preserves $label unless its explicit empty choice is selected",
     async ({ label, field, value, empty }) => {
       render(<InboxSettingsForm />);
-      fireEvent.click(
-        screen.getByRole("switch", { name: "Round-robin assignment" }),
-      );
+      // Any real edit makes the form savable; round-robin is read-only.
+      fireEvent.click(screen.getByRole("switch", { name: "Donor panel" }));
       emitImplicitNull(label);
       saveChanges();
       await waitFor(() =>
         expect(saves.inbox).toHaveBeenCalledWith(
-          expect.objectContaining({ [field]: value, roundRobinEnabled: true }),
+          expect.objectContaining({ [field]: value }),
         ),
       );
       saves.inbox.mockClear();
@@ -377,12 +384,16 @@ describe("SearchableSelect consumer null policies", () => {
           type: "missionary",
           linked_id: "missionary-1",
           title: "Map marker",
+          // A saved location always has coordinates (the editor requires
+          // them since locations can be added from the keyboard).
+          lat: 6.5244,
+          lng: 3.3792,
         }}
         onOpenChange={vi.fn()}
       />,
     );
-    emitImplicitNull("Link to Missionary");
-    fireEvent.click(screen.getByRole("button", { name: "Update Location" }));
+    emitImplicitNull("Link to missionary");
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() =>
       expect(saves.location).toHaveBeenCalledWith(
         expect.objectContaining({ linked_id: "missionary-1" }),

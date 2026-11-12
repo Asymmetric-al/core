@@ -83,6 +83,34 @@ function makeReq({
 }
 
 describe("webStudioCreateFromTemplateEndpoint", () => {
+  it.each(["pages", "ministry-updates"])(
+    "rejects an empty normalized slug before creating %s",
+    async (targetCollection) => {
+      const create = vi.fn();
+      const findByID = vi.fn();
+      const req = makeReq({
+        user: { id: "u1", role: "staff", tenantId: "17" },
+        body: {
+          targetCollection,
+          templateId: "template",
+          title: "Title",
+          slug: " !!! ",
+          missionaryProfileId: "profile",
+        },
+        payloadOverrides: { create, findByID },
+      });
+      const response = await handler(req);
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        fieldErrors: {
+          slug: ["Enter an address with at least one letter or number."],
+        },
+      });
+      expect(create).not.toHaveBeenCalled();
+      expect(findByID).not.toHaveBeenCalled();
+    },
+  );
+
   it("preserves a template's legacy nodes and creates an independent unchanged fallback document", async () => {
     const layout = [
       {

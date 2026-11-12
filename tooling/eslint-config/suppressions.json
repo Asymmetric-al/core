@@ -40,7 +40,7 @@
       "count": 1
     },
     "shadcn/no-restyle": {
-      "count": 20
+      "count": 12
     }
   },
   "apps/admin/app/(app)/admin/eve/retention-panel.tsx": {
@@ -49,51 +49,8 @@
     }
   },
   "apps/admin/app/(app)/admin/eve/workspace-shell.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
       "count": 6
-    }
-  },
-  "apps/admin/app/(app)/admin/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 10
-    }
-  },
-  "apps/admin/app/(app)/automations/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 38
-    }
-  },
-  "apps/admin/app/(app)/care/directory/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/admin/app/(app)/care/settings/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 32
-    }
-  },
-  "apps/admin/app/(app)/contributions/columns.tsx": {
-    "shadcn/no-restyle": {
-      "count": 11
-    }
-  },
-  "apps/admin/app/(app)/contributions/contribution-detail-sheet.tsx": {
-    "shadcn/no-restyle": {
-      "count": 82
-    }
-  },
-  "apps/admin/app/(app)/contributions/main-body.tsx": {
-    "shadcn/no-restyle": {
-      "count": 20
-    }
-  },
-  "apps/admin/app/(app)/contributions/needs-attention-panel.tsx": {
-    "shadcn/no-restyle": {
-      "count": 15
     }
   },
   "apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog.tsx": {
@@ -107,101 +64,6 @@
       "count": 2
     }
   },
-  "apps/admin/app/(app)/contributions/operation-shell.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 25
-    }
-  },
-  "apps/admin/app/(app)/contributions/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/admin/app/(app)/contributions/receipt-delivery-choice.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/admin/app/(app)/crm/columns.tsx": {
-    "shadcn/no-restyle": {
-      "count": 23
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
-    }
-  },
-  "apps/admin/app/(app)/crm/detail-drawer.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
-    "shadcn/no-restyle": {
-      "count": 105
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
-    }
-  },
-  "apps/admin/app/(app)/crm/gift-history-dialogs.tsx": {
-    "shadcn/no-restyle": {
-      "count": 10
-    }
-  },
-  "apps/admin/app/(app)/crm/gift-history-section.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/app/(app)/crm/gift-history-view-settings-menu.tsx": {
-    "shadcn/no-restyle": {
-      "count": 28
-    }
-  },
-  "apps/admin/app/(app)/crm/gift-history-view-switcher.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/admin/app/(app)/crm/gift-inline-action-controls.tsx": {
-    "shadcn/no-restyle": {
-      "count": 13
-    }
-  },
-  "apps/admin/app/(app)/crm/kanban-view.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
-    "shadcn/no-restyle": {
-      "count": 7
-    }
-  },
-  "apps/admin/app/(app)/crm/notes/columns.tsx": {
-    "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
-  "apps/admin/app/(app)/crm/notes/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 3
-    }
-  },
-  "apps/admin/app/(app)/crm/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 7
-    }
-  },
-  "apps/admin/app/(app)/crm/relationships/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 1
-    }
-  },
-  "apps/admin/app/(app)/help/about/page.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
   "apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 2
@@ -209,45 +71,12 @@
   },
   "apps/admin/app/(app)/reports/page-client.tsx": {
     "shadcn/no-restyle": {
-      "count": 8
-    }
-  },
-  "apps/admin/app/(app)/reports/reports-charts.tsx": {
-    "shadcn/no-restyle": {
-      "count": 6
+      "count": 3
     }
   },
   "apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx": {
     "shadcn/no-restyle": {
       "count": 31
-    }
-  },
-  "apps/admin/app/(app)/sign/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
-    "shadcn/no-restyle": {
-      "count": 26
-    }
-  },
-  "apps/admin/app/(app)/support/contacts/page.tsx": {
-    "shadcn/no-restyle": {
-      "count": 3
-    }
-  },
-  "apps/admin/app/(app)/support/knowledge/page.tsx": {
-    "shadcn/no-restyle": {
-      "count": 7
-    }
-  },
-  "apps/admin/app/(app)/support/loading.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/app/(app)/support/macros/page.tsx": {
-    "shadcn/no-restyle": {
-      "count": 1
     }
   },
   "apps/admin/app/(app)/support/page-client.tsx": {
@@ -263,12 +92,7 @@
       "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
-  "apps/admin/app/(app)/support/tickets/new/new-ticket-form.tsx": {
-    "shadcn/no-restyle": {
-      "count": 13
+      "count": 5
     }
   },
   "apps/admin/app/(app)/support/tickets/new/page.tsx": {
@@ -284,7 +108,7 @@
       "count": 1
     },
     "shadcn/no-restyle": {
-      "count": 12
+      "count": 8
     }
   },
   "apps/admin/app/(auth)/loading.tsx": {
@@ -299,7 +123,7 @@
   },
   "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 2
     }
   },
   "apps/admin/app/eve/global-panel.tsx": {
@@ -310,16 +134,6 @@
   "apps/admin/app/global-error.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 1
-    }
-  },
-  "apps/admin/app/global-not-found.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/app/mc-shell.tsx": {
-    "shadcn/no-restyle": {
-      "count": 37
     }
   },
   "apps/admin/app/web-studio/web-studio-sections.tsx": {
@@ -370,75 +184,12 @@
       "count": 2
     }
   },
-  "apps/admin/features/mission-control/care/components/CareDashboard.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 47
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
-    }
-  },
-  "apps/admin/features/mission-control/care/components/CareTools.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
-    "shadcn/no-restyle": {
-      "count": 65
-    }
-  },
-  "apps/admin/features/mission-control/care/components/HealthHeatmap.tsx": {
-    "shadcn/no-restyle": {
-      "count": 10
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
-    }
-  },
-  "apps/admin/features/mission-control/care/components/PersonnelList.tsx": {
-    "shadcn/no-restyle": {
-      "count": 9
-    }
-  },
-  "apps/admin/features/mission-control/care/components/PersonnelProfile.tsx": {
-    "shadcn/no-restyle": {
-      "count": 106
-    }
-  },
-  "apps/admin/features/mission-control/care/components/ShortcutsHelp.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
-  "apps/admin/features/mission-control/care/components/TimezoneScheduler.tsx": {
-    "shadcn/no-restyle": {
-      "count": 11
-    }
-  },
-  "apps/admin/features/mission-control/care/components/UI.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
-    "shadcn/no-restyle": {
-      "count": 4
-    }
-  },
   "apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx": {
     "shadcn/no-raw-colors": {
       "count": 1
     },
     "shadcn/no-restyle": {
       "count": 4
-    }
-  },
-  "apps/admin/features/mission-control/components/WorkflowSummariesTable.tsx": {
-    "shadcn/no-restyle": {
-      "count": 7
     }
   },
   "apps/admin/features/mission-control/components/app-shell/index.tsx": {
@@ -465,32 +216,6 @@
       "count": 18
     }
   },
-  "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
-    "shadcn/no-restyle": {
-      "count": 30
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
-    }
-  },
-  "apps/admin/features/mission-control/components/tiles/tile-card.tsx": {
-    "shadcn/no-restyle": {
-      "count": 18
-    }
-  },
-  "apps/admin/features/mission-control/components/tiles/workflows-panel.tsx": {
-    "shadcn/no-restyle": {
-      "count": 7
-    }
-  },
-  "apps/admin/features/support-hub/components/SupportFailureBanner.tsx": {
-    "shadcn/no-restyle": {
-      "count": 9
-    }
-  },
   "apps/admin/features/support-hub/components/board/BoardCard.tsx": {
     "shadcn/no-restyle": {
       "count": 4
@@ -502,9 +227,6 @@
     }
   },
   "apps/admin/features/support-hub/components/command/InboxShortcutHints.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
       "count": 2
     }
@@ -529,7 +251,7 @@
   },
   "apps/admin/features/support-hub/components/detail/ConversationDetail.tsx": {
     "shadcn/no-restyle": {
-      "count": 8
+      "count": 5
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationLabelMenu.tsx": {
@@ -538,16 +260,6 @@
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationPriorityMenu.tsx": {
-    "shadcn/no-restyle": {
-      "count": 1
-    }
-  },
-  "apps/admin/features/support-hub/components/detail/ConversationSlaChip.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/features/support-hub/components/detail/ConversationSnoozeMenu.tsx": {
     "shadcn/no-restyle": {
       "count": 1
     }
@@ -566,16 +278,8 @@
     }
   },
   "apps/admin/features/support-hub/components/detail/composer/SupportTipTapEditor.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
       "count": 9
-    }
-  },
-  "apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
     }
   },
   "apps/admin/features/support-hub/components/detail/timeline/EmailMessage.tsx": {
@@ -594,16 +298,6 @@
       "count": 4
     }
   },
-  "apps/admin/features/support-hub/components/detail/timeline/TimelineSeparator.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/features/support-hub/components/labels/LabelForm.tsx": {
-    "shadcn/no-restyle": {
-      "count": 2
-    }
-  },
   "apps/admin/features/support-hub/components/labels/LabelManagerDialog.tsx": {
     "shadcn/no-restyle": {
       "count": 16
@@ -614,42 +308,19 @@
       "count": 1
     }
   },
-  "apps/admin/features/support-hub/components/macros/MacroPreviewLine.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
   "apps/admin/features/support-hub/components/macros/RunMacroPopover.tsx": {
     "shadcn/no-restyle": {
       "count": 5
     }
   },
-  "apps/admin/features/support-hub/components/reports/ReportExportMenu.tsx": {
-    "shadcn/no-restyle": {
-      "count": 6
-    }
-  },
   "apps/admin/features/support-hub/components/reports/ReportFilters.tsx": {
     "shadcn/no-restyle": {
-      "count": 26
+      "count": 18
     }
   },
   "apps/admin/features/support-hub/components/reports/ReportScopeSelect.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-restyle": {
-      "count": 12
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/SettingsRow.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/assignment/AssignmentRulesForm.tsx": {
-    "shadcn/no-restyle": {
-      "count": 2
+      "count": 9
     }
   },
   "apps/admin/features/support-hub/components/settings/automations/AutomationActionRow.tsx": {
@@ -664,80 +335,32 @@
   },
   "apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx": {
     "shadcn/no-restyle": {
-      "count": 8
+      "count": 1
     }
   },
   "apps/admin/features/support-hub/components/settings/automations/AutomationRuleForm.tsx": {
     "shadcn/no-restyle": {
-      "count": 18
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/automations/AutomationRuleList.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 9
+      "count": 2
     }
   },
   "apps/admin/features/support-hub/components/settings/business-hours/BusinessHoursForm.tsx": {
     "shadcn/no-restyle": {
-      "count": 28
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/business-hours/BusinessHoursList.tsx": {
-    "shadcn/no-restyle": {
-      "count": 9
+      "count": 11
     }
   },
   "apps/admin/features/support-hub/components/settings/canned-responses/CannedResponseForm.tsx": {
     "shadcn/no-restyle": {
-      "count": 3
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/canned-responses/CannedResponseList.tsx": {
-    "shadcn/no-restyle": {
-      "count": 9
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/collaborators/AgentsList.tsx": {
-    "shadcn/no-restyle": {
-      "count": 2
+      "count": 1
     }
   },
   "apps/admin/features/support-hub/components/settings/collaborators/TeamForm.tsx": {
     "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/collaborators/TeamList.tsx": {
-    "shadcn/no-restyle": {
-      "count": 11
+      "count": 1
     }
   },
   "apps/admin/features/support-hub/components/settings/inbox/InboxSettingsForm.tsx": {
     "shadcn/no-restyle": {
-      "count": 4
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/labels/LabelsSettingsPanel.tsx": {
-    "shadcn/no-restyle": {
-      "count": 9
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/macros/MacroActionEditor.tsx": {
-    "shadcn/no-restyle": {
-      "count": 29
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/macros/MacroForm.tsx": {
-    "shadcn/no-restyle": {
       "count": 2
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/macros/MacroList.tsx": {
-    "shadcn/no-restyle": {
-      "count": 9
     }
   },
   "apps/admin/features/support-hub/components/settings/notifications/NotificationPreferencesForm.tsx": {
@@ -745,29 +368,14 @@
       "count": 2
     }
   },
-  "apps/admin/features/support-hub/components/settings/saved-views/SavedViewsList.tsx": {
-    "shadcn/no-restyle": {
-      "count": 4
-    }
-  },
   "apps/admin/features/support-hub/components/settings/signatures/SignatureForm.tsx": {
     "shadcn/no-restyle": {
-      "count": 8
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/signatures/SignatureList.tsx": {
-    "shadcn/no-restyle": {
-      "count": 13
+      "count": 6
     }
   },
   "apps/admin/features/support-hub/components/settings/sla/SlaPolicyForm.tsx": {
     "shadcn/no-restyle": {
-      "count": 10
-    }
-  },
-  "apps/admin/features/support-hub/components/settings/sla/SlaPolicyList.tsx": {
-    "shadcn/no-restyle": {
-      "count": 13
+      "count": 2
     }
   },
   "apps/admin/features/support-hub/components/table/bulk-actions.tsx": {
@@ -778,9 +386,6 @@
   "apps/admin/features/support-hub/components/table/cells.tsx": {
     "shadcn/no-restyle": {
       "count": 4
-    },
-    "shadcn/require-static-classes": {
-      "count": 2
     }
   },
   "apps/admin/features/support-hub/components/tabs/ViewTabs.tsx": {
@@ -793,22 +398,9 @@
       "count": 2
     }
   },
-  "apps/admin/features/support-hub/components/toolbar/InboxToolbar.tsx": {
-    "shadcn/no-restyle": {
-      "count": 1
-    }
-  },
   "apps/admin/features/support-hub/components/toolbar/LabelFilter.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 35
-    }
-  },
-  "apps/admin/features/support-hub/components/toolbar/LayoutToggle.tsx": {
-    "shadcn/no-restyle": {
-      "count": 19
+      "count": 15
     }
   },
   "apps/admin/features/support-hub/components/toolbar/StatusFilter.tsx": {
@@ -819,24 +411,6 @@
   "apps/admin/features/support-hub/components/views/SaveViewDialog.tsx": {
     "shadcn/no-restyle": {
       "count": 7
-    }
-  },
-  "apps/admin/features/support-hub/components/views/SavedViewItem.tsx": {
-    "shadcn/no-restyle": {
-      "count": 8
-    }
-  },
-  "apps/admin/features/support-hub/components/views/SavedViewsBar.tsx": {
-    "shadcn/no-restyle": {
-      "count": 10
-    }
-  },
-  "apps/admin/src/cms-ui/brand/Logo.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
-    "shadcn/no-restyle": {
-      "count": 4
     }
   },
   "apps/admin/src/cms-ui/root/Header.tsx": {
@@ -853,45 +427,6 @@
     },
     "shadcn/no-restyle": {
       "count": 6
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/collections/shared/list-workspace/NativeCollectionListView.tsx": {
-    "shadcn/no-restyle": {
-      "count": 10
-    },
-    "shadcn/no-unknown-classes": {
-      "count": 1
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/flows/MissionariesHubView.tsx": {
-    "shadcn/no-restyle": {
-      "count": 7
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/flows/TemplateGalleryView.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/shell/studio-layout.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "apps/admin/src/cms-ui/web-studio/shell/studio-top-bar.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
-    "shadcn/no-restyle": {
-      "count": 4
     }
   },
   "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx": {
@@ -1272,22 +807,6 @@
       "count": 1
     }
   },
-  "packages/ui/components/auth/RegisterScreen.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 3
-    }
-  },
-  "packages/ui/components/auth/auth-primitives.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 20
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
-    }
-  },
   "packages/ui/components/brand-logo.tsx": {
     "shadcn/no-raw-colors": {
       "count": 4
@@ -1308,7 +827,7 @@
       "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 12
+      "count": 11
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -1388,11 +907,8 @@
     }
   },
   "packages/ui/components/shadcn-studio/blocks/dropdown-profile.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 13
+      "count": 7
     }
   },
   "packages/ui/components/shadcn-studio/blocks/hero-section-09/header.tsx": {
@@ -1587,7 +1103,7 @@
   },
   "packages/ui/components/shadcn/rich-text-editor/legacy-rich-text-editor.tsx": {
     "shadcn/no-restyle": {
-      "count": 6
+      "count": 4
     }
   },
   "packages/ui/components/shadcn/rich-text-editor/link-bubble-menu.tsx": {
@@ -1597,7 +1113,7 @@
   },
   "packages/ui/components/shadcn/rich-text-editor/toolbar.tsx": {
     "shadcn/no-restyle": {
-      "count": 60
+      "count": 32
     }
   },
   "packages/ui/components/shadcn/searchable-select.tsx": {

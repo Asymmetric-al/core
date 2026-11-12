@@ -12,32 +12,35 @@ interface TablePageMeta {
 
 export const CRM_PAGE_META: TablePageMeta = {
   title: "CRM",
-  description: "Manage contacts, donors, and partner relationships.",
+  description:
+    "People, churches and organizations who give to and partner with you.",
   density: "compact",
 };
 
 export const CRM_NOTES_PAGE_META: TablePageMeta = {
-  title: "CRM Notes",
-  description: "Relationship notes for staff follow-up.",
-  density: "default",
+  title: "CRM notes",
+  description:
+    "Notes staff keep about the people and organizations they work with.",
+  density: "compact",
 };
 
 export const CRM_RELATIONSHIPS_PAGE_META: TablePageMeta = {
-  title: "CRM Relationships",
+  title: "CRM relationships",
   description:
-    "Relationship graph, search, and reporting for staff operations.",
-  density: "default",
+    "Search CRM records and review households, pledges and activity.",
+  density: "compact",
 };
 
 export const CONTRIBUTIONS_PAGE_META: TablePageMeta = {
   title: "Contributions",
-  description: "Track and manage all donations and contributions.",
+  description:
+    "Find a gift, check its payment and receipt, and refund, correct or resend it.",
   density: "compact",
 };
 
 export const TASKS_PAGE_META: TablePageMeta = {
-  title: "Mission Pipeline",
-  description: "Coordinate donor outreach and field operations.",
+  title: "Tasks",
+  description: "Calls, follow-ups and to-dos for the team.",
   density: "compact",
 };
 
@@ -48,8 +51,8 @@ export const EVENTS_PAGE_META: TablePageMeta = {
 };
 
 export const SUPPORT_TICKETS_PAGE_META: TablePageMeta = {
-  title: "Support Tickets",
+  title: "Support tickets",
   description:
-    "Review Donor Care, Mobilization, and Existing Missionary Support requests.",
-  density: "default",
+    "Requests from donors, candidates and missionaries, by support track.",
+  density: "compact",
 };

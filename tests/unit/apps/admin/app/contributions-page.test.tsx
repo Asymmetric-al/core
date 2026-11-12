@@ -1,6 +1,11 @@
 /** @vitest-environment jsdom */
 /** @vitest-environment-options {"url": "http://localhost/"} */
 
+import { readFileSync } from "node:fs";
+// jsdom's global URL rewrites file: bases; Node's own URL keeps a real
+// file: URL for readFileSync on Windows.
+import { URL as NodeURL, fileURLToPath } from "node:url";
+
 import { QueryProvider } from "@asym/database/providers";
 import {
   act,
@@ -26,6 +31,8 @@ type ContributionsDataModule =
 type UseAdminContributionsModule =
   typeof import("../../../../../apps/admin/app/(app)/contributions/use-admin-contributions");
 type DatabaseHooksModule = typeof import("@asym/database/hooks");
+
+const repoRoot = new NodeURL("../../../../../", import.meta.url);
 
 const useAdminContributionsMock = vi.fn();
 const useMissionControlNeedsAttentionMock = vi.fn();
@@ -354,15 +361,31 @@ function makeHubContribution(input: {
 }
 
 function getFilterChipTrigger(label: string): HTMLElement {
-  return within(document.body).getByRole("combobox", {
-    name: label,
-    exact: true,
-  });
+  // Scope to the grid toolbar: column headers carry sort buttons that share
+  // the filter titles (e.g. "Status").
+  const toolbar = document.querySelector<HTMLElement>(
+    '[data-slot="data-grid-panel-toolbar"]',
+  );
+  if (!toolbar) {
+    throw new Error("Contributions grid toolbar was not rendered");
+  }
+  const body = within(toolbar);
+  const trigger = body.queryByRole("button", { name: label, exact: true });
+  if (trigger) {
+    return trigger;
+  }
+  // Shared CRM/Hub chips live behind the toolbar's "More filters" toggle.
+  const moreFilters = body.getByRole("button", { name: /more filters/i });
+  if (moreFilters.getAttribute("aria-expanded") !== "true") {
+    fireEvent.click(moreFilters);
+  }
+  return body.getByRole("button", { name: label, exact: true });
 }
 
 /**
- * Opens a toolbar filter combobox (no-op when already open) and returns its
- * named search dialog so option clicks stay scoped to the requested filter.
+ * Opens a toolbar filter popover (ReUI DataGridColumnFilter) and returns it,
+ * so option clicks stay scoped to the requested filter. The popover is a
+ * dialog named after its filter.
  */
 async function openFilterChip(label: string): Promise<HTMLElement> {
   const trigger = getFilterChipTrigger(label);
@@ -370,13 +393,12 @@ async function openFilterChip(label: string): Promise<HTMLElement> {
     fireEvent.click(trigger);
   }
   return within(document.body).findByRole("dialog", {
-    name: label,
-    exact: true,
+    name: `Filter by ${label}`,
   });
 }
 
 async function toggleChipOption(popup: HTMLElement, optionName: RegExp) {
-  const option = await within(popup).findByRole("option", {
+  const option = await within(popup).findByRole("button", {
     name: optionName,
   });
   fireEvent.click(option);
@@ -525,7 +547,51 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
     });
 
     expect(view.getByTestId("mc-contributions-live")).toBeTruthy();
-    expect(view.getByText("No contributions found")).toBeTruthy();
+    // Unfiltered and empty: nothing has arrived yet (filtered results that
+    // match nothing still say "No contributions found").
+    expect(view.getByText("No contributions yet")).toBeTruthy();
+  });
+
+  it("says Needs attention could not load instead of hiding the panel", async () => {
+    const refetch = vi.fn().mockResolvedValue({});
+    useMissionControlNeedsAttentionMock.mockReturnValue(
+      mockQuery({ data: undefined, isError: true, refetch }),
+    );
+
+    const view = renderContributionsPage();
+
+    const note = await view.findByText(
+      "Couldn't check Needs attention; open issues may be missing.",
+    );
+    const alert = note.closest('[role="alert"]') as HTMLElement;
+    expect(alert).toBeTruthy();
+    fireEvent.click(within(alert).getByRole("button", { name: "Retry" }));
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a working Needs attention check with nothing open quiet", async () => {
+    const view = renderContributionsPage();
+
+    await view.findByText("No contributions yet");
+    expect(view.queryByText(/couldn't check needs attention/i)).toBeNull();
+  });
+
+  it("shows only the gifts load error when both queries fail", async () => {
+    useAdminContributionsMock.mockReturnValue(
+      mockQuery({
+        isError: true,
+        data: undefined,
+        error: new Error("Network down"),
+      }),
+    );
+    useMissionControlNeedsAttentionMock.mockReturnValue(
+      mockQuery({ data: undefined, isError: true }),
+    );
+
+    const view = renderContributionsPage();
+
+    await view.findByText("Network down");
+    expect(view.queryByText(/couldn't check needs attention/i)).toBeNull();
   });
 
   it("shows load failed and retry when the query is in error state", () => {
@@ -540,10 +606,58 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
 
     const view = renderContributionsPage();
 
-    expect(view.getByRole("heading", { name: "Load failed" })).toBeTruthy();
+    expect(
+      view.getByRole("heading", { name: "Couldn't load contributions" }),
+    ).toBeTruthy();
     expect(view.getByText("Upstream unavailable")).toBeTruthy();
     expect(view.getByRole("button", { name: /retry/i })).toBeTruthy();
     expect(view.queryByText("Sarah Mitchell")).toBeNull();
+  });
+
+  it.each(["Failed to load contributions.", "Could not load contributions."])(
+    "gives a next step instead of echoing the generic failure %j",
+    (message) => {
+      useAdminContributionsMock.mockReturnValue(
+        mockQuery({
+          isError: true,
+          isPending: false,
+          data: undefined,
+          error: new Error(message),
+        }),
+      );
+
+      const view = renderContributionsPage();
+
+      expect(
+        view.getByRole("heading", { name: "Couldn't load contributions" }),
+      ).toBeTruthy();
+      // The cause is unknown (a 500, a failed query), so the copy does not
+      // blame the connection.
+      expect(
+        view.getByText(
+          "Something went wrong while loading. Retry, or try again in a few minutes.",
+        ),
+      ).toBeTruthy();
+      expect(view.queryByText(/check your connection/i)).toBeNull();
+      expect(view.queryByText(message)).toBeNull();
+      expect(view.getByRole("button", { name: /retry/i })).toBeTruthy();
+    },
+  );
+
+  it("points to the connection only when the request never reached the server", () => {
+    useAdminContributionsMock.mockReturnValue(
+      mockQuery({
+        isError: true,
+        isPending: false,
+        data: undefined,
+        error: new Error("Failed to fetch"),
+      }),
+    );
+
+    const view = renderContributionsPage();
+
+    expect(view.getByText("Check your connection, then retry.")).toBeTruthy();
+    expect(view.queryByText("Failed to fetch")).toBeNull();
   });
 
   it("renders contribution rows when the query succeeds", () => {
@@ -560,7 +674,45 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
     const view = renderContributionsPage();
 
     expect(view.getByText(rows[0]!.donorName!)).toBeTruthy();
-    expect(view.queryByRole("heading", { name: "Load failed" })).toBeNull();
+    expect(
+      view.queryByRole("heading", { name: "Couldn't load contributions" }),
+    ).toBeNull();
+  });
+
+  it("shows the newest gifts while older pages load and says the totals are partial", () => {
+    const rows = boneyardContributionsFixture;
+    useAdminContributionsMock.mockReturnValue(
+      mockQuery({ data: rows, isLoadingOlder: true }),
+    );
+
+    const view = renderContributionsPage();
+
+    expect(view.getByText(rows[0]!.donorName!)).toBeTruthy();
+    expect(view.getByText(/loading all gifts/i)).toBeTruthy();
+  });
+
+  it("keeps the newest gifts on screen when older pages fail, with a retry for them", () => {
+    const rows = boneyardContributionsFixture;
+    const onRetry = vi.fn();
+    useAdminContributionsMock.mockReturnValue(
+      mockQuery({
+        data: rows,
+        loadIssue: { kind: "older", message: "Gateway timeout", onRetry },
+      }),
+    );
+
+    const view = renderContributionsPage();
+
+    expect(view.getByTestId("mc-contributions-live")).toBeTruthy();
+    expect(view.getByText(rows[0]!.donorName!)).toBeTruthy();
+    expect(
+      view.queryByRole("heading", { name: "Couldn't load contributions" }),
+    ).toBeNull();
+    const alert = view
+      .getByText(/couldn.t load older gifts/i)
+      .closest('[role="alert"]') as HTMLElement;
+    fireEvent.click(within(alert).getByRole("button", { name: /retry/i }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
   it("renders Needs Attention groups from Mission Control task state", () => {
@@ -608,9 +760,74 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
 
     const view = renderContributionsPage();
 
-    expect(view.getByText("Needs Attention")).toBeTruthy();
+    expect(view.getByText("Needs attention")).toBeTruthy();
     expect(view.getByText("Donor notification")).toBeTruthy();
     expect(view.getByText("Donor correction email failed")).toBeTruthy();
+  });
+
+  it("leaves retired-kind filtering to the server, with no browser copy", () => {
+    // listContributionNeedsAttention drops retired kinds (CRM posting) at
+    // the source; the hub and Home show the groups as sent.
+    for (const path of [
+      "apps/admin/app/(app)/contributions/page-client.tsx",
+      "apps/admin/features/mission-control/components/tiles/needs-attention-summary.tsx",
+    ]) {
+      const source = readFileSync(
+        fileURLToPath(new NodeURL(path, repoRoot)),
+        "utf8",
+      );
+      expect(source).not.toContain("crm_post_failed");
+      expect(source).not.toContain("retired-attention");
+    }
+  });
+
+  it("opens with the grid filtered to one needs-attention kind from an ?attention= link", () => {
+    mockSearch = "attention=critical%3Adonor_notification_failed";
+    const rows = boneyardContributionsFixture;
+    useAdminContributionsMock.mockReturnValue(
+      mockQuery({ isError: false, isPending: false, data: rows, error: null }),
+    );
+    useMissionControlNeedsAttentionMock.mockReturnValue(
+      mockQuery({
+        data: {
+          groups: [
+            {
+              key: "critical:donor_notification_failed",
+              title: "Donor notification",
+              urgency: "critical",
+              count: 1,
+              items: [
+                {
+                  id: "attention_1",
+                  taskId: "task_1",
+                  issueType: "donor_notification_failed",
+                  issueLabel: "Donor notification",
+                  urgency: "critical",
+                  status: "open",
+                  summary: "Donor correction email failed",
+                  contributionId: rows[0]!.id,
+                  donorId: rows[0]!.donorId,
+                  firstSeenAt: "2026-05-26T00:00:00.000Z",
+                  lastSeenAt: "2026-05-26T01:00:00.000Z",
+                },
+              ],
+            },
+          ],
+          items: [],
+        },
+        isError: false,
+        isPending: false,
+      }),
+    );
+
+    const view = renderContributionsPage();
+
+    // Home's link lands on the filtered grid: More filters is open with the
+    // Needs attention chip applied, and only the flagged gift is listed.
+    const group = view.getByRole("group", { name: "More filters" });
+    expect(within(group).getByText("Needs attention")).toBeTruthy();
+    const grid = view.getByRole("table");
+    expect(within(grid).getAllByRole("row")).toHaveLength(2);
   });
 
   it("loads contribution detail when an attention item is outside the current table rows", async () => {
@@ -627,19 +844,19 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
         data: {
           groups: [
             {
-              key: "high:crm_post_failed",
-              title: "CRM post",
+              key: "critical:receipt_failed",
+              title: "Receipt",
               urgency: "high",
               count: 1,
               items: [
                 {
                   id: "attention_1",
                   taskId: "task_1",
-                  issueType: "crm_post_failed",
-                  issueLabel: "CRM post",
+                  issueType: "receipt_failed",
+                  issueLabel: "Receipt",
                   urgency: "high",
                   status: "open",
-                  summary: "CRM post failed",
+                  summary: "Receipt email failed",
                   contributionId: "00000000-0000-4000-8000-000000000123",
                   donorId: "donor_1",
                   firstSeenAt: "2026-05-26T00:00:00.000Z",
@@ -944,6 +1161,81 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
     );
   });
 
+  it("shows the approver what a pending correction changes, from the request itself", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012e";
+    const summary =
+      "Amount correction $100.00 → $150.00 awaiting approval (requested by Joel Ramirez).";
+    mockSearch = `gift=${donationId}`;
+    const detailPayload = makeDetailPayload(donationId, "Correction Donor");
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        contribution: {
+          ...detailPayload.contribution,
+          correctionRequests: [
+            {
+              id: "request_1",
+              actionType: "amount_correction",
+              status: "pending",
+              reason: "Donor confirmed the larger amount.",
+              requestedByProfileId: "profile_9",
+              requestedByName: "Joel Ramirez",
+              createdAt: "2026-05-26T00:00:00.000Z",
+              proposedChange: [
+                { label: "Amount", from: "$100.00", to: "$150.00" },
+              ],
+              viewerCanDecide: true,
+            },
+          ],
+        },
+      }),
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    useMissionControlNeedsAttentionMock.mockReturnValue(
+      mockQuery({
+        data: {
+          groups: [
+            {
+              key: "high:correction_review",
+              title: "Correction review",
+              urgency: "high",
+              count: 1,
+              items: [
+                {
+                  id: "attention_9",
+                  taskId: null,
+                  issueType: "correction_review",
+                  issueLabel: "Correction review",
+                  urgency: "high",
+                  status: "open",
+                  summary,
+                  contributionId: donationId,
+                  donorId: "donor_1",
+                  firstSeenAt: "2026-05-26T00:00:00.000Z",
+                  lastSeenAt: "2026-05-26T01:00:00.000Z",
+                },
+              ],
+            },
+          ],
+          items: [],
+        },
+      }),
+    );
+
+    const view = renderContributionsPage();
+
+    const card = await view.findByTestId("correction-request-request_1");
+    // The request carries its own change; the attention summary (which
+    // production fills with the request's free-text reason) is not used.
+    expect(card.textContent).toContain("$100.00");
+    expect(card.textContent).toContain("$150.00");
+    expect(card.textContent).toContain("Joel Ramirez");
+    expect(card.textContent).not.toContain(summary);
+  });
+
   it("renders a blocked refund reason inline in the Hub detail overlay", async () => {
     const donationId = "00000000-0000-4000-8000-00000000012b";
     mockSearch = `gift=${donationId}`;
@@ -1004,7 +1296,7 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
 
     const view = renderContributionsPage();
 
-    expect(await view.findByText("Anonymous Donor")).toBeTruthy();
+    expect(await view.findByText("Anonymous donor")).toBeTruthy();
     expect(view.getByText("Mail")).toBeTruthy();
   });
 
@@ -1115,6 +1407,33 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
       );
     });
     expect(fetchMock).not.toHaveBeenCalled();
+    // Say why the link was dropped instead of silently landing on the list.
+    const { toast } = await import("sonner");
+    expect(toast.error).toHaveBeenCalledWith(
+      "That contribution link isn’t valid.",
+      { id: "invalid-contribution-link" },
+    );
+  });
+
+  it("opens seeded gift links whose ids fall outside the RFC version range", async () => {
+    const donationId = "80000000-0000-0000-0000-000000000001";
+    mockSearch = `gift=${donationId}`;
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => makeDetailPayload(donationId, "Seeded Donor"),
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+
+    expect(await view.findByText("Seeded Donor")).toBeTruthy();
+    expect(routerReplaceMock).not.toHaveBeenCalled();
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain(donationId);
+    const { toast } = await import("sonner");
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it("smart close removes only the gift selection from route state", async () => {
@@ -1131,6 +1450,13 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
 
     const view = renderContributionsPage();
     expect(await view.findByText("Smart Close Donor")).toBeTruthy();
+    // No processor reference: the internal donation id is never shown as a
+    // transaction ID, and the copy action names what it really copies.
+    expect(view.queryByText(donationId)).toBeNull();
+    expect(
+      view.queryByRole("button", { name: "Copy transaction ID" }),
+    ).toBeNull();
+    expect(view.getByRole("button", { name: "Copy gift ID" })).toBeTruthy();
 
     fireEvent.click(
       view.getByRole("button", { name: /close contribution details/i }),
@@ -1149,19 +1475,19 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
         data: {
           groups: [
             {
-              key: "high:crm_post_failed",
-              title: "CRM post",
+              key: "critical:receipt_failed",
+              title: "Receipt",
               urgency: "high",
               count: 1,
               items: [
                 {
                   id: "attention_focus",
                   taskId: "task_focus",
-                  issueType: "crm_post_failed",
-                  issueLabel: "CRM post",
+                  issueType: "receipt_failed",
+                  issueLabel: "Receipt",
                   urgency: "high",
                   status: "open",
-                  summary: "CRM post failed",
+                  summary: "Receipt email failed",
                   contributionId: donationId,
                   donorId: "donor_1",
                   firstSeenAt: "2026-05-26T00:00:00.000Z",
@@ -1279,6 +1605,42 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
     expect(body.actionType).toBe("resend_receipt");
   });
 
+  it("keeps the detail sheet open after a receipt send succeeds", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012e";
+    mockSearch = `gift=${donationId}`;
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes("/actions")) {
+        return { ok: true, json: async () => ({ ok: true }) };
+      }
+      return {
+        ok: true,
+        json: async () =>
+          makeReceiptActionablePayload(donationId, "Stay Open Donor"),
+      };
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+    expect(await view.findByText("Stay Open Donor")).toBeTruthy();
+
+    fireEvent.click(view.getByRole("button", { name: /send receipt/i }));
+
+    const { toast } = await import("sonner");
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("Receipt send recorded.");
+    });
+    // The refreshed gift stays beside the success message instead of the
+    // sheet closing on the staffer.
+    expect(
+      view.getByRole("button", { name: /close contribution details/i }),
+    ).toBeTruthy();
+    expect(view.getByText("Stay Open Donor")).toBeTruthy();
+    expect(routerReplaceMock).not.toHaveBeenCalled();
+  });
+
   it("invalidates every shared contribution surface after contribution mutations", async () => {
     const queryClient = {
       invalidateQueries: vi.fn().mockResolvedValue(undefined),
@@ -1335,7 +1697,9 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
 
     const view = renderContributionsPage();
 
-    expect(view.queryByRole("heading", { name: "Load failed" })).toBeNull();
+    expect(
+      view.queryByRole("heading", { name: "Couldn't load contributions" }),
+    ).toBeNull();
     expect(
       view.container.querySelector(
         '[data-boneyard="admin-contributions-content"]',
@@ -1369,7 +1733,7 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
         "Pending correction",
         "Approval state",
         "Refund state",
-        "CRM post state",
+        "Historical CRM posting",
         "Recurring link",
       ]) {
         expect(getFilterChipTrigger(label)).toBeTruthy();
@@ -1448,7 +1812,7 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
         ]).map((row) => row.donorName),
       ).toEqual(["Cora Correction"]);
 
-      const crmPostStatePopup = await openFilterChip("CRM post state");
+      const crmPostStatePopup = await openFilterChip("Historical CRM posting");
       await toggleChipOption(crmPostStatePopup, /^Failed/);
 
       await waitFor(() => {
@@ -1486,6 +1850,12 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
           id: "pat",
           donorName: "Pat Processing",
           status: "processing",
+          shared: { paymentStatus: "pending" },
+        }),
+        makeHubContribution({
+          id: "penny",
+          donorName: "Penny Pending",
+          status: "pending",
           shared: { paymentStatus: "pending" },
         }),
       ];
@@ -1534,13 +1904,15 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
         expect(view.queryByText("Rachel Refund")).toBeNull();
       });
 
-      // The shared "pending" meaning includes delayed rails (processing).
+      // Processing is the Hub's own split of shared "pending": each gift sits
+      // under one Status option, so Pending leaves processing gifts out.
       await toggleChipOption(statusPopup, /^Completed/);
       await toggleChipOption(statusPopup, /^Processing/);
       await toggleChipOption(statusPopup, /^Pending/);
 
       await waitFor(() => {
-        expect(view.getByText("Pat Processing")).toBeTruthy();
+        expect(view.getByText("Penny Pending")).toBeTruthy();
+        expect(view.queryByText("Pat Processing")).toBeNull();
         expect(view.queryByText("Carl Clean")).toBeNull();
         expect(view.queryByText("Rachel Refund")).toBeNull();
       });

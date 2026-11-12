@@ -83,7 +83,7 @@ afterAll(() => {
 describe("support label filter", () => {
   it("exposes multiple selected labels, searches display names and preserves slug callbacks", async () => {
     render(<Harness />);
-    fireEvent.click(screen.getByRole("combobox", { name: "Labels" }));
+    fireEvent.click(screen.getByRole("combobox", { name: /^Labels/ }));
     const listbox = await screen.findByRole("listbox");
     expect(listbox.getAttribute("aria-multiselectable")).toBe("true");
     expect(
@@ -110,7 +110,7 @@ describe("support label filter", () => {
 
   it("closes the filter before opening label management", async () => {
     render(<Harness />);
-    fireEvent.click(screen.getByRole("combobox", { name: "Labels" }));
+    fireEvent.click(screen.getByRole("combobox", { name: /^Labels/ }));
     fireEvent.click(
       await screen.findByRole("button", { name: "Manage labels" }),
     );
@@ -120,7 +120,7 @@ describe("support label filter", () => {
 
   it("returns focus to search when clearing removes the focused button", async () => {
     render(<Harness />);
-    fireEvent.click(screen.getByRole("combobox", { name: "Labels" }));
+    fireEvent.click(screen.getByRole("combobox", { name: /^Labels/ }));
     const search = await screen.findByRole("combobox", {
       name: "Search labels",
     });
@@ -140,5 +140,17 @@ describe("support label filter", () => {
     expect(screen.getByLabelText("Labels value").textContent).toBe(
       '["urgent"]',
     );
+  });
+});
+
+describe("support label filter trigger", () => {
+  it("matches the toolbar's other controls: default size, no local overrides", () => {
+    render(<Harness />);
+    const trigger = screen.getByRole("combobox", { name: /Labels/ });
+    // Same height and type size as the Status and Assignee selects beside it.
+    expect(trigger.getAttribute("data-size")).toBe("default");
+    expect(trigger.className).not.toMatch(/\bh-10\b|\btext-xs\b|rounded-xl/);
+    // The count reads as part of the name, not only as a coloured chip.
+    expect(trigger.getAttribute("aria-label")).toBe("Labels, 1 selected");
   });
 });

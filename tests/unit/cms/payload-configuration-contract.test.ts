@@ -65,3 +65,30 @@ describe("Core CMS feature boundary", () => {
     );
   });
 });
+
+describe("Web Studio display conventions", () => {
+  it("uses the admin shell's light theme and neutral unset labels", () => {
+    expect(config.admin.theme).toBe("light");
+    expect(config.i18n.translations?.en?.general?.noLabel).toBe("Not set");
+  });
+  it("shows dates in the short form the rest of Mission Control uses", () => {
+    // "Nov 9, 2026, 3:45 PM", not Payload's "November 9th 2026, 3:45 PM",
+    // which truncates on phone cards and widens list columns.
+    expect(config.admin.dateFormat).toBe("MMM d, yyyy, h:mm a");
+  });
+
+  it("keeps page-builder internals out of list columns and filters", () => {
+    const pages = config.collections.find(({ slug }) => slug === "pages");
+    if (!pages) throw new Error("Missing pages collection");
+    for (const name of ["layout", "content", "legacyContentFallback"]) {
+      const field = pages.fields.find(
+        (entry) => "name" in entry && entry.name === name,
+      );
+      // Payload 4: admin.disabled replaces disableListColumn/ListFilter.
+      const disabled = (field?.admin as { disabled?: unknown } | undefined)
+        ?.disabled as { column?: boolean; filter?: boolean } | undefined;
+      expect(disabled?.column, name).toBe(true);
+      expect(disabled?.filter, name).toBe(true);
+    }
+  });
+});

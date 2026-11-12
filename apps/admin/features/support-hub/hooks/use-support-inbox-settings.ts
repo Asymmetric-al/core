@@ -34,6 +34,8 @@ export function useSupportInboxes(): {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  /** Loads the data again, e.g. after a failed load. */
+  refetch: () => Promise<unknown>;
 } {
   const query = useQuery({
     queryKey: supportHubQueryKeys.inboxes,
@@ -47,6 +49,7 @@ export function useSupportInboxes(): {
     isLoading: query.isLoading,
     isReady: query.isSuccess,
     isError: query.isError,
+    refetch: query.refetch,
   };
 }
 
@@ -56,6 +59,8 @@ interface UseSupportInboxSettingsReturn {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  /** Loads the data again, e.g. after a failed load. */
+  refetch: () => Promise<unknown>;
 }
 
 export function useSupportInboxSettings(
@@ -88,6 +93,7 @@ export function useSupportInboxSettings(
     isLoading: query.isLoading,
     isReady: query.isSuccess,
     isError: query.isError,
+    refetch: query.refetch,
   };
 }
 
@@ -96,6 +102,8 @@ export function useSupportBusinessHours(): {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  /** Loads the data again, e.g. after a failed load. */
+  refetch: () => Promise<unknown>;
 } {
   const query = useQuery({
     queryKey: supportHubQueryKeys.businessHours,
@@ -112,6 +120,7 @@ export function useSupportBusinessHours(): {
     isLoading: query.isLoading,
     isReady: query.isSuccess,
     isError: query.isError,
+    refetch: query.refetch,
   };
 }
 
@@ -120,6 +129,8 @@ export function useSupportSlaPolicies(): {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  /** Loads the data again, e.g. after a failed load. */
+  refetch: () => Promise<unknown>;
 } {
   const query = useQuery({
     queryKey: supportHubQueryKeys.slaPolicies,
@@ -136,5 +147,6 @@ export function useSupportSlaPolicies(): {
     isLoading: query.isLoading,
     isReady: query.isSuccess,
     isError: query.isError,
+    refetch: query.refetch,
   };
 }

@@ -10,6 +10,10 @@ function stripTrailingSlash(origin: string) {
  * Precedence: `NEXT_PUBLIC_DONOR_URL` → `DONOR_APP_URL` → dev default.
  */
 export function resolveDonorOrigin(): string {
+  return resolveConfiguredDonorOrigin() ?? DEFAULT_DONOR_ORIGIN;
+}
+
+export function resolveConfiguredDonorOrigin(): string | null {
   const fromPublic = process.env.NEXT_PUBLIC_DONOR_URL;
   if (fromPublic) {
     return stripTrailingSlash(fromPublic);
@@ -18,5 +22,5 @@ export function resolveDonorOrigin(): string {
   if (fromServer) {
     return stripTrailingSlash(fromServer);
   }
-  return DEFAULT_DONOR_ORIGIN;
+  return null;
 }

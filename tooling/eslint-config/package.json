@@ -11,12 +11,14 @@
     "./base.mjs": "./base.mjs",
     "./nextjs.mjs": "./nextjs.mjs",
     "./library.mjs": "./library.mjs",
-    "./restricted-imports.mjs": "./restricted-imports.mjs"
+    "./restricted-imports.mjs": "./restricted-imports.mjs",
+    "./reui-data-grid-exceptions.mjs": "./reui-data-grid-exceptions.mjs"
   },
   "files": [
     "patches",
     "workspace.mjs",
     "design-system-exceptions.mjs",
+    "reui-data-grid-exceptions.mjs",
     "health.mjs",
     "lint.mjs",
     "suppressions.json",

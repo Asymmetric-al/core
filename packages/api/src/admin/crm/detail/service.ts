@@ -1,10 +1,17 @@
 import { buildCrmGiftHistoryRow } from "./gift-history";
+import { SETTLED_DONATION_STATUS_SET } from "../../../reads/settled-donation-statuses";
 import { ApiHttpError } from "../../../shared/http-errors";
 import { loadCorrectionApprovalPolicy } from "../../contribution-operations/correction-requests";
 import { loadSharedContributionRowInputs } from "../../contribution-shared/row-inputs";
+import { fetchMissionaryNames } from "../service";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
-import type { CrmDonorDetailResponse, UserRole } from "@asym/database/types";
+import type {
+  CrmDonorDetailResponse,
+  SharedContributionPaymentStatus,
+  SharedContributionRefundState,
+  UserRole,
+} from "@asym/database/types";
 
 type SupabaseAdmin = AdminSupabaseClient;
 
@@ -111,6 +118,25 @@ function assertNoError(
   }
 }
 
+/** Only a settled gift reads as received; the others say what happened. */
+function giftTimelineTitle(
+  paymentStatus: SharedContributionPaymentStatus,
+  refundState: SharedContributionRefundState,
+): string {
+  switch (paymentStatus) {
+    case "completed":
+      return refundState === "partial_refund"
+        ? "Gift received, partly refunded"
+        : "Gift received";
+    case "refunded":
+      return "Gift refunded";
+    case "failed":
+      return "Gift failed";
+    default:
+      return "Gift pending";
+  }
+}
+
 function toCents(value: number | string | null | undefined): number {
   if (value == null) {
     return 0;
@@ -155,7 +181,13 @@ function buildSupportSummary(input: {
   >();
 
   for (const donation of input.donations) {
-    if (donation.status && donation.status !== "completed") {
+    // Settled gifts only, in any stored spelling ("Succeeded", " completed ");
+    // a gift with no status has not settled.
+    if (
+      !SETTLED_DONATION_STATUS_SET.has(
+        donation.status?.trim().toLowerCase() ?? "",
+      )
+    ) {
       continue;
     }
 
@@ -234,13 +266,24 @@ export async function getAdminCrmDonorDetail(input: {
     )
     .eq("tenant_id", input.tenantId)
     .eq("id", input.donorId)
-    .single();
+    .maybeSingle();
 
-  if (donorResult.error || !donorResult.data) {
+  // Only a missing row (or an id that cannot be one: 22P02, invalid uuid) is
+  // "not found"; any other failure is a server error the page can retry.
+  if (donorResult.error && donorResult.error.code !== "22P02") {
+    throw new ApiHttpError(500, "Failed to load the CRM donor record.");
+  }
+  if (!donorResult.data) {
     throw new ApiHttpError(404, "CRM donor record not found.");
   }
 
   const donor = donorResult.data as DonorRow;
+  // The record owner (`donors.missionary_id`, a profile id), named the same
+  // way the records list names it, so a deep-linked drawer can say who owns
+  // the record without searching the list.
+  const ownerNames = donor.missionary_id
+    ? await fetchMissionaryNames(input.supabaseAdmin, [donor.missionary_id])
+    : new Map<string, string>();
   const donationsResult = await input.supabaseAdmin
     .from("donations")
     .select(
@@ -432,20 +475,28 @@ export async function getAdminCrmDonorDetail(input: {
   });
 
   const timeline = [
-    ...giftHistory.map((gift) => ({
-      amountCents: gift.amountCents,
-      currencyCode: gift.currencyCode,
-      description: gift.fundName,
-      id: `gift:${gift.id}`,
-      kind: "gift" as const,
-      occurredAt: gift.giftDate || new Date(0).toISOString(),
-      source: "platform" as const,
-      title: "Gift received",
-      visibility: "standard" as const,
-    })),
+    ...giftHistory.map((gift) => {
+      const paymentStatus =
+        gift.shared.refundState === "refunded"
+          ? ("refunded" as const)
+          : gift.shared.paymentStatus;
+      return {
+        amountCents: gift.amountCents,
+        currencyCode: gift.currencyCode,
+        description: gift.fundName,
+        id: `gift:${gift.id}`,
+        kind: "gift" as const,
+        occurredAt: gift.giftDate || new Date(0).toISOString(),
+        paymentStatus,
+        source: "platform" as const,
+        title: giftTimelineTitle(paymentStatus, gift.shared.refundState),
+        visibility: "standard" as const,
+      };
+    }),
     ...((activityResult.data ?? []) as DonorActivityRow[]).map((activity) => ({
       amountCents: toCents(activity.amount) || null,
       currencyCode: null,
+      paymentStatus: null,
       description: activity.description,
       id: `activity:${activity.id}`,
       kind: "activity" as const,
@@ -480,6 +531,9 @@ export async function getAdminCrmDonorDetail(input: {
       id: donor.id,
       location: donor.location,
       missionaryId: donor.missionary_id,
+      missionaryName: donor.missionary_id
+        ? (ownerNames.get(donor.missionary_id) ?? null)
+        : null,
       name: donor.name,
       notesPreview: previewNotes(donor.notes),
       organization: donor.organization,

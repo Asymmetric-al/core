@@ -136,3 +136,35 @@ describe("offlineContributionSchema — shared rules", () => {
     ).toThrow();
   });
 });
+
+describe("offlineContributionSchema — whole-cent amounts", () => {
+  function parseAmount(amount: unknown) {
+    return offlineContributionSchema.safeParse({ ...unknownCash, amount });
+  }
+
+  it("rejects sub-cent amounts instead of rounding them", () => {
+    for (const amount of [0.004, 10.005, "0.004", "10.005"]) {
+      expect(parseAmount(amount).success).toBe(false);
+    }
+  });
+
+  it("rejects exponent, non-numeric and non-positive input", () => {
+    for (const amount of ["1e-3", "abc", "", 0, "0.00", -5, Number.NaN]) {
+      expect(parseAmount(amount).success).toBe(false);
+    }
+  });
+
+  it("keeps ordinary dollar amounts exact", () => {
+    const cases: Array<[unknown, number]> = [
+      [100, 100],
+      [20.5, 20.5],
+      ["0.29", 0.29],
+      ["1,500.00", 1500],
+    ];
+    for (const [amount, expected] of cases) {
+      const parsed = parseAmount(amount);
+      expect(parsed.success).toBe(true);
+      expect(parsed.data?.amount).toBe(expected);
+    }
+  });
+});

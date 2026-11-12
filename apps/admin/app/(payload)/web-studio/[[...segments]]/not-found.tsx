@@ -1,10 +1,10 @@
 import config from "@payload-config";
-import { NotFoundPage, generatePageMetadata } from "@payloadcms/next/views";
+import { generatePageMetadata } from "@payloadcms/next/views";
 import { connection } from "next/server";
 
-import { importMap } from "../importMap";
-
 import type { Metadata } from "next";
+
+import { WebStudioNotFoundView } from "@/src/cms-ui/web-studio/flows/WebStudioNotFoundView";
 
 type Args = {
   params: Promise<{
@@ -23,9 +23,9 @@ export const generateMetadata = async ({
   return generatePageMetadata({ config, params, searchParams });
 };
 
-const NotFound = async ({ params, searchParams }: Args) => {
+const NotFound = async () => {
   await connection();
-  return NotFoundPage({ config, importMap, params, searchParams });
+  return <WebStudioNotFoundView />;
 };
 
 export default NotFound;

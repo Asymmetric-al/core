@@ -24,7 +24,7 @@ export type {
   AdminLocationLinkedEntities as LinkedEntities,
 } from "../collections/admin-locations";
 
-export type LocationType = "missionary" | "project" | "custom";
+export type LocationType = "missionary" | "project" | "custom" | "partner";
 export type LocationStatus = "draft" | "published";
 
 type LocationMutationPayload = {
@@ -48,7 +48,8 @@ async function invalidateAdminLocationCaches(
 }
 
 export function useLocations() {
-  return useLiveQuery(adminLocationsCollection);
+  const query = useLiveQuery(adminLocationsCollection);
+  return { ...query, refetch: () => adminLocationsCollection.utils.refetch() };
 }
 
 export function useLinkedEntities() {

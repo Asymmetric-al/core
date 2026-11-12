@@ -99,6 +99,24 @@ export interface BuildSharedContributionRowFieldsInput {
   designationSet?: ContributionDesignationSet;
 }
 
+/**
+ * The shared row fields plus receipt facts the status vocabulary folds away.
+ * `receiptStatus` maps "suppressed" to "not_sent" for display, but the server
+ * refuses to send a suppressed receipt, so the row also carries
+ * `receiptSuppressed: true` (present only when suppressed, so every other
+ * row keeps its exact shape). Read it with `isSharedReceiptSuppressed`.
+ */
+export interface SharedContributionRowContract extends SharedContributionRowFields {
+  receiptSuppressed?: true;
+}
+
+/** True when the gift's receipts are suppressed (the server will not send one). */
+export function isSharedReceiptSuppressed(
+  shared: SharedContributionRowFields,
+): boolean {
+  return "receiptSuppressed" in shared && shared.receiptSuppressed === true;
+}
+
 export const SHARED_GENERAL_FUND_NAME = "General Fund";
 
 export const SHARED_PAYMENT_STATUS_LABELS: Record<
@@ -116,7 +134,8 @@ export const SHARED_RECEIPT_STATUS_LABELS: Record<
   string
 > = {
   sent: "Sent",
-  pending: "Pending",
+  // "Queued", not "Pending": it sits beside the gift's own Pending status.
+  pending: "Queued",
   failed: "Failed",
   not_sent: "Not sent",
 };
@@ -352,7 +371,7 @@ function buildFallbackDesignationSummary(input: {
 
 export function buildSharedContributionRowFields(
   input: BuildSharedContributionRowFieldsInput,
-): SharedContributionRowFields {
+): SharedContributionRowContract {
   const { donation, donor, profile, fund, missionary, stagedGift } = input;
   const refundState = deriveSharedRefundState({
     amount: input.refundBasis?.originalAmountCents ?? donation.amount,
@@ -379,5 +398,8 @@ export function buildSharedContributionRowFields(
     refundedAmountCents: Math.max(0, donation.refund_amount),
     correctionState: deriveSharedCorrectionState(input.corrections),
     recurringLinkState: deriveSharedRecurringLinkState(donation),
+    ...(stagedGift?.receipt_status === "suppressed"
+      ? { receiptSuppressed: true as const }
+      : {}),
   };
 }

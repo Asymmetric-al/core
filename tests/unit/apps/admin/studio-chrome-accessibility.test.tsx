@@ -12,6 +12,32 @@ import {
 
 afterEach(cleanup);
 
+it("keeps the document name visible at every width without an inert Templates crumb", () => {
+  render(
+    <StudioTemplateBreadcrumb
+      name="Quarterly newsletter"
+      hasUnsavedChanges={false}
+    />,
+  );
+  expect(screen.queryByText("Templates")).toBeNull();
+  expect(screen.getByText("Quarterly newsletter").className).not.toMatch(
+    /sr-only|hidden/,
+  );
+});
+
+it("opens the template picker only when a working callback is supplied", () => {
+  const onOpenTemplates = vi.fn();
+  render(
+    <StudioTemplateBreadcrumb
+      name="Quarterly newsletter"
+      hasUnsavedChanges={false}
+      onOpenTemplates={onOpenTemplates}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Templates" }));
+  expect(onOpenTemplates).toHaveBeenCalledOnce();
+});
+
 it("keeps preview and save actions explicitly named when visible labels collapse", () => {
   const onChange = vi.fn();
   const onSave = vi.fn();

@@ -30,6 +30,19 @@ const loadComposerModules = async () => ({
     await import("../../../../../../../apps/admin/features/support-hub/hooks/use-support-failure-recovery"),
 });
 type ComposerModules = Awaited<ReturnType<typeof loadComposerModules>>;
+const agentState = vi.hoisted(() => ({
+  agents: [] as Array<{
+    id: string;
+    name: string;
+    email: string;
+    title: null;
+    avatarUrl: null;
+  }>,
+}));
+vi.mock(
+  "../../../../../../../apps/admin/features/support-hub/hooks/use-support-agents",
+  () => ({ useSupportAgents: () => ({ data: agentState.agents }) }),
+);
 let ComposerActions: ComposerModules["actions"]["ComposerActions"];
 let useConversationComposer: ComposerModules["composer"]["useConversationComposer"];
 let SupportFailureRecoveryProvider: ComposerModules["recovery"]["SupportFailureRecoveryProvider"];
@@ -57,7 +70,10 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
 
-beforeEach(() => getQueryClient().clear());
+beforeEach(() => {
+  getQueryClient().clear();
+  agentState.agents = [];
+});
 afterEach(() => {
   cleanup();
   getQueryClient().clear();
@@ -144,15 +160,37 @@ describe("ComposerActions a11y / mode switch", () => {
   });
 });
 
-function ComposerHarness() {
+function ComposerHarness({
+  assignedAgent = false,
+}: {
+  assignedAgent?: boolean;
+}) {
   const composer = useConversationComposer({
     conversationId: "conversation-1",
     agentId: "agent-1",
+    agent: assignedAgent
+      ? {
+          id: "agent-2",
+          name: "Other agent",
+          email: "other@example.test",
+          title: null,
+          avatarUrl: null,
+        }
+      : null,
   });
   return (
     <>
       <button type="button" onClick={() => composer.setMode("note")}>
         Use internal note
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          void composer.send();
+          void composer.send();
+        }}
+      >
+        Send twice
       </button>
       <label htmlFor="composer-body">Composer body</label>
       <input
@@ -182,6 +220,56 @@ const bodyJson = JSON.stringify({
 });
 
 describe("Composer initiating action through the real mutation hooks", () => {
+  it("signs with the author rather than the conversation assignee", async () => {
+    agentState.agents = [
+      {
+        id: "agent-1",
+        name: "Current agent",
+        email: "current@example.test",
+        title: null,
+        avatarUrl: null,
+      },
+    ];
+    const fetchMock = vi.fn(
+      (_input: RequestInfo | URL, _init?: RequestInit) =>
+        new Promise<Response>(() => undefined),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <QueryProvider>
+        <SupportFailureRecoveryProvider>
+          <ComposerHarness assignedAgent />
+        </SupportFailureRecoveryProvider>
+      </QueryProvider>,
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "Composer body" }), {
+      target: { value: bodyJson },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Send reply to donor", exact: true }),
+    );
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+    const request = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
+    expect(request.payload.text).toContain("Current agent");
+    expect(request.payload.text).not.toContain("Other agent");
+  });
+  it("starts only one mutation when send is invoked twice in one event", async () => {
+    const fetchMock = vi.fn(() => new Promise<Response>(() => undefined));
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <QueryProvider>
+        <SupportFailureRecoveryProvider>
+          <ComposerHarness />
+        </SupportFailureRecoveryProvider>
+      </QueryProvider>,
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "Composer body" }), {
+      target: { value: bodyJson },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send twice" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
   it.each([
     {
       mode: "reply",

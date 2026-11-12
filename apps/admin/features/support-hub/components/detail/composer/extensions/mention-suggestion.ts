@@ -6,35 +6,28 @@ import type { SuggestionItem } from "./SuggestionList";
 import type { SupportAssignee } from "../../../../types";
 
 interface MentionSuggestionOptions {
-  agents: SupportAssignee[];
+  agents?: SupportAssignee[];
+  getAgents?: () => SupportAssignee[];
+  isEnabled?: () => boolean;
   /** Optional callback fired after a mention is inserted. */
   onMention?: (agent: SupportAssignee) => void;
 }
 
-/**
- * Configures `@tiptap/extension-mention` for donor-care use:
- *
- * - Trigger char `@`.
- * - Items pulled from the live agents collection.
- * - Selecting a mention inserts a styled chip referencing the agent id; the
- *   serializer (Phase 5) walks `mention` nodes and emits plain-text
- *   `@AgentName` so HTML payloads stay readable.
- */
 export function buildMentionExtension({
-  agents,
+  agents = [],
+  getAgents = () => agents,
+  isEnabled = () => true,
   onMention,
 }: MentionSuggestionOptions) {
-  const agentById = new Map(agents.map((agent) => [agent.id, agent] as const));
-
   return Mention.configure({
     HTMLAttributes: {
-      class:
-        "support-mention inline-flex items-center rounded-md bg-amber-100 px-1 text-amber-900",
+      class: "support-mention rounded-md bg-accent px-1 text-accent-foreground",
     },
     suggestion: {
       char: "@",
+      allow: ({ editor }) => editor.isEditable && isEnabled(),
       items: ({ query }) =>
-        agents
+        getAgents()
           .filter((agent) => matchesAgent(agent, query))
           .slice(0, 8)
           .map<SuggestionItem>((agent) => ({
@@ -43,9 +36,9 @@ export function buildMentionExtension({
             description: agent.title ?? null,
           })),
       command: ({ editor, range, props }) => {
-        const id = (props as { id?: string }).id ?? "";
-        const label =
-          (props as { label?: string }).label ?? agentById.get(id)?.name ?? id;
+        const id = props.id;
+        const matched = getAgents().find((agent) => agent.id === id);
+        const label = props.label ?? matched?.name ?? id;
         editor
           .chain()
           .focus()
@@ -58,7 +51,6 @@ export function buildMentionExtension({
             { type: "text", text: " " },
           ])
           .run();
-        const matched = agentById.get(id);
         if (matched) onMention?.(matched);
       },
       render: buildSuggestionRenderer<SuggestionItem>({

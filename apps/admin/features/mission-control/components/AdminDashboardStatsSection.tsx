@@ -25,9 +25,9 @@ export function AdminDashboardStatsSection({
   const cards: StatCard[] = [
     {
       id: "total-donors",
-      label: "Total Donors",
-      value: stats.totalDonors.toLocaleString(),
-      hint: "Tenant-wide donor profiles",
+      label: "In CRM",
+      value: stats.crmRecordCount.toLocaleString(),
+      hint: "Donors, churches and organizations",
     },
     {
       id: "total-missionaries",
@@ -44,8 +44,8 @@ export function AdminDashboardStatsSection({
     {
       id: "month-revenue",
       label: "Revenue This Month",
-      value: formatCurrency(stats.revenueThisMonth),
-      hint: "Sum of settled donations",
+      value: formatCurrency(stats.revenueThisMonthCents / 100),
+      hint: "Settled gifts since the 1st, net of refunds",
     },
     {
       id: "active-funds",

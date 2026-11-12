@@ -1,18 +1,33 @@
-import type { Role } from "./navigation";
+import { EVERY_ROLE, type Role } from "./navigation";
 
 export interface QuickAction {
   label: string;
   href: string;
   icon?: string;
+  /** Only these roles get the shortcut, when narrower than the tile's. */
+  roles?: Role[];
+}
+
+/** A feature only some of the tile's roles may open. */
+export interface RoleFeature {
+  label: string;
+  roles: Role[];
 }
 
 export interface Tile {
   id: string;
   title: string;
   route: string;
+  unavailableReason?: string;
   icon: string;
   purpose: string;
+  /**
+   * Features every role with the tile can open, joined with " · ". Use
+   * `insideForRole` to add the role-limited ones in `roleInside`.
+   */
   inside: string;
+  /** Features listed after `inside`, only to these roles. */
+  roleInside?: RoleFeature[];
   quickActions: QuickAction[];
   roles: Role[];
 }
@@ -24,38 +39,29 @@ export const tiles: Tile[] = [
     route: "/web-studio",
     icon: "Globe",
     purpose:
-      "Your whole website in one place. Public site, donor experience, and missionary pages all live here.",
-    inside: "Directus CMS",
+      "Build and publish the public website, giving pages and ministry updates.",
+    inside:
+      "Pages · Ministry updates · Giving pages · Project pages · Media · Navigation",
     quickActions: [
-      { label: "Edit give page", href: "/web-studio/pages/give", icon: "Edit" },
-      {
-        label: "Update a missionary page",
-        href: "/web-studio/missionaries",
-        icon: "User",
-      },
+      { label: "Open Web Studio", href: "/web-studio", icon: "Globe" },
     ],
     roles: ["fundraising", "staff", "admin"],
   },
   {
     id: "crm",
-    title: "People & Churches CRM",
+    title: "CRM",
     route: "/crm",
     icon: "Users",
-    purpose: "Search and work with people, churches, and orgs in one surface.",
-    inside:
-      "People · Churches · Households · Activity · Notes · Tasks · Fundraiser-friendly reports",
+    purpose:
+      "Search and work with people, churches and organizations in one place.",
+    inside: "Records · Gift history · Notes · Relationships · Saved views",
     quickActions: [
-      { label: "Add person", href: "/crm/people/new", icon: "UserPlus" },
-      { label: "Add pledge", href: "/crm/pledges/new", icon: "FileText" },
+      { label: "Browse CRM", href: "/crm", icon: "Users" },
+      { label: "View notes", href: "/crm/notes", icon: "FileText" },
       {
-        label: "Create call task",
-        href: "/crm/tasks/new?type=call",
-        icon: "Phone",
-      },
-      {
-        label: "Open recent donors",
-        href: "/crm/people?filter=recent-donors",
-        icon: "TrendingUp",
+        label: "View relationships",
+        href: "/crm/relationships",
+        icon: "Users",
       },
     ],
     roles: [
@@ -69,22 +75,16 @@ export const tiles: Tile[] = [
   },
   {
     id: "contributions",
-    title: "Contributions Hub",
+    title: "Contributions",
     route: "/contributions",
     icon: "DollarSign",
-    purpose: "Single hub for every gift and payout.",
-    inside: "All contributions feed · Offline entry · Stripe · ACH · Tie out",
+    purpose: "Every gift in one place: review, receipt, refund and correct.",
+    inside: "Gift feed · Receipts · Refunds · Corrections · Needs attention",
     quickActions: [
-      { label: "New batch", href: "/contributions/batches/new", icon: "Plus" },
       {
-        label: "Reconcile yesterday",
-        href: "/contributions/reconcile?date=yesterday",
-        icon: "CheckCircle",
-      },
-      {
-        label: "View Stripe disputes",
-        href: "/contributions/disputes",
-        icon: "AlertTriangle",
+        label: "View contributions",
+        href: "/contributions",
+        icon: "DollarSign",
       },
     ],
     roles: ["finance", "events", "admin"],
@@ -94,21 +94,10 @@ export const tiles: Tile[] = [
     title: "Email Studio",
     route: "/email",
     icon: "Mail",
-    purpose: "Design and send. Auth and logs stay nested.",
-    inside:
-      "React Email templates · Brand styles · Merge tags · Mail auth · Mail logs",
+    purpose: "Design email templates with merge tags and send test emails.",
+    inside: "Templates · Merge tags · Test sends · HTML export",
     quickActions: [
-      {
-        label: "New campaign",
-        href: "/email/campaigns/new",
-        icon: "PenSquare",
-      },
-      { label: "Duplicate template", href: "/email/templates", icon: "Copy" },
-      {
-        label: "View bounces",
-        href: "/email/logs?filter=bounces",
-        icon: "XCircle",
-      },
+      { label: "Open Email Studio", href: "/email", icon: "Mail" },
     ],
     roles: ["fundraising", "admin"],
   },
@@ -117,21 +106,11 @@ export const tiles: Tile[] = [
     title: "PDF Studio",
     route: "/pdf",
     icon: "FileText",
-    purpose: "Build documents and themes once and reuse everywhere.",
-    inside:
-      "Legacy PDF builder · Templates · Themes · Data bindings · Statements and receipt packs",
+    purpose:
+      "Design receipts, statements and other documents as reusable templates.",
+    inside: "Templates · Page setup · Merge fields · PDF export",
     quickActions: [
-      { label: "New template", href: "/pdf/templates/new", icon: "Plus" },
-      {
-        label: "Build receipt template",
-        href: "/pdf/templates/new?type=receipt",
-        icon: "Receipt",
-      },
-      {
-        label: "Build year-end pack",
-        href: "/pdf/packs/new?type=year-end",
-        icon: "Calendar",
-      },
+      { label: "Open PDF Studio", href: "/pdf", icon: "FileText" },
     ],
     roles: ["finance", "admin"],
   },
@@ -139,18 +118,11 @@ export const tiles: Tile[] = [
     id: "sign",
     title: "Sign Studio",
     route: "/sign",
+    unavailableReason: "Sign Studio is not set up yet.",
     icon: "PenTool",
-    purpose: "Create, manage, and audit everything that gets signed.",
-    inside:
-      "Fork of Documenso CE · Packet templates · Active sends · Completed docs · Search · Export",
-    quickActions: [
-      {
-        label: "New packet from template",
-        href: "/sign/packets/new",
-        icon: "FilePlus",
-      },
-      { label: "Search by signer", href: "/sign/search", icon: "Search" },
-    ],
+    purpose: "Send documents for signature and keep the signed copies.",
+    inside: "Signature requests · Templates · Signed documents",
+    quickActions: [],
     roles: ["mobilizers", "events", "admin"],
   },
   {
@@ -158,48 +130,28 @@ export const tiles: Tile[] = [
     title: "Mobilize",
     route: "/mobilize",
     icon: "Rocket",
+    // /mobilize says the applicant pipeline is not connected; Locations is.
     purpose:
-      "From application to onboarding with a task-list front end and Zapier behind the scenes.",
-    inside:
-      "Pipeline · Stages · Checklists · Team tasks · Interviews · Training · Final onboarding",
+      "Manage the locations on the public map. The applicant pipeline is not set up yet.",
+    inside: "Locations map",
     quickActions: [
       {
-        label: "Advance stage",
-        href: "/mobilize/pipeline",
-        icon: "ArrowRight",
-      },
-      {
-        label: "Assign checklist",
-        href: "/mobilize/checklists",
-        icon: "ClipboardList",
-      },
-      {
-        label: "Request background doc",
-        href: "/mobilize/documents/request",
-        icon: "FileSearch",
+        label: "Manage locations",
+        href: "/mobilize/locations",
+        icon: "Globe",
       },
     ],
     roles: ["mobilizers", "admin"],
   },
   {
     id: "reports",
-    title: "Report Studio",
+    title: "Reports",
     route: "/reports",
     icon: "BarChart3",
-    purpose: "Run reports with deep filters. Export CSV or PDF.",
-    inside: "Build · Library · Schedules · Destinations",
+    purpose: "See giving by fund, with gift and donor counts.",
+    inside: "Fund totals · Gift counts · Donor counts · Summary",
     quickActions: [
-      { label: "New report", href: "/reports/new", icon: "Plus" },
-      {
-        label: "Save to CRM",
-        href: "/reports/library?dest=crm",
-        icon: "Users",
-      },
-      {
-        label: "Save to Contributions",
-        href: "/reports/library?dest=contributions",
-        icon: "DollarSign",
-      },
+      { label: "View reports", href: "/reports", icon: "BarChart3" },
     ],
     roles: ["finance", "fundraising", "member_care", "events", "admin"],
   },
@@ -209,116 +161,102 @@ export const tiles: Tile[] = [
     route: "/support",
     icon: "HelpCircle",
     purpose:
-      "Track Donor Care, Mobilization, and Existing Missionary Support requests.",
-    inside: "Tracks · Tickets · Contacts · Macros · Knowledge",
+      "Answer donor, applicant and missionary email together in shared inboxes.",
+    inside: "Inbox · Assignment · SLAs · Macros · Saved views · Reports",
     quickActions: [
-      { label: "New ticket", href: "/support/tickets/new", icon: "Plus" },
-      {
-        label: "Donor Care",
-        href: "/support/tickets?queueId=donor_care",
-        icon: "Heart",
-      },
-      {
-        label: "Mobilization",
-        href: "/support/tickets?queueId=mobilization",
-        icon: "Send",
-      },
-      {
-        label: "Missionary Support",
-        href: "/support/tickets?queueId=missionary_support",
-        icon: "Compass",
-      },
+      { label: "Open inbox", href: "/support", icon: "HelpCircle" },
+      { label: "Support reports", href: "/support/reports", icon: "BarChart3" },
     ],
     roles: ["member_care", "admin"],
   },
   {
     id: "automations",
-    title: "Automation Hub",
+    title: "Automations",
     route: "/automations",
     icon: "Zap",
-    purpose: "All automations in one place. Branded Zapier.",
-    inside: "Zaps and flows · Connections · Errors and retries · Change log",
+    purpose: "See the rules that run automatically and how they performed.",
+    inside: "Rules · Triggers · Run modes · Activity in the last 24 hours",
     quickActions: [
-      { label: "Create flow", href: "/automations/flows/new", icon: "Plus" },
-      {
-        label: "Reconnect Stripe",
-        href: "/automations/connections?filter=stripe",
-        icon: "RefreshCw",
-      },
-      {
-        label: "Review failed runs",
-        href: "/automations/runs?status=failed",
-        icon: "AlertCircle",
-      },
+      { label: "Open Automations", href: "/automations", icon: "Zap" },
     ],
     roles: ["mobilizers", "admin"],
   },
   {
     id: "admin",
-    title: "Admin",
+    title: "Administration",
     route: "/admin",
     icon: "Settings",
-    purpose: "Trust and platform settings.",
-    inside:
-      "Domains and certs · API keys · AI keys and settings · Exports · Status and health",
+    purpose: "Who can use Mission Control and the services it connects to.",
+    inside: "Web Studio editors · Email delivery",
+    // The staff directory reads the admin-only users endpoint, and the Eve
+    // page admits admins only (eve/workspace-access.ts).
+    roleInside: [
+      { label: "Staff directory", roles: ["admin"] },
+      { label: "Eve", roles: ["admin"] },
+    ],
     quickActions: [
-      { label: "Add domain", href: "/admin/domains/new", icon: "Globe" },
-      { label: "Rotate key", href: "/admin/keys", icon: "Key" },
+      { label: "Open administration", href: "/admin", icon: "Settings" },
       {
-        label: "Download month-end export",
-        href: "/admin/exports?type=month-end",
-        icon: "Download",
+        label: "View staff directory",
+        href: "/admin/teams",
+        icon: "Users",
+        roles: ["admin"],
       },
+      // The Eve page admits admins only (eve/workspace-access.ts).
+      { label: "Eve", href: "/admin/eve", icon: "Settings", roles: ["admin"] },
     ],
     roles: ["finance", "admin"],
   },
   {
     id: "care",
-    title: "Member Care Hub",
+    title: "Member Care",
     route: "/care",
     icon: "Heart",
-    purpose: "Live view of missionary health and needs.",
-    inside:
-      "Care list · Check-ins · Prayer requests · Care plans · Alerts · Resources",
+    purpose: "See how field staff are doing and follow up on care needs.",
+    inside: "Care dashboard · Directory · Profiles · Care plans · Check-ins",
     quickActions: [
-      {
-        label: "Log check-in",
-        href: "/care/check-ins/new",
-        icon: "CheckSquare",
-      },
-      {
-        label: "Start care plan",
-        href: "/care/plans/new",
-        icon: "ClipboardPlus",
-      },
-      {
-        label: "Request pastoral packet",
-        href: "/care/packets/request",
-        icon: "FileText",
-      },
+      { label: "Open Member Care", href: "/care", icon: "Heart" },
+      { label: "View care directory", href: "/care/directory", icon: "Users" },
     ],
     roles: ["member_care", "admin"],
   },
   {
     id: "events",
-    title: "Event & Conference Hub",
+    title: "Events",
     route: "/events",
+    // /events says it is not connected: no registrations or attendees yet.
+    unavailableReason: "Events is not connected yet.",
     icon: "CalendarDays",
-    purpose:
-      "Plan events, registration, attendance, and sync to giving and care.",
-    inside:
-      "Events · Sessions · Speakers · Budgets · Registration · Discounts · Attendees · Check-in",
-    quickActions: [
-      { label: "Create event", href: "/events/new", icon: "Plus" },
-      {
-        label: "Open registration",
-        href: "/events?action=open-registration",
-        icon: "DoorOpen",
-      },
-      { label: "Print badges", href: "/events/badges", icon: "Printer" },
-      { label: "Export attendance", href: "/events/export", icon: "Download" },
-    ],
+    purpose: "Event registrations, venues, speakers and attendees.",
+    inside: "Registrations · Venues · Speakers · Attendees",
+    quickActions: [],
     roles: ["events", "admin"],
+  },
+  {
+    id: "feed",
+    title: "Ministry Updates",
+    route: "/feed",
+    icon: "Megaphone",
+    // Organization updates cannot be published yet (Publish is disabled),
+    // so Home offers moderation only.
+    purpose: "Review missionary posts and flagged comments.",
+    inside: "Moderation · Flagged comments",
+    quickActions: [{ label: "Review posts", href: "/feed", icon: "Megaphone" }],
+    roles: EVERY_ROLE,
+  },
+  {
+    id: "tasks",
+    title: "Tasks",
+    route: "/tasks",
+    icon: "CheckSquare",
+    // The Tasks page is Mission Control's follow-up queue.
+    purpose:
+      "Follow-ups Mission Control raised, each linked to its gift or donor.",
+    inside: "Open follow-ups · Urgency · Linked gifts and donors",
+    quickActions: [
+      { label: "View follow-ups", href: "/tasks", icon: "CheckSquare" },
+    ],
+    roles: EVERY_ROLE,
   },
 ];
 
@@ -328,4 +266,21 @@ export function getTileById(id: string): Tile | undefined {
 
 export function getTilesByRole(roles: Role[]): Tile[] {
   return tiles.filter((tile) => tile.roles.some((r) => roles.includes(r)));
+}
+
+/** The tile's shortcuts this role may follow. */
+export function quickActionsForRole(tile: Tile, role: Role): QuickAction[] {
+  return tile.quickActions.filter(
+    (action) => !action.roles || action.roles.includes(role),
+  );
+}
+
+const FEATURE_SEPARATOR = " · ";
+
+/** The tile's feature line as this role may follow it. */
+export function insideForRole(tile: Tile, role: Role): string {
+  const limited = (tile.roleInside ?? [])
+    .filter((feature) => feature.roles.includes(role))
+    .map((feature) => feature.label);
+  return [tile.inside, ...limited].join(FEATURE_SEPARATOR);
 }

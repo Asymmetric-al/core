@@ -6,6 +6,12 @@ export {
   toApiErrorResponse,
 } from "./route-helpers";
 export type { SupportHubContext } from "./route-helpers";
+export {
+  SupportHubForbiddenError,
+  createSupportOwnershipService,
+  supportHubOwnership,
+  type SupportSettingsAccess,
+} from "./ownership";
 
 export { supportHubAdapter, __resetInMemorySupportHubStore } from "./adapter";
 export type {

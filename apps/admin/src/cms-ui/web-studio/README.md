@@ -10,15 +10,16 @@ Mission Control–native UI that wraps **Payload CMS** (mounted at `/web-studio`
 
 ## Directory map
 
-| Path                    | Role                                                                            |
-| ----------------------- | ------------------------------------------------------------------------------- |
-| `shell/`                | `StudioLayout`, nav rail, top bar                                               |
-| `collections/config.ts` | Per-collection labels, paths, preview hints, preference keys                    |
-| `collections/shared/`   | `NativeCollectionListView`, `NativeCollectionEditView`, workspace dialogs       |
-| `flows/`                | TanStack Form wizards + template gallery (top-level Payload admin views)        |
-| `adapters/`             | Interim authenticated preview + published public URL helpers (`preview-url.ts`) |
-| `feature-flags.ts`      | `CMS_WEB_STUDIO_NATIVE_*` kill switches                                         |
-| `preferences/keys.ts`   | Payload preference key strings                                                  |
+| Path                    | Role                                                                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `shell/`                | `StudioLayout`, nav rail, top bar; `studio-template-chrome` fills Payload's template `header`/`Nav` slots on stock screens |
+| `dashboard/`            | Studio home (`admin.components.views.dashboard`): create flows, collection directory, Payload pins/recently viewed, recent |
+| `collections/config.ts` | Per-collection labels, paths, preview hints, preference keys, nav groups                                                   |
+| `collections/shared/`   | `NativeCollectionListView` + ReUI `NativeCollectionGrid`, `NativeCollectionEditView`, workspace dialogs                    |
+| `flows/`                | TanStack Form wizards on `StudioFlowFrame` + template gallery + missionaries hub (top-level Payload admin views)           |
+| `adapters/`             | Interim authenticated preview + published public URL helpers (`preview-url.ts`)                                            |
+| `feature-flags.ts`      | `CMS_WEB_STUDIO_NATIVE_*` kill switches                                                                                    |
+| `preferences/`          | Payload preference keys; `pinned-documents.ts` reads/writes Payload's own `pinned-documents` preference                    |
 
 ## Rules of engagement
 

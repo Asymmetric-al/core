@@ -157,12 +157,18 @@ async function fetchCrmPage({
   return (await response.json()) as AdminCrmListResponse;
 }
 
-export function useAdminCrmRecordsInfiniteGrid() {
-  const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "lastTouchAt", desc: true },
-  ]);
+export function useAdminCrmRecordsInfiniteGrid(
+  options: {
+    /** First filters, e.g. restored from the page address. */
+    initialColumnFilters?: ColumnFiltersState;
+    initialSorting?: SortingState;
+  } = {},
+) {
+  const [sorting, setSorting] = React.useState<SortingState>(
+    () => options.initialSorting ?? [{ id: "lastTouchAt", desc: true }],
+  );
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
+    () => options.initialColumnFilters ?? [],
   );
   const debouncedFilters = useDebouncedValue(columnFilters, 250);
   const collectionFingerprint = React.useMemo(

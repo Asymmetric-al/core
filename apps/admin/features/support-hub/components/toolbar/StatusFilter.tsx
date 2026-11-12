@@ -43,7 +43,7 @@ export function StatusFilter({ value, onValueChange }: StatusFilterProps) {
         if (next !== null) onValueChange(next);
       }}
     >
-      <SelectTrigger aria-label="Status filter" className="w-40">
+      <SelectTrigger aria-label="Status filter" className="w-full sm:w-40">
         <SelectValue placeholder="All statuses" />
       </SelectTrigger>
       <SelectContent align="start">

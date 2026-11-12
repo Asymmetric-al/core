@@ -16,19 +16,16 @@ export function formatCurrency(amount: number): string {
 }
 
 /**
- * Extracts initials from a name string.
- *
- * @param name - Full name string
- * @returns Uppercase initials (e.g., "JD" for "John Doe")
+ * Extracts up to two initials from a name: the first and last word.
  *
  * @example
  * getInitials('John Doe') // "JD"
+ * getInitials('Mary Ann Smith') // "MS"
  * getInitials('Jane') // "J"
  */
 export function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
+  const words = name.trim().split(/\s+/);
+  const first = words[0]?.[0] ?? "";
+  const last = words.length > 1 ? (words.at(-1)?.[0] ?? "") : "";
+  return `${first}${last}`.toUpperCase();
 }

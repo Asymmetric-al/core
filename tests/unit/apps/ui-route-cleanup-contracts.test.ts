@@ -13,6 +13,9 @@ const routeSplits = [
     name: "admin events",
     wrapperPath: "apps/admin/app/(app)/events/page.tsx",
     clientPath: "apps/admin/app/(app)/events/page-client.tsx",
+    // Events is a static "not connected yet" page with no client state, so
+    // its body renders on the server instead of shipping a client island.
+    serverRendered: true,
   },
   {
     name: "admin reports",
@@ -72,9 +75,16 @@ describe("UI route cleanup contracts", () => {
         'import PageClient from "./page-client";',
       );
       // Admin table routes render the client island behind a Suspense
-      // boundary; other wrappers return it directly. Both stay tiny.
-      expect(wrapperSource, route.name).toMatch(/<PageClient \/>/);
-      expect(clientSource, route.name).toMatch(/^"use client";/);
+      // boundary; other wrappers return it directly, at most handing it
+      // server-streamed slots by name. All stay tiny.
+      expect(wrapperSource, route.name).toMatch(
+        /<PageClient(?: \w+=\{\w+\})* \/>/,
+      );
+      if ("serverRendered" in route) {
+        expect(clientSource, route.name).not.toMatch(/^["']use client["'];/m);
+      } else {
+        expect(clientSource, route.name).toMatch(/^"use client";/);
+      }
     }
   });
 
@@ -155,10 +165,18 @@ describe("UI route cleanup contracts", () => {
     expect(source).not.toMatch(/#[0-9a-fA-F]{3,8}\b/i);
   });
 
-  it("keeps admin reports summary dismissible by accessible name", () => {
+  it("shows admin report detail as a titled section, not a dismissible popup", () => {
     const source = readRepoFile("apps/admin/app/(app)/reports/page-client.tsx");
+    const funds = readRepoFile("apps/admin/app/(app)/reports/funds-grid.tsx");
 
-    expect(source).toMatch(/aria-label="Dismiss report summary"/);
+    // The per-fund detail is a headed grid on the page (the old Highlights
+    // card only repeated the summary cards).
+    expect(source).toContain("<FundsGrid");
+    // The heading names the chosen grouping ("Funds" by default).
+    expect(funds).toMatch(
+      /<h2\s+id=\{headingId\}[^>]*>\s*\{group\.title\}\s*<\/h2>/,
+    );
+    expect(source).not.toMatch(/SafeHtml/);
   });
 });
 

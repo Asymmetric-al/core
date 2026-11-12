@@ -1,5 +1,7 @@
 "use client";
 
+import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +24,7 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@asym/ui/components/shadcn/item";
-import { Spinner } from "@asym/ui/components/shadcn/spinner";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { ChevronRight, FolderOpen } from "lucide-react";
 
 import type { EmailTemplateListEntry } from "./email-studio-types";
@@ -32,6 +34,8 @@ export interface EmailStudioTemplatePickerDialogProps {
   onOpenChange: (open: boolean) => void;
   templates: EmailTemplateListEntry[];
   isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
   onSelect: (template: EmailTemplateListEntry) => void;
 }
 
@@ -40,6 +44,8 @@ export function EmailStudioTemplatePickerDialog({
   onOpenChange,
   templates,
   isLoading,
+  isError,
+  onRetry,
   onSelect,
 }: EmailStudioTemplatePickerDialogProps) {
   return (
@@ -51,10 +57,20 @@ export function EmailStudioTemplatePickerDialog({
             Choose a saved email template to load into the editor.
           </DialogDescription>
         </DialogHeader>
-        {isLoading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Spinner />
-            Loading templates…
+        {isError ? (
+          <Alert variant="destructive">
+            <AlertDescription>
+              Templates couldn’t be loaded. Try again.
+            </AlertDescription>
+            <Button variant="outline" onClick={onRetry}>
+              Try again
+            </Button>
+          </Alert>
+        ) : isLoading ? (
+          <div role="status" className="space-y-2">
+            <span className="sr-only">Loading templates…</span>
+            <Skeleton className="h-12" />
+            <Skeleton className="h-12" />
           </div>
         ) : templates.length === 0 ? (
           <Empty className="py-8">
@@ -64,7 +80,7 @@ export function EmailStudioTemplatePickerDialog({
               </EmptyMedia>
               <EmptyTitle>No saved templates yet</EmptyTitle>
               <EmptyDescription>
-                Save a React Email template from the studio to open it here.
+                Save an email template in this studio to open it here.
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -86,9 +102,9 @@ export function EmailStudioTemplatePickerDialog({
                   <ItemTitle className="truncate">{template.name}</ItemTitle>
                   <ItemDescription>
                     {template.builder === "react_email"
-                      ? "React Email"
-                      : "Legacy (read-only)"}{" "}
-                    · v{template.version}
+                      ? "Editable template"
+                      : "Older template (read-only)"}{" "}
+                    · Version {template.version}
                   </ItemDescription>
                 </ItemContent>
                 <ChevronRight className="size-4 shrink-0 text-muted-foreground" />

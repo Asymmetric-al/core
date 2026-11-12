@@ -204,7 +204,7 @@ describe("Eve admin-memory concurrency intents", () => {
       finishRead(response({ ...createView(1), entries: [] })),
     );
     const empty = await screen.findByText("No matching private memory.");
-    expect(empty.getAttribute("role")).toBe("status");
+    expect(empty.closest('[role="status"]')).not.toBeNull();
   });
 
   it("keeps an edit version immutable across refetches and recaptures after cancel", async () => {

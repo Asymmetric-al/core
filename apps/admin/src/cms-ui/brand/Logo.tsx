@@ -1,5 +1,4 @@
 import { brandConfig } from "@asym/config/site";
-import { Badge } from "@asym/ui/components/shadcn/badge";
 
 export function Logo() {
   return (
@@ -8,20 +7,12 @@ export function Logo() {
         {brandConfig.shortName}
       </span>
       <div className="flex flex-col leading-none">
-        <span className="text-xs font-black tracking-[0.22em] uppercase text-foreground">
+        <span className="text-xs font-black text-foreground">
           {brandConfig.name}
         </span>
-        <div className="mt-1 flex items-center gap-1.5">
-          <span className="text-xs font-semibold tracking-[0.18em] uppercase text-muted-foreground">
-            Site Studio
-          </span>
-          <Badge
-            variant="secondary"
-            className="h-4 px-1.5 font-semibold uppercase"
-          >
-            CMS
-          </Badge>
-        </div>
+        <span className="mt-1 text-xs font-semibold text-muted-foreground">
+          Web Studio
+        </span>
       </div>
     </div>
   );

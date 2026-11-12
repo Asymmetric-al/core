@@ -155,67 +155,31 @@ describe("Shadscan CMS boundary evidence", () => {
     );
   });
 
-  it("delegates the flagged route to the installed Payload recovery link targeting Web Studio", () => {
+  it("gives the flagged route recovery links, and Payload's own for people outside Web Studio", () => {
     const route = sourceAt(notFoundPath);
-    expect(
-      route.statements.some(
-        (statement) =>
-          ts.isImportDeclaration(statement) &&
-          ts.isStringLiteral(statement.moduleSpecifier) &&
-          statement.moduleSpecifier.text === "@payloadcms/next/views" &&
-          statement.importClause?.namedBindings &&
-          ts.isNamedImports(statement.importClause.namedBindings) &&
-          statement.importClause.namedBindings.elements.some(
-            (element) => element.name.text === "NotFoundPage",
-          ),
-      ),
-    ).toBe(true);
-    expect(fields(route, callTo(route, "NotFoundPage").arguments[0])).toEqual({
-      config: "config",
-      importMap: "importMap",
-      params: "params",
-      searchParams: "searchParams",
-    });
+    expect(route.text).toContain(
+      'from "@/src/cms-ui/web-studio/flows/WebStudioNotFoundView";',
+    );
+    expect(route.text).toMatch(/return <WebStudioNotFoundView \/>;/);
+    const view = sourceAt(
+      "apps/admin/src/cms-ui/web-studio/flows/WebStudioNotFoundView.tsx",
+    );
+    // Staff get links back to Web Studio and Mission Control.
+    expect(view.text).toMatch(
+      /<Link href="\/web-studio"[^>]*>\s*Back to Web Studio\s*<\/Link>/,
+    );
+    expect(view.text).toMatch(
+      /<Link href="\/"[^>]*>\s*Back to Mission Control\s*<\/Link>/,
+    );
+    // Everyone else gets Payload's installed NotFoundClient, checked below.
+    expect(view.text).toMatch(
+      /import \{[^}]*\bNotFoundClient\b[^}]*\} from "@payloadcms\/ui";/,
+    );
+    expect(view.text).toContain("return <NotFoundClient />;");
     const requireAdmin = createRequire(
       path.join(root, "apps/admin/package.json"),
     );
     const viewsPath = requireAdmin.resolve("@payloadcms/next/views");
-    const views = sourceAt(viewsPath);
-    const delegatedExport = views.statements.find(
-      (statement) =>
-        ts.isExportDeclaration(statement) &&
-        statement.exportClause &&
-        ts.isNamedExports(statement.exportClause) &&
-        statement.exportClause.elements.some(
-          (element) => element.name.text === "NotFoundPage",
-        ),
-    );
-    if (
-      !delegatedExport ||
-      !ts.isExportDeclaration(delegatedExport) ||
-      !delegatedExport.moduleSpecifier ||
-      !ts.isStringLiteral(delegatedExport.moduleSpecifier)
-    )
-      throw new Error(
-        "Installed Payload views must export its real NotFoundPage",
-      );
-    const serverPath = path.resolve(
-      path.dirname(viewsPath),
-      delegatedExport.moduleSpecifier.text,
-    );
-    const adapter = sourceAt(serverPath);
-    const render = callTo(adapter, "renderNotFoundPage");
-    expect(render.parent.kind).toBe(ts.SyntaxKind.AwaitExpression);
-    expect(fields(adapter, render.arguments[0])).toMatchObject({
-      initAdminContext: "initAdminContext",
-    });
-    const renderImport = adapter.statements.find(
-      (statement) =>
-        ts.isImportDeclaration(statement) &&
-        ts.isStringLiteral(statement.moduleSpecifier) &&
-        statement.moduleSpecifier.text === "@payloadcms/ui/views/NotFound/page",
-    );
-    expect(renderImport).toBeDefined();
     const uiServerPath = requireAdmin.resolve(
       "@payloadcms/ui/views/NotFound/page",
     );

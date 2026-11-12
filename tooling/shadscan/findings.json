@@ -14,7 +14,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "4d38ca120ad26610d65e99b9cd33c1f1f2950a941f1e6aedfc2c41068bcd98bc"
+          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
         }
       ]
     },
@@ -31,7 +31,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "4d38ca120ad26610d65e99b9cd33c1f1f2950a941f1e6aedfc2c41068bcd98bc"
+          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
         }
       ]
     },
@@ -48,7 +48,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "4d38ca120ad26610d65e99b9cd33c1f1f2950a941f1e6aedfc2c41068bcd98bc"
+          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
         }
       ]
     },
@@ -65,7 +65,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "4d38ca120ad26610d65e99b9cd33c1f1f2950a941f1e6aedfc2c41068bcd98bc"
+          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
         }
       ]
     },
@@ -82,7 +82,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "4d38ca120ad26610d65e99b9cd33c1f1f2950a941f1e6aedfc2c41068bcd98bc"
+          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
         }
       ]
     },
@@ -99,7 +99,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "4d38ca120ad26610d65e99b9cd33c1f1f2950a941f1e6aedfc2c41068bcd98bc"
+          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "4d38ca120ad26610d65e99b9cd33c1f1f2950a941f1e6aedfc2c41068bcd98bc"
+          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
         }
       ]
     },
@@ -133,7 +133,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "4d38ca120ad26610d65e99b9cd33c1f1f2950a941f1e6aedfc2c41068bcd98bc"
+          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
         }
       ]
     },
@@ -150,11 +150,11 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "4ceec1bde3be5b2f30e23ada08e45914555e0119a484d7c0bc768ce7433fef6e"
+          "sha256": "7666e4348c332f044e47fe53e3bf5e650202b2ba42fecb0a51b8d828037bc11b"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
-          "sha256": "1c64675fb99f5c7635cb0bbb9f2ce54fa6335c8f2108a180b2e753b3212cbedc"
+          "sha256": "dd4c8ad33b7e4b1c70c8bfdcbb1e86367aaa6ffc0810fbc1cbdb93c5c7e1b14b"
         },
         {
           "path": "tests/e2e/react-cleanup-memory.spec.ts",
@@ -175,7 +175,7 @@
       "proof": [
         {
           "path": "apps/admin/features/mission-control/components/navigation-search.tsx",
-          "sha256": "8af46b359499083854983b6cccc3e6ab83f2255b02ed29615da7e4f650fd7996"
+          "sha256": "4201cad394e9875122d2936db4a03e4f0de113781e48ad8e594364dc518ab4b4"
         },
         {
           "path": "apps/admin/features/support-hub/components/command/use-inbox-shortcuts.ts",
@@ -183,11 +183,11 @@
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
-          "sha256": "ba62390b22ce19b8cf4dd53e4c58d815439f7ec5f14d71d7f975937fe01e948f"
+          "sha256": "52a61ba0d1cb17f296badd039dda656c0476a69ea037c5a6d08beed41fb0f21c"
         },
         {
           "path": "tests/unit/apps/admin/mission-control-navigation-search.test.tsx",
-          "sha256": "65e5bd930b9a2d4e1913abfb06312ec43f0dbd500ba22cfc863a9a193417d5a9"
+          "sha256": "db8f009c96bef74512f4a813e511e975a29e566a7eb3e11a569d12893fc3691b"
         }
       ]
     },
@@ -204,27 +204,27 @@
       "proof": [
         {
           "path": "apps/admin/app/mc-shell.tsx",
-          "sha256": "fa28af66230b9e42a683990246ff6cffca627fa459771ce409a0b9a7da038297"
+          "sha256": "1fb713accc002a8e9de878b21801c64586838eaeea8e53f3b59a793a69bbc14b"
         },
         {
           "path": "apps/admin/features/mission-control/components/navigation-search.tsx",
-          "sha256": "8af46b359499083854983b6cccc3e6ab83f2255b02ed29615da7e4f650fd7996"
+          "sha256": "4201cad394e9875122d2936db4a03e4f0de113781e48ad8e594364dc518ab4b4"
         },
         {
           "path": "packages/config/navigation.ts",
-          "sha256": "3a7e566f0190f81eb5ad4d5b1563e3b4d48be17abbf1628742015591385a8d5e"
+          "sha256": "d211513a0ad967ce1162985c8e1633e858d669df1d5a82c4fde82a9e0083598b"
         },
         {
           "path": "packages/ui/components/shadcn/command.tsx",
-          "sha256": "38e02be690ddef3e43d4fcf85bbc9c3354219e68e19e3d709907ab26cd265f41"
+          "sha256": "9a1340cf10f4109bcc34da95cf54d1229b858dc628cd14e79287018bc439e639"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
-          "sha256": "ba62390b22ce19b8cf4dd53e4c58d815439f7ec5f14d71d7f975937fe01e948f"
+          "sha256": "52a61ba0d1cb17f296badd039dda656c0476a69ea037c5a6d08beed41fb0f21c"
         },
         {
           "path": "tests/unit/apps/admin/mission-control-navigation-search.test.tsx",
-          "sha256": "65e5bd930b9a2d4e1913abfb06312ec43f0dbd500ba22cfc863a9a193417d5a9"
+          "sha256": "db8f009c96bef74512f4a813e511e975a29e566a7eb3e11a569d12893fc3691b"
         }
       ]
     },
@@ -240,7 +240,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "4ceec1bde3be5b2f30e23ada08e45914555e0119a484d7c0bc768ce7433fef6e"
+          "sha256": "7666e4348c332f044e47fe53e3bf5e650202b2ba42fecb0a51b8d828037bc11b"
         },
         {
           "path": "packages/ui/components/shadcn/select.tsx",
@@ -248,7 +248,7 @@
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
-          "sha256": "1c64675fb99f5c7635cb0bbb9f2ce54fa6335c8f2108a180b2e753b3212cbedc"
+          "sha256": "dd4c8ad33b7e4b1c70c8bfdcbb1e86367aaa6ffc0810fbc1cbdb93c5c7e1b14b"
         }
       ]
     },
@@ -264,7 +264,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog.tsx",
-          "sha256": "5596e3b7fd3952a766203dcdcdaf6aa4844acfb40a5457163c73d1771e10b94f"
+          "sha256": "44ac9119f9a48a64257de6c30fc449b8550b0bfee403b712f4862eb03546d435"
         },
         {
           "path": "tests/unit/apps/admin/app/offline-gift-entry-dialog.test.tsx",
@@ -276,7 +276,7 @@
       "project": "apps/admin",
       "rule": "empty-state-present",
       "classification": "scanner-limitation",
-      "rationale": "Memory panel explicitly renders genuine empty or filtered result as a polite No matching private memory status. Scanner fails to follow derived entries.",
+      "rationale": "The memory query renders EveSectionEmpty only after successful resolution with no entries. EveSectionEmpty delegates to the shared Empty status region. The actual memory concurrency suite verifies empty and filtered results, avoiding a false empty state during pending queries. The scanner does not follow the derived entries and extracted status owner.",
       "verificationTests": [
         "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx"
       ],
@@ -284,36 +284,19 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "4ceec1bde3be5b2f30e23ada08e45914555e0119a484d7c0bc768ce7433fef6e"
+          "sha256": "7666e4348c332f044e47fe53e3bf5e650202b2ba42fecb0a51b8d828037bc11b"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
-          "sha256": "1c64675fb99f5c7635cb0bbb9f2ce54fa6335c8f2108a180b2e753b3212cbedc"
-        }
-      ]
-    },
-    {
-      "project": "apps/admin",
-      "rule": "error-boundary-present",
-      "evidenceFingerprint": "cff9f2d99adb5a65b13193dab26f15ae8933b0b7c03de857be1a37e0475a1de8",
-      "classification": "scanner-limitation",
-      "rationale": "This application has the supported Next.js global-error.tsx convention with complete document markup and a named reset action. The scanner requires the ordinary error.tsx filename and overlooks the verified global boundary.",
-      "verificationTests": [
-        "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-        "tests/unit/apps/global-boundary-contracts.test.ts"
-      ],
-      "proof": [
-        {
-          "path": "apps/admin/app/global-error.tsx",
-          "sha256": "1c2d33ad71f478497055b9181638dedb4d31fa9dd2b51c86c6091fa490034d81"
+          "sha256": "dd4c8ad33b7e4b1c70c8bfdcbb1e86367aaa6ffc0810fbc1cbdb93c5c7e1b14b"
         },
         {
-          "path": "tests/unit/apps/global-boundary-contracts.test.ts",
-          "sha256": "23905746171ad4809d4d44f2f9965da024294eb015a2d2a1430ad9011f97ad6e"
+          "path": "apps/admin/app/(app)/admin/eve/section-states.tsx",
+          "sha256": "9bd16d8f0a86758dbf3f3b75a8a35d4eca455e158033b7ed3c3492ca6320bae4"
         },
         {
-          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+          "path": "packages/ui/components/shadcn/empty.tsx",
+          "sha256": "cadc76423ecab8a462b4283722ba457c4314b5793ccbef6877feb99ee74e9983"
         }
       ]
     },
@@ -330,7 +313,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx",
-          "sha256": "00c0022f6b11fe6997fa1926a3a0d9801302316f5d0826c3e69499ba7ce397ec"
+          "sha256": "7901bfc5b699bd026910cbac15fc0acd37f008113394290811d97934ede07267"
         },
         {
           "path": "apps/admin/app/(app)/settings/integrations/resend/use-resend-forms.ts",
@@ -338,15 +321,15 @@
         },
         {
           "path": "packages/ui/components/primitives/tanstack-form.tsx",
-          "sha256": "8467db762429420d5fc8a4c75daf55e7ac1d724375d447376166b375d30674ad"
+          "sha256": "5619abc2bc35e586ce604e31e027532580f3db3d635bc615aac148bc871691fc"
         },
         {
           "path": "tests/unit/apps/admin/resend-field-accessibility.test.tsx",
-          "sha256": "bfabda6722a0f2a6e3c2362c12a2ac83edcd5c13358f40145a2a4361beb02cbb"
+          "sha256": "4e8dc5a4c85bd705e948c0c3287d74871d8340b48876efde57dce23963e374be"
         },
         {
           "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
-          "sha256": "e2b0f8614a8f9bb00887c7f750d35414bc1712dec029f690f17b3a6c1c32feda"
+          "sha256": "5450685e22140de0044ced77ad1679333474790416d380a137fad44bf4e0a02c"
         }
       ]
     },
@@ -354,23 +337,23 @@
       "project": "apps/admin",
       "rule": "icon-buttons-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "Exact moderation action icon button receives Open actions from its Base UI DropdownMenuTrigger render composition.",
+      "rationale": "The exact Undo and adjacent Redo buttons receive aria-label through Base UI TooltipTrigger render composition. The actual PDF header test queries both rendered buttons by their names. The scanner stops at the nested Button instead of following the trigger props.",
       "verificationTests": [
-        "tests/unit/apps/admin/shadscan-moderation-composition.test.tsx"
+        "tests/unit/apps/admin/app/pdf/pdf-studio-header-export.test.tsx"
       ],
-      "evidenceFingerprint": "9a80ff468cfe86b72a0c4c4413e505d1468b3d466f9afc61789ea560fc073712",
+      "evidenceFingerprint": "e3cd7cbd9b5bc69e1476bba4283b93c31fc0231aa3b2a26143c385ea3e275174",
       "proof": [
         {
-          "path": "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
-          "sha256": "e29292c8dcf84ce9006bd3351c592aeb18e0a879fc23567bbbc189888bf0024c"
+          "path": "apps/admin/app/(app)/pdf/page-client.tsx",
+          "sha256": "375ba25f50eca2a4ffbdb892b9b263ec50162bcd156b2fdb71167af1e47c8ee3"
         },
         {
-          "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
-          "sha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c"
+          "path": "packages/ui/components/shadcn/tooltip.tsx",
+          "sha256": "9302151a7a547235a6b864ad21e99bc97f50084b1b5cdd65c304fa674c2077f7"
         },
         {
-          "path": "tests/unit/apps/admin/shadscan-moderation-composition.test.tsx",
-          "sha256": "6cac1439cd342bb90205cd5c47d40ad61e9d2792abd94ad08770eecadd8a3b6b"
+          "path": "tests/unit/apps/admin/app/pdf/pdf-studio-header-export.test.tsx",
+          "sha256": "3ea2a0c86ed7afa644801135e197b82a1d995c3bce69985c5117419ac064e9d3"
         }
       ]
     },
@@ -378,23 +361,23 @@
       "project": "apps/admin",
       "rule": "links-have-accessible-names",
       "classification": "scanner-limitation",
-      "rationale": "SidebarMenuSubButton render Link receives the parent sub.title text through Base UI composition. Actual rendered submenu links are named Moderation and Org Updates.",
+      "rationale": "The exact Item render Link receives its visible ItemTitle through Base UI composition. The rendered admin availability test resolves named Staff directory, Eve and Email delivery links. This is limited to this composed Item/Link boundary, not unnamed links generally.",
       "verificationTests": [
-        "tests/unit/apps/admin/mc-shell-navigation-names.test.tsx"
+        "tests/unit/apps/admin/app/admin-page-availability.test.tsx"
       ],
-      "evidenceFingerprint": "0809ea8b161f1f95d6f59d3744a485f1701f03bf78e6f55d7d130d825ebde130",
+      "evidenceFingerprint": "d3a7b4a6d6284a6118d94fcf03bf4d98890076e62d136273eb74c0fd7fd2271e",
       "proof": [
         {
-          "path": "apps/admin/app/mc-shell.tsx",
-          "sha256": "fa28af66230b9e42a683990246ff6cffca627fa459771ce409a0b9a7da038297"
+          "path": "apps/admin/app/(app)/admin/page-client.tsx",
+          "sha256": "82c78dd21893553e76d3da8fa6a1863e333890a81078f3fc0d9807142d124cca"
         },
         {
-          "path": "packages/ui/components/shadcn/sidebar.tsx",
-          "sha256": "e8460d41a0e6103a44139931eda27e54337603340212760bde97e243d722527c"
+          "path": "packages/ui/components/shadcn/item.tsx",
+          "sha256": "59c89c79fcb119038b16c729e82d6c52482b5c6bdfb09f2ad423363a1396f0e6"
         },
         {
-          "path": "tests/unit/apps/admin/mc-shell-navigation-names.test.tsx",
-          "sha256": "8297e9ae9b07859496388cc9cdc768961af5b5177a7ef4e9d99b60778e7cb200"
+          "path": "tests/unit/apps/admin/app/admin-page-availability.test.tsx",
+          "sha256": "20a8d385debe145cbc38826849a7d46862d88b28717933f1e30b8d4cd72527f4"
         }
       ]
     },
@@ -410,39 +393,11 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/workspace-shell.tsx",
-          "sha256": "f90d09bd3c16aea77f1e83c2ed6cf0875d5686ed28113a9b4e387417e8ac0441"
+          "sha256": "6e87ccf54a401cfc6a6177c9ef4bd687d7849f9693829a316ea177dff03af140"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
-          "sha256": "ba62390b22ce19b8cf4dd53e4c58d815439f7ec5f14d71d7f975937fe01e948f"
-        }
-      ]
-    },
-    {
-      "project": "apps/admin",
-      "rule": "not-found-recovery-present",
-      "classification": "scanner-limitation",
-      "rationale": "Exact route delegates to locked Payload NotFoundPage; installed NotFoundClient renders configured backToDashboard link. Modern app global-not-found also has Return home recovery.",
-      "verificationTests": [
-        "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts"
-      ],
-      "evidenceFingerprint": "11c2bd82ab7956a6eeb429351824c6ce643aa25ab2b1e847079230921653fb5b",
-      "proof": [
-        {
-          "path": "apps/admin/app/(payload)/web-studio/[[...segments]]/not-found.tsx",
-          "sha256": "46ad0a1c9977a8453593ea47dfb1062881b2e9f62fa2249ded784f9488e9f564"
-        },
-        {
-          "path": "apps/admin/app/global-not-found.tsx",
-          "sha256": "e604e04291a90cafdea7421a546312fc24486ce55dcd68e73889dbf949f11256"
-        },
-        {
-          "path": "apps/admin/package.json",
-          "sha256": "bf6224ba2ad7d7597617dc122a030ca1e6e5aada2b30fba22a07dbba55012870"
-        },
-        {
-          "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
-          "sha256": "b01d4cd320232733136d73da99e5a4dfeedeb4edfb83c51c8c19b67f06d11b9c"
+          "sha256": "52a61ba0d1cb17f296badd039dda656c0476a69ea037c5a6d08beed41fb0f21c"
         }
       ]
     },
@@ -458,11 +413,11 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/email/email-studio-header.tsx",
-          "sha256": "eae3128d73afbc8eb21967b00c4985be156986b288d2bc2f99e2b188db5874c2"
+          "sha256": "262afab2555d3b8276cf6761ce9421bd7163bf7eea6822fcfb332ccf4b7f094d"
         },
         {
           "path": "tests/unit/apps/admin/email/email-studio-header.test.tsx",
-          "sha256": "77599df003386e57934f9007a5d9fc05e41cf346800ebb6f8df63da5717869e0"
+          "sha256": "afe7c1337c714d8390e3f8c5767f268ff14d627ac0a7108de7028781ee46960c"
         }
       ]
     },
@@ -478,15 +433,15 @@
       "proof": [
         {
           "path": "apps/admin/app/(payload)/layout.tsx",
-          "sha256": "1e5f2c66bcdd71f0451e52fb4a012064e0ac4229f3dd676e19c90c4e232fdbe3"
+          "sha256": "9348772ff61e4e21689bd5a956289523d2064716111ae235796de3d8acc2dd34"
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
-          "sha256": "95b977b2390616f397b00c175d9f6929009957c3092501760866a6dc6f2b46b4"
+          "sha256": "71a4dd368d9f8987846f51f547c8ac496c9ccaea936aa1b2e9b166f2c3ae4966"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
-          "sha256": "b01d4cd320232733136d73da99e5a4dfeedeb4edfb83c51c8c19b67f06d11b9c"
+          "sha256": "29d73e54d732d7ff214c9fceb112bef69934658a04570311f46525a57ef7f0a1"
         }
       ]
     },
@@ -527,7 +482,7 @@
       "proof": [
         {
           "path": "apps/admin/app/layout.tsx",
-          "sha256": "c866984f598991030dec11c70ea3f359b93175bcf09292bbce647cc2077178a2"
+          "sha256": "8d6f609fa0844d14ea8273eebabafac4afc5a87d0775afdbbf5ac49a82f37973"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -539,24 +494,19 @@
       "project": "apps/admin",
       "rule": "status-messages-announced",
       "classification": "scanner-limitation",
-      "rationale": "Exact pending kill-switch label has a corresponding visible polite status in owning EveGovernanceView, naming that switch. Controls are disabled throughout. Scanner restricts detection to the local KillSwitchControl function and misses owning status.",
+      "rationale": "PendingApprovalsSection consumes the same query as the mounted ApprovalBudgetSummary sibling. During loading, that sibling renders a status region saying Loading approval and budget policy. The real panel test verifies that announcement while the approval-request skeleton is pending and no false empty queue is shown. The scanner searches only the extracted queue function.",
       "verificationTests": [
-        "tests/unit/apps/admin/app/eve-governance-page.test.tsx",
-        "tests/unit/apps/admin/app/eve-governance-confirmation-stability.test.tsx"
+        "tests/unit/apps/admin/app/eve-approval-loading-feedback.test.tsx"
       ],
-      "evidenceFingerprint": "29f505aeb3c6e77984495bb0970d39010a5764f133536311b1186c7bb348a61e",
+      "evidenceFingerprint": "96f1686d6942cf802bd2aeebd0761f6dc9d76985beac5fb1450e57c6d7c1d60f",
       "proof": [
         {
-          "path": "apps/admin/app/(app)/admin/eve/page-client.tsx",
-          "sha256": "bdd41318f50e267ef0a25c3d73a0a1081407841c517bb285b988c4b314f46513"
+          "path": "apps/admin/app/(app)/admin/eve/approval-budget-panel.tsx",
+          "sha256": "d634c64df7b9f3eecaf465e3225469d5408cfecbad1263453fa31b81733bb7ed"
         },
         {
-          "path": "tests/unit/apps/admin/app/eve-governance-confirmation-stability.test.tsx",
-          "sha256": "f02e8d3b8b24c575555886d42e65c90e2830ad0cd018875623113dc4587dbf04"
-        },
-        {
-          "path": "tests/unit/apps/admin/app/eve-governance-page.test.tsx",
-          "sha256": "8c7b7c9f451af84cbdd04ea832992ca34fadf81532fb5a4bdce4d8ab00b2aa56"
+          "path": "tests/unit/apps/admin/app/eve-approval-loading-feedback.test.tsx",
+          "sha256": "1f3d28fb863b4642e044a08063a62a7d827fb4fd991a4e0d7f1777ef64da1135"
         }
       ]
     },
@@ -569,7 +519,7 @@
       "proof": [
         {
           "path": "apps/admin/app/layout.tsx",
-          "sha256": "c866984f598991030dec11c70ea3f359b93175bcf09292bbce647cc2077178a2"
+          "sha256": "8d6f609fa0844d14ea8273eebabafac4afc5a87d0775afdbbf5ac49a82f37973"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -589,7 +539,7 @@
       "proof": [
         {
           "path": "apps/admin/app/layout.tsx",
-          "sha256": "c866984f598991030dec11c70ea3f359b93175bcf09292bbce647cc2077178a2"
+          "sha256": "8d6f609fa0844d14ea8273eebabafac4afc5a87d0775afdbbf5ac49a82f37973"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -597,11 +547,11 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+          "sha256": "0b7cdfb4182d5aa5abd19ff29afbb52b250afd4c08bbc6f9fb96ec9a10f539cd"
         }
       ]
     },
@@ -617,7 +567,7 @@
       "proof": [
         {
           "path": "apps/admin/app/layout.tsx",
-          "sha256": "c866984f598991030dec11c70ea3f359b93175bcf09292bbce647cc2077178a2"
+          "sha256": "8d6f609fa0844d14ea8273eebabafac4afc5a87d0775afdbbf5ac49a82f37973"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -625,11 +575,11 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+          "sha256": "0b7cdfb4182d5aa5abd19ff29afbb52b250afd4c08bbc6f9fb96ec9a10f539cd"
         }
       ]
     },
@@ -637,19 +587,19 @@
       "project": "apps/admin",
       "rule": "validation-wired-to-form",
       "classification": "scanner-limitation",
-      "rationale": "Support NewTicketForm uses native required controls and trimmed submit validation. Incomplete submissions render an alert before any request; scanner cannot follow the external handler/native wrappers.",
+      "rationale": "The extracted note composer calls onSave; its owning saveNote trims the body and returns before mutation for blank input. The submit control is disabled for empty or whitespace-only bodies and while saving. The actual drawer tests exercise whitespace submission through the form and successful persistence to the captured record. The scanner cannot follow the callback boundary.",
       "verificationTests": [
-        "tests/unit/apps/admin/support-ticket-validation.test.tsx"
+        "tests/unit/apps/admin/app/crm-record-drawer.test.tsx"
       ],
-      "evidenceFingerprint": "d470075f9e766e95f8457c139a5601a9951abc4b9938101a7dfabcab20c4e2dd",
+      "evidenceFingerprint": "93fd3df65dbdafaf532d1eed9cbb26eb06922d77f21a7d23548f254fbf6c1781",
       "proof": [
         {
-          "path": "apps/admin/app/(app)/support/tickets/new/new-ticket-form.tsx",
-          "sha256": "9b0dd5173e7eb929ceacf01893701562da92162d4731ab06308a576878f240c0"
+          "path": "apps/admin/app/(app)/crm/detail-drawer.tsx",
+          "sha256": "68fc2808af0a6b68b99b9d56cebc36f76c43886bf256b452731b7828f9c021a1"
         },
         {
-          "path": "tests/unit/apps/admin/support-ticket-validation.test.tsx",
-          "sha256": "9e289efca6383651db0aa93336242551eb648669dd86fa6f9c0c6090b27ecb22"
+          "path": "tests/unit/apps/admin/app/crm-record-drawer.test.tsx",
+          "sha256": "8db9b25dae1e482a284691825de8f1bc6f8a538b259caf5bcdd2364ac481dca7"
         }
       ]
     },
@@ -766,7 +716,7 @@
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+          "sha256": "0b7cdfb4182d5aa5abd19ff29afbb52b250afd4c08bbc6f9fb96ec9a10f539cd"
         }
       ]
     },
@@ -861,7 +811,7 @@
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+          "sha256": "0b7cdfb4182d5aa5abd19ff29afbb52b250afd4c08bbc6f9fb96ec9a10f539cd"
         }
       ]
     },
@@ -974,11 +924,11 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+          "sha256": "0b7cdfb4182d5aa5abd19ff29afbb52b250afd4c08bbc6f9fb96ec9a10f539cd"
         }
       ]
     },
@@ -1002,11 +952,11 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+          "sha256": "0b7cdfb4182d5aa5abd19ff29afbb52b250afd4c08bbc6f9fb96ec9a10f539cd"
         }
       ]
     },
@@ -1185,7 +1135,7 @@
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+          "sha256": "0b7cdfb4182d5aa5abd19ff29afbb52b250afd4c08bbc6f9fb96ec9a10f539cd"
         }
       ]
     },
@@ -1354,7 +1304,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/sidebar.tsx",
-          "sha256": "e8460d41a0e6103a44139931eda27e54337603340212760bde97e243d722527c"
+          "sha256": "75906b5ff3668ef6e02261914c1f94f0afb84b70c6d956c110ed70a0e4469910"
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-mobile-sidebar.test.tsx",
@@ -1387,7 +1337,7 @@
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+          "sha256": "0b7cdfb4182d5aa5abd19ff29afbb52b250afd4c08bbc6f9fb96ec9a10f539cd"
         }
       ]
     },
@@ -1453,7 +1403,7 @@
         },
         {
           "path": "packages/ui/components/primitives/chart-wrappers.tsx",
-          "sha256": "13094c8025000a666595a20701082f5464c86ae8d58b53d35c3c72d641d34f46"
+          "sha256": "e3c0b1e5f8bcfd1becb7e79af2c762015361e737ad9cf43b745b10d041930295"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
@@ -1526,11 +1476,11 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+          "sha256": "0b7cdfb4182d5aa5abd19ff29afbb52b250afd4c08bbc6f9fb96ec9a10f539cd"
         }
       ]
     },
@@ -1554,11 +1504,11 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
-          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+          "sha256": "0b7cdfb4182d5aa5abd19ff29afbb52b250afd4c08bbc6f9fb96ec9a10f539cd"
         }
       ]
     },
@@ -1727,11 +1677,11 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/crm/detail-drawer.tsx",
-          "sha256": "9235f6012e270886e99e63e5362256fa9f39470dd6b8368afe854ccc638d1c50"
+          "sha256": "68fc2808af0a6b68b99b9d56cebc36f76c43886bf256b452731b7828f9c021a1"
         },
         {
           "path": "packages/database/hooks/admin-crm-detail.ts",
-          "sha256": "e32fd95570f0db70f7c5d777e1627c2a262859c56b9737530ccae33f6d09d2ec"
+          "sha256": "5228f0cb1156c38e5269e504a0fd4ffea173d27579dbee8ec9f7e80cbc7f4755"
         },
         {
           "path": "tests/unit/packages/database/shadscan-mutation-contract.test.tsx",
@@ -2354,15 +2304,15 @@
       "proof": [
         {
           "path": "packages/ui/components/auth/FullLoginCard.tsx",
-          "sha256": "a298db5739d06418acbe33e5cd827a4b518a1d25bc17ee43a3a6c998b85868ff"
+          "sha256": "cd1da26e91e9b2920944238e252d844b87eca69683e2e817458772e8a249350b"
         },
         {
           "path": "packages/ui/components/auth/auth-primitives.tsx",
-          "sha256": "213998a1e82e45d640a188520395d79e3e60520e4f23c80a56c72a3b28d9cff1"
+          "sha256": "5cfc05b949be33dcf0fe7e2c047d940645748f0d93315424e800f17f5fc8e274"
         },
         {
           "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
-          "sha256": "788a88de74109d0460e99ac22e7c8e5c0d8d743df5f374a4de2e69ddca880e8f"
+          "sha256": "2b47af70ec570bc0ef17efd9e8ed08218ced03c1675e14c4ee7377d7f2617183"
         },
         {
           "path": "tests/unit/packages/ui/base-ui-loading-button.test.tsx",
@@ -2383,7 +2333,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         }
       ]
     },
@@ -2400,7 +2350,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         }
       ]
     },
@@ -2440,11 +2390,11 @@
       "proof": [
         {
           "path": "packages/ui/components/auth/LoginScreen.tsx",
-          "sha256": "739c65e0dabd8309cf75db84c9ba2993e5cd5391479652287a3d8ea894d2a8a8"
+          "sha256": "ceb6fcbf0cd5202cbae06fcbf2aadee7a139629cf8b95e8a77a1fff11c661187"
         },
         {
           "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
-          "sha256": "788a88de74109d0460e99ac22e7c8e5c0d8d743df5f374a4de2e69ddca880e8f"
+          "sha256": "2b47af70ec570bc0ef17efd9e8ed08218ced03c1675e14c4ee7377d7f2617183"
         }
       ]
     },
@@ -2461,7 +2411,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         }
       ]
     },
@@ -2478,7 +2428,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         }
       ]
     },
@@ -2494,11 +2444,11 @@
       "proof": [
         {
           "path": "packages/ui/components/primitives/tanstack-form.tsx",
-          "sha256": "8467db762429420d5fc8a4c75daf55e7ac1d724375d447376166b375d30674ad"
+          "sha256": "5619abc2bc35e586ce604e31e027532580f3db3d635bc615aac148bc871691fc"
         },
         {
           "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
-          "sha256": "e2b0f8614a8f9bb00887c7f750d35414bc1712dec029f690f17b3a6c1c32feda"
+          "sha256": "5450685e22140de0044ced77ad1679333474790416d380a137fad44bf4e0a02c"
         }
       ]
     },
@@ -2537,15 +2487,15 @@
         "tests/unit/packages/ui/shadscan-editable-cells.test.tsx",
         "tests/unit/packages/ui/filter-input-names.test.tsx"
       ],
-      "evidenceFingerprint": "d1b411f7a847e5f45706b444f368a39c4fd2de011d359b177df0ae8419362309",
+      "evidenceFingerprint": "bd6d368af9e24c2a8ce1844ea394ffac946348503e34f630b5c65ab20da30aa7",
       "proof": [
         {
           "path": "packages/ui/components/auth/auth-primitives.tsx",
-          "sha256": "213998a1e82e45d640a188520395d79e3e60520e4f23c80a56c72a3b28d9cff1"
+          "sha256": "5cfc05b949be33dcf0fe7e2c047d940645748f0d93315424e800f17f5fc8e274"
         },
         {
           "path": "packages/ui/components/primitives/tanstack-form.tsx",
-          "sha256": "8467db762429420d5fc8a4c75daf55e7ac1d724375d447376166b375d30674ad"
+          "sha256": "5619abc2bc35e586ce604e31e027532580f3db3d635bc615aac148bc871691fc"
         },
         {
           "path": "packages/ui/components/shadcn/data-table/cell-variants/accessible-name.ts",
@@ -2557,7 +2507,7 @@
         },
         {
           "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
-          "sha256": "788a88de74109d0460e99ac22e7c8e5c0d8d743df5f374a4de2e69ddca880e8f"
+          "sha256": "2b47af70ec570bc0ef17efd9e8ed08218ced03c1675e14c4ee7377d7f2617183"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-editable-cells.test.tsx",
@@ -2565,7 +2515,7 @@
         },
         {
           "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
-          "sha256": "e2b0f8614a8f9bb00887c7f750d35414bc1712dec029f690f17b3a6c1c32feda"
+          "sha256": "5450685e22140de0044ced77ad1679333474790416d380a137fad44bf4e0a02c"
         },
         {
           "path": "packages/ui/components/shadcn/input-group.tsx",
@@ -2594,7 +2544,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/sheet.tsx",
-          "sha256": "be2515f5a6cfd26288d598cdd82422cc879f33af3292a17e17ff3b27f789fac0"
+          "sha256": "dae8e7d7478977256524b418192a4633ee5020f41cbd1970b7b030c3ca1b1d2d"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
@@ -2623,15 +2573,15 @@
         },
         {
           "path": "packages/ui/components/shadcn/command.tsx",
-          "sha256": "38e02be690ddef3e43d4fcf85bbc9c3354219e68e19e3d709907ab26cd265f41"
+          "sha256": "9a1340cf10f4109bcc34da95cf54d1229b858dc628cd14e79287018bc439e639"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/search-delegation.spec.ts",
-          "sha256": "9d4aaa133df2c3436b703384f514747b3de701d606ddb0511bd4b87731f751d8"
+          "sha256": "c41f9b8a2d6a8855d7d0a14bf67b2794c1d279e196547f793442885e48b630e7"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-search-delegation.test.tsx",
-          "sha256": "15bcff72533dc9c70d307a1fc56465a86a15667d4c34be3a76446630fff55a5e"
+          "sha256": "8dfdfb2496be3cd629feba93c0afa99c60d5fe4f75c9b2bb30ff2c4624c3c25d"
         }
       ]
     },
@@ -2647,7 +2597,7 @@
       "proof": [
         {
           "path": "packages/ui/components/shadcn-studio/blocks/dropdown-profile.tsx",
-          "sha256": "4cce5aed8101efb30604e6cb54a0d35e61a64243ffaf2787c608dc95a097af73"
+          "sha256": "63767970412e8acac4dbde0a62b48aaa4b520b698f28ef83e6b80053633150aa"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -2672,7 +2622,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         }
       ]
     },
@@ -2680,31 +2630,27 @@
       "project": "packages/ui",
       "rule": "status-messages-announced",
       "classification": "scanner-limitation",
-      "rationale": "The exact evidence sits inside the DataTableResponsiveProps interface, where isLoading is a configuration type. The module also exports four inert empty configuration constants, but no components, effects or rendered messages. The scanner mistakes a typed configuration flag for visible status UI. Executable export and TypeScript statement checks establish this narrow limitation; actual shared feedback renderers have separate live-region tests.",
+      "rationale": "The exact evidence is FullLoginCardProps.isLoading, a type declaration rather than a rendered status message. The concrete login error is rendered by AuthMessage, whose error tone has role alert. The real LoginScreen tests verify the deferred pending lock and subsequent visible error; the shared AuthMessage implementation owns alert/status semantics. This exception does not exempt the independently repaired DemoOnlyLoginCard pending announcement.",
       "verificationTests": [
-        "tests/unit/packages/ui/shadscan-config-type-proof.test.ts"
+        "tests/unit/packages/ui/auth-screen-pending.test.tsx"
       ],
-      "evidenceFingerprint": "7ece8b3be2b4fbe2066979ec061cdd706f24f6891fc602a2c3967644cd77a7bd",
+      "evidenceFingerprint": "78f1379c07e28dc8f64aa13942ce9d98d275ba32310382191ac863819e5409f0",
       "proof": [
         {
-          "path": "packages/ui/components/primitives/chart-wrappers.tsx",
-          "sha256": "13094c8025000a666595a20701082f5464c86ae8d58b53d35c3c72d641d34f46"
+          "path": "packages/ui/components/auth/FullLoginCard.tsx",
+          "sha256": "cd1da26e91e9b2920944238e252d844b87eca69683e2e817458772e8a249350b"
         },
         {
-          "path": "packages/ui/components/shadcn/data-table/data-table-body.tsx",
-          "sha256": "61ee14b506f25495175f5dbe3caa95fd5c5b9e433f954e4312be6106619cbf8c"
+          "path": "packages/ui/components/auth/auth-primitives.tsx",
+          "sha256": "5cfc05b949be33dcf0fe7e2c047d940645748f0d93315424e800f17f5fc8e274"
         },
         {
-          "path": "packages/ui/components/shadcn/data-table/data-table-responsive-types.ts",
-          "sha256": "27314bfed96fb70369afa182533bc0b08089a15ed4033a648ed362a2b75c5f29"
+          "path": "packages/ui/components/auth/LoginScreen.tsx",
+          "sha256": "ceb6fcbf0cd5202cbae06fcbf2aadee7a139629cf8b95e8a77a1fff11c661187"
         },
         {
-          "path": "packages/ui/components/shadcn/data-table/data-table-skeleton.tsx",
-          "sha256": "585b4e87562de6d959413ec4d3e2cb7b131ed97beba76c73d497f16f9738bb51"
-        },
-        {
-          "path": "tests/unit/packages/ui/shadscan-config-type-proof.test.ts",
-          "sha256": "a55fdc9db5f3f5e53156d46b5c30fec00d6f21320e42af33f937c87d71d79a49"
+          "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
+          "sha256": "2b47af70ec570bc0ef17efd9e8ed08218ced03c1675e14c4ee7377d7f2617183"
         }
       ]
     },
@@ -2721,7 +2667,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         }
       ]
     },
@@ -2738,7 +2684,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+          "sha256": "65ba38f8461e2c2f506b2d1f7e082ace4f6aaca86d38473890c4387b5ba384f0"
         }
       ]
     },

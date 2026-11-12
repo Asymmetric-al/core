@@ -42,6 +42,7 @@ const footerSections: FooterSection[] = [
 function FacebookIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -60,6 +61,7 @@ function FacebookIcon({ className }: { className?: string }) {
 function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -80,6 +82,7 @@ function InstagramIcon({ className }: { className?: string }) {
 function TwitterIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -98,6 +101,7 @@ function TwitterIcon({ className }: { className?: string }) {
 function LinkedinIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -118,6 +122,7 @@ function LinkedinIcon({ className }: { className?: string }) {
 function HeartIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       width="24"
       height="24"
       viewBox="0 0 24 24"

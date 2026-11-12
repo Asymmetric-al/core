@@ -3,7 +3,7 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
-import { PanelLeftIcon } from "lucide-react";
+import { PanelLeftIcon, XIcon } from "lucide-react";
 import * as React from "react";
 
 import { useIsMobile } from "@asym/ui/hooks";
@@ -14,6 +14,7 @@ import { Input } from "./input";
 import { Separator } from "./separator";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -194,7 +195,8 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0"
+          showCloseButton={false}
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -207,6 +209,24 @@ function Sidebar({
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
           <div className="flex h-full w-full flex-col">{children}</div>
+          {/* A visible close for touch users, who have no Escape key. It sits
+              just past the panel's free edge, over the scrim, so it never
+              covers the sidebar's own header or links. */}
+          <SheetClose
+            render={
+              <Button
+                variant="outline"
+                size="icon-touch"
+                className={cn(
+                  "absolute top-3",
+                  side === "left" ? "-right-14" : "-left-14",
+                )}
+              >
+                <XIcon aria-hidden="true" />
+                <span className="sr-only">Close sidebar</span>
+              </Button>
+            }
+          />
         </SheetContent>
       </Sheet>
     );
@@ -569,13 +589,17 @@ function SidebarMenuButton({
     };
   }
 
+  // Only the collapsed desktop rail shows these tooltips. Disabled (not just
+  // hidden) otherwise, so a focused menu item's tooltip never opens unseen
+  // and swallows the Escape that should close the mobile sidebar sheet.
+  const tooltipDisabled = state !== "collapsed" || isMobile;
   return (
-    <Tooltip>
+    <Tooltip disabled={tooltipDisabled}>
       <TooltipTrigger render={button} />
       <TooltipContent
         side="right"
         align="center"
-        hidden={state !== "collapsed" || isMobile}
+        hidden={tooltipDisabled}
         {...tooltip}
       />
     </Tooltip>

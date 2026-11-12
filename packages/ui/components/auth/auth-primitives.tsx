@@ -1,37 +1,37 @@
 "use client";
 
-import { cva, type VariantProps } from "class-variance-authority";
-import { Loader2 } from "lucide-react";
+// Auth screens compose Core's base-maia owners (Card, Input, Label, Button,
+// Checkbox, Alert) so sign-in looks like the rest of the product. The
+// exported names stay stable for the donor, missionary and admin screens.
+
+import { Loader2, LockKeyhole } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "../../lib/utils";
+import { Alert, AlertDescription } from "../shadcn/alert";
 import { Button } from "../shadcn/button";
+import { Card } from "../shadcn/card";
 import { Checkbox } from "../shadcn/checkbox";
+import { Input } from "../shadcn/input";
+import { Label } from "../shadcn/label";
+import { Separator } from "../shadcn/separator";
 
-const authButtonVariants = cva(
-  "inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-  {
-    variants: {
-      variant: {
-        primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-        secondary:
-          "border border-border bg-background text-foreground hover:bg-muted",
-        ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
-        link: "h-auto w-auto rounded-none px-0 text-primary hover:underline",
-      },
-    },
-    defaultVariants: {
-      variant: "primary",
-    },
-  },
-);
+/** The auth names for the shared Button variants. */
+const AUTH_BUTTON_VARIANT = {
+  primary: "default",
+  secondary: "outline",
+  ghost: "ghost",
+  link: "link",
+} as const;
+
+export type AuthButtonVariant = keyof typeof AUTH_BUTTON_VARIANT;
 
 export const AuthButton = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> &
-    VariantProps<typeof authButtonVariants> & {
-      loading?: boolean;
-    }
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    variant?: AuthButtonVariant | null;
+    loading?: boolean;
+  }
 >(
   (
     {
@@ -53,18 +53,22 @@ export const AuthButton = React.forwardRef<
     // would still implicit-submit the form. Login and register also ignore a
     // second call via submissionInFlight; native disabled is the HTML lock.
     const focusableWhenDisabled = loading && type !== "submit";
+    const buttonVariant = AUTH_BUTTON_VARIANT[variant ?? "primary"];
     return (
       <Button
         ref={ref}
         type={type}
-        className={cn(authButtonVariants({ variant }), className)}
+        variant={buttonVariant}
+        className={cn(buttonVariant !== "link" && "w-full", className)}
         disabled={loading || disabled}
         focusableWhenDisabled={focusableWhenDisabled}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy ?? (ariaLabel ? undefined : labelId)}
         {...props}
       >
-        {loading ? <Loader2 className="size-4 animate-spin" /> : null}
+        {loading ? (
+          <Loader2 aria-hidden="true" className="animate-spin" />
+        ) : null}
         <span id={labelId}>{children}</span>
       </Button>
     );
@@ -72,18 +76,41 @@ export const AuthButton = React.forwardRef<
 );
 AuthButton.displayName = "AuthButton";
 
+/** Full-screen centred frame shared by every sign-in and access screen. */
+export function AuthShell({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="flex min-h-dvh items-center justify-center bg-muted px-4 py-8">
+      <div className="w-full max-w-md">{children}</div>
+    </main>
+  );
+}
+
 export function AuthCard({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
+  return <Card className={cn("w-full max-w-md", className)} {...props} />;
+}
+
+/**
+ * The small icon tile above an auth card title. Neutral on purpose: the
+ * organization is not known before sign-in, so no initials or logo. Takes an
+ * element, not a component, so server pages can pass one across the client
+ * boundary.
+ */
+export function AuthMark({
+  icon = <LockKeyhole />,
+}: {
+  /** An icon element, e.g. `<KeyRound />`. Sized to 20px. */
+  icon?: React.ReactNode;
+}) {
   return (
     <div
-      className={cn(
-        "relative w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-lg",
-        className,
-      )}
-      {...props}
-    />
+      aria-hidden="true"
+      className="mx-auto mb-1 grid size-10 place-items-center rounded-lg border bg-muted text-foreground [&_svg]:size-5"
+    >
+      {icon}
+    </div>
   );
 }
 
@@ -94,7 +121,7 @@ export function AuthCardHeader({
   return (
     <div
       className={cn(
-        "relative z-10 space-y-2 px-6 pt-8 pb-2 text-center",
+        "relative z-10 flex flex-col gap-1.5 px-6 pt-4 text-center",
         className,
       )}
       {...props}
@@ -108,7 +135,7 @@ export function AuthCardTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h1
-      className={cn("text-2xl font-semibold tracking-tight", className)}
+      className={cn("text-xl font-semibold tracking-tight", className)}
       {...props}
     />
   );
@@ -129,7 +156,7 @@ export function AuthCardContent({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("relative z-10 space-y-4 px-6 pb-8", className)}
+      className={cn("relative z-10 flex flex-col gap-4 px-6 pb-4", className)}
       {...props}
     />
   );
@@ -138,39 +165,47 @@ export function AuthCardContent({
 export const AuthInput = React.forwardRef<
   HTMLInputElement,
   React.InputHTMLAttributes<HTMLInputElement>
->(({ className, ...props }, ref) => {
-  return (
-    <input
-      ref={ref}
-      className={cn(
-        "h-10 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
-        className,
-      )}
-      {...props}
-    />
-  );
-});
+>((props, ref) => <Input ref={ref} {...props} />);
 AuthInput.displayName = "AuthInput";
 
 export const AuthLabel = React.forwardRef<
   HTMLLabelElement,
   React.LabelHTMLAttributes<HTMLLabelElement>
->(({ className, ...props }, ref) => {
-  return (
-    <label
-      ref={ref}
-      className={cn(
-        "text-sm leading-none font-medium text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-        className,
-      )}
-      {...props}
-    />
-  );
-});
+>((props, ref) => <Label ref={ref} {...props} />);
 AuthLabel.displayName = "AuthLabel";
 
 export function AuthSeparator({ className }: { className?: string }) {
-  return <div className={cn("h-px w-full bg-border", className)} />;
+  return <Separator className={className} />;
+}
+
+/**
+ * An inline result message. Errors interrupt (role="alert"); notices and
+ * successes are polite (role="status").
+ */
+export function AuthMessage({
+  id,
+  tone,
+  children,
+}: {
+  id?: string;
+  tone: "error" | "success" | "info";
+  children: React.ReactNode;
+}) {
+  return (
+    <Alert
+      id={id}
+      role={tone === "error" ? "alert" : "status"}
+      variant={
+        tone === "error"
+          ? "destructive"
+          : tone === "success"
+            ? "success"
+            : "info"
+      }
+    >
+      <AlertDescription>{children}</AlertDescription>
+    </Alert>
+  );
 }
 
 export function AuthCheckbox({
@@ -189,19 +224,15 @@ export function AuthCheckbox({
   disabled?: boolean;
 }) {
   return (
-    <label
-      htmlFor={id}
-      className="flex items-center gap-2 text-sm text-muted-foreground"
-    >
+    <div className="flex items-center gap-2">
       <Checkbox
         id={id}
         checked={checked}
         defaultChecked={defaultChecked}
         onCheckedChange={(value) => onCheckedChange?.(value === true)}
         disabled={disabled}
-        className="grid size-4 place-items-center rounded-[4px] border border-input bg-background text-primary shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground"
       />
-      <span>{label}</span>
-    </label>
+      <Label htmlFor={id}>{label}</Label>
+    </div>
   );
 }

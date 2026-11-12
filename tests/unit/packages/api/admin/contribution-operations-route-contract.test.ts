@@ -53,6 +53,33 @@ describe("admin/contribution-operations route contract", () => {
     }
   });
 
+  it("accepts GUID-shaped seeded ids outside the RFC version range", () => {
+    // Seeded and imported gifts use ids such as 80000000-0000-0000-0000-…,
+    // which the detail overlay opens; their actions must not 400.
+    const seededId = "80000000-0000-0000-0000-000000000001";
+    const parsed = actionRequestSchema.safeParse({
+      ...VALID_ACTION_REQUEST,
+      contributionId: seededId,
+      stagedGiftId: "80000000-0000-0000-0000-000000000002",
+    });
+
+    expect(parsed.success).toBe(true);
+    expect(parsed.data?.contributionId).toBe(seededId);
+  });
+
+  it("still rejects malformed contribution and staged gift ids", () => {
+    for (const ids of [
+      { contributionId: "not-a-uuid" },
+      { contributionId: "80000000000000000000000000000001" },
+      { stagedGiftId: "invalid-staged-gift-id" },
+    ]) {
+      expect(
+        actionRequestSchema.safeParse({ ...VALID_ACTION_REQUEST, ...ids })
+          .success,
+      ).toBe(false);
+    }
+  });
+
   it("defaults action requests to the api source surface", () => {
     expect(actionRequestSchema.parse(VALID_ACTION_REQUEST).sourceSurface).toBe(
       "api",

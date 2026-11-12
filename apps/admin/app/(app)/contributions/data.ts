@@ -98,8 +98,7 @@ function boneyardRow(
     reconciliationStatus: row.reconciliationStatus ?? "unreconciled",
     transactionId: row.transactionId,
     externalTransactionId: row.externalTransactionId ?? null,
-    processorTransactionId:
-      row.processorTransactionId ?? row.transactionId ?? null,
+    processorTransactionId: row.processorTransactionId ?? null,
     notes: row.notes ?? null,
     notesPreview: row.notesPreview ?? null,
     isAnonymous: row.isAnonymous,
@@ -173,9 +172,22 @@ export const contributionTypeOptions = [
   { label: "In-kind", value: "In-kind" },
 ];
 
+/**
+ * Payment methods are stored in title case ("Credit Card"), which the API
+ * filters on; staff read them in sentence case.
+ */
+const PAYMENT_METHOD_LABELS: Readonly<Record<string, string>> = {
+  "Credit Card": "Credit card",
+  "Bank Transfer": "Bank transfer",
+};
+
+export function formatPaymentMethod(method: string): string {
+  return PAYMENT_METHOD_LABELS[method] ?? method;
+}
+
 export const paymentMethodOptions = [
-  { label: "Credit Card", value: "Credit Card" },
-  { label: "Bank Transfer", value: "Bank Transfer" },
+  { label: "Credit card", value: "Credit Card" },
+  { label: "Bank transfer", value: "Bank Transfer" },
   { label: "Check", value: "Check" },
   { label: "Cash", value: "Cash" },
   { label: "PayPal", value: "PayPal" },

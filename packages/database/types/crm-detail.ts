@@ -1,5 +1,6 @@
 import type {
   SharedContributionCorrectionState,
+  SharedContributionPaymentStatus,
   SharedContributionRefundState,
   SharedContributionRowFields,
 } from "./contribution-shared";
@@ -74,6 +75,8 @@ export interface CrmTimelineEntry {
   description: string | null;
   amountCents: number | null;
   currencyCode: string | null;
+  /** A gift's payment state; only "completed" is money received. Null otherwise. */
+  paymentStatus: SharedContributionPaymentStatus | null;
   source: "platform" | "twenty" | "queued";
   visibility: "standard" | "restricted";
 }
@@ -117,7 +120,10 @@ export interface CrmDonorDetailResponse {
     status: string | null;
     type: string | null;
     profileId: string | null;
+    /** The record owner: `donors.missionary_id`, a profile id. */
     missionaryId: string | null;
+    /** The owner's name (from profiles), when it can be read. */
+    missionaryName?: string | null;
     notesPreview: string | null;
     tags: string[];
     avatarUrl: string | null;

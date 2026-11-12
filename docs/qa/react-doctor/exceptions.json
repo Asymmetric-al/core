@@ -65,66 +65,6 @@
       }
     },
     {
-      "filePath": "app/(app)/admin/teams/teams-data.ts",
-      "plugin": "react-doctor",
-      "rule": "unused-export",
-      "severity": "warning",
-      "title": "Value export has no importer",
-      "message": "Unused value export: `TEAMS` has no importer in the analyzed project graph.",
-      "help": "Remove the export or make it module-private after checking external, generated, and dynamic consumers.",
-      "line": 23,
-      "column": 13,
-      "category": "Maintainability",
-      "fingerprint": "a34be21f9717fad7654d330e4f335a20adb5dc4ddfd5bdcfe49491c7ef7083b9",
-      "id": "app/(app)/admin/teams/teams-data.ts::23:13::react-doctor/unused-export::f4c5f72a1b71f6735204d7416a7bb421a38da5445ebcd7a9dcf1702df56ec369",
-      "normalizedFilePath": "app/(app)/admin/teams/teams-data.ts",
-      "tags": ["project-analysis"],
-      "target": "apps/admin",
-      "reason": "The corrected Teams browser fixture imports this exact data-owner export outside the analyzed app project.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/app/(app)/admin/teams/teams-data.ts:23: named data export TEAMS.",
-        "TEST SOURCE (not run here) tests/e2e/teams-surface.spec.ts:55-59 generates a named TEAMS/MEMBERS import from the corrected teams-data.ts owner and supplies the synthetic query fixture.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/admin/teams/teams-data.ts:23; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/admin/teams/teams-data.ts:23. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if the fixture data consumer is removed, relocated, or its imports no longer target this owner.",
-      "sourceContextHash": "dc6a98d844c4808f078820a983d63fbb026198a999880faa8d89661191891fb0",
-      "sourceFileHash": "7cafc7f938d0e5afd5079f495d1f8d13cfb1066fa9bf2145038065f6ecd27f9f",
-      "evidenceFileHashes": {
-        "tests/e2e/teams-surface.spec.ts": "bf0cbb7431e0a0cab20fa550cbbcc0e9448486728f17fdd4d7d5f64ba321289e"
-      }
-    },
-    {
-      "filePath": "app/(app)/admin/teams/teams-data.ts",
-      "plugin": "react-doctor",
-      "rule": "unused-export",
-      "severity": "warning",
-      "title": "Value export has no importer",
-      "message": "Unused value export: `MEMBERS` has no importer in the analyzed project graph.",
-      "help": "Remove the export or make it module-private after checking external, generated, and dynamic consumers.",
-      "line": 83,
-      "column": 13,
-      "category": "Maintainability",
-      "fingerprint": "431206b02816965c9b786fdaa59c884e973a07107defbc7559d34510d6ea59f2",
-      "id": "app/(app)/admin/teams/teams-data.ts::83:13::react-doctor/unused-export::96dc5566cb1ca1e053f1c981dd53b4295f583e770b9e7dce1efb1113915c461e",
-      "normalizedFilePath": "app/(app)/admin/teams/teams-data.ts",
-      "tags": ["project-analysis"],
-      "target": "apps/admin",
-      "reason": "The corrected Teams browser fixture imports this exact data-owner export outside the analyzed app project.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/app/(app)/admin/teams/teams-data.ts:83: named data export MEMBERS.",
-        "TEST SOURCE (not run here) tests/e2e/teams-surface.spec.ts:55-59 generates a named TEAMS/MEMBERS import from the corrected teams-data.ts owner and supplies the synthetic query fixture.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/admin/teams/teams-data.ts:83; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/admin/teams/teams-data.ts:83. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if the fixture data consumer is removed, relocated, or its imports no longer target this owner.",
-      "sourceContextHash": "d06d9ce21bc53238c0d2f5f4762f7cc115d4804d28a2469430dc2e577a1f78ba",
-      "sourceFileHash": "7cafc7f938d0e5afd5079f495d1f8d13cfb1066fa9bf2145038065f6ecd27f9f",
-      "evidenceFileHashes": {
-        "tests/e2e/teams-surface.spec.ts": "bf0cbb7431e0a0cab20fa550cbbcc0e9448486728f17fdd4d7d5f64ba321289e"
-      }
-    },
-    {
       "filePath": "app/(app)/automations/page-client.tsx",
       "plugin": "react-doctor",
       "rule": "jsx-props-no-spreading",
@@ -815,43 +755,6 @@
         "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
         "apps/missionary/app/globals.css": "d485b63268c150354ceb803a7ec4194be2b15efe44d9018d1df0b5797171190f",
         "packages/missionary/styles.css": "3ca5d4c35aaabc57dadc0f65f32176aaedbe1c2130824078275b56b4ed630d55"
-      }
-    },
-    {
-      "filePath": "app/(app)/mobilize/mobilize-sections.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-cramped-container-padding",
-      "severity": "warning",
-      "title": "Bounded text container has cramped padding",
-      "message": "This visible container leaves only 0px around its text. Use at least 8px of padding.",
-      "help": "Give text at least 8px of space inside a visible border or colored surface.",
-      "line": 468,
-      "column": 13,
-      "offset": 13721,
-      "length": 57,
-      "endLine": 468,
-      "category": "Accessibility",
-      "matchByOccurrence": true,
-      "fingerprint": "cb6dafb551e0f28323d087ead6cc5944c19837edf1a636862d6463961ccf72f2",
-      "id": "app/(app)/mobilize/mobilize-sections.tsx::468:13::react-doctor/no-cramped-container-padding::1adc10b05a239567d71cf0338f0714bb5f81b55cbd170d1ce4dae1244a7333ef",
-      "normalizedFilePath": "app/(app)/mobilize/mobilize-sections.tsx",
-      "tags": ["design", "test-noise"],
-      "target": "apps/admin",
-      "reason": "The flagged header has p-8 with a zero bottom outer inset only to join its bottom tab underline to the header border. Actual text/control descendants retain padding; it is not a zero-padding body-text surface.",
-      "evidence": [
-        "IMMUTABLE AUDIT SOURCE apps/admin/app/(app)/mobilize/mobilize-sections.tsx:478: independently inspected exact batch16 diagnostic site.",
-        "SOURCE mobilize-sections.tsx:478-555: name/location/tags/actions have 32px top/side insets and the preceding row has mb-6; the final TabsTriggers each use px-1 py-3. The zero outer bottom inset therefore does not remove text bottom breathing room.",
-        "SOURCE :468 full-bleed SheetContent has an accessible sr-only title/description; :558 onward its content body has p-8 and padded CardHeader/CardContent owners. This evidence is for the exact header, not a blanket Sheet p-0 waiver.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/mobilize/mobilize-sections.tsx:497; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/mobilize/mobilize-sections.tsx:460. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-10-30 (task 5.4 admin design-system lint cleanup): React Doctor 0.9.18 still emits this exact diagnostic with a byte-identical source context; the change only edited presentation classes elsewhere in the bound files. The original reason was rechecked against the current owner; whole-file and supporting hashes are rebound."
-      ],
-      "reconsiderWhen": "Reconsider if the final padded controls or preceding spacing are removed, plain text is placed flush against the boundary, or the header/tab composition changes.",
-      "sourceContextHash": "cb6dafb551e0f28323d087ead6cc5944c19837edf1a636862d6463961ccf72f2",
-      "sourceFileHash": "0743a3a3a3e8f5b35741dee10e899018e4cb4a5eeb1fd16b1b288f7b27da355d",
-      "evidenceFileHashes": {
-        "apps/admin/app/(app)/mobilize/mobilize-sections.tsx": "0743a3a3a3e8f5b35741dee10e899018e4cb4a5eeb1fd16b1b288f7b27da355d",
-        "packages/ui/components/shadcn/tabs.ts": "bf7ef683479f82e70e8715716ccfa169397986224e691bbdc9a26fdfe586820f"
       }
     },
     {
@@ -1608,43 +1511,6 @@
       }
     },
     {
-      "filePath": "app/(app)/tasks/task-form.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-prevent-default",
-      "severity": "warning",
-      "title": "preventDefault on a form or link",
-      "message": "Your users can't submit this <form> without JavaScript because onSubmit calls preventDefault(), so use a server action like `<form action={serverAction}>` to make it work either way.",
-      "help": "Use `<form action>` where your framework supports it (it works without JS), or use a `<button>` instead of an `<a>` with preventDefault.",
-      "line": 68,
-      "column": 9,
-      "offset": 1536,
-      "length": 209,
-      "endLine": 75,
-      "category": "Bugs",
-      "fingerprint": "688e114b846ab4624873b87e6d4a3929ed1b7c73351c3869a424dc3ec017d56f",
-      "id": "app/(app)/tasks/task-form.tsx::68:9::react-doctor/no-prevent-default::0fc34f6b4d32bcf96326f8d56359be2fb14865da60a123bdda86f1f755307522",
-      "normalizedFilePath": "app/(app)/tasks/task-form.tsx",
-      "tags": ["test-noise"],
-      "target": "apps/admin",
-      "reason": "TaskForm is a modal with dynamic reminders, linked entities, staff selection, and a Zod-validated TanStack Form model; existing onSave/onClose client callbacks own submission.",
-      "evidence": [
-        "POLICY SOURCE docs/ai/rules/frontend.md:111 selects TanStack Form + Zod for complex client forms including modal/drawer workflows; :184-203 shows preventDefault followed by form.handleSubmit.",
-        "SOURCE apps/admin/app/(app)/tasks/task-form.tsx: exact onSubmit prevents browser navigation and invokes its existing TanStack submission owner.",
-        "INDEPENDENT CURRENT SOURCE DIFF REVIEW: TaskForm explicitly forwards its six closed fields; task/open key and exact callback values are preserved. Its prior unsupported spread exception has been removed and this remaining form-submission contract is unchanged.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/app/(app)/tasks/task-form.tsx:68; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/app/(app)/tasks/task-form.tsx:68. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider when this exact workflow is intentionally converted to a native/server-owned form, or validation, authentication, callbacks, or submission ownership changes.",
-      "sourceContextHash": "2ef82aa204c2ba33b4fbd1035c8b140b8ad4b80233cc6997b3983e58cfae211d",
-      "sourceFileHash": "19aab9dca16d217d7d0d51b0af37063c1eaf8394fb6edb8e34131ebf7ea8cae4",
-      "evidenceFileHashes": {
-        "docs/ai/rules/frontend.md": "7a2fd29ac7320025c6347781ecee3032551fef403ceba1cf1b2764f979fb2448",
-        "apps/admin/app/(app)/tasks/use-task-form.ts": "517c3efd86f2a88425897e2a6a8b94ce7ae3e2179280c100d6fd31f64e4f7a2e",
-        "apps/admin/app/(app)/tasks/task-form-model.ts": "f1c7652f498b2d2ea33fdd9c9c64b3922a9dfcf39304d1db392dbc7df8eac8d0",
-        "tests/unit/apps/admin/app/tasks/task-form-model.test.ts": "4828cceba3a7ac0ff51b93ba343cda9b1d4346df7eaa04cbd4aa20fd1cb28cc3"
-      }
-    },
-    {
       "filePath": "app/(payload)/layout.tsx",
       "plugin": "react-doctor",
       "rule": "server-sequential-independent-await",
@@ -1979,40 +1845,6 @@
       }
     },
     {
-      "filePath": "features/mission-control/care/components/CareTools.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-cramped-container-padding",
-      "severity": "warning",
-      "title": "Bounded text container has cramped padding",
-      "message": "This visible container leaves only 6px around its text. Use at least 8px of padding.",
-      "help": "Give text at least 8px of space inside a visible border or colored surface.",
-      "line": 70,
-      "column": 11,
-      "offset": 2161,
-      "length": 194,
-      "endLine": 70,
-      "category": "Accessibility",
-      "matchByOccurrence": true,
-      "fingerprint": "c052ff0902ba1508a11b9c0f43cc8891a3fd7b1aeb4daed60f0773f8809a0955",
-      "id": "features/mission-control/care/components/CareTools.tsx::70:11::react-doctor/no-cramped-container-padding::9b3b7ced65b58ba56d75427e89598ee974d2ced72ff9e8d6b396710cc523aff2",
-      "normalizedFilePath": "features/mission-control/care/components/CareTools.tsx",
-      "tags": ["design", "test-noise"],
-      "target": "apps/admin",
-      "reason": "This exact element is a compact keyboard keycap hint, not a body-copy container. Its 6px horizontal inset exceeds the shared Kbd contract (px-1), while the fixed height centers the short glyph.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/CareTools.tsx:69-72: one keyboard accelerator glyph, fixed h-6 and px-1.5.",
-        "SOURCE packages/ui/components/shadcn/kbd.tsx:3-13: shared keycap uses h-5, px-1, and text-xs.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/CareTools.tsx:70; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/CareTools.tsx:70. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if visible prose is inserted into this container or the keycap/icon-control geometry contract changes.",
-      "sourceContextHash": "c052ff0902ba1508a11b9c0f43cc8891a3fd7b1aeb4daed60f0773f8809a0955",
-      "sourceFileHash": "4f6ee44f34aa9940b6f457d6d24ebc450d5398a24c9540024c476caa8ea123eb",
-      "evidenceFileHashes": {
-        "packages/ui/components/shadcn/kbd.tsx": "18a41f27e84f79bba58bdace8dc820d6d2165a3690dfcc8d60517d23cf515b15"
-      }
-    },
-    {
       "filePath": "features/mission-control/care/components/PersonnelProfile.tsx",
       "plugin": "react-doctor",
       "rule": "no-ungated-tailwind-animation",
@@ -2208,80 +2040,6 @@
       }
     },
     {
-      "filePath": "features/mission-control/care/components/UI.tsx",
-      "plugin": "react-doctor",
-      "rule": "jsx-props-no-spreading",
-      "severity": "warning",
-      "title": "Props spread onto element",
-      "message": "You can't tell what props reach this element when you spread them.",
-      "help": "List each prop explicitly so consumers can see the component API instead of receiving hidden spread props.",
-      "line": 103,
-      "column": 9,
-      "offset": 3926,
-      "length": 10,
-      "endLine": 103,
-      "category": "Maintainability",
-      "fingerprint": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "id": "features/mission-control/care/components/UI.tsx::103:9::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
-      "normalizedFilePath": "features/mission-control/care/components/UI.tsx",
-      "tags": [],
-      "target": "apps/admin",
-      "reason": "This exact site implements typed prop forwarding at a shared component or framework adapter boundary. Enumerating a fixed subset would narrow the existing event/ref/render/ARIA/native or framework prop contract.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/UI.tsx:44-81: typed forwarding callback accepts { className, variant = \"default\", size = \"default\", ...props }; ref; HTMLButtonElement; ButtonProps and forwards `props` to `button`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
-        "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
-        "SUPPORTING SOURCE: apps/admin/features/mission-control/care/components/UI.tsx contains the typed forwarding declaration or complete lifetime/sequencing owner described above, outside the narrow diagnostic span; this complete source is now explicitly hash-bound.",
-        "INDEPENDENT COMPLETE-OWNER SOURCE REVIEW: the same owner contains the typed native/framework declarations or out-of-line disposal/sequencing cited above. Its complete-file evidence hash locks those supporting lines, not just the diagnostic span; this is source proof, not a claim of test execution.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/UI.tsx:102; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/UI.tsx:103. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
-      "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "sourceFileHash": "97a41551291632462618830ae9c1c9ddbc15a4f74c3296b644546ddce89360dd",
-      "evidenceFileHashes": {
-        "apps/admin/features/mission-control/care/components/UI.tsx": "97a41551291632462618830ae9c1c9ddbc15a4f74c3296b644546ddce89360dd"
-      }
-    },
-    {
-      "filePath": "features/mission-control/care/components/UI.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-ungated-tailwind-animation",
-      "severity": "warning",
-      "title": "Tailwind animation ignores reduced motion",
-      "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
-      "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 205,
-      "column": 9,
-      "offset": 7073,
-      "length": 248,
-      "endLine": 208,
-      "category": "Accessibility",
-      "matchByOccurrence": true,
-      "fingerprint": "46af3ce4e0f605f12101cf1d9e2f8812b7a196db00f4b59482f8482d61a4b471",
-      "id": "features/mission-control/care/components/UI.tsx::205:9::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
-      "normalizedFilePath": "features/mission-control/care/components/UI.tsx",
-      "tags": [],
-      "target": "apps/admin",
-      "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
-      "evidence": [
-        "SNAPSHOT SOURCE apps/admin/features/mission-control/care/components/UI.tsx:183: exact animation utility from this diagnostic.",
-        "SOURCE packages/ui/styles/globals.css:328-346: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
-        "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/care/components/UI.tsx:204; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/care/components/UI.tsx:205. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
-      ],
-      "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
-      "sourceContextHash": "056b7975f134fc7f4c41dd0bc3239e9f74717266e5003d3969862b5b4cb3475d",
-      "sourceFileHash": "97a41551291632462618830ae9c1c9ddbc15a4f74c3296b644546ddce89360dd",
-      "evidenceFileHashes": {
-        "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
-        "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/donor/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
-        "apps/missionary/app/globals.css": "d485b63268c150354ceb803a7ec4194be2b15efe44d9018d1df0b5797171190f",
-        "packages/missionary/styles.css": "3ca5d4c35aaabc57dadc0f65f32176aaedbe1c2130824078275b56b4ed630d55"
-      }
-    },
-    {
       "filePath": "features/mission-control/components/app-shell/index.tsx",
       "plugin": "react-doctor",
       "rule": "no-small-form-control-text",
@@ -2414,46 +2172,6 @@
       "evidenceFileHashes": {
         "apps/admin/features/mission-control/components/icons.tsx": "4a2a1d0e5bd19ea8a1acfb0ddbb801a347b3a2939f75240fa4d292927a8f2f1c",
         "tests/unit/apps/admin/features/mission-control/dynamic-icon.test.tsx": "b206f3c41fe593944eb46d25e7b17b30931f1f53b8a865b3dbdfa51d21ea588f"
-      }
-    },
-    {
-      "filePath": "features/mission-control/components/tiles/mission-control-chart-views.tsx",
-      "plugin": "react-doctor",
-      "rule": "prefer-dynamic-import",
-      "severity": "warning",
-      "title": "Heavy library loaded eagerly",
-      "message": "\"recharts\" ships extra code to your users up front & slows page load. Load it on demand with React.lazy() or next/dynamic.",
-      "help": "Load it only when needed: `const Component = dynamic(() => import('library'), { ssr: false })` from next/dynamic, or React.lazy().",
-      "line": 3,
-      "column": 1,
-      "offset": 67,
-      "length": 136,
-      "endLine": 13,
-      "category": "Performance",
-      "fingerprint": "fb7ac02e5319eec9f8a477be9e1f5bf6a5f0c05723511d30332a536b055477b6",
-      "id": "features/mission-control/components/tiles/mission-control-chart-views.tsx::3:1::react-doctor/prefer-dynamic-import::aa74bcf8d3fe1cc500c6421d00ac5f5c1b319c3f7a38b484e7b1e155c79a1bda",
-      "normalizedFilePath": "features/mission-control/components/tiles/mission-control-chart-views.tsx",
-      "tags": ["test-noise"],
-      "target": "apps/admin",
-      "reason": "This native Recharts import lives inside a complete-chart rendering module already reached only through module-level React.lazy. Adding another async boundary around primitive axes/series would change Recharts child discovery without deferring the eager parent data-fetch owner any further.",
-      "evidence": [
-        "IMMUTABLE AUDIT SOURCE apps/admin/features/mission-control/components/tiles/mission-control-chart-views.tsx:3: independently inspected exact batch16 diagnostic site.",
-        "SOURCE apps/admin/features/mission-control/components/tiles/mission-control-home.tsx: module-level lazy import owns this rendering module, with a bounded existing Suspense fallback. A complete monorepo import/re-export search found no eager importer of this exact private view.",
-        "INSTALLED SOURCE Recharts 2.15.4 ReactUtils.getDisplayName/findAllByType and generateCategoricalChart classify native axis/series child components. The original chart geometry/config/gradient IDs and parent donation-fetch ownership were independently AST-compared in lazy-chart-motion-review.json.",
-        "PUBLIC SEAM SOURCE packages/missionary/package.json exposes components, not internal chart modules. No measured bundle performance or broad heavy-import exception is claimed.",
-        "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/components/tiles/mission-control-chart-views.tsx:3; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/components/tiles/mission-control-chart-views.tsx:3. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale."
-      ],
-      "reconsiderWhen": "Reconsider if this exact module gains an eager importer/re-export, the lazy owner is removed, or the chart SDK no longer requires native child identity.",
-      "sourceContextHash": "a0a7b9ea479282c83abc3df9ae23baae80089b626b56b0980926c9554c3eb691",
-      "sourceFileHash": "6da8c30d0045c181363d8874e37c35e0ae16a1653f0faf27cdcdac1bf9521396",
-      "evidenceFileHashes": {
-        "apps/admin/features/mission-control/components/tiles/mission-control-chart-views.tsx": "6da8c30d0045c181363d8874e37c35e0ae16a1653f0faf27cdcdac1bf9521396",
-        "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": "fdf12e75c6db185dca2aea07ad7ef564fc01ea8994942b70b5350cd9d92d7e8e",
-        "packages/ui/components/shadcn/chart.tsx": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
-        "packages/missionary/package.json": "de24ab8decd6427eaece899dd4c51ed57049241067bc4b6c58d077aa62224439",
-        "bun.lock": "7afcc344d66ccb96f78969c594fe17515a334a01e76b3f392b464d04309b8214"
       }
     },
     {
@@ -10084,70 +9802,6 @@
       "sourceFileHash": "00521492643bc29bfdaa0d4f80615fae547277b02f951225b6a8ce356c4b473c",
       "evidenceFileHashes": {
         "tests/unit/apps/admin/app/feed-org-updates-composer-actions.test.tsx": "7d234f6f3134f714cb5d4e13b4f1376b781efa101a3dd53ef5f9b09ed786adac"
-      }
-    },
-    {
-      "filePath": "features/mission-control/care/components/TimezoneScheduler.tsx",
-      "plugin": "react-doctor",
-      "rule": "hook-use-state",
-      "severity": "warning",
-      "title": "useState not destructured",
-      "message": "`useState` should be destructured as `[value, setValue]` so readers can see the state value and setter together.",
-      "help": "Destructure `useState` as `const [thing, setThing] = useState(…)` so state reads and writes stay visible together.",
-      "line": 42,
-      "column": 9,
-      "offset": 948,
-      "length": 7,
-      "endLine": 42,
-      "category": "Maintainability",
-      "fingerprint": "3240a65affd0da36d1861a01a9e71c3959ba3b195969eedae067ec81b7b51f9d",
-      "id": "features/mission-control/care/components/TimezoneScheduler.tsx::42:9::react-doctor/hook-use-state::f89933dc5a4bcd8bd29f16322a3a0db0fcf24c2d11c8eed48748cd9df2a2df5b",
-      "normalizedFilePath": "features/mission-control/care/components/TimezoneScheduler.tsx",
-      "tags": [],
-      "target": "apps/admin",
-      "reason": "[clock] intentionally destructures a single lazily-created external store from useState; its identity must survive renders and no setter is needed. The hook result is destructured.",
-      "evidence": [
-        "SOURCE createClockStore owns subscribe/getSnapshot and timer cleanup; useSyncExternalStore consumes the retained store.",
-        "REGRESSION timezone-scheduler.test.tsx exercises hydration, advancing ticks and cleanup.",
-        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here."
-      ],
-      "reconsiderWhen": "Reconsider if clock identity, lazy initialization, subscription ownership or hook destructuring changes.",
-      "sourceContextHash": "3240a65affd0da36d1861a01a9e71c3959ba3b195969eedae067ec81b7b51f9d",
-      "sourceFileHash": "db38ed6359cf6a34a1d09325c12f07c0825ede8597acb4d194c95c4d249c6323",
-      "evidenceFileHashes": {
-        "tests/unit/apps/admin/features/care/timezone-scheduler.test.tsx": "0f0b67fcdd63f0a66ae863785565a474d9f7c3112bd3f914af28682484847658"
-      }
-    },
-    {
-      "filePath": "features/mission-control/care/components/TimezoneScheduler.tsx",
-      "plugin": "react-doctor",
-      "rule": "no-locale-format-in-render",
-      "severity": "warning",
-      "title": "Locale/timezone formatting during render",
-      "message": "This can cause a hydration mismatch because toLocaleTimeString() formats with the server's locale and timezone during server rendering but the user's in the browser. Format it in a post-mount useEffect, or pass an explicit locale and timeZone.",
-      "help": "Format locale/timezone-dependent values in a post-mount useEffect + state, or pass an explicit locale and timeZone so the server and the browser render the same text. Only runs on SSR-capable projects.",
-      "line": 82,
-      "column": 7,
-      "offset": 2024,
-      "length": 149,
-      "endLine": 87,
-      "category": "Bugs",
-      "fingerprint": "f4b653d54c53b31a7f915393662a81a6653c9032f432da1cb11fd5f13ec1b637",
-      "id": "features/mission-control/care/components/TimezoneScheduler.tsx::82:7::react-doctor/no-locale-format-in-render::a9b3b21c4cb4114899d406c99bf560ee34c04816b0fd666bfd8468713016c4f1",
-      "normalizedFilePath": "features/mission-control/care/components/TimezoneScheduler.tsx",
-      "tags": [],
-      "target": "apps/admin",
-      "reason": "The server snapshot is null and local formatting is gated on a timestamp supplied by the external-store subscription after hydration. SSR and initial hydration render matching placeholders.",
-      "evidence": [
-        "SOURCE getServerTimeSnapshot returns null; localTime and localTimeStr require a non-null timestamp. The timer starts in subscribe and is cleared on unsubscribe.",
-        "REGRESSION timezone-scheduler.test.tsx checks matching hydration, later ticks and cleanup.",
-        "REQUALIFICATION 2026-10-21: independently reviewed against actual source and consumers; exact current identities and source/evidence hashes are bound here."
-      ],
-      "reconsiderWhen": "Reconsider if the server snapshot, placeholder guard, locale/time-zone selection or subscription lifecycle changes.",
-      "sourceContextHash": "e05574200578f1c6df5aa1bea1b8febf43d8b10ee0427e0695faabc2422cd5f5",
-      "sourceFileHash": "db38ed6359cf6a34a1d09325c12f07c0825ede8597acb4d194c95c4d249c6323",
-      "evidenceFileHashes": {
-        "tests/unit/apps/admin/features/care/timezone-scheduler.test.tsx": "0f0b67fcdd63f0a66ae863785565a474d9f7c3112bd3f914af28682484847658"
       }
     },
     {

@@ -30,3 +30,20 @@ it("announces the selected CRM view and preserves single selection", async () =>
     "/crm/notes",
   );
 });
+
+it("names each icon-only view toggle in a visible tooltip", async () => {
+  const { CrmViewToolbar } =
+    await import("../../../../../apps/admin/app/(app)/crm/page-client");
+  render(<CrmViewToolbar view="table" setView={vi.fn()} />);
+  const table = screen.getByRole("button", { name: "Show CRM table view" });
+  const kanban = screen.getByRole("button", { name: "Show CRM kanban view" });
+  // The icons stay one toggle group's pressed buttons.
+  expect(table.getAttribute("aria-pressed")).toBe("true");
+
+  fireEvent.pointerEnter(kanban, { pointerType: "mouse" });
+  fireEvent.mouseEnter(kanban);
+  fireEvent.mouseMove(kanban);
+  expect(
+    await screen.findByText("Board by status", undefined, { timeout: 2000 }),
+  ).toBeTruthy();
+});

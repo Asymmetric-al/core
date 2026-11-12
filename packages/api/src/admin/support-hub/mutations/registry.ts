@@ -1,4 +1,5 @@
 import { supportHubAdapter } from "../adapter";
+import { SupportCannedResponseError } from "../canned-response-error";
 import {
   saveAutomationRuleSchema,
   saveBusinessHoursSchema,
@@ -46,8 +47,36 @@ export const saveSupportMacro = (input: SaveMacroInput) =>
 export const deleteSupportMacro = (id: string) =>
   supportHubAdapter.macros.delete(id);
 
-export const saveSupportCannedResponse = (input: SaveCannedResponseInput) =>
-  supportHubAdapter.cannedResponses.save(saveCannedResponseSchema.parse(input));
+export const saveSupportCannedResponse = async (
+  input: SaveCannedResponseInput,
+) => {
+  const parsed = saveCannedResponseSchema.parse(input);
+  const responses = await supportHubAdapter.cannedResponses.list();
+  const existing = responses.find((response) => response.id === parsed.id);
+  const shortCode = parsed.shortCode.trim().replace(/^\//, "");
+  if (
+    shortCode !== existing?.shortCode &&
+    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(shortCode)
+  ) {
+    throw new SupportCannedResponseError(
+      "Use lowercase letters, numbers and hyphens.",
+    );
+  }
+  if (
+    responses.some(
+      (response) =>
+        response.id !== parsed.id &&
+        response.ownerAgentId === parsed.ownerAgentId &&
+        response.shortCode.toLowerCase() === shortCode.toLowerCase(),
+    )
+  ) {
+    throw new SupportCannedResponseError(
+      "This shortcode is already in use.",
+      409,
+    );
+  }
+  return supportHubAdapter.cannedResponses.save({ ...parsed, shortCode });
+};
 export const deleteSupportCannedResponse = (id: string) =>
   supportHubAdapter.cannedResponses.delete(id);
 

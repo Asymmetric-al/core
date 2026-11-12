@@ -1,7 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "@asym/lib/motion";
-
 import {
   AuthButton,
   AuthCard,
@@ -9,6 +7,8 @@ import {
   AuthCardDescription,
   AuthCardHeader,
   AuthCardTitle,
+  AuthMark,
+  AuthMessage,
 } from "./auth-primitives";
 
 export interface DemoOnlyLoginCardProps {
@@ -25,53 +25,32 @@ export function DemoOnlyLoginCard({
   title,
   subtitle = "Enter the demo environment",
   helperText,
-  buttonLabel = "Demo Access",
+  buttonLabel = "Demo access",
   isLoading = false,
   error,
   onDemoLogin,
 }: DemoOnlyLoginCardProps) {
-  const reduceMotion = useReducedMotion();
-
   return (
-    <motion.div
-      initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
-    >
-      <AuthCard>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-linear-to-b from-muted to-transparent" />
-        <AuthCardHeader>
-          <AuthCardTitle>{title}</AuthCardTitle>
-          <AuthCardDescription>{subtitle}</AuthCardDescription>
-        </AuthCardHeader>
-        <AuthCardContent>
-          <AuthButton type="button" loading={isLoading} onClick={onDemoLogin}>
-            {buttonLabel}
-          </AuthButton>
-
-          {helperText ? (
-            <p className="text-center text-xs text-muted-foreground">
-              {helperText}
-            </p>
-          ) : null}
-
-          <AnimatePresence mode="wait">
-            {error ? (
-              <motion.p
-                key="demo-error"
-                role="alert"
-                initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
-                transition={{ duration: 0.16 }}
-                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-foreground"
-              >
-                {error}
-              </motion.p>
-            ) : null}
-          </AnimatePresence>
-        </AuthCardContent>
-      </AuthCard>
-    </motion.div>
+    <AuthCard>
+      <AuthCardHeader>
+        <AuthMark />
+        <AuthCardTitle>{title}</AuthCardTitle>
+        <AuthCardDescription>{subtitle}</AuthCardDescription>
+      </AuthCardHeader>
+      <AuthCardContent>
+        <p role="status" aria-atomic="true" className="sr-only">
+          {isLoading ? "Opening demo…" : ""}
+        </p>
+        {error ? <AuthMessage tone="error">{error}</AuthMessage> : null}
+        <AuthButton type="button" loading={isLoading} onClick={onDemoLogin}>
+          {buttonLabel}
+        </AuthButton>
+        {helperText ? (
+          <p className="text-center text-sm text-muted-foreground">
+            {helperText}
+          </p>
+        ) : null}
+      </AuthCardContent>
+    </AuthCard>
   );
 }

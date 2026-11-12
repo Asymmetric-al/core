@@ -1,5 +1,8 @@
+import { canonicalStoredValue } from "../filter-variants";
+
 import type { AdminCrmRelationshipsParams } from "./query";
 import type {
+  CrmRelationshipActiveCommitments,
   CrmRelationshipAuthorityScope,
   CrmRelationshipDomain,
   CrmRelationshipRecordKind,
@@ -196,10 +199,18 @@ function asIso(value: unknown, fallback: string): string {
   return fallback;
 }
 
+const AUTHORITY_LABELS: Record<CrmRelationshipAuthorityScope, string> = {
+  care_excluded: "Asym member care",
+  crm_relationship: "Asym CRM",
+  finance_summary: "Asym finance summary",
+  member_care: "Asym member care",
+};
+
 function relationshipRow(input: {
   tenantId: string;
   recordKind: CrmRelationshipRecordKind;
   recordId: string;
+  donorId: string | null;
   domain: CrmRelationshipDomain;
   displayName: string;
   relationshipKind: string;
@@ -219,10 +230,7 @@ function relationshipRow(input: {
   dedupeKey: string;
 }): CrmRelationshipRow {
   return {
-    authorityLabel:
-      input.authorityScope === "finance_summary"
-        ? "Asym finance summary"
-        : "Asym CRM",
+    authorityLabel: AUTHORITY_LABELS[input.authorityScope],
     authorityScope: input.authorityScope,
     commitmentAmountCents: input.commitmentAmountCents,
     commitmentCurrency: input.commitmentCurrency,
@@ -230,6 +238,7 @@ function relationshipRow(input: {
     createdAt: input.createdAt,
     dedupeKey: input.dedupeKey,
     displayName: input.displayName,
+    donorId: input.donorId,
     domain: input.domain,
     id: `${input.recordKind}:${input.recordId}`,
     lastActivityAt: input.lastActivityAt,
@@ -290,6 +299,7 @@ export function mapLocalCrmRelationshipRows(input: {
           tenantId: input.tenantId,
           recordKind: "church",
           recordId,
+          donorId: recordId,
           domain: "churches",
           displayName,
           relationshipKind: "church",
@@ -315,6 +325,7 @@ export function mapLocalCrmRelationshipRows(input: {
           tenantId: input.tenantId,
           recordKind: "organization",
           recordId,
+          donorId: recordId,
           domain: "organizations",
           displayName,
           relationshipKind: "organization",
@@ -340,6 +351,7 @@ export function mapLocalCrmRelationshipRows(input: {
           tenantId: input.tenantId,
           recordKind: "person",
           recordId,
+          donorId: recordId,
           domain: "people",
           displayName,
           relationshipKind: "person",
@@ -368,6 +380,7 @@ export function mapLocalCrmRelationshipRows(input: {
           tenantId: input.tenantId,
           recordKind: "household",
           recordId,
+          donorId: recordId,
           domain: "households",
           displayName: householdName,
           relationshipKind: "household",
@@ -417,6 +430,7 @@ export function mapLocalCrmRelationshipRows(input: {
         tenantId: input.tenantId,
         recordKind: "missionary",
         recordId,
+        donorId: null,
         domain: "people",
         displayName,
         relationshipKind: "missionary",
@@ -446,7 +460,9 @@ export function mapLocalCrmRelationshipRows(input: {
     const amount = Number(pledge.amount ?? 0);
     const frequency = readText(pledge, ["frequency"]) || null;
     const currency = readText(pledge, ["currency"]) || "usd";
-    const donor = donorById.get(readText(pledge, ["donor_id", "donorId"]));
+    const donorId = readText(pledge, ["donor_id", "donorId"]);
+    // Only a donor among this tenant's records gets a link.
+    const donor = donorById.get(donorId);
     const primaryContactName = donor ? donorDisplayName(donor) : null;
     const createdAt = asIso(pledge.created_at ?? pledge.createdAt, input.now);
     const updatedAt = asIso(
@@ -458,12 +474,13 @@ export function mapLocalCrmRelationshipRows(input: {
         tenantId: input.tenantId,
         recordKind: "commitment",
         recordId,
+        donorId: donor && donorId ? donorId : null,
         domain: "pledges",
         displayName: primaryContactName
           ? `${primaryContactName} pledge`
           : "Pledge",
         relationshipKind: frequency || "pledge",
-        status: null,
+        status: readText(pledge, ["status"]) || null,
         lastActivityAt: updatedAt,
         createdAt,
         updatedAt,
@@ -505,6 +522,7 @@ export function mapLocalCrmRelationshipRows(input: {
         tenantId: input.tenantId,
         recordKind: "activity",
         recordId,
+        donorId: null,
         domain: "activity",
         displayName: title,
         relationshipKind: activityType || "activity",
@@ -517,8 +535,8 @@ export function mapLocalCrmRelationshipRows(input: {
         commitmentAmountCents: null,
         commitmentCurrency: null,
         commitmentFrequency: null,
-        sourceSystem: "Asym CRM",
-        authorityScope: "crm_relationship",
+        sourceSystem: "Asym member care",
+        authorityScope: "member_care",
         location: null,
         memberCount: null,
         dedupeKey: `activity:${recordId}`,
@@ -560,7 +578,6 @@ export function buildCrmRelationshipReport(
     },
     {} as Record<CrmRelationshipDomain, number>,
   );
-  const pledges = rows.filter((row) => row.domain === "pledges");
 
   return {
     domainCounts,
@@ -574,19 +591,80 @@ export function buildCrmRelationshipReport(
     ]),
     excludedCareActivityCount: stats.excludedCareActivityCount,
     householdCount: domainCounts.households,
-    pledgeCommitmentCount: pledges.length,
-    pledgeCommitmentTotalCents: pledges.reduce(
-      (sum, row) => sum + (row.commitmentAmountCents ?? 0),
-      0,
+    activeCommitments: summarizeActiveCommitments(
+      rows.filter((row) => row.domain === "pledges"),
     ),
     recentActivityCount: domainCounts.activity,
     sourceSystems: {
       auth: "Mission Control session and tenant membership.",
-      care: "Member-care activity is local and excluded unless care-sensitive access is granted.",
+      care: "Non-sensitive Member Care activity is listed; sensitive care activity is always left out.",
       crm: "Asym Postgres owns relationship context.",
       finance: "Asym finance summary is a local read-only overlay.",
     },
     totalRows: rows.length,
+  };
+}
+
+/**
+ * Months per pledge period, as a multiplier to a monthly equivalent. Keys are
+ * canonical frequency spellings; anything else (one-off gifts, blanks, typos)
+ * is left out of the monthly figure and counted instead.
+ */
+const MONTHLY_FACTOR_BY_FREQUENCY: Record<string, number> = {
+  annual: 1 / 12,
+  annually: 1 / 12,
+  biweekly: 26 / 12,
+  month: 1,
+  monthly: 1,
+  quarter: 1 / 3,
+  quarterly: 1 / 3,
+  semi_annual: 1 / 6,
+  semi_annually: 1 / 6,
+  semiannual: 1 / 6,
+  semiannually: 1 / 6,
+  semimonthly: 2,
+  week: 52 / 12,
+  weekly: 52 / 12,
+  year: 1 / 12,
+  yearly: 1 / 12,
+};
+
+function isActivePledge(row: CrmRelationshipRow): boolean {
+  return canonicalStoredValue(row.status ?? "") === "active";
+}
+
+export function summarizeActiveCommitments(
+  pledgeRows: CrmRelationshipRow[],
+): CrmRelationshipActiveCommitments {
+  const active = pledgeRows.filter(isActivePledge);
+  const byCurrency = new Map<string, { exact: number; pledgeCount: number }>();
+  let unknownFrequencyCount = 0;
+
+  for (const row of active) {
+    const factor =
+      MONTHLY_FACTOR_BY_FREQUENCY[
+        canonicalStoredValue(row.commitmentFrequency ?? "")
+      ];
+    if (factor === undefined) {
+      unknownFrequencyCount += 1;
+      continue;
+    }
+    const currency = (row.commitmentCurrency ?? "usd").toUpperCase();
+    const entry = byCurrency.get(currency) ?? { exact: 0, pledgeCount: 0 };
+    entry.exact += (row.commitmentAmountCents ?? 0) * factor;
+    entry.pledgeCount += 1;
+    byCurrency.set(currency, entry);
+  }
+
+  return {
+    // Round once per currency so per-pledge rounding never drifts the total.
+    monthlyByCurrency: Array.from(byCurrency, ([currency, entry]) => ({
+      currency,
+      monthlyCents: Math.round(entry.exact),
+      pledgeCount: entry.pledgeCount,
+    })),
+    pledgeCount: active.length,
+    unknownFrequencyCount,
   };
 }
 

@@ -5,6 +5,8 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
 import { Input } from "@asym/ui/components/shadcn/input";
@@ -38,16 +40,16 @@ export function ViewSettingsResetDialog({
         className="sm:max-w-md"
         data-testid="view-settings-reset-preview"
       >
-        <DialogTitle>Reset view settings</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" className="h-11" onClick={onCancel}>
+        <DialogHeader>
+          <DialogTitle>Reset view settings</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button className="h-11" onClick={onConfirm}>
-            Reset
-          </Button>
-        </div>
+          <Button onClick={onConfirm}>Reset</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -61,7 +63,7 @@ interface SetTenantDefaultDialogProps {
 }
 
 /**
- * Publishing to the whole tenant always confirms first, mirroring the
+ * Publishing to the whole organization always confirms first, mirroring the
  * reset-preview idiom (#272).
  */
 export function SetTenantDefaultDialog({
@@ -80,25 +82,26 @@ export function SetTenantDefaultDialog({
         className="sm:max-w-md"
         data-testid="tenant-default-confirm"
       >
-        <DialogTitle>Set tenant default</DialogTitle>
-        <DialogDescription>
-          The current columns, filters, sort, and pinned row action become the
-          default for everyone in this tenant. Personal view settings are not
-          changed and keep overriding the tenant default.
-        </DialogDescription>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" className="h-11" onClick={onCancel}>
+        <DialogHeader>
+          <DialogTitle>Set organization default</DialogTitle>
+          <DialogDescription>
+            The current columns, filters, sort, and pinned row action become the
+            default for everyone in your organization. Personal view settings
+            are not changed and keep overriding the organization default.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
           <Button
-            className="h-11"
             disabled={isSaving}
             focusableWhenDisabled={isSaving}
             onClick={onConfirm}
           >
-            {isSaving ? "Saving..." : "Set tenant default"}
+            {isSaving ? "Saving..." : "Set organization default"}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -129,28 +132,29 @@ export function NamedViewNameDialog({
         className="sm:max-w-md"
         data-testid="named-view-name-dialog"
       >
-        <DialogTitle>{viewNameDialogTitle(state)}</DialogTitle>
-        <DialogDescription>
-          Named views are personal — they save your columns, filters, sort, and
-          pinned row action.
-        </DialogDescription>
-        <div className="space-y-1.5">
+        <DialogHeader>
+          <DialogTitle>{viewNameDialogTitle(state)}</DialogTitle>
+          <DialogDescription>
+            Named views are personal — they save your columns, filters, sort,
+            and pinned row action.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-2">
           <Label htmlFor="named-view-name">View name</Label>
           <Input
             id="named-view-name"
             value={value}
             onChange={(event) => onValueChange(event.target.value)}
-            className="h-11"
           />
         </div>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" className="h-11" onClick={onCancel}>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button className="h-11" disabled={!value.trim()} onClick={onSubmit}>
+          <Button disabled={!value.trim()} onClick={onSubmit}>
             Save view
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -183,16 +187,17 @@ export function DeleteNamedViewDialog({
         className="sm:max-w-md"
         data-testid="named-view-delete-dialog"
       >
-        <DialogTitle>Delete “{view.name}”</DialogTitle>
-        <DialogDescription>
-          {view.isDefault
-            ? "This is your default view. Choose another default or fall back to the tenant/system default."
-            : "This personal view will be removed. Your current working settings stay as they are."}
-        </DialogDescription>
+        <DialogHeader>
+          <DialogTitle>Delete “{view.name}”</DialogTitle>
+          <DialogDescription>
+            {view.isDefault
+              ? "This is your default view. Choose another default or fall back to the organization or system default."
+              : "This personal view will be removed. Your current working settings stay as they are."}
+          </DialogDescription>
+        </DialogHeader>
         {view.isDefault ? (
           <RadioGroup
             aria-label="Replacement default view"
-            className="space-y-2"
             value={nextDefaultChoice}
             onValueChange={onNextDefaultChoiceChange}
           >
@@ -217,19 +222,19 @@ export function DeleteNamedViewDialog({
             <div className="flex items-center gap-2 text-sm">
               <RadioGroupItem value="" id="next-default-view-none" />
               <Label htmlFor="next-default-view-none">
-                No default (use tenant/system default)
+                No default (use the organization or system default)
               </Label>
             </div>
           </RadioGroup>
         ) : null}
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" className="h-11" onClick={onCancel}>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button variant="destructive" className="h-11" onClick={onConfirm}>
+          <Button variant="destructive" onClick={onConfirm}>
             Delete view
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

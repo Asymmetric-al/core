@@ -5,6 +5,10 @@ import { MEMBER_CARE_CACHE_TAGS } from "../shared/cache-tags";
 
 type QueryError = { message?: string } | null;
 
+export const MEMBER_CARE_THREAD_POST_TITLE = "Care thread update";
+export const MEMBER_CARE_DIRECTORY_LIMIT = 250;
+export type MemberCareSignal = number | null;
+
 export type MemberCarePriority =
   "Healthy" | "Needs Attention" | "At Risk" | "Crisis";
 
@@ -21,10 +25,11 @@ export type MemberCareActivityType =
 export type MemberCarePersonnel = {
   id: string;
   name: string;
+  nameMissing: boolean;
   location: string;
   timezone: string;
   status: MemberCarePriority;
-  lastCheckIn: string;
+  lastCheckIn: string | null;
   initials: string;
   avatarUrl?: string;
   role: string;
@@ -36,10 +41,10 @@ export type MemberCarePersonnel = {
     | "Middle East"
     | "North America";
   healthSignals: {
-    emotional: number;
-    spiritual: number;
-    physical: number;
-    financial: number;
+    emotional: MemberCareSignal;
+    spiritual: MemberCareSignal;
+    physical: MemberCareSignal;
+    financial: MemberCareSignal;
   };
   careGaps: string[];
   manualAttention?: boolean;
@@ -47,6 +52,7 @@ export type MemberCarePersonnel = {
 };
 
 export type MemberCareActivity = {
+  kind: "thread" | "activity";
   id: string;
   personnelId: string;
   type: MemberCareActivityType;
@@ -83,11 +89,33 @@ export type MemberCareRequirement = {
 };
 
 export type MemberCareDashboardSnapshot = {
+  lastContacts: MemberCareLastContacts;
+  personnelTotal: number;
   personnel: MemberCarePersonnel[];
   activities: MemberCareActivity[];
   goals: MemberCareGoal[];
   requirements: MemberCareRequirement[];
 };
+
+export type MemberCareLastContacts = Record<
+  string,
+  Partial<Record<MemberCareActivityType, string>>
+>;
+
+const ACTIVITY_DB_TYPES = [
+  "video_call",
+  "in_person_visit",
+  "check_in",
+  "pastoral_note",
+  "care_plan_update",
+  "crisis_intervention",
+  "birthday",
+  "prayer_request",
+] as const;
+
+type LastContactRow = { id: string } & Partial<
+  Record<(typeof ACTIVITY_DB_TYPES)[number], { occurred_at: string }[]>
+>;
 
 export type MemberCarePersonDetail = {
   personnel: MemberCarePersonnel | null;
@@ -215,30 +243,26 @@ function displayNameFor(row: MissionaryDirectoryRow): string {
     .join(" ")
     .trim();
 
-  return composed || "Unknown Member";
+  return composed;
+}
+
+function toSignal(value: unknown): MemberCareSignal {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(100, Math.max(0, Math.round(value)))
+    : null;
 }
 
 function toHealthSignals(input: unknown): MemberCarePersonnel["healthSignals"] {
-  if (!input || typeof input !== "object") {
-    return {
-      emotional: 50,
-      spiritual: 50,
-      physical: 50,
-      financial: 50,
-    };
-  }
-
-  const value = input as Record<string, unknown>;
+  const value =
+    input && typeof input === "object"
+      ? (input as Record<string, unknown>)
+      : {};
 
   return {
-    emotional:
-      typeof value.emotional === "number" ? Math.round(value.emotional) : 50,
-    spiritual:
-      typeof value.spiritual === "number" ? Math.round(value.spiritual) : 50,
-    physical:
-      typeof value.physical === "number" ? Math.round(value.physical) : 50,
-    financial:
-      typeof value.financial === "number" ? Math.round(value.financial) : 50,
+    emotional: toSignal(value.emotional),
+    spiritual: toSignal(value.spiritual),
+    physical: toSignal(value.physical),
+    financial: toSignal(value.financial),
   };
 }
 
@@ -275,12 +299,13 @@ function toPersonnel(row: MissionaryDirectoryRow): MemberCarePersonnel {
 
   return {
     id: row.id,
-    name,
-    location: row.location?.trim() || "Unknown location",
+    name: name || "Name not set",
+    nameMissing: !name,
+    location: row.location?.trim() || "Location not set",
     timezone: row.timezone || "UTC",
     status: toPriority(row.health_status),
-    lastCheckIn: row.last_check_in ?? new Date(0).toISOString(),
-    initials: initialsFor(name),
+    lastCheckIn: row.last_check_in ?? null,
+    initials: name ? initialsFor(name) : "",
     avatarUrl: profile?.avatar_url ?? undefined,
     role: row.mission_field?.trim() || "Missionary",
     region: row.region,
@@ -293,6 +318,7 @@ function toPersonnel(row: MissionaryDirectoryRow): MemberCarePersonnel {
 
 function toActivity(row: ActivityRow): MemberCareActivity {
   return {
+    kind: row.title === MEMBER_CARE_THREAD_POST_TITLE ? "thread" : "activity",
     id: row.id,
     personnelId: row.missionary_id,
     type: toActivityType(row.type),
@@ -345,14 +371,16 @@ async function getMemberCareClient() {
 
 async function readDirectoryRows(tenantId: string) {
   const client = await getMemberCareClient();
-  const { data, error } = await client
+  const { data, error, count } = await client
     .from("missionaries")
     .select(
       "id, location, timezone, health_status, last_check_in, manual_attention, region, mission_field, health_signals, birth_date, profile:profiles!profile_id(first_name, last_name, full_name, display_name, avatar_url)",
+      { count: "exact" },
     )
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false })
-    .limit(250);
+    .order("id", { ascending: false })
+    .limit(MEMBER_CARE_DIRECTORY_LIMIT);
 
   if (error) {
     throw new Error(
@@ -360,7 +388,8 @@ async function readDirectoryRows(tenantId: string) {
     );
   }
 
-  return (data ?? []) as MissionaryDirectoryRow[];
+  const rows = (data ?? []) as MissionaryDirectoryRow[];
+  return { rows, total: Math.max(count ?? rows.length, rows.length) };
 }
 
 async function readDirectoryRowById(
@@ -552,9 +581,9 @@ function applyGoalsAndRequirements(
   });
 }
 
-export async function readMemberCareDirectory(
+export async function readMemberCareDirectorySnapshot(
   tenantId: string,
-): Promise<MemberCarePersonnel[]> {
+): Promise<{ personnel: MemberCarePersonnel[]; total: number }> {
   "use cache";
 
   applyCache([
@@ -569,11 +598,20 @@ export async function readMemberCareDirectory(
     readRequirementRows(tenantId),
   ]);
 
-  return applyGoalsAndRequirements(
-    directoryRows.map(toPersonnel),
-    goalRows.map(toGoal),
-    requirementRows.map(toRequirement),
-  );
+  return {
+    personnel: applyGoalsAndRequirements(
+      directoryRows.rows.map(toPersonnel),
+      goalRows.map(toGoal),
+      requirementRows.map(toRequirement),
+    ),
+    total: directoryRows.total,
+  };
+}
+
+export async function readMemberCareDirectory(
+  tenantId: string,
+): Promise<MemberCarePersonnel[]> {
+  return (await readMemberCareDirectorySnapshot(tenantId)).personnel;
 }
 
 export async function readMemberCareActivities(
@@ -595,6 +633,52 @@ export async function readMemberCareActivities(
   return rows.map(toActivity);
 }
 
+async function readLastContacts(
+  tenantId: string,
+): Promise<MemberCareLastContacts> {
+  const client = await getMemberCareClient();
+  const select = [
+    "id",
+    ...ACTIVITY_DB_TYPES.map(
+      (type) => `${type}:member_care_activities(occurred_at)`,
+    ),
+  ].join(", ");
+  let query = client
+    .from("missionaries")
+    .select(select)
+    .eq("tenant_id", tenantId)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(MEMBER_CARE_DIRECTORY_LIMIT);
+  for (const type of ACTIVITY_DB_TYPES) {
+    query = query
+      .eq(`${type}.type`, type)
+      .eq(`${type}.tenant_id`, tenantId)
+      .order("occurred_at", { referencedTable: type, ascending: false })
+      .limit(1, { referencedTable: type });
+  }
+  const { data, error } = await query.or(
+    `title.is.null,title.neq.${MEMBER_CARE_THREAD_POST_TITLE}`,
+    { referencedTable: "pastoral_note" },
+  );
+  if (error) {
+    throw new Error(
+      toErrorMessage(error, "Failed to read member care last contacts."),
+    );
+  }
+  return Object.fromEntries(
+    ((data ?? []) as unknown as LastContactRow[]).map((row) => [
+      row.id,
+      Object.fromEntries(
+        ACTIVITY_DB_TYPES.flatMap((type) => {
+          const latest = row[type]?.[0]?.occurred_at;
+          return latest ? [[toActivityType(type), latest]] : [];
+        }),
+      ),
+    ]),
+  );
+}
+
 export async function readMemberCareDashboardSnapshot(
   tenantId: string,
 ): Promise<MemberCareDashboardSnapshot> {
@@ -606,20 +690,23 @@ export async function readMemberCareDashboardSnapshot(
     MEMBER_CARE_CACHE_TAGS.dashboard,
   ]);
 
-  const [directoryRows, activityRows, goalRows, requirementRows] =
+  const [directoryRows, activityRows, goalRows, requirementRows, lastContacts] =
     await Promise.all([
       readDirectoryRows(tenantId),
       readActivityRows(tenantId),
       readGoalRows(tenantId),
       readRequirementRows(tenantId),
+      readLastContacts(tenantId),
     ]);
 
   const goals = goalRows.map(toGoal);
   const requirements = requirementRows.map(toRequirement);
 
   return {
+    lastContacts,
+    personnelTotal: directoryRows.total,
     personnel: applyGoalsAndRequirements(
-      directoryRows.map(toPersonnel),
+      directoryRows.rows.map(toPersonnel),
       goals,
       requirements,
     ),

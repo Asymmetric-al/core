@@ -57,7 +57,7 @@ test.describe("development-admin profile dropdown", () => {
     });
     const manageTeam = page.getByRole("menuitem", { name: /^manage team$/i });
     const about = page.getByRole("menuitem", { name: /^about$/i });
-    const logout = page.getByRole("menuitem", { name: /^logout$/i });
+    const logout = page.getByRole("menuitem", { name: /^sign out$/i });
 
     await expect(administration).toBeVisible();
     await expect(manageTeam).toBeVisible();
@@ -75,7 +75,7 @@ test.describe("development-admin profile dropdown", () => {
     await expect(
       page.getByRole("heading", { name: /^administration$/i }),
     ).toBeVisible();
-    await expect(page.getByText(/service operational status/i)).toBeVisible();
+    await expect(page.getByText(/people and access/i)).toBeVisible();
 
     await assertNoErrorBanner(page);
   });

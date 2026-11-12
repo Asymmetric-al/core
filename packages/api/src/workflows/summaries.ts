@@ -71,11 +71,13 @@ async function loadDonationSagaOutcomes(
   const outcomes: OutcomeBySubjectId = new Map();
   if (subjectIds.length === 0) return outcomes;
 
-  const { data } = await client
+  const { data, error } = await client
     .from("donation_saga_outbox")
     .select("id, status")
     .eq("tenant_id", tenantId)
     .in("id", subjectIds);
+
+  if (error) throw new Error("workflow_summaries_failed: donation_saga_outbox");
 
   for (const row of data ?? []) {
     const status = String(row.status);
@@ -97,11 +99,13 @@ async function loadStripeEventOutcomes(
   const outcomes: OutcomeBySubjectId = new Map();
   if (subjectIds.length === 0) return outcomes;
 
-  const { data } = await client
+  const { data, error } = await client
     .from("stripe_raw_events")
     .select("id, processing_status")
     .eq("tenant_id", tenantId)
     .in("id", subjectIds);
+
+  if (error) throw new Error("workflow_summaries_failed: stripe_raw_events");
 
   for (const row of data ?? []) {
     const status = String(row.processing_status);
@@ -140,6 +144,13 @@ async function loadInboundEmailOutcomes(
       .eq("status", "pending")
       .in("inbound_email_id", subjectIds),
   ]);
+
+  if (emailResult.error)
+    throw new Error("workflow_summaries_failed: email_inbound_messages");
+  if (reviewResult.error)
+    throw new Error(
+      "workflow_summaries_failed: support_inbound_routing_reviews",
+    );
 
   const reviewHeld = new Set(
     (reviewResult.data ?? []).map((review) => String(review.inbound_email_id)),

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronsUpDown, Search, X } from "lucide-react";
+import { Check, ChevronDown, Search, X } from "lucide-react";
 import { useMemo, useRef, type Ref } from "react";
 
 import { cn } from "../../../../lib/utils";
@@ -147,7 +147,7 @@ export function FilterSelectInput({
             (field.placeholder ?? "Select...")
           )}
         </span>
-        <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
+        <ChevronDown className="ml-2 size-3.5 shrink-0 opacity-50" />
       </ComboboxTrigger>
       <ComboboxContent aria-label={field.label} sideOffset={8}>
         <FilterSearch label={field.label} />
@@ -227,7 +227,7 @@ export function FilterMultiSelectInput({
           ) : !selectedOptions.length ? (
             <span>{field.placeholder ?? "Select options..."}</span>
           ) : null}
-          <ChevronsUpDown className="ml-auto size-3.5 shrink-0 opacity-50" />
+          <ChevronDown className="ml-auto size-3.5 shrink-0 opacity-50" />
         </ComboboxTrigger>
       </div>
       <ComboboxContent

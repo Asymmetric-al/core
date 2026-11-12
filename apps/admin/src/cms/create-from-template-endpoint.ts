@@ -27,6 +27,7 @@ import {
   PAGE_TEMPLATES_SLUG,
   PROJECT_PAGES_SLUG,
 } from "./constants";
+import { normalizeWebAddressSegment as slugifySegment } from "./web-address";
 
 import type {
   CmsLayoutBlocks,
@@ -103,15 +104,6 @@ async function requireStaff(req: PayloadRequest): Promise<StaffAuthResult> {
     };
   }
   return { ok: true, ctx };
-}
-
-function slugifySegment(input: string) {
-  return input
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
 }
 
 function readTemplateTenant(template: PageTemplateForCreate): string | null {
@@ -739,6 +731,14 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
       parsed = bodySchema.parse(json);
     } catch {
       return jsonResponse({ error: "Invalid request body" }, 400);
+    }
+
+    if ("slug" in parsed && !slugifySegment(parsed.slug)) {
+      const message = "Enter an address with at least one letter or number.";
+      return jsonResponse(
+        { error: message, fieldErrors: { slug: [message] } },
+        400,
+      );
     }
 
     const { payload } = req;

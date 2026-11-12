@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOutIcon } from "lucide-react";
+import { LogOutIcon, UserRound } from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -36,51 +36,67 @@ type Props = {
     email?: string;
     avatarUrl?: string | null;
   } | null;
+  /** A short line under the email, such as the role and organization. */
+  detail?: string;
   menuItems?: readonly ProfileDropdownMenuItem[];
   onSignOut?: () => void;
 };
+
+/** Up to two initials from a name (or an email's local part). */
+export function initialsOf(nameOrEmail: string) {
+  const words = nameOrEmail
+    .split("@")[0]!
+    .split(/[\s._-]+/)
+    .filter(Boolean);
+  const initials = words
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join("");
+  return initials;
+}
 
 const ProfileDropdown = ({
   trigger,
   defaultOpen,
   align = "end",
   user,
+  detail,
   menuItems = [],
   onSignOut,
 }: Props) => {
-  const initials =
-    user?.name
-      ?.split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase() || "U";
+  // With no name or email, the role and organisation say whose menu this is.
+  const name = user?.name?.trim() || user?.email || detail || "Your account";
+  const initials = initialsOf(user?.name?.trim() || user?.email || "");
 
   return (
     <DropdownMenu defaultOpen={defaultOpen}>
       <DropdownMenuTrigger render={trigger} />
-      <DropdownMenuContent className="w-64" align={align || "end"}>
+      <DropdownMenuContent className="w-64" align={align}>
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex items-center gap-3 px-3 py-2 font-normal">
-            <div className="relative">
-              <Avatar className="size-9">
-                <AvatarImage
-                  src={
-                    user?.avatarUrl ||
-                    "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
-                  }
-                  alt={user?.name || "User"}
-                />
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
-              <span className="ring-card absolute right-0 bottom-0 block size-2 rounded-full bg-green-600 ring-2" />
-            </div>
-            <div className="flex flex-1 flex-col items-start overflow-hidden">
-              <span className="text-foreground text-sm font-semibold truncate w-full">
-                {user?.name || "User"}
+            <Avatar className="size-9">
+              {user?.avatarUrl ? (
+                <AvatarImage src={user.avatarUrl} alt="" />
+              ) : null}
+              {/* Same fallback as the header trigger: initials, else a person. */}
+              <AvatarFallback>
+                {initials || <UserRound aria-hidden="true" />}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex min-w-0 flex-1 flex-col items-start">
+              <span className="w-full truncate text-sm font-medium text-foreground">
+                {name}
               </span>
-              <span className="text-muted-foreground text-xs truncate w-full">
-                {user?.email || "user@example.com"}
-              </span>
+              {user?.email && user.email !== name ? (
+                <span className="w-full truncate text-xs text-muted-foreground">
+                  {user.email}
+                </span>
+              ) : null}
+              {detail && detail !== name ? (
+                <span className="w-full truncate text-xs text-muted-foreground">
+                  {detail}
+                </span>
+              ) : null}
             </div>
           </DropdownMenuLabel>
 
@@ -110,12 +126,9 @@ const ProfileDropdown = ({
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem
-          className="px-3 py-1.5 text-sm text-destructive focus:text-destructive cursor-pointer"
-          onClick={onSignOut}
-        >
-          <LogOutIcon className="size-4" />
-          <span>Logout</span>
+        <DropdownMenuItem data-testid="auth-signout" onClick={onSignOut}>
+          <LogOutIcon className="text-muted-foreground size-4" />
+          <span>Sign out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

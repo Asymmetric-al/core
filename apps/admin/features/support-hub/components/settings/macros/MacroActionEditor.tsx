@@ -5,6 +5,11 @@ import {
   SUPPORT_PRIORITIES,
 } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  FieldError,
+  FieldSet,
+  FieldLegend,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import {
@@ -14,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { Plus, Trash2 } from "lucide-react";
+import { ArrowUp, ArrowDown, Plus, Trash2 } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -23,6 +28,11 @@ import {
 } from "../../../hooks/use-support-agents";
 import { useSupportCannedResponses } from "../../../hooks/use-support-canned-responses";
 import { useSupportLabels } from "../../../hooks/use-support-labels";
+import {
+  CONVERSATION_PRIORITY_LABELS,
+  CONVERSATION_STATUS_LABELS,
+  MACRO_ACTION_LABELS,
+} from "../../../lib/status-labels";
 import { createDraftRow, type DraftRow } from "../draft-rows";
 
 import type { SupportMacroAction } from "../../../types";
@@ -41,17 +51,32 @@ const ACTION_KINDS: SupportMacroAction["kind"][] = [
 
 interface MacroActionEditorProps {
   rows: DraftRow<SupportMacroAction>[];
+  errors?: (string | null)[];
+  emptyError?: string;
   onChange: (next: DraftRow<SupportMacroAction>[]) => void;
 }
 
-export function MacroActionEditor({ rows, onChange }: MacroActionEditorProps) {
+export function MacroActionEditor({
+  rows,
+  onChange,
+  errors,
+  emptyError,
+}: MacroActionEditorProps) {
   const { data: labels } = useSupportLabels();
   const { data: cannedResponses } = useSupportCannedResponses();
   const { data: agents } = useSupportAgents();
-  const teams = useSupportTeams();
+  const { data: teams } = useSupportTeams();
 
   const handleAdd = () => {
     onChange([...rows, createDraftRow(defaultActionForKind("set_status"))]);
+  };
+
+  const handleMove = (index: number, offset: number) => {
+    const next = [...rows];
+    const [row] = next.splice(index, 1);
+    if (!row) return;
+    next.splice(index + offset, 0, row);
+    onChange(next);
   };
 
   const handleRemove = (index: number) => {
@@ -81,265 +106,276 @@ export function MacroActionEditor({ rows, onChange }: MacroActionEditorProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3">
+    <FieldSet className="gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">
-          Actions
-        </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleAdd}
-          className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
-        >
-          <Plus className="size-3" />
+        <FieldLegend>Actions</FieldLegend>
+        <Button type="button" variant="ghost" size="sm" onClick={handleAdd}>
+          <Plus data-icon="inline-start" aria-hidden="true" />
           Add action
         </Button>
       </div>
 
+      {emptyError ? <FieldError>{emptyError}</FieldError> : null}
       {rows.length === 0 ? (
         <p className="text-xs text-muted-foreground">
           No actions yet. Add at least one to save the macro.
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {rows.map(({ id, value: action }, index) => (
-            <li
-              key={id}
-              className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/60 p-2"
-            >
-              <Select
-                items={[
-                  ...ACTION_KINDS.map((kind) => ({
+          {rows.map(({ id, value: action }, index) => {
+            const row = `Action ${index + 1}`;
+            const errorProps = {
+              "aria-invalid": !!errors?.[index],
+              "aria-describedby": errors?.[index]
+                ? `macro-action-${id}-error`
+                : undefined,
+            };
+            return (
+              <li
+                key={id}
+                className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/60 p-2"
+              >
+                <Select
+                  items={ACTION_KINDS.map((kind) => ({
                     value: kind,
                     label: labelForKind(kind),
-                  })),
-                ]}
-                value={action.kind}
-                onValueChange={(value) => {
-                  if (value !== null) handleKindChange(index, value);
-                }}
-              >
-                <SelectTrigger
-                  aria-label={`Action ${index + 1} type`}
-                  className="h-8 min-w-42.5"
+                  }))}
+                  value={action.kind}
+                  onValueChange={(value) => {
+                    if (value !== null) handleKindChange(index, value);
+                  }}
                 >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ACTION_KINDS.map((kind) => (
-                    <SelectItem key={kind} value={kind}>
-                      {labelForKind(kind)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  <SelectTrigger aria-label={`${row} type`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ACTION_KINDS.map((kind) => (
+                      <SelectItem key={kind} value={kind}>
+                        {labelForKind(kind)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              {action.kind === "set_status" ? (
-                <Select
-                  items={[
-                    ...SUPPORT_CONVERSATION_STATUSES.map((status) => ({
+                {action.kind === "set_status" ? (
+                  <Select
+                    items={SUPPORT_CONVERSATION_STATUSES.map((status) => ({
                       value: status,
-                      label: status,
-                    })),
-                  ]}
-                  value={action.status}
-                  onValueChange={(value) => {
-                    if (value === null) return;
-                    handlePatch(index, {
-                      kind: "set_status",
-                      status: value,
-                    });
-                  }}
-                >
-                  <SelectTrigger
-                    aria-label={`Action ${index + 1} status`}
-                    className="h-8 min-w-35"
+                      label: CONVERSATION_STATUS_LABELS[status],
+                    }))}
+                    value={action.status}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      handlePatch(index, {
+                        kind: "set_status",
+                        status: value,
+                      });
+                    }}
                   >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUPPORT_CONVERSATION_STATUSES.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : null}
+                    <SelectTrigger aria-label={`${row} status`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUPPORT_CONVERSATION_STATUSES.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {CONVERSATION_STATUS_LABELS[status]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : null}
 
-              {action.kind === "set_priority" ? (
-                <Select
-                  items={[
-                    ...SUPPORT_PRIORITIES.map((priority) => ({
+                {action.kind === "set_priority" ? (
+                  <Select
+                    items={SUPPORT_PRIORITIES.map((priority) => ({
                       value: priority,
-                      label: priority,
-                    })),
-                  ]}
-                  value={action.priority}
-                  onValueChange={(value) => {
-                    if (value === null) return;
-                    handlePatch(index, {
-                      kind: "set_priority",
-                      priority: value,
-                    });
-                  }}
-                >
-                  <SelectTrigger
-                    aria-label={`Action ${index + 1} priority`}
-                    className="h-8 min-w-35"
+                      label: CONVERSATION_PRIORITY_LABELS[priority],
+                    }))}
+                    value={action.priority}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      handlePatch(index, {
+                        kind: "set_priority",
+                        priority: value,
+                      });
+                    }}
                   >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUPPORT_PRIORITIES.map((priority) => (
-                      <SelectItem key={priority} value={priority}>
-                        {priority}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : null}
+                    <SelectTrigger aria-label={`${row} priority`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUPPORT_PRIORITIES.map((priority) => (
+                        <SelectItem key={priority} value={priority}>
+                          {CONVERSATION_PRIORITY_LABELS[priority]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : null}
 
-              {action.kind === "assign_agent" ? (
-                <SearchableSelect
-                  items={[
-                    ...agents.map((agent) => ({
+                {action.kind === "assign_agent" ? (
+                  <SearchableSelect
+                    items={agents.map((agent) => ({
                       value: agent.id,
                       label: agent.name,
-                    })),
-                  ]}
-                  value={action.agentId}
-                  onValueChange={(value) => {
-                    if (value === null) {
-                      return;
-                    }
-                    handlePatch(index, {
-                      kind: "assign_agent",
-                      agentId: value,
-                    });
-                  }}
-                  aria-label={`Action ${index + 1} agent`}
-                  className="h-8 min-w-50"
-                  placeholder="Pick an agent"
-                />
-              ) : null}
+                    }))}
+                    value={action.agentId}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      handlePatch(index, {
+                        kind: "assign_agent",
+                        agentId: value,
+                      });
+                    }}
+                    aria-label={`${row} agent`}
+                    {...errorProps}
+                    placeholder="Pick an agent"
+                  />
+                ) : null}
 
-              {action.kind === "assign_team" ? (
-                <SearchableSelect
-                  items={[
-                    ...(teams.data ?? []).map((team) => ({
+                {action.kind === "assign_team" ? (
+                  <SearchableSelect
+                    items={teams.map((team) => ({
                       value: team.id,
                       label: team.name,
-                    })),
-                  ]}
-                  value={action.teamId}
-                  onValueChange={(value) => {
-                    if (value === null) {
-                      return;
-                    }
-                    handlePatch(index, { kind: "assign_team", teamId: value });
-                  }}
-                  aria-label={`Action ${index + 1} team`}
-                  className="h-8 min-w-50"
-                  placeholder="Pick a team"
-                />
-              ) : null}
+                    }))}
+                    value={action.teamId}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      handlePatch(index, {
+                        kind: "assign_team",
+                        teamId: value,
+                      });
+                    }}
+                    aria-label={`${row} team`}
+                    {...errorProps}
+                    placeholder="Pick a team"
+                  />
+                ) : null}
 
-              {action.kind === "add_label" || action.kind === "remove_label" ? (
-                <SearchableSelect
-                  items={[
-                    ...labels.map((label) => ({
+                {action.kind === "add_label" ||
+                action.kind === "remove_label" ? (
+                  <SearchableSelect
+                    items={labels.map((label) => ({
                       value: label.id,
                       label: label.name,
-                    })),
-                  ]}
-                  value={action.labelId}
-                  onValueChange={(value) => {
-                    if (value === null) {
-                      return;
+                    }))}
+                    value={action.labelId}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      handlePatch(index, {
+                        kind: action.kind,
+                        labelId: value,
+                      } as SupportMacroAction);
+                    }}
+                    aria-label={`${row} label`}
+                    {...errorProps}
+                    placeholder="Pick a label"
+                  />
+                ) : null}
+
+                {action.kind === "send_canned_response" ? (
+                  <SearchableSelect
+                    items={cannedResponses.map((response) => ({
+                      value: response.id,
+                      label: response.title,
+                    }))}
+                    value={action.cannedResponseId}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      handlePatch(index, {
+                        kind: "send_canned_response",
+                        cannedResponseId: value,
+                      });
+                    }}
+                    aria-label={`${row} canned response`}
+                    {...errorProps}
+                    placeholder="Pick a canned response"
+                  />
+                ) : null}
+
+                {action.kind === "snooze" ? (
+                  <Input
+                    type="number"
+                    min={1}
+                    value={action.hours}
+                    onChange={(event) =>
+                      handlePatch(index, {
+                        kind: "snooze",
+                        hours: Number(event.target.value),
+                      })
                     }
-                    handlePatch(index, {
-                      kind: action.kind,
-                      labelId: value,
-                    } as SupportMacroAction);
-                  }}
-                  aria-label={`Action ${index + 1} label`}
-                  className="h-8 min-w-45"
-                  placeholder="Pick a label"
-                />
-              ) : null}
+                    aria-label={`${row} hours to snooze`}
+                    {...errorProps}
+                  />
+                ) : null}
 
-              {action.kind === "send_canned_response" ? (
-                <SearchableSelect
-                  items={[
-                    ...cannedResponses.map((row) => ({
-                      value: row.id,
-                      label: row.title,
-                    })),
-                  ]}
-                  value={action.cannedResponseId}
-                  onValueChange={(value) => {
-                    if (value === null) {
-                      return;
+                {action.kind === "add_private_note" ? (
+                  <Input
+                    value={action.bodyText}
+                    onChange={(event) =>
+                      handlePatch(index, {
+                        kind: "add_private_note",
+                        bodyText: event.target.value,
+                      })
                     }
-                    handlePatch(index, {
-                      kind: "send_canned_response",
-                      cannedResponseId: value,
-                    });
-                  }}
-                  aria-label={`Action ${index + 1} canned response`}
-                  className="h-8 min-w-55"
-                  placeholder="Pick a canned response"
-                />
-              ) : null}
+                    aria-label={`${row} note`}
+                    {...errorProps}
+                    placeholder="Note text"
+                  />
+                ) : null}
 
-              {action.kind === "snooze" ? (
-                <Input
-                  type="number"
-                  min={1}
-                  value={action.hours}
-                  onChange={(event) =>
-                    handlePatch(index, {
-                      kind: "snooze",
-                      hours: Number(event.target.value) || 1,
-                    })
-                  }
-                  className="h-8 w-25 font-mono"
-                  aria-label="Hours to snooze"
-                />
-              ) : null}
-
-              {action.kind === "add_private_note" ? (
-                <Input
-                  value={action.bodyText}
-                  onChange={(event) =>
-                    handlePatch(index, {
-                      kind: "add_private_note",
-                      bodyText: event.target.value,
-                    })
-                  }
-                  placeholder="Note text"
-                  className="h-8 min-w-60"
-                />
-              ) : null}
-
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => handleRemove(index)}
-                aria-label="Remove action"
-                className="size-7 text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
-            </li>
-          ))}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Move action ${index + 1} up`}
+                  disabled={index === 0}
+                  focusableWhenDisabled
+                  onClick={() => handleMove(index, -1)}
+                >
+                  <ArrowUp aria-hidden="true" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Move action ${index + 1} down`}
+                  disabled={index === rows.length - 1}
+                  focusableWhenDisabled
+                  onClick={() => handleMove(index, 1)}
+                >
+                  <ArrowDown aria-hidden="true" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => handleRemove(index)}
+                  aria-label={`Remove action ${index + 1}: ${labelForKind(action.kind)}`}
+                >
+                  <Trash2 aria-hidden="true" className="size-3.5" />
+                </Button>
+                {errors?.[index] ? (
+                  <FieldError
+                    id={`macro-action-${id}-error`}
+                    className="basis-full"
+                  >
+                    {errors[index]}
+                  </FieldError>
+                ) : null}
+                {action.kind === "assign_team" ? (
+                  <p className="basis-full text-xs text-muted-foreground">
+                    Skipped when the macro runs: conversations can’t be assigned
+                    to a team yet.
+                  </p>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       )}
-    </div>
+    </FieldSet>
   );
 }
 
@@ -374,26 +410,5 @@ function defaultActionForKind(
 }
 
 function labelForKind(kind: SupportMacroAction["kind"]): string {
-  switch (kind) {
-    case "set_status":
-      return "Set status";
-    case "set_priority":
-      return "Set priority";
-    case "assign_agent":
-      return "Assign agent";
-    case "assign_team":
-      return "Assign team";
-    case "add_label":
-      return "Add label";
-    case "remove_label":
-      return "Remove label";
-    case "send_canned_response":
-      return "Send canned reply";
-    case "snooze":
-      return "Snooze";
-    case "add_private_note":
-      return "Add private note";
-    default:
-      return kind;
-  }
+  return MACRO_ACTION_LABELS[kind];
 }

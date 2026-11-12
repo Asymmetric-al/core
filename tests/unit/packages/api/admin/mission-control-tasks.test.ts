@@ -20,12 +20,14 @@ interface StubState {
   links: Array<Record<string, unknown>>;
   events: Array<Record<string, unknown>>;
   attentionRows: Array<Record<string, unknown>>;
+  excludedIssueTypes?: string[];
 }
 
 class QueryBuilder {
   private operation: "select" | "insert" | "upsert" = "select";
   private payload: unknown = null;
   private statusFilter: string | null = null;
+  private excludedIssueTypes: string[] = [];
 
   constructor(
     private readonly table: string,
@@ -51,6 +53,18 @@ class QueryBuilder {
   eq(column: string, value: unknown) {
     if (column === "status" && typeof value === "string") {
       this.statusFilter = value;
+    }
+    return this;
+  }
+
+  not(column: string, operator: string, value: unknown) {
+    // PostgREST list syntax: "(a,b)".
+    if (column === "issue_type" && operator === "in") {
+      this.excludedIssueTypes = String(value)
+        .replace(/^\(|\)$/g, "")
+        .split(",")
+        .filter(Boolean);
+      this.state.excludedIssueTypes = this.excludedIssueTypes;
     }
     return this;
   }
@@ -104,11 +118,15 @@ class QueryBuilder {
     }
 
     if (this.table === "mission_control_attention_items") {
-      const rows = this.statusFilter
-        ? this.state.attentionRows.filter(
-            (row) => row.status === this.statusFilter,
-          )
-        : this.state.attentionRows;
+      const rows = (
+        this.statusFilter
+          ? this.state.attentionRows.filter(
+              (row) => row.status === this.statusFilter,
+            )
+          : this.state.attentionRows
+      ).filter(
+        (row) => !this.excludedIssueTypes.includes(String(row.issue_type)),
+      );
 
       return { data: rows, error: null };
     }
@@ -351,6 +369,52 @@ describe("mission control needs attention", () => {
         urgency: "critical",
       }),
     );
+  });
+
+  it("leaves retired CRM posting failures out of Needs Attention, keeping the rows as history", async () => {
+    const state = stubState();
+    const retired = {
+      id: "attention_retired",
+      task_id: "task_retired",
+      issue_type: "crm_post_failed",
+      urgency: "high",
+      status: "open",
+      summary: "CRM posting timed out",
+      dedupe_key: "crm:donation_1",
+      first_seen_at: "2026-06-01T00:00:00.000Z",
+      last_seen_at: "2026-06-01T02:00:00.000Z",
+      details: { contributionId: "donation_1" },
+    };
+    state.attentionRows = [
+      retired,
+      {
+        id: "attention_1",
+        task_id: "task_1",
+        issue_type: "receipt_failed",
+        urgency: "critical",
+        status: "open",
+        summary: "Receipt bounced",
+        dedupe_key: "receipt:donation_2",
+        first_seen_at: "2026-06-01T00:00:00.000Z",
+        last_seen_at: "2026-06-01T01:00:00.000Z",
+        details: { contributionId: "donation_2" },
+      },
+    ];
+
+    const result = await listContributionNeedsAttention({
+      supabaseAdmin: createStub(state),
+      tenantId: "tenant_1",
+    });
+
+    // Excluded in the query, so retired rows never use up the row limit.
+    expect(state.excludedIssueTypes).toEqual(["crm_post_failed"]);
+    expect(result.items.map((item) => item.id)).toEqual(["attention_1"]);
+    expect(result.groups.map((group) => group.key)).toEqual([
+      "critical:receipt_failed",
+    ]);
+    // Nothing is deleted or resolved: the row stays as history.
+    expect(state.attentionRows).toContain(retired);
+    expect(retired.status).toBe("open");
   });
 
   it("loads and groups open Needs Attention rows from Supabase", async () => {

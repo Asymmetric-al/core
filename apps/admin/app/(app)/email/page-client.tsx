@@ -45,6 +45,10 @@ import {
   emailStudioUiReducer,
   INITIAL_EMAIL_STUDIO_UI_STATE,
 } from "./email-studio-ui-reducer";
+import {
+  StudioDiscardDialog,
+  useStudioDiscardGuard,
+} from "../../../features/studios/studio-discard-guard";
 
 import type {
   EmailMetadata,
@@ -55,9 +59,11 @@ import type {
   PreviewResult,
 } from "./email-studio-types";
 
+import { useStudioFullscreen } from "@/components/studio/shell-navigation-guard";
+
 const DEFAULT_METADATA: EmailMetadata = {
   id: null,
-  name: "Untitled Email",
+  name: "Untitled email",
   subject: "",
   preheader: "",
 };
@@ -109,6 +115,7 @@ function previewFromTemplate(template: EmailTemplateListEntry): PreviewResult {
 
 export default function EmailStudio() {
   const queryClient = useQueryClient();
+  const rootRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EmailStudioEditorHandle>(null);
   const pendingDesignRef = useRef<Record<string, unknown> | null>(null);
   const saveInFlightRef = useRef(false);
@@ -126,10 +133,20 @@ export default function EmailStudio() {
     emailStudioUiReducer,
     INITIAL_EMAIL_STUDIO_UI_STATE,
   );
+  useStudioFullscreen(ui.isFullscreen, rootRef);
   const [showTestSendDialog, setShowTestSendDialog] = useState(false);
   const [testToEmail, setTestToEmail] = useState("");
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [testSendError, setTestSendError] = useState<string | null>(null);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const discardGuard = useStudioDiscardGuard(ui.hasUnsavedChanges);
+  const [history, setHistory] = useState({ canUndo: false, canRedo: false });
+  const syncHistory = useCallback(() => {
+    setHistory({
+      canUndo: editorRef.current?.canUndo?.() ?? false,
+      canRedo: editorRef.current?.canRedo?.() ?? false,
+    });
+  }, []);
 
   const templatesQuery = useQuery({
     queryKey: getAdminSurfaceQueryKey("emailTemplates"),
@@ -153,9 +170,9 @@ export default function EmailStudio() {
   } = useEmailStudioAuthoringActions({
     ui,
     isLegacyReadOnly,
+    syncHistory,
     editorRef,
     pendingDesignRef,
-    templatesQuery,
     dispatch,
     legacyPreviewResult,
     setPreviewResult,
@@ -179,6 +196,7 @@ export default function EmailStudio() {
     pendingDesignRef,
     editorRef,
     setIsSendingTest,
+    setTestSendError,
     metadata,
     ui,
     testToEmail,
@@ -196,10 +214,12 @@ export default function EmailStudio() {
       testSendInFlightRef,
       editorRef,
       handleExportHtml,
+      syncHistory,
     });
 
   return (
     <div
+      ref={rootRef}
       className={cn(
         "flex flex-col bg-background transition-colors duration-300 motion-reduce:transition-none",
         ui.isFullscreen
@@ -214,6 +234,8 @@ export default function EmailStudio() {
           dispatch({ type: "set_unsaved_changes", unsaved: true });
         }}
         isEditorReady={canEditCurrentTemplate}
+        canUndo={history.canUndo}
+        canRedo={history.canRedo}
         canPreview={canPreview}
         isSaving={ui.isSaving}
         isSendingTest={isSendingTest}
@@ -230,11 +252,15 @@ export default function EmailStudio() {
           if (saveInFlightRef.current || testSendInFlightRef.current) {
             return;
           }
+          setTestSendError(null);
           setShowTestSendDialog(true);
         }}
         onInsertMergeTag={(key) => editorRef.current?.insertMergeTag?.(key)}
         onSaveClick={handleSaveClick}
-        onNewTemplate={handleNewTemplate}
+        onNewTemplate={() => {
+          if (saveInFlightRef.current || testSendInFlightRef.current) return;
+          discardGuard.requestAction(handleNewTemplate);
+        }}
         onLoadTemplate={() => {
           if (saveInFlightRef.current || testSendInFlightRef.current) {
             return;
@@ -265,9 +291,10 @@ export default function EmailStudio() {
             initialDesign={initialDesign}
             templateId={metadata.id}
             onReady={handleEditorReady}
-            onDesignUpdate={() =>
-              dispatch({ type: "set_unsaved_changes", unsaved: true })
-            }
+            onDesignUpdate={() => {
+              dispatch({ type: "set_unsaved_changes", unsaved: true });
+              syncHistory();
+            }}
           />
         )}
       </div>
@@ -317,6 +344,7 @@ export default function EmailStudio() {
 
       <EmailStudioTestSendDialog
         open={showTestSendDialog}
+        error={testSendError}
         onOpenChange={(open) => {
           if (!open && isSendingTest) {
             return;
@@ -336,18 +364,34 @@ export default function EmailStudio() {
         onOpenChange={setShowTemplatePicker}
         templates={templatesQuery.data ?? []}
         isLoading={templatesQuery.isLoading}
-        onSelect={handleSelectTemplate}
+        isError={templatesQuery.isError}
+        onRetry={() => {
+          void templatesQuery.refetch();
+        }}
+        onSelect={(template) => {
+          if (saveInFlightRef.current || testSendInFlightRef.current) return;
+          if (
+            template.builder === "react_email" &&
+            template.id === metadata.id
+          ) {
+            setShowTemplatePicker(false);
+            return;
+          }
+          setShowTemplatePicker(false);
+          discardGuard.requestAction(() => handleSelectTemplate(template));
+        }}
       />
+      <StudioDiscardDialog guard={discardGuard} />
     </div>
   );
 }
 
 function useEmailStudioAuthoringActions({
+  syncHistory,
   ui,
   isLegacyReadOnly,
   editorRef,
   pendingDesignRef,
-  templatesQuery,
   dispatch,
   legacyPreviewResult,
   setPreviewResult,
@@ -362,11 +406,11 @@ function useEmailStudioAuthoringActions({
   setLegacyPreviewResult,
   setShowTemplatePicker,
 }: {
+  syncHistory: () => void;
   ui: EmailStudioUiState;
   isLegacyReadOnly: boolean;
   editorRef: React.RefObject<EmailStudioEditorHandle | null>;
   pendingDesignRef: React.RefObject<Record<string, unknown> | null>;
-  templatesQuery: Pick<ReturnType<typeof useQuery>, "isError">;
   dispatch: React.Dispatch<EmailStudioUiAction>;
   legacyPreviewResult: PreviewResult | null;
   setPreviewResult: React.Dispatch<React.SetStateAction<PreviewResult | null>>;
@@ -401,15 +445,6 @@ function useEmailStudioAuthoringActions({
     [editorRef, pendingDesignRef, ui.isEditorReady],
   );
 
-  useEffect(() => {
-    if (!templatesQuery.isError) {
-      return;
-    }
-    toast.error("Failed to load templates", {
-      description: "Please try again.",
-    });
-  }, [templatesQuery.isError]);
-
   const handleEditorReady = useCallback(() => {
     dispatch({ type: "editor_ready", config: getEmailStudioConfig() });
     const pending = pendingDesignRef.current;
@@ -417,15 +452,18 @@ function useEmailStudioAuthoringActions({
       pendingDesignRef.current = null;
       editorRef.current?.loadDesign(pending);
     }
-  }, [dispatch, editorRef, pendingDesignRef]);
+    syncHistory();
+  }, [dispatch, editorRef, pendingDesignRef, syncHistory]);
 
   const handleUndo = useCallback(() => {
     editorRef.current?.undo();
-  }, [editorRef]);
+    syncHistory();
+  }, [editorRef, syncHistory]);
 
   const handleRedo = useCallback(() => {
     editorRef.current?.redo();
-  }, [editorRef]);
+    syncHistory();
+  }, [editorRef, syncHistory]);
 
   const handlePreview = useCallback(
     async (device: PreviewDevice) => {
@@ -591,7 +629,6 @@ function useEmailStudioAuthoringActions({
     } else {
       loadEditorDesign(EMPTY_REACT_EMAIL_DESIGN);
     }
-    toast.success("New template created");
   }, [
     dispatch,
     isLegacyReadOnly,
@@ -609,6 +646,7 @@ function useEmailStudioAuthoringActions({
 
   const handleSelectTemplate = useCallback(
     (template: EmailTemplateListEntry) => {
+      if (saveInFlightRef.current || testSendInFlightRef.current) return;
       setShowTemplatePicker(false);
       setShowTestSendDialog(false);
       dispatch({ type: "set_show_save_dialog", open: false });
@@ -653,6 +691,8 @@ function useEmailStudioAuthoringActions({
       setPreviewResult,
       setShowTemplatePicker,
       setShowTestSendDialog,
+      saveInFlightRef,
+      testSendInFlightRef,
     ],
   );
 
@@ -678,6 +718,7 @@ function useEmailStudioTestDelivery({
   pendingDesignRef,
   editorRef,
   setIsSendingTest,
+  setTestSendError,
   metadata,
   ui,
   testToEmail,
@@ -691,6 +732,7 @@ function useEmailStudioTestDelivery({
   pendingDesignRef: React.RefObject<Record<string, unknown> | null>;
   editorRef: React.RefObject<EmailStudioEditorHandle | null>;
   setIsSendingTest: React.Dispatch<React.SetStateAction<boolean>>;
+  setTestSendError: React.Dispatch<React.SetStateAction<string | null>>;
   metadata: EmailMetadata;
   ui: EmailStudioUiState;
   testToEmail: string;
@@ -715,6 +757,7 @@ function useEmailStudioTestDelivery({
     }
     testSendInFlightRef.current = true;
     setIsSendingTest(true);
+    setTestSendError(null);
     try {
       const exportResult = await editor.exportEmail(
         studioExportOptions(
@@ -723,23 +766,18 @@ function useEmailStudioTestDelivery({
           metadata.subject || metadata.name,
         ),
       );
-      const result = await sendTemplateTestEmail(
-        testToEmail,
-        metadata,
-        exportResult,
-      );
-      toast.success("Test email sent", {
-        description: result.messageId
-          ? `Message ${result.messageId} queued for ${testToEmail}.`
-          : `Test email queued for ${testToEmail}.`,
+      await sendTemplateTestEmail(testToEmail, metadata, exportResult);
+      toast.success("Test email queued", {
+        description: `Test email queued for ${testToEmail}.`,
       });
       setShowTestSendDialog(false);
       setTestToEmail("");
     } catch (error) {
-      toast.error("Test send failed", {
-        description:
-          error instanceof Error ? error.message : "Could not send test email.",
-      });
+      setTestSendError(
+        error instanceof Error
+          ? error.message
+          : "Could not queue the test email.",
+      );
     } finally {
       testSendInFlightRef.current = false;
       setIsSendingTest(false);
@@ -752,6 +790,7 @@ function useEmailStudioTestDelivery({
     pendingDesignRef,
     saveInFlightRef,
     setIsSendingTest,
+    setTestSendError,
     setShowTestSendDialog,
     setTestToEmail,
     testSendInFlightRef,
@@ -763,6 +802,7 @@ function useEmailStudioTestDelivery({
 }
 
 function useEmailStudioExportAndShortcuts({
+  syncHistory,
   ui,
   dispatch,
   metadata,
@@ -772,6 +812,7 @@ function useEmailStudioExportAndShortcuts({
   editorRef,
   handleExportHtml,
 }: {
+  syncHistory: () => void;
   ui: EmailStudioUiState;
   dispatch: React.Dispatch<EmailStudioUiAction>;
   metadata: EmailMetadata;
@@ -833,6 +874,7 @@ function useEmailStudioExportAndShortcuts({
       } else {
         editorRef.current?.undo();
       }
+      syncHistory();
       return;
     }
     if (isMod && event.key.toLowerCase() === "e") {

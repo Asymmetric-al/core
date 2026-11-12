@@ -22,6 +22,11 @@ export interface RichTextEditorProps {
   /** Called with a JSON string whenever the content changes. */
   onChange: (value: string) => void;
   disabled?: boolean;
+  /**
+   * Shows the content without editing or formatting controls, at full
+   * strength (unlike `disabled`, which dims the editor).
+   */
+  readOnly?: boolean;
   placeholder?: string;
   className?: string;
   editorClassName?: string;
@@ -48,6 +53,7 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       value,
       onChange,
       disabled,
+      readOnly,
       placeholder,
       className,
       editorClassName,
@@ -66,12 +72,15 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       [placeholder, extraExtensions],
     );
     const lastSyncedValueRef = React.useRef(value);
+    const editable = !disabled && !readOnly;
 
     const editor = useEditor({
       extensions,
       content: parseContent(value),
-      editable: !disabled,
-      onUpdate: ({ editor: ed }) => {
+      editable,
+      onUpdate: ({ editor: ed, transaction }) => {
+        // setEditable also emits "update"; only real edits reach onChange.
+        if (!transaction.docChanged) return;
         const nextValue = JSON.stringify(ed.getJSON());
 
         if (nextValue !== lastSyncedValueRef.current) {
@@ -84,6 +93,9 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           role: "textbox",
           "aria-multiline": "true",
           ...(ariaLabel ? { "aria-label": ariaLabel } : {}),
+          ...(placeholder ? { "aria-placeholder": placeholder } : {}),
+          ...(disabled ? { "aria-disabled": "true" } : {}),
+          ...(readOnly ? { "aria-readonly": "true" } : {}),
           class: cn(
             "tiptap prose prose-sm sm:prose-base focus:outline-none max-w-none min-h-37.5 p-4",
             proseInvert && "dark:prose-invert",
@@ -97,10 +109,10 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
     });
 
     React.useEffect(() => {
-      if (!editor) return;
+      if (!editor || editor.isEditable === editable) return;
 
-      editor.setEditable(!disabled);
-    }, [disabled, editor]);
+      editor.setEditable(editable);
+    }, [editable, editor]);
 
     React.useEffect(() => {
       if (!editor) return;
@@ -129,16 +141,23 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       lastSyncedValueRef.current = value;
     }, [value, editor]);
 
-    const contextValue = React.useMemo(() => ({ editor }), [editor]);
+    const contextValue = React.useMemo(
+      () => ({ editor, disabled, readOnly }),
+      [editor, disabled, readOnly],
+    );
 
     return (
       <EditorContext.Provider value={contextValue}>
         <div
           ref={ref}
+          data-slot="rich-text-editor"
+          data-disabled={disabled ? "" : undefined}
+          data-readonly={readOnly ? "" : undefined}
           className={cn(
-            "relative w-full overflow-hidden flex flex-col border border-input rounded-lg",
-            "focus-within:outline-none focus-within:ring-2 focus-within:ring-inset focus-within:ring-ring",
-            disabled && "opacity-50 cursor-not-allowed",
+            "relative flex w-full flex-col overflow-hidden rounded-md border border-input shadow-xs transition-shadow",
+            // The ring follows the text area, not the toolbar buttons beside it.
+            "has-[.ProseMirror-focused]:border-ring has-[.ProseMirror-focused]:ring-3 has-[.ProseMirror-focused]:ring-ring/50",
+            disabled && "cursor-not-allowed opacity-50",
             className,
           )}
         >

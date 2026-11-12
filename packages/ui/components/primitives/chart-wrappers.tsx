@@ -6,6 +6,7 @@ import * as React from "react";
 import { cn } from "@asym/ui/lib/utils";
 
 import { Badge } from "../shadcn/badge";
+import { Button } from "../shadcn/button";
 import {
   Card,
   CardContent,
@@ -22,6 +23,20 @@ import { Skeleton } from "../shadcn/skeleton";
 interface ChartCardProps extends React.ComponentProps<typeof Card> {
   title: string;
   description?: string;
+  /**
+   * A sentence or two that says what the chart shows, for people who cannot
+   * see it. Read out with the chart; visually hidden.
+   */
+  summary?: React.ReactNode;
+  /**
+   * A visible caveat when the chart does not show the whole picture, such as
+   * a capped or partial data set. Never chart partial data without one.
+   */
+  note?: React.ReactNode;
+  /** Makes the title a heading at this level; omit to keep it plain text. */
+  headingLevel?: 2 | 3 | 4;
+  /** Shows a "Try again" button in the error state. */
+  onRetry?: () => void;
   actions?: React.ReactNode;
   footer?: React.ReactNode;
   isLoading?: boolean;
@@ -37,19 +52,31 @@ interface ChartCardProps extends React.ComponentProps<typeof Card> {
 export function ChartCard({
   title,
   description,
+  summary,
+  note,
+  headingLevel,
+  onRetry,
   actions,
   footer,
   isLoading,
   isEmpty,
   isError,
-  errorTitle = "Failed to load chart",
-  errorMessage = "There was an error loading the data.",
-  emptyMessage = "No data available to display.",
+  errorTitle = "The chart could not load",
+  errorMessage = "Check your connection and try again.",
+  emptyMessage = "No data to show yet.",
   emptyCTA,
   children,
   className,
   ...props
 }: ChartCardProps) {
+  const titleId = React.useId();
+  const summaryId = React.useId();
+  const noteId = React.useId();
+  const describedBy =
+    [summary ? summaryId : null, note ? noteId : null]
+      .filter(Boolean)
+      .join(" ") || undefined;
+
   return (
     <Card className={cn("overflow-hidden", className)} {...props}>
       <CardHeader
@@ -60,7 +87,11 @@ export function ChartCard({
         }
       >
         <div className="space-y-1">
-          <CardTitle className="text-sm font-semibold tracking-tight text-foreground/70 uppercase">
+          <CardTitle
+            id={titleId}
+            role={headingLevel ? "heading" : undefined}
+            aria-level={headingLevel}
+          >
             {title}
           </CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
@@ -92,6 +123,16 @@ export function ChartCard({
             <p className="text-xs text-muted-foreground max-w-50">
               {errorMessage}
             </p>
+            {onRetry && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={onRetry}
+              >
+                Try again
+              </Button>
+            )}
           </div>
         ) : isEmpty ? (
           <div
@@ -106,9 +147,23 @@ export function ChartCard({
             {emptyCTA}
           </div>
         ) : (
-          <div className="size-full animate-in fade-in duration-300">
+          <figure
+            aria-labelledby={titleId}
+            aria-describedby={describedBy}
+            className="flex size-full flex-col gap-3 animate-in fade-in duration-300"
+          >
             {children}
-          </div>
+            {summary && (
+              <figcaption id={summaryId} className="sr-only">
+                {summary}
+              </figcaption>
+            )}
+            {note && (
+              <p id={noteId} className="text-xs text-muted-foreground">
+                {note}
+              </p>
+            )}
+          </figure>
         )}
       </CardContent>
       {footer && (
@@ -142,6 +197,8 @@ interface ChartTooltipProps {
   active?: boolean;
   payload?: ChartTooltipItem[];
   label?: string | number;
+  /** Formats numeric values; defaults to whole dollars for older charts. */
+  formatValue?: (value: number) => string;
 }
 
 export function ChartLegend({ items, className }: ChartLegendProps) {
@@ -174,7 +231,16 @@ export function ChartLegend({ items, className }: ChartLegendProps) {
 
 // --- ChartTooltip ---
 
-export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
+function formatDollars(value: number) {
+  return `$${value.toLocaleString()}`;
+}
+
+export function ChartTooltip({
+  active,
+  payload,
+  label,
+  formatValue = formatDollars,
+}: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
 
   return (
@@ -203,7 +269,7 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
             </div>
             <span className="text-foreground tabular-nums text-xs font-semibold">
               {typeof item.value === "number"
-                ? `$${item.value.toLocaleString()}`
+                ? formatValue(item.value)
                 : item.value}
             </span>
           </div>
@@ -236,9 +302,9 @@ type KpiDeltaTrend = NonNullable<KpiTileProps["delta"]>["trend"];
 function kpiDeltaBadgeClass(trend: KpiDeltaTrend): string {
   switch (trend) {
     case "up":
-      return "bg-emerald-50 text-emerald-700";
+      return "bg-success/10 text-success";
     case "down":
-      return "bg-rose-50 text-rose-700";
+      return "bg-destructive/10 text-destructive";
     case "neutral":
       return "bg-muted text-muted-foreground";
     default: {

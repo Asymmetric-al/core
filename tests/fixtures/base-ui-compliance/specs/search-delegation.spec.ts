@@ -32,7 +32,7 @@ test("library search delegates native Enter and Space activation without an extr
       })),
     ).toEqual({ role: "presentation", keyboardStop: false });
     await trigger.press(key);
-    const dialog = page.getByRole("dialog", { name: "Command Palette" });
+    const dialog = page.getByRole("dialog", { name: "Command palette" });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("combobox")).toBeFocused();
     await page.keyboard.press("Escape");

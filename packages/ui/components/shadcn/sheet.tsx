@@ -43,10 +43,17 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  nestedDialogScrim = false,
   ...props
 }: SheetPrimitive.Popup.Props & {
   side?: "top" | "right" | "bottom" | "left";
   showCloseButton?: boolean;
+  /**
+   * Dim the sheet while a dialog opened from it is open. Base UI draws no
+   * backdrop for a nested dialog, so without this the confirmation reads as
+   * part of the record behind it.
+   */
+  nestedDialogScrim?: boolean;
 }) {
   return (
     <SheetPortal>
@@ -81,6 +88,16 @@ function SheetContent({
             className="absolute top-3 right-3"
           />
         )}
+        {nestedDialogScrim ? (
+          // Base UI marks the sheet data-nested-dialog-open while the nested
+          // dialog is open. One pixel past the panel so its border dims too;
+          // matches the page backdrop.
+          <div
+            aria-hidden="true"
+            data-slot="sheet-nested-dialog-scrim"
+            className="absolute -inset-px z-50 hidden bg-black/50 in-data-nested-dialog-open:block"
+          />
+        ) : null}
       </SheetPrimitive.Popup>
     </SheetPortal>
   );

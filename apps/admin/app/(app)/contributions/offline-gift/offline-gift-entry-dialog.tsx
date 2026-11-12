@@ -525,7 +525,7 @@ function GiftFactsSection({
             label="Amount (USD) *"
             labelClassName={LABEL_CLASS}
             placeholder="0.00"
-            type="number"
+            type="text"
           />
         )}
       </form.AppField>

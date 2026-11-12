@@ -11,6 +11,11 @@ import { ContributionsBoneyardFallback } from "./boneyard-fallback";
 import PageClient from "./page-client";
 import { CONTRIBUTIONS_PAGE_META } from "../../../components/table-page-meta";
 
+import type { Metadata } from "next";
+
+// Same source as the PageShell heading, so the tab title cannot drift.
+export const metadata: Metadata = { title: CONTRIBUTIONS_PAGE_META.title };
+
 function ContributionsPageFallback() {
   return (
     <PageShell

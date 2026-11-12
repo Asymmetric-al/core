@@ -164,7 +164,6 @@ describe("Base UI overlay consumer semantics", () => {
 
   it.each([
     "apps/admin/app/(app)/pdf/page-client.tsx",
-    "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
     "apps/missionary/app/profile/profile-primitives.tsx",
     "packages/ui/components/shadcn-studio/blocks/hero-section-09/hero-section-09.tsx",
   ])("names tooltip controls independently of visual hints in %s", (file) => {

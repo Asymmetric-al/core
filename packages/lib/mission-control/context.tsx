@@ -43,15 +43,11 @@ type MCState = {
 
 const MCContext = createContext<MCContextValue | null>(null);
 
-const DEFAULT_TENANT: Tenant = {
-  id: "00000000-0000-0000-0000-000000000001",
-  name: "asymmetric.al",
-  slug: "asymmetric-al",
-};
-
 const INITIAL_MC_STATE: MCState = {
   user: null,
-  tenant: DEFAULT_TENANT,
+  // No tenant until the server bootstrap provides one; never a placeholder
+  // id that could be sent to Eve as the signed-in organization.
+  tenant: null,
   role: "admin",
   sidebarCollapsed: false,
   loading: false,
@@ -70,7 +66,7 @@ function createInitialMCState(initialState?: MCBootstrapState | null): MCState {
 
   return {
     user: initialState.user,
-    tenant: initialState.tenant ?? DEFAULT_TENANT,
+    tenant: initialState.tenant ?? null,
     role: initialState.role,
     sidebarCollapsed: false,
     loading: false,

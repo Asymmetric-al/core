@@ -1,12 +1,26 @@
 "use client";
 
 import {
+  MetricCard,
+  MetricGrid,
+} from "@asym/ui/components/primitives/metric-card";
+import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "@asym/ui/components/shadcn/alert";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@asym/ui/components/shadcn/alert-dialog";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -41,12 +55,11 @@ import {
   Info,
   Key,
   Loader2,
-  Mail,
   RefreshCw,
   Send,
   XCircle,
 } from "lucide-react";
-import { useId } from "react";
+import { useId, useState } from "react";
 
 import { formatValidatedAtUtcLabel } from "./validated-at";
 
@@ -63,10 +76,6 @@ import type {
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 type TestEmailStatus = "idle" | "sending" | "success" | "error";
 
-interface ResendPageHeaderProps {
-  isConnected: boolean;
-}
-
 interface ConnectedConnectionSummary {
   apiKeyHint?: string;
   hasValidationMetadata: boolean;
@@ -81,7 +90,7 @@ interface ConnectedConnectionSummary {
 interface ResendConnectedViewProps {
   canSendTestEmail: boolean;
   connection: ConnectedConnectionSummary;
-  onDisconnect: () => void;
+  onDisconnect: () => Promise<boolean>;
   onOpenTestDialog: () => void;
 }
 
@@ -140,31 +149,34 @@ function getRenderableErrors(field: {
   });
 }
 
-export function ResendPageHeader({ isConnected }: ResendPageHeaderProps) {
-  return (
-    <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
-      <div>
-        <div className="mb-2 flex items-center gap-3">
-          <div className="rounded-xl bg-info/10 p-2.5 text-info">
-            <Mail className="size-6" />
-          </div>
-          <h1 className="text-2xl font-semibold text-foreground">
-            Resend Integration
-          </h1>
-        </div>
-        <p className="max-w-xl text-muted-foreground">
-          Connect your Resend account to send transactional and campaign emails
-          through your own verified domain.
-        </p>
-      </div>
-      {isConnected ? (
-        <Badge variant="success">
-          <CheckCircle2 className="size-3.5" />
-          Connected
-        </Badge>
-      ) : null}
-    </div>
-  );
+const WARNING_TITLES: Record<string, string> = {
+  DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED: "Sender domain not verified",
+  DOMAIN_NOT_VERIFIED: "Domain not verified",
+  NO_DOMAINS: "No sending domain",
+  RESTRICTED_API_KEY: "Limited API key permissions",
+  API_KEY_METADATA_UNAVAILABLE: "API key details unavailable",
+  DOMAIN_DETAILS_INCOMPLETE: "Domain details incomplete",
+  DOMAIN_LIST_INCOMPLETE: "Domain list incomplete",
+  dmarc_policy_none: "DMARC policy is set to none",
+  dmarc_missing: "No DMARC record",
+  spf_missing: "No SPF record",
+  dkim_missing: "No DKIM record",
+};
+
+/**
+ * The message without an opening sentence that only restates the title
+ * ("Your DMARC policy is set to none." under "DMARC policy is set to
+ * none"), so a recommendation says its point once.
+ */
+function warningBody(title: string, message: string): string {
+  const match = /^(.*?[.!?])\s+(.+)$/s.exec(message.trim());
+  if (!match) return message;
+  const [, first, rest] = match;
+  return first!.toLowerCase().includes(title.toLowerCase()) ? rest! : message;
+}
+
+function warningTitle(code: string): string {
+  return WARNING_TITLES[code] ?? "Delivery setup notice";
 }
 
 export function ResendConnectedView({
@@ -173,6 +185,39 @@ export function ResendConnectedView({
   onDisconnect,
   onOpenTestDialog,
 }: ResendConnectedViewProps) {
+  const [disconnectOpen, setDisconnectOpen] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [disconnectError, setDisconnectError] = useState<string | null>(null);
+  const sendDisabledReasonId = useId();
+  const blockingWarning = connection.warnings.find(
+    (warning) => warning.severity === "error",
+  );
+  const sendDisabledReason = !connection.hasValidationMetadata
+    ? "Reconnect Resend to refresh test-send readiness."
+    : (blockingWarning?.message ??
+      (!connection.domainAuthentication.some((domain) => domain.valid) &&
+      !connection.warnings.some(
+        (warning) => warning.code === "RESTRICTED_API_KEY",
+      )
+        ? "Verify a sending domain in Resend before sending a test."
+        : "Reconnect Resend to refresh test-send readiness."));
+  async function handleDisconnect() {
+    setIsDisconnecting(true);
+    setDisconnectError(null);
+    try {
+      if (!(await onDisconnect()))
+        throw new Error("Unable to disconnect Resend. Try again.");
+      setDisconnectOpen(false);
+    } catch (error) {
+      setDisconnectError(
+        error instanceof Error
+          ? error.message
+          : "Unable to disconnect Resend. Try again.",
+      );
+    } finally {
+      setIsDisconnecting(false);
+    }
+  }
   const authenticatedDomains = connection.domainAuthentication.filter(
     (domain) => domain.valid,
   ).length;
@@ -181,12 +226,12 @@ export function ResendConnectedView({
   return (
     <div className="space-y-6">
       <Card className="border-success/25">
-        <CardHeader className="pb-4">
+        <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-lg">Connection Active</CardTitle>
+              <CardTitle className="text-lg">Connection active</CardTitle>
               <CardDescription>
-                API Key: ********{connection.apiKeyHint ?? "----"}
+                API key: ********{connection.apiKeyHint ?? "----"}
               </CardDescription>
               {validatedAtLabel && connection.validatedAt ? (
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -197,43 +242,79 @@ export function ResendConnectedView({
                 </p>
               ) : null}
             </div>
-            <Button onClick={onDisconnect} size="sm" variant="outline">
-              Disconnect
-            </Button>
+            <AlertDialog
+              open={disconnectOpen}
+              onOpenChange={(open) => {
+                if (isDisconnecting) return;
+                setDisconnectOpen(open);
+                if (open) setDisconnectError(null);
+              }}
+            >
+              <AlertDialogTrigger
+                render={
+                  <Button size="sm" variant="outline">
+                    Disconnect
+                  </Button>
+                }
+              />
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Disconnect Resend?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Receipts and other email stop sending until you connect a
+                    key again. Your Resend account and domains are not changed.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                {disconnectError ? (
+                  <p role="alert" className="text-sm text-destructive">
+                    {disconnectError}
+                  </p>
+                ) : null}
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isDisconnecting}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <Button
+                    variant="destructive"
+                    disabled={isDisconnecting}
+                    aria-busy={isDisconnecting}
+                    onClick={() => void handleDisconnect()}
+                  >
+                    {isDisconnecting ? "Disconnecting…" : "Disconnect"}
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {connection.hasValidationMetadata ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-              <div className="rounded-xl border border-border bg-card p-4 text-center">
-                <div className="text-2xl font-semibold text-foreground">
-                  {connection.senderIdentities.length}
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  Suggested senders
-                </div>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4 text-center">
-                <div className="text-2xl font-semibold text-foreground">
-                  {authenticatedDomains}
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  Verified domains
-                </div>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4 text-center">
-                <div className="text-2xl font-semibold text-foreground">
-                  {connection.deliverabilityScore}%
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  Deliverability score
-                </div>
-              </div>
-            </div>
+            <MetricGrid
+              label="Email delivery summary"
+              // Three across a phone card left ~70px per label, so
+              // "Deliverability" touched its tile edge.
+              className="grid-cols-1 sm:grid-cols-3 [&>*:first-child]:col-span-1"
+            >
+              <MetricCard
+                compactOnPhone
+                label="Suggested senders"
+                value={connection.senderIdentities.length}
+              />
+              <MetricCard
+                compactOnPhone
+                label="Verified domains"
+                value={authenticatedDomains}
+              />
+              <MetricCard
+                compactOnPhone
+                label="Deliverability score"
+                value={`${connection.deliverabilityScore}%`}
+              />
+            </MetricGrid>
           ) : (
             <Alert className="border-border bg-card">
               <Info className="size-4 text-muted-foreground" />
-              <AlertTitle>Reconnect Required</AlertTitle>
+              <AlertTitle>Reconnect required</AlertTitle>
               <AlertDescription>
                 Reconnect Resend once to refresh verified domains, sender
                 suggestions, and test-send readiness for this saved connection.
@@ -242,26 +323,35 @@ export function ResendConnectedView({
           )}
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button disabled={!canSendTestEmail} onClick={onOpenTestDialog}>
-              <Send className="mr-2 size-4" />
-              {canSendTestEmail
-                ? "Send Test Email"
-                : "Resolve Delivery Setup First"}
-            </Button>
             <Button
-              onClick={() =>
-                window.open(
-                  "https://resend.com/domains",
-                  "_blank",
-                  "noopener,noreferrer",
-                )
+              disabled={!canSendTestEmail}
+              aria-describedby={
+                !canSendTestEmail ? sendDisabledReasonId : undefined
               }
+              onClick={onOpenTestDialog}
+            >
+              <Send className="mr-2 size-4" />
+              Send test email
+            </Button>
+            <ButtonLink
+              href="https://resend.com/domains"
+              target="_blank"
+              rel="noopener noreferrer"
               variant="outline"
             >
-              <ExternalLink className="mr-2 size-4" />
-              Open Resend Dashboard
-            </Button>
+              <ExternalLink aria-hidden="true" className="mr-2 size-4" />
+              Open Resend dashboard{" "}
+              <span className="sr-only">(opens in a new tab)</span>
+            </ButtonLink>
           </div>
+          {!canSendTestEmail ? (
+            <p
+              id={sendDisabledReasonId}
+              className="text-sm text-muted-foreground"
+            >
+              {sendDisabledReason}
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 
@@ -282,24 +372,24 @@ export function ResendConnectedView({
                     : "info"
               }
             >
-              <AlertTitle>{warning.code}</AlertTitle>
+              <AlertTitle>{warningTitle(warning.code)}</AlertTitle>
               <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-                <span>{warning.message}</span>
+                <span>
+                  {warningBody(warningTitle(warning.code), warning.message)}
+                </span>
                 {warning.helpUrl ? (
-                  <Button
+                  <ButtonLink
                     className="h-auto p-0 text-inherit"
-                    onClick={() =>
-                      window.open(
-                        warning.helpUrl,
-                        "_blank",
-                        "noopener,noreferrer",
-                      )
-                    }
+                    href={warning.helpUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     size="sm"
                     variant="link"
                   >
-                    Learn more <ArrowRight className="ml-1 size-3" />
-                  </Button>
+                    Learn more{" "}
+                    <ArrowRight aria-hidden="true" className="ml-1 size-3" />
+                    <span className="sr-only">(opens in a new tab)</span>
+                  </ButtonLink>
                 ) : null}
               </AlertDescription>
             </Alert>
@@ -313,7 +403,7 @@ export function ResendConnectedView({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Globe className="size-4 text-info" />
-              Domain Authentication
+              Domain authentication
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -407,7 +497,7 @@ export function ResendDisconnectedView({
               return (
                 <Field data-invalid={errors.length > 0}>
                   <FieldLabel htmlFor={resendCredentialFieldId}>
-                    Resend API Key <span className="text-destructive">*</span>
+                    Resend API key <span className="text-destructive">*</span>
                   </FieldLabel>
                   <FieldContent>
                     <div className="relative">
@@ -479,7 +569,7 @@ export function ResendDisconnectedView({
                       From Name <span className="text-destructive">*</span>
                     </>
                   }
-                  placeholder="Give Hope"
+                  placeholder="Your organization"
                 />
               )}
             </form.AppField>
@@ -498,7 +588,7 @@ export function ResendDisconnectedView({
           {connectionStatus === "error" && connectionError ? (
             <Alert variant="destructive">
               <XCircle className="size-4" />
-              <AlertTitle>Connection Failed</AlertTitle>
+              <AlertTitle>Connection failed</AlertTitle>
               <AlertDescription>{connectionError}</AlertDescription>
             </Alert>
           ) : null}
@@ -514,26 +604,22 @@ export function ResendDisconnectedView({
                     : "info"
               }
             >
-              <AlertTitle>{warning.code}</AlertTitle>
+              <AlertTitle>{warningTitle(warning.code)}</AlertTitle>
               <AlertDescription>{warning.message}</AlertDescription>
             </Alert>
           ))}
         </CardContent>
         <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t bg-muted/50 pt-6">
-          <Button
-            onClick={() =>
-              window.open(
-                "https://resend.com/signup",
-                "_blank",
-                "noopener,noreferrer",
-              )
-            }
-            type="button"
+          <ButtonLink
+            href="https://resend.com/signup"
+            target="_blank"
+            rel="noopener noreferrer"
             variant="outline"
           >
-            <ExternalLink className="mr-2 size-4" />
-            Create Resend Account
-          </Button>
+            <ExternalLink aria-hidden="true" className="mr-2 size-4" />
+            Create Resend account{" "}
+            <span className="sr-only">(opens in a new tab)</span>
+          </ButtonLink>
           <form.Subscribe
             selector={(state) => ({
               canSubmit: state.canSubmit,
@@ -597,7 +683,7 @@ export function ResendTestDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Send className="size-5 text-info" />
-              Send Test Email
+              Send test email
             </DialogTitle>
             <DialogDescription>
               Send a test email to confirm your Resend configuration is working.
@@ -608,7 +694,7 @@ export function ResendTestDialog({
             <form.AppField name="testEmail">
               {(field) => (
                 <field.TextField
-                  label="Recipient Email"
+                  label="Recipient email"
                   placeholder="you@example.com"
                   type="email"
                 />
@@ -622,7 +708,7 @@ export function ResendTestDialog({
                   {fromName} &lt;{fromEmail}&gt;
                 </span>
                 <span className="text-muted-foreground">Subject:</span>
-                <span className="font-medium">Resend Test Email</span>
+                <span className="font-medium">Resend test email</span>
               </div>
             </div>
 
@@ -671,8 +757,8 @@ export function ResendTestDialog({
                     {isSubmitting
                       ? "Sending…"
                       : testStatus === "success"
-                        ? "Send Another"
-                        : "Send Test"}
+                        ? "Send another"
+                        : "Send test"}
                   </span>
                   {isSubmitting ? (
                     <>

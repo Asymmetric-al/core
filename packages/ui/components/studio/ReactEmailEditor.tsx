@@ -27,6 +27,13 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { EditorAccessibility } from "./editor-accessibility";
 import { createMergeTagNode, MergeTagExtension } from "./merge-tag-extension";
+import {
+  EMAIL_PROMPT_CLASSES,
+  EMAIL_START_PLACEHOLDER,
+  emailPlaceholderClass,
+  placeCaretAtStart,
+  revealEmptyPlaceholders,
+} from "./react-email-placeholder";
 
 import type { EmailEditorProps, EmailEditorRef } from "@react-email/editor";
 
@@ -42,6 +49,8 @@ export interface ReactEmailEditorProps {
   initialDesign?: Record<string, unknown> | string | null;
   templateId?: string | null;
   className?: string;
+  /** Shows the email without letting anyone change it. */
+  readOnly?: boolean;
   onReady?: () => void;
   onDesignUpdate?: (design: Record<string, unknown>) => void;
   onExport?: (result: EmailStudioExportResult) => void;
@@ -70,7 +79,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function applyLoadedDesign(
-  editor: {
+  editor: Parameters<typeof placeCaretAtStart>[0] & {
     commands: {
       setContent: (content: never, options?: { emitUpdate?: boolean }) => void;
     };
@@ -80,13 +89,24 @@ function applyLoadedDesign(
   const nextDesign =
     typeof design === "string" ? normalizeInitialDesign(design) : design;
   editor.commands.setContent(nextDesign as never, { emitUpdate: false });
+  // New content starts with a caret at the top: the old selection would
+  // otherwise carry over, and a range opens the formatting bubble.
+  placeCaretAtStart(editor);
 }
 
 export const ReactEmailEditor = forwardRef<
   EmailStudioEditorHandle,
   ReactEmailEditorProps
 >(function ReactEmailEditor(
-  { initialDesign, templateId, className, onReady, onDesignUpdate, onExport },
+  {
+    initialDesign,
+    templateId,
+    className,
+    readOnly,
+    onReady,
+    onDesignUpdate,
+    onExport,
+  },
   ref,
 ) {
   const editorRef = useRef<EmailEditorRef>(null);
@@ -94,6 +114,10 @@ export const ReactEmailEditor = forwardRef<
     null,
   );
   const [isReady, setIsReady] = useState(false);
+  // React Email paints its bubble menu visible before any selection exists,
+  // so a formatting bar floated over a blank email. It stays hidden until
+  // someone first works in the editor; after that the editor drives it.
+  const [hasInteracted, setHasInteracted] = useState(false);
   const content = useMemo(
     () => normalizeInitialDesign(initialDesign),
     [initialDesign],
@@ -107,8 +131,9 @@ export const ReactEmailEditor = forwardRef<
             if (node.type.name === "heading") {
               return `Heading ${node.attrs.level}`;
             }
-            return "Press '/' for commands";
+            return EMAIL_START_PLACEHOLDER;
           },
+          emptyNodeClass: emailPlaceholderClass,
           includeChildren: true,
         }),
         EmailTheming.configure({ theme: "basic" }),
@@ -238,6 +263,9 @@ export const ReactEmailEditor = forwardRef<
       if (pending !== null) {
         pendingDesignRef.current = null;
         applyLoadedDesign(editor, pending);
+      } else {
+        // A blank email shows its starting prompt before anyone clicks in.
+        revealEmptyPlaceholders(editor);
       }
 
       setIsReady(true);
@@ -281,7 +309,11 @@ export const ReactEmailEditor = forwardRef<
   );
 
   return (
-    <div className={cn("react-email-builder-wrapper", className)}>
+    <div
+      className={cn("react-email-builder-wrapper", className)}
+      onFocusCapture={() => setHasInteracted(true)}
+      onPointerDownCapture={() => setHasInteracted(true)}
+    >
       {!isReady && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm">
           <div className="flex w-56 flex-col items-center gap-5 text-center">
@@ -315,9 +347,19 @@ export const ReactEmailEditor = forwardRef<
         onUpdate={handleUpdate}
         onUploadImage={handleUploadImage}
         extensions={extensions}
+        editable={!readOnly}
         theme="basic"
-        className="min-h-full w-full p-8 outline-none"
-        placeholder="Press '/' for blocks"
+        // React Email's theme injects an unlayered "margin: 0" on the email
+        // body too; the important modifier centres it as the sent email shows
+        // it (the shared stylesheet centres the page on the desk, which p-8
+        // pads). The prompt on an empty paragraph is drawn in the muted text
+        // token (see EMAIL_PROMPT_CLASSES).
+        className={cn(
+          "min-h-full w-full p-8 outline-none [&_.node-container]:mx-auto!",
+          EMAIL_PROMPT_CLASSES,
+          !hasInteracted && "[&_[data-re-bubble-menu]]:invisible!",
+        )}
+        placeholder={EMAIL_START_PLACEHOLDER}
       />
     </div>
   );

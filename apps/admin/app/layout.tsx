@@ -14,6 +14,8 @@ import { AdminTanStackDevtools } from "./_providers/tanstack-devtools";
 
 import type { Metadata, Viewport } from "next";
 
+// Layer order first: it decides how Payload's stylesheets rank against Tailwind.
+import "./css-layer-order.css";
 import "./globals.css";
 
 function getSupabaseOrigin() {
@@ -49,10 +51,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#020617" },
-  ],
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -72,8 +71,6 @@ export default function RootLayout({
             <link rel="dns-prefetch" href={supabaseOrigin} />
           </>
         ) : null}
-
-        <meta name="theme-color" content="#ffffff" />
       </head>
       <body className={`${fontVariables} font-sans antialiased`}>
         <div className="app-root">

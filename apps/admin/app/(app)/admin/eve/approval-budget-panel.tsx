@@ -41,6 +41,8 @@ import {
 import { Gauge, ShieldCheck } from "lucide-react";
 import { useState, type Dispatch, type SetStateAction } from "react";
 
+import { EveSectionEmpty } from "./section-states";
+
 import type {
   EveApprovalBudgetAdminView,
   EveBudgetScopeType,
@@ -48,6 +50,12 @@ import type {
 } from "@asym/api/eve/approval-budget/types";
 
 const NUMBER_FORMATTER_1 = new Intl.NumberFormat();
+const USD_FORMATTER = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 6,
+});
 
 interface ResponseBody extends EveApprovalBudgetAdminView {
   mutation?: { action: string; result: unknown };
@@ -159,6 +167,22 @@ export function EveApprovalBudgetPanel() {
 
   return (
     <section className="space-y-6" aria-labelledby="approval-budget-title">
+      {query.isError ? (
+        <Alert variant="destructive">
+          <AlertTitle>Approval and budget policy unavailable</AlertTitle>
+          <AlertDescription>
+            <p>{query.error.message}</p>
+            {query.data ? <p>The lists below may be out of date.</p> : null}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void query.refetch()}
+            >
+              Try again
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : null}
       <ApprovalPolicySection
         mutation={mutation}
         actionId={actionId}
@@ -232,6 +256,8 @@ function ApprovalPolicySection({
     <Card>
       <CardHeader>
         <CardTitle
+          role="heading"
+          aria-level={2}
           id="approval-budget-title"
           className="flex items-center gap-2"
         >
@@ -351,7 +377,9 @@ function ApprovalBudgetSummary({
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Separate trust-zone rules</CardTitle>
+          <CardTitle role="heading" aria-level={3}>
+            Separate trust-zone rules
+          </CardTitle>
           <CardDescription>
             An allowance never crosses into another zone.
           </CardDescription>
@@ -393,7 +421,11 @@ function ApprovalBudgetSummary({
       </Card>
       <Card id="eve-budgets">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle
+            role="heading"
+            aria-level={3}
+            className="flex items-center gap-2"
+          >
             <Gauge aria-hidden="true" className="size-5" />
             Hard budgets
           </CardTitle>
@@ -403,6 +435,12 @@ function ApprovalBudgetSummary({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {query.isLoading ? (
+            <Skeleton
+              className="h-28 w-full"
+              aria-label="Loading hard budgets"
+            />
+          ) : null}
           {query.data?.budgets.map((budget) => (
             <div key={budget.id} className="space-y-2 rounded-lg border p-3">
               <div className="flex items-center justify-between">
@@ -423,13 +461,16 @@ function ApprovalBudgetSummary({
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
-                USD micros {formatNumber(budget.usedUsdMicros)} /{" "}
-                {formatNumber(budget.maxUsdMicros + budget.additionalUsdMicros)}{" "}
-                · input {formatNumber(budget.usedInputTokens)} /{" "}
+                Spend {USD_FORMATTER.format(budget.usedUsdMicros / 1_000_000)} /{" "}
+                {USD_FORMATTER.format(
+                  (budget.maxUsdMicros + budget.additionalUsdMicros) /
+                    1_000_000,
+                )}{" "}
+                · input tokens {formatNumber(budget.usedInputTokens)} /{" "}
                 {formatNumber(
                   budget.maxInputTokens + budget.additionalInputTokens,
                 )}{" "}
-                · output {formatNumber(budget.usedOutputTokens)} /{" "}
+                · output tokens {formatNumber(budget.usedOutputTokens)} /{" "}
                 {formatNumber(
                   budget.maxOutputTokens + budget.additionalOutputTokens,
                 )}
@@ -491,15 +532,26 @@ function PendingApprovalsSection({
   return (
     <Card id="eve-approvals">
       <CardHeader>
-        <CardTitle>Approval queue</CardTitle>
+        <CardTitle role="heading" aria-level={3}>
+          Approval queue
+        </CardTitle>
         <CardDescription>
           Business-data actions require strict approval; zone approval cannot
           substitute. Each approval is target-bound, expiring, and single-use.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {(query.data?.approvals.length ?? 0) === 0 ? (
-          <p className="text-sm text-muted-foreground">No approval requests.</p>
+        {query.isLoading ? (
+          <Skeleton
+            className="h-20 w-full"
+            aria-label="Loading approval requests"
+          />
+        ) : null}
+        {query.isSuccess && query.data.approvals.length === 0 ? (
+          <EveSectionEmpty
+            title="No approval requests."
+            description="New approval requests will appear here."
+          />
         ) : (
           <ul className="divide-y">
             {query.data?.approvals.map((approval) => (
@@ -591,17 +643,25 @@ function RecentApprovalActions({
   return (
     <Card id="eve-recent-actions">
       <CardHeader>
-        <CardTitle>Recent policy decisions</CardTitle>
+        <CardTitle role="heading" aria-level={3}>
+          Recent policy decisions
+        </CardTitle>
         <CardDescription>
-          Every allow, deny, and pause is persisted with a matching ADR-0020
-          audit event.
+          Every allow, deny, and pause is saved with a matching audit event.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {(query.data?.decisions.length ?? 0) === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No policy decisions yet.
-          </p>
+        {query.isLoading ? (
+          <Skeleton
+            className="h-20 w-full"
+            aria-label="Loading policy decisions"
+          />
+        ) : null}
+        {query.isSuccess && query.data.decisions.length === 0 ? (
+          <EveSectionEmpty
+            title="No policy decisions yet."
+            description="Policy decisions will appear after an action is evaluated."
+          />
         ) : (
           <ul className="divide-y">
             {query.data?.decisions.map((decision) => (

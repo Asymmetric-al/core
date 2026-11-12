@@ -47,7 +47,13 @@ export const SHARED_CONTRIBUTION_FILTERS: SharedContributionFilterDefinition[] =
     { id: "pending_correction", label: "Pending correction", kind: "flag" },
     { id: "approval_state", label: "Approval state", kind: "enum" },
     { id: "refund_state", label: "Refund state", kind: "enum" },
-    { id: "crm_post_state", label: "CRM post state", kind: "enum" },
+    // External CRM posting is retired: this filter only investigates the
+    // recorded history, so its label must not read as a live workflow.
+    {
+      id: "crm_post_state",
+      label: "Historical CRM posting",
+      kind: "enum",
+    },
     { id: "designation_issue", label: "Designation issue", kind: "flag" },
     { id: "recurring_link", label: "Recurring link", kind: "enum" },
     { id: "payment_status", label: "Payment status", kind: "enum" },

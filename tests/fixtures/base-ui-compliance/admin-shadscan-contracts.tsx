@@ -2,7 +2,6 @@ import React, { useRef, useState } from "react";
 
 import { DeleteNamedViewDialog } from "../../../apps/admin/app/(app)/crm/gift-history-dialogs";
 import { EveWorkspaceIndex } from "../../../apps/admin/app/(app)/admin/eve/workspace-shell";
-import { MobilizeAddCandidateSheet } from "../../../apps/admin/app/(app)/mobilize/mobilize-sections";
 import { MissionControlNavigationSearch } from "../../../apps/admin/features/mission-control/components/navigation-search";
 import { useInboxShortcuts } from "../../../apps/admin/features/support-hub/components/command/use-inbox-shortcuts";
 import { StudioFlowLoading } from "../../../apps/admin/src/cms-ui/web-studio/flows/studio-flow-loading";
@@ -20,7 +19,6 @@ const currentView = {
 
 export function AdminShadscanContracts() {
   const [destination, setDestination] = useState("");
-  const [candidateOpen, setCandidateOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
   const [choice, setChoice] = useState("");
   const [supportHandled, setSupportHandled] = useState(false);
@@ -56,17 +54,10 @@ export function AdminShadscanContracts() {
         </output>
       </div>
       <div className="flex gap-2">
-        <Button onClick={() => setCandidateOpen(true)}>
-          Open candidate fields
-        </Button>
         <Button onClick={() => setViewOpen(true)}>
           Choose replacement default
         </Button>
       </div>
-      <MobilizeAddCandidateSheet
-        open={candidateOpen}
-        onOpenChange={setCandidateOpen}
-      />
       <DeleteNamedViewDialog
         view={viewOpen ? currentView : null}
         views={[currentView]}

@@ -1,6 +1,8 @@
 import { supportHubAdapter } from "../adapter";
 
 import type {
+  SupportAssignee,
+  SupportLabel,
   SupportMacro,
   SupportMacroAction,
 } from "@asym/database/collections/support-hub.schema";
@@ -40,13 +42,15 @@ export async function runSupportMacroOnServer(
     input.conversationId,
   );
   if (!conversation) {
-    throw new Error(`Unknown conversation: ${input.conversationId}`);
+    throw new Error("This conversation is no longer available.");
   }
   const macros = await supportHubAdapter.macros.list();
   const macro: SupportMacro | undefined = macros.find(
     (entry) => entry.id === input.macroId,
   );
-  if (!macro) throw new Error(`Unknown macro: ${input.macroId}`);
+  if (!macro) throw new Error("This macro is no longer available.");
+  let agents: SupportAssignee[] | undefined;
+  let labels: SupportLabel[] | undefined;
 
   const outcomes: RunMacroOutcome[] = [];
   for (const [index, action] of macro.actions.entries()) {
@@ -68,19 +72,28 @@ export async function runSupportMacroOnServer(
           });
           message = `Priority set to ${action.priority}.`;
           break;
-        case "assign_agent":
+        case "assign_agent": {
+          agents ??= await supportHubAdapter.agents.list();
+          const agentName =
+            agents.find((agent) => agent.id === action.agentId)?.name ??
+            "the selected agent";
           await supportHubAdapter.conversations.assign({
             conversationId: input.conversationId,
             assigneeAgentId: action.agentId,
           });
-          message = `Assigned to ${action.agentId}.`;
+          message = `Assigned to ${agentName}.`;
           break;
+        }
         case "assign_team":
           status = "skipped";
-          message = "Team assignment runs server-side in Phase 8.";
+          message = "Skipped: conversations can't be assigned to a team yet.";
           break;
         case "add_label":
-        case "remove_label":
+        case "remove_label": {
+          labels ??= await supportHubAdapter.labels.list();
+          const labelName =
+            labels.find((label) => label.id === action.labelId)?.name ??
+            "the selected label";
           await supportHubAdapter.conversations.toggleLabel({
             conversationId: input.conversationId,
             labelId: action.labelId,
@@ -88,9 +101,10 @@ export async function runSupportMacroOnServer(
           });
           message =
             action.kind === "add_label"
-              ? `Added label ${action.labelId}.`
-              : `Removed label ${action.labelId}.`;
+              ? `Added label ${labelName}.`
+              : `Removed label ${labelName}.`;
           break;
+        }
         case "snooze": {
           const snoozedUntil = new Date(
             Date.now() + action.hours * HOUR_MS,
@@ -105,7 +119,7 @@ export async function runSupportMacroOnServer(
         case "send_canned_response":
           status = "skipped";
           message =
-            "Canned response insertion is composer-controlled — server runner does not auto-send.";
+            "Skipped: insert the canned response in the reply composer.";
           break;
         case "add_private_note":
           await supportHubAdapter.messages.addPrivateNote({
@@ -122,9 +136,9 @@ export async function runSupportMacroOnServer(
           message = "Unknown macro action.";
         }
       }
-    } catch (error) {
+    } catch {
       status = "failed";
-      message = error instanceof Error ? error.message : "Macro action failed.";
+      message = "Could not complete this action. Try again.";
     }
     outcomes.push({ index, action, status, message });
   }

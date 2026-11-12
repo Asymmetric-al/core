@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildSharedContributionRowFields,
   formatSharedContributionAmount,
+  isSharedReceiptSuppressed,
   SHARED_CRM_POST_STATUS_LABELS,
   SHARED_CORRECTION_STATE_LABELS,
   SHARED_PAYMENT_STATUS_LABELS,
@@ -253,7 +254,8 @@ describe("admin/contribution-shared/row-contract", () => {
     });
     expect(SHARED_RECEIPT_STATUS_LABELS).toEqual({
       sent: "Sent",
-      pending: "Pending",
+      // Distinct from the gift's "Pending" payment status shown beside it.
+      pending: "Queued",
       failed: "Failed",
       not_sent: "Not sent",
     });
@@ -277,5 +279,36 @@ describe("admin/contribution-shared/row-contract", () => {
 
     expect(formatSharedContributionAmount(25_000, "USD")).toBe("$250.00");
     expect(formatSharedContributionAmount(1_234_56, "USD")).toBe("$1,234.56");
+  });
+  it("keeps receipt suppression available without changing the status column", () => {
+    const build = (receipt_status: string | null) =>
+      buildSharedContributionRowFields({
+        donation: makeDonation(),
+        donor: null,
+        profile: null,
+        fund: null,
+        missionary: null,
+        stagedGift: {
+          id: "staged-1",
+          status: "posted",
+          receipt_status,
+          crm_post_status: null,
+        },
+      });
+
+    const suppressed = build("suppressed");
+    // The status column still reads "Not sent"; the suppression truth rides
+    // alongside so bulk receipt readiness can match the server's rule.
+    expect(suppressed.receiptStatus).toBe("not_sent");
+    expect(isSharedReceiptSuppressed(suppressed)).toBe(true);
+
+    const notRequired = build("not_required");
+    expect(notRequired.receiptStatus).toBe("not_sent");
+    expect(isSharedReceiptSuppressed(notRequired)).toBe(false);
+    // Unsuppressed rows keep their exact shape for every other surface.
+    expect(notRequired).not.toHaveProperty("receiptSuppressed");
+
+    expect(isSharedReceiptSuppressed(build("sent"))).toBe(false);
+    expect(isSharedReceiptSuppressed(build(null))).toBe(false);
   });
 });

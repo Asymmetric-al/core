@@ -1,7 +1,5 @@
 "use client";
 
-import { motion, useReducedMotion } from "@asym/lib/motion";
-import { transitionStandard } from "@asym/lib/motion-presets";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import * as React from "react";
 
@@ -32,34 +30,11 @@ export function PageShell({
   contentClassName,
   density = "default",
 }: PageShellProps) {
-  const reduceMotion = useReducedMotion();
+  // A route view transition already animates the page in. Otherwise the
+  // header settles in with CSS, so the server HTML shows the title and
+  // actions before any JavaScript runs, and reduced motion skips it in CSS
+  // (motion-safe) instead of a client-only check that broke hydration.
   const withinRouteVt = useWithinViewTransitionRouteLayer();
-
-  const headerMotion =
-    reduceMotion || withinRouteVt
-      ? {
-          initial: { opacity: 1, y: 0 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0 },
-        }
-      : {
-          initial: { opacity: 0, y: -8 },
-          animate: { opacity: 1, y: 0 },
-          transition: transitionStandard,
-        };
-
-  const actionsMotion =
-    reduceMotion || withinRouteVt
-      ? {
-          initial: { opacity: 1, x: 0 },
-          animate: { opacity: 1, x: 0 },
-          transition: { duration: 0 },
-        }
-      : {
-          initial: { opacity: 0, x: 12 },
-          animate: { opacity: 1, x: 0 },
-          transition: { ...transitionStandard, delay: 0.08 },
-        };
 
   return (
     <div
@@ -70,12 +45,11 @@ export function PageShell({
         className,
       )}
     >
-      <motion.div
-        initial={headerMotion.initial}
-        animate={headerMotion.animate}
-        transition={headerMotion.transition}
+      <div
         data-slot="page-shell-header"
         className={cn(
+          !withinRouteVt &&
+            "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 motion-safe:duration-(--duration-standard) motion-safe:ease-(--ease-out-soft)",
           density === "compact"
             ? "flex flex-col items-start justify-between gap-4 border-b border-border/80 pb-5 md:flex-row md:items-end"
             : "flex flex-col items-start justify-between gap-6 border-b border-border pb-8 md:flex-row md:items-end",
@@ -118,10 +92,7 @@ export function PageShell({
         </div>
 
         {actions && (
-          <motion.div
-            initial={actionsMotion.initial}
-            animate={actionsMotion.animate}
-            transition={actionsMotion.transition}
+          <div
             className={cn(
               density === "compact"
                 ? "flex w-full flex-wrap items-center gap-2.5 md:w-auto md:shrink-0"
@@ -129,9 +100,9 @@ export function PageShell({
             )}
           >
             {actions}
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
 
       <div className={cn(contentClassName)}>{children}</div>
     </div>

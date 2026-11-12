@@ -1,39 +1,30 @@
 // @vitest-environment jsdom
 
-import {
-  dataTableFeatures,
-  useTable,
-} from "@asym/ui/components/shadcn/data-table/tanstack";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { SupportTableView } from "../../../../../../../apps/admin/features/support-hub/components/table/SupportTableView";
 
 import type { SupportConversation } from "../../../../../../../apps/admin/features/support-hub/types";
-import type { DataTableResponsiveProps } from "@asym/ui/components/shadcn/data-table/data-table-responsive";
 
-// Exercise the public mobile-card renderer with actual Core TanStack rows;
-// viewport/focus styling is verified separately in the real browser fixture.
-vi.mock("@asym/ui/components/shadcn/data-table", () => ({
-  DataTableResponsive: ({
-    data,
-    columns,
-    mobileCardConfig,
-  }: DataTableResponsiveProps<SupportConversation, unknown>) => {
-    const table = useTable({
-      features: dataTableFeatures,
-      data,
-      columns,
-    });
-    return (
-      <>
-        {table
-          .getRowModel()
-          .rows.map((row) => mobileCardConfig?.renderCard?.(row))}
-      </>
-    );
-  },
-}));
+// The real shared grid renders its phone cards below the md breakpoint.
+beforeEach(() => {
+  vi.stubGlobal("innerWidth", 390);
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    media: query,
+    matches: query.includes("max-width"),
+    addEventListener() {},
+    removeEventListener() {},
+  }));
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+});
 vi.mock(
   "../../../../../../../apps/admin/features/support-hub/components/table/bulk-actions",
   () => ({ useSupportBulkActions: () => ({ actions: [], overlays: null }) }),
@@ -41,7 +32,10 @@ vi.mock(
 vi.mock("../../../../../../../apps/admin/features/support-hub/lib/now", () => ({
   useSupportNow: () => "2026-04-15T12:00:00.000Z",
 }));
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 const conversation: SupportConversation = {
   id: "conversation-one",

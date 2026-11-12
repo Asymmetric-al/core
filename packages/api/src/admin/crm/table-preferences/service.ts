@@ -201,7 +201,7 @@ export async function saveCrmTenantTableDefault(
   if (error || !row) {
     throw new ApiHttpError(
       500,
-      error?.message ?? "Failed to save the tenant default.",
+      error?.message ?? "Failed to save the organization default.",
     );
   }
 

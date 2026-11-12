@@ -8,7 +8,7 @@ const props = {
   label: "Open",
   description: "Open conversations",
   isHovered: false,
-  dropProps: { "aria-dropeffect": "move" as const },
+  dropProps: {},
 };
 describe("support board authoritative empty count", () => {
   it("shows the empty state when a mapped empty array has a null overflow sibling", () => {

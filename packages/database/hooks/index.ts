@@ -3,6 +3,10 @@
 export { useAdminContributionsInfiniteGrid } from "./admin-contributions-infinite";
 export { useAdminCrmRecordsInfiniteGrid } from "./admin-crm-infinite";
 export {
+  ADMIN_CRM_TAG_OPTIONS_QUERY_KEY,
+  useAdminCrmTagOptions,
+} from "./admin-crm-tags";
+export {
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY,
   ADMIN_CRM_RECORDS_QUERY_KEY,
   useAdminCrmRecordDetail,
@@ -27,7 +31,14 @@ export {
   CRM_RELATIONSHIP_DOMAIN_OPTIONS,
   useAdminCrmRelationshipsGrid,
 } from "./admin-crm-relationships";
-export { useAdminCrmReport } from "./admin-crm-report";
+export {
+  crmReportExportHref,
+  crmReportPeriodRange,
+  useAdminCrmReport,
+  type CrmReportGroup,
+  type CrmReportPeriod,
+  type CrmReportPeriodKey,
+} from "./admin-crm-report";
 export { useDonorHistoryTransactions } from "./donor-history";
 export {
   usePublicLocations,
@@ -70,9 +81,6 @@ export {
   useTaskStaff,
   useTaskLinkedEntities,
   useEventAttendees,
-  useMobilizeCandidates,
-  useTeams,
-  useTeamMembers,
 } from "./admin-workspace";
 export {
   MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
@@ -217,9 +225,6 @@ export type {
   AdminTaskStaffMember,
   AdminTaskLinkedEntity,
   AdminEventAttendee,
-  AdminMobilizeCandidate,
-  AdminTeam,
-  AdminTeamMember,
 } from "./admin-workspace";
 export type {
   MemberCarePriority,

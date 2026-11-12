@@ -26,6 +26,7 @@ interface ComposerActionsProps {
  * composer mode. The `beforeSend` slot is a Phase 5 extension point for
  * macros and canned response launchers.
  */
+
 export function ComposerActions({
   mode,
   isPending,
@@ -52,7 +53,7 @@ export function ComposerActions({
         {beforeSend}
         {!beforeSend ? (
           <span aria-hidden className="text-muted-foreground">
-            Cmd+Enter to send
+            Ctrl or ⌘ + Enter to send
           </span>
         ) : null}
       </div>
@@ -92,6 +93,7 @@ export function ComposerActions({
           size="sm"
           disabled={isPending || !isDirty}
           aria-busy={isSending}
+          aria-keyshortcuts="Control+Enter Meta+Enter"
           onClick={onSend}
         >
           <ComposerSendIcon isReply={isReply} isSending={isSending} />

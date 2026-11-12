@@ -175,7 +175,7 @@ it.each(accountScreens)(
       expect(
         view.getByText(/Self-service registration is not available/),
       ).toBeTruthy();
-      expect(view.queryByRole("button", { name: "Create Account" })).toBeNull();
+      expect(view.queryByRole("button", { name: "Create account" })).toBeNull();
     }
     if (pathname === "/forgot-password") {
       expect(view.getByText(/Password reset is not enabled yet/)).toBeTruthy();

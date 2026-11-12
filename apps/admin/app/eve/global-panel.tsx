@@ -2,6 +2,12 @@
 
 import { useMC } from "@asym/lib/mission-control/context";
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import {
   Sheet,
@@ -12,20 +18,34 @@ import {
   SheetTrigger,
 } from "@asym/ui/components/shadcn/sheet";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@asym/ui/components/shadcn/tooltip";
 import { useEveAgent } from "eve/react";
 import { Bot, RotateCcw, Send, Sparkles, Square } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 
 import { buildEvePageContext, prepareEveSend } from "./page-context";
 
 const MAX_MESSAGE_LENGTH = 2_000;
 
-function EveConversation() {
+/**
+ * "header" sits beside search in the app header; "floating" is for Web
+ * Studio, which has no app header. A floating button elsewhere covers page
+ * actions (Send reply, table values, toasts), so the shell uses the header.
+ */
+export type EveTriggerPlacement = "header" | "floating";
+
+function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
   const pathname = usePathname();
   const { tenant } = useMC();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const countId = useId();
+  const shortcutId = useId();
   const pageContext = buildEvePageContext({
     panelOpen: open,
     pathname,
@@ -58,14 +78,25 @@ function EveConversation() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
         render={
-          <Button
-            className="fixed right-5 bottom-20 z-40 size-12 rounded-full shadow-lg"
-            size="icon"
-            aria-label="Open Eve assistant"
-            data-testid="eve-global-trigger"
-          >
-            <Sparkles aria-hidden="true" className="size-5" />
-          </Button>
+          placement === "header" ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Open Eve assistant"
+              data-testid="eve-global-trigger"
+            >
+              <Sparkles aria-hidden="true" />
+            </Button>
+          ) : (
+            <Button
+              className="fixed right-5 bottom-20 z-40 size-12 rounded-full shadow-lg"
+              size="icon"
+              aria-label="Open Eve assistant"
+              data-testid="eve-global-trigger"
+            >
+              <Sparkles aria-hidden="true" className="size-5" />
+            </Button>
+          )
         }
       />
       <SheetContent
@@ -91,10 +122,16 @@ function EveConversation() {
             aria-busy={busy}
           >
             {agent.data.messages.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                Ask for help understanding this screen or planning your next
-                governed action. Eve cannot execute tools from this panel yet.
-              </div>
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle>Ask about this page</EmptyTitle>
+                  <EmptyDescription>
+                    Ask for help understanding this screen or planning your next
+                    governed action. Eve cannot execute tools from this panel
+                    yet.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             ) : null}
             {agent.data.messages.map((item) => {
               const text = item.parts
@@ -137,27 +174,50 @@ function EveConversation() {
             id="eve-global-message"
             value={message}
             onChange={(event) => setMessage(event.target.value)}
+            aria-describedby={`${countId} ${shortcutId}`}
+            onKeyDown={(event) => {
+              if (
+                event.nativeEvent.isComposing ||
+                busy ||
+                event.defaultPrevented
+              )
+                return;
+              if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                event.preventDefault();
+                event.currentTarget.form?.requestSubmit();
+              }
+            }}
             maxLength={MAX_MESSAGE_LENGTH}
             rows={3}
             disabled={busy}
             placeholder="Ask Eve about this page…"
           />
           <div className="mt-3 flex items-center justify-between gap-2">
-            <p className="text-xs text-muted-foreground">
+            <p id={countId} className="text-xs text-muted-foreground">
               {message.length.toLocaleString()} /{" "}
-              {MAX_MESSAGE_LENGTH.toLocaleString()}
+              {MAX_MESSAGE_LENGTH.toLocaleString()} characters
             </p>
+            <span id={shortcutId} className="sr-only">
+              Press Ctrl or Command + Enter to send.
+            </span>
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={handleAgentReset}
-                disabled={busy}
-                aria-label="Start a new Eve session"
-              >
-                <RotateCcw aria-hidden="true" className="size-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={handleAgentReset}
+                      disabled={busy}
+                      aria-label="Start a new Eve session"
+                    >
+                      <RotateCcw aria-hidden="true" />
+                    </Button>
+                  }
+                />
+                <TooltipContent>Start a new Eve session</TooltipContent>
+              </Tooltip>
               {busy ? (
                 <Button
                   type="button"
@@ -181,7 +241,11 @@ function EveConversation() {
   );
 }
 
-export function EveGlobalPanel() {
+export function EveGlobalPanel({
+  placement = "floating",
+}: {
+  placement?: EveTriggerPlacement;
+}) {
   const { role, user } = useMC();
 
   // MCProvider keeps role at "admin" after sign-out while clearing user.
@@ -190,5 +254,5 @@ export function EveGlobalPanel() {
     return null;
   }
 
-  return <EveConversation />;
+  return <EveConversation placement={placement} />;
 }

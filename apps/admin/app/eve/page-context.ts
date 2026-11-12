@@ -1,22 +1,25 @@
 import type { PrepareSend } from "eve/react";
 
 const SAFE_ROUTE_IDENTITIES = {
-  "/": "Mission Control dashboard",
+  "/": "Home",
   "/admin": "Administration",
   "/automations": "Automations",
-  "/care": "Member care",
+  "/care": "Member Care",
   "/contributions": "Contributions",
   "/crm": "CRM",
   "/email": "Email Studio",
-  "/events": "Event Hub",
-  "/feed": "Ministry updates",
+  "/events": "Events",
+  "/feed": "Ministry Updates",
+  "/help": "Help",
   "/mobilize": "Mobilize",
   "/pdf": "PDF Studio",
   "/reports": "Reports",
   "/sign": "Sign Studio",
+  "/settings": "Settings",
   "/support": "Support Hub",
   "/tasks": "Tasks",
   "/web-studio": "Web Studio",
+  "/workflows": "Workflow runs",
 } as const;
 
 type SafeRoute = keyof typeof SAFE_ROUTE_IDENTITIES;

@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 
+import { OPERATION_DEFINITIONS } from "@asym/api/admin/contribution-operations/catalog";
 import { getQueryClient, QueryProvider } from "@asym/database/providers";
 import {
   act,
@@ -7,12 +8,12 @@ import {
   fireEvent,
   render,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { OPERATION_DEFINITIONS } from "@asym/api/admin/contribution-operations/catalog";
-import { ContributionOperationShell } from "../../../../../apps/admin/app/(app)/contributions/operation-shell";
 import { contributionDetailQueryKey } from "../../../../../apps/admin/app/(app)/contributions/contribution-detail-query";
+import { ContributionOperationShell } from "../../../../../apps/admin/app/(app)/contributions/operation-shell";
 import { useAdminContributions } from "../../../../../apps/admin/app/(app)/contributions/use-admin-contributions";
 
 import type { CrmPostFailedScope } from "@asym/api/admin/contribution-operations";
@@ -338,6 +339,48 @@ describe("ContributionOperationShell", () => {
     }
   });
 
+  it("names a queued receipt with the shared label in the current-values summary", async () => {
+    const detail = makeDetail();
+    const fetchMock = fetchMockForShell(
+      {},
+      {
+        ...detail,
+        id: "00000000-0000-4000-8000-0000000000b1",
+        shared: {
+          ...detail.shared,
+          donationId: "00000000-0000-4000-8000-0000000000b1",
+          receiptStatus: "pending",
+        },
+      },
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId="00000000-0000-4000-8000-0000000000b1"
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00", {}, { timeout: 10_000 });
+    expect(
+      view.getByRole("group", { name: "Gift operation details" }),
+    ).toBeTruthy();
+    const receiptTerm = view
+      .getAllByText("Receipt")
+      .find((node) => node.tagName === "DT");
+    // Same wording as the Hub and CRM: a pending receipt is "Queued".
+    expect(receiptTerm?.nextElementSibling?.textContent).toBe("Queued");
+  });
+
   it("shows current values, requires reason and confirmation, and submits the shared contract", async () => {
     const fetchMock = fetchMockForShell({
       auditEventId: "audit-1",
@@ -624,6 +667,83 @@ describe("ContributionOperationShell", () => {
     );
   });
 
+  it("names the donor and gift the operation acts on", async () => {
+    const fetchMock = fetchMockForShell(
+      {
+        auditEventId: "audit-1",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      makeDetail(),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.refund!}
+          donationId={DONATION_ID}
+          sourceSurface="contribution_hub"
+        />
+      </QueryProvider>,
+    );
+
+    const identity = await view.findByTestId("operation-gift-identity");
+    expect(identity.textContent).toContain("Shell Donor");
+    expect(identity.textContent).toMatch(/May 1, 2026|1 May 2026/);
+  });
+
+  it("marks a refund's cannot-be-undone warning as destructive", async () => {
+    const fetchMock = fetchMockForShell(
+      {
+        auditEventId: "audit-1",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      makeDetail({
+        actionAvailability: [
+          {
+            actionType: "refund",
+            available: true,
+            blockedReason: null,
+            nextStep: null,
+            riskLevel: "high",
+          },
+        ],
+      }),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.refund!}
+          donationId={DONATION_ID}
+          sourceSurface="contribution_hub"
+        />
+      </QueryProvider>,
+    );
+
+    const notes = await view.findAllByRole("note");
+    const risk = notes.find((note) =>
+      note.textContent?.includes("cannot be undone"),
+    );
+    expect(risk).toBeTruthy();
+    expect(risk!.className).toContain("border-destructive");
+  });
+
   it("labels amount fields with the loaded contribution currency", async () => {
     const donationId = "00000000-0000-4000-8000-0000000000bb";
     const detail = makeDetail();
@@ -669,7 +789,7 @@ describe("ContributionOperationShell", () => {
     const fetchMock = fetchMockForShell({
       auditEventId: "audit-1",
       approvalStatus: "applied",
-      receiptOutcome: { status: "sent" },
+      receiptOutcome: { status: "emailed" },
       taskIds: [],
       canonicalContribution: {},
     });
@@ -691,7 +811,13 @@ describe("ContributionOperationShell", () => {
     );
 
     await view.findByText("$250.00", {}, { timeout: 10_000 });
-    const sendReceipt = view.getByRole("button", { name: "Send receipt" });
+    // The gift's receipt was already sent, so the dialog says what it does:
+    // a resend, as the gift row's button does.
+    expect(view.getByRole("heading", { name: "Resend receipt" })).toBeTruthy();
+    expect(
+      view.getByText("Sends the gift receipt to the donor again."),
+    ).toBeTruthy();
+    const sendReceipt = view.getByRole("button", { name: "Resend receipt" });
     await waitFor(() =>
       expect((sendReceipt as HTMLButtonElement).disabled).toBe(false),
     );
@@ -699,7 +825,7 @@ describe("ContributionOperationShell", () => {
 
     await view.findByTestId("operation-result-panel");
     // The receipt outcome from the shared result renders as a result line.
-    expect(view.getByText("Receipt: sent")).toBeTruthy();
+    expect(view.getByText("Receipt: Emailed to the donor")).toBeTruthy();
     const actionCall = fetchMock.mock.calls.find(([url]) =>
       String(url).includes("/actions"),
     );
@@ -790,7 +916,7 @@ describe("ContributionOperationShell", () => {
     );
 
     await view.findByText("$250.00", {}, { timeout: 10_000 });
-    const sendReceipt = view.getByRole("button", { name: "Send receipt" });
+    const sendReceipt = view.getByRole("button", { name: "Resend receipt" });
     await waitFor(() =>
       expect((sendReceipt as HTMLButtonElement).disabled).toBe(false),
     );
@@ -919,7 +1045,9 @@ describe("ContributionOperationShell", () => {
     expect(
       await view.findByText(/current gift detail could not be loaded/i),
     ).toBeTruthy();
-    expect(view.queryByRole("button", { name: "Send receipt" })).toBeNull();
+    expect(
+      view.queryByRole("button", { name: /^(Re)?send receipt$/i }),
+    ).toBeNull();
     expect(
       fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
     ).toBe(false);
@@ -1216,7 +1344,11 @@ describe("ContributionOperationShell", () => {
     const fetchMock = vi
       .fn()
       .mockImplementation(async (url: string, init?: RequestInit) => {
-        if (url === "/api/admin/contributions") {
+        // The hub list loads page by page (`?limit=100&after=…`).
+        if (
+          new URL(url, "http://localhost").pathname ===
+          "/api/admin/contributions"
+        ) {
           hubFetchCount += 1;
           return {
             ok: true,
@@ -1621,6 +1753,527 @@ describe("ContributionOperationShell", () => {
     expect(view.queryByText("Enter a valid amount.")).toBeNull();
   });
 
+  it("holds reason and confirmation errors until the staffer interacts, explaining the disabled submit", async () => {
+    const { view } = renderRefundShell(
+      "00000000-0000-4000-8000-0000000000d9",
+      {},
+    );
+
+    await view.findByText("Refunded so far");
+    const submit = view.getByRole("button", { name: "Refund gift" });
+    expect(submit).toHaveProperty("disabled", true);
+    // A fresh form is not an error: no red messages before any input.
+    expect(
+      view.queryByText("A reason is required for this operation."),
+    ).toBeNull();
+    expect(view.queryByText("Confirm the change to continue.")).toBeNull();
+    expect(
+      view.getByText("Add a reason and confirm the change to submit."),
+    ).toBeTruthy();
+
+    // Leaving the reason empty after visiting it shows the field error.
+    const reason = view.getByLabelText("Reason");
+    fireEvent.blur(reason);
+    expect(
+      view.getByText("A reason is required for this operation."),
+    ).toBeTruthy();
+    expect(reason.getAttribute("aria-invalid")).toBe("true");
+
+    fireEvent.change(reason, { target: { value: "Donor asked for a refund" } });
+    expect(view.getByText("Confirm the change to submit.")).toBeTruthy();
+    const confirm = view.getByRole("checkbox");
+    fireEvent.click(confirm);
+    expect(submit).toHaveProperty("disabled", false);
+    // Unchecking after checking is a real omission and is flagged inline.
+    fireEvent.click(confirm);
+    expect(view.getByText("Confirm the change to continue.")).toBeTruthy();
+  });
+
+  it("keeps the form in place, disabled, while the operation submits", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000b2";
+    const detail = makeReceiptDeliveryDetail(donationId);
+    // The action request never settles, so the shell stays submitting.
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (url.includes("/actions")) {
+        return new Promise(() => {});
+      }
+      return { ok: true, json: async () => ({ contribution: detail }) };
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00", {}, { timeout: 10_000 });
+    const amountInput = view.getByLabelText("Amount (USD)");
+    fireEvent.change(amountInput, { target: { value: "200" } });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Donor reported the wrong amount" },
+    });
+    fireEvent.click(
+      view.getByRole("radio", { name: /send updated receipt by email/i }),
+    );
+    fireEvent.click(view.getByRole("checkbox"));
+    const submit = view.getByRole("button", { name: "Correct gift amount" });
+    submit.focus();
+    fireEvent.click(submit);
+
+    await waitFor(() => expect(submit.getAttribute("aria-busy")).toBe("true"));
+    const actionCalls = () =>
+      fetchMock.mock.calls.filter(([url]) => String(url).includes("/actions"))
+        .length;
+    expect(actionCalls()).toBe(1);
+
+    // The submit stays mounted and focused, says what it is doing, and
+    // cannot fire again.
+    expect(document.activeElement).toBe(submit);
+    expect(submit.textContent).toContain("Submitting…");
+    expect(submit.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(submit);
+    expect(actionCalls()).toBe(1);
+
+    // The draft stays readable but every field is disabled, including the
+    // Base UI controls a native fieldset does not reach.
+    expect(amountInput.isConnected).toBe(true);
+    expect(amountInput.matches(":disabled")).toBe(true);
+    expect(view.getByLabelText("Reason").matches(":disabled")).toBe(true);
+    expect(view.getByRole("checkbox").hasAttribute("data-disabled")).toBe(true);
+    for (const radio of view.getAllByRole("radio")) {
+      expect(radio.hasAttribute("data-disabled")).toBe(true);
+    }
+    expect(view.getByRole("button", { name: "Cancel" })).toHaveProperty(
+      "disabled",
+      true,
+    );
+
+    // Progress is announced through the pinned row's live hint, and the
+    // row is still the draft's last child.
+    const row = submit.closest('[data-slot="operation-form-actions"]');
+    expect(row?.querySelector('[aria-live="polite"]')?.textContent).toBe(
+      "Submitting…",
+    );
+    expect(row?.nextElementSibling).toBeNull();
+  });
+
+  it("keeps the refund submit row pinned to the bottom of the scrolling dialog", async () => {
+    const { view } = renderRefundShell(
+      "00000000-0000-4000-8000-0000000000da",
+      {},
+    );
+
+    await view.findByText("Refunded so far");
+    const submit = view.getByRole("button", { name: "Refund gift" });
+    // The row holding Cancel and the submit (and why it is disabled) stays
+    // in view while a phone scrolls the long refund form above it.
+    const row = submit.closest('[data-slot="operation-form-actions"]');
+    expect(row).toBeTruthy();
+    expect(row!.className.split(" ")).toEqual(
+      expect.arrayContaining(["sticky", "-bottom-6", "bg-background"]),
+    );
+    expect(row!.textContent).toContain("Cancel");
+    // It is the last thing in the dialog's scrolling content.
+    expect(row!.nextElementSibling).toBeNull();
+    // A field scrolled into view by keyboard focus must stop above the
+    // pinned row, not under it (WCAG 2.4.11): every field before the row
+    // keeps a bottom scroll margin of the row's height. The row itself is
+    // left out, so focusing Cancel or the submit does not scroll.
+    const draft = row!.parentElement;
+    expect(draft!.className.split(" ")).toEqual(
+      expect.arrayContaining([
+        "[&>:not([data-slot=operation-form-actions])_*]:scroll-mb-48",
+        "sm:[&>:not([data-slot=operation-form-actions])_*]:scroll-mb-28",
+      ]),
+    );
+  });
+
+  it("scrolls the focused field clear of the pinned row after focus moves and when the dialog resizes", async () => {
+    // A field focused at one size can end up
+    // under the pinned row after a rotation, a narrower window or a phone
+    // keyboard shrinks the dialog; the browser's own focus scroll can also
+    // stop it under the row.
+    const observers: Array<{
+      callback: ResizeObserverCallback;
+      targets: Element[];
+    }> = [];
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        private entry: {
+          callback: ResizeObserverCallback;
+          targets: Element[];
+        };
+        constructor(callback: ResizeObserverCallback) {
+          this.entry = { callback, targets: [] };
+          observers.push(this.entry);
+        }
+        observe(target: Element) {
+          this.entry.targets.push(target);
+        }
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+    try {
+      const { view } = renderRefundShell(
+        "00000000-0000-4000-8000-0000000000db",
+        {},
+      );
+      await view.findByText("Refunded so far");
+      const dialog = view.getByTestId("contribution-operation-shell");
+      const observer = observers.find((entry) =>
+        entry.targets.includes(dialog),
+      );
+      expect(observer).toBeTruthy();
+
+      const rect = (top: number, bottom: number) =>
+        ({
+          top,
+          bottom,
+          left: 0,
+          right: 300,
+          width: 300,
+          height: bottom - top,
+        }) as DOMRect;
+      const row = dialog.querySelector<HTMLElement>(
+        '[data-slot="operation-form-actions"]',
+      )!;
+      dialog.getBoundingClientRect = () => rect(0, 800);
+      row.getBoundingClientRect = () => rect(640, 800);
+      const popupScrollIntoView = vi.fn();
+      dialog.scrollIntoView = popupScrollIntoView;
+      dialog.focus({ preventScroll: true });
+      observer!.callback([], {} as ResizeObserver);
+      expect(popupScrollIntoView).not.toHaveBeenCalled();
+      const amount = view.getByLabelText(/^Amount/) as HTMLInputElement;
+      const scrollIntoView = vi.fn();
+      amount.scrollIntoView = scrollIntoView;
+
+      // Clear of the row: nothing moves.
+      amount.getBoundingClientRect = () => rect(300, 340);
+      amount.focus();
+      frames.splice(0).forEach((frame) => frame(0));
+      observer!.callback([], {} as ResizeObserver);
+      expect(scrollIntoView).not.toHaveBeenCalled();
+
+      // Under the row after the dialog resized: it is revealed. The field's
+      // bottom scroll margin (the row's height) stops it above the row.
+      amount.getBoundingClientRect = () => rect(650, 690);
+      observer!.callback([], {} as ResizeObserver);
+      expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" });
+
+      // Under the row after focus moved there: revealed once focus settles.
+      scrollIntoView.mockClear();
+      const reason = view.getByLabelText("Reason") as HTMLTextAreaElement;
+      reason.scrollIntoView = scrollIntoView;
+      reason.getBoundingClientRect = () => rect(700, 760);
+      reason.focus();
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      frames.splice(0).forEach((frame) => frame(0));
+      expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" });
+
+      // Focus on the row's own buttons never scrolls the form.
+      scrollIntoView.mockClear();
+      const cancel = view.getByRole("button", { name: "Cancel" });
+      cancel.scrollIntoView = scrollIntoView;
+      cancel.getBoundingClientRect = () => rect(700, 740);
+      cancel.focus();
+      frames.splice(0).forEach((frame) => frame(0));
+      expect(scrollIntoView).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("pins the title, donor line and close button flush with the padded dialog top", async () => {
+    const { view } = renderRefundShell(
+      "00000000-0000-4000-8000-0000000000dc",
+      {},
+    );
+    await view.findByText("Refunded so far");
+    const dialog = view.getByTestId("contribution-operation-shell");
+    const header = dialog.querySelector<HTMLElement>(
+      '[data-slot="operation-dialog-header"]',
+    );
+    expect(header).toBeTruthy();
+    // Revealing a focused field on a phone scrolls the form, never the
+    // header, whose gift identity says whose money this is.
+    expect(header!.className.split(" ")).toEqual(
+      expect.arrayContaining([
+        "sticky",
+        "-top-6",
+        "-mt-6",
+        "-mx-6",
+        "bg-background",
+      ]),
+    );
+    expect(dialog.classList.contains("p-6")).toBe(true);
+    expect(dialog.classList.contains("p-0")).toBe(false);
+    const title = view.getByRole("heading", { name: "Refund gift" });
+    const identity = view.getByTestId("operation-gift-identity");
+    // One Close: the dialog's own would scroll away with the form.
+    const closes = within(dialog).getAllByRole("button", { name: "Close" });
+    expect(closes).toHaveLength(1);
+    for (const element of [title, identity, closes[0]!]) {
+      expect(header!.contains(element)).toBe(true);
+    }
+    expect(header!.contains(view.getByLabelText(/^Amount/))).toBe(false);
+  });
+
+  it.each([false, true])(
+    "opens a fieldless resend at the top with non-scrolling popup focus (cached detail: %s)",
+    async (cached) => {
+      const donationId = cached
+        ? "00000000-0000-4000-8000-0000000000d1"
+        : "00000000-0000-4000-8000-0000000000d2";
+      const detail = makeDetail({ id: donationId });
+      if (cached) {
+        getQueryClient().setQueryData(
+          contributionDetailQueryKey(donationId),
+          detail,
+        );
+      }
+      Object.defineProperty(globalThis, "fetch", {
+        configurable: true,
+        value: fetchMockForShell({}, detail),
+      });
+      // jsdom has no native focus scrolling. Model the browser's scroll
+      // when Base UI focuses a child without preventScroll, which used to
+      // leave the summary behind the pinned header before any staff input.
+      const nativeFocus = HTMLElement.prototype.focus;
+      const focus = vi
+        .spyOn(HTMLElement.prototype, "focus")
+        .mockImplementation(function (
+          this: HTMLElement,
+          options?: FocusOptions,
+        ) {
+          nativeFocus.call(this, options);
+          const dialog = this.closest<HTMLElement>(
+            '[data-testid="contribution-operation-shell"]',
+          );
+          if (dialog && !options?.preventScroll) {
+            dialog.scrollTop = 24;
+          }
+        });
+      const view = render(
+        <QueryProvider>
+          <ContributionOperationShell
+            open
+            onClose={vi.fn()}
+            operation={OPERATION_DEFINITIONS.resend_receipt!}
+            donationId={donationId}
+            sourceSurface="donor_crm_record"
+          />
+        </QueryProvider>,
+      );
+      await view.findByText("$250.00");
+      const dialog = view.getByTestId("contribution-operation-shell");
+      await waitFor(() => expect(document.activeElement).toBe(dialog));
+      expect(
+        focus.mock.calls.some(
+          ([options], index) =>
+            focus.mock.contexts[index] === dialog &&
+            options?.preventScroll === true,
+        ),
+      ).toBe(true);
+      expect(dialog.scrollTop).toBe(0);
+      expect(
+        (
+          view.getByRole("button", {
+            name: "Resend receipt",
+          }) as HTMLButtonElement
+        ).disabled,
+      ).toBe(false);
+    },
+  );
+
+  it("opens a refund on the popup without jumping past the gift summary to Amount", async () => {
+    const { view } = renderRefundShell(
+      "00000000-0000-4000-8000-0000000000df",
+      {},
+    );
+    await view.findByText("Refunded so far");
+    const dialog = view.getByTestId("contribution-operation-shell");
+    await waitFor(() => expect(document.activeElement === dialog).toBe(true));
+  });
+
+  it("does not snap a staffer who scrolled away back to the focused field on resize", async () => {
+    const observers: Array<{
+      callback: ResizeObserverCallback;
+      targets: Element[];
+    }> = [];
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        private entry: {
+          callback: ResizeObserverCallback;
+          targets: Element[];
+        };
+        constructor(callback: ResizeObserverCallback) {
+          this.entry = { callback, targets: [] };
+          observers.push(this.entry);
+        }
+        observe(target: Element) {
+          this.entry.targets.push(target);
+        }
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+    try {
+      const { view } = renderRefundShell(
+        "00000000-0000-4000-8000-0000000000dd",
+        {},
+      );
+      await view.findByText("Refunded so far");
+      const dialog = view.getByTestId("contribution-operation-shell");
+      const observer = observers.find((entry) =>
+        entry.targets.includes(dialog),
+      );
+      expect(observer).toBeTruthy();
+      const rect = (top: number, bottom: number) =>
+        ({
+          top,
+          bottom,
+          left: 0,
+          right: 300,
+          width: 300,
+          height: bottom - top,
+        }) as DOMRect;
+      const row = dialog.querySelector<HTMLElement>(
+        '[data-slot="operation-form-actions"]',
+      )!;
+      dialog.getBoundingClientRect = () => rect(0, 800);
+      row.getBoundingClientRect = () => rect(640, 800);
+      const amount = view.getByLabelText(/^Amount/) as HTMLInputElement;
+      const scrollIntoView = vi.fn();
+      amount.scrollIntoView = scrollIntoView;
+      amount.getBoundingClientRect = () => rect(300, 340);
+      amount.focus();
+      frames.splice(0).forEach((frame) => frame(0));
+
+      // The staffer scrolls up to re-read the summary; Amount keeps focus
+      // and ends up below the row. A later resize must leave them there.
+      fireEvent.wheel(dialog, { deltaY: -200 });
+      amount.getBoundingClientRect = () => rect(900, 940);
+      observer!.callback([], {} as ResizeObserver);
+      expect(scrollIntoView).not.toHaveBeenCalled();
+
+      // Moving focus again is a new request to see the field.
+      const reason = view.getByLabelText("Reason") as HTMLTextAreaElement;
+      reason.scrollIntoView = scrollIntoView;
+      reason.getBoundingClientRect = () => rect(700, 760);
+      reason.focus();
+      frames.splice(0).forEach((frame) => frame(0));
+      expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("scrolls a focused field out from under the pinned header", async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+    try {
+      const { view } = renderRefundShell(
+        "00000000-0000-4000-8000-0000000000de",
+        {},
+      );
+      await view.findByText("Refunded so far");
+      const dialog = view.getByTestId("contribution-operation-shell");
+      const rect = (top: number, bottom: number) =>
+        ({
+          top,
+          bottom,
+          left: 0,
+          right: 300,
+          width: 300,
+          height: bottom - top,
+        }) as DOMRect;
+      const header = dialog.querySelector<HTMLElement>(
+        '[data-slot="operation-dialog-header"]',
+      )!;
+      const row = dialog.querySelector<HTMLElement>(
+        '[data-slot="operation-form-actions"]',
+      )!;
+      dialog.getBoundingClientRect = () => rect(0, 800);
+      header.getBoundingClientRect = () => rect(0, 120);
+      row.getBoundingClientRect = () => rect(640, 800);
+      dialog.scrollTop = 400;
+      const amount = view.getByLabelText(/^Amount/) as HTMLInputElement;
+      const scrollIntoView = vi.fn();
+      amount.scrollIntoView = scrollIntoView;
+      // Half hidden under the header (it ends at 120).
+      amount.getBoundingClientRect = () => rect(100, 140);
+      amount.focus();
+      frames.splice(0).forEach((frame) => frame(0));
+
+      // Scrolled up by the covered part plus a small gap; scrollIntoView
+      // would have stopped it under the header.
+      expect(dialog.scrollTop).toBe(372);
+      expect(scrollIntoView).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("refunds exactly the cents typed, with or without a dollar sign", async () => {
+    const { fetchMock, view } = renderRefundShell(
+      "00000000-0000-4000-8000-0000000000e1",
+      {},
+    );
+    await submitRefund(view, "$150.10");
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body.payload).toMatchObject({ amount: 15_010 });
+  });
+
+  it("refuses amount text that is not one whole amount instead of reading part of it", async () => {
+    const { view } = renderRefundShell(
+      "00000000-0000-4000-8000-0000000000e2",
+      {},
+    );
+    await view.findByText("Refunded so far");
+    const amountInput = view.getByLabelText("Amount (USD)");
+    for (const text of ["60abc", "1,00", "0.005"]) {
+      fireEvent.change(amountInput, { target: { value: text } });
+      expect(view.getByText("Enter a valid amount.")).toBeTruthy();
+      expect(amountInput.getAttribute("aria-invalid")).toBe("true");
+    }
+    // A whole amount within the refundable $200.00 is accepted.
+    fireEvent.change(amountInput, { target: { value: "$100.00" } });
+    expect(view.queryByText("Enter a valid amount.")).toBeNull();
+  });
+
   it("rejects refund amounts above the remaining refundable amount", async () => {
     const { view } = renderRefundShell(
       "00000000-0000-4000-8000-0000000000d2",
@@ -1947,5 +2600,345 @@ describe("ContributionOperationShell", () => {
     expect(
       view.getByText(/provider error code: event_not_found/i),
     ).toBeTruthy();
+  });
+
+  describe("destination fund picker", () => {
+    const TENANT_ID = "00000000-0000-4000-8000-0000000000e1";
+
+    function fundCorrectionDetail(donationId: string) {
+      const baseDetail = makeDetail({
+        actionAvailability: [
+          {
+            actionType: "fund_correction",
+            available: true,
+            blockedReason: null,
+            nextStep: null,
+            riskLevel: "high",
+          },
+        ],
+      });
+      return {
+        ...baseDetail,
+        id: donationId,
+        tenantId: TENANT_ID,
+        shared: { ...baseDetail.shared, donationId },
+      };
+    }
+
+    function fundFetchMock(
+      detail: ReturnType<typeof fundCorrectionDetail>,
+      fundsResponse: (url: URL) => { ok: boolean; body: unknown },
+    ) {
+      return vi
+        .fn()
+        .mockImplementation(async (url: string, init?: RequestInit) => {
+          const href = String(url);
+          if (href.startsWith("/api/admin/funds")) {
+            const result = fundsResponse(new URL(href, "http://admin.test"));
+            return {
+              ok: result.ok,
+              status: result.ok ? 200 : 500,
+              json: async () => result.body,
+              text: async () => JSON.stringify(result.body),
+              headers: new Headers({ "content-type": "application/json" }),
+            };
+          }
+          if (href.includes("/actions")) {
+            return {
+              ok: true,
+              json: async () => ({
+                result: {
+                  auditEventId: "audit-fund",
+                  adjustmentId: "adj-fund",
+                  approvalStatus: "applied",
+                  taskIds: [],
+                  canonicalContribution: {},
+                },
+              }),
+              init,
+            };
+          }
+          return { ok: true, json: async () => ({ contribution: detail }) };
+        });
+    }
+
+    function renderFundShell(donationId: string) {
+      return render(
+        <QueryProvider>
+          <ContributionOperationShell
+            open
+            onClose={vi.fn()}
+            operation={OPERATION_DEFINITIONS.fund_correction!}
+            donationId={donationId}
+            sourceSurface="donor_crm_record"
+          />
+        </QueryProvider>,
+      );
+    }
+
+    it.each([false, true])(
+      "opens a fund correction at the summary without focusing Reason (cached detail: %s)",
+      async (cached) => {
+        const donationId = cached
+          ? "00000000-0000-4000-8000-000000000fa1"
+          : "00000000-0000-4000-8000-000000000fa2";
+        const detail = {
+          ...fundCorrectionDetail(donationId),
+          receiptDelivery: makeReceiptDelivery(),
+        };
+        if (cached) {
+          getQueryClient().setQueryData(
+            contributionDetailQueryKey(donationId),
+            detail,
+          );
+        }
+        const baseFetch = fundFetchMock(detail, () => ({
+          ok: true,
+          body: {
+            funds: [
+              {
+                id: "fund-2",
+                name: "Martinez Family Support",
+                tenant_id: TENANT_ID,
+              },
+            ],
+          },
+        }));
+        let releaseDetail!: () => void;
+        const detailReady = new Promise<void>((resolveDetail) => {
+          releaseDetail = resolveDetail;
+        });
+        const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+          if (url === "/api/admin/contribution-operations/" + donationId) {
+            await detailReady;
+          }
+          return baseFetch(url, init);
+        });
+        Object.defineProperty(globalThis, "fetch", {
+          configurable: true,
+          value: fetchMock,
+        });
+        const nativeFocus = HTMLElement.prototype.focus;
+        const focus = vi
+          .spyOn(HTMLElement.prototype, "focus")
+          .mockImplementation(function (
+            this: HTMLElement,
+            options?: FocusOptions,
+          ) {
+            nativeFocus.call(this, options);
+            const dialog = this.closest<HTMLElement>(
+              '[data-testid="contribution-operation-shell"]',
+            );
+            if (dialog && this.matches("textarea") && !options?.preventScroll) {
+              dialog.scrollTop = 439;
+            }
+          });
+        const view = renderFundShell(donationId);
+        const dialog = view.getByTestId("contribution-operation-shell");
+        try {
+          if (!cached) {
+            await waitFor(() => expect(document.activeElement).toBe(dialog));
+            expect(view.queryByText("Current amount")).toBeNull();
+          }
+          releaseDetail();
+          await view.findByText("Current amount");
+          await view.findByRole("combobox", { name: "Destination fund" });
+          await waitFor(() => expect(document.activeElement).toBe(dialog));
+          expect(dialog.scrollTop).toBe(0);
+          expect(
+            focus.mock.calls.some(
+              ([options], index) =>
+                focus.mock.contexts[index] === dialog &&
+                options?.preventScroll === true,
+            ),
+          ).toBe(true);
+          expect(
+            fetchMock.mock.calls.some(([url]) => url.includes("/actions")),
+          ).toBe(false);
+        } finally {
+          releaseDetail();
+        }
+      },
+    );
+
+    it("chooses the destination fund by name from the gift's own funds and submits its id", async () => {
+      const donationId = "00000000-0000-4000-8000-0000000000f1";
+      const detail = fundCorrectionDetail(donationId);
+      const fetchMock = fundFetchMock(detail, () => ({
+        ok: true,
+        body: {
+          funds: [
+            {
+              id: "fund-1",
+              name: "Clean Water Initiative",
+              tenant_id: TENANT_ID,
+            },
+            {
+              id: "fund-2",
+              name: "Martinez Family Support",
+              tenant_id: TENANT_ID,
+            },
+            {
+              id: "fund-9",
+              name: "Another Organization Fund",
+              tenant_id: "00000000-0000-4000-8000-0000000000e2",
+            },
+          ],
+        },
+      }));
+      Object.defineProperty(globalThis, "fetch", {
+        configurable: true,
+        value: fetchMock,
+      });
+
+      const view = renderFundShell(donationId);
+
+      const picker = await view.findByRole(
+        "combobox",
+        { name: "Destination fund" },
+        { timeout: 10_000 },
+      );
+      await waitFor(() =>
+        expect(picker.textContent).toContain("Choose a fund"),
+      );
+      // The directory is asked for this gift's organization only.
+      const fundsCall = fetchMock.mock.calls.find(([url]) =>
+        String(url).startsWith("/api/admin/funds"),
+      );
+      const fundsUrl = new URL(String(fundsCall![0]), "http://admin.test");
+      expect(fundsUrl.searchParams.get("tenantId")).toBe(TENANT_ID);
+
+      fireEvent.click(picker);
+      const search = await view.findByRole("combobox", {
+        name: "Search funds",
+      });
+      // The gift's current fund and other organizations' funds are never
+      // offered.
+      expect(
+        view.queryByRole("option", { name: "Clean Water Initiative" }),
+      ).toBeNull();
+      expect(
+        view.queryByRole("option", { name: "Another Organization Fund" }),
+      ).toBeNull();
+      fireEvent.change(search, { target: { value: "Martinez" } });
+      await view.findByRole("option", { name: "Martinez Family Support" });
+      fireEvent.keyDown(search, { key: "ArrowDown" });
+      fireEvent.keyDown(search, { key: "Enter" });
+      await waitFor(() =>
+        expect(picker.textContent).toContain("Martinez Family Support"),
+      );
+
+      fireEvent.change(view.getByLabelText("Reason"), {
+        target: { value: "Donor asked to support the Martinez family" },
+      });
+      fireEvent.click(view.getByRole("checkbox"));
+      fireEvent.click(
+        view.getByRole("button", { name: "Correct fund designation" }),
+      );
+
+      await view.findByTestId("operation-result-panel");
+      const actionCall = fetchMock.mock.calls.find(([url]) =>
+        String(url).includes("/actions"),
+      );
+      const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+      expect(body.actionType).toBe("fund_correction");
+      expect(body.payload).toEqual({ fundId: "fund-2" });
+    });
+
+    it("pages through the whole directory so funds past the first page can be chosen", async () => {
+      const donationId = "00000000-0000-4000-8000-0000000000f2";
+      const detail = fundCorrectionDetail(donationId);
+      const fetchMock = fundFetchMock(detail, (url) => {
+        const offset = Number(url.searchParams.get("offset") ?? "0");
+        const limit = Number(url.searchParams.get("limit"));
+        const funds =
+          offset === 0
+            ? Array.from({ length: limit }, (_, index) => ({
+                id: `fund-page-${index}`,
+                name: `Aardvark fund ${index}`,
+                tenant_id: TENANT_ID,
+              }))
+            : [
+                {
+                  id: "fund-late",
+                  name: "Zebra Relief",
+                  tenant_id: TENANT_ID,
+                },
+              ];
+        return { ok: true, body: { funds } };
+      });
+      Object.defineProperty(globalThis, "fetch", {
+        configurable: true,
+        value: fetchMock,
+      });
+
+      const view = renderFundShell(donationId);
+      const picker = await view.findByRole(
+        "combobox",
+        { name: "Destination fund" },
+        { timeout: 10_000 },
+      );
+      await waitFor(() =>
+        expect(picker.textContent).toContain("Choose a fund"),
+      );
+      fireEvent.click(picker);
+      const search = await view.findByRole("combobox", {
+        name: "Search funds",
+      });
+      fireEvent.change(search, { target: { value: "Zebra" } });
+      expect(
+        await view.findByRole("option", { name: "Zebra Relief" }),
+      ).toBeTruthy();
+      const offsets = fetchMock.mock.calls
+        .map(([url]) => String(url))
+        .filter((url) => url.startsWith("/api/admin/funds"))
+        .map((url) =>
+          new URL(url, "http://admin.test").searchParams.get("offset"),
+        );
+      expect(offsets).toEqual(["0", "200"]);
+    });
+
+    it("says when funds could not load and offers to try again", async () => {
+      const donationId = "00000000-0000-4000-8000-0000000000f3";
+      const detail = fundCorrectionDetail(donationId);
+      let fail = true;
+      const fetchMock = fundFetchMock(detail, () =>
+        fail
+          ? { ok: false, body: { error: "private database details" } }
+          : {
+              ok: true,
+              body: {
+                funds: [
+                  {
+                    id: "fund-2",
+                    name: "Martinez Family Support",
+                    tenant_id: TENANT_ID,
+                  },
+                ],
+              },
+            },
+      );
+      Object.defineProperty(globalThis, "fetch", {
+        configurable: true,
+        value: fetchMock,
+      });
+
+      const view = renderFundShell(donationId);
+      expect(
+        await view.findByText("Couldn’t load funds.", {}, { timeout: 10_000 }),
+      ).toBeTruthy();
+      expect(view.queryByText(/private database details/)).toBeNull();
+      const picker = view.getByRole("combobox", { name: "Destination fund" });
+      expect(picker.hasAttribute("data-disabled")).toBe(true);
+
+      fail = false;
+      fireEvent.click(view.getByRole("button", { name: "Try again" }));
+      await waitFor(() =>
+        expect(view.queryByText("Couldn’t load funds.")).toBeNull(),
+      );
+      await waitFor(() =>
+        expect(picker.textContent).toContain("Choose a fund"),
+      );
+    });
   });
 });

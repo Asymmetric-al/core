@@ -1,0 +1,57 @@
+/* Payload's stock views inside Mission Control (API, Versions, account and
+   any code field). Loaded with the Studio chrome Payload renders in its
+   default template; the rest of Payload's theming lives in
+   src/styles/payloadStyles.css. */
+
+/* Payload's light code-editor theme draws Monaco's line numbers at 30% black
+   (#0000004d), about 2.1:1 on the editor and below WCAG AA. The shared muted
+   text color reads as secondary at AA; the current line reads as body text.
+   Monaco's rules carry three classes, these more, so no important flags are
+   needed. The dark theme's 70% white numbers already pass and are left
+   alone. */
+.code-editor .monaco-editor.vs .margin-view-overlays .line-numbers {
+  color: var(--muted-foreground);
+}
+
+.code-editor
+  .monaco-editor.vs
+  .margin-view-overlays
+  .line-numbers.active-line-number {
+  color: var(--foreground);
+}
+
+/* Payload's document tabs (Edit, Versions, API) on the stock Versions and API
+   views. The Studio tab (studio-document-tab.tsx) puts each link in a list
+   item so the tab list is a valid list; these carry over the colors Payload
+   gives its own `.doc-tab`: muted, body text on hover and for the current
+   view (Payload marks it disabled, so it keeps the default cursor). */
+.doc-tabs__tabs > li > .btn {
+  color: var(--color-text-secondary);
+}
+
+.doc-tabs__tabs > li > .btn:hover,
+.doc-tabs__tabs > li > .btn--style-pill {
+  color: var(--color-text);
+}
+
+.doc-tabs__tabs > li > .btn--style-pill.btn--disabled {
+  cursor: default;
+}
+
+.doc-tabs__tabs > li > .btn:is(:hover, .btn--style-pill) .pill-version-count {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text);
+}
+
+/* Payload's Versions table on a phone: Payload lets the table run past the
+   viewport (`max-width: unset` below 768px) and the Studio shell clips it,
+   hiding the Version ID column. Keep it inside the page and scroll it. */
+.versions .table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Its pager wraps rather than cutting off "Per page". */
+.versions .page-controls__inner {
+  flex-wrap: wrap;
+}

@@ -17,6 +17,8 @@
     "./components/shadcn/data-grid": "./components/shadcn/data-grid/index.ts",
     "./components/shadcn/data-grid/*": "./components/shadcn/data-grid/*.tsx",
     "./components/shadcn/data-grid/types": "./components/shadcn/data-grid/types.ts",
+    "./components/reui/data-grid/*": "./components/reui/data-grid/*.tsx",
+    "./components/data-grid-panel": "./components/data-grid-panel/index.ts",
     "./components/auth": "./components/auth/index.ts",
     "./components/auth/*": "./components/auth/*.tsx",
     "./components/shadcn-studio/blocks/*": "./components/shadcn-studio/blocks/*.tsx",

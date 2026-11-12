@@ -34,13 +34,19 @@ export async function GET(request: NextRequest) {
         *,
         author:profiles!missionary_id(id, first_name, last_name, avatar_url, role)
       `,
+        { count: "exact" },
       )
       .eq("tenant_id", ctx.tenantId)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (status) {
-      query = query.eq("status", status);
+      const statuses = status
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean);
+      if (statuses.length === 1) query = query.eq("status", statuses[0]!);
+      else if (statuses.length > 1) query = query.in("status", statuses);
     }
 
     if (missionaryId) {
@@ -55,34 +61,49 @@ export async function GET(request: NextRequest) {
       query = query.eq("post_type", postType);
     }
 
-    const { data: posts, error } = await query;
+    const { data: posts, error, count: filteredCount } = await query;
 
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
 
-    const { count: flaggedCount } = await supabaseAdmin
+    const { count: flaggedCount, error: flaggedError } = await supabaseAdmin
       .from("posts")
       .select("*", { count: "exact", head: true })
       .eq("tenant_id", ctx.tenantId)
       .eq("status", "flagged");
 
-    const { count: hiddenCount } = await supabaseAdmin
+    const { count: hiddenCount, error: hiddenError } = await supabaseAdmin
       .from("posts")
       .select("*", { count: "exact", head: true })
       .eq("tenant_id", ctx.tenantId)
       .eq("status", "hidden");
 
-    const { count: totalCount } = await supabaseAdmin
+    const { count: totalCount, error: totalError } = await supabaseAdmin
       .from("posts")
       .select("*", { count: "exact", head: true })
       .eq("tenant_id", ctx.tenantId);
 
+    const countError = flaggedError ?? hiddenError ?? totalError;
+    if (countError)
+      return NextResponse.json({ error: countError.message }, { status: 500 });
+    if (
+      filteredCount === null ||
+      flaggedCount === null ||
+      hiddenCount === null ||
+      totalCount === null
+    ) {
+      return NextResponse.json(
+        { error: "Post counts unavailable" },
+        { status: 500 },
+      );
+    }
     return NextResponse.json({
+      total: filteredCount,
       posts: posts || [],
       stats: {
-        total: totalCount || 0,
-        flagged: flaggedCount || 0,
-        hidden: hiddenCount || 0,
+        total: totalCount,
+        flagged: flaggedCount,
+        hidden: hiddenCount,
       },
     });
   } catch (e) {

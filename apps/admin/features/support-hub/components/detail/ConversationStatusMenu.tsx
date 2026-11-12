@@ -14,6 +14,7 @@ import { cn } from "@asym/ui/lib/utils";
 import { Check, ChevronDown } from "lucide-react";
 
 import { useSetSupportConversationStatus } from "../../hooks/use-support-mutations";
+import { CONVERSATION_STATUS_LABELS } from "../../lib/status-labels";
 import {
   SUPPORT_CONVERSATION_STATUSES,
   type SupportConversation,
@@ -24,12 +25,7 @@ interface ConversationStatusMenuProps {
   conversation: SupportConversation;
 }
 
-const STATUS_LABELS: Record<SupportConversationStatus, string> = {
-  open: "Open",
-  pending: "Pending",
-  snoozed: "Snoozed",
-  resolved: "Resolved",
-};
+const STATUS_LABELS = CONVERSATION_STATUS_LABELS;
 
 const STATUS_TRIGGER_TONES: Record<SupportConversationStatus, string> = {
   open: "bg-warning",

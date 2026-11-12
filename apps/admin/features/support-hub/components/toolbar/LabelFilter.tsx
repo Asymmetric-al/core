@@ -17,7 +17,6 @@ import {
   InputGroup,
   InputGroupAddon,
 } from "@asym/ui/components/shadcn/input-group";
-import { cn } from "@asym/ui/lib/utils";
 import { Check, Search, Settings2, Tag } from "lucide-react";
 import * as React from "react";
 
@@ -73,24 +72,18 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
           if (details.isItemPress) details.cancel();
         }}
       >
+        {/* Same height as the Status and Assignee selects beside it. On
+            phones the tag icon stands for the word (the name stays), so
+            the selects beside it keep room for their values. */}
         <ComboboxTrigger
-          aria-label="Labels"
-          render={<Button variant="outline" size="sm" />}
-          className={cn(
-            "h-10 gap-2 rounded-xl border-border bg-background px-3 text-xs font-medium text-foreground",
-            activeCount > 0 && "border-input",
-          )}
+          aria-label={
+            activeCount > 0 ? `Labels, ${activeCount} selected` : "Labels"
+          }
+          render={<Button variant="outline" />}
         >
-          <Tag className="size-3.5 text-muted-foreground" />
-          <span>Labels</span>
-          {activeCount > 0 && (
-            <Badge
-              variant="secondary"
-              className="h-5 min-w-[1.25rem] justify-center rounded-md border-transparent bg-primary px-1.5 font-semibold tabular-nums text-primary-foreground"
-            >
-              {activeCount}
-            </Badge>
-          )}
+          <Tag aria-hidden="true" className="text-muted-foreground" />
+          <span className="sr-only sm:not-sr-only">Labels</span>
+          {activeCount > 0 && <Badge variant="secondary">{activeCount}</Badge>}
         </ComboboxTrigger>
         <ComboboxContent aria-label="Labels" className="w-64 p-0">
           <InputGroup className="m-2 mb-0 w-auto shadow-none">

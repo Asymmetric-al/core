@@ -12,14 +12,15 @@ This document freezes the in-scope surfaces for TanStack Table + Query + DB + Vi
 | ---------------- | ----------------------------------------------------------------- | ---------------------------------- |
 | Contributions    | `app/contributions/contributions-client.tsx`                      | `DataTable` + client `useQuery`    |
 | CRM              | `app/crm/page.tsx`                                                | `DataTableResponsive`              |
-| Tasks            | `app/tasks/tasks-content-sections.tsx`                            | `DataTableWrapper`                 |
+| Tasks            | `app/tasks/follow-ups-grid.tsx`                                   | `DataGridPanel` + `useTable`       |
 | Locations        | `features/mission-control/locations/components/LocationTable.tsx` | `DataTableWrapper`                 |
 | Personnel / care | `features/mission-control/care/components/PersonnelList.tsx`      | `DataTableWrapper`                 |
 | Events attendees | `app/events/page.tsx`                                             | Raw shadcn `Table` / `TableHeader` |
-| Mobilize         | `app/mobilize/mobilize-sections.tsx`                              | Raw shadcn `Table`                 |
 | Teams            | `app/admin/teams/teams-sections.tsx`                              | Raw shadcn `Table`                 |
 
-**Column defs only (no table shell):** `app/contributions/columns.tsx`, `app/crm/columns.tsx`, `app/tasks/task-columns.tsx`, `app/tasks/columns.tsx` (duplicate; consolidate to `task-columns`).
+**Column defs only (no table shell):** `app/contributions/columns.tsx`, `app/crm/columns.tsx`.
+
+The Mobilize pipeline no longer renders a table: it shows a "Pipeline not connected yet" state until real candidate data exists, and the sample-task board and its column defs were removed.
 
 ## Donor (`apps/donor`)
 

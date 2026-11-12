@@ -121,32 +121,19 @@ describe("wallet and sibling strip exits", () => {
     expect(presence).toMatch(/mode=["']popLayout["']/);
   });
 
+  // Admin Feed is motion-free (like the rest of Mission Control): its
+  // compose media strip mounts and unmounts at once, so there is no exit to
+  // hold space.
+  it.each([["org-updates", "page-client.tsx"]])(
+    "keeps admin Feed strips free of exit animation (%s)",
+    (...file) => {
+      const source = readRepo("apps", "admin", "app", "(app)", "feed", ...file);
+      expect(source).not.toMatch(/from ["']motion\/react["']/);
+      expect(source).not.toContain("AnimatePresence");
+    },
+  );
+
   it.each([
-    {
-      name: "moderation flag-reason strip",
-      parts: [
-        "apps",
-        "admin",
-        "app",
-        "(app)",
-        "feed",
-        "content-moderation-sections.tsx",
-      ] as const,
-      marker: "{post.flagReason &&",
-    },
-    {
-      name: "org-updates compose media strip",
-      parts: [
-        "apps",
-        "admin",
-        "app",
-        "(app)",
-        "feed",
-        "org-updates",
-        "page-client.tsx",
-      ] as const,
-      marker: "{selectedMedia.length > 0 &&",
-    },
     {
       name: "worker-feed compose media strip",
       parts: [

@@ -52,6 +52,7 @@ function createSummariesClientMock(options: {
   sagaRows?: unknown[];
   inboundRows?: unknown[];
   reviewRows?: unknown[];
+  errorTable?: string;
 }) {
   const tenantFilters: Array<{ table: string; tenantId: unknown }> = [];
 
@@ -82,7 +83,13 @@ function createSummariesClientMock(options: {
             error: null,
           }),
         then: (resolve: (value: unknown) => unknown) =>
-          resolve({ data: resolveTableData(table), error: null }),
+          resolve({
+            data: options.errorTable === table ? null : resolveTableData(table),
+            error:
+              options.errorTable === table
+                ? { message: "private database details" }
+                : null,
+          }),
       };
       return builder;
     },
@@ -92,6 +99,23 @@ function createSummariesClientMock(options: {
 }
 
 describe("workflow run summaries (#298)", () => {
+  it.each([
+    ["donation_saga_outbox", "donation_saga_outbox"],
+    ["stripe_raw_events", "stripe_raw_event"],
+    ["email_inbound_messages", "email_inbound_message"],
+    ["support_inbound_routing_reviews", "email_inbound_message"],
+  ])(
+    "rejects a failed %s outcome read instead of claiming processing",
+    async (errorTable, subjectType) => {
+      const mock = createSummariesClientMock({
+        ledgerRows: [ledgerRow({ subject_type: subjectType })],
+        errorTable,
+      });
+      await expect(
+        summarizeWorkflowRuns(mock.client, TENANT_ID),
+      ).rejects.toThrow(`workflow_summaries_failed: ${errorTable}`);
+    },
+  );
   it("projects ledger and product state into staff-facing summary states", async () => {
     const mock = createSummariesClientMock({
       ledgerRows: [
@@ -207,13 +231,30 @@ describe("workflow notification policy (#298)", () => {
     expect(decision.level).toBe("urgent");
   });
 
-  it("treats review-held work as urgent (staff action required)", () => {
+  it("keeps review-held email visible, not urgent: staff can't route it", () => {
+    // No staff screen routes a held email; only an administrator can, so
+    // counting it as urgent staff work would ask staff for the impossible.
     const decision = evaluateWorkflowNotification({
       productArea: "email",
       state: "action_required",
     });
 
-    expect(decision.level).toBe("urgent");
+    expect(decision.level).toBe("visible");
+    expect(decision.reason).toMatch(/administrator/i);
+    expect(decision.reason).not.toMatch(/staff action/i);
+  });
+
+  it("leaves review-held email out of the urgent count", () => {
+    const counts = countWorkflowNotifications(
+      (
+        [
+          { productArea: "email", state: "action_required" },
+          { productArea: "email", state: "dead_letter" },
+        ] as const
+      ).map((input) => evaluateWorkflowNotification(input)),
+    );
+
+    expect(counts).toEqual({ urgent: 1, visible: 1 });
   });
 
   it("treats failed money workflows as urgent (donor trust, money integrity)", () => {

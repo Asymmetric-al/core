@@ -1,4 +1,5 @@
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
+import { studioDocumentEditViews } from "../../cms-ui/web-studio/shell/document-tabs";
 import {
   PUBLIC_COLLECTION_CAPABILITIES,
   publishedPublicReadAccess,
@@ -28,12 +29,9 @@ export const Navigation: CollectionConfig = {
                 Component:
                   "/src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx#NavigationNativeListView",
               },
-              edit: {
-                default: {
-                  Component:
-                    "/src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx#NavigationNativeEditView",
-                },
-              },
+              edit: studioDocumentEditViews(
+                "/src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx#NavigationNativeEditView",
+              ),
             },
           },
         }
@@ -56,6 +54,7 @@ export const Navigation: CollectionConfig = {
   fields: [
     {
       name: "tenant",
+      label: "Organization",
       type: "relationship",
       relationTo: "tenants",
       required: true,

@@ -1,29 +1,17 @@
-import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Suspense } from "react";
 
+import Loading from "./loading";
 import PageClient from "./page-client";
 import { CRM_PAGE_META } from "../../../components/table-page-meta";
 
-function CrmPageFallback() {
-  return (
-    <PageShell
-      title={CRM_PAGE_META.title}
-      description={CRM_PAGE_META.description}
-      density={CRM_PAGE_META.density}
-    >
-      <div
-        role="status"
-        className="flex min-h-100 items-center justify-center rounded-lg border border-border bg-card text-sm text-muted-foreground"
-      >
-        Loading CRM workspace...
-      </div>
-    </PageShell>
-  );
-}
+import type { Metadata } from "next";
+
+// Same source as the PageShell heading, so the tab title cannot drift.
+export const metadata: Metadata = { title: CRM_PAGE_META.title };
 
 export default function Page() {
   return (
-    <Suspense fallback={<CrmPageFallback />}>
+    <Suspense fallback={<Loading />}>
       <PageClient />
     </Suspense>
   );

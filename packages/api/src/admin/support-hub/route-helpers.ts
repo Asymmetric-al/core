@@ -2,6 +2,8 @@ import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { ZodError, type ZodType } from "zod";
 
 import { supportHubAdapter } from "./adapter";
+import { SupportCannedResponseError } from "./canned-response-error";
+import { matchSupportAgentId, SupportHubForbiddenError } from "./ownership";
 import { runWithSupportHubTenant } from "./request-context";
 
 export type SupportHubContext = {
@@ -9,6 +11,8 @@ export type SupportHubContext = {
   userId: string;
   userEmail: string | null;
   isSuperAdmin: boolean;
+  /** Support admins manage every agent’s preferences and saved views. */
+  canManageAll: boolean;
 };
 
 type AuthResult =
@@ -53,6 +57,7 @@ export async function requireSupportHubAccess(
       userEmail: auth.email,
       isSuperAdmin:
         auth.role === "super_admin" || auth.profileRole === "super_admin",
+      canManageAll: hasAnyContextRole(auth, ["admin", "super_admin"]),
     },
   };
 }
@@ -75,13 +80,7 @@ export async function withSupportHubAccess(
 export async function resolveCurrentSupportAgentId(
   context: SupportHubContext,
 ): Promise<string | null> {
-  const agents = await supportHubAdapter.agents.list();
-  const userEmail = context.userEmail?.trim().toLowerCase() ?? null;
-  const match = agents.find((agent) => {
-    if (agent.id === context.userId) return true;
-    return userEmail ? agent.email.toLowerCase() === userEmail : false;
-  });
-  return match?.id ?? null;
+  return matchSupportAgentId(await supportHubAdapter.agents.list(), context);
 }
 
 export async function readJsonBody<T = unknown>(
@@ -129,6 +128,12 @@ export function toApiErrorResponse(
   fallbackMessage: string,
   status = 500,
 ): Response {
+  if (error instanceof SupportCannedResponseError) {
+    return Response.json({ error: error.message }, { status: error.status });
+  }
+  if (error instanceof SupportHubForbiddenError) {
+    return Response.json({ error: error.message }, { status: 403 });
+  }
   if (error instanceof ZodError) {
     return Response.json(
       { error: "Invalid request payload.", details: error.flatten() },

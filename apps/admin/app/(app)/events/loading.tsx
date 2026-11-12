@@ -1,13 +1,20 @@
-import { TablePageFallback } from "@/components/table-page-fallback";
-import { EVENTS_PAGE_META } from "@/components/table-page-meta";
-
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 export default function Loading() {
   return (
-    <TablePageFallback
-      title={EVENTS_PAGE_META.title}
-      description={EVENTS_PAGE_META.description}
-      density={EVENTS_PAGE_META.density}
-      columnCount={5}
-    />
+    <PageShell
+      title="Events"
+      description="Event registration, venues, speakers and attendees will appear here when connected."
+      density="compact"
+    >
+      <div
+        role="status"
+        aria-label="Loading Events"
+        className="flex flex-col gap-4"
+      >
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+    </PageShell>
   );
 }

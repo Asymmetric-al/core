@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import { AuthShell } from "./auth-primitives";
 import { DemoOnlyLoginCard } from "./DemoOnlyLoginCard";
 import { FullLoginCard } from "./FullLoginCard";
 
@@ -30,7 +31,8 @@ export interface LoginScreenProps {
   title?: string;
   subtitle?: string;
   registerHref?: string;
-  forgotPasswordHref?: string;
+  /** Null hides the link where password reset is not offered. */
+  forgotPasswordHref?: string | null;
   showRegisterLink?: boolean;
 }
 
@@ -53,7 +55,7 @@ export function LoginScreen({
   appId,
   nextPath,
   demoOnly,
-  title = "Sign In",
+  title = "Sign in",
   subtitle = "Sign in to continue",
   registerHref = "/register",
   forgotPasswordHref = "/forgot-password",
@@ -171,38 +173,35 @@ export function LoginScreen({
   );
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-muted px-4 py-8">
-      <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-background via-muted to-muted" />
-      <div className="relative z-10 w-full max-w-md">
-        {demoOnly ? (
-          <DemoOnlyLoginCard
-            title={title}
-            subtitle={subtitle}
-            buttonLabel="Demo Access"
-            isLoading={isDemoSubmitting}
-            error={error}
-            onDemoLogin={handleDemoLogin}
-          />
-        ) : (
-          <FullLoginCard
-            title={title}
-            subtitle={subtitle}
-            email={email}
-            password={password}
-            isLoading={isSubmitting}
-            error={error}
-            demoEnabled={isDemoEnabled}
-            demoLoading={isDemoSubmitting}
-            registerHref={registerHref}
-            forgotPasswordHref={forgotPasswordHref}
-            showRegisterLink={showRegisterLink}
-            onEmailChange={setEmail}
-            onPasswordChange={setPassword}
-            onSubmit={handleFullLogin}
-            onDemoLogin={handleDemoLogin}
-          />
-        )}
-      </div>
-    </main>
+    <AuthShell>
+      {demoOnly ? (
+        <DemoOnlyLoginCard
+          title={title}
+          subtitle={subtitle}
+          buttonLabel="Demo access"
+          isLoading={isDemoSubmitting}
+          error={error}
+          onDemoLogin={handleDemoLogin}
+        />
+      ) : (
+        <FullLoginCard
+          title={title}
+          subtitle={subtitle}
+          email={email}
+          password={password}
+          isLoading={isSubmitting}
+          error={error}
+          demoEnabled={isDemoEnabled}
+          demoLoading={isDemoSubmitting}
+          registerHref={registerHref}
+          forgotPasswordHref={forgotPasswordHref}
+          showRegisterLink={showRegisterLink}
+          onEmailChange={setEmail}
+          onPasswordChange={setPassword}
+          onSubmit={handleFullLogin}
+          onDemoLogin={handleDemoLogin}
+        />
+      )}
+    </AuthShell>
   );
 }

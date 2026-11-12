@@ -7,6 +7,7 @@ const {
   getSupportSummaryMock,
   getSupportTicketMock,
   listSupportTicketsMock,
+  listSupportContactsMock,
 } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
   getAuthContextMock: vi.fn(),
@@ -14,6 +15,7 @@ const {
   getSupportSummaryMock: vi.fn(),
   getSupportTicketMock: vi.fn(),
   listSupportTicketsMock: vi.fn(),
+  listSupportContactsMock: vi.fn(),
 }));
 
 vi.mock("@asym/database/supabase/admin", () => ({
@@ -37,10 +39,13 @@ vi.mock("../../../../packages/api/src/admin/support/service", () => ({
   getSupportSummary: getSupportSummaryMock,
   getSupportTicket: getSupportTicketMock,
   listSupportTickets: listSupportTicketsMock,
+  listSupportContacts: listSupportContactsMock,
 }));
 
 import {
   loadSupportHubReadModel,
+  loadSupportContacts,
+  loadSupportTicketIntake,
   loadSupportTicketDetail,
   loadSupportTicketList,
 } from "../../../../packages/api/src/admin/support/loaders";
@@ -82,6 +87,29 @@ describe("admin support server loaders", () => {
     ]);
   });
 
+  it("loads saved contacts and intake for the authenticated tenant", async () => {
+    listSupportContactsMock.mockResolvedValue(summary.contacts);
+    await expect(loadSupportContacts()).resolves.toEqual(summary.contacts);
+    expect(listSupportContactsMock).toHaveBeenCalledWith(
+      supabaseAdmin,
+      "tenant-1",
+    );
+    await expect(loadSupportTicketIntake()).resolves.toEqual({
+      contacts: summary.contacts,
+      queues: summary.queues,
+    });
+    expect(getSupportMetadataMock).toHaveBeenCalledWith(
+      supabaseAdmin,
+      "tenant-1",
+    );
+  });
+  it("does not read contacts or intake for an unauthorized role", async () => {
+    getAuthContextMock.mockResolvedValue({ ...authContext, role: "donor" });
+    await expect(loadSupportContacts()).rejects.toThrow("Forbidden");
+    await expect(loadSupportTicketIntake()).rejects.toThrow("Forbidden");
+    expect(listSupportContactsMock).not.toHaveBeenCalled();
+    expect(getSupportMetadataMock).not.toHaveBeenCalled();
+  });
   it("loads the Support Hub read model through tenant-scoped package services", async () => {
     await expect(loadSupportHubReadModel()).resolves.toBe(summary);
 

@@ -189,8 +189,14 @@ function AsymFieldShell({
   label,
   labelClassName,
   orientation = "vertical",
+  controlBeside = false,
 }: AsymFieldBaseProps & {
   children: React.ReactNode;
+  /**
+   * A horizontal toggle (switch): label and description stack together and
+   * the control sits beside them, as shadcn's horizontal Field composes it.
+   */
+  controlBeside?: boolean;
   controlId: string;
   descriptionId: string;
   errorId: string;
@@ -213,7 +219,7 @@ function AsymFieldShell({
       name={name ?? field.name}
       render={<Field orientation={orientation} />}
     >
-      {label ? (
+      {label && !controlBeside ? (
         <FieldPrimitive.Label
           className={labelClassName}
           htmlFor={controlId}
@@ -224,7 +230,17 @@ function AsymFieldShell({
         </FieldPrimitive.Label>
       ) : null}
       <FieldContent className={contentClassName}>
-        {children}
+        {label && controlBeside ? (
+          <FieldPrimitive.Label
+            className={labelClassName}
+            htmlFor={controlId}
+            nativeLabel={!nonNativeLabel}
+            render={nonNativeLabel ? <FieldTitle /> : <FieldLabel />}
+          >
+            {label}
+          </FieldPrimitive.Label>
+        ) : null}
+        {controlBeside ? null : children}
         {description ? (
           <FieldPrimitive.Description
             id={descriptionId}
@@ -241,6 +257,7 @@ function AsymFieldShell({
           render={<FieldError errors={errors} />}
         />
       </FieldContent>
+      {controlBeside ? children : null}
     </FieldPrimitive.Root>
   );
 }
@@ -590,10 +607,8 @@ function AsymSwitchField({
   return (
     <AsymFieldShell
       className={cn("items-center justify-between", className)}
-      contentClassName={cn(
-        orientation === "horizontal" ? "items-end" : undefined,
-        contentClassName,
-      )}
+      contentClassName={contentClassName}
+      controlBeside={orientation === "horizontal"}
       controlId={controlId}
       description={description}
       descriptionId={descriptionId}

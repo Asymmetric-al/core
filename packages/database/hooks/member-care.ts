@@ -27,10 +27,11 @@ export type MemberCareActivityType =
 export type MemberCarePersonnel = {
   id: string;
   name: string;
+  nameMissing: boolean;
   location: string;
   timezone: string;
   status: MemberCarePriority;
-  lastCheckIn: string;
+  lastCheckIn: string | null;
   initials: string;
   avatarUrl?: string;
   role: string;
@@ -42,10 +43,10 @@ export type MemberCarePersonnel = {
     | "Middle East"
     | "North America";
   healthSignals: {
-    emotional: number;
-    spiritual: number;
-    physical: number;
-    financial: number;
+    emotional: number | null;
+    spiritual: number | null;
+    physical: number | null;
+    financial: number | null;
   };
   careGaps: string[];
   manualAttention?: boolean;
@@ -53,6 +54,7 @@ export type MemberCarePersonnel = {
 };
 
 export type MemberCareActivity = {
+  kind: "thread" | "activity";
   id: string;
   personnelId: string;
   type: MemberCareActivityType;
@@ -89,16 +91,25 @@ export type MemberCareRequirement = {
 };
 
 export type MemberCareDashboardResponse = {
+  lastContacts: MemberCareLastContacts;
+  personnelTotal: number;
   personnel: MemberCarePersonnel[];
   activities: MemberCareActivity[];
   goals: MemberCareGoal[];
   requirements: MemberCareRequirement[];
 };
 
+export type MemberCareLastContacts = Record<
+  string,
+  Partial<Record<MemberCareActivityType, string>>
+>;
+
 export type MemberCareDetailResponse = {
   personnel: MemberCarePersonnel | null;
   activities: MemberCareActivity[];
   privateNotes: MemberCarePrivateNote[];
+  goals: MemberCareGoal[];
+  requirements: MemberCareRequirement[];
 };
 
 type MutationResponse = {
@@ -145,6 +156,15 @@ async function fetchMemberCareDetail(
     },
   );
 
+  if (response.status === 404) {
+    return {
+      personnel: null,
+      activities: [],
+      privateNotes: [],
+      goals: [],
+      requirements: [],
+    };
+  }
   return parseJsonResponse<MemberCareDetailResponse>(response);
 }
 
@@ -193,6 +213,10 @@ export function useCarePersonnel() {
   return {
     ...query,
     data: query.data?.personnel ?? [],
+    personnelTotal: query.data?.personnelTotal ?? 0,
+    activities: query.data?.activities ?? [],
+    requirements: query.data?.requirements ?? [],
+    lastContacts: query.data?.lastContacts,
   };
 }
 

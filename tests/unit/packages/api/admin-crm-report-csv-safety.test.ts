@@ -61,7 +61,7 @@ describe("serializeAdminCrmReportCsv — export hardening", () => {
   });
 
   it("quotes the header row through the shared serializer", () => {
-    expect(csv.slice(1)).toMatch(/^"id","label","amount_cents"/);
+    expect(csv.slice(1)).toMatch(/^"id","label","net_amount_cents"/);
   });
 
   it("neutralizes spreadsheet formula injection after a leading no-break space in the label column", () => {

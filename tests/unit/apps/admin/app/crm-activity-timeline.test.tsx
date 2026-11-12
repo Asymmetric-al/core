@@ -146,6 +146,7 @@ function donorDetail(
         description: "Matching native gift timeline entry",
         amountCents,
         currencyCode,
+        paymentStatus: "completed",
         source: "platform",
         visibility: "standard",
       },
@@ -242,7 +243,7 @@ async function renderActivity(detail: CrmDonorDetailResponse) {
     </QueryClientProvider>,
   );
   const dialog = await screen.findByRole("dialog", {
-    name: "Timeline Regression Donor, CRM record details",
+    name: "Timeline Regression Donor",
   });
   const activity = within(dialog).getByRole("tabpanel", { name: "Activity" });
   // Wait for the public loading state to finish, including empty responses.
@@ -365,15 +366,12 @@ describe("CRM Activity timeline money display (#1990)", () => {
     expect(within(gift).getByText("$0.00", { exact: true })).toBeTruthy();
   });
 
-  it("keeps the existing empty Activity timeline message", async () => {
+  it("says plainly when a record has no activity", async () => {
     const detail = donorDetail(null);
     detail.timeline = [];
     const activity = await renderActivity(detail);
     expect(
-      activity.getByText(
-        "No timeline entries yet. Activity from donations and tasks will appear here as the CRM read model expands.",
-        { exact: true },
-      ),
+      activity.getByText("No activity recorded yet.", { exact: true }),
     ).toBeTruthy();
   });
 

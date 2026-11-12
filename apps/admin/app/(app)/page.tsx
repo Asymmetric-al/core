@@ -1,11 +1,12 @@
 import { getAuthContext } from "@asym/auth/context";
 
-import {
-  loadDashboardMissionaryId,
-  loadDashboardStats,
-} from "./dashboard-stats-loader";
+import { loadDashboardStats } from "./dashboard-stats-loader";
+
+import type { Metadata } from "next";
 
 import { MissionControlHome } from "@/features/mission-control/components/tiles/mission-control-home";
+
+export const metadata: Metadata = { title: "Home" };
 
 export default async function MissionControlDashboard() {
   const auth = await getAuthContext();
@@ -14,19 +15,6 @@ export default async function MissionControlDashboard() {
     return <MissionControlHome />;
   }
 
-  const [stats, dashboardMissionaryId] = await Promise.all([
-    loadDashboardStats(auth.tenantId),
-    loadDashboardMissionaryId(auth.tenantId),
-  ]);
-
-  if (!stats) {
-    return <MissionControlHome dashboardMissionaryId={dashboardMissionaryId} />;
-  }
-
-  return (
-    <MissionControlHome
-      dashboardMissionaryId={dashboardMissionaryId}
-      stats={stats}
-    />
-  );
+  const stats = await loadDashboardStats(auth.tenantId);
+  return <MissionControlHome stats={stats} />;
 }

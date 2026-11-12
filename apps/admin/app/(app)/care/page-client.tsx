@@ -1,91 +1,82 @@
 "use client";
 
-import { motion } from "@asym/lib/motion";
-import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
+import { MetricGrid } from "@asym/ui/components/primitives/metric-card";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { cn } from "@asym/ui/lib/utils";
-import { Heart, BookOpen } from "lucide-react";
-import React from "react";
-
-import { CareDashboard } from "@/features/mission-control/care/components/CareDashboard";
-import { CareTools } from "@/features/mission-control/care/components/CareTools";
 import {
-  useCarePersonnel,
-  useCareActivity,
-} from "@/features/mission-control/care/hooks/use-care";
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { AlertCircle, Users } from "lucide-react";
+import Link from "next/link";
+
+import { CareContactTrend } from "@/features/mission-control/care/components/care-contact-trend";
+import { CareOverview } from "@/features/mission-control/care/components/CareDashboard";
+import { useCareDashboard } from "@/features/mission-control/care/hooks/use-care";
+
+function CareOverviewSkeleton() {
+  return (
+    <div className="flex flex-col gap-6" aria-busy="true">
+      <MetricGrid>
+        {["staff", "follow-up", "check-ins", "urgent"].map((key) => (
+          <Skeleton key={key} className="h-24 rounded-xl" />
+        ))}
+      </MetricGrid>
+      <div className="grid gap-6 xl:grid-cols-3">
+        <Skeleton className="h-96 rounded-xl xl:col-span-2" />
+        <Skeleton className="h-96 rounded-xl" />
+      </div>
+      <CareContactTrend activities={[]} isLoading />
+    </div>
+  );
+}
 
 export default function MemberCareDashboardPage() {
-  const { data: personnel, isLoading: loadingPersonnel } = useCarePersonnel();
-  const { data: activities, isLoading: loadingActivities } = useCareActivity();
-  // Route VT owns the entrance when active; only animate on plain mounts.
-  const withinRouteVt = useWithinViewTransitionRouteLayer();
-
-  if (loadingPersonnel || loadingActivities) {
-    return (
-      <div
-        className={cn(
-          "container-responsive py-responsive-section section-gap",
-          !withinRouteVt && "animate-in fade-in duration-300",
-        )}
-      >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-responsive-md">
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-48 rounded-xl" />
-            <Skeleton className="h-4 w-72 rounded-lg" />
-          </div>
-          <div className="flex gap-responsive-sm">
-            <Skeleton className="h-10 w-28 rounded-xl" />
-            <Skeleton className="h-10 w-36 rounded-xl" />
-          </div>
-        </div>
-        <div className="grid-responsive-4">
-          {["skeleton-1", "skeleton-2", "skeleton-3", "skeleton-4"].map(
-            (skeletonId) => (
-              <Skeleton key={skeletonId} className="h-32 w-full rounded-2xl" />
-            ),
-          )}
-        </div>
-        <div className="grid-12">
-          <Skeleton className="lg:col-span-8 h-150 w-full rounded-2xl" />
-          <Skeleton className="lg:col-span-4 h-150 w-full rounded-2xl" />
-        </div>
-      </div>
-    );
-  }
+  const dashboard = useCareDashboard();
 
   return (
     <PageShell
       title="Member Care"
-      description="Holistic support and health monitoring for your global team."
+      description="See how field staff are doing and follow up on care needs."
       density="compact"
       actions={
-        <>
-          <Button variant="outline">
-            <BookOpen className="mr-2 size-4 text-muted-foreground" />
-            <span className="hide-mobile">Knowledge Base</span>
-            <span className="show-mobile-only">Docs</span>
-          </Button>
-          <Button>
-            <Heart className="mr-2 size-4 fill-current" />
-            New Care Record
-          </Button>
-        </>
+        <Link
+          href="/care/directory"
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          <Users aria-hidden="true" />
+          Open directory
+        </Link>
       }
     >
-      <motion.div
-        initial={withinRouteVt ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-        className="space-y-5 pb-32"
-      >
-        <CareDashboard
-          personnel={personnel || []}
-          activities={activities || []}
+      {dashboard.isError ? (
+        <Alert variant="destructive">
+          <AlertCircle aria-hidden="true" />
+          <AlertTitle>Member Care could not load</AlertTitle>
+          <AlertDescription>
+            <p>Check your connection and try again.</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void dashboard.refetch()}
+            >
+              Try again
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : dashboard.isLoading || !dashboard.data ? (
+        <CareOverviewSkeleton />
+      ) : (
+        <CareOverview
+          personnel={dashboard.data.personnel}
+          personnelTotal={dashboard.data.personnelTotal}
+          activities={dashboard.data.activities}
+          requirements={dashboard.data.requirements}
+          lastContacts={dashboard.data.lastContacts}
         />
-        <CareTools personnel={personnel || []} />
-      </motion.div>
+      )}
     </PageShell>
   );
 }

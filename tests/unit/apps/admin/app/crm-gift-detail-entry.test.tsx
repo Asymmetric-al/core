@@ -40,6 +40,7 @@ const useUpdateCrmNamedViewMock = vi.fn();
 const useDeleteCrmNamedViewMock = vi.fn();
 
 vi.mock("@asym/database/hooks", () => ({
+  useAdminCrmTagOptions: () => ({ data: [] }),
   ADMIN_CRM_NAMED_VIEWS_QUERY_KEY: ["admin", "crm", "named-views"],
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "records", "detail"],
   ADMIN_CRM_RECORDS_QUERY_KEY: ["admin", "crm", "records"],
@@ -516,6 +517,7 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
                 id: `gift:${DONATION_ID}`,
                 kind: "gift",
                 occurredAt: "2026-05-01T00:00:00.000Z",
+                paymentStatus: "completed",
                 source: "platform",
                 title: "Gift received",
                 visibility: "standard",
@@ -556,6 +558,7 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
                 id: "activity:no-amount",
                 kind: "activity",
                 occurredAt: "2026-05-01T00:00:00.000Z",
+                paymentStatus: null,
                 source: "platform",
                 title: "Call logged",
                 visibility: "standard",
@@ -602,7 +605,9 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
       </QueryProvider>,
     );
 
-    expect(await view.findByText("+$12.34")).toBeTruthy();
+    expect(await view.findByText("$12.34")).toBeTruthy();
+    // Its payment state is unknown, so it does not read as money received.
+    expect(view.queryByText("+$12.34")).toBeNull();
   });
 
   it("opens the shared contribution detail for the same donation.id the Hub uses", async () => {
@@ -755,10 +760,10 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
 
     // One server-computed next-best action per row (#270).
     expect(
-      await view.findByRole("button", { name: "Send receipt" }),
+      await view.findByRole("button", { name: "Resend receipt" }),
     ).toBeTruthy();
 
-    const trigger = view.getByRole("button", { name: "More gift actions" });
+    const trigger = view.getByRole("button", { name: /^More actions for / });
     fireEvent.click(trigger);
 
     // Capability/state-filtered entries grouped by operation category.
@@ -802,25 +807,17 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     );
 
     expect(
-      await view.findByRole("button", { name: "Send receipt" }),
+      await view.findByRole("button", { name: "Resend receipt" }),
     ).toBeTruthy();
     expect(
       view.queryByRole("button", { name: "CRM posting unavailable" }),
     ).toBeNull();
 
-    fireEvent.click(view.getByRole("button", { name: "More gift actions" }));
+    fireEvent.click(view.getByRole("button", { name: /^More actions for / }));
 
-    const retryItem = (
-      await view.findByText("CRM posting unavailable")
-    ).closest("[role=menuitem]");
-    expect(retryItem?.getAttribute("aria-disabled")).toBe("true");
-    expect(retryItem?.textContent).toMatch(
-      /external CRM posting is no longer an active product workflow/i,
-    );
-    expect(retryItem?.textContent).toMatch(
-      /historical evidence.*maintained in Asym/i,
-    );
-    fireEvent.click(retryItem!);
+    // Retired CRM posting can never run, so the menu does not offer it.
+    expect(await view.findByText("Pin row action")).toBeTruthy();
+    expect(view.queryByText(/CRM posting unavailable/)).toBeNull();
     expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
     expect(
       fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
@@ -921,12 +918,15 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
       </QueryProvider>,
     );
 
-    fireEvent.click(await view.findByRole("button", { name: "Send receipt" }));
+    fireEvent.click(
+      await view.findByRole("button", { name: "Resend receipt" }),
+    );
 
     // The reusable operation shell opens with the shared contract context.
     const shell = await view.findByTestId("contribution-operation-shell");
+    // The gift's receipt was sent, so the shell offers a resend.
     const submit = await within(shell).findByRole("button", {
-      name: "Send receipt",
+      name: "Resend receipt",
     });
     await waitFor(() => {
       expect(submit).toHaveProperty("disabled", false);
@@ -1018,10 +1018,13 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
       </QueryProvider>,
     );
 
-    fireEvent.click(await view.findByRole("button", { name: "Send receipt" }));
+    fireEvent.click(
+      await view.findByRole("button", { name: "Resend receipt" }),
+    );
     const shell = await view.findByTestId("contribution-operation-shell");
+    // The gift's receipt was sent, so the shell offers a resend.
     const submit = await within(shell).findByRole("button", {
-      name: "Send receipt",
+      name: "Resend receipt",
     });
     await waitFor(() => {
       expect(submit).toHaveProperty("disabled", false);
@@ -1082,14 +1085,24 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
 
     const setTimeoutSpy = vi.spyOn(window, "setTimeout");
     fireEvent.click(sendReceipt);
+    // This gift's receipt was already sent, so the sheet asks first.
+    const confirmResend = await view.findByRole("alertdialog", {
+      name: "Resend receipt?",
+    });
+    fireEvent.click(
+      within(confirmResend).getByRole("button", { name: "Resend receipt" }),
+    );
 
     const indicator = await view.findByText("Updated just now");
     expect(indicator.textContent).toBe("Updated just now");
 
-    await waitFor(() => {
-      expect(routerReplaceMock).toHaveBeenCalledWith("/crm", {
-        scroll: false,
-      });
+    // A successful action keeps the gift open so the refreshed detail sits
+    // beside the success toast.
+    expect(
+      view.getByRole("button", { name: /close contribution details/i }),
+    ).toBeTruthy();
+    expect(routerReplaceMock).not.toHaveBeenCalledWith("/crm", {
+      scroll: false,
     });
 
     const freshnessTimerCall = setTimeoutSpy.mock.calls.find(
@@ -1144,7 +1157,7 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     );
 
     fireEvent.click(
-      await view.findByRole("button", { name: "More gift actions" }),
+      await view.findByRole("button", { name: /^More actions for / }),
     );
     fireEvent.click(await view.findByText("Correct gift amount"));
 
@@ -1238,7 +1251,7 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     );
 
     fireEvent.click(
-      await view.findByRole("button", { name: "More gift actions" }),
+      await view.findByRole("button", { name: /^More actions for / }),
     );
     fireEvent.click(await view.findByText("Correct gift amount"));
 
@@ -1321,10 +1334,13 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
       </QueryProvider>,
     );
 
-    fireEvent.click(await view.findByRole("button", { name: "Send receipt" }));
+    fireEvent.click(
+      await view.findByRole("button", { name: "Resend receipt" }),
+    );
     const shell = await view.findByTestId("contribution-operation-shell");
+    // The gift's receipt was sent, so the shell offers a resend.
     const submit = await within(shell).findByRole("button", {
-      name: "Send receipt",
+      name: "Resend receipt",
     });
     await waitFor(() => {
       expect(submit).toHaveProperty("disabled", false);
@@ -1345,7 +1361,7 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     await waitFor(() => {
       expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
     });
-    expect(await view.findByText("Contribution Details")).toBeTruthy();
+    expect(await view.findByText("Contribution details")).toBeTruthy();
 
     // The only navigation is the CRM gift deep link — never a route away.
     expect(routerPushMock).toHaveBeenCalledTimes(1);
@@ -1378,7 +1394,7 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
       </QueryProvider>,
     );
 
-    const trigger = await view.findByRole("button", { name: "Send receipt" });
+    const trigger = await view.findByRole("button", { name: "Resend receipt" });
     trigger.focus();
     expect(document.activeElement).toBe(trigger);
 
@@ -1458,7 +1474,9 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     expect(
       await view.findByRole("button", { name: /correct gift amount/i }),
     ).toBeTruthy();
-    expect(view.queryByRole("button", { name: "Send receipt" })).toBeNull();
+    expect(
+      view.queryByRole("button", { name: /^(re)?send receipt$/i }),
+    ).toBeNull();
   });
 
   it("falls back from a blocked pin to the tenant default with explanation", async () => {
@@ -1527,7 +1545,7 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     );
 
     const trigger = await view.findByRole("button", {
-      name: "More gift actions",
+      name: /^More actions for /,
     });
     fireEvent.click(trigger);
 
@@ -1674,7 +1692,7 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     // The reset previews the fallback before anything is applied.
     const preview = await view.findByTestId("view-settings-reset-preview");
     expect(preview.textContent).toMatch(
-      /columns return to the tenant default/i,
+      /columns return to the organization default/i,
     );
     expect(viewSettingsMutate).not.toHaveBeenCalled();
 
@@ -1727,9 +1745,9 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     // The rest of the menu renders; the tenant-default section does not.
     expect(await view.findByText("Reset view settings")).toBeTruthy();
     expect(
-      view.queryByText(/set current settings as tenant default/i),
+      view.queryByText(/set current settings as organization default/i),
     ).toBeNull();
-    expect(view.queryByText("Tenant default")).toBeNull();
+    expect(view.queryByText("Organization default")).toBeNull();
   });
 
   it("saves the current resolved settings as the tenant default after confirming", async () => {
@@ -1781,17 +1799,17 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     fireEvent.click(trigger);
 
     fireEvent.click(
-      await view.findByText(/set current settings as tenant default/i),
+      await view.findByText(/set current settings as organization default/i),
     );
 
     // Publishing to the whole tenant always confirms first, mirroring the
     // reset-preview idiom.
     const confirm = await view.findByTestId("tenant-default-confirm");
-    expect(confirm.textContent).toMatch(/everyone in this tenant/i);
+    expect(confirm.textContent).toMatch(/everyone in your organization/i);
     expect(tenantDefaultMutate).not.toHaveBeenCalled();
 
     fireEvent.click(
-      within(confirm).getByRole("button", { name: "Set tenant default" }),
+      within(confirm).getByRole("button", { name: "Set organization default" }),
     );
 
     // The CURRENT resolved settings (user scopes merged over system defaults)
@@ -1863,12 +1881,12 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     });
     fireEvent.click(trigger);
     fireEvent.click(
-      await view.findByText(/set current settings as tenant default/i),
+      await view.findByText(/set current settings as organization default/i),
     );
 
     const confirm = await view.findByTestId("tenant-default-confirm");
     fireEvent.click(
-      within(confirm).getByRole("button", { name: "Set tenant default" }),
+      within(confirm).getByRole("button", { name: "Set organization default" }),
     );
 
     await waitFor(() => {
@@ -1922,7 +1940,7 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     });
     fireEvent.click(trigger);
     fireEvent.click(
-      await view.findByText(/set current settings as tenant default/i),
+      await view.findByText(/set current settings as organization default/i),
     );
 
     const confirm = await view.findByTestId("tenant-default-confirm");
@@ -2067,7 +2085,7 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     // The compact switcher sits near the gift-history toolbar and shows
     // the active view name.
     const switcher = await view.findByRole("button", {
-      name: "Gift history views",
+      name: /^Gift history views/,
     });
     expect(switcher.textContent).toContain("Default view");
     fireEvent.click(switcher);

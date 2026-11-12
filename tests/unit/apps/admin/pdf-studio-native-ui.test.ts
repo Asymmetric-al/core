@@ -19,7 +19,7 @@ describe("admin PDF Studio native UI", () => {
 
     expect(source).toContain("NEXT_PUBLIC_PDF_STUDIO_NATIVE_BUILDER_ENABLED");
     expect(source).toContain('engine: "unlayer"');
-    expect(source).toContain("New Native Document");
+    expect(source).toContain("New native document");
   });
 
   it("uses server routes for native preview and render without client DocRaptor imports", () => {

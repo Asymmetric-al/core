@@ -149,12 +149,16 @@ export function FilterRow({
       </Select>
 
       {showValueInput && field && (
-        <FilterValueInput
-          field={field}
-          operator={condition.operator}
-          value={condition.value}
-          onChange={onValueChange}
-        />
+        // The value takes the row's remaining width, so field, operator,
+        // value and remove share one line wherever there is room.
+        <div className="min-w-40 flex-1">
+          <FilterValueInput
+            field={field}
+            operator={condition.operator}
+            value={condition.value}
+            onChange={onValueChange}
+          />
+        </div>
       )}
 
       {showRemove && (

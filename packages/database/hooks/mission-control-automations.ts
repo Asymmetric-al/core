@@ -16,6 +16,15 @@ export interface MissionControlAutomationRuleDto {
   runMode: "automatic" | "review_first";
   enabled: boolean;
   activationStatus?: MissionControlAutomationActivationStatus;
+  /**
+   * Runs in the activity log over the last 24 hours (the summary's window).
+   * Absent means not reported, which the page must not read as no runs.
+   */
+  runs24h?: number;
+  /** Runs in that window that recorded a failure. */
+  failedRuns24h?: number;
+  /** ISO time of the latest failed run in that window, or null. */
+  lastFailureAt?: string | null;
 }
 
 export interface MissionControlAutomationSummary {
@@ -27,6 +36,12 @@ export interface MissionControlAutomationSummary {
   invalidRules: number;
   executions24h: number;
   failedRuns24h: number;
+  /**
+   * Failed runs in the window whose log row names no rule (deleting a rule
+   * clears it). Rules past the newest page that ran are in the list, so
+   * these are never theirs. Absent from responses that predate it.
+   */
+  failedRunsWithoutRule24h?: number;
   activityLogBacked: boolean;
   integrationHealthBacked: boolean;
 }

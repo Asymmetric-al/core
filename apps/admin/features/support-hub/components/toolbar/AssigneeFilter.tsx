@@ -63,7 +63,7 @@ export function AssigneeFilter({ value, onValueChange }: AssigneeFilterProps) {
       value={selectValue}
       onValueChange={handleChange}
       aria-label="Assignee filter"
-      className="w-45"
+      className="w-full sm:w-45"
       placeholder="Any assignee"
     />
   );

@@ -20,6 +20,8 @@ export function useSupportAgents(): {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  /** Loads the data again, e.g. after a failed load. */
+  refetch: () => Promise<unknown>;
 } {
   const query = useQuery({
     queryKey: supportHubQueryKeys.agents,
@@ -32,6 +34,7 @@ export function useSupportAgents(): {
     isLoading: query.isLoading,
     isReady: query.isSuccess,
     isError: query.isError,
+    refetch: query.refetch,
   };
 }
 
@@ -40,6 +43,8 @@ export function useSupportTeams(): {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  /** Loads the data again, e.g. after a failed load. */
+  refetch: () => Promise<unknown>;
 } {
   const query = useQuery({
     queryKey: supportHubQueryKeys.teams,
@@ -52,5 +57,6 @@ export function useSupportTeams(): {
     isLoading: query.isLoading,
     isReady: query.isSuccess,
     isError: query.isError,
+    refetch: query.refetch,
   };
 }

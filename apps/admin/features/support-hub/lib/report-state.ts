@@ -8,7 +8,7 @@ import {
 } from "nuqs";
 import * as React from "react";
 
-import { defaultReportRange } from "./report-aggregations";
+import { defaultReportRange, localDateKey } from "./report-aggregations";
 
 import type {
   SupportReportGroupBy,
@@ -28,7 +28,35 @@ const REPORT_SCOPE_KIND_OPTIONS: SupportReportScopeKind[] = [
   "label",
 ];
 
-const DEFAULT_RANGE = defaultReportRange(30);
+const DEFAULT_RANGE_DAYS = 30;
+const EMPTY_RANGE: SupportReportRange = { from: "", to: "" };
+
+/** Re-reads the viewer's day each minute, so the default window rolls over. */
+function subscribeToToday(onChange: () => void) {
+  const handle = window.setInterval(onChange, 60_000);
+  return () => window.clearInterval(handle);
+}
+
+function readToday() {
+  return localDateKey(new Date());
+}
+
+/**
+ * The server has no viewer clock or time zone: it renders an empty window
+ * and the browser fills in the viewer's own days once hydrated, so the
+ * default "To" is the viewer's today and both renders match.
+ */
+function readServerToday() {
+  return "";
+}
+
+function rangeEndingOn(today: string): SupportReportRange {
+  const [year, month, day] = today.split("-").map(Number);
+  return defaultReportRange(
+    DEFAULT_RANGE_DAYS,
+    new Date(year!, month! - 1, day!),
+  );
+}
 
 export interface SupportReportRouteState {
   from: string;
@@ -40,8 +68,9 @@ export interface SupportReportRouteState {
 }
 
 const reportParsers = {
-  from: parseAsString.withDefault(DEFAULT_RANGE.from),
-  to: parseAsString.withDefault(DEFAULT_RANGE.to),
+  // Absent means the default window, worked out in the viewer's calendar.
+  from: parseAsString,
+  to: parseAsString,
   groupBy: parseAsStringEnum<SupportReportGroupBy>([
     ...REPORT_GROUP_BY_OPTIONS,
   ]).withDefault("day"),
@@ -65,7 +94,26 @@ export function useSupportReportRouteState(): {
   scope: SupportReportScope;
   request: (slice: SupportReportSlice) => SupportReportRequest;
 } {
-  const [state, setStateRaw] = useQueryStates(reportParsers);
+  const [query, setStateRaw] = useQueryStates(reportParsers);
+  const today = React.useSyncExternalStore(
+    subscribeToToday,
+    readToday,
+    readServerToday,
+  );
+
+  const range = React.useMemo<SupportReportRange>(() => {
+    if (!today) return EMPTY_RANGE;
+    const defaults = rangeEndingOn(today);
+    return {
+      from: query.from ?? defaults.from,
+      to: query.to ?? defaults.to,
+    };
+  }, [query.from, query.to, today]);
+
+  const state = React.useMemo<SupportReportRouteState>(
+    () => ({ ...query, from: range.from, to: range.to }),
+    [query, range],
+  );
 
   const setState = React.useCallback(
     (next: Partial<SupportReportRouteState>) => {
@@ -76,19 +124,14 @@ export function useSupportReportRouteState(): {
 
   const resetState = React.useCallback(() => {
     void setStateRaw({
-      from: DEFAULT_RANGE.from,
-      to: DEFAULT_RANGE.to,
+      from: null,
+      to: null,
       groupBy: "day",
       businessHoursOnly: false,
       scopeKind: "all",
       scopeId: "",
     });
   }, [setStateRaw]);
-
-  const range = React.useMemo<SupportReportRange>(
-    () => ({ from: state.from, to: state.to }),
-    [state.from, state.to],
-  );
 
   const scope = React.useMemo<SupportReportScope>(
     () => ({
@@ -114,6 +157,7 @@ export function useSupportReportRouteState(): {
       "resolution",
       "label-mix",
       "agent-mix",
+      "team-mix",
       "messages-received",
       "messages-sent",
       "customer-waiting",
@@ -149,7 +193,7 @@ export function useSupportReportRouteState(): {
   );
 
   return {
-    state: state as SupportReportRouteState,
+    state,
     setState,
     resetState,
     range,

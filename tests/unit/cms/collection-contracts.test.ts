@@ -3,7 +3,10 @@ import { beforeAll, describe, expect, it } from "vitest";
 type FieldDef = {
   admin?: {
     readOnly?: boolean;
+    description?: unknown;
   };
+  access?: { update?: () => unknown };
+  label?: unknown;
   name?: string;
   type?: string;
   required?: boolean;
@@ -21,6 +24,7 @@ type DraftVersionsDef = {
 
 type CollectionDef = {
   slug: string;
+  labels?: { singular?: unknown; plural?: unknown };
   fields: FieldDef[];
   versions?: false | DraftVersionsDef;
   upload?: {
@@ -48,6 +52,7 @@ type CollectionDef = {
     };
     preview?: unknown;
     useAsTitle?: string;
+    defaultColumns?: string[];
   };
 };
 
@@ -232,6 +237,33 @@ describe("CMS collection contracts", () => {
     expect(CmsUsers.auth?.strategies).toHaveLength(1);
     expect(getField(CmsUsers, "email").type).toBe("email");
     expect(getField(CmsUsers, "role").type).toBe("select");
+    // Stock Payload screens (Users list, breadcrumbs, document titles) read
+    // these labels; the slug-derived default would be "Cms Users".
+    expect(CmsUsers.labels).toEqual({ singular: "User", plural: "Users" });
+  });
+
+  it("keeps fields the sign-in sync rewrites read-only, saying where they come from", async () => {
+    // findOrSyncCmsUser rewrites email, sign-in ID, tenant and role from
+    // Mission Control on every authenticated request, and
+    // findOrCreateCmsTenant matches tenants by slug and rewrites the name:
+    // an edit here would be undone (or orphan the tenant) at next sign-in.
+    const synced = [
+      ...["email", "supabaseUserId", "tenantId", "role"].map((name) =>
+        getField(CmsUsers, name),
+      ),
+      ...["name", "slug"].map((name) => getField(Tenants, name)),
+    ];
+    for (const field of synced) {
+      expect(field.admin?.readOnly).toBe(true);
+      expect(String(field.admin?.description)).toMatch(/Mission Control/);
+      expect(await field.access?.update?.()).toBe(false);
+    }
+    expect(getField(CmsUsers, "supabaseUserId").label).toBe("Sign-in ID");
+    expect(getField(CmsUsers, "tenantId").label).toBe("Organization ID");
+    expect(CmsUsers.admin?.defaultColumns).toEqual(["email", "role"]);
+    // What staff may change stays editable.
+    expect(getField(Tenants, "primaryDomain").admin?.readOnly).toBeFalsy();
+    expect(getField(Tenants, "isActive").label).toBe("Active");
   });
 
   it("validates giving CTA source references as UUIDs", async () => {
@@ -247,6 +279,9 @@ describe("CMS collection contracts", () => {
     expect(missionaryIdField.admin?.readOnly).toBe(true);
     expect(fundIdField.admin?.readOnly).toBe(true);
     expect(missionaryProfileSourceField.admin?.readOnly).toBe(true);
+    expect(missionaryProfileSourceField.admin?.description).toBe(
+      "Set automatically. Links this profile to the missionary in Mission Control.",
+    );
     expect(
       await missionaryIdField.validate?.(
         "123e4567-e89b-42d3-a456-426614174111",

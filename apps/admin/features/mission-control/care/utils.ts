@@ -1,41 +1,23 @@
-import { format, differenceInDays } from "date-fns";
+import { differenceInCalendarDays, format, isValid, parseISO } from "date-fns";
 
-/**
- * Parses a 'YYYY-MM-DD' string into a local Date object.
- * This avoids timezone shifts that can happen with new Date('YYYY-MM-DD').
- */
-export const parseLocalYMD = (dateStr: string): Date => {
-  if (!dateStr) return new Date();
-  const parts = dateStr.split("-").map(Number);
-  const y = parts[0] ?? 0;
-  const m = parts[1] ?? 1;
-  const d = parts[2] ?? 1;
-  return new Date(y, m - 1, d);
-};
+export function daysSince(
+  value: string | null | undefined,
+  now = new Date(),
+): number | null {
+  if (!value) return null;
+  const parsed = parseISO(value);
+  return isValid(parsed) ? differenceInCalendarDays(now, parsed) : null;
+}
 
-/**
- * Formats a date string or Date object into a standard 'MMM d, yyyy' format.
- */
-export const formatDate = (date: string | Date): string => {
-  if (!date) return "";
-  const d = typeof date === "string" ? parseLocalYMD(date) : date;
-  return format(d, "MMM d, yyyy");
-};
+export function formatDate(value: string | Date | null): string {
+  if (!value) return "";
+  const parsed = typeof value === "string" ? parseISO(value) : value;
+  return isValid(parsed) ? format(parsed, "MMM d, yyyy") : "";
+}
 
-/**
- * Returns the number of days between today and a given date string.
- */
-export const getDaysSince = (dateStr: string): number => {
-  if (!dateStr) return 0;
-  const date = parseLocalYMD(dateStr);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return differenceInDays(today, date);
-};
+export const getDaysSince = daysSince;
 
-/**
- * Checks if a date is "overdue" (more than 30 days ago).
- */
-export const isOverdue = (dateStr: string, limit = 30): boolean => {
-  return getDaysSince(dateStr) > limit;
-};
+export function isOverdue(value: string | null, limit = 30): boolean {
+  const days = daysSince(value);
+  return days === null || days > limit;
+}

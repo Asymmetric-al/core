@@ -7,6 +7,8 @@
  * writes the shared contribution audit event.
  */
 
+import { parseAmountToCents } from "../contribution-operations/catalog";
+
 import type { OfflineContributionRequest } from "../../schemas/contributions-offline";
 
 export type ReceiptStatus =
@@ -44,11 +46,24 @@ export interface OfflineContributionRow {
   internal_note: string | null;
 }
 
+/**
+ * The schema already guarantees whole cents; reading the digits (not
+ * `Math.round(amount * 100)`) means a sub-cent value that bypassed it fails
+ * loudly instead of becoming a different amount.
+ */
+function offlineAmountCents(amount: number): number {
+  const cents = parseAmountToCents(String(amount));
+  if (cents === null || cents <= 0) {
+    throw new Error("Offline gift amount must be a whole number of cents.");
+  }
+  return cents;
+}
+
 export function buildOfflineContributionRow(
   input: OfflineContributionRequest,
 ): OfflineContributionRow {
   const base = {
-    amount_cents: Math.round(input.amount * 100),
+    amount_cents: offlineAmountCents(input.amount),
     currency: input.currency,
     received_date: input.receivedDate,
     method: input.method,

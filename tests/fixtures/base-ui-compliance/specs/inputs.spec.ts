@@ -46,11 +46,11 @@ test("modern input, number, OTP and real editor retain native contracts", async 
   ).toHaveText('{"name":"Conrad","amount":"1.5","code":"1234"}');
 
   const toolbar = scope.getByRole("toolbar", { name: "Text formatting" });
-  const bold = toolbar.getByRole("button", { name: "Bold (Ctrl+B)" });
+  const bold = toolbar.getByRole("button", { name: "Bold", exact: true });
   await bold.focus();
   await bold.press("ArrowRight");
   await expect(
-    toolbar.getByRole("button", { name: "Italic (Ctrl+I)" }),
+    toolbar.getByRole("button", { name: "Italic", exact: true }),
   ).toBeFocused();
   await page.keyboard.press("ArrowRight");
   await expect(toolbar.getByRole("button", { name: "Add link" })).toBeFocused();
@@ -66,7 +66,7 @@ test("modern input, number, OTP and real editor retain native contracts", async 
     scope.getByRole("status", { name: "Stored message" }),
   ).toContainText("works");
   await expect(
-    toolbar.getByRole("button", { name: "Undo (Ctrl+Z)" }),
+    toolbar.getByRole("button", { name: "Undo", exact: true }),
   ).not.toHaveAttribute("aria-pressed");
   await name.focus();
   const axe = await new AxeBuilder({ page })

@@ -48,7 +48,7 @@ describe("shared table column pinning", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: "Not sorted. Click to sort ascending.",
+      name: "Name, not sorted, column options",
     });
     fireEvent.click(trigger);
     fireEvent.click(

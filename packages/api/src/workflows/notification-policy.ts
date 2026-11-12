@@ -26,7 +26,8 @@ const MONEY_AREAS = new Set(["donations", "giving"]);
  *
  * - dead-letter anywhere is urgent (stuck infrastructure / exhausted work)
  * - failed money workflows (donations, giving) are urgent (donor trust)
- * - everything else, including routine retryable failures, stays visible
+ * - everything else, including routine retryable failures and inbound email
+ *   held for an administrator's routing review, stays visible
  */
 export function evaluateWorkflowNotification(
   input: {
@@ -42,10 +43,13 @@ export function evaluateWorkflowNotification(
     };
   }
 
+  // A held inbound email waits on an administrator: no staff screen routes
+  // it, so it stays visible (with who resolves it) and never counts as
+  // urgent staff work.
   if (input.state === "action_required") {
     return {
-      level: "urgent",
-      reason: "Staff action is required (inbound routing review).",
+      level: "visible",
+      reason: "Held for routing review until an administrator routes it.",
     };
   }
 

@@ -156,6 +156,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/crm/table-preferences/tenant-default`              | Node.js (no `runtime` segment export) | Audited CRM tenant default preferences             |
 | admin      | `/api/admin/crm/table-preferences/views`                       | Node.js (no `runtime` segment export) | Personal CRM named views                           |
 | admin      | `/api/admin/crm/table-preferences/views/[viewId]`              | Node.js (no `runtime` segment export) | Personal CRM named view mutation                   |
+| admin      | `/api/admin/crm/tags`                                          | Node.js (no `runtime` segment export) | Staff-only tenant CRM tag options                  |
 | admin      | `/api/admin/eve/admin-memory`                                  | Node.js (no `runtime` segment export) | Owner-bound private Eve memory and history         |
 | admin      | `/api/admin/eve/approval-budget`                               | Node.js (no `runtime` segment export) | Audited trust-zone and hard-budget tracer          |
 | admin      | `/api/admin/eve/engineering-monitors`                          | Node.js (no `runtime` segment export) | Safe engineering monitor status and findings       |

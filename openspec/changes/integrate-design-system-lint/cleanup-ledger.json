@@ -217,7 +217,11 @@
       ],
       "currentFindings": {},
       "latestSourceSha256": "ceb2a4e74d9c174e0a0ef85c5728251ac2f2259e9e9ea14b5aec1dc681235ac1",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/app/(app)/automations/page-client.tsx",
@@ -967,7 +971,11 @@
       ],
       "currentFindings": {},
       "latestSourceSha256": "6d3d867925389972b225b4561247ec29bdd292e76efcf9cee4b69f20c48afc7d",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/app/(app)/feed/content-moderation-page-client.tsx",
@@ -1016,7 +1024,11 @@
       ],
       "currentFindings": {},
       "latestSourceSha256": "e29292c8dcf84ce9006bd3351c592aeb18e0a879fc23567bbbc189888bf0024c",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/app/(app)/feed/org-updates/page-client.tsx",
@@ -1116,7 +1128,11 @@
       ],
       "currentFindings": {},
       "latestSourceSha256": "0743a3a3a3e8f5b35741dee10e899018e4cb4a5eeb1fd16b1b288f7b27da355d",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/app/(app)/mobilize/page-client.tsx",
@@ -1445,7 +1461,11 @@
       "verification": [],
       "currentFindings": {},
       "latestSourceSha256": "a6d1e8d3a9d35982d53b425f7cb1df8f5f282e19f8a641b7a768ebd1a2047b36",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/app/(app)/tasks/task-drawer-sections.tsx",
@@ -1464,7 +1484,11 @@
       ],
       "currentFindings": {},
       "latestSourceSha256": "75109eb9032e67bc20b561b1e7f1e0b81ac76801f2a6e6652395fa68d9412382",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/app/(app)/tasks/task-drawer.tsx",
@@ -1476,7 +1500,11 @@
       "verification": [],
       "currentFindings": {},
       "latestSourceSha256": "9918cd51cf770f0f0c5f2999561982c20959078d82be08c3b80fdf646964201d",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/app/(app)/tasks/task-form-sections.tsx",
@@ -1502,7 +1530,11 @@
       ],
       "currentFindings": {},
       "latestSourceSha256": "96e5f7ac4e563508164352a6dbb33985c1a70c41400523338227d9dba67af717",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/app/(app)/tasks/task-form.tsx",
@@ -1521,7 +1553,11 @@
       ],
       "currentFindings": {},
       "latestSourceSha256": "f5f117d2e738dd2f7986850ab57e8b792d502a3fd10cf10212b0ab2a69146bbb",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/app/(app)/tasks/tasks-content-sections.tsx",
@@ -1541,7 +1577,11 @@
       ],
       "currentFindings": {},
       "latestSourceSha256": "6cc2539bf8d6da8b24ceff5becbbea356c09e9d91be05cae22a9280762867f23",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/app/(app)/tasks/tasks-content.tsx",
@@ -1879,7 +1919,11 @@
         "shadcn/no-restyle": 68
       },
       "latestSourceSha256": "2810296751c5500b06a965ec89e8b3b27204d1a83740b5de4346dda0eecd500a",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/features/mission-control/care/components/HealthHeatmap.tsx",
@@ -1899,7 +1943,11 @@
         "shadcn/require-static-classes": 1
       },
       "latestSourceSha256": "7f7b88008c060fc85d1f711650d6e8c61dff0563f9d36044e641d7707c8cf2e1",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/features/mission-control/care/components/PersonnelList.tsx",
@@ -1917,7 +1965,11 @@
         "shadcn/no-restyle": 49
       },
       "latestSourceSha256": "7a955e12ea6d469ee4487d7ae6ffc88cf2443f2e7e9c80b34afb050ad5462d7c",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/features/mission-control/care/components/PersonnelProfile.tsx",
@@ -1974,7 +2026,11 @@
         "shadcn/no-raw-colors": 19
       },
       "latestSourceSha256": "64b96c5252a096a798541da627918176249c55eae814d91c76251343409b9f11",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/features/mission-control/care/components/TimezoneScheduler.tsx",
@@ -1992,7 +2048,11 @@
         "shadcn/no-restyle": 26
       },
       "latestSourceSha256": "0d809080890ff2b5d5b58b145a4ad12a21ec4ff3dc73ce8b47caaece68a15654",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/features/mission-control/care/components/UI.tsx",
@@ -2018,7 +2078,11 @@
         "shadcn/no-arbitrary-values": 7
       },
       "latestSourceSha256": "aa0d36696b6d75e06df0fd953ac2dddca3d081aaeee20cb8fb34e6a8149af2f4",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx",
@@ -2207,7 +2271,11 @@
         "shadcn/no-restyle": 1
       },
       "latestSourceSha256": "591ed81eb0b2eb30e93cd741de96b6ec47552ef397e591bbffe442ed1b2734e1",
-      "includedInLatestScan": true
+      "includedInLatestScan": true,
+      "sourceRemoved": {
+        "recordedAt": "2026-11-11",
+        "note": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
+      }
     },
     {
       "file": "apps/admin/features/mission-control/components/tiles/workflows-panel.tsx",
@@ -9746,6 +9814,7 @@
     "Verification records bind the stated batch scope to an exact source SHA-256; they do not imply complete-file or repository acceptance.",
     "Artifact paths are repository-relative local evidence under ignored .tmp. SHA-256 values pin the reviewed artifact bytes; cleanup-verification.md carries the durable human-readable account.",
     "supportsFileCompletion requires a raw-zero batch result and relevant proof. Mark complete only when the latest full scan includes the same source revision with zero findings; partial or stale source revisions remain pending.",
-    "Shared sources absent from the initial debt inventory are recorded in verificationBatches.additionalSources without inventing initial findings or scan counts."
+    "Shared sources absent from the initial debt inventory are recorded in verificationBatches.additionalSources without inventing initial findings or scan counts.",
+    "sourceRemoved marks an entry whose file was deleted after the scan. Deleting a file retires its findings without a cleanup verification, so completion stays as recorded and the entry is kept as history."
   ]
 }

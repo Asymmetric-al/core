@@ -28,6 +28,11 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@asym/ui/components/shadcn/tooltip";
 import { MoreHorizontal, Pin } from "lucide-react";
 
 import type {
@@ -63,6 +68,26 @@ function normalizeCrmPostingEntry(
 }
 
 /**
+ * The row's normalized entries and its resolved visible action: valid user
+ * pin, then valid tenant default, then the system next-best (#271).
+ */
+export function resolveGiftRowAction(
+  inlineActions: CrmGiftInlineActions | undefined,
+  preferences: CrmTablePreferencesResponse | undefined,
+) {
+  const crmPostingSupported = isContributionCrmPostingSupported();
+  const entries = (inlineActions?.entries ?? []).map((entry) =>
+    normalizeCrmPostingEntry(entry, crmPostingSupported),
+  );
+  const resolved = resolveCrmRowAction({
+    userPin: preferences?.user ?? null,
+    tenantDefault: preferences?.tenantDefault ?? null,
+    entries,
+  });
+  return { crmPostingSupported, entries, resolved };
+}
+
+/**
  * Server-computed inline operations for one gift row (#270): a single
  * next-best action plus a capability/state-filtered menu grouped by
  * operation category. Submissions run through the shared operation shell.
@@ -76,15 +101,21 @@ export function GiftInlineActionControls({
   preferences,
   onRunOperation,
   onPinChange,
+  receiptSent = false,
+  giftLabel,
 }: {
   inlineActions: CrmGiftInlineActions | undefined;
   preferences: CrmTablePreferencesResponse | undefined;
   onRunOperation: (operation: OperationDefinition) => void;
   onPinChange: (actionId: string | null) => void;
+  /** The gift's receipt already went out, so sending it is a resend. */
+  receiptSent?: boolean;
+  /** Names the actions menu after its gift ("$250.00 gift on May 1, 2026 to …"). */
+  giftLabel?: string;
 }) {
-  const crmPostingSupported = isContributionCrmPostingSupported();
-  const entries = (inlineActions?.entries ?? []).map((entry) =>
-    normalizeCrmPostingEntry(entry, crmPostingSupported),
+  const { crmPostingSupported, entries, resolved } = resolveGiftRowAction(
+    inlineActions,
+    preferences,
   );
   if (entries.length === 0) {
     return null;
@@ -93,12 +124,6 @@ export function GiftInlineActionControls({
   const pinnableEntries = entries.filter(
     (entry) => crmPostingSupported || !isCrmPostingAction(entry.actionType),
   );
-
-  const resolved = resolveCrmRowAction({
-    userPin: preferences?.user ?? null,
-    tenantDefault: preferences?.tenantDefault ?? null,
-    entries,
-  });
   const rowAction = resolved.actionType
     ? OPERATION_DEFINITIONS[resolved.actionType]
     : undefined;
@@ -106,8 +131,13 @@ export function GiftInlineActionControls({
   const categories = Object.keys(
     OPERATION_CATEGORY_LABELS,
   ) as OperationCategory[];
+  // Posting to the retired external CRM can never run again, so its blocked
+  // entries leave the menu; the gift's detail sheet explains the retirement.
+  const menuEntries = entries.filter(
+    (entry) => crmPostingSupported || !isCrmPostingAction(entry.actionType),
+  );
   const groups = categories.flatMap((category) => {
-    const items = entries.flatMap((entry) => {
+    const items = menuEntries.flatMap((entry) => {
       const definition = OPERATION_DEFINITIONS[entry.actionType];
       if (!definition || definition.category !== category) {
         return [];
@@ -117,21 +147,37 @@ export function GiftInlineActionControls({
     return items.length ? [{ category, items }] : [];
   });
 
+  const isPinned = resolved.source === "user_pin";
+  // A pinned action shows on every row whatever the gift's state (e.g.
+  // "Send receipt" next to "Receipt sent"), so say it is the viewer's pin
+  // rather than a suggestion for this gift.
+  const rowActionHint = isPinned
+    ? "Pinned row action. Change it in this gift's More actions menu."
+    : resolved.explanation;
+
   return (
     <div className="flex shrink-0 items-center gap-1">
       {rowAction ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 text-xs"
-          title={resolved.explanation ?? undefined}
-          onClick={() => onRunOperation(rowAction)}
-        >
-          {resolved.source === "user_pin" ? (
-            <Pin className="size-3" aria-hidden="true" />
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onRunOperation(rowAction)}
+              >
+                {isPinned ? <Pin aria-hidden="true" /> : null}
+                {rowAction.actionType === "resend_receipt" && receiptSent
+                  ? "Resend receipt"
+                  : rowAction.title}
+                {isPinned ? <span className="sr-only">, pinned</span> : null}
+              </Button>
+            }
+          />
+          {rowActionHint ? (
+            <TooltipContent>{rowActionHint}</TooltipContent>
           ) : null}
-          {rowAction.title}
-        </Button>
+        </Tooltip>
       ) : null}
       {resolved.explanation ? (
         <span role="note" className="sr-only">
@@ -143,31 +189,30 @@ export function GiftInlineActionControls({
           render={
             <Button
               variant="ghost"
-              size="icon"
-              className="size-8 text-muted-foreground"
-              aria-label="More gift actions"
+              size="icon-sm"
+              aria-label={
+                giftLabel
+                  ? `More actions for ${giftLabel}`
+                  : "More gift actions"
+              }
             >
-              <MoreHorizontal className="size-4" aria-hidden="true" />
+              <MoreHorizontal aria-hidden="true" />
             </Button>
           }
         />
-        <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuContent align="end">
           {groups.map((group, index) => (
             <DropdownMenuGroup key={group.category}>
               {index > 0 ? <DropdownMenuSeparator /> : null}
-              <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                {OPERATION_CATEGORY_LABELS[group.category]}
+              {/* Muted, smaller group names, so they never read as actions. */}
+              <DropdownMenuLabel>
+                <span className="text-xs font-normal text-muted-foreground">
+                  {OPERATION_CATEGORY_LABELS[group.category]}
+                </span>
               </DropdownMenuLabel>
               {group.items.map(({ definition, entry }) => (
                 <DropdownMenuItem
                   key={entry.actionType}
-                  // The base DropdownMenuItem already dims disabled entries
-                  // (data-disabled:opacity-50); no extra muted color, so the
-                  // blocked reason stays legible — that's the point of showing
-                  // it (#270).
-                  className={
-                    entry.available ? undefined : "flex-col items-start gap-0.5"
-                  }
                   // A blocked entry keeps the same server-computed reason and
                   // next step the detail surface shows (#270), so staff learn
                   // why an action is unavailable without leaving the row.
@@ -186,9 +231,19 @@ export function GiftInlineActionControls({
                   }}
                 >
                   {entry.available ? (
-                    definition.title
+                    // A sent receipt is resent, as the row button says.
+                    definition.actionType === "resend_receipt" &&
+                    receiptSent ? (
+                      "Resend receipt"
+                    ) : (
+                      definition.title
+                    )
                   ) : (
-                    <>
+                    // The base item already dims disabled entries
+                    // (data-disabled:opacity-50); no extra muted color, so the
+                    // blocked reason stays legible — that's the point of
+                    // showing it (#270).
+                    <span className="flex w-full max-w-64 flex-col items-start gap-0.5">
                       <span className="flex w-full items-center">
                         {definition.title}
                         <DropdownMenuShortcut>Blocked</DropdownMenuShortcut>
@@ -203,7 +258,7 @@ export function GiftInlineActionControls({
                           {entry.nextStep}
                         </span>
                       ) : null}
-                    </>
+                    </span>
                   )}
                 </DropdownMenuItem>
               ))}
@@ -212,7 +267,7 @@ export function GiftInlineActionControls({
           <DropdownMenuSeparator />
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              <Pin className="size-3.5" aria-hidden="true" />
+              <Pin aria-hidden="true" />
               Pin row action
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>

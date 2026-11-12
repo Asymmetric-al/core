@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  Alert,
+  AlertTitle,
+  AlertDescription,
+} from "@asym/ui/components/shadcn/alert";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 import { ActivityEntry } from "./timeline/ActivityEntry";
@@ -24,11 +30,25 @@ interface ConversationTimelineProps {
 export function ConversationTimeline({
   conversationId,
 }: ConversationTimelineProps) {
-  const { data, isLoading } = useSupportMessages(conversationId);
+  const { data, isLoading, isError, refetch } =
+    useSupportMessages(conversationId);
   const nowIso = useSupportNow();
 
   if (isLoading) {
     return <TimelineSkeleton />;
+  }
+  if (isError && data.length === 0) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Couldn’t load messages</AlertTitle>
+        <AlertDescription>
+          The thread for this conversation didn’t load.
+        </AlertDescription>
+        <Button variant="outline" size="sm" onClick={() => void refetch()}>
+          Try again
+        </Button>
+      </Alert>
+    );
   }
   if (data.length === 0) {
     return <EmptyTimeline />;

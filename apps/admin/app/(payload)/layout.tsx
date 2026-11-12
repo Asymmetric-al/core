@@ -104,7 +104,7 @@ async function PayloadEmbeddedLayout({ children }: Props) {
   } catch (cause) {
     if (cause instanceof PayloadDatabaseConfigurationError) {
       console.error(cause);
-      return <WebStudioDatabaseConfigurationError error={cause} />;
+      return <WebStudioDatabaseConfigurationError />;
     }
 
     throw cause;
@@ -166,11 +166,7 @@ async function PayloadEmbeddedLayout({ children }: Props) {
   );
 }
 
-function WebStudioDatabaseConfigurationError({
-  error,
-}: {
-  error: PayloadDatabaseConfigurationError;
-}) {
+function WebStudioDatabaseConfigurationError() {
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background p-6 text-foreground">
       <Card className="w-full max-w-lg">
@@ -179,19 +175,19 @@ function WebStudioDatabaseConfigurationError({
             Web Studio
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Payload database configuration needs attention
+            Web Studio can’t open right now
           </h1>
-          <CardDescription>{error.message}</CardDescription>
+          <CardDescription>
+            Web Studio needs a setup change before it can open. Ask your
+            administrator to check the setup, then try again.
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
-          <Link className={buttonVariants()} href="/">
-            Dashboard
+          <Link className={buttonVariants()} href="/web-studio">
+            Try again
           </Link>
-          <Link
-            className={buttonVariants({ variant: "outline" })}
-            href="/web-studio"
-          >
-            Retry
+          <Link className={buttonVariants({ variant: "outline" })} href="/">
+            Back to Mission Control
           </Link>
         </CardContent>
       </Card>

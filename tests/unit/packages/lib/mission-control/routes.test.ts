@@ -16,14 +16,21 @@ describe("resolveMissionControlHref", () => {
 
   it("keeps canonical tile routes and quick actions in the admin app namespace", () => {
     const contributionsTile = TILES.find((tile) => tile.id === "contributions");
-    const newBatchAction = contributionsTile?.quickActions.find(
-      (action) => action.label === "New batch",
+    // Quick actions point at routes that exist (the old "New batch"
+    // shortcut linked to an unbuilt /contributions/batches/new page).
+    const viewAction = contributionsTile?.quickActions.find(
+      (action) => action.label === "View contributions",
     );
 
     expect(contributionsTile?.route).toBe("/contributions");
-    expect(resolveMissionControlHref(newBatchAction?.href ?? "/missing")).toBe(
-      "/contributions/batches/new",
+    expect(resolveMissionControlHref(viewAction?.href ?? "/missing")).toBe(
+      "/contributions",
     );
+    for (const tile of TILES) {
+      for (const action of tile.quickActions) {
+        expect(resolveMissionControlHref(action.href)).not.toMatch(/^\/mc\b/);
+      }
+    }
   });
 });
 

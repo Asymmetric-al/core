@@ -11,6 +11,23 @@ import {
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
 
+vi.mock("@asym/config/navigation", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@asym/config/navigation")>();
+  return {
+    ...actual,
+    getNavItemsByRole: (role: Parameters<typeof actual.getNavItemsByRole>[0]) =>
+      actual.getNavItemsByRole(role).map((item) => ({
+        ...item,
+        keywords: item.id === "contributions" ? ["donations"] : [],
+        items: item.items?.map((sub) => ({
+          ...sub,
+          keywords: sub.href === "/crm/notes" ? ["contact memos"] : [],
+        })),
+      })),
+  };
+});
+
 const scrollDescriptor = Object.getOwnPropertyDescriptor(
   HTMLElement.prototype,
   "scrollIntoView",
@@ -42,6 +59,41 @@ afterEach(() => {
 });
 
 describe("Mission Control navigation search", () => {
+  it("matches module and page aliases without exposing restricted destinations", async () => {
+    const view = render(
+      <MissionControlNavigationSearch role="admin" onNavigate={vi.fn()} />,
+    );
+    fireEvent.click(
+      view.getAllByRole("button", { name: "Open Mission Control search" })[0]!,
+    );
+    const input = await view.findByRole("combobox", {
+      name: "Search Mission Control pages",
+    });
+    fireEvent.change(input, { target: { value: "donations" } });
+    expect(
+      await view.findByRole("option", { name: "Contributions" }),
+    ).toBeTruthy();
+    fireEvent.change(input, { target: { value: "contact memos" } });
+    expect(
+      await view.findByRole("option", { name: "CRM › Notes" }),
+    ).toBeTruthy();
+    cleanup();
+    const restricted = render(
+      <MissionControlNavigationSearch role="staff" onNavigate={vi.fn()} />,
+    );
+    fireEvent.click(
+      restricted.getAllByRole("button", {
+        name: "Open Mission Control search",
+      })[0]!,
+    );
+    fireEvent.change(await restricted.findByRole("combobox"), {
+      target: { value: "donations" },
+    });
+    expect(
+      restricted.queryByRole("option", { name: "Contributions" }),
+    ).toBeNull();
+  });
+
   it("preserves another modal's keyboard ownership", async () => {
     const view = render(
       <>
@@ -92,9 +144,7 @@ describe("Mission Control navigation search", () => {
     fireEvent.keyDown(trigger, { key: "k", ctrlKey: true });
     await view.findByRole("dialog", { name: "Mission Control navigation" });
     expect(view.getByRole("option", { name: "Web Studio" })).toBeTruthy();
-    expect(
-      view.getByRole("option", { name: "People & Churches" }),
-    ).toBeTruthy();
+    expect(view.getByRole("option", { name: "CRM" })).toBeTruthy();
     expect(view.queryByRole("option", { name: "Contributions" })).toBeNull();
     expect(view.queryByRole("option", { name: "Admin" })).toBeNull();
   });
@@ -116,6 +166,22 @@ describe("Mission Control navigation search", () => {
     expect(navigate).toHaveBeenCalledExactlyOnceWith("/contributions");
     await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
     await waitFor(() => expect(document.activeElement).toBe(trigger));
+  });
+
+  it("finds the pages inside a module", async () => {
+    const navigate = vi.fn();
+    const view = render(
+      <MissionControlNavigationSearch role="admin" onNavigate={navigate} />,
+    );
+    fireEvent.click(
+      view.getAllByRole("button", { name: "Open Mission Control search" })[0]!,
+    );
+    const search = await view.findByRole("combobox", {
+      name: "Search Mission Control pages",
+    });
+    fireEvent.change(search, { target: { value: "notes" } });
+    fireEvent.click(await view.findByRole("option", { name: "CRM › Notes" }));
+    expect(navigate).toHaveBeenCalledExactlyOnceWith("/crm/notes");
   });
 
   it("does not intercept typing, composition, repeats, or a scoped handled shortcut", () => {

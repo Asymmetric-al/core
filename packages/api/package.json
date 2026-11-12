@@ -73,6 +73,7 @@
     "./admin/crm": "./src/admin/crm/index.ts",
     "./admin/crm/detail": "./src/admin/crm/detail/index.ts",
     "./admin/crm/gift-history-row-model": "./src/admin/crm/gift-history-row-model.ts",
+    "./admin/crm/tags": "./src/admin/crm/tags.ts",
     "./admin/crm/table-preferences": "./src/admin/crm/table-preferences/index.ts",
     "./admin/crm/table-preferences/route": "./src/admin/crm/table-preferences/route.ts",
     "./admin/crm/notes": "./src/admin/crm/notes/index.ts",
