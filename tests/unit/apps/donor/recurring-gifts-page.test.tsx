@@ -131,6 +131,106 @@ describe("Recurring gifts", () => {
     ).toBeTruthy();
   });
 
+  it.each([
+    ["eur", 5_000, "€50.00 a month"],
+    ["JPY", 5_000, "¥5,000 a month"],
+    ["BHD", 1_234, "BHD 1.234 a month"],
+  ])(
+    "uses canonical %s minor units for each gift and its monthly total",
+    (currency, amountCents, expected) => {
+      state.gifts = [gift({ currency, amountCents, amount: 999 })];
+      render(<RecurringGiftsPage />);
+
+      const row = screen.getByRole("listitem", { name: "Jordan Hale" });
+      expect(within(row).getByText(expected)).toBeTruthy();
+      expect(screen.getAllByText(expected)).toHaveLength(2);
+      expect(screen.queryByText(/\$999/)).toBeNull();
+    },
+  );
+
+  it("keeps mixed-currency gift rows but makes the monthly total unavailable", () => {
+    state.gifts = [
+      gift({ id: "usd", currency: "USD" }),
+      gift({ id: "eur", currency: "EUR" }),
+    ];
+    render(<RecurringGiftsPage />);
+
+    expect(screen.getByText("$50.00 a month")).toBeTruthy();
+    expect(screen.getByText("€50.00 a month")).toBeTruthy();
+    expect(screen.getByText("Monthly total unavailable")).toBeTruthy();
+    expect(
+      screen.getByText(/cannot be combined into one monthly total/),
+    ).toBeTruthy();
+    expect(screen.queryByText("$100.00 a month")).toBeNull();
+  });
+
+  it.each(["", "ZZZ", "not-a-currency", null, undefined])(
+    "does not infer a currency for an unknown %s gift",
+    (currency) => {
+      state.gifts = [gift({ currency })];
+      render(<RecurringGiftsPage />);
+
+      expect(screen.getByText("Amount unavailable a month")).toBeTruthy();
+      expect(screen.getByText("Monthly total unavailable")).toBeTruthy();
+      expect(screen.queryByText(/\$/)).toBeNull();
+    },
+  );
+
+  it("combines normalized active currencies without including inactive gifts", () => {
+    state.gifts = [
+      gift({ id: "monthly", currency: " eur " }),
+      gift({
+        id: "quarterly",
+        currency: "EUR",
+        frequency: "quarterly",
+        amountCents: 15_000,
+      }),
+      gift({ id: "paused", currency: "USD", status: "paused" }),
+      gift({ id: "stopped", currency: "", status: "cancelled" }),
+    ];
+    render(<RecurringGiftsPage />);
+
+    expect(screen.getByText("€100.00 a month")).toBeTruthy();
+    expect(screen.getByText(/From 2 active gifts/)).toBeTruthy();
+    expect(screen.queryByText("Monthly total unavailable")).toBeNull();
+  });
+
+  it.each(["biweekly", "BiWeEkLy"])(
+    "includes %s gifts using 26 annual periods and explains their schedule",
+    (frequency) => {
+      state.gifts = [
+        gift({ currency: "EUR", frequency, amountCents: 1_200, amount: 12 }),
+      ];
+      render(<RecurringGiftsPage />);
+
+      expect(screen.getByText("€12.00 every 2 weeks")).toBeTruthy();
+      expect(screen.getByText("€26.00 a month")).toBeTruthy();
+      expect(screen.getByText("From 1 active gift.")).toBeTruthy();
+      expect(screen.queryByText(/spread across the months/)).toBeNull();
+    },
+  );
+
+  it("rounds the combined biweekly equivalent once in canonical minor units", () => {
+    state.gifts = [
+      gift({
+        id: "first",
+        frequency: "biweekly",
+        amountCents: 3,
+        amount: 0.03,
+      }),
+      gift({
+        id: "second",
+        frequency: "biweekly",
+        amountCents: 3,
+        amount: 0.03,
+      }),
+    ];
+    render(<RecurringGiftsPage />);
+
+    expect(screen.getByText("$0.13 a month")).toBeTruthy();
+    expect(screen.getAllByText("$0.03 every 2 weeks")).toHaveLength(2);
+  });
+
   it("explains spreading only for quarterly and annual gifts", () => {
     const spread = /spread across the months/;
     state.gifts = [gift({ id: "monthly-only" })];

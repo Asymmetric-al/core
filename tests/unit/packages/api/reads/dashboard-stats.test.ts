@@ -28,6 +28,7 @@ function createThenableQuery<T>(result: QueryResult<T>) {
     eq: ReturnType<typeof vi.fn>;
     in: ReturnType<typeof vi.fn>;
     gte: ReturnType<typeof vi.fn>;
+    or: ReturnType<typeof vi.fn>;
     order: ReturnType<typeof vi.fn>;
     range: ReturnType<typeof vi.fn>;
     then?: PromiseLike<QueryResult<T>>["then"];
@@ -36,6 +37,7 @@ function createThenableQuery<T>(result: QueryResult<T>) {
     eq: vi.fn(() => query),
     in: vi.fn(() => query),
     gte: vi.fn(() => query),
+    or: vi.fn(() => query),
     order: vi.fn(() => query),
     range: vi.fn(() => query),
   };
@@ -55,6 +57,8 @@ type GiftRow = {
   amount: number | null;
   refund_amount?: number | null;
   currency?: string;
+  status: string;
+  gift_date: string | null;
   created_at: string;
 };
 
@@ -65,14 +69,26 @@ function gift(
     refund = 0,
     at = THIS_MONTH,
     currency = "usd",
+    status = "completed",
+    giftDate = null,
   }: {
     id?: string;
     refund?: number | null;
     at?: string;
     currency?: string;
+    status?: string;
+    giftDate?: string | null;
   } = {},
 ): GiftRow {
-  return { id, amount, refund_amount: refund, currency, created_at: at };
+  return {
+    id,
+    amount,
+    refund_amount: refund,
+    currency,
+    status,
+    gift_date: giftDate,
+    created_at: at,
+  };
 }
 
 function count(value: number) {
@@ -102,17 +118,16 @@ function adjustmentPage(rows: ReturnType<typeof adjustment>[] = []) {
   return createThenableQuery({ data: rows, error: null });
 }
 
-/** Wires the five first-wave queries; extra gift pages follow in order. */
+/** Wires the four first-wave queries; extra gift pages follow in order. */
 function mockClient(
   giftPages: Array<ReturnType<typeof createThenableQuery>>,
-  counts: { donors?: number; missionaries?: number; gifts?: number } = {},
+  counts: { donors?: number; missionaries?: number } = {},
   adjustmentPages: Array<ReturnType<typeof createThenableQuery>> = [],
 ) {
   const [firstPage, ...laterPages] = giftPages;
   const queries = [
     count(counts.donors ?? 0),
     count(counts.missionaries ?? 0),
-    count(counts.gifts ?? 0),
     firstPage!,
     count(0),
     ...laterPages,
@@ -144,13 +159,11 @@ describe("api/reads/dashboard-stats", () => {
   it("returns dashboard stats on the happy path", async () => {
     const donorCountQuery = count(3);
     const missionaryCountQuery = count(2);
-    const donationCountQuery = count(5);
     const revenueQuery = giftPage([gift(120), gift(80), gift(null)]);
     const activeFundsQuery = count(4);
     const queries = [
       donorCountQuery,
       missionaryCountQuery,
-      donationCountQuery,
       revenueQuery,
       activeFundsQuery,
     ];
@@ -168,14 +181,13 @@ describe("api/reads/dashboard-stats", () => {
     expect(result).toMatchObject({
       crmRecordCount: 3,
       totalMissionaries: 2,
-      totalDonationsThisMonth: 5,
+      totalDonationsThisMonth: 3,
       // donations.amount is stored in cents; the total keeps that unit.
       revenueThisMonthCents: 200,
       activeFundsCount: 4,
     });
-    expect(donationCountQuery.in).toHaveBeenCalledWith("status", SETTLED);
-    expect(revenueQuery.in).toHaveBeenCalledWith("status", SETTLED);
-    expect(from).toHaveBeenCalledTimes(6);
+    expect(revenueQuery.in).not.toHaveBeenCalledWith("status", SETTLED);
+    expect(from).toHaveBeenCalledTimes(5);
     expect(cacheTag).toHaveBeenCalledWith(
       "admin:contributions:tenant:tenant-1",
     );
@@ -198,6 +210,75 @@ describe("api/reads/dashboard-stats", () => {
     );
   });
 
+  it.each(["pending", "processing", "failed"])(
+    "includes a raw %s gift corrected to completed",
+    async (status) => {
+      const page = giftPage([gift(10000, { status, refund: 1000 })]);
+      mockClient([page], {}, [
+        adjustmentPage([adjustment({ paymentStatus: "completed" })]),
+      ]);
+
+      const stats = await getDashboardStats("tenant-1");
+
+      expect(page.in).not.toHaveBeenCalledWith("status", SETTLED);
+      expect(stats.revenueThisMonthCents).toBe(9000);
+      expect(stats.totalDonationsThisMonth).toBe(1);
+      expect(stats.givingTrend.months.at(-1)).toMatchObject({
+        giftCount: 1,
+        netCents: 9000,
+      });
+    },
+  );
+
+  it("ignores uncorrected pending gifts when determining settled totals and currency", async () => {
+    mockClient([
+      giftPage([
+        gift(1000),
+        gift(9000, { id: "pending", status: "pending", currency: "cad" }),
+      ]),
+    ]);
+
+    const stats = await getDashboardStats("tenant-1");
+
+    expect(stats.totalDonationsThisMonth).toBe(1);
+    expect(stats.revenueThisMonthCents).toBe(1000);
+    expect(stats.givingTrend.currency).toBe("USD");
+  });
+
+  it("uses gift date for imports and offline gifts rather than record creation", async () => {
+    const page = giftPage([
+      gift(1200, { id: "old-import", at: THIS_MONTH, giftDate: "2026-10-15" }),
+      gift(3400, {
+        id: "current-gift",
+        at: "2025-01-01T00:00:00Z",
+        giftDate: "2026-11-02",
+      }),
+      gift(5600, {
+        id: "outside-window",
+        at: THIS_MONTH,
+        giftDate: "2025-10-31",
+      }),
+      gift(7800, { id: "future-gift", at: THIS_MONTH, giftDate: "2026-12-01" }),
+    ]);
+    mockClient([page]);
+
+    const stats = await getDashboardStats("tenant-1");
+
+    expect(page.or).toHaveBeenCalledWith(
+      "gift_date.gte.2025-11-01,and(gift_date.is.null,created_at.gte.2025-11-01T00:00:00.000Z)",
+    );
+    expect(stats.totalDonationsThisMonth).toBe(1);
+    expect(stats.revenueThisMonthCents).toBe(3400);
+    expect(stats.givingTrend.months.at(-2)).toMatchObject({
+      giftCount: 1,
+      netCents: 1200,
+    });
+    expect(stats.givingTrend.months.at(-1)).toMatchObject({
+      giftCount: 1,
+      netCents: 3400,
+    });
+  });
+
   it("subtracts partial refunds without adding negative refunds or negative gifts", async () => {
     mockClient([
       giftPage([
@@ -213,7 +294,7 @@ describe("api/reads/dashboard-stats", () => {
   });
 
   it("applies the canonical corrected amount before subtracting refunds in both the month and trend", async () => {
-    mockClient([giftPage([gift(10000, { refund: 1000 })])], { gifts: 1 }, [
+    mockClient([giftPage([gift(10000, { refund: 1000 })])], {}, [
       adjustmentPage([adjustment({ amountCents: 8000 })]),
     ]);
 
@@ -237,9 +318,9 @@ describe("api/reads/dashboard-stats", () => {
     "unknown",
     " FAILED ",
   ])(
-    "excludes effective %s gifts from monthly and trend money while retaining original gift counts",
+    "excludes effective %s gifts from settled monthly totals and counts",
     async (paymentStatus) => {
-      mockClient([giftPage([gift(10000)])], { gifts: 1 }, [
+      mockClient([giftPage([gift(10000)])], {}, [
         adjustmentPage([
           {
             ...adjustment({ paymentStatus }),
@@ -253,16 +334,16 @@ describe("api/reads/dashboard-stats", () => {
       expect(stats.revenueThisMonthCents).toBe(0);
       expect(stats.givingTrend.months.at(-1)).toMatchObject({
         netCents: 0,
-        giftCount: 1,
+        giftCount: 0,
       });
-      expect(stats.totalDonationsThisMonth).toBe(1);
+      expect(stats.totalDonationsThisMonth).toBe(0);
     },
   );
 
   it.each(["completed", "succeeded", "success", " Succeeded "])(
     "retains corrected net money for effective settled status %s",
     async (paymentStatus) => {
-      mockClient([giftPage([gift(10000, { refund: 1000 })])], { gifts: 1 }, [
+      mockClient([giftPage([gift(10000, { refund: 1000 })])], {}, [
         adjustmentPage([
           {
             ...adjustment({ amountCents: 8000, paymentStatus }),
@@ -282,7 +363,7 @@ describe("api/reads/dashboard-stats", () => {
     },
   );
 
-  it("excludes a prior month's effective failed money without removing its original gift count or this month's giving", async () => {
+  it("excludes a prior month's effective failed money and count without changing this month's giving", async () => {
     mockClient(
       [
         giftPage([
@@ -290,7 +371,7 @@ describe("api/reads/dashboard-stats", () => {
           gift(4000, { refund: 1000 }),
         ]),
       ],
-      { gifts: 1 },
+      {},
       [
         adjustmentPage([
           {
@@ -315,12 +396,12 @@ describe("api/reads/dashboard-stats", () => {
     expect(stats.givingTrend.months.at(-2)).toMatchObject({
       month: "2026-10",
       netCents: 0,
-      giftCount: 1,
+      giftCount: 0,
     });
   });
 
   it("uses the latest applied payment status and ignores a reversed failure correction", async () => {
-    mockClient([giftPage([gift(10000, { refund: 1000 })])], { gifts: 1 }, [
+    mockClient([giftPage([gift(10000, { refund: 1000 })])], {}, [
       adjustmentPage([
         adjustment(
           { paymentStatus: "completed", amountCents: 8000 },
@@ -592,26 +673,24 @@ describe("api/reads/dashboard-stats", () => {
     const secondPage = giftPage([gift(500, { refund: 100 })]);
     const from = mockClient([firstPage, secondPage], {
       donors: 3,
-      gifts: 1001,
     });
     const stats = await getDashboardStats("tenant-1");
     expect(stats.revenueThisMonthCents).toBe(100400);
     for (const page of [firstPage, secondPage]) {
       expect(page.select).toHaveBeenCalledWith(
-        "id, amount, refund_amount, currency, created_at",
+        "id, amount, refund_amount, currency, status, gift_date, created_at",
       );
       expect(page.eq).toHaveBeenCalledWith("tenant_id", "tenant-1");
       expect(page.order).toHaveBeenCalledWith("id", { ascending: true });
-      expect(page.in).toHaveBeenCalledWith("status", SETTLED);
+      expect(page.in).not.toHaveBeenCalledWith("status", SETTLED);
       // The trend window opens on the 1st, 12 full months back, in UTC.
-      expect(page.gte).toHaveBeenCalledWith(
-        "created_at",
-        "2025-11-01T00:00:00.000Z",
+      expect(page.or).toHaveBeenCalledWith(
+        "gift_date.gte.2025-11-01,and(gift_date.is.null,created_at.gte.2025-11-01T00:00:00.000Z)",
       );
     }
     expect(firstPage.range).toHaveBeenCalledWith(0, 999);
     expect(secondPage.range).toHaveBeenCalledWith(1000, 1999);
-    expect(from).toHaveBeenCalledTimes(7);
+    expect(from).toHaveBeenCalledTimes(6);
   });
 
   it("applies corrections to gifts loaded after the first donation page", async () => {
@@ -648,7 +727,6 @@ describe("api/reads/dashboard-stats", () => {
         error: { message: "donor query failed" },
       }),
       count(0),
-      count(0),
       giftPage([]),
       count(0),
     ];
@@ -676,7 +754,7 @@ describe("api/reads/dashboard-stats", () => {
           error: { message: "Revenue page unavailable" },
         }),
       ],
-      { gifts: 1000 },
+      {},
     );
     await expect(getDashboardStats("tenant-1")).rejects.toThrow(
       "Revenue page unavailable",
@@ -687,7 +765,7 @@ describe("api/reads/dashboard-stats", () => {
     const emptyPage = giftPage([]);
     mockClient(
       [giftPage(Array.from({ length: 1000 }, () => gift(100))), emptyPage],
-      { gifts: 1000 },
+      {},
     );
     expect((await getDashboardStats("tenant-1")).revenueThisMonthCents).toBe(
       100000,
@@ -735,9 +813,8 @@ describe("api/reads/dashboard-stats", () => {
         month: "2027-01",
         soFar: true,
       });
-      expect(firstPage.gte).toHaveBeenCalledWith(
-        "created_at",
-        "2026-01-01T00:00:00.000Z",
+      expect(firstPage.or).toHaveBeenCalledWith(
+        "gift_date.gte.2026-01-01,and(gift_date.is.null,created_at.gte.2026-01-01T00:00:00.000Z)",
       );
     });
 
@@ -860,7 +937,7 @@ describe("api/reads/dashboard-stats", () => {
     it("rejects a gift whose timestamp cannot be placed in a month", async () => {
       mockClient([giftPage([gift(100, { at: "not a date" })])]);
       await expect(getDashboardStats("tenant-1")).rejects.toThrow(
-        "unreadable created_at",
+        "unreadable gift date",
       );
     });
   });

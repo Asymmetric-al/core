@@ -1,13 +1,13 @@
 "use client";
 
 import { formatPledgeDate } from "@asym/api/donor-portal/pledge-view";
+import { formatMoney, isSupportedCurrency } from "@asym/api/money";
 import {
   useCreateDonorBillingPortalSession,
   useDonorPortalSnapshot,
   useDonorWallet,
   type DonorPortalRecurringGift,
 } from "@asym/database/hooks";
-import { formatCurrency } from "@asym/lib/utils";
 import { PageHeader } from "@asym/ui/components/page-header";
 import {
   Avatar,
@@ -34,17 +34,29 @@ const ACTIVE = new Set(["active", "processing", "trialing"]);
 const PAUSED = new Set(["paused"]);
 
 /** How often a gift repeats, in the words people use. */
-const SCHEDULE: Record<string, { phrase: string; months: number }> = {
-  weekly: { phrase: "a week", months: 12 / 52 },
-  monthly: { phrase: "a month", months: 1 },
-  quarterly: { phrase: "every 3 months", months: 3 },
-  annually: { phrase: "a year", months: 12 },
-  annual: { phrase: "a year", months: 12 },
-  yearly: { phrase: "a year", months: 12 },
+const SCHEDULE: Record<string, { phrase: string; periodsPerYear: number }> = {
+  weekly: { phrase: "a week", periodsPerYear: 52 },
+  biweekly: { phrase: "every 2 weeks", periodsPerYear: 26 },
+  monthly: { phrase: "a month", periodsPerYear: 12 },
+  quarterly: { phrase: "every 3 months", periodsPerYear: 4 },
+  annually: { phrase: "a year", periodsPerYear: 1 },
+  annual: { phrase: "a year", periodsPerYear: 1 },
+  yearly: { phrase: "a year", periodsPerYear: 1 },
 };
 
 function schedule(frequency: string) {
-  return SCHEDULE[frequency.toLowerCase()] ?? { phrase: frequency, months: 0 };
+  return (
+    SCHEDULE[frequency.toLowerCase()] ?? {
+      phrase: frequency,
+      periodsPerYear: 0,
+    }
+  );
+}
+
+function giftCurrency(currency: string | null | undefined) {
+  return currency && isSupportedCurrency(currency)
+    ? currency.trim().toUpperCase()
+    : null;
 }
 
 type GiftStanding = "Active" | "Paused" | "Stopped";
@@ -67,12 +79,32 @@ const STANDING_VARIANT: Record<
 
 /** What active gifts add up to each month (quarterly gifts spread out). */
 export function monthlyEquivalent(gifts: DonorPortalRecurringGift[]) {
-  return gifts
-    .filter((gift) => standing(gift.status) === "Active")
-    .reduce((sum, gift) => {
-      const months = schedule(gift.frequency).months;
-      return months > 0 ? sum + gift.amount / months : sum;
-    }, 0);
+  const activeGifts = gifts.filter(
+    (gift) => standing(gift.status) === "Active",
+  );
+  const currencyGifts = activeGifts.length > 0 ? activeGifts : gifts;
+  const currency = giftCurrency(currencyGifts[0]?.currency);
+  if (
+    !currency ||
+    currencyGifts.some((gift) => giftCurrency(gift.currency) !== currency)
+  ) {
+    return null;
+  }
+
+  let annualMinorUnits = 0n;
+  for (const gift of activeGifts) {
+    const periodsPerYear = schedule(gift.frequency).periodsPerYear;
+    if (
+      !Number.isSafeInteger(gift.amountCents) ||
+      gift.amountCents < 0 ||
+      periodsPerYear === 0
+    ) {
+      return null;
+    }
+    annualMinorUnits += BigInt(gift.amountCents) * BigInt(periodsPerYear);
+  }
+  const amountCents = Number((annualMinorUnits + 6n) / 12n);
+  return Number.isSafeInteger(amountCents) ? { amountCents, currency } : null;
 }
 
 /** "Next gift today" for today, otherwise the date. */
@@ -116,6 +148,11 @@ function GiftRow({
   const name = gift.missionary?.name ?? gift.designation.name;
   const avatar = gift.missionary?.avatarUrl ?? gift.designation.avatarUrl;
   const giftStanding = standing(gift.status);
+  const currency = giftCurrency(gift.currency);
+  const amount =
+    currency && Number.isSafeInteger(gift.amountCents) && gift.amountCents >= 0
+      ? formatMoney(gift.amountCents, currency, "en-US")
+      : "Amount unavailable";
   const nameId = `recurring-gift-${gift.id}`;
   // An unnamed missionary is shown by its fund; don't repeat it below.
   const fundLine =
@@ -152,7 +189,7 @@ function GiftRow({
       </div>
       <div className="flex flex-col gap-1 sm:w-48">
         <p className="font-medium tabular-nums text-foreground">
-          {`${formatCurrency(gift.amount)} ${schedule(gift.frequency).phrase}`}
+          {`${amount} ${schedule(gift.frequency).phrase}`}
         </p>
         <p className="text-sm text-muted-foreground">{when}</p>
       </div>
@@ -202,9 +239,11 @@ export default function DonorPledgesPage() {
     (gift) => standing(gift.status) === "Active",
   );
   const activeCount = activeGifts.length;
-  const spreadsGifts = activeGifts.some(
-    (gift) => schedule(gift.frequency).months > 1,
-  );
+  const monthlyTotal = monthlyEquivalent(gifts);
+  const spreadsGifts = activeGifts.some((gift) => {
+    const periodsPerYear = schedule(gift.frequency).periodsPerYear;
+    return periodsPerYear > 0 && periodsPerYear < 12;
+  });
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 pb-20">
@@ -282,7 +321,9 @@ export default function DonorPledgesPage() {
                 Your recurring giving
               </p>
               <p className="text-3xl font-semibold tracking-tight tabular-nums text-foreground">
-                {`${formatCurrency(monthlyEquivalent(gifts))} a month`}
+                {monthlyTotal
+                  ? `${formatMoney(monthlyTotal.amountCents, monthlyTotal.currency, "en-US")} a month`
+                  : "Monthly total unavailable"}
               </p>
               <p className="text-sm text-muted-foreground">
                 {activeCount === 1
@@ -292,6 +333,12 @@ export default function DonorPledgesPage() {
                   ? " Gifts every 3 months or once a year are spread across the months."
                   : null}
               </p>
+              {!monthlyTotal ? (
+                <p className="text-sm text-muted-foreground">
+                  Gift amounts, currencies or schedules cannot be combined into
+                  one monthly total.
+                </p>
+              ) : null}
             </CardContent>
           </Card>
           <Card>

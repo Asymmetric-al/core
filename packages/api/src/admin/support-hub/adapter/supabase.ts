@@ -1110,7 +1110,10 @@ export const supabaseSupportHubAdapter: SupportHubAdapter = {
   },
   agents: {
     async list() {
-      return (await allRows("support_agents")).map(toAgent);
+      return (await allRows("support_agents")).map((row) => ({
+        ...toAgent(row),
+        userId: asString(row.user_id),
+      }));
     },
   },
   teams: {

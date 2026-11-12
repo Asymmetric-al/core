@@ -29,6 +29,40 @@ migration at `c79c714eee2c3c78ad3ecd234b94439bcd23a90b` is preserved locally but
 is not included: adding an unused column after removing its consumers would be
 unnecessary. Only its disjoint smoke repair is retained.
 
+## Late material findings
+
+Six new inline findings on `23f2bd454` were assessed together, without reopening
+general review or optional cleanup. All six were confirmed:
+
+- Dashboard candidates no longer exclude raw pending/failed payments before
+  applied corrections are folded. Settled amounts, currency membership and
+  record counts now share the same effective-status predicate. The old tests
+  retaining failed records in a count labelled settled were corrected.
+- Dashboard date selection and month buckets use canonical `gift_date`, with
+  `created_at` only for legacy missing dates. Imported records can therefore
+  fall into their true gift month, independent of insertion time. Tenant and
+  complete paging guards remain. The focused suite passes 48 tests.
+- Donor recurring rows use their own known currency and canonical minor units.
+  Mixed/unknown active currencies do not produce a fabricated combined total.
+  Biweekly giving uses 26 annual periods; integer math rounds once at the final
+  monthly minor unit. The affected page suite passes 17 tests.
+- Support ownership matches `support_agents.user_id` first. Only genuinely
+  unlinked legacy rows may use email fallback; text IDs and stale email on a
+  row linked to someone else cannot confer ownership. Two focused suites pass
+  31 tests; the helper also passed the 82-test related support selection.
+- The new Web Studio revert action is withheld. Its browser GET followed by an
+  unconditional full-document PATCH could replay stale published content over
+  a same-user publication or autosave. Payload locks do not fence same-user
+  sessions. The unsafe network path is removed, and the action honestly shows
+  unavailable when applicable. Seven tests prove it cannot dispatch a write
+  and preserve document/permission visibility guards. This is not a claim
+  that atomic CMS revert or the broader D12 editor-lease contract is delivered.
+
+The combined five-suite selection passes 103 tests. Regressions were observed
+failing before the corresponding repairs; no required gate or assertion was
+disabled to preserve a success claim. Historical revert-success evidence is
+superseded by the explicit withheld-action decision.
+
 ## Source integration versus deployment
 
 The autosave source fix serializes writes per post across composer mounts and

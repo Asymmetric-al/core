@@ -9,6 +9,7 @@ import type {
   SaveSavedViewInput,
   SupportHubAdapter,
 } from "./adapter";
+import type { SupportAgent } from "./adapter/types";
 import type { SupportHubContext } from "./route-helpers";
 
 /**
@@ -61,14 +62,18 @@ type SavedViewOwnership = {
  * id, or by email when the agent row predates the user's account.
  */
 export function matchSupportAgentId(
-  agents: readonly { id: string; email: string }[],
+  agents: readonly Pick<SupportAgent, "id" | "email" | "userId">[],
   context: Pick<SupportHubContext, "userId" | "userEmail">,
 ): string | null {
+  const linked = agents.find((agent) => agent.userId === context.userId);
+  if (linked) return linked.id;
+
   const email = context.userEmail?.trim().toLowerCase() ?? null;
   const match = agents.find(
     (agent) =>
-      agent.id === context.userId ||
-      (email !== null && agent.email.toLowerCase() === email),
+      agent.userId == null &&
+      email !== null &&
+      agent.email.toLowerCase() === email,
   );
   return match?.id ?? null;
 }

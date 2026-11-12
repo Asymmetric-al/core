@@ -997,8 +997,6 @@ export function NativeCollectionEditView({
                     studioConfig={studioConfig}
                   />
                 }
-                // Payload's status text repeats the header badge; its slot
-                // keeps only the "Revert to published" action.
                 Status={<NativeRevertToPublished />}
                 // Preview is offered by the workspace (Details "Open preview"
                 // and the phone Preview menu). Payload's unnamed icon-only

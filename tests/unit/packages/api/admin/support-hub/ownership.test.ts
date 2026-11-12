@@ -63,6 +63,121 @@ const personalView = (ownerAgentId: string | null, name = "My open") => ({
 beforeEach(() => __resetInMemorySupportHubStore());
 afterEach(() => __resetInMemorySupportHubStore());
 
+describe("support agent identity", () => {
+  function withAgents(
+    agents: Array<{ id: string; email: string; userId?: string | null }>,
+  ) {
+    return createSupportOwnershipService({
+      ...inMemorySupportHubAdapter,
+      agents: {
+        list: async () =>
+          agents.map((agent) => ({
+            ...agent,
+            name: agent.id,
+            avatarUrl: null,
+            title: null,
+          })),
+      },
+    });
+  }
+
+  it.each(["changed@givehope.org", null])(
+    "keeps linked ownership when the signed-in email is %s",
+    async (userEmail) => {
+      const linked = withAgents([
+        { id: DAVID, email: "care@givehope.org", userId: david.userId },
+      ]);
+      const context = { ...david, userEmail };
+
+      expect(await linked.describeAccess(context)).toEqual({
+        agentId: DAVID,
+        canManageAll: false,
+      });
+      expect(
+        await linked.saveNotificationPreferences(context, prefs(DAVID)),
+      ).toMatchObject({ agentId: DAVID });
+      expect(
+        await linked.saveSavedView(context, personalView(null)),
+      ).toMatchObject({ ownerAgentId: DAVID });
+    },
+  );
+
+  it("prefers the linked user over an earlier unlinked email match", async () => {
+    const linked = withAgents([
+      { id: EMILY, email: "care@givehope.org", userId: null },
+      { id: DAVID, email: "old-care@givehope.org", userId: david.userId },
+    ]);
+
+    expect(await linked.describeAccess(david)).toEqual({
+      agentId: DAVID,
+      canManageAll: false,
+    });
+    expect(
+      (await linked.listNotificationPreferences(david)).map(
+        (preference) => preference.agentId,
+      ),
+    ).toEqual([DAVID]);
+    await expect(
+      linked.saveNotificationPreferences(david, prefs(EMILY)),
+    ).rejects.toBeInstanceOf(SupportHubForbiddenError);
+  });
+
+  it("does not grant ownership through another user's stale email", async () => {
+    const stale = withAgents([
+      { id: DAVID, email: "care@givehope.org", userId: "another-user" },
+    ]);
+    const existing = await service.saveSavedView(manager, personalView(DAVID));
+
+    expect(await stale.describeAccess(david)).toEqual({
+      agentId: null,
+      canManageAll: false,
+    });
+    expect(await stale.listNotificationPreferences(david)).toEqual([]);
+    expect(await stale.listSavedViews(david)).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: existing.id })]),
+    );
+    await expect(
+      stale.saveNotificationPreferences(david, prefs(DAVID)),
+    ).rejects.toBeInstanceOf(SupportHubForbiddenError);
+    await expect(
+      stale.saveSavedView(david, { ...personalView(DAVID), id: existing.id }),
+    ).rejects.toBeInstanceOf(SupportHubForbiddenError);
+    await expect(
+      stale.deleteSavedView(david, existing.id),
+    ).rejects.toBeInstanceOf(SupportHubForbiddenError);
+  });
+
+  it.each([null, undefined, "another-user"])(
+    "does not treat an agent's text id as an auth user id with link %s",
+    async (userId) => {
+      const unrelated = withAgents([
+        { id: david.userId, email: "someone-else@givehope.org", userId },
+      ]);
+
+      expect(await unrelated.describeAccess(david)).toEqual({
+        agentId: null,
+        canManageAll: false,
+      });
+    },
+  );
+
+  it.each([null, undefined])(
+    "keeps normalized email fallback for a legacy row with link %s",
+    async (userId) => {
+      const legacy = withAgents([
+        { id: DAVID, email: "care@givehope.org", userId },
+      ]);
+
+      expect(
+        await legacy.describeAccess({
+          ...david,
+          userEmail: " CARE@givehope.org ",
+        }),
+      ).toEqual({ agentId: DAVID, canManageAll: false });
+    },
+  );
+});
+
 describe("notification preferences ownership", () => {
   it("shows an agent only their own preferences", async () => {
     const list = await service.listNotificationPreferences(david);

@@ -1,13 +1,15 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { cacheLife, cacheTag } from "next/cache";
 
-import { SETTLED_DONATION_STATUSES } from "./settled-donation-statuses";
 import {
   deriveEffectiveContribution,
   mapContributionAdjustmentRow,
   type ContributionAdjustmentRecord,
 } from "../admin/contribution-shared/effective-values";
-import { normalizeSharedPaymentStatus } from "../admin/contribution-shared/row-contract";
+import {
+  deriveSharedGiftDate,
+  normalizeSharedPaymentStatus,
+} from "../admin/contribution-shared/row-contract";
 import { ADMIN_CACHE_TAGS, READ_CACHE_TAGS } from "../shared/cache-tags";
 
 type QueryError = { message?: string } | null;
@@ -25,7 +27,7 @@ export interface GivingTrendMonth {
   month: string;
   /** True for the current month: gifts so far, not a finished month. */
   soFar: boolean;
-  /** Settled gift records created in the month, refunded ones included. */
+  /** Effectively settled records by canonical gift month, refunded ones included. */
   giftCount: number;
   /**
    * Settled giving after applied amount/currency corrections and refunds, in
@@ -73,6 +75,8 @@ type SettledGiftRow = {
   amount: number | null;
   refund_amount: number | null;
   currency: string | null;
+  status: string | null;
+  gift_date: string | null;
   created_at: string;
 };
 
@@ -102,7 +106,7 @@ function applyCacheMetadata(tags: string[]): void {
 function netGiftValues(
   row: SettledGiftRow,
   adjustments: ContributionAdjustmentRecord[],
-): { netCents: number; currency: string | null } {
+): { netCents: number; currency: string | null; settled: boolean } {
   const applied = adjustments
     .filter((adjustment) => adjustment.status === "applied")
     .sort(
@@ -115,10 +119,13 @@ function netGiftValues(
       amountCents: typeof row.amount === "number" ? row.amount : 0,
       fundId: null,
       missionaryId: null,
-      paymentStatus: "completed",
+      paymentStatus: row.status ?? "pending",
     },
     adjustments: applied,
   });
+  if (normalizeSharedPaymentStatus(effective.paymentStatus) !== "completed") {
+    return { netCents: 0, currency: row.currency, settled: false };
+  }
   if (
     !Number.isSafeInteger(effective.amountCents) ||
     !Number.isSafeInteger(row.refund_amount ?? 0)
@@ -137,19 +144,17 @@ function netGiftValues(
     currency = values.currency;
   }
   return {
-    netCents:
-      normalizeSharedPaymentStatus(effective.paymentStatus) === "completed"
-        ? Math.max(
-            0,
-            effective.amountCents - Math.max(0, row.refund_amount ?? 0),
-          )
-        : 0,
+    netCents: Math.max(
+      0,
+      effective.amountCents - Math.max(0, row.refund_amount ?? 0),
+    ),
     currency,
+    settled: true,
   };
 }
 
 /**
- * Reads every settled gift since `periodStartIso`, page by page. Any failed
+ * Reads every gift candidate since `periodStartIso`, page by page. Any failed
  * page fails the whole read, so a capped list is never reported as complete.
  */
 async function listSettledGifts(
@@ -161,10 +166,13 @@ async function listSettledGifts(
   for (let from = 0; ; from += PAGE_SIZE) {
     const { data, error } = await client
       .from("donations")
-      .select("id, amount, refund_amount, currency, created_at")
+      .select(
+        "id, amount, refund_amount, currency, status, gift_date, created_at",
+      )
       .eq("tenant_id", tenantId)
-      .in("status", [...SETTLED_DONATION_STATUSES])
-      .gte("created_at", periodStartIso)
+      .or(
+        `gift_date.gte.${periodStartIso.slice(0, 10)},and(gift_date.is.null,created_at.gte.${periodStartIso})`,
+      )
       .order("id", { ascending: true })
       .range(from, from + PAGE_SIZE - 1);
     if (error) {
@@ -221,7 +229,11 @@ function buildGivingTrend(
   rows: SettledGiftRow[],
   adjustmentsByDonationId: Map<string, ContributionAdjustmentRecord[]>,
   now: Date,
-): { trend: GivingTrend; revenueThisMonthCents: number } {
+): {
+  trend: GivingTrend;
+  revenueThisMonthCents: number;
+  totalDonationsThisMonth: number;
+} {
   const keys = Array.from(
     { length: GIVING_TREND_FULL_MONTHS + 1 },
     (_, index) =>
@@ -236,20 +248,23 @@ function buildGivingTrend(
   const currencies = new Set<string>();
 
   for (const row of rows) {
-    const createdAt = new Date(row.created_at);
-    if (Number.isNaN(createdAt.getTime())) {
-      throw new Error("A settled gift has an unreadable created_at.");
-    }
-    // Clock skew can stamp a gift after now; it still belongs to this month,
-    // as it does in "Net giving this month".
-    const key =
-      createdAt > now ? currentKey : createdAt.toISOString().slice(0, 7);
-    const bucket = buckets.get(key);
-    if (!bucket) continue;
     const effective = netGiftValues(
       row,
       adjustmentsByDonationId.get(row.id) ?? [],
     );
+    if (!effective.settled) continue;
+    const giftDate = new Date(deriveSharedGiftDate(row));
+    if (Number.isNaN(giftDate.getTime())) {
+      throw new Error("A settled gift has an unreadable gift date.");
+    }
+    // Clock skew can stamp a gift after now; it still belongs to this month,
+    // as it does in "Net giving this month".
+    const key =
+      !row.gift_date && giftDate > now
+        ? currentKey
+        : giftDate.toISOString().slice(0, 7);
+    const bucket = buckets.get(key);
+    if (!bucket) continue;
     bucket.giftCount += 1;
     bucket.netCents += effective.netCents;
     if (!Number.isSafeInteger(bucket.netCents)) {
@@ -271,6 +286,7 @@ function buildGivingTrend(
 
   return {
     revenueThisMonthCents: buckets.get(currentKey)!.netCents,
+    totalDonationsThisMonth: buckets.get(currentKey)!.giftCount,
     trend: {
       periodStart: utcMonthStart(now, -GIVING_TREND_FULL_MONTHS).toISOString(),
       asOf: now.toISOString(),
@@ -307,7 +323,6 @@ export async function getDashboardStats(
   }
 
   const now = new Date();
-  const monthStartIso = utcMonthStart(now).toISOString();
   // One read serves the trend and "Net giving this month", so they agree.
   const trendStartIso = utcMonthStart(
     now,
@@ -317,7 +332,6 @@ export async function getDashboardStats(
   const [
     donorCountResult,
     missionaryCountResult,
-    donationCountResult,
     settledGifts,
     activeFundsCountResult,
   ] = await Promise.all([
@@ -329,12 +343,6 @@ export async function getDashboardStats(
       .from("missionaries")
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId),
-    client
-      .from("donations")
-      .select("id", { count: "exact", head: true })
-      .eq("tenant_id", tenantId)
-      .in("status", [...SETTLED_DONATION_STATUSES])
-      .gte("created_at", monthStartIso),
     listSettledGifts(client, tenantId, trendStartIso),
     client
       .from("funds")
@@ -356,14 +364,6 @@ export async function getDashboardStats(
       ),
     );
   }
-  if (donationCountResult.error) {
-    throw new Error(
-      toErrorMessage(
-        donationCountResult.error,
-        "Failed to count monthly donations.",
-      ),
-    );
-  }
   if (activeFundsCountResult.error) {
     throw new Error(
       toErrorMessage(
@@ -378,16 +378,13 @@ export async function getDashboardStats(
     tenantId,
     settledGifts.map((row) => row.id),
   );
-  const { trend, revenueThisMonthCents } = buildGivingTrend(
-    settledGifts,
-    adjustments,
-    now,
-  );
+  const { trend, revenueThisMonthCents, totalDonationsThisMonth } =
+    buildGivingTrend(settledGifts, adjustments, now);
 
   return {
     crmRecordCount: donorCountResult.count || 0,
     totalMissionaries: missionaryCountResult.count || 0,
-    totalDonationsThisMonth: donationCountResult.count || 0,
+    totalDonationsThisMonth,
     revenueThisMonthCents,
     activeFundsCount: activeFundsCountResult.count || 0,
     givingTrend: trend,

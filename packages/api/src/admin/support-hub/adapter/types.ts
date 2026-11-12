@@ -21,6 +21,10 @@ import type {
   SupportAssignee,
 } from "@asym/database/collections/support-hub.schema";
 
+export type SupportAgent = SupportAssignee & {
+  userId?: string | null;
+};
+
 /**
  * Server-side adapter contract for the Donor Care Support Hub.
  *
@@ -261,7 +265,7 @@ export interface SupportHubAdapter {
     save(input: SaveInboxSettingsInput): Promise<SupportInboxSettings>;
   };
   agents: {
-    list(): Promise<SupportAssignee[]>;
+    list(): Promise<SupportAgent[]>;
   };
   teams: {
     list(): Promise<SupportTeam[]>;
