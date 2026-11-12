@@ -477,6 +477,76 @@ describe("verify-workspace-contract", () => {
       runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
     ).toThrow(/missing runtime map route entry/);
   });
+
+  it("applies the route segment rule to a src/app workspace", async () => {
+    const tempRoot = await createWorkspaceContractRepo();
+    const pagePath = path.join(tempRoot, "apps/demo/src/app/example/page.tsx");
+    await mkdir(path.dirname(pagePath), { recursive: true });
+    await writeFile(
+      pagePath,
+      [
+        "export const dynamic = 'force-dynamic';",
+        "export default function Page() {",
+        "  return <div>Hello</div>;",
+        "}",
+      ].join("\n"),
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
+    ).toThrow(
+      /apps[\\/]demo[\\/]src[\\/]app[\\/]example[\\/]page\.tsx: disallowed route segment config export "dynamic"/,
+    );
+  });
+
+  it("applies the private capture route rule to a src/app workspace", async () => {
+    const tempRoot = await createWorkspaceContractRepo();
+    const pagePath = path.join(
+      tempRoot,
+      "apps/demo/src/app/__boneyard__/example/page.tsx",
+    );
+    await mkdir(path.dirname(pagePath), { recursive: true });
+    await writeFile(
+      pagePath,
+      "export default function Page() { return null; }\n",
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
+    ).toThrow(/private capture routes are not routable/);
+  });
+
+  it("requires runtime-map entries for src/app api routes", async () => {
+    const tempRoot = await createWorkspaceContractRepo();
+    const routePath = path.join(
+      tempRoot,
+      "apps/demo/src/app/api/console/[...path]/route.ts",
+    );
+    await mkdir(path.dirname(routePath), { recursive: true });
+    await writeFile(
+      routePath,
+      "export async function GET() { return Response.json({}); }\n",
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
+    ).toThrow(
+      /missing runtime map route entry 'demo: \/api\/console\/\[\.\.\.path\]'/,
+    );
+
+    await writeFile(
+      path.join(tempRoot, "docs/guides/architecture/runtime-map.md"),
+      [
+        "| App | Route family | Runtime policy | Reason |",
+        "| --- | --- | --- | --- |",
+        "| demo | `/api/example` | Node.js (no `runtime` segment export) | Fixture |",
+        "| demo | `/api/console/[...path]` | Node.js (no `runtime` segment export) | Fixture |",
+      ].join("\n"),
+    );
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
+    ).not.toThrow();
+  });
 });
 
 function gitStatusPorcelain(tempRoot: string) {
@@ -2323,6 +2393,29 @@ describe("data-boundary-check", () => {
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify/data-boundary-check.mjs"),
     ).toThrow(/Data access boundary violations detected/);
+  });
+
+  it("scans src/app API route handlers for direct Supabase imports", async () => {
+    const tempRoot = await createDataBoundaryRepo();
+    const routePath = path.join(
+      tempRoot,
+      "apps/demo/src/app/api/console/[...path]/route.ts",
+    );
+    await mkdir(path.dirname(routePath), { recursive: true });
+    await writeFile(
+      routePath,
+      [
+        'import { createClient } from "@asym/database/supabase/server";',
+        "",
+        "export async function GET() {",
+        "  return Response.json({ ok: true });",
+        "}",
+      ].join("\n"),
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify/data-boundary-check.mjs"),
+    ).toThrow(/apps[\\/]demo[\\/]src[\\/]app[\\/]api/);
   });
 
   it("also scans TSX API route handlers for direct Supabase imports", async () => {

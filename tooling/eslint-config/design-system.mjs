@@ -15,6 +15,8 @@ export const uiWorkspaces = [
   "apps/admin",
   "apps/donor",
   "apps/missionary",
+  // Private VM 100 operator Console: not a product app, same UI system.
+  "apps/factory-console",
   "packages/ui",
   "packages/missionary",
 ];

@@ -86,6 +86,28 @@ describe("ci-preflight contract", () => {
     }
   });
 
+  it("compiles only the operator Console for its own change", () => {
+    const scripts = getPreflightStages({
+      branch: "feature/example",
+      changedFiles: ["apps/factory-console/src/app/page.tsx"],
+    }).map((stage) => stage.script);
+    expect(scripts).toContain("build:factory-console");
+    expect(scripts).not.toContain("build");
+    expect(scripts.indexOf("build:factory-console")).toBe(
+      scripts.indexOf("typecheck") + 1,
+    );
+  });
+
+  it("keeps the product build whole and adds the Console for shared inputs", () => {
+    const builds = getPreflightStages({
+      branch: "feature/example",
+      changedFiles: ["bun.lock"],
+    })
+      .map((stage) => stage.script)
+      .filter((script) => script.startsWith("build"));
+    expect(builds).toEqual(["build", "build:factory-console"]);
+  });
+
   it("mirrors blocking ci.yml stage order documented in docs/ci.md", () => {
     expect(stages).toEqual(EXPECTED_STAGES);
   });

@@ -12,7 +12,7 @@ const REPO_ROOT = path.resolve(
 );
 const TURBO_BIN = resolveTurboBin();
 
-const NEXT_APPS = Object.freeze([
+export const NEXT_APPS = Object.freeze([
   {
     id: "admin",
     filter: "@asym/admin",
@@ -30,6 +30,16 @@ const NEXT_APPS = Object.freeze([
     filter: "@asym/missionary-app",
     cwd: "apps/missionary",
     nextDir: "apps/missionary/.next",
+  },
+  // Private VM 100 operator Console: built only on request
+  // (`--app factory-console`), never by the product `bun run build`. See
+  // OPERATOR_BUILD_APPS in ./ci-build-policy.mjs.
+  {
+    id: "factory-console",
+    filter: "@asym/factory-console",
+    cwd: "apps/factory-console",
+    nextDir: "apps/factory-console/.next",
+    defaultBuild: false,
   },
 ]);
 
@@ -116,7 +126,7 @@ export function getSharedPackageBuildSteps({
   platform = process.platform,
   strict = false,
   turboBin = TURBO_BIN,
-  apps = NEXT_APPS,
+  apps = getRequestedApps(),
 } = {}) {
   if (platform === "win32") {
     return SHARED_PACKAGES.map((workspace) =>
@@ -168,7 +178,7 @@ export function getAppBuildStep(
 export function getRequestedApps(args = [], apps = NEXT_APPS) {
   const appFlagIndex = args.indexOf("--app");
   if (appFlagIndex === -1) {
-    return apps;
+    return apps.filter((app) => app.defaultBuild !== false);
   }
 
   const requestedId = args.at(appFlagIndex + 1);

@@ -6,6 +6,7 @@
   "applicationFloors": {
     "apps/admin": 43,
     "apps/donor": 59,
+    "apps/factory-console": 62,
     "apps/missionary": 47
   },
   "applicationCategoryFloors": {
@@ -24,6 +25,14 @@
       "accessibility": 64,
       "forms": 100,
       "production-polish": 100
+    },
+    "apps/factory-console": {
+      "foundation": 83,
+      "interaction": 26,
+      "states": 42,
+      "accessibility": 72,
+      "forms": 100,
+      "production-polish": 71
     },
     "apps/missionary": {
       "foundation": 60,

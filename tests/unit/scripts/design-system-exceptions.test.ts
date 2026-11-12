@@ -219,11 +219,12 @@ describe("scoped design-system runtime boundaries", () => {
     );
   });
 
-  it("permits the typography exclusion marker in all five workspaces without accepting misspellings", async () => {
+  it("permits the typography exclusion marker in every UI workspace without accepting misspellings", async () => {
     for (const scope of [
       "apps/admin",
       "apps/donor",
       "apps/missionary",
+      "apps/factory-console",
       "packages/ui",
       "packages/missionary",
     ]) {

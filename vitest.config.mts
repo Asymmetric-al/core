@@ -76,6 +76,8 @@ export default defineConfig({
       "packages/api/tests/unit/**/*.test.ts",
       "packages/api/tests/unit/**/*.test.tsx",
       "packages/auth/**/*.test.ts",
+      /** The private VM 100 operator Console keeps its unit tests app-local (its Playwright e2e under tests/e2e stays app-only). */
+      "apps/factory-console/tests/**/*.test.ts",
     ],
     environment: "node",
     ...(process.platform === "win32" ? { maxWorkers: 4 } : {}),

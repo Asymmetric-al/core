@@ -183,13 +183,16 @@ function collectApiRouteFiles() {
     .map((entry) => path.join(appsRoot, entry.name));
 
   const apiFiles = [];
+  // App Router roots: `app/` (product apps) or `src/app/` (apps/factory-console).
   for (const appDirectory of appDirectories) {
-    const apiDirectory = path.join(appDirectory, "app", "api");
-    if (!statExists(apiDirectory)) {
-      continue;
-    }
+    for (const routerRoot of [["app"], ["src", "app"]]) {
+      const apiDirectory = path.join(appDirectory, ...routerRoot, "api");
+      if (!statExists(apiDirectory)) {
+        continue;
+      }
 
-    apiFiles.push(...collectTypeScriptFiles(apiDirectory));
+      apiFiles.push(...collectTypeScriptFiles(apiDirectory));
+    }
   }
 
   return apiFiles.filter(
@@ -285,7 +288,7 @@ function runDataBoundaryCheck() {
 
   if (apiRouteFiles.length === 0) {
     console.log(
-      "No app API route source files found under apps/*/app/api/**/*.{ts,tsx} (after exclusions); Supabase route boundary check skipped.",
+      "No app API route source files found under apps/*/{app,src/app}/api/**/*.{ts,tsx} (after exclusions); Supabase route boundary check skipped.",
     );
   }
 
@@ -301,12 +304,12 @@ function runDataBoundaryCheck() {
 
   if (apiRouteViolations.length > 0) {
     console.error(
-      "Data access boundary violations detected in apps/*/app/api/**/*.{ts,tsx}:",
+      "Data access boundary violations detected in apps/*/{app,src/app}/api/**/*.{ts,tsx}:",
     );
     console.error(apiRouteViolations.join("\n"));
     console.error("");
     console.error(
-      "Route handlers under apps/*/app/api/ must be thin re-exports and must not import Supabase clients directly.",
+      "Route handlers under apps/*/{app,src/app}/api/ must be thin re-exports and must not import Supabase clients directly.",
     );
     console.error(
       "See docs/guides/architecture/data-access-boundary.md for the boundary rule and approved exceptions.",

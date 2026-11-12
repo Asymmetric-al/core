@@ -1,0 +1,485 @@
+import { describe, expect, it, vi } from "vitest";
+
+import { StateConflict } from "../../../scripts/archon-factory/pack/.shared/archon.mjs";
+import {
+  createAssignment,
+  planClaim,
+} from "../../../scripts/archon-factory/pack/.shared/workitem.mjs";
+import {
+  admissionCheck,
+  admissionGates,
+  releaseStaleReservations,
+  scopeDigest,
+  sweepItems,
+} from "../../../scripts/archon-factory/pack/select/scripts/intake-logic.mjs";
+
+// The selector's intake decisions: admission gates (lease-control#7, #8),
+// admit's last checks before it writes an assignment (installer-ops#0 / I7,
+// installer-ops#4) and the sweep that restarts or reconciles work items
+// (I6, lease-control#3, I4).
+
+const T0 = "2026-11-11T09:00:00.000Z";
+const T1 = "2026-11-11T10:00:00.000Z";
+const ASSIGNMENT = "a12-0123456789ab";
+const POLICY = "c".repeat(64);
+const RUNNING = { v: 1, intake: "open", mode: "run", mergeHold: false };
+const SCOPE = {
+  v: 1,
+  issues: [12, 14],
+  endState: "PR_READY",
+  endStates: {},
+  owner: "conrad",
+  approvedBy: "ops",
+  approvedAt: T0,
+  note: null,
+  priorities: {},
+  requests: [],
+};
+
+function assign(issue = 12) {
+  return createAssignment({
+    issue,
+    assignmentId: issue === 12 ? ASSIGNMENT : `a${issue}-0123456789ab`,
+    owner: "conrad",
+    profileDigest: "a".repeat(64),
+    scopeRevision: "b".repeat(64),
+    policyRevision: POLICY,
+    endState: "PR_READY",
+    reason: "Only eligible issue",
+    by: "selector:run-0",
+    now: T0,
+  });
+}
+
+describe("scopeDigest", () => {
+  it("binds the issues, end states, owner and approval, not priorities or receipts", () => {
+    const base = scopeDigest(SCOPE);
+    expect({
+      reordered: scopeDigest({ ...SCOPE, issues: [14, 12] }) === base,
+      prioritized:
+        scopeDigest({
+          ...SCOPE,
+          priorities: { 12: 90 },
+          requests: [{ id: "x" }],
+        }) === base,
+      endState: scopeDigest({ ...SCOPE, endState: "MERGED" }) === base,
+      issues: scopeDigest({ ...SCOPE, issues: [13] }) === base,
+      form: /^[a-f0-9]{64}$/.test(base),
+    }).toEqual({
+      reordered: true,
+      prioritized: true,
+      endState: false,
+      issues: false,
+      form: true,
+    });
+  });
+});
+
+describe("admissionGates", () => {
+  const gates = (overrides: Record<string, unknown> = {}) =>
+    admissionGates({
+      issue: 12,
+      existing: null,
+      foreignPr: null,
+      capacity: 1,
+      reservations: {},
+      ...overrides,
+    });
+
+  it("clears an issue with no work item, no foreign PR and free capacity", () => {
+    expect(gates()).toEqual({
+      hold: "clear",
+      owner: "clear",
+      sharedArea: "clear",
+      resources: "clear",
+    });
+  });
+
+  it.each(["PR_READY", "BLOCKED", "stopped", "MERGED", "waiting"])(
+    "treats an issue that already has a %s work item as owned",
+    (status) => {
+      expect(gates({ existing: { ...assign(), status } }).owner).toBe(
+        "conflict",
+      );
+    },
+  );
+
+  it("treats an open pull request from outside the factory as another owner", () => {
+    expect(
+      gates({ foreignPr: { html_url: "https://example.invalid/pull/9" } })
+        .owner,
+    ).toBe("conflict");
+  });
+
+  it("reports full delivery capacity", () => {
+    expect(gates({ capacity: 0 }).resources).toBe("conflict");
+  });
+
+  it("reports a recorded shared area another issue reserves, but not one this issue holds", () => {
+    const existing = {
+      ...assign(),
+      status: "waiting",
+      parked: { areas: ["migrations"], holders: { migrations: 20 }, at: T1 },
+    };
+    expect({
+      other: gates({ existing, reservations: { migrations: 20 } }).sharedArea,
+      own: gates({ existing, reservations: { migrations: 12 } }).sharedArea,
+    }).toEqual({ other: "conflict", own: "clear" });
+  });
+});
+
+describe("admissionCheck", () => {
+  const check = (overrides: Record<string, unknown> = {}) =>
+    admissionCheck({
+      factory: RUNNING,
+      scope: { revision: 7, value: SCOPE },
+      recorded: { scopeRevision: scopeDigest(SCOPE), scopeDocumentRevision: 7 },
+      issue: 12,
+      existing: null,
+      ...overrides,
+    });
+
+  it("admits a chosen issue the current scope still authorizes, with its current end state", () => {
+    const scope = { ...SCOPE, endStates: { 12: "MERGED" } };
+    expect(
+      check({
+        scope: { revision: 7, value: scope },
+        recorded: {
+          scopeRevision: scopeDigest(scope),
+          scopeDocumentRevision: 7,
+        },
+      }),
+    ).toEqual({ ok: true, endState: "MERGED" });
+  });
+
+  it.each([
+    ["stopped", { ...RUNNING, mode: "stop", intake: "paused" }, "factory-stop"],
+    [
+      "draining",
+      { ...RUNNING, mode: "drain", intake: "paused" },
+      "factory-drain",
+    ],
+    ["closed to intake", { ...RUNNING, intake: "paused" }, "intake-paused"],
+  ])("refuses while the factory is %s", (_label, factory, code) => {
+    expect(check({ factory })).toMatchObject({ ok: false, code });
+  });
+
+  it("refuses when the scope was replaced while Samson ranked", () => {
+    const replaced = {
+      ...SCOPE,
+      issues: [13],
+      endState: "MERGED",
+      approvedAt: T1,
+    };
+    expect(check({ scope: { revision: 8, value: replaced } })).toMatchObject({
+      ok: false,
+      code: "scope-changed",
+    });
+  });
+
+  it("refuses when the scope document changed revision since facts read it", () => {
+    expect(check({ scope: { revision: 8, value: SCOPE } })).toMatchObject({
+      ok: false,
+      code: "scope-changed",
+    });
+  });
+
+  it("refuses an issue the scope no longer lists", () => {
+    const scope = { ...SCOPE, issues: [14] };
+    expect(
+      check({
+        scope: { revision: 7, value: scope },
+        recorded: {
+          scopeRevision: scopeDigest(scope),
+          scopeDocumentRevision: 7,
+        },
+      }),
+    ).toMatchObject({ ok: false, code: "not-in-scope" });
+  });
+
+  it.each([
+    ["live", "waiting", "live-assignment"],
+    ["finished", "PR_READY", "finished-assignment"],
+  ])("refuses an issue with a %s work item", (_label, status, code) => {
+    expect(check({ existing: { ...assign(), status } })).toMatchObject({
+      ok: false,
+      code,
+    });
+  });
+});
+
+type Doc = {
+  revision: number;
+  value: any;
+  lease: { runId: string; live: boolean } | null;
+};
+
+function store(seed: Record<string, Doc>) {
+  const docs = new Map(Object.entries(structuredClone(seed)));
+  return {
+    doc: (name: string) => docs.get(name),
+    archon: {
+      get: vi.fn(async (name: string) => {
+        const doc = docs.get(name);
+        return doc
+          ? { name, ...structuredClone(doc) }
+          : { name, revision: 0, value: null, lease: null };
+      }),
+      put: vi.fn(
+        async (
+          name: string,
+          value: unknown,
+          options: { ifRevision: number },
+        ) => {
+          const doc = docs.get(name) ?? {
+            revision: 0,
+            value: null,
+            lease: null,
+          };
+          if (doc.revision !== options.ifRevision)
+            throw new StateConflict("conflict", null);
+          docs.set(name, {
+            revision: doc.revision + 1,
+            value: structuredClone(value),
+            lease: doc.lease,
+          });
+          return { name, revision: doc.revision + 1, value };
+        },
+      ),
+      runStatus: vi.fn(async (runId: string) => ({
+        id: runId,
+        status: "cancelled",
+      })),
+    },
+  };
+}
+
+function abandoned(): Doc {
+  const waiting = { ...assign(), status: "waiting", route: "repair", round: 2 };
+  const plan = planClaim(
+    { name: "core/issues/12", revision: 6, value: waiting, lease: null } as any,
+    {
+      runId: "run-3",
+      assignmentId: ASSIGNMENT,
+      policyRevision: POLICY,
+      now: T1,
+    },
+  );
+  return {
+    revision: 7,
+    value: plan.value,
+    lease: { runId: "run-3", live: false },
+  };
+}
+
+async function sweep(
+  seed: Record<string, Doc>,
+  { factory = RUNNING, reservations = {} } = {},
+  setup?: (state: ReturnType<typeof store>) => void,
+) {
+  const state = store(seed);
+  setup?.(state);
+  const fire = vi.fn(
+    async ({ value, revision }: { value: any; revision: number }) => ({
+      ok: true,
+      deliveryId: `${value.assignment.id}:r${value.round + 1}:v${revision}`,
+    }),
+  );
+  const results = await sweepItems({
+    archon: state.archon,
+    names: Object.keys(seed).filter((name) => name.startsWith("core/issues/")),
+    factory,
+    reservations,
+    now: T1,
+    limits: { maxRounds: 8, maxFeedbackRounds: 12, noProgressRepeats: 2 },
+    fire,
+  });
+  return { state, fire, results };
+}
+
+describe("sweepItems", () => {
+  it("restarts an idle item under its revision key", async () => {
+    const { results } = await sweep({
+      "core/issues/12": {
+        revision: 10,
+        value: { ...assign(), status: "waiting", route: "repair", round: 3 },
+        lease: null,
+      },
+    });
+    expect(results).toEqual([
+      {
+        issue: 12,
+        action: "fire",
+        ok: true,
+        deliveryId: "a12-0123456789ab:r4:v10",
+      },
+    ]);
+  });
+
+  it("reconciles an item whose run the engine reports ended, then restarts it under the new revision", async () => {
+    const { results, state } = await sweep({ "core/issues/12": abandoned() });
+    expect({
+      results,
+      status: state.doc("core/issues/12")?.value.status,
+      asked: state.archon.runStatus.mock.calls,
+    }).toEqual({
+      results: [
+        {
+          issue: 12,
+          action: "reconcile",
+          outcome: "reconciled",
+          ok: true,
+          deliveryId: "a12-0123456789ab:r4:v8",
+        },
+      ],
+      status: "waiting",
+      asked: [["run-3"]],
+    });
+  });
+
+  it("reconciles but does not restart while the factory is stopped", async () => {
+    const { results, fire } = await sweep(
+      { "core/issues/12": abandoned() },
+      { factory: { ...RUNNING, mode: "stop" } },
+    );
+    expect({ results, fired: fire.mock.calls.length }).toEqual({
+      results: [{ issue: 12, action: "reconcile", outcome: "reconciled" }],
+      fired: 0,
+    });
+  });
+
+  it("leaves an item alone while the engine reports its run still running", async () => {
+    const { results, state } = await sweep(
+      { "core/issues/12": abandoned() },
+      {},
+      (s) => {
+        s.archon.runStatus.mockImplementation(async (runId: string) => ({
+          id: runId,
+          status: "running",
+        }));
+      },
+    );
+    expect({
+      results,
+      status: state.doc("core/issues/12")?.value.status,
+    }).toEqual({
+      results: [{ issue: 12, action: "reconcile", code: "run-not-terminal" }],
+      status: "active",
+    });
+  });
+
+  it("releases the reservations of an item the no-progress rule blocks while reconciling", async () => {
+    const stuck = abandoned();
+    stuck.value.repeats = { "unfinished-run": 2 };
+    const { state } = await sweep({
+      "core/issues/12": stuck,
+      "core/reservations": {
+        revision: 3,
+        value: { v: 1, areas: { migrations: 12 } },
+        lease: null,
+      },
+    });
+    expect({
+      status: state.doc("core/issues/12")?.value.status,
+      areas: state.doc("core/reservations")?.value.areas,
+    }).toEqual({ status: "BLOCKED", areas: {} });
+  });
+
+  it("keeps a parked item parked while another issue holds its area, and starts it once released", async () => {
+    const parked = {
+      revision: 9,
+      value: {
+        ...assign(),
+        status: "waiting",
+        route: "initial",
+        round: 1,
+        parked: { areas: ["migrations"], holders: { migrations: 20 }, at: T1 },
+      },
+      lease: null,
+    };
+    const held = await sweep(
+      { "core/issues/12": parked },
+      { reservations: { migrations: 20 } },
+    );
+    const free = await sweep(
+      { "core/issues/12": parked },
+      { reservations: {} },
+    );
+    expect({ held: held.results, free: free.results }).toEqual({
+      held: [{ issue: 12, action: "skip", reason: "parked" }],
+      free: [
+        {
+          issue: 12,
+          action: "fire",
+          ok: true,
+          deliveryId: "a12-0123456789ab:r2:v9",
+        },
+      ],
+    });
+  });
+});
+
+describe("releaseStaleReservations", () => {
+  it("releases areas whose holder has no live work item, keeping live holders' areas", async () => {
+    const state = store({
+      "core/issues/12": {
+        revision: 2,
+        value: { ...assign(12), status: "waiting" },
+        lease: null,
+      },
+      "core/issues/20": {
+        revision: 2,
+        value: { ...assign(20), status: "PR_READY" },
+        lease: null,
+      },
+      "core/issues/31": {
+        revision: 2,
+        value: { ...assign(31), status: "active" },
+        lease: null,
+      },
+      "core/reservations": {
+        revision: 5,
+        value: {
+          v: 1,
+          areas: { migrations: 12, lockfile: 20, "shared-ui": 31, ci: 40 },
+        },
+        lease: null,
+      },
+    });
+    const released = await releaseStaleReservations({
+      archon: state.archon,
+      items: new Map<number, any>([
+        [12, { ...assign(12), status: "waiting" }],
+        [20, { ...assign(20), status: "PR_READY" }],
+        [31, { ...assign(31), status: "active" }],
+      ]),
+    });
+    expect({
+      released,
+      areas: state.doc("core/reservations")?.value.areas,
+    }).toEqual({
+      released: ["ci", "lockfile"],
+      areas: { migrations: 12, "shared-ui": 31 },
+    });
+  });
+
+  it("writes nothing when every holder is live", async () => {
+    const state = store({
+      "core/issues/12": {
+        revision: 2,
+        value: { ...assign(12), status: "active" },
+        lease: null,
+      },
+      "core/reservations": {
+        revision: 5,
+        value: { v: 1, areas: { migrations: 12 } },
+        lease: null,
+      },
+    });
+    await releaseStaleReservations({
+      archon: state.archon,
+      items: new Map([[12, { ...assign(12), status: "active" }]]),
+    });
+    expect(state.archon.put).not.toHaveBeenCalled();
+  });
+});

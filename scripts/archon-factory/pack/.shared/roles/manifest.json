@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "note": "Adapted Claude/Archon roles for the VM 100 factory lane. Hashes are over LF-normalized bytes.",
+  "sources": {
+    ".codex/agents/samson.toml": "57ed06ff9187194d06d9c29eadfa509adccbc21614f09c3782587787bd7773a0",
+    ".codex/agents/ezra.toml": "9d219ac12370051cdb44d0ffe82815486ee48dbf87b7ec08dea5dfe4dacf3fba",
+    ".codex/agents/bezalel.toml": "c6101091c87fd63d3fc8899a3e9364458690fe3a4fdd5133f7ae0f418330c8a2",
+    ".codex/agents/micaiah.toml": "8207dfa26757b086d0f4028110e4d368bed1d194b75b07283d6d9ed6ee22b568",
+    ".codex/agents/luke.toml": "7fc68c3740a8c0e23de248ae5ebc55844073a7d5350932d54b014d87a12246c6",
+    ".codex/agents/agabus.toml": "08c36066d38dfa510d18c4574cae7048ba3b8db6932ef195a0b6b51cbff4a9d0",
+    "docs/ai/skills/samson-factory/SKILL.md": "79b1f5f3a37f26d0295c75871b01e374c70b99b325ce65fcbe02d760c29898ba",
+    "docs/ai/skills/samson-factory/references/protocol.md": "2699ef1757f3ed8ca21c61d59fd38584cc6e2b97af4dd4174fe90def12e650fb"
+  },
+  "roles": {
+    "samson": "82d95fb8bfc8ea875446e60ea2e16c06aa46752c20eb333807ecc8c7ecd46e88",
+    "ezra": "1b8bc868686ec38fd1c5f03919a71e7ae170e1dfcc47990c307b1cc062c2d2a1",
+    "bezalel": "4cf8052c3934f163293c4e230f09830dab80f0d8eea25b8406412cce3ea28cfa",
+    "micaiah": "2d0d63fd15ac3dc36e4abb22198b2532fd53bb104b9f3f0c72d02dd1806e4191",
+    "luke": "a5a9cef91d6477a5d4cce59441f34d3abf8f1a958265b6bbe2f914673103f365",
+    "agabus": "3f264b7eca4c90f71ff8cf7a221bb374a341d4ab77c7b9069d737c1ccf347b40"
+  },
+  "commands": {
+    "deliver/commands/scope.md": {
+      "role": "samson",
+      "sha256": "839b0eb30639f637786f7670659bfd8a3b220dd60b82c657427b93362d116f48"
+    },
+    "deliver/commands/assess.md": {
+      "role": "samson",
+      "sha256": "30386020219f3cd8dafad162505dd139deda0a2e969df088941bb8f9cf14e2c1"
+    },
+    "deliver/commands/dispose.md": {
+      "role": "samson",
+      "sha256": "2d6f992a83333fa02a753a971a419bc440a7a521376c47c98bd648b4ff927f30"
+    },
+    "deliver/commands/define.md": {
+      "role": "ezra",
+      "sha256": "17a6263c901dc0b9263d9775de608ef835ad2dd1e0d4650883e6948f58c73e75"
+    },
+    "deliver/commands/final.md": {
+      "role": "ezra",
+      "sha256": "52990d973a68480c3a9d91162e2296b6cd738b4c4308caa1abda876b341255ef"
+    },
+    "deliver/commands/build.md": {
+      "role": "bezalel",
+      "sha256": "9f2adb5e372a1413a9fd1b40d50ab0129fdd71f4b51858dbe15d066e3c12b2a6"
+    },
+    "deliver/commands/review-micaiah.md": {
+      "role": "micaiah",
+      "sha256": "4a2c42cc0163ed3c215cb5050b351ff4efcb24c025e116d5a8f4256337fc90ef"
+    },
+    "deliver/commands/review-luke.md": {
+      "role": "luke",
+      "sha256": "fafb2f107196be125932b68b2d35439dbc12ca48716e8b962c8401c38feaa472"
+    },
+    "deliver/commands/adjudicate.md": {
+      "role": "agabus",
+      "sha256": "c9d169c4a430678f174da642e4df49344564cc3a6c061e92a015e4b54ae49287"
+    },
+    "select/commands/rank.md": {
+      "role": "samson",
+      "sha256": "0491bfe94fced876f4c6da008b9b8386d49db50fece1569981ed031bb376d193"
+    },
+    "answer/commands/answer.md": {
+      "role": "samson",
+      "sha256": "7653cebf85f770aa304476fe06f3cc5c89b44ea241e16bc59c9bbe304df09a8d"
+    }
+  }
+}

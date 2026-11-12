@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   SHADCN_RSC_OVERRIDE_ENV,
   firstNonCommentLine,
+  readAppGlobals,
   validateShadcnConfigGuardrails,
 } from "../../../scripts/verify/shadcn-config-guardrails.mjs";
 
@@ -25,6 +26,8 @@ const validGlobals = {
   "apps/admin/app/globals.css": '@import "@asym/ui/styles/globals.css";\n',
   "apps/donor/app/globals.css": '@import "@asym/ui/styles/globals.css";\n',
   "apps/missionary/app/globals.css": '@import "@asym/missionary/styles.css";\n',
+  "apps/factory-console/src/app/globals.css":
+    '@import "@asym/ui/styles/globals.css";\n@source "../";\n',
 };
 
 const validMissionaryFacade = {
@@ -162,6 +165,35 @@ describe("shadcn config guardrails", () => {
         }),
       ]),
     );
+  });
+
+  it("requires the operator Console to import the shared theme first", () => {
+    const failures = validateShadcnConfigGuardrails({
+      ...validMissionaryFacade,
+      componentsConfig: validComponentsConfig,
+      appConfigFiles: [],
+      appGlobals: {
+        ...validGlobals,
+        "apps/factory-console/src/app/globals.css":
+          ":root { --primary: red; }\n",
+      },
+      env: {},
+    });
+
+    expect(failures).toContainEqual(
+      expect.objectContaining({
+        path: "apps/factory-console/src/app/globals.css",
+        expected: '@import "@asym/ui/styles/globals.css";',
+      }),
+    );
+  });
+
+  it("reads the operator Console's real stylesheet", () => {
+    expect(
+      firstNonCommentLine(
+        readAppGlobals()["apps/factory-console/src/app/globals.css"] ?? "",
+      ),
+    ).toBe('@import "@asym/ui/styles/globals.css";');
   });
 
   it("requires shared globals import as the first non-comment app CSS line", () => {

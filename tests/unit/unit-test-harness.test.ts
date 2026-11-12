@@ -29,4 +29,17 @@ describe("unit test harness", () => {
 
     expect(clearMocks).toBe(true);
   });
+
+  it("runs the operator Console's app-local unit tests, not its Playwright specs", () => {
+    const testConfig = vitestConfig.test;
+    const include =
+      testConfig && typeof testConfig === "object" && "include" in testConfig
+        ? testConfig.include
+        : undefined;
+
+    expect(include).toContain("apps/factory-console/tests/**/*.test.ts");
+    expect(
+      include?.some((pattern) => /factory-console.*\.spec\./.test(pattern)),
+    ).toBe(false);
+  });
 });

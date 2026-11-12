@@ -30,7 +30,13 @@ export function validateSummary(summary) {
       ) ||
       JSON.stringify(
         summary.applications.map((app) => app.packageDir).sort(),
-      ) !== JSON.stringify(["apps/admin", "apps/donor", "apps/missionary"]) ||
+      ) !==
+        JSON.stringify([
+          "apps/admin",
+          "apps/donor",
+          "apps/factory-console",
+          "apps/missionary",
+        ]) ||
       summary.applications.some(
         (app) =>
           !Number.isInteger(app.score) ||

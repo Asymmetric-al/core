@@ -1,0 +1,18 @@
+@import "@asym/ui/styles/globals.css";
+@source "../../../../packages/ui/components";
+@source "../";
+
+body {
+  margin: 0;
+}
+button,
+a,
+input,
+textarea,
+select {
+  scroll-margin: 6rem;
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

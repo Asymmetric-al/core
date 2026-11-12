@@ -1,0 +1,85 @@
+name: core-select
+description: >-
+  Short, serialized admission pass for the Core factory: compute the eligible
+  frontier of the operator-authorized scope, let Samson rank it, record one
+  durable assignment and start its first delivery round. Started by the
+  factory's admission binding on a timer; it never waits for delivery.
+provider: claude
+mutates_checkout: false
+worktree:
+  enabled: false
+nodes:
+  - id: facts
+    script: facts
+    runtime: bun
+    timeout: 600000
+    output_format:
+      type: object
+      properties:
+        rank: { type: string, enum: ["yes", "no"] }
+        admit: { type: string, enum: ["yes", "no"] }
+        samson_assignment: { type: string }
+        reason: { type: string }
+      required: [rank, admit, samson_assignment, reason]
+      additionalProperties: false
+
+  - id: rank
+    depends_on: [facts]
+    when: "$facts.output.rank == 'yes'"
+    command: rank
+    with:
+      assignment: $facts.output.samson_assignment
+    model: opus
+    effort: high
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools: [Read, Grep, Glob]
+    idle_timeout: 600000
+    output_format:
+      type: object
+      properties:
+        issueIds:
+          { type: array, items: { type: string }, minItems: 1, maxItems: 1 }
+        scopeRevision: { type: string }
+        contextRevision: { type: string }
+        ranking:
+          type: object
+          properties:
+            roadmapPriority: { type: integer, minimum: 0, maximum: 100 }
+            unlockValue: { type: integer, minimum: 0, maximum: 100 }
+            repairValue: { type: integer, minimum: 0, maximum: 100 }
+            agingBonus: { type: integer, minimum: 0, maximum: 100 }
+            tieBreakKey: { type: string }
+          required:
+            [roadmapPriority, unlockValue, repairValue, agingBonus, tieBreakKey]
+          additionalProperties: false
+        reason:
+          type: object
+          properties:
+            summary: { type: string }
+            sources: { type: array, items: { type: string } }
+            expectedBenefit: { type: string }
+            affectedAreas: { type: array, items: { type: string } }
+            uncertainty: { type: string }
+          required:
+            [summary, sources, expectedBenefit, affectedAreas, uncertainty]
+          additionalProperties: false
+      required: [issueIds, scopeRevision, contextRevision, ranking, reason]
+      additionalProperties: false
+
+  - id: admit
+    depends_on: [facts, rank]
+    trigger_rule: none_failed_min_one_success
+    when: "$facts.output.admit == 'yes'"
+    script: admit
+    runtime: bun
+    timeout: 300000
+    with:
+      rank: { from: $rank.output, if_skipped: null }
+    output_format:
+      type: object
+      properties:
+        admitted: { type: string }
+        reason: { type: string }
+      required: [admitted, reason]
+      additionalProperties: false

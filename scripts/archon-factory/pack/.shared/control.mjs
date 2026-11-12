@@ -1,0 +1,668 @@
+#!/usr/bin/env node
+// Operator controls for the Core factory: the one seam the Console, the
+// runbook and an operator's shell all use. Every mutation carries a request id,
+// is a conditional write validated by workitem.mjs, and reports the observed
+// state afterwards. Server-owned runs are cancelled through the server's API.
+//
+//   control.mjs status
+//   control.mjs factory <pause-intake|resume-intake|drain|stop|resume|hold-merge|release-merge> --request <id> --by <who> [--reason <text>]
+//   control.mjs issue <n> <hold|release|stop|retry|reopen|reconcile|adopt-policy> --request <id> --by <who> [--reason <text>]
+//   control.mjs scope --issues 12,13 --end-state PR_READY|MERGED --owner conrad --request <id> --by <who> [--note <text>]
+//   control.mjs prioritize <n> <0-100> --request <id> --by <who>
+//   control.mjs allow-protected <n> <all|none|glob[,glob...]> --request <id> --by <who>
+//   control.mjs cancel-run <runId> --request <id> --by <who>
+//   control.mjs ask --conversation <id> --request <id> --question <text>
+//   control.mjs analyze --scope factory|issue:<n> --trigger operator --request <id>
+//
+// retry, reopen and release require the retained policy and native identity.
+// reconcile settles an item left active by a run the engine reports ended
+// (never while its lease is live), or re-arms an idle item's dispatch.
+// allow-protected authorizes (or with none revokes) an in-scope issue's scope
+// to reach protected repository paths: core/scope.allowProtected[<n>] is true
+// or a list of protected globs, which after-scope's check reads.
+// cancel-run first holds the issue whose round the run is (a cancelled round
+// is never requeued automatically), then removes the run's labelled executor
+// containers; it is ok only once the run is terminal and none remain.
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { isDeepStrictEqual } from "node:util";
+
+import { StateConflict, createArchon } from "./archon.mjs";
+import { factoryPaths, limits, loadConfig } from "./config.mjs";
+import { removeLabeledContainers } from "./executor.mjs";
+import { NativeIdentityRefusal, verifyNativeIdentity } from "./identity.mjs";
+import { fireWebhook } from "./webhook.mjs";
+import {
+  Refusal,
+  issueDocument,
+  planControl,
+  planFactoryControl,
+} from "./workitem.mjs";
+import { PROTECTED_GLOBS } from "../deliver/scripts/scope-logic.mjs";
+
+const posix = path.posix;
+const requestPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/;
+
+export function parseArgs(argv) {
+  const positional = [];
+  const flags = {};
+  for (let index = 0; index < argv.length; index += 1) {
+    const value = argv[index];
+    if (value.startsWith("--")) {
+      flags[value.slice(2)] = argv[index + 1];
+      index += 1;
+    } else positional.push(value);
+  }
+  return { positional, flags };
+}
+
+async function conditional(archon, name, plan) {
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const document = await archon.get(name);
+    let planned;
+    try {
+      planned = await plan(document);
+    } catch (error) {
+      if (error instanceof Refusal || error instanceof NativeIdentityRefusal)
+        return { ok: false, code: error.code, message: error.message };
+      throw error;
+    }
+    if (planned.noop) return { ok: true, noop: true, value: planned.value };
+    try {
+      const receipt = await archon.put(planned.name, planned.value, {
+        ifRevision: planned.ifRevision,
+      });
+      return { ok: true, revision: receipt.revision, value: planned.value };
+    } catch (error) {
+      if (error instanceof StateConflict) continue;
+      throw error;
+    }
+  }
+  return {
+    ok: false,
+    code: "conflict",
+    message: "The document kept changing; read it again and retry",
+  };
+}
+
+// The installed release, or undefined when none is readable.
+function installedRelease(paths) {
+  try {
+    return JSON.parse(
+      readFileSync(
+        posix.join(paths.control, ".archon", "core-factory-release.json"),
+        "utf8",
+      ),
+    );
+  } catch {
+    return undefined;
+  }
+}
+
+// The record of the release an assignment was bound under, kept by the
+// installer beside that release's files. It is evidence for the identity
+// proof, never trusted by itself.
+function predecessorRelease(installed, policyRevision) {
+  try {
+    const record = JSON.parse(
+      readFileSync(
+        posix.join(
+          posix.dirname(installed.release),
+          policyRevision.slice(0, 16),
+          "release.json",
+        ),
+        "utf8",
+      ),
+    );
+    return record?.policyRevision === policyRevision ? record : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function engineRun(fetchImpl, config, runId) {
+  try {
+    const response = await fetchImpl(
+      `http://127.0.0.1:${config.archon.port}/api/workflows/runs/${runId}`,
+    );
+    const body = await response.json();
+    const status = body?.run?.status;
+    if (!response.ok || typeof status !== "string") return null;
+    return { id: body.run.id ?? runId, status };
+  } catch {
+    return null;
+  }
+}
+
+// Executor containers carry core.archon.run=<runId>. executor.mjs's shared
+// reconcile force-removes every one of them and lists again; only that second
+// listing proves none remain. `removed` (found, and gone from that listing) is
+// what the Console reports. A reconcile that throws is reported, not raised.
+async function removeRunContainers(removeContainers, config, runId) {
+  let result;
+  try {
+    result = await removeContainers({
+      dockerExecutable: config.executor.docker,
+      labels: { "core.archon.run": runId },
+    });
+  } catch (error) {
+    result = {
+      ok: false,
+      found: [],
+      remaining: null,
+      error: String(error?.message ?? error).slice(0, 600),
+    };
+  }
+  const removed =
+    Array.isArray(result?.found) && Array.isArray(result.remaining)
+      ? result.found.filter((id) => !result.remaining.includes(id))
+      : [];
+  return { ...result, removed };
+}
+
+const ENDED_RUNS = new Set(["completed", "cancelled"]);
+
+// I11: true for every protected area, null to revoke, or the named protected
+// globs in PROTECTED_GLOBS order. A name that is not exactly a protected area
+// would never match after-scope's check, so it refuses the whole request.
+function protectedGrant(what) {
+  const text = String(what ?? "").trim();
+  if (text === "all") return true;
+  if (text === "none") return null;
+  const asked = text
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  if (!asked.length) throw new Refusal("invalid-protected", text);
+  for (const glob of asked)
+    if (!PROTECTED_GLOBS.includes(glob))
+      throw new Refusal("invalid-protected", glob);
+  return PROTECTED_GLOBS.filter((glob) => asked.includes(glob));
+}
+
+const withAllowProtected = (value, allowProtected) => {
+  const rest = { ...value };
+  delete rest.allowProtected;
+  return Object.keys(allowProtected).length
+    ? { ...rest, allowProtected }
+    : rest;
+};
+
+export async function runControl(
+  argv,
+  {
+    archon,
+    config,
+    fetchImpl = fetch,
+    removeContainers = removeLabeledContainers,
+    verifyIdentity = verifyNativeIdentity,
+    now = () => new Date().toISOString(),
+  },
+) {
+  const { positional, flags } = parseArgs(argv);
+  const [command, ...rest] = positional;
+  const request = flags.request;
+  const by = String(flags.by ?? "operator").slice(0, 80);
+  const reason = flags.reason ? String(flags.reason).slice(0, 600) : null;
+  const needRequest = () => {
+    if (!requestPattern.test(request ?? ""))
+      throw new Refusal("request-id-required");
+  };
+  const paths = factoryPaths(config);
+  switch (command) {
+    case "status": {
+      const [factory, scope, issues] = await Promise.all([
+        archon.get("core/factory"),
+        archon.get("core/scope"),
+        archon.list("core/issues/", { values: true }),
+      ]);
+      return {
+        ok: true,
+        factory: factory.value,
+        scope: scope.value,
+        issues: (issues.documents ?? [])
+          .filter((doc) => /^core\/issues\/\d+$/.test(doc.name))
+          .map((doc) => ({
+            issue: doc.value.issue,
+            status: doc.value.status,
+            control: doc.value.control,
+            round: doc.value.round,
+            route: doc.value.route,
+            pr: doc.value.pr?.url ?? null,
+            blocker: doc.value.blocker,
+            lease: doc.lease,
+          })),
+      };
+    }
+    case "factory": {
+      needRequest();
+      return conditional(archon, "core/factory", (document) =>
+        planFactoryControl(document, {
+          action: rest[0],
+          reason,
+          by,
+          now: now(),
+          requestId: request,
+        }),
+      );
+    }
+    case "issue": {
+      needRequest();
+      const issue = Number(rest[0]);
+      if (!Number.isSafeInteger(issue) || issue <= 0)
+        throw new Refusal("invalid-issue");
+      const action = rest[1];
+      // Ask the engine about the run a reconcile would settle.
+      let runStatus = null;
+      if (action === "reconcile") {
+        const runId = (await archon.get(issueDocument(issue))).value?.run?.id;
+        if (runId) runStatus = await engineRun(fetchImpl, config, runId);
+      }
+      // adopt-policy is the explicit policy transition. Like the recovery
+      // controls it needs the installed release and the retained identity; it
+      // proves that identity against the record of the release the assignment
+      // was bound under, because the profile digest binds the release.
+      const transition = action === "adopt-policy";
+      const recovery =
+        transition || ["retry", "reopen", "release"].includes(action);
+      return conditional(archon, issueDocument(issue), async (document) => {
+        const installed = recovery ? installedRelease(paths) : undefined;
+        const plan = (identity) =>
+          planControl(document, {
+            action,
+            reason,
+            by,
+            now: now(),
+            requestId: request,
+            runStatus,
+            limits: limits(config),
+            installed,
+            identity,
+          });
+        // Every refusal that needs no identity proof comes first (for the
+        // transition, against a placeholder digest that is never written).
+        const planned = plan(
+          transition ? { profileDigest: "0".repeat(64) } : undefined,
+        );
+        if (planned.noop || !recovery) return planned;
+        const assignment = document.value.assignment;
+        let predecessor;
+        if (transition) {
+          predecessor = predecessorRelease(
+            installed,
+            assignment.policyRevision,
+          );
+          if (!predecessor)
+            throw new Refusal(
+              "predecessor-release-unavailable",
+              "The record of the release this assignment was bound under is missing or does not name it; retained assignment unchanged",
+            );
+        }
+        const identity = await verifyIdentity({
+          config,
+          owner: assignment.owner,
+          expectedDigest: assignment.profileDigest,
+          ...(transition ? { predecessor } : {}),
+        });
+        if (
+          !identity ||
+          typeof identity.profileDigest !== "string" ||
+          !/^[a-f0-9]{64}$/.test(identity.profileDigest)
+        )
+          throw new Refusal("identity-proof-unavailable");
+        if (
+          identity.owner !== assignment.owner ||
+          (!transition && identity.profileDigest !== assignment.profileDigest)
+        )
+          throw new Refusal("identity-drift");
+        if (!isDeepStrictEqual(installed, installedRelease(paths)))
+          throw new Refusal(
+            "policy-transition-required",
+            "Installed release changed during identity verification; retained assignment unchanged",
+          );
+        return transition
+          ? plan({ profileDigest: identity.profileDigest })
+          : planned;
+      });
+    }
+    case "scope": {
+      needRequest();
+      // Fail closed: a malformed entry refuses the whole scope rather than
+      // silently authorizing the remainder.
+      const issues = String(flags.issues ?? "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .map(Number);
+      const endState = flags["end-state"];
+      const owner = flags.owner;
+      if (!issues.length) throw new Refusal("scope-issues-required");
+      if (!issues.every((value) => Number.isSafeInteger(value) && value > 0))
+        throw new Refusal("invalid-issue");
+      if (!["PR_READY", "MERGED"].includes(endState))
+        throw new Refusal("end-state-required");
+      if (!config.owners[owner]) throw new Refusal("unknown-owner", owner);
+      // Optional per-issue end states, e.g. --end-states 2233=MERGED,2234=PR_READY
+      const endStates = {};
+      for (const pair of String(flags["end-states"] ?? "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean)) {
+        const [issueText, state] = pair.split("=");
+        const issue = Number(issueText);
+        if (!issues.includes(issue) || !["PR_READY", "MERGED"].includes(state))
+          throw new Refusal("invalid-end-states", pair);
+        endStates[issue] = state;
+      }
+      return conditional(archon, "core/scope", (document) => {
+        if (
+          (document.value?.requests ?? []).some((item) => item.id === request)
+        )
+          return { noop: true, value: document.value };
+        const approved = [...new Set(issues)].sort((a, b) => a - b);
+        // Protected-path authorizations survive only for issues still in scope.
+        const allowProtected = Object.fromEntries(
+          Object.entries(document.value?.allowProtected ?? {}).filter(([key]) =>
+            approved.includes(Number(key)),
+          ),
+        );
+        return {
+          name: "core/scope",
+          ifRevision: document.revision,
+          value: withAllowProtected(
+            {
+              v: 1,
+              issues: approved,
+              endState,
+              endStates,
+              owner,
+              approvedBy: by,
+              approvedAt: now(),
+              note: flags.note ? String(flags.note).slice(0, 600) : null,
+              priorities: document.value?.priorities ?? {},
+              requests: [
+                ...(document.value?.requests ?? []),
+                { id: request, by, at: now() },
+              ].slice(-20),
+            },
+            allowProtected,
+          ),
+        };
+      });
+    }
+    case "prioritize": {
+      needRequest();
+      const issue = Number(rest[0]);
+      const priority = Number(rest[1]);
+      if (
+        !Number.isSafeInteger(issue) ||
+        !Number.isInteger(priority) ||
+        priority < 0 ||
+        priority > 100
+      )
+        throw new Refusal("invalid-priority");
+      return conditional(archon, "core/scope", (document) => {
+        if (!document.value) throw new Refusal("no-scope");
+        if ((document.value.requests ?? []).some((item) => item.id === request))
+          return { noop: true, value: document.value };
+        if (!document.value.issues.includes(issue))
+          throw new Refusal("not-in-scope");
+        return {
+          name: "core/scope",
+          ifRevision: document.revision,
+          value: {
+            ...document.value,
+            priorities: {
+              ...(document.value.priorities ?? {}),
+              [issue]: priority,
+            },
+            requests: [
+              ...(document.value.requests ?? []),
+              { id: request, by, at: now() },
+            ].slice(-20),
+          },
+        };
+      });
+    }
+    case "allow-protected": {
+      needRequest();
+      const issue = Number(rest[0]);
+      if (!Number.isSafeInteger(issue) || issue <= 0)
+        throw new Refusal("invalid-issue");
+      const grant = protectedGrant(rest[1]);
+      return conditional(archon, "core/scope", (document) => {
+        if (!document.value) throw new Refusal("no-scope");
+        if ((document.value.requests ?? []).some((item) => item.id === request))
+          return { noop: true, value: document.value };
+        if (!document.value.issues.includes(issue))
+          throw new Refusal("not-in-scope");
+        const allowProtected = { ...(document.value.allowProtected ?? {}) };
+        if (grant === null) delete allowProtected[issue];
+        else allowProtected[issue] = grant;
+        return {
+          name: "core/scope",
+          ifRevision: document.revision,
+          value: withAllowProtected(
+            {
+              ...document.value,
+              requests: [
+                ...(document.value.requests ?? []),
+                { id: request, by, at: now() },
+              ].slice(-20),
+            },
+            allowProtected,
+          ),
+        };
+      });
+    }
+    case "cancel-run": {
+      needRequest();
+      const runId = rest[0];
+      if (!/^[a-f0-9-]{36}$/.test(runId ?? ""))
+        throw new Refusal("invalid-run");
+      // A cancelled round is not requeued automatically: hold its issue first,
+      // so reconciling the ended run leaves it waiting until a release.
+      const listing = await archon.list("core/issues/", { values: true });
+      const owner = (listing.documents ?? []).find(
+        (doc) =>
+          /^core\/issues\/\d+$/.test(doc.name) && doc.value?.run?.id === runId,
+      );
+      let held = null;
+      if (owner) {
+        const hold = await conditional(archon, owner.name, (document) =>
+          planControl(document, {
+            action: "hold",
+            reason: reason ?? `Run ${runId} cancelled by ${by}`,
+            by,
+            now: now(),
+            requestId: request,
+          }),
+        );
+        const confirmed = hold.ok && hold.value?.control === "hold";
+        held = {
+          issue: owner.value.issue,
+          ok: confirmed,
+          code: confirmed ? null : (hold.code ?? "not-held"),
+        };
+        if (!confirmed)
+          return {
+            ok: false,
+            code: held.code,
+            message:
+              "The issue hold was not confirmed; the run was not cancelled. Read the issue and retry.",
+            held,
+          };
+      }
+      let response = null;
+      let body = "";
+      let observed = null;
+      let containers;
+      const errors = [];
+      const recordError = (operation, error) => {
+        errors.push({
+          operation,
+          detail: String(error?.message ?? error).slice(0, 600),
+        });
+      };
+      try {
+        try {
+          response = await fetchImpl(
+            `http://127.0.0.1:${config.archon.port}/api/workflows/runs/${runId}/cancel`,
+            { method: "POST" },
+          );
+        } catch (error) {
+          recordError("cancel", error);
+        }
+        if (response) {
+          try {
+            body = await response.text();
+          } catch (error) {
+            recordError("cancel-body", error);
+          }
+        }
+        let statusResponse;
+        try {
+          statusResponse = await fetchImpl(
+            `http://127.0.0.1:${config.archon.port}/api/workflows/runs/${runId}`,
+          );
+        } catch (error) {
+          recordError("status", error);
+        }
+        if (statusResponse) {
+          try {
+            const after = await statusResponse.json();
+            if (statusResponse.ok && typeof after?.run?.status === "string")
+              observed = after.run.status;
+          } catch (error) {
+            recordError("status-body", error);
+          }
+        }
+      } finally {
+        containers = await removeRunContainers(removeContainers, config, runId);
+      }
+      return {
+        ok:
+          response?.ok === true &&
+          errors.length === 0 &&
+          ENDED_RUNS.has(observed) &&
+          containers?.ok === true &&
+          Array.isArray(containers.remaining) &&
+          containers.remaining.length === 0,
+        status: response?.status ?? null,
+        detail: body.slice(0, 600),
+        observed,
+        containers,
+        ...(errors.length ? { errors } : {}),
+        ...(held ? { held } : {}),
+      };
+    }
+    case "ask":
+    case "analyze": {
+      needRequest();
+      const inputs =
+        command === "ask"
+          ? {
+              question: String(flags.question ?? "").slice(0, 2000),
+              conversation: String(flags.conversation ?? ""),
+              request,
+            }
+          : {
+              scope: String(flags.scope ?? "factory"),
+              trigger: String(flags.trigger ?? "operator"),
+              request,
+            };
+      if (
+        command === "ask" &&
+        (!inputs.question.trim() ||
+          !/^[a-z0-9-]{8,64}$/.test(inputs.conversation))
+      )
+        throw new Refusal("invalid-question");
+      const dir = posix.join(paths.runs, "operator-requests");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(posix.join(dir, `${request}.json`), JSON.stringify(inputs));
+      if (command === "ask") {
+        // Record the question now so the conversation shows it as pending
+        // across reloads; the answer turn adds Samson's reply.
+        const recorded = await conditional(
+          archon,
+          `core/chat/${inputs.conversation}`,
+          (document) => {
+            const messages = document.value?.messages ?? [];
+            if (
+              messages.some(
+                (message) =>
+                  message.request === request && message.role === "operator",
+              )
+            )
+              return { noop: true, value: document.value };
+            return {
+              name: `core/chat/${inputs.conversation}`,
+              ifRevision: document.revision,
+              value: {
+                v: 1,
+                messages: [
+                  ...messages,
+                  {
+                    role: "operator",
+                    text: inputs.question,
+                    request,
+                    at: now(),
+                    status: "pending",
+                  },
+                ].slice(-24),
+              },
+            };
+          },
+        );
+        if (!recorded.ok) return recorded;
+      }
+      const fired = await fireWebhook({
+        config,
+        workflow: command === "ask" ? "answer" : "analyze",
+        deliveryId: `${command}:${request}`,
+        body: inputs,
+        fetchImpl,
+      });
+      return {
+        ok: fired.ok,
+        outcome: fired.outcome,
+        status: fired.status,
+        receipt: fired.receipt?.receiptId ?? fired.receipt?.id ?? null,
+        detail: fired.detail,
+      };
+    }
+    default:
+      throw new Refusal("unknown-command", command);
+  }
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const config = loadConfig();
+  const archon = createArchon({
+    command: [config.archon.executable],
+    project: "_folder/control",
+    env: {
+      HOME: config.archon.serviceHome ?? "/home/admin",
+      PATH: "/usr/bin:/bin",
+      ARCHON_HOME: config.archon.home,
+      ARCHON_USER_ID: "core-factory",
+    },
+    cwd: posix.join(config.root, "control"),
+  });
+  runControl(process.argv.slice(2), { archon, config })
+    .then((result) => {
+      process.stdout.write(JSON.stringify(result) + "\n");
+      process.exitCode = result.ok ? 0 : 2;
+    })
+    .catch((error) => {
+      process.stdout.write(
+        JSON.stringify({
+          ok: false,
+          code: error.code ?? "error",
+          message: error.message,
+        }) + "\n",
+      );
+      process.exitCode = 1;
+    });
+}

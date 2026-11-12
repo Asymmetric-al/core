@@ -1,0 +1,58 @@
+fixture:
+  inputs: { issue: "101", assignment: "a101-fixture" }
+  reached: [claim, context, scope, after-scope, after-define, record]
+claim:
+  {
+    proceed: "yes",
+    route: initial,
+    do_scope: "yes",
+    do_define: "yes",
+    do_build: "yes",
+    do_feedback: "no",
+    needs_wait: "no",
+    wait_until: "",
+    reason: "Round 1",
+  }
+context:
+  {
+    ok: "yes",
+    fingerprint: "f1",
+    changed: "no",
+    scope_assignment: "scope",
+    reason: "ok",
+  }
+scope:
+  {
+    task_status: DONE,
+    decision: proceed,
+    brief: "b",
+    source_paths: ["supabase/migrations/**"],
+    test_paths: ["tests/x/**"],
+    docs_only: false,
+    shared_areas: ["supabase/migrations"],
+    out_of_scope: [],
+    sources: [],
+    blocker: "",
+    uncertainty: "",
+  }
+after-scope:
+  {
+    proceed: "no",
+    define: "no",
+    build: "no",
+    ezra_assignment: "",
+    reason: "Parked: supabase/migrations is reserved by #77",
+  }
+after-define:
+  {
+    build: "no",
+    freeze: "no",
+    bezalel_assignment: "",
+    reason: "After-scope ended the round",
+  }
+record:
+  {
+    outcome: parked,
+    next: "",
+    reason: "Parked: supabase/migrations is reserved by #77",
+  }
