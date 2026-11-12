@@ -37,9 +37,16 @@ supported client. Each skill whose entrypoint sets
 #### Scenario: Upstream metadata has an ambiguous policy key
 
 - **WHEN** upstream `agents/openai.yaml` has an inline, quoted or repeated
-  top-level `policy` key
+  top-level `policy` key, or repeats the `allow_implicit_invocation` key
 - **THEN** the refresh fails and leaves the metadata for manual review
 - **AND** it does not append a second policy mapping
+
+#### Scenario: The explicit-only flag has an unrecognized spelling
+
+- **WHEN** a refreshed skill's frontmatter sets `disable-model-invocation` to
+  a value other than `true` or `false`, or sets the key more than once
+- **THEN** the refresh fails and leaves the skill for manual review
+- **AND** it does not treat the skill as model-invocable
 
 #### Scenario: A model-invocable skill is refreshed
 

@@ -10,6 +10,8 @@
 - [x] 1.5 Refuse linked skill paths and ambiguous `policy` keys instead of
       writing through or beside them, and cover the GitHub refresh path end
       to end.
+- [x] 1.6 Stop the refresh on an unrecognized spelling of the explicit-only
+      flag instead of treating the skill as model-invocable.
 
 ## 2. Imported skill wording
 

@@ -277,6 +277,10 @@ describe("native policy derived from the final frontmatter", () => {
       "two policy mappings",
       "policy:\n  allow_implicit_invocation: true\npolicy:\n  other: 1\n",
     ],
+    [
+      "a repeated policy child",
+      "policy:\n  allow_implicit_invocation: true\n  'allow_implicit_invocation': true\n",
+    ],
   ])("rejects metadata with %s", async (_label, upstream) => {
     const root = await skillTree(explicitOnly, upstream);
 
@@ -284,6 +288,59 @@ describe("native policy derived from the final frontmatter", () => {
       /review it by hand/i,
     );
     expect(await metadata(root)).toBe(upstream);
+  });
+
+  it("rewrites a quoted policy child instead of adding a second key", async () => {
+    const root = await skillTree(
+      explicitOnly,
+      'policy: # reviewed\n  "allow_implicit_invocation": true\n',
+    );
+
+    await ensureExplicitOnlyNativePolicy(root);
+
+    expect(await metadata(root)).toBe(
+      "policy: # reviewed\n  allow_implicit_invocation: false\n",
+    );
+  });
+
+  it.each([
+    '"disable-model-invocation": true',
+    "'disable-model-invocation': true",
+  ])("treats the quoted frontmatter flag %s as explicit-only", async (flag) => {
+    const root = await skillTree(
+      "name: fixture\ndescription: Fixture.\n" + flag,
+    );
+
+    expect(await ensureExplicitOnlyNativePolicy(root)).toBe(true);
+    expect(await metadata(root)).toBe(NATIVE_EXPLICIT_POLICY);
+  });
+
+  // Core's pipeline writes exactly `true`. Another spelling may still mean
+  // explicit-only to a YAML loader, so the refresh stops instead of guessing.
+  it.each([
+    ["an unrecognized value", "disable-model-invocation: yes"],
+    [
+      "a repeated flag",
+      'disable-model-invocation: false\n"disable-model-invocation": true',
+    ],
+  ])("refuses a frontmatter flag with %s", async (_label, flag) => {
+    const root = await skillTree(
+      "name: fixture\ndescription: Fixture.\n" + flag,
+    );
+
+    await expect(ensureExplicitOnlyNativePolicy(root)).rejects.toThrow(
+      /review it by hand/i,
+    );
+    await expect(metadata(root)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("leaves a skill whose flag is false model-invocable", async () => {
+    const root = await skillTree(
+      "name: fixture\ndescription: Fixture.\ndisable-model-invocation: false",
+    );
+
+    expect(await ensureExplicitOnlyNativePolicy(root)).toBe(false);
+    await expect(metadata(root)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("treats a trailing comment on the frontmatter flag as explicit-only", async () => {

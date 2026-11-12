@@ -227,12 +227,19 @@ function withNativeExplicitPolicy(metadata) {
   const firstChild = children.find((line) => /^[ \t]+[^\s#]/u.test(line));
   const indent = firstChild ? /^[ \t]+/u.exec(firstChild)[0] : "  ";
   const policyLine = indent + "allow_implicit_invocation: false";
-  const existing = children.findIndex(
-    (line) =>
-      line.startsWith(indent + "allow_implicit_invocation") &&
-      /^allow_implicit_invocation\s*:/u.test(line.slice(indent.length)),
+  // A quoted child is the same key, so it is rewritten rather than joined by
+  // a second one.
+  const existing = children.flatMap((line, index) =>
+    line.startsWith(indent) &&
+    /^(["']?)allow_implicit_invocation\1\s*:/u.test(line.slice(indent.length))
+      ? [index]
+      : [],
   );
-  if (existing >= 0) children[existing] = policyLine;
+  if (existing.length > 1)
+    throw new Error(
+      "More than one allow_implicit_invocation key in agents/openai.yaml; review it by hand",
+    );
+  if (existing.length === 1) children[existing[0]] = policyLine;
   else children.unshift(policyLine);
   return [...lines.slice(0, start + 1), ...children, ...lines.slice(end)].join(
     "\n",
@@ -305,11 +312,35 @@ export async function ensureExplicitOnlyNativePolicy(targetRoot) {
   }
   const frontmatter =
     /^---\r?\n([\s\S]*?)\r?\n---/u.exec(entrypoint)?.[1] ?? "";
-  // A trailing comment is still an active key; a commented-out line is not.
-  if (!/^disable-model-invocation:\s*true(?:\s+#.*)?\s*$/mu.test(frontmatter))
-    return false;
+  if (!isExplicitOnlyFrontmatter(frontmatter)) return false;
   await writeNativeExplicitPolicy(targetRoot);
   return true;
+}
+
+/**
+ * Core's pipeline writes exactly `disable-model-invocation: true`. A quoted key
+ * or a trailing comment is the same decision; a commented-out line is not a
+ * key. Any other spelling may still mean explicit-only to a YAML loader, so it
+ * stops the refresh for review instead of leaving Codex open.
+ */
+function isExplicitOnlyFrontmatter(frontmatter) {
+  const key = /^(["']?)disable-model-invocation\1\s*:/u;
+  const flags = frontmatter.split(/\r?\n/u).filter((line) => key.test(line));
+  if (flags.length === 0) return false;
+  if (flags.length > 1)
+    throw new Error(
+      "More than one disable-model-invocation key in SKILL.md; review it by hand",
+    );
+  const value = flags[0]
+    .replace(key, "")
+    .replace(/\s+#.*$/u, "")
+    .trim();
+  if (value === "true") return true;
+  if (value === "false") return false;
+  throw new Error(
+    "Unrecognized disable-model-invocation value in SKILL.md; review it by hand: " +
+      flags[0],
+  );
 }
 
 /** Format only after existing recipe/fence and Core replacement passes. */

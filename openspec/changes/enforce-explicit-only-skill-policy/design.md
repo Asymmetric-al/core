@@ -23,10 +23,16 @@ decided separately.
   touch a file outside the staged skill.
 - **Shape of the edit.** The step edits only the top-level `policy:` mapping,
   so the key text in a comment, a block scalar or a nested mapping is ignored.
-  It refuses an inline mapping, a quoted `policy` key and a repeated `policy`
-  mapping rather than write a second key and leave the result to the YAML
-  loader. A trailing comment on the frontmatter flag still counts as
-  explicit-only; a commented-out flag does not.
+  It refuses an inline mapping, a quoted `policy` key, a repeated `policy`
+  mapping and a repeated child key rather than write a second key and leave
+  the result to the YAML loader. A quoted child key is rewritten in place.
+- **Reading the flag.** Core's pipeline writes exactly
+  `disable-model-invocation: true`, and that is the only spelling in the
+  catalog. A quoted key or a trailing comment is read as the same decision; a
+  commented-out line is not a key. Any other value, or a repeated key, stops
+  the refresh for review instead of leaving Codex open. No YAML parser is a
+  direct dependency of the repository, and adding one is outside this change,
+  so spellings the step does not recognize fail closed.
 - **Guard.** `tests/unit/docs/explicit-only-skill-policy.test.ts` checks both
   the canonical tree and the Codex runtime tree, so a refresh on any path that
   drops the policy fails with the fix in its message.
@@ -42,9 +48,10 @@ decided separately.
   model-invocable skill that must stay without native policy. The shared step
   is also tested directly: an active `true` policy, a commented-out key, key
   text inside a block scalar, an existing mapping with its own indentation, an
-  inline mapping, a quoted or repeated `policy` key, a flag with a trailing
-  comment, a commented-out flag, a linked skill root and linked metadata
-  paths.
+  inline mapping, a quoted or repeated `policy` key, a quoted or repeated
+  child key, a flag with a trailing comment or a quoted key, a commented-out
+  flag, a flag with an unrecognized value, a repeated flag, a linked skill
+  root and linked metadata paths.
 - End to end: a copy of the refresh script runs against a local stand-in for
   the Cursor Team Kit repository. It writes the policy for a skill whose
   upstream ships no Codex metadata, and it fails without publishing when the
