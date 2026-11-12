@@ -1063,7 +1063,7 @@
         },
         {
           "path": "apps/missionary/app/profile/use-profile-page-view.ts",
-          "sha256": "f98f3b159f4e919a7baf70c87eddab909b68656ce0c8a0b49ed2faaf0fce31aa"
+          "sha256": "ef2d461f574703d453dbeaf502805aaf8e1f242960a6bef7c238de1541271c4a"
         },
         {
           "path": "packages/ui/components/primitives/labeled-field.tsx",

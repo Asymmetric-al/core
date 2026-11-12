@@ -198,6 +198,12 @@ export function useProfilePageView(): ProfilePageViewModel {
     if (fetchError) toast.error(fetchError);
   }, [fetchError]);
 
+  useEffect(() => {
+    if (!saveSuccess) return;
+    const timeout = setTimeout(() => setSaveSuccess(false), 2000);
+    return () => clearTimeout(timeout);
+  }, [saveSuccess, setSaveSuccess]);
+
   const isLoading = profileQuery.isPending;
 
   // The photo uploader calls `updateProfile(field, url); handleSave()` in one
@@ -411,7 +417,6 @@ export function useProfilePageView(): ProfilePageViewModel {
 
       if (savedLatestRevision && !saveFailed && !saveCancelledRef.current) {
         setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
         toast.success("Profile saved");
       }
 

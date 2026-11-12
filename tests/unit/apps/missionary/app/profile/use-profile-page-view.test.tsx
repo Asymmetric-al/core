@@ -103,6 +103,8 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   getQueryClient().clear();
+  vi.restoreAllMocks();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -189,6 +191,83 @@ describe("useProfilePageView", () => {
     });
 
     expect(result.current.hasChanges).toBe(true);
+    expect(result.current.saveSuccess).toBe(false);
+  });
+
+  it("cancels the save-success timeout when the profile unmounts", async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(200, apiProfile))
+      .mockResolvedValueOnce(jsonResponse(200, { ok: true }));
+    const { result, unmount } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    vi.useFakeTimers();
+    const schedule = vi.spyOn(globalThis, "setTimeout");
+    const cancel = vi.spyOn(globalThis, "clearTimeout");
+
+    act(() => result.current.updateProfile("location", "Paris"));
+    await act(async () => {
+      await result.current.handleSave();
+    });
+    expect(result.current.saveSuccess).toBe(true);
+    const timeoutIndex = schedule.mock.calls.findIndex(
+      ([, delay]) => delay === 2000,
+    );
+    expect(timeoutIndex).toBeGreaterThanOrEqual(0);
+    const timeoutHandle = schedule.mock.results[timeoutIndex]?.value;
+
+    unmount();
+
+    expect(cancel).toHaveBeenCalledWith(timeoutHandle);
+  });
+
+  it("clears save success only after two seconds", async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(200, apiProfile))
+      .mockResolvedValueOnce(jsonResponse(200, { ok: true }));
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    vi.useFakeTimers();
+
+    act(() => result.current.updateProfile("location", "Paris"));
+    await act(async () => {
+      await result.current.handleSave();
+    });
+
+    act(() => vi.advanceTimersByTime(1999));
+    expect(result.current.saveSuccess).toBe(true);
+    act(() => vi.advanceTimersByTime(1));
+    expect(result.current.saveSuccess).toBe(false);
+  });
+
+  it("does not let an earlier save timeout clear a newer success", async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(200, apiProfile))
+      .mockResolvedValueOnce(jsonResponse(200, { ok: true }))
+      .mockResolvedValueOnce(jsonResponse(200, { ok: true }));
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    vi.useFakeTimers();
+
+    act(() => result.current.updateProfile("location", "Paris"));
+    await act(async () => {
+      await result.current.handleSave();
+    });
+    act(() => vi.advanceTimersByTime(1000));
+    act(() => result.current.updateProfile("location", "Berlin"));
+    expect(result.current.saveSuccess).toBe(false);
+    await act(async () => {
+      await result.current.handleSave();
+    });
+
+    act(() => vi.advanceTimersByTime(1000));
+    expect(result.current.saveSuccess).toBe(true);
+    act(() => vi.advanceTimersByTime(1000));
     expect(result.current.saveSuccess).toBe(false);
   });
 

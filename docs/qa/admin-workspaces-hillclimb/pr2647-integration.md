@@ -53,6 +53,13 @@ Date: November 12, 2026. This record describes the standalone WSL candidate, not
 - The earlier fixture-backed Chromium run verifies a superseded test version only. A fresh real Chromium run against the local hermetic admin app passes all six final no-fixture scenarios with no retries or skips (4.5 minutes); the protected Acceptance suite passes nine cases. Scoped lint and Prettier checks pass. This proves the final UI/error-state assertions, not hosted datasource correctness.
 - A strict Doctor scan at `32459f6a271dec17eae2ba9c46cffadba72a519e` completes eight targets with 701 diagnostics. Independent read-only reconciliation finds 148 exact identities, only 25 with valid source/supporting bindings, 63 same-message/context positional candidates and 66 stale supporting files. Even accepting those 63 candidates would leave 490 unmatched identities without that continuity; these are not 490 established runtime defects. Two unmatched cleanup errors require individual evidence qualification. The original stale Eve test hash is not the only blocker. No blanket rehash or waiver is applied.
 
+## Preflight timer repair
+
+- The next normal hook-on push fails the unit gate even though 1,356 suites / 13,763 assertions pass: an untracked two-second profile-success timeout dispatches after jsdom teardown. This is an actual lifecycle defect, not permission to ignore unhandled errors.
+- A regression first demonstrates that unmount does not cancel the specific timer and an older save clears a newer success too early. The success reset now belongs to an effect that cleans up on unmount or cleared success; the save-drain and retained cross-route completion remain unchanged.
+- Three suites / 43 tests pass, including unmount cancellation, the exact two-second expiry, successive-save timing and existing retained editor navigation. Missionary TypeScript and scoped product-source lint pass. Explicitly linting the test with the root app-boundary config exposes its pre-existing cross-app test-import errors; no rule is disabled or broadened. The repository's configured lint targets remain unchanged.
+- The complete per-comment source/test assessment is in [the review disposition](./pr2647-review-disposition.md). Twenty-four threads are answered and resolved; the atomic autosave hosted-rollout hold remains open.
+
 ## Open limitations
 
 - `bun run react-doctor:check` fails stale supporting evidence. Independent historical reviews contain unresolved semantic holds; their recommendations are not blanket approval. The Doctor ledger is not silently rehashed or broadened. A fresh integrated strict check and per-finding qualification remain outstanding.
