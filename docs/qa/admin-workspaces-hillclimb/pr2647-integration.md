@@ -32,8 +32,15 @@ Date: November 12, 2026. This record describes the standalone WSL candidate, not
 - The CI avatar-smoke trace shows successful demo and donor-portal responses but no browser Supabase session. The hermetic workflow uses a signed server-only synthetic session and a placeholder Supabase host, whereas the new retained-draft provider derives ownership from browser auth/profile state. This is a reproduced infrastructure/identity mismatch, not evidence that a real authorized profile is missing; the photo assertions have not been weakened or bypassed.
 - Hosted portal 500s and activation of `20261111164500_post_autosave_preconditions.sql` remain unverified. No production credentials, migrations or deployment activation are used by this integration.
 
+## Hook and hermetic smoke follow-up
+
+- The first normal push stopped at `verify:eslint`: 70 existing disable directives lacked the required tracking prefix. Existing directives now retain their reasons with tracking TODOs; no lint rule, suppression inventory or score floor was relaxed. The scoped lint run exposed one additional app type import in a chart test; the fixture now derives its type from the tested component's public props rather than bypassing that boundary.
+- `bun run verify:eslint` and scoped source/test lint pass. The chart-state regression passes 8 tests.
+- A red/green regression reproduces the absent hermetic browser identity. The Playwright helper now installs a cookie-backed donor identity only after a successful explicit bypass response, with all three hermetic environment guards, the exact placeholder Supabase URL and a loopback application origin. Hosted previews, real Supabase projects, real demo sign-ins and unsuccessful responses remain unchanged. Only exact test-user/profile GETs are mocked; product auth and retained-draft ownership are unchanged.
+- Ten fixture tests pass, including the negative environment/origin/response guards, exact tenant/profile ownership, rejection of other users and rejection of writes. An isolated real Chromium probe using the installed Supabase SSR 0.12.7 client restores that owner from the cookie and mocked profile response. This proves fixture/client compatibility, not the full app smoke flow or production authorization. Fresh CI app-smoke verification remains required.
+
 ## Open limitations
 
 - `bun run react-doctor:check` fails stale supporting evidence. Independent historical reviews contain unresolved semantic holds; their recommendations are not blanket approval. The Doctor ledger is not silently rehashed or broadened. A fresh integrated strict check and per-finding qualification remain outstanding.
 - Before this integration, the published PR head was `86220a1f3f1636a2735c3b424220a76db959b1d1`. Its CI unit/lint/types/build/integrity checks passed, but integration avatar smoke and hosted portal smoke failed. Historical green checks do not certify this candidate.
-- No new browser, deployment, authenticated provider flow, hosted migration activation or visual acceptance is established by the preceding unit/static checks.
+- Apart from the isolated Chromium fixture compatibility probe, no new app-browser acceptance, deployment, authenticated provider flow, hosted migration activation or visual acceptance is established by these checks.
