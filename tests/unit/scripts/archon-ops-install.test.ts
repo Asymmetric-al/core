@@ -332,6 +332,8 @@ describe("intake timer never starts a stopped engine", () => {
     );
     expect(consoleUnit).toMatch(/^After=.*\bcore-archon\.service\b/m);
     expect(consoleUnit).not.toContain("smoke");
+    // systemd unit files are installed as committed; they must stay LF.
+    expect(consoleUnit).not.toContain("\r");
   });
 });
 

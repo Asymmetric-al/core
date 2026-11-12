@@ -292,7 +292,9 @@ async function integrated({ github, config, issue, existing }) {
   return null;
 }
 
-async function governingTexts(github, config, originals) {
+// `files` caches governing file reads for one observation pass, so a document
+// many issues cite is fetched once.
+async function governingTexts(github, config, originals, files = new Map()) {
   const texts = [...originals];
   const sources = [];
   const problems = [];
@@ -366,11 +368,17 @@ async function governingTexts(github, config, originals) {
       continue;
     }
     try {
-      const response = await github.request(
-        "GET",
-        `/repos/${config.repository.slug}/contents/${relative.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(ref)}`,
-      );
-      const file = response.data;
+      if (!files.has(key))
+        files.set(
+          key,
+          github
+            .request(
+              "GET",
+              `/repos/${config.repository.slug}/contents/${relative.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(ref)}`,
+            )
+            .then((response) => response.data),
+        );
+      const file = await files.get(key);
       if (
         file?.type !== "file" ||
         file.encoding !== "base64" ||
@@ -402,7 +410,16 @@ export async function observeAdmission({
   config,
   candidateAreas = {},
   nowMs = Date.now(),
+  // One pass must finish well inside the selector node's timeout. Whatever is
+  // not observed in time is reported unavailable, which blocks only the
+  // issues that need it.
+  budgetMs = 180_000,
+  clock = Date.now,
 }) {
+  const started = clock();
+  let budgetExceeded = false;
+  const files = new Map();
+  const proofs = new Map();
   const [factoryDocument, scopeDocument, reservationDocument, listing] =
     await Promise.all([
       archon.get("core/factory"),
@@ -474,13 +491,39 @@ export async function observeAdmission({
   const observations = {};
   const summaries = [];
   const contexts = new Map();
-  const pending = [...scope.issues];
+  const approved = new Set(scope.issues);
+  const pending = scope.issues.map((target) => ({ target, settled: false }));
   const neededIntegration = new Set();
+  const gates = ({ issue, target, existing, foreignPr, areas }) => ({
+    hold:
+      !factoryPermitsIntake(factoryDocument.value).ok ||
+      issue.state !== "open" ||
+      ["hold", "stop"].includes(existing?.control)
+        ? "conflict"
+        : "clear",
+    owner:
+      !items.has(target) || !openPulls
+        ? "unavailable"
+        : existing || foreignPr
+          ? "conflict"
+          : "clear",
+    sharedArea: !resourcesKnown
+      ? "unavailable"
+      : heldElsewhere(areas, reservations, target).length
+        ? "conflict"
+        : "clear",
+    resources: !resourcesKnown
+      ? "unavailable"
+      : capacity > 0
+        ? "clear"
+        : "conflict",
+  });
   for (let index = 0; index < pending.length; index += 1) {
-    const target = pending[index];
+    const { target, settled } = pending[index];
     const id = `#${target}`;
     if (Object.hasOwn(observations, id)) continue;
-    if (contexts.size >= 256) {
+    if (clock() - started > budgetMs) budgetExceeded = true;
+    if (budgetExceeded || contexts.size >= 256) {
       observations[id] = { status: "unavailable" };
       continue;
     }
@@ -491,6 +534,59 @@ export async function observeAdmission({
       if (issue?.number !== target || issue.pull_request) {
         observations[id] = { status: "missing" };
         continue;
+      }
+      // A prerequisite reached only because other work needs it merged is
+      // settled once its closing pull request is on the target branch. Its own
+      // history is then irrelevant and is not read.
+      if (settled) {
+        const existing = items.get(target)?.value;
+        const proof = await integrated({ github, config, issue, existing });
+        proofs.set(target, proof);
+        if (proof) {
+          const contextRevision = digest({
+            issue: target,
+            state: issue.state,
+            proof,
+          });
+          observations[id] = {
+            status: "found",
+            value: {
+              id,
+              contextRevision,
+              eligibleSinceMs: Date.parse(issue.created_at),
+              dependenciesReconciled: true,
+              dependencies: [],
+              evidence: ["integrated", "implemented"].map((condition) => ({
+                condition,
+                ...proof,
+                contextRevision,
+              })),
+              admission: gates({
+                issue,
+                target,
+                existing,
+                foreignPr: null,
+                areas: [],
+              }),
+            },
+          };
+          summaries.push({
+            id,
+            title: issue.title,
+            labels: [],
+            state: issue.state,
+            dependencies: [],
+            dependencySources: [],
+            dependencyProblems: [],
+            governingSources: [],
+            foreignPr: null,
+            existing: existing?.status ?? null,
+            areas: [],
+            url: issue.html_url,
+            integrated: proof.source,
+          });
+          continue;
+        }
       }
       const [native, comments] = await Promise.all([
         github.paginate(
@@ -508,7 +604,7 @@ export async function observeAdmission({
             comment.html_url ?? `${issue.html_url}#issuecomment-${comment.id}`,
         })),
       ];
-      const governing = await governingTexts(github, config, originals);
+      const governing = await governingTexts(github, config, originals, files);
       const reconciled = reconcileDependencies({
         native,
         texts: governing.texts,
@@ -546,30 +642,7 @@ export async function observeAdmission({
             reconciled.reconciled && governing.problems.length === 0,
           dependencies: reconciled.dependencies,
           evidence: [],
-          admission: {
-            hold:
-              !factoryPermitsIntake(factoryDocument.value).ok ||
-              issue.state !== "open" ||
-              ["hold", "stop"].includes(existing?.control)
-                ? "conflict"
-                : "clear",
-            owner:
-              !items.has(target) || !openPulls
-                ? "unavailable"
-                : existing || foreignPr
-                  ? "conflict"
-                  : "clear",
-            sharedArea: !resourcesKnown
-              ? "unavailable"
-              : heldElsewhere(areas, reservations, target).length
-                ? "conflict"
-                : "clear",
-            resources: !resourcesKnown
-              ? "unavailable"
-              : capacity > 0
-                ? "clear"
-                : "conflict",
-          },
+          admission: gates({ issue, target, existing, foreignPr, areas }),
         },
       };
       const summary = {
@@ -592,6 +665,10 @@ export async function observeAdmission({
       };
       summaries.push(summary);
       contexts.set(target, { issue, existing, summary });
+      // Only an authorized issue's direct prerequisites decide its admission:
+      // a merged prerequisite is settled, and an unmerged one blocks whatever
+      // lies behind it. Nothing further back is read.
+      if (!approved.has(target)) continue;
       for (const edge of reconciled.dependencies) {
         if (
           ["optional", "informational"].includes(edge.kind) ||
@@ -599,9 +676,9 @@ export async function observeAdmission({
         )
           continue;
         const prerequisite = Number(edge.targetId.slice(1));
-        pending.push(prerequisite);
-        if (["integrated", "implemented"].includes(edge.requires))
-          neededIntegration.add(prerequisite);
+        const merge = ["integrated", "implemented"].includes(edge.requires);
+        pending.push({ target: prerequisite, settled: merge });
+        if (merge) neededIntegration.add(prerequisite);
       }
     } catch (error) {
       observations[id] = {
@@ -614,7 +691,11 @@ export async function observeAdmission({
     if (!context) continue;
     const observation = observations[`#${target}`];
     try {
-      const proof = await integrated({ github, config, ...context });
+      if (!proofs.has(target) && clock() - started > budgetMs)
+        throw new Error("Observation budget exceeded");
+      const proof = proofs.has(target)
+        ? proofs.get(target)
+        : await integrated({ github, config, ...context });
       if (proof)
         for (const condition of ["integrated", "implemented"])
           observation.value.evidence.push({
@@ -633,6 +714,7 @@ export async function observeAdmission({
   const scopeRevision = scopeDigest(scope);
   return {
     observedAt: new Date(nowMs).toISOString(),
+    budgetExceeded,
     factoryDocument,
     scopeDocument,
     reservationDocument,

@@ -623,7 +623,10 @@ describe("selector admission observations through facts.ts", () => {
   });
 });
 
-async function observe(candidateAreas: Record<number, string[]> = {}) {
+async function observe(
+  candidateAreas: Record<number, string[]> = {},
+  extra: Record<string, unknown> = {},
+) {
   const { observeAdmission } =
     await import("../../../scripts/archon-factory/pack/select/scripts/admission-observations.mjs");
   return observeAdmission({
@@ -631,6 +634,7 @@ async function observe(candidateAreas: Record<number, string[]> = {}) {
     archon: state.archon,
     config: state.config,
     candidateAreas,
+    ...extra,
   });
 }
 
@@ -965,7 +969,6 @@ describe("fresh admission observation contract", () => {
     issues.set(12, issue(12, "Depends on #50"));
     issues.set(50, issue(50, "Depends on #12"));
     linkPull(12);
-    linkPull(50);
     const result = evaluateEligibility((await observe()).input as any);
     expect(result.eligible.map((item) => item.id)).toEqual(["#14"]);
     expect(result.blocked[0]?.reasons).toContainEqual(
@@ -1017,5 +1020,79 @@ describe("fresh admission observation contract", () => {
       "GET",
       expect.stringContaining("/contents/openspec/contracts/fixture.md"),
     );
+  });
+});
+
+describe("bounded admission observation", () => {
+  it("treats a prerequisite merged on the target as settled and does not walk its history", async () => {
+    issues.set(12, issue(12, "Depends on #50"));
+    issues.set(
+      50,
+      issue(50, "Depends on #60\nDepends on #61\nRequires the producer", {
+        state: "closed",
+      }),
+    );
+    linkPull(50);
+    const fresh = await observe();
+    expect(
+      evaluateEligibility(fresh.input as any).eligible.map((item) => item.id),
+    ).toEqual(["#12", "#14"]);
+    expect(fresh.input.items["#50"].value.evidence).toContainEqual(
+      expect.objectContaining({ condition: "integrated", revision: MERGE }),
+    );
+    expect(fresh.input.items["#60"]).toBeUndefined();
+    expect(state.github.issue).not.toHaveBeenCalledWith(60);
+    expect(state.github.issueComments).not.toHaveBeenCalledWith(50);
+  });
+
+  it("observes an unmerged direct prerequisite and nothing beyond it", async () => {
+    issues.set(12, issue(12, "Depends on #50"));
+    issues.set(50, issue(50, "Depends on #60", { state: "closed" }));
+    issues.set(60, issue(60, "Depends on #61"));
+    const fresh = await observe();
+    expect(fresh.input.items["#50"].value.dependencies).toEqual([
+      expect.objectContaining({ targetId: "#60" }),
+    ]);
+    expect(fresh.input.items["#60"]).toBeUndefined();
+    expect(state.github.issue).not.toHaveBeenCalledWith(60);
+    const result = evaluateEligibility(fresh.input as any);
+    expect(result.eligible.map((item) => item.id)).toEqual(["#14"]);
+    expect(result.blocked[0]?.reasons).toContainEqual(
+      expect.objectContaining({
+        code: "unsatisfied-dependency",
+        dependencyId: "#50",
+      }),
+    );
+  });
+
+  it("reads a governing file once however many issues cite it", async () => {
+    issues.set(12, issue(12, "Governing source: docs/shared.md"));
+    issues.set(14, issue(14, "Governing source: docs/shared.md"));
+    sources.set("docs/shared.md", "Shared rules.");
+    const fresh = await observe();
+    expect(
+      fresh.summaries.map((item: any) => item.governingSources.length),
+    ).toEqual([1, 1]);
+    expect(
+      state.github.request.mock.calls.filter(([, route]: [string, string]) =>
+        route.includes("/contents/docs/shared.md"),
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("stops observing at its time budget without hiding work already observed", async () => {
+    let now = 0;
+    const original = state.github.issue.getMockImplementation();
+    state.github.issue.mockImplementation(async (target: number) => {
+      now += 100;
+      return original(target);
+    });
+    const fresh = await observe({}, { budgetMs: 50, clock: () => now });
+    expect(fresh.input.items["#12"].status).toBe("found");
+    expect(fresh.input.items["#14"].status).toBe("unavailable");
+    expect(fresh.budgetExceeded).toBe(true);
+    const result = evaluateEligibility(fresh.input as any);
+    expect(result.eligible.map((item) => item.id)).toEqual(["#12"]);
+    expect(result.blocked[0]?.reasons[0]?.code).toBe("api-unavailable");
   });
 });

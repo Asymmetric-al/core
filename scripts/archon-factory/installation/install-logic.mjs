@@ -559,6 +559,7 @@ Group=admin
 WorkingDirectory=${control}
 ${env}
 ExecCondition=/usr/bin/systemctl is-active --quiet core-archon.service
+ExecStartPre=-${node} ${runtime}/orphans.mjs reap
 ExecStart=${node} ${runtime}/webhook.mjs fire select --delivery-id tick
 TimeoutStartSec=120
 `,
