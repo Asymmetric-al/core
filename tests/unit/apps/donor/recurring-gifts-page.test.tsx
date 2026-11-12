@@ -170,6 +170,54 @@ describe("Recurring gifts", () => {
     expect(screen.getByText("$0.00 a month")).toBeTruthy();
   });
 
+  it("counts a gift every two weeks at its monthly rate", () => {
+    state.gifts = [
+      gift({
+        id: "gift-jordan",
+        amountCents: 2_600,
+        amount: 26,
+        frequency: "biweekly",
+      }),
+    ];
+    render(<RecurringGiftsPage />);
+    const jordan = screen.getByRole("listitem", { name: "Jordan Hale" });
+    expect(within(jordan).getByText("$26.00 every 2 weeks")).toBeTruthy();
+    // 26 gifts a year over 12 months.
+    expect(screen.getByText("$56.33 a month")).toBeTruthy();
+    expect(screen.queryByText(/spread across the months/)).toBeNull();
+  });
+
+  it("shows gifts and their total in the gift's own currency", () => {
+    state.gifts = [gift({ id: "gift-jordan", currency: "cad" })];
+    render(<RecurringGiftsPage />);
+    const jordan = screen.getByRole("listitem", { name: "Jordan Hale" });
+    expect(within(jordan).getByText("CA$50.00 a month")).toBeTruthy();
+    expect(screen.getAllByText("CA$50.00 a month")).toHaveLength(2);
+  });
+
+  it("does not add gifts in different currencies into one total", () => {
+    state.gifts = [
+      gift({ id: "gift-jordan" }),
+      gift({
+        id: "gift-team",
+        currency: "eur",
+        designation: {
+          id: "t",
+          name: "Field Team 1",
+          type: "missionary",
+          avatarUrl: null,
+        },
+        missionary: { id: "t", name: "Field Team 1", avatarUrl: null },
+      }),
+    ];
+    render(<RecurringGiftsPage />);
+    expect(screen.getByText("Total unavailable")).toBeTruthy();
+    expect(screen.getByText(/different currencies/)).toBeTruthy();
+    expect(screen.queryByText("$100.00 a month")).toBeNull();
+    const team = screen.getByRole("listitem", { name: "Field Team 1" });
+    expect(within(team).getByText("€50.00 a month")).toBeTruthy();
+  });
+
   it("points a donor with no recurring gifts to someone to support", () => {
     render(<RecurringGiftsPage />);
     expect(screen.getByText("No recurring gifts yet")).toBeTruthy();
