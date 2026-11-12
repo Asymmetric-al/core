@@ -31,13 +31,25 @@ function compareCodePoints(left: string, right: string): number {
 
 const LOCALE_CHILD_ENV = "DOCUMENT_PURPOSE_DIGEST_LOCALE_REPORT";
 const localeReportPath = process.env[LOCALE_CHILD_ENV];
-// Acceptance harnesses that re-run this file as a child (for example the
-// #2068 mutation runs) mark it with ACC_<issue>_* variables. Those runs only
-// need the in-process assertions, so the nested locale matrix is skipped there.
-const ACCEPTANCE_HARNESS_ENV = /^ACC_\d+_/;
-const underHarness = Object.keys(process.env).some((key) =>
-  ACCEPTANCE_HARNESS_ENV.test(key),
-);
+// The nested locale matrix spawns one Vitest child per locale. It is skipped
+// only on an explicit, named opt-out, and the reason is logged so a skipped
+// matrix is never silent:
+// - DOCUMENT_PURPOSE_DIGEST_SKIP_LOCALE_MATRIX=1 is this test's own opt-out.
+// - ACC_2068_MUTANT_MODULE marks a #2068 mutation run. Those runs only need
+//   the in-process pin to fail, and the children would not load the mutant.
+const SKIP_LOCALE_MATRIX_ENV = "DOCUMENT_PURPOSE_DIGEST_SKIP_LOCALE_MATRIX";
+const MUTATION_RUN_ENV = "ACC_2068_MUTANT_MODULE";
+const localeMatrixSkipReason: string | undefined =
+  process.env[SKIP_LOCALE_MATRIX_ENV] === "1"
+    ? `${SKIP_LOCALE_MATRIX_ENV}=1`
+    : process.env[MUTATION_RUN_ENV] !== undefined
+      ? `${MUTATION_RUN_ENV} is set (mutation run)`
+      : undefined;
+if (localeReportPath === undefined && localeMatrixSkipReason !== undefined) {
+  console.warn(
+    `document-purpose-digest: skipping the locale matrix because ${localeMatrixSkipReason}`,
+  );
+}
 
 describe("canonical serialization and the catalog digest", () => {
   it("serializes logically identical values identically regardless of key order", () => {
@@ -255,40 +267,39 @@ describe.skipIf(localeReportPath === undefined)("locale child report", () => {
   });
 });
 
-describe.skipIf(localeReportPath !== undefined || underHarness)(
-  "the catalog digest under several host locales",
-  () => {
-    it.each(LOCALE_MATRIX)(
-      "keeps the pinned digest under $lang",
-      async (expected) => {
-        const scratch = mkdtempSync(path.join(tmpdir(), "purpose-digest-"));
-        const reportPath = path.join(scratch, "report.json");
-        try {
-          const run = await runThisFileUnder(expected.lang, reportPath);
-          expect(
-            run.status,
-            `digest tests failed under ${expected.lang}:\n${run.output}`,
-          ).toBe(0);
+describe.skipIf(
+  localeReportPath !== undefined || localeMatrixSkipReason !== undefined,
+)("the catalog digest under several host locales", () => {
+  it.each(LOCALE_MATRIX)(
+    "keeps the pinned digest under $lang",
+    async (expected) => {
+      const scratch = mkdtempSync(path.join(tmpdir(), "purpose-digest-"));
+      const reportPath = path.join(scratch, "report.json");
+      try {
+        const run = await runThisFileUnder(expected.lang, reportPath);
+        expect(
+          run.status,
+          `digest tests failed under ${expected.lang}:\n${run.output}`,
+        ).toBe(0);
 
-          const report = JSON.parse(
-            readFileSync(reportPath, "utf8"),
-          ) as LocaleReport;
-          // Proof the locale was active, so this cannot pass vacuously.
-          expect(report.env).toEqual({
-            LANG: expected.lang,
-            LC_ALL: expected.lang,
-          });
-          expect(report.collatorLocale).toBe(expected.collatorLocale);
-          expect(report.chVsH).toBe(expected.chVsH);
-          expect(report.uVsH).toBe(expected.uVsH);
+        const report = JSON.parse(
+          readFileSync(reportPath, "utf8"),
+        ) as LocaleReport;
+        // Proof the locale was active, so this cannot pass vacuously.
+        expect(report.env).toEqual({
+          LANG: expected.lang,
+          LC_ALL: expected.lang,
+        });
+        expect(report.collatorLocale).toBe(expected.collatorLocale);
+        expect(report.chVsH).toBe(expected.chVsH);
+        expect(report.uVsH).toBe(expected.uVsH);
 
-          expect(report.digest).toBe(PINNED_CATALOG_DIGEST);
-          expect(report.manifestDigest).toBe(PINNED_CATALOG_DIGEST);
-        } finally {
-          rmSync(scratch, { recursive: true, force: true });
-        }
-      },
-      120_000,
-    );
-  },
-);
+        expect(report.digest).toBe(PINNED_CATALOG_DIGEST);
+        expect(report.manifestDigest).toBe(PINNED_CATALOG_DIGEST);
+      } finally {
+        rmSync(scratch, { recursive: true, force: true });
+      }
+    },
+    120_000,
+  );
+});
