@@ -32,7 +32,7 @@ test.beforeAll(async () => {
       plugins: [{ name: "loading-metrics", setup(build) {
         build.onResolve({ filter: /^@asym\\/lib\\/hooks$/ }, () => ({ path: "loading-state", namespace: "loading-metrics" }));
         build.onLoad({ filter: /.*/, namespace: "loading-metrics" }, () => ({
-          contents: "const metric={total:90071992547409.9,change:12.5,trend:'up',data:[{date:'1',value:10},{date:'2',value:30}]}; export function useDonationMetrics() { return { thisMonth:metric,lastMonth:{...metric,total:-1234567890},yearToDate:metric,isLoading: false, error: null, monthlyBreakdown: Array.from({length:13},(_,i)=>({month:String(i+1),recurring:100,oneTime:50,offline:25,total:175})) }; }",
+          contents: "const metric={total:90071992547410,change:12.5,trend:'up',data:[{date:'1',value:10},{date:'2',value:30}]}; export function useDonationMetrics() { return { currency:'USD',thisMonth:metric,lastMonth:{...metric,total:-1234567890},yearToDate:metric,isLoading: false, error: null, monthlyBreakdown: Array.from({length:13},(_,i)=>({month:String(i+1),recurring:100,oneTime:50,offline:25,total:175})) }; }",
           loader: "ts",
         }));
       }}],
@@ -126,7 +126,7 @@ for (const width of [320, 768, 1280]) {
         expect(amountBoundaries.map(({ amount }) => amount)).toEqual([
           // Amounts are stored in cents and shown in dollars.
           "$900719925.5k",
-          "$-12,345,678.90",
+          "-$12,345,678.90",
           "$900719925.5k",
         ]);
         for (const amount of amountBoundaries)
