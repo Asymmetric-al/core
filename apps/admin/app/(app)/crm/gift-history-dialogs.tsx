@@ -91,16 +91,18 @@ export function SetTenantDefaultDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button
-            disabled={isSaving}
-            focusableWhenDisabled={isSaving}
-            onClick={onConfirm}
-          >
-            {isSaving ? "Saving..." : "Set organization default"}
-          </Button>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button
+              disabled={isSaving}
+              focusableWhenDisabled={isSaving}
+              onClick={onConfirm}
+            >
+              {isSaving ? "Saving..." : "Set organization default"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

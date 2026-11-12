@@ -67,7 +67,7 @@ export function ErrorState({
           className="h-9 rounded-2xl border-border bg-card font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
         >
           <RefreshCw data-icon="inline-start" />
-          Try Again
+          Try again
         </Button>
       </motion.div>
     </motion.div>

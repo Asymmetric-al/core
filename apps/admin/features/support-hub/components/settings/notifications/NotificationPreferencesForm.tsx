@@ -183,18 +183,20 @@ export function NotificationPreferencesForm() {
             label="Agent"
             description="As a support admin, you can change any agent’s alerts."
           >
-            <SearchableSelect
-              items={agents.map((agent) => ({
-                value: agent.id,
-                label: agent.name,
-              }))}
-              value={agentId}
-              onValueChange={(value) => {
-                if (value !== null) setAgentId(value);
-              }}
-              aria-label="Agent"
-              className="h-9 max-w-sm"
-            />
+            <div className="w-full max-w-sm">
+              <SearchableSelect
+                items={agents.map((agent) => ({
+                  value: agent.id,
+                  label: agent.name,
+                }))}
+                value={agentId}
+                onValueChange={(value) => {
+                  if (value !== null) setAgentId(value);
+                }}
+                aria-label="Agent"
+                className="w-full"
+              />
+            </div>
           </SettingsRow>
         ) : null}
 

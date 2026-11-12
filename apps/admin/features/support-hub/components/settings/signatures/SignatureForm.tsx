@@ -1,7 +1,6 @@
 "use client";
 
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
 import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
@@ -101,19 +100,23 @@ export function SignatureForm({
         label="Owner"
         description="A workspace signature is shared by every agent. An agent’s own signature takes priority over it."
       >
-        <SearchableSelect
-          items={[
-            { value: "workspace", label: "Workspace" },
-            ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
-          ]}
-          value={ownerAgentId ?? "workspace"}
-          onValueChange={(value) => {
-            if (value === null) return;
-            setOwnerAgentId(value === "workspace" ? null : value);
-          }}
-          aria-label="Owner"
-          className="h-9 max-w-sm"
-        />
+        <div className="max-w-sm">
+          <SearchableSelect
+            items={[
+              { value: "workspace", label: "Workspace" },
+              ...agents.map((agent) => ({
+                value: agent.id,
+                label: agent.name,
+              })),
+            ]}
+            value={ownerAgentId ?? "workspace"}
+            onValueChange={(value) => {
+              if (value === null) return;
+              setOwnerAgentId(value === "workspace" ? null : value);
+            }}
+            aria-label="Owner"
+          />
+        </div>
       </SettingsRow>
       <SettingsRow
         label="Body"
@@ -125,7 +128,6 @@ export function SignatureForm({
           value={bodyText}
           onChange={(event) => setBodyText(event.target.value)}
           rows={6}
-          className="font-mono"
           placeholder={"Name\nTitle\nemail@example.org"}
         />
       </SettingsRow>
@@ -147,9 +149,7 @@ export function SignatureForm({
       </SettingsRow>
 
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-muted-foreground">
-          Preview
-        </Label>
+        <p className="text-sm font-medium text-muted-foreground">Preview</p>
         <div className="rounded-xl border border-border bg-muted/40 p-3 font-mono text-xs text-foreground">
           {bodyText.split("\n").map((line, index) => (
             <span key={index} className="block">

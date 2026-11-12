@@ -413,16 +413,21 @@ function EditorToolbarSectionList({
   };
 
   return (
-    <div className="overflow-x-auto px-3 py-2 sm:px-4">
+    <div className="px-3 py-2 sm:px-4">
       <Toolbar aria-label="Text formatting">
-        {editorToolbarSectionIds(enabledTools).map((sectionId, index) => (
-          <React.Fragment key={sectionId}>
-            {index > 0 && (
-              <Separator orientation="vertical" className="mx-1.5 h-4" />
-            )}
-            {sections[sectionId]}
-          </React.Fragment>
-        ))}
+        <div
+          data-toolbar-row
+          className="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-1"
+        >
+          {editorToolbarSectionIds(enabledTools).map((sectionId, index) => (
+            <React.Fragment key={sectionId}>
+              {index > 0 && (
+                <Separator orientation="vertical" className="mx-1.5 h-4" />
+              )}
+              {sections[sectionId]}
+            </React.Fragment>
+          ))}
+        </div>
       </Toolbar>
     </div>
   );
@@ -502,9 +507,6 @@ export function EditorToolbar({
   );
 }
 
-const TOOLBAR_CONTROL_CLASS =
-  "size-7 min-w-7 rounded-md p-0 text-muted-foreground hover:text-foreground [&_svg:not([class*='size-'])]:size-3.5";
-
 function ToolbarTooltipContent({
   label,
   shortcut,
@@ -513,9 +515,11 @@ function ToolbarTooltipContent({
   shortcut?: Shortcut;
 }) {
   return (
-    <TooltipContent side="top" className="flex items-center gap-2 text-xs">
-      {label}
-      {shortcut && <Kbd>{shortcutKeys(shortcut).display}</Kbd>}
+    <TooltipContent side="top">
+      <span className="flex items-center gap-2">
+        {label}
+        {shortcut && <Kbd>{shortcutKeys(shortcut).display}</Kbd>}
+      </span>
     </TooltipContent>
   );
 }
@@ -551,7 +555,7 @@ function ToolbarButton({
               active === undefined ? (
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon-sm"
                   disabled={disabled}
                   onClick={() => {
                     if (!disabled) onClick();
@@ -561,7 +565,6 @@ function ToolbarButton({
                 <Toggle size="sm" pressed={active} onPressedChange={onClick} />
               )
             }
-            className={TOOLBAR_CONTROL_CLASS}
           >
             {children}
           </ToolbarItem>
@@ -669,14 +672,10 @@ function LinkButton({
                 <PopoverTrigger
                   render={
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      variant={isActive ? "secondary" : "ghost"}
+                      size="icon-sm"
                       aria-label={label}
                       aria-keyshortcuts={shortcutKeys(SHORTCUTS.link).aria}
-                      className={cn(
-                        TOOLBAR_CONTROL_CLASS,
-                        isActive && "bg-accent text-accent-foreground",
-                      )}
                     >
                       <LinkIcon />
                     </Button>
@@ -689,7 +688,7 @@ function LinkButton({
         <ToolbarTooltipContent label={label} shortcut={SHORTCUTS.link} />
       </Tooltip>
       <PopoverContent
-        className="w-72 p-3"
+        className="w-72"
         align="start"
         finalFocus={() => editor.view.dom}
       >
@@ -721,9 +720,8 @@ function LinkButton({
             {existingHref && (
               <Button
                 type="button"
-                variant="ghost"
+                variant="destructive"
                 size="sm"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={removeLink}
               >
                 Remove link
@@ -786,14 +784,10 @@ function ImageButton({
         <TooltipTrigger
           render={
             <ToolbarItem
-              render={<Button variant="ghost" size="sm" />}
+              render={<Button variant="ghost" size="icon-sm" />}
               aria-label={label}
               aria-busy={isUploading || undefined}
               focusableWhenDisabled={isUploading}
-              className={cn(
-                TOOLBAR_CONTROL_CLASS,
-                isUploading && "animate-pulse",
-              )}
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || isUploading}

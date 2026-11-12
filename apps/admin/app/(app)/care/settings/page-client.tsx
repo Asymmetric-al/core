@@ -53,10 +53,10 @@ export default function CareSettingsPage() {
             flagged for attention, their care status is Crisis or At risk, or a
             saved contact schedule is overdue. Without a saved schedule,
             follow-up is due after more than {CHECK_IN_INTERVAL_DAYS} days, or
-            when they have no recorded contact ("No care contact recorded").
-            Calls, visits and logged notes count as contact; shared care-thread
-            posts do not. A Needs attention status alone does not add someone:
-            it marks a person to watch in the directory.
+            when they have no recorded contact (&quot;No care contact
+            recorded&quot;). Calls, visits and logged notes count as contact;
+            shared care-thread posts do not. A Needs attention status alone does
+            not add someone: it marks a person to watch in the directory.
           </p>
           <p>
             Flagged people are listed first, then Crisis, then At risk, followed

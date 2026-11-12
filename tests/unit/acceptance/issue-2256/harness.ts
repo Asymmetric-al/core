@@ -88,6 +88,7 @@ export const READER_APPS = [
   "packages/api/src/posts/reaction-route-utils.ts",
   "packages/auth/context.ts",
   "packages/auth/resolve-user-role.ts",
+  "packages/ui/hooks/retained-draft.tsx",
 ];
 
 export const read = (p: string) =>

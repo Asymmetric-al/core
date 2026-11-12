@@ -30,10 +30,26 @@ const boundary = vi.hoisted(() => ({ createSession: vi.fn() }));
 
 vi.mock("../../../../packages/database/hooks/index", () => ({
   useDonorPortalSnapshot: () => ({
-    data: { recurringGifts: [] },
+    data: {
+      recurringGifts: [
+        {
+          id: "gift-1",
+          amount: 50,
+          frequency: "monthly",
+          status: "active",
+          nextChargeAt: "2026-12-05",
+          endsAt: null,
+          paymentMethodLabel: "Saved payment method",
+          designation: { name: "Jordan Hale", avatarUrl: null },
+          missionary: { id: "m", name: "Jordan Hale", avatarUrl: null },
+          fund: null,
+        },
+      ],
+    },
     isLoading: false,
     error: null,
   }),
+  useDonorWallet: () => ({ data: { status: "not_linked", methods: [] } }),
   useCreateDonorBillingPortalSession: () => {
     const [isPending, setIsPending] = useState(false);
     const [error, setError] = useState<unknown>(null);
@@ -61,11 +77,8 @@ beforeEach(() => {
   boundary.createSession.mockReset();
 });
 
-describe("Pledge billing portal pending focus", () => {
-  it.each([
-    ["Manage in billing portal", "Open billing portal"],
-    ["Open billing portal", "Manage in billing portal"],
-  ])("preserves only the initiating %s button", async (name, peerName) => {
+describe("Recurring gifts payment settings pending focus", () => {
+  it("keeps focus on the button while payment settings open, then reports a failure", async () => {
     let rejectRequest!: (reason: Error) => void;
     boundary.createSession.mockImplementation(
       () =>
@@ -74,26 +87,22 @@ describe("Pledge billing portal pending focus", () => {
         }),
     );
     render(<DonorPledgesPage />);
-    const initiator = screen.getByRole("button", { name, exact: true });
-    const peer = screen.getByRole("button", { name: peerName, exact: true });
-    act(() => initiator.focus());
-    fireEvent.click(initiator);
-    expect(document.activeElement).toBe(initiator);
+    const button = screen.getByRole("button", {
+      name: "Change or stop a gift",
+      exact: true,
+    });
+    act(() => button.focus());
+    fireEvent.click(button);
+    expect(document.activeElement).toBe(button);
     await waitFor(() =>
-      expect(initiator.getAttribute("aria-disabled")).toBe("true"),
+      expect(button.getAttribute("aria-disabled")).toBe("true"),
     );
-    expect(initiator.hasAttribute("disabled")).toBe(false);
-    expect(peer.hasAttribute("disabled")).toBe(true);
-    expect(peer.hasAttribute("aria-disabled")).toBe(false);
-    fireEvent.click(peer);
-    fireEvent.click(initiator);
+    expect(button.hasAttribute("disabled")).toBe(false);
+    fireEvent.click(button);
     expect(boundary.createSession).toHaveBeenCalledOnce();
-    expect(boundary.createSession).toHaveBeenCalledWith();
     await act(async () => rejectRequest(new Error("offline")));
-    expect(initiator.hasAttribute("disabled")).toBe(false);
-    expect(peer.hasAttribute("disabled")).toBe(false);
-    expect(initiator.getAttribute("aria-disabled")).not.toBe("true");
+    expect(button.getAttribute("aria-disabled")).not.toBe("true");
     expect(screen.getByRole("alert").textContent).toContain("Please try again");
-    expect(document.activeElement).toBe(initiator);
+    expect(document.activeElement).toBe(button);
   });
 });

@@ -164,3 +164,11 @@ it("#2364 criterion 7: /workers/[id] renders its mock worker title and route she
   expect(root.querySelector("h1")?.textContent).toBe(worker.title);
   expect(fetch).not.toHaveBeenCalled();
 });
+
+it("labels the /workers directory as sample profiles", () => {
+  vi.stubGlobal("fetch", vi.fn());
+  render(<WorkersPageClient />);
+  const note = screen.getByRole("note");
+  expect(note.textContent).toContain("Sample profiles");
+  expect(note.textContent).toContain("demo content");
+});

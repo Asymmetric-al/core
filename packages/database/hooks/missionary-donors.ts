@@ -31,7 +31,8 @@ export interface MissionaryDonorActivity {
   date: string;
   title: string;
   description?: string;
-  amount?: number;
+  amount?: number | null;
+  currency: string | null;
   status?: string;
   gift_type?: GiftType | string;
   note?: string;
@@ -40,6 +41,7 @@ export interface MissionaryDonorActivity {
 export interface MissionaryRecurringDonation {
   id: string;
   amount: number;
+  currency: string | null;
   frequency: string;
   status: RecurringStatus | string;
   start_date: string;
@@ -67,7 +69,7 @@ export interface MissionaryDonorRow {
   initials: string;
   type: "Individual" | "Organization" | "Church";
   status: "Active" | "Lapsed" | "New" | "At Risk";
-  total_given: number;
+  total_given: number | null;
   last_gift_date: string | null;
   last_gift_amount: number | null;
   frequency: string;

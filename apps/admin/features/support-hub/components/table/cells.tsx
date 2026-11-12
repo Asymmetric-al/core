@@ -23,6 +23,9 @@ import type {
   SupportLabel,
   SupportPriority,
 } from "../../types";
+import type { ComponentProps } from "react";
+
+type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 
 const STATUS_LABELS: Record<SupportConversationStatus, string> = {
   open: "Open",
@@ -30,9 +33,6 @@ const STATUS_LABELS: Record<SupportConversationStatus, string> = {
   snoozed: "Snoozed",
   resolved: "Resolved",
 };
-
-type BadgeVariant =
-  "info" | "secondary" | "outline" | "success" | "warning" | "destructive";
 
 const STATUS_VARIANTS: Record<SupportConversationStatus, BadgeVariant> = {
   open: "info",
@@ -137,14 +137,12 @@ export function AssigneeCell({
   }
   return (
     <span className="inline-flex items-center gap-2">
-      <Avatar className="size-6 border border-border">
+      <Avatar size="sm">
         <AvatarImage
           src={assignee.avatarUrl ?? undefined}
           alt={assignee.name}
         />
-        <AvatarFallback className="text-xs font-semibold">
-          {assignee.name.charAt(0)}
-        </AvatarFallback>
+        <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
       </Avatar>
       <span className="truncate text-sm text-foreground">{assignee.name}</span>
     </span>

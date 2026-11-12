@@ -54,6 +54,19 @@ async function openMenu(view: ReturnType<typeof render>) {
 }
 
 describe("crm gift history view switcher", () => {
+  it("wraps unbroken view names in selection and rename actions", async () => {
+    const active = makeView({ name: "Unbroken".repeat(30) });
+    const view = renderSwitcher({ views: [active], activeViewId: active.id });
+    await openMenu(view);
+
+    const option = view.getByRole("menuitemradio", { name: active.name });
+    expect(
+      option.querySelector(".max-w-40")?.classList.contains("wrap-anywhere"),
+    ).toBe(true);
+    const rename = view.getByText(`Rename “${active.name}”…`);
+    expect(rename.classList.contains("wrap-anywhere")).toBe(true);
+  });
+
   afterEach(() => {
     cleanup();
   });

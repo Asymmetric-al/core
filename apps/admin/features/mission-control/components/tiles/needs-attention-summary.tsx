@@ -31,7 +31,7 @@ export function NeedsAttentionSummary() {
         className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
         role="status"
       >
-        <span>Couldn't check Needs attention.</span>
+        <span>Couldn&apos;t check Needs attention.</span>
         <Button variant="ghost" size="sm" onClick={() => void query.refetch()}>
           Retry
         </Button>

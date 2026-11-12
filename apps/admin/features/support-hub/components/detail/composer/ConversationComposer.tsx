@@ -39,6 +39,16 @@ interface ConversationComposerProps {
   };
 }
 
+function createSuggestionContext<Context>(initialContext: Context) {
+  let currentContext = initialContext;
+  return {
+    read: () => currentContext,
+    update: (nextContext: Context) => {
+      currentContext = nextContext;
+    },
+  };
+}
+
 export function ConversationComposer({
   conversation,
   agent = null,
@@ -63,32 +73,34 @@ export function ConversationComposer({
     [conversation, composer.agent],
   );
 
-  const suggestionContext = React.useRef({
-    mode: composer.mode,
-    agents,
-    cannedResponses,
-    mergeContext,
-  });
-  React.useLayoutEffect(() => {
-    suggestionContext.current = {
+  const [suggestionContext] = React.useState(() =>
+    createSuggestionContext({
       mode: composer.mode,
       agents,
       cannedResponses,
       mergeContext,
-    };
-  }, [composer.mode, agents, cannedResponses, mergeContext]);
+    }),
+  );
+  React.useLayoutEffect(() => {
+    suggestionContext.update({
+      mode: composer.mode,
+      agents,
+      cannedResponses,
+      mergeContext,
+    });
+  }, [composer.mode, agents, cannedResponses, mergeContext, suggestionContext]);
   const extraExtensions = React.useMemo<Extensions>(
     () => [
       CannedResponseSuggestionExtension.configure({
-        getContext: () => suggestionContext.current,
-        isEnabled: () => suggestionContext.current.mode === "reply",
+        getContext: suggestionContext.read,
+        isEnabled: () => suggestionContext.read().mode === "reply",
       }),
       buildMentionExtension({
-        getAgents: () => suggestionContext.current.agents,
-        isEnabled: () => suggestionContext.current.mode === "note",
+        getAgents: () => suggestionContext.read().agents,
+        isEnabled: () => suggestionContext.read().mode === "note",
       }),
     ],
-    [],
+    [suggestionContext],
   );
 
   return (

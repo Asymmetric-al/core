@@ -4,6 +4,31 @@ import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+import {
+  commonMoneyCurrency,
+  knownCurrency,
+} from "../missionary-portal/currency";
+import { isAnonymousToRecipient } from "../missionary-portal/redaction";
+
+export function projectMetricsMoney<
+  T extends {
+    amount: number;
+    currency?: string | null;
+    status?: string | null;
+  },
+>(gifts: T[]) {
+  const donations = gifts.map((gift) => ({
+    ...gift,
+    currency: knownCurrency(gift.currency),
+  }));
+  return {
+    donations,
+    currency: commonMoneyCurrency(
+      donations.filter((gift) => gift.status === "completed"),
+    ),
+  };
+}
+
 type PendingCookie = {
   name: string;
   value: string;
@@ -59,6 +84,38 @@ function parseCookieHeader(cookieHeader: string | null) {
         value: decodeURIComponent(pair.slice(idx + 1)),
       };
     });
+}
+
+const DEFAULT_HISTORY_MONTHS = 13;
+const MAX_HISTORY_MONTHS = 25;
+
+/**
+ * Spec §7.2, as in the missionary portal: a gift keeps its donor id only when
+ * that donor chose to be named to the missionary. Unknown donors fail closed.
+ */
+export function redactAnonymousGiftDonors<
+  T extends { donor_id: string | null },
+>(gifts: T[], donors: { id: string; giving_preferences: unknown }[]): T[] {
+  const preferences = new Map(
+    donors.map((donor) => [donor.id, donor.giving_preferences]),
+  );
+  return gifts.map((gift) => {
+    if (!gift.donor_id) return gift;
+    const named =
+      preferences.has(gift.donor_id) &&
+      !isAnonymousToRecipient({
+        givingPreferences: preferences.get(gift.donor_id),
+      });
+    return named ? gift : { ...gift, donor_id: null };
+  });
+}
+
+export function historyMonthsParam(request: { url: string }): number {
+  const raw = new URL(request.url).searchParams.get("months");
+  const months = raw === null ? Number.NaN : Number(raw);
+  return Number.isInteger(months) && months >= 1 && months <= MAX_HISTORY_MONTHS
+    ? months
+    : DEFAULT_HISTORY_MONTHS;
 }
 
 function isPermissionError(error: PermissionErrorLike | null) {
@@ -243,14 +300,20 @@ export async function GET(
       );
     }
 
-    const thirteenMonthsAgo = new Date();
-    thirteenMonthsAgo.setMonth(thirteenMonthsAgo.getMonth() - 13);
+    // 13 months feeds the dashboard; analytics asks for 25 so it can
+    // compare a full year with the one before. Bounded so the window can't
+    // be used to pull an unbounded history.
+    const months = historyMonthsParam(request);
+    const windowStart = new Date();
+    windowStart.setMonth(windowStart.getMonth() - months);
 
     const { data, error } = await dataReader
       .from("donations")
-      .select("id, amount, donation_type, created_at, status")
+      .select(
+        "id, amount, currency, donation_type, created_at, gift_date, status, donor_id",
+      )
       .eq("missionary_id", missionary.id)
-      .gte("created_at", thirteenMonthsAgo.toISOString())
+      .gte("created_at", windowStart.toISOString())
       .order("created_at", { ascending: true });
 
     if (error) {
@@ -271,8 +334,24 @@ export async function GET(
       );
     }
 
+    const gifts = data ?? [];
+    const donorIds = [
+      ...new Set(
+        gifts.flatMap((gift) => (gift.donor_id ? [gift.donor_id] : [])),
+      ),
+    ];
+    let donors: { id: string; giving_preferences: unknown }[] = [];
+    if (donorIds.length > 0) {
+      const donorRead = await dataReader
+        .from("donors")
+        .select("id, giving_preferences")
+        .in("id", donorIds);
+      // Without preferences every gift stays anonymous (fail closed).
+      donors = donorRead.data ?? [];
+    }
+
     return jsonWithCookies(
-      { donations: data || [] },
+      projectMetricsMoney(redactAnonymousGiftDonors(gifts, donors)),
       undefined,
       pendingCookies,
       pendingHeaders,

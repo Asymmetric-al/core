@@ -268,6 +268,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | donor      | `/api/donations`                                               | Node.js (no `runtime` segment export) | Admin client                                       |
 | donor      | `/api/donor/billing-portal`                                    | Node.js (no `runtime` segment export) | Stripe Billing Portal, admin client                |
 | donor      | `/api/donor/feed-preferences`                                  | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
+| donor      | `/api/donor/payment-methods`                                   | Node.js (no `runtime` segment export) | Saved Stripe cards, admin client                   |
 | donor      | `/api/donor/portal`                                            | Node.js (no `runtime` segment export) | Donor self-service BFF, admin client               |
 | donor      | `/api/donor/receipts/[donationId]`                             | Node.js (no `runtime` segment export) | Owned donor receipt download, admin client         |
 | donor      | `/api/donor/statements/[year]`                                 | Node.js (no `runtime` segment export) | Owned donor statement download                     |

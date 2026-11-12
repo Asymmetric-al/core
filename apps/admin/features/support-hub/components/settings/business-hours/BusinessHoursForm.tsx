@@ -389,7 +389,6 @@ export function BusinessHoursForm({
             </span>
           </div>
         </SettingsRow>
-
         <p className="text-xs text-muted-foreground">
           Times use 24-hour format.
         </p>

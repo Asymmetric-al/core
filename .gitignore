@@ -63,6 +63,11 @@ docs/ai/working-set.md
 .nia_sync_local/
 .env*
 .cursor/settings.json
+# p3-stack personal model config and Orchestrate run store
+# (docs/ai/skills/p3-mode/references/core-adapter.md)
+/p3-models.md
+/orchestrate/
+decision.tsv
 
 # Python
 __pycache__/

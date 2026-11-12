@@ -2,12 +2,7 @@
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { LabeledField } from "@asym/ui/components/primitives/labeled-field";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import {
   Facebook,
@@ -16,24 +11,15 @@ import {
   Youtube,
 } from "@asym/ui/components/shadcn/icons";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@asym/ui/components/shadcn/tooltip";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Camera,
-  Eye,
   Save,
   ImageIcon,
   Smartphone,
   Monitor,
   Loader2,
   Globe,
-  Check,
-  ExternalLink,
-  Copy,
   CheckCircle2,
   RotateCcw,
 } from "lucide-react";
@@ -52,8 +38,6 @@ import {
   gentleTransition,
 } from "./profile-motion";
 
-import type { ProfileData } from "./profile-model";
-
 export function ProfileSkeleton() {
   return (
     <div className="space-y-6">
@@ -63,7 +47,6 @@ export function ProfileSkeleton() {
           <Skeleton className="h-4 w-64" />
         </div>
         <div className="flex gap-2">
-          <Skeleton className="h-9 w-24" />
           <Skeleton className="h-9 w-28" />
         </div>
       </div>
@@ -170,50 +153,6 @@ export function SocialIcon({
   );
 }
 
-export function AvatarUploadArea({
-  avatarUrl,
-  initials,
-}: {
-  avatarUrl: string;
-  initials: string;
-}) {
-  return (
-    <motion.div
-      className="relative group cursor-pointer rounded-full"
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.97 }}
-      transition={springTransition}
-    >
-      {/* No shared VT name: the persistent sidebar avatar was the only other
-          surface and can never form a legal unmount/mount pair. */}
-      <Avatar className="size-24 sm:size-28">
-        <AvatarImage src={avatarUrl} />
-        <AvatarFallback>{initials || "U"}</AvatarFallback>
-      </Avatar>
-
-      <motion.div
-        className="absolute inset-0 rounded-full bg-media-scrim/0 group-hover:bg-media-scrim/30 transition-colors flex items-center justify-center"
-        initial={false}
-      >
-        <motion.div
-          className="flex size-10 items-center justify-center rounded-full bg-media-scrim/65"
-          initial={false}
-        >
-          <Camera className="size-6 text-media-foreground" />
-        </motion.div>
-      </motion.div>
-
-      <motion.div
-        className="absolute -bottom-1 -right-1 size-8 sm:h-9 sm:w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-background"
-        whileHover={{ scale: 1.1 }}
-        transition={springTransition}
-      >
-        <Camera className="size-3.5 sm:h-4 sm:w-4" />
-      </motion.div>
-    </motion.div>
-  );
-}
-
 export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
   return (
     <motion.div
@@ -244,7 +183,7 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
             <motion.div className="bg-card rounded-lg px-3 py-1.5 shadow-lg transition-opacity">
               <span className="text-xs font-medium flex items-center gap-1.5">
                 <Camera className="size-3.5" />
-                Change Cover
+                Change cover
               </span>
             </motion.div>
           </motion.div>
@@ -437,24 +376,54 @@ export function DesktopPreviewFrame({
   );
 }
 
+/**
+ * Keeps save within reach on a long form. It leaves once changes are saved
+ * or discarded; if it held focus then, focus goes back to the page.
+ */
+export function UnsavedChangesBar({
+  returnFocusTo,
+  children,
+}: {
+  returnFocusTo: React.RefObject<HTMLElement | null>;
+  children: React.ReactNode;
+}) {
+  const barRef = React.useRef<HTMLDivElement>(null);
+  // Layout cleanup runs before the bar leaves the DOM, while focus is still
+  // inside it.
+  React.useLayoutEffect(() => {
+    const bar = barRef.current;
+    const target = returnFocusTo.current;
+    return () => {
+      if (!bar?.contains(document.activeElement)) return;
+      requestAnimationFrame(() => target?.focus());
+    };
+  }, [returnFocusTo]);
+
+  return (
+    <div
+      ref={barRef}
+      className="sticky bottom-4 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-sm"
+    >
+      <p className="text-sm text-muted-foreground">You have unsaved changes.</p>
+      {children}
+    </div>
+  );
+}
+
 export type ProfileHeaderActionsProps = {
-  copiedLink: boolean;
-  profile: ProfileData;
+  canWrite?: boolean;
   hasChanges: boolean;
   isSaving: boolean;
   saveSuccess: boolean;
-  onCopyLink: () => void | Promise<void>;
   onDiscard: () => void;
   onSave: () => void | Promise<void>;
 };
 
 export function ProfileHeaderActions({
-  copiedLink,
-  profile,
+  canWrite = true,
   hasChanges,
   isSaving,
   saveSuccess,
-  onCopyLink,
   onDiscard,
   onSave,
 }: ProfileHeaderActionsProps) {
@@ -462,60 +431,6 @@ export function ProfileHeaderActions({
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <Tooltip>
-        <TooltipTrigger
-          aria-label="Copy profile link"
-          render={
-            <Button variant="outline" size="sm" onClick={onCopyLink}>
-              <AnimatePresence mode="wait">
-                {copiedLink ? (
-                  <motion.div
-                    key="check"
-                    initial={{ scale: 0.95, rotate: -90, opacity: 0 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    exit={{ scale: 0.95, rotate: 90, opacity: 0 }}
-                    transition={springTransition}
-                  >
-                    <Check className="size-4 text-success" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="copy"
-                    initial={{ scale: 0.95, opacity: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0.95, opacity: 0 }}
-                    transition={springTransition}
-                  >
-                    <Copy className="size-4" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </Button>
-          }
-        />
-        <TooltipContent>Copy profile link</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger
-          aria-label="View your public profile"
-          render={
-            <a
-              href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-            >
-              <Eye className="mr-1.5 size-4" />
-              <span className="hidden sm:inline">View Public Page</span>
-              <span className="sm:hidden">View</span>
-              <ExternalLink className="ml-1 size-3 opacity-50" />
-            </a>
-          }
-        />
-        <TooltipContent>View your public profile</TooltipContent>
-      </Tooltip>
-
       <AnimatePresence>
         {hasChanges && (
           <motion.div
@@ -541,11 +456,11 @@ export function ProfileHeaderActions({
           aria-labelledby={`${pendingActionLabelId}-28`}
           focusableWhenDisabled={isSaving}
           onClick={onSave}
-          disabled={isSaving || !hasChanges}
+          disabled={isSaving || !hasChanges || !canWrite}
           size="sm"
         >
           <span id={`${pendingActionLabelId}-28`} className="sr-only">
-            {isSaving ? "Saving…" : saveSuccess ? "Saved!" : "Save Changes"}
+            {isSaving ? "Saving…" : saveSuccess ? "Saved" : "Save changes"}
           </span>
           <AnimatePresence mode="wait">
             {isSaving ? (
@@ -568,7 +483,7 @@ export function ProfileHeaderActions({
                 transition={springTransition}
               >
                 <CheckCircle2 className="mr-1.5 size-4" />
-                Saved!
+                Saved
               </motion.div>
             ) : (
               <motion.div
@@ -580,7 +495,7 @@ export function ProfileHeaderActions({
                 transition={{ duration: 0.15 }}
               >
                 <Save className="mr-1.5 size-4" />
-                Save Changes
+                Save changes
               </motion.div>
             )}
           </AnimatePresence>

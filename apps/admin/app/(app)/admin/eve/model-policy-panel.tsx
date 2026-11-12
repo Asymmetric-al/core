@@ -519,7 +519,7 @@ function EveModelPolicyDraftCard({
           <CollapsibleContent className="flex flex-col gap-4">
             <Textarea
               aria-label="Model policy JSON"
-              className="min-h-96 font-mono text-xs"
+              rows={20}
               value={draftText}
               onChange={(event) => onDraftTextChange(event.target.value)}
             />
@@ -571,13 +571,11 @@ function EveModelPolicyOverrideCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle
-          role="heading"
-          aria-level={3}
-          className="flex items-center gap-2"
-        >
-          <BadgeDollarSign aria-hidden="true" className="size-5" />
-          Emergency budget override
+        <CardTitle role="heading" aria-level={3}>
+          <span className="flex items-center gap-2">
+            <BadgeDollarSign aria-hidden="true" className="size-5" />
+            Emergency budget override
+          </span>
         </CardTitle>
         <CardDescription>
           Add a bounded, expiring allowance to one active role or subagent.
@@ -748,13 +746,11 @@ function EveModelPolicyLoadedView({
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <CardTitle
-                role="heading"
-                aria-level={2}
-                className="flex items-center gap-2"
-              >
-                <BrainCircuit aria-hidden="true" className="size-5" />
-                Shared model policy
+              <CardTitle role="heading" aria-level={2}>
+                <span className="flex items-center gap-2">
+                  <BrainCircuit aria-hidden="true" className="size-5" />
+                  Shared model policy
+                </span>
               </CardTitle>
               <CardDescription className="mt-1">
                 Gateway-primary role policy with immutable versions, independent

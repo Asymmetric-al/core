@@ -8,7 +8,7 @@ import { buildGivingTrends } from "../../src/donor-portal/trends";
  * already-live `portal.donations`. Pure → no DB needed.
  */
 
-function d(date: string, amountCents: number, status = "Succeeded") {
+function d(date: string, amountCents: number, status = "Paid") {
   return { date, amountCents, status };
 }
 
@@ -38,7 +38,7 @@ describe("buildGivingTrends", () => {
     const out = buildGivingTrends([
       d("2026-02-01", 1000, "Processing"),
       d("2026-02-02", 2000, "Failed"),
-      d("2026-02-03", 3000, "Succeeded"),
+      d("2026-02-03", 3000, "Paid"),
     ]);
     expect(out).toHaveLength(1);
     expect(out[0]).toMatchObject({

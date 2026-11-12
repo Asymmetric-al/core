@@ -29,8 +29,8 @@ async function TicketIntake() {
       description="Capture a request and route it to the right support track."
     >
       <SupportSubNav section="tickets" />
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <Card className="rounded-3xl">
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Ticket intake</CardTitle>
             <CardDescription>
@@ -50,7 +50,7 @@ async function TicketIntake() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl">
+        <Card className="lg:w-80 lg:shrink-0">
           <CardHeader>
             <CardTitle>Track hints</CardTitle>
             <CardDescription>

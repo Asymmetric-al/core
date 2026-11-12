@@ -80,9 +80,9 @@ export function ReportScopeSelect({
   }, [scopeSupported, selectedScopeId, setState, state.scopeId]);
 
   return (
-    <div className="flex items-end gap-2">
+    <div className="flex flex-wrap items-end gap-2">
       {!lockKind ? (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex w-35 flex-col gap-1.5">
           <Select<SupportReportScopeKind>
             items={kinds.map((kind) => ({
               value: kind,
@@ -97,10 +97,8 @@ export function ReportScopeSelect({
               });
             }}
           >
-            <SelectControlLabel className="text-sm font-medium text-muted-foreground">
-              Scope
-            </SelectControlLabel>
-            <SelectTrigger className="h-9 w-35">
+            <SelectControlLabel>Scope</SelectControlLabel>
+            <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -142,7 +140,7 @@ export function ReportScopeSelect({
         </p>
       ) : null}
       {options.length > 0 ? (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex min-w-45 flex-col gap-1.5 text-sm font-medium leading-none">
           <SearchableSelect
             items={[
               ...options.map((option) => ({
@@ -157,7 +155,6 @@ export function ReportScopeSelect({
               }
               setState({ scopeId: value });
             }}
-            className="h-9 min-w-45"
             label={activeKind.charAt(0).toUpperCase() + activeKind.slice(1)}
             labelClassName="text-sm font-medium"
           />

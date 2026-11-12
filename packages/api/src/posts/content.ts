@@ -86,3 +86,32 @@ export function normalizeStoredPostContent(content: string): string {
 
   return content;
 }
+
+function nodeHasContent(node: unknown): boolean {
+  if (!isRichTextRecord(node)) return false;
+  if (node.type === "image") return true;
+  if (typeof node.text === "string" && node.text.trim().length > 0) {
+    return true;
+  }
+  return Array.isArray(node.content) && node.content.some(nodeHasContent);
+}
+
+/**
+ * Whether stored post content says anything: some non-blank text or an
+ * image. Mirrors the composer's own check so the server never stores an
+ * empty update a client let through.
+ */
+export function postContentHasSubstance(content: string): boolean {
+  if (!content.trim()) return false;
+  try {
+    const parsed = JSON.parse(content) as unknown;
+    if (isRichTextRecord(parsed) && parsed.type === "doc") {
+      return nodeHasContent(parsed);
+    }
+  } catch {
+    // Legacy HTML or plain text.
+  }
+  return (
+    /<img\b/i.test(content) || content.replace(/<[^>]*>?/g, "").trim() !== ""
+  );
+}

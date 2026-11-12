@@ -48,7 +48,7 @@ export function MacroLauncher({
           </Button>
         }
       />
-      <PopoverContent align="end" className="w-80 p-0">
+      <PopoverContent align="end" className="w-80">
         <RunMacroPopover
           conversation={conversation}
           onCannedResponseInsert={(payload) => {

@@ -43,9 +43,11 @@ export function StatusFilter({ value, onValueChange }: StatusFilterProps) {
         if (next !== null) onValueChange(next);
       }}
     >
-      <SelectTrigger aria-label="Status filter" className="w-full sm:w-40">
-        <SelectValue placeholder="All statuses" />
-      </SelectTrigger>
+      <div className="w-full sm:w-40">
+        <SelectTrigger aria-label="Status filter" className="w-full">
+          <SelectValue placeholder="All statuses" />
+        </SelectTrigger>
+      </div>
       <SelectContent align="start">
         <SelectItem value="all">{STATUS_LABELS.all}</SelectItem>
         {SUPPORT_CONVERSATION_STATUSES.map((status) => (

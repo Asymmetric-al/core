@@ -64,9 +64,15 @@ export function AutomationConditionRow({
           if (value !== null) handleKindChange(value);
         }}
       >
-        <SelectTrigger aria-label={`${row} type`} className="h-8 min-w-50">
-          <SelectValue />
-        </SelectTrigger>
+        <div className="min-w-50 flex-1">
+          <SelectTrigger
+            aria-label={`${row} type`}
+            size="sm"
+            className="w-full"
+          >
+            <SelectValue />
+          </SelectTrigger>
+        </div>
         <SelectContent>
           {SUPPORT_AUTOMATION_CONDITION_KINDS.map((kind) => (
             <SelectItem key={kind} value={kind}>
@@ -77,52 +83,61 @@ export function AutomationConditionRow({
       </Select>
 
       {condition.kind === "inbox_is" ? (
-        <SearchableSelect
-          items={inboxes.map((inbox) => ({
-            value: inbox.id,
-            label: inbox.name,
-          }))}
-          value={condition.inboxId}
-          onValueChange={(value) => {
-            if (value === null) return;
-            onChange({ kind: "inbox_is", inboxId: value });
-          }}
-          aria-label={`${row} inbox`}
-          {...invalid}
-          className="h-8 min-w-50"
-          placeholder="Pick an inbox"
-        />
+        <div className="min-w-50 flex-1">
+          <SearchableSelect
+            items={inboxes.map((inbox) => ({
+              value: inbox.id,
+              label: inbox.name,
+            }))}
+            value={condition.inboxId}
+            onValueChange={(value) => {
+              if (value === null) return;
+              onChange({ kind: "inbox_is", inboxId: value });
+            }}
+            aria-label={`${row} inbox`}
+            {...invalid}
+            className="w-full"
+            placeholder="Pick an inbox"
+          />
+        </div>
       ) : null}
 
       {condition.kind === "label_includes" ? (
-        <SearchableSelect
-          items={labels.map((label) => ({
-            value: label.id,
-            label: label.name,
-          }))}
-          value={condition.labelId}
-          onValueChange={(value) => {
-            if (value === null) return;
-            onChange({ kind: "label_includes", labelId: value });
-          }}
-          aria-label={`${row} label`}
-          {...invalid}
-          className="h-8 min-w-50"
-          placeholder="Pick a label"
-        />
+        <div className="min-w-50 flex-1">
+          <SearchableSelect
+            items={labels.map((label) => ({
+              value: label.id,
+              label: label.name,
+            }))}
+            value={condition.labelId}
+            onValueChange={(value) => {
+              if (value === null) return;
+              onChange({ kind: "label_includes", labelId: value });
+            }}
+            aria-label={`${row} label`}
+            {...invalid}
+            className="w-full"
+            placeholder="Pick a label"
+          />
+        </div>
       ) : null}
 
       {condition.kind === "from_domain_equals" ? (
-        <Input
-          value={condition.domain}
-          onChange={(event) =>
-            onChange({ kind: "from_domain_equals", domain: event.target.value })
-          }
-          aria-label={`${row} domain`}
-          {...invalid}
-          placeholder="example.org"
-          className="h-8 min-w-50 font-mono"
-        />
+        <div className="min-w-50 flex-1">
+          <Input
+            value={condition.domain}
+            onChange={(event) =>
+              onChange({
+                kind: "from_domain_equals",
+                domain: event.target.value,
+              })
+            }
+            aria-label={`${row} domain`}
+            {...invalid}
+            placeholder="example.org"
+            className="w-full"
+          />
+        </div>
       ) : null}
 
       {condition.kind === "assignee_is_present" ||
@@ -147,30 +162,31 @@ export function AutomationConditionRow({
 
       {condition.kind === "subject_contains" ||
       condition.kind === "body_contains" ? (
-        <Input
-          value={condition.value}
-          onChange={(event) =>
-            onChange({
-              kind: condition.kind,
-              value: event.target.value,
-            } as SupportAutomationCondition)
-          }
-          aria-label={`${row} word or phrase`}
-          {...invalid}
-          placeholder="keyword"
-          className="h-8 min-w-50"
-        />
+        <div className="min-w-50 flex-1">
+          <Input
+            value={condition.value}
+            onChange={(event) =>
+              onChange({
+                kind: condition.kind,
+                value: event.target.value,
+              } as SupportAutomationCondition)
+            }
+            aria-label={`${row} word or phrase`}
+            {...invalid}
+            placeholder="keyword"
+            className="w-full"
+          />
+        </div>
       ) : null}
 
       <Button
         type="button"
-        variant="ghost"
-        size="icon"
+        variant="destructive"
+        size="icon-sm"
         onClick={onRemove}
         aria-label={`Remove condition ${index + 1}: ${kindLabel}`}
-        className="size-7 text-destructive hover:bg-destructive/10"
       >
-        <Trash2 className="size-3.5" />
+        <Trash2 className="size-3.5 text-destructive" />
       </Button>
       {error ? (
         <FieldError id={errorId} className="basis-full">

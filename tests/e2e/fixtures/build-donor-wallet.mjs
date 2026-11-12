@@ -4,12 +4,18 @@ import path from "node:path";
 const root = process.cwd();
 const require = createRequire(path.join(root, "apps/donor/package.json"));
 const imageComponent = require.resolve("next/dist/client/image-component");
+// One React Query instance for the fixture and the data hooks it renders.
+const reactQuery = createRequire(
+  path.join(root, "packages/database/package.json"),
+).resolve("@tanstack/react-query");
 const result = await Bun.build({
   entrypoints: ["tests/e2e/fixtures/donor-wallet.tsx"],
   outdir: path.dirname(process.argv[2]),
   naming: path.basename(process.argv[2]),
   target: "browser",
   format: "iife",
+  // The data hooks read process.env at module load; the browser has none.
+  banner: 'globalThis.process ??= { env: { NODE_ENV: "production" } };',
   define: {
     "process.env.NODE_ENV": '"production"',
     "process.env.__NEXT_IMAGE_OPTS": JSON.stringify({
@@ -26,6 +32,9 @@ const result = await Bun.build({
     {
       name: "wallet-fixture-boundaries",
       setup(builder) {
+        builder.onResolve({ filter: /^@tanstack\/react-query$/ }, () => ({
+          path: reactQuery,
+        }));
         builder.onResolve({ filter: /^@asym\/env$/ }, () => ({
           path: "environment",
           namespace: "wallet-fixture",

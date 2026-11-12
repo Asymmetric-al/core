@@ -47,7 +47,7 @@ import type {
 
 /** How the comment affordance behaves. */
 type CommentsMode =
-  "dialog" | "hidden" | { onOpen: (updateId: string) => void };
+  "dialog" | "read" | "hidden" | { onOpen: (updateId: string) => void };
 
 /** Props for {@link ReactionBar}. */
 export interface ReactionBarProps {
@@ -58,6 +58,8 @@ export interface ReactionBarProps {
   /**
    * Comment affordance: `"dialog"` (default) opens the module-owned
    * comments dialog (requires a `QueryClientProvider` above once opened),
+   * `"read"` opens the same dialog without a composer (for surfaces where
+   * comments can't be saved),
    * `{ onOpen }` delegates presentation to the caller, and `"hidden"`
    * removes the affordance entirely.
    */
@@ -464,21 +466,31 @@ function InteractiveReactionBar({
             onToggle={() => toggle(kind)}
           />
         ))}
-        {comments !== "hidden" && (
+        {comments === "read" && snapshot.commentCount === 0 ? (
+          // Nothing to read and no way to write: a count, not a button.
+          <span className="flex items-center gap-2 px-3 py-2 text-muted-foreground">
+            <MessageCircle aria-hidden className="size-5" strokeWidth={1.5} />
+            <span className="sr-only">No comments</span>
+            <span aria-hidden className="text-xs font-semibold tabular-nums">
+              0
+            </span>
+          </span>
+        ) : comments !== "hidden" ? (
           <CommentsButton
             appearance={appearance}
             count={snapshot.commentCount}
             onOpen={openComments}
           />
-        )}
+        ) : null}
       </div>
-      {comments === "dialog" && commentsMounted && (
+      {(comments === "dialog" || comments === "read") && commentsMounted && (
         <CommentsDialog
           updateId={snapshot.updateId}
           transport={transport}
           open={commentsOpen}
           onOpenChange={setCommentsOpen}
           onCommentAdded={() => recordLocalComment(snapshot.updateId)}
+          canComment={comments === "dialog"}
         />
       )}
     </LazyMotion>

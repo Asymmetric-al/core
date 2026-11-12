@@ -297,7 +297,7 @@ describe("buildMissionaryPortalSnapshot redaction", () => {
 
   function expectRedactedRelationship(id: string) {
     const relationship = snap.donorRelationships.find((d) => d.id === id);
-    expect(relationship?.displayName).toBe("Anonymous donor");
+    expect(relationship?.displayName).toBe("Anonymous partner");
     expect(relationship?.email).toBeNull();
     expect(relationship?.phone).toBeNull();
     expect(relationship?.avatarUrl).toBeNull();
@@ -357,7 +357,7 @@ describe("mapMissionaryTask redaction (also covers standalone task endpoints)", 
     const t = mapMissionaryTask(
       tasks[0] as Parameters<typeof mapMissionaryTask>[0],
     );
-    expect(t.donor?.name).toBe("Anonymous donor");
+    expect(t.donor?.name).toBe("Anonymous partner");
     expect(t.donor?.email).toBeNull();
     expect(JSON.stringify(t)).not.toContain("ada@example.com");
   });
@@ -382,7 +382,7 @@ describe("mapMissionaryTask redaction (also covers standalone task endpoints)", 
       const mapped = mapMissionaryTask(
         task as Parameters<typeof mapMissionaryTask>[0],
       );
-      expect(mapped.donor?.name).toBe("Anonymous donor");
+      expect(mapped.donor?.name).toBe("Anonymous partner");
       expect(mapped.donor?.email).toBeNull();
       expect(mapped.donor?.avatar_url).toBeNull();
     }

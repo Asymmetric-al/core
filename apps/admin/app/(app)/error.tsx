@@ -33,7 +33,7 @@ export default function RouteError({
     <Empty role="alert">
       <EmptyHeader>
         <EmptyTitle>
-          <h1>This page couldn't load</h1>
+          <h1>This page couldn&apos;t load</h1>
         </EmptyTitle>
         <EmptyDescription>
           Try again, or return to Home. If the problem continues, contact your

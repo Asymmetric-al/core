@@ -33,7 +33,7 @@ export function RefreshableGivingTrendCard({
     return (
       <section aria-label={TITLE}>
         <Alert>
-          <AlertTitle>{TITLE} couldn't load</AlertTitle>
+          <AlertTitle>{TITLE} couldn&apos;t load</AlertTitle>
           <AlertDescription>
             <p>The figures for the selection above are not affected.</p>
             <Button variant="outline" size="sm" onClick={retry}>

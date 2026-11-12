@@ -49,7 +49,8 @@ const DONOR_SELECT = `
   do_not_contact,
   do_not_email,
   has_active_pledge,
-  stripe_customer_id
+  stripe_customer_id,
+  address
 `;
 
 const DONATION_SELECT = `

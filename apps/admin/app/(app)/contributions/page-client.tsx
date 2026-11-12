@@ -16,7 +16,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, RotateCw } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
@@ -116,10 +116,7 @@ export default function ContributionsPage({
   const searchParams = useSearchParams();
   const giftParam = searchParams.get("gift");
   // Home links to one needs-attention kind with ?attention=<group key>.
-  const attentionKeys = useMemo(
-    () => searchParams.getAll("attention").filter(Boolean),
-    [searchParams],
-  );
+  const attentionKeys = searchParams.getAll("attention").filter(Boolean);
   const selectedGiftParam = isContributionGiftParam(giftParam)
     ? giftParam
     : null;

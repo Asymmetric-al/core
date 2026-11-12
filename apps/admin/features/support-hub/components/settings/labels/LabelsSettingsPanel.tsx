@@ -50,12 +50,7 @@ export function LabelsSettingsPanel() {
   const deleteLabel = useDeleteSupportLabel();
   const editor = useSettingsEditor<SupportLabel>();
   const editingLabel = editor.record;
-  const updateGuard = React.useCallback(
-    (state: { hasChanges: boolean; isSaving: boolean }) => {
-      editor.guard.current = state;
-    },
-    [editor.guard],
-  );
+  const updateGuard = editor.updateGuard;
 
   const confirm = useConfirm();
   const handleDelete = async (label: SupportLabel) => {

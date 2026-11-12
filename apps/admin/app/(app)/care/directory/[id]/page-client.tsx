@@ -218,7 +218,7 @@ export default function CareProfilePage() {
     return (
       <PageShell title="Care profile" density="compact">
         <Alert variant="destructive">
-          <AlertTitle>Couldn't load this care profile</AlertTitle>
+          <AlertTitle>Couldn&apos;t load this care profile</AlertTitle>
           <AlertDescription>
             {profile.error instanceof Error
               ? profile.error.message

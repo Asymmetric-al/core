@@ -44,13 +44,13 @@ async function openFromKeyboard(page: Page) {
     exact: true,
   });
   await actions.press("Enter");
-  const item = page.getByRole("menuitem", { name: "Delete Task", exact: true });
+  const item = page.getByRole("menuitem", { name: "Delete task", exact: true });
   await expect(item).toBeVisible();
   await page.keyboard.press("End");
   await expect(item).toBeFocused();
   await page.keyboard.press("Enter");
   const dialog = page.getByRole("alertdialog", {
-    name: "Delete Task",
+    name: "Delete task",
     exact: true,
   });
   await expect(dialog).toBeVisible();
@@ -83,10 +83,10 @@ for (const viewport of [
     await expect(actions).toBeVisible();
     await actions.tap();
     await page
-      .getByRole("menuitem", { name: "Delete Task", exact: true })
+      .getByRole("menuitem", { name: "Delete task", exact: true })
       .tap();
     let dialog = page.getByRole("alertdialog", {
-      name: "Delete Task",
+      name: "Delete task",
       exact: true,
     });
     await expect(dialog).toBeVisible();
@@ -108,7 +108,7 @@ for (const viewport of [
       await expect.poll(async () => (await fixtureState(page)).mode).toBe(mode);
       ({ dialog } = await openFromKeyboard(page));
       const confirm = dialog.getByRole("button", {
-        name: "Delete Task",
+        name: "Delete task",
         exact: true,
       });
       await confirm.press("Enter");
@@ -134,7 +134,7 @@ for (const viewport of [
     ({ dialog } = await openFromKeyboard(page));
     await page.keyboard.press("Tab");
     let confirm = dialog.getByRole("button", {
-      name: "Delete Task",
+      name: "Delete task",
       exact: true,
     });
     await expect(confirm).toBeFocused();
@@ -199,7 +199,7 @@ for (const viewport of [
     });
 
     await dialog
-      .getByRole("button", { name: "Delete Task", exact: true })
+      .getByRole("button", { name: "Delete task", exact: true })
       .press("Enter");
     await expect(dialog.getByRole("alert")).toHaveCount(0);
     await expect(dialog.getByRole("status")).toContainText(
@@ -209,7 +209,7 @@ for (const viewport of [
     await control(page, { command: "settle", success: true });
     await expect(dialog).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "Add Task", exact: true }),
+      page.getByRole("button", { name: "Add task", exact: true }),
     ).toBeFocused();
     await expect
       .poll(async () => (await fixtureState(page)).taskIds)
@@ -241,7 +241,7 @@ for (const viewport of [
     await dialog.getByRole("button", { name: "Cancel" }).press("Enter");
     await expect(dialog).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "Add Task", exact: true }),
+      page.getByRole("button", { name: "Add task", exact: true }),
     ).toBeFocused();
     expect(await counts(page)).toEqual({
       refresh: 0,

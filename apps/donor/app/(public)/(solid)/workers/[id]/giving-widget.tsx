@@ -2,7 +2,7 @@
 
 import { buildWorkerCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import { formatCurrency } from "@asym/lib/utils";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
 import {
   InputGroup,
@@ -27,6 +27,8 @@ interface GivingWidgetProps {
   raised: number;
   goal: number | null;
   percentRaised: number | null;
+  /** Funding figures are demo data; label them so they never read as live. */
+  sampleFunding?: boolean;
 }
 
 export function GivingWidget({
@@ -35,13 +37,16 @@ export function GivingWidget({
   raised,
   goal,
   percentRaised,
+  sampleFunding = false,
 }: GivingWidgetProps) {
   const [amount, setAmount] = useState<number>(100);
+  const [lastPreset, setLastPreset] = useState<number>(100);
   const [customAmount, setCustomAmount] = useState<string>("");
   const frequency = "one-time";
 
   const handleAmountClick = (val: number) => {
     setAmount(val);
+    setLastPreset(val);
     setCustomAmount("");
   };
 
@@ -49,11 +54,16 @@ export function GivingWidget({
     const val = e.target.value;
     if (val === "" || /^\d*\.?\d{0,2}$/.test(val)) {
       setCustomAmount(val);
-      if (val && !isNaN(parseFloat(val))) {
+      if (val === "") {
+        // Clearing the field returns to the last chosen preset, so the
+        // visible selection and the checkout link never disagree.
+        setAmount(lastPreset);
+      } else if (!isNaN(parseFloat(val))) {
         setAmount(parseFloat(val));
       }
     }
   };
+  const canGive = amount > 0;
 
   const hasGoal = goal !== null && percentRaised !== null;
 
@@ -69,11 +79,9 @@ export function GivingWidget({
           </p>
         </div>
 
-        <div className="rounded-xl border border-border bg-background p-4 text-center">
-          <p className="text-sm font-medium text-muted-foreground">
-            One-time gift
-          </p>
-        </div>
+        <p className="text-center text-sm font-medium text-muted-foreground">
+          One-time gift
+        </p>
 
         <div className="space-y-4">
           <label htmlFor="custom-amount-input" className="sr-only">
@@ -84,7 +92,7 @@ export function GivingWidget({
             <InputGroupInput
               id="custom-amount-input"
               type="number"
-              placeholder="0"
+              placeholder="Other amount"
               value={customAmount}
               onChange={handleCustomAmountChange}
               inputMode="decimal"
@@ -133,26 +141,35 @@ export function GivingWidget({
             <Meter
               value={percentRaised}
               className="h-2.5 bg-muted"
-              aria-label={`${percentRaised}% of funding goal reached`}
+              aria-label={`${sampleFunding ? "Sample figures: " : ""}${percentRaised}% of funding goal reached`}
             />
+            {sampleFunding && (
+              <p className="text-xs text-muted-foreground">Sample figures</p>
+            )}
           </div>
         )}
 
-        <Link
-          href={buildWorkerCheckoutHref({
-            amount,
-            frequency,
-            missionaryId,
-            workerId,
-          })}
-          className={cn(buttonVariants({ size: "lg" }), "w-full")}
-        >
-          Give {formatCurrency(amount)}
-        </Link>
+        {canGive ? (
+          <Link
+            href={buildWorkerCheckoutHref({
+              amount,
+              frequency,
+              missionaryId,
+              workerId,
+            })}
+            className={cn(buttonVariants({ size: "lg" }), "w-full")}
+          >
+            Give {formatCurrency(amount)}
+          </Link>
+        ) : (
+          <Button size="lg" disabled className="w-full">
+            Enter an amount above $0
+          </Button>
+        )}
 
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground font-medium">
           <ShieldCheck className="size-3.5 text-success" aria-hidden="true" />{" "}
-          Secure Payment &bull; 100% Tax Deductible
+          Secure payment &bull; Tax-deductible where applicable
         </div>
       </div>
     </Card>

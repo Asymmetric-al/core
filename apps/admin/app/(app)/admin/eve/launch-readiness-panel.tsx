@@ -168,7 +168,7 @@ function LaunchManifestImportSection({
       </Label>
       <Textarea
         id="eve-launch-manifest"
-        className="mt-2 min-h-32 font-mono text-xs"
+        className="mt-2"
         value={manifestJson}
         placeholder='{"schemaVersion":"eve-launch-manifest-v1", ...}'
         onChange={(event) => onManifestJsonChange(event.target.value)}
@@ -608,13 +608,11 @@ export function EveLaunchReadinessPanel() {
   return (
     <Card id="eve-launch-readiness">
       <CardHeader>
-        <CardTitle
-          role="heading"
-          aria-level={2}
-          className="flex items-center gap-2"
-        >
-          <Rocket aria-hidden="true" className="size-5" />
-          Launch readiness
+        <CardTitle role="heading" aria-level={2}>
+          <span className="flex items-center gap-2">
+            <Rocket aria-hidden="true" className="size-5" />
+            Launch readiness
+          </span>
         </CardTitle>
         <CardDescription>
           Eve goes live in four steps: import signed-off evidence for this exact

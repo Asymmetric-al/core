@@ -175,8 +175,7 @@ export function DonorTasks({
               disabled={loading}
               focusableWhenDisabled={loading}
             >
-              <Plus className="mr-1.5 size-3.5" data-icon="inline-start" /> Add
-              Task
+              <Plus data-icon="inline-start" aria-hidden /> Add task
             </Button>
           }
         />

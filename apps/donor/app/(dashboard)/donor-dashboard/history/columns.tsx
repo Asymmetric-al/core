@@ -8,218 +8,190 @@ import {
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
-import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
-import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import {
-  DropdownMenuGroup,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { cn } from "@asym/ui/lib/utils";
+  type Column,
+  type ColumnDef,
+} from "@asym/ui/components/shadcn/data-table/tanstack";
 import { format } from "date-fns";
-import {
-  CheckCircle2,
-  XCircle,
-  Clock,
-  MoreHorizontal,
-  DownloadCloud,
-  ExternalLink,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, Download } from "lucide-react";
+import Link from "next/link";
 
-import { STATUS_VARIANTS, type Transaction } from "./types";
+import { GIFT_TYPE_LABELS, STATUS_VARIANTS, type Transaction } from "./types";
 
 import { makeDisplayDate } from "@/lib/dates";
 
-const getStatusIcon = (status: Transaction["status"]) => {
-  switch (status) {
-    case "Succeeded":
-      return <CheckCircle2 className="size-3.5" />;
-    case "Processing":
-      return <Clock className="size-3.5" />;
-    case "Failed":
-      return <XCircle className="size-3.5" />;
-    default:
-      return null;
+function initials(name: string) {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0))
+      .join("")
+      .toUpperCase() || "?"
+  );
+}
+
+const SORT_STATE = {
+  asc: { icon: ArrowUp, label: ", sorted ascending" },
+  desc: { icon: ArrowDown, label: ", sorted descending" },
+} as const;
+
+function SortableHeader({
+  column,
+  title,
+  align = "start",
+}: {
+  column: Column<Transaction, unknown>;
+  title: string;
+  align?: "start" | "end";
+}) {
+  const sorted = column.getIsSorted();
+  const state = sorted ? SORT_STATE[sorted] : null;
+  const Icon = state?.icon ?? ChevronsUpDown;
+  return (
+    <Button
+      variant="ghost"
+      size="xs"
+      className={align === "end" ? "-mr-2" : "-ml-2"}
+      onClick={column.getToggleSortingHandler()}
+    >
+      {title}
+      {state ? <span className="sr-only">{state.label}</span> : null}
+      <Icon aria-hidden data-icon="inline-end" />
+    </Button>
+  );
+}
+
+function receiptLabel(tx: Transaction) {
+  const date = format(makeDisplayDate(tx.date), "MMM d, yyyy");
+  return `Download receipt for ${tx.recipient}, ${date}, ${formatCurrency(tx.amount)}`;
+}
+
+/** Only paid gifts have a receipt; a refunded gift's receipt no longer counts. */
+export function ReceiptLink({ tx }: { tx: Transaction }) {
+  if (tx.status !== "Paid") {
+    return <span className="sr-only">No receipt</span>;
   }
-};
+  return (
+    <a
+      href={tx.receiptUrl}
+      download
+      aria-label={receiptLabel(tx)}
+      className={buttonVariants({ variant: "ghost", size: "sm" })}
+    >
+      <Download data-icon="inline-start" aria-hidden />
+      Receipt
+    </a>
+  );
+}
 
 export const columns: ColumnDef<Transaction>[] = [
   {
     accessorKey: "date",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Date" />
-    ),
+    header: ({ column }) => <SortableHeader column={column} title="Date" />,
     cell: ({ row }) => (
-      <span className="text-sm font-medium text-foreground whitespace-nowrap">
+      <span className="whitespace-nowrap text-sm text-foreground">
         {format(makeDisplayDate(row.getValue("date")), "MMM d, yyyy")}
       </span>
     ),
-    meta: {
-      label: "Date",
-    },
+    meta: { label: "Date" },
   },
   {
     accessorKey: "recipient",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Recipient" />
-    ),
+    header: ({ column }) => <SortableHeader column={column} title="Gift to" />,
     cell: ({ row }) => {
       const tx = row.original;
       return (
-        <div className="flex items-center gap-3">
-          <Avatar className="size-9 border border-border">
-            <AvatarImage src={tx.recipientAvatar} alt={tx.recipient} />
-            <AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs">
-              {tx.recipient[0]}
-            </AvatarFallback>
+        <div className="flex min-w-0 items-center gap-3">
+          <Avatar>
+            {tx.recipientAvatar ? (
+              <AvatarImage src={tx.recipientAvatar} alt="" />
+            ) : null}
+            <AvatarFallback>{initials(tx.recipient)}</AvatarFallback>
           </Avatar>
-          <div>
-            <div className="text-sm font-semibold text-foreground leading-none mb-1">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-foreground">
               {tx.recipient}
-            </div>
-            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <span className="bg-muted px-1.5 py-0.5 rounded text-xs font-bold ">
-                {tx.type}
-              </span>
-              <span className="text-muted-foreground/50">•</span>
-              <span>
-                {tx.method} ••{tx.last4}
-              </span>
-            </div>
+            </p>
+            {tx.type === "Recurring" ? (
+              <Link
+                href="/donor-dashboard/pledges"
+                className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                {GIFT_TYPE_LABELS.Recurring}
+              </Link>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {GIFT_TYPE_LABELS["One-Time"]}
+              </p>
+            )}
           </div>
         </div>
       );
     },
-    meta: {
-      label: "Recipient",
-    },
+    meta: { label: "Gift to" },
   },
   {
-    accessorKey: "category",
-    header: "Category",
+    accessorKey: "fund",
+    header: ({ column }) => <SortableHeader column={column} title="Fund" />,
     cell: ({ row }) => (
-      <Badge variant="secondary">{row.getValue("category")}</Badge>
+      <span className="text-sm text-muted-foreground">
+        {row.original.fund ?? "General support"}
+      </span>
     ),
-    enableHiding: true,
-    meta: {
-      label: "Category",
-    },
+    meta: { label: "Fund" },
   },
   {
     accessorKey: "amount",
     header: ({ column }) => (
-      <div className="text-right">
-        <DataTableColumnHeader
-          column={column}
-          title="Amount"
-          className="justify-end"
-        />
+      <div className="flex justify-end">
+        <SortableHeader column={column} title="Amount" align="end" />
       </div>
     ),
     cell: ({ row }) => (
-      <div className="text-right font-mono font-bold text-foreground tabular-nums">
+      <p className="text-right text-sm font-medium tabular-nums text-foreground">
         {formatCurrency(row.getValue("amount"))}
-      </div>
+      </p>
     ),
-    meta: {
-      label: "Amount",
-    },
+    meta: { label: "Amount" },
+  },
+  {
+    accessorKey: "method",
+    header: ({ column }) => <SortableHeader column={column} title="Payment" />,
+    cell: ({ row }) => (
+      <span className="whitespace-nowrap text-sm text-muted-foreground">
+        {row.original.method}
+      </span>
+    ),
+    meta: { label: "Payment" },
   },
   {
     accessorKey: "type",
     header: "Type",
     enableHiding: true,
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-    meta: {
-      label: "Type",
-      filterVariant: "select",
-      filterOptions: [
-        { label: "Recurring", value: "Recurring" },
-        { label: "One-Time", value: "One-Time" },
-      ],
-    },
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+    meta: { label: "Type" },
   },
   {
     accessorKey: "status",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
-    ),
+    header: ({ column }) => <SortableHeader column={column} title="Status" />,
     cell: ({ row }) => {
-      const status = row.getValue("status") as Transaction["status"];
-      return (
-        <Badge variant={STATUS_VARIANTS[status]}>
-          {getStatusIcon(status)}
-          {status}
-        </Badge>
-      );
+      const status = row.original.status;
+      return <Badge variant={STATUS_VARIANTS[status]}>{status}</Badge>;
     },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-    meta: {
-      label: "Status",
-      filterVariant: "select",
-      filterOptions: [
-        { label: "Succeeded", value: "Succeeded" },
-        { label: "Processing", value: "Processing" },
-        { label: "Failed", value: "Failed" },
-      ],
-    },
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+    meta: { label: "Status" },
   },
   {
-    id: "actions",
-    cell: ({ row }) => {
-      const tx = row.original;
-      return (
-        <div className="flex justify-end gap-2">
-          {tx.status === "Succeeded" && (
-            <a
-              href={tx.receiptUrl}
-              download
-              aria-label={`Download receipt for ${tx.recipient}`}
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "sm" }),
-                "h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg",
-              )}
-            >
-              <DownloadCloud className="size-3.5 mr-1.5" /> Receipt
-            </a>
-          )}
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              aria-label="Open actions"
-              render={
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              }
-            />
-            <DropdownMenuContent align="end">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>View Details</DropdownMenuItem>
-                <DropdownMenuItem>Manage Recurring</DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                render={
-                  <a
-                    href={`/api/donor/statements/${new Date(tx.date).getFullYear()}`}
-                  >
-                    <ExternalLink className="size-3 mr-2" /> Open Statement
-                  </a>
-                }
-              />
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
+    id: "receipt",
+    header: () => <span className="sr-only">Receipt</span>,
+    cell: ({ row }) => (
+      <div className="flex justify-end">
+        <ReceiptLink tx={row.original} />
+      </div>
+    ),
+    // Keep the receipt in view when the table scrolls sideways.
+    meta: { label: "Receipt", sticky: "right" },
   },
 ];

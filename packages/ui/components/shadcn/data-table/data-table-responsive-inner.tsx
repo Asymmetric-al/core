@@ -178,6 +178,7 @@ function DataTableResponsiveResults<TData extends RowData, TValue>({
           rowActions={rowActions}
           getRowActionAriaLabel={getRowActionAriaLabel}
           renderCard={mobileCardConfig?.renderCard}
+          emptyState={emptyState}
         />
       )}
     </div>

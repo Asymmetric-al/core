@@ -5,7 +5,7 @@ import {
   AlertTitle,
 } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
@@ -111,12 +111,16 @@ export default async function WebStudioAuthenticatedPreviewPage({
               {status ? <Badge variant="secondary">{status}</Badge> : null}
             </div>
           </div>
-          <Link
-            className={buttonVariants({ variant: "outline" })}
-            href={`/web-studio/collections/${collection}/${encodeURIComponent(id)}`}
-          >
-            Back to editor
-          </Link>
+          <ButtonLink
+            variant="outline"
+            render={
+              <Link
+                href={`/web-studio/collections/${collection}/${encodeURIComponent(id)}`}
+              >
+                Back to editor
+              </Link>
+            }
+          />
         </div>
       </header>
 
@@ -314,9 +318,9 @@ function renderMediaFeatureBlock(block: PreviewBlock, key: string) {
   return (
     <section
       key={key}
-      className="grid gap-6 rounded-lg border border-border bg-card p-6 md:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] md:items-center"
+      className="flex flex-col gap-6 rounded-lg border border-border bg-card p-6 md:flex-row md:items-center"
     >
-      <div className="space-y-3">
+      <div className="min-w-0 space-y-3 md:flex-1">
         {readOptionalString(block.title) ? (
           <h2 className="text-2xl font-semibold tracking-tight">
             {readOptionalString(block.title)}
@@ -329,8 +333,8 @@ function renderMediaFeatureBlock(block: PreviewBlock, key: string) {
         ) : null}
       </div>
       {image ? (
-        <figure className="space-y-2">
-          <div className="relative aspect-[16/9] overflow-hidden rounded-md bg-muted">
+        <figure className="space-y-2 md:w-96 md:shrink-0">
+          <div className="relative aspect-video overflow-hidden rounded-md bg-muted">
             <Image
               alt={image.alt}
               className="object-cover"

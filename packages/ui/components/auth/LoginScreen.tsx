@@ -34,6 +34,8 @@ export interface LoginScreenProps {
   /** Null hides the link where password reset is not offered. */
   forgotPasswordHref?: string | null;
   showRegisterLink?: boolean;
+  /** Shown in place of the register link when there is no self sign-up. */
+  accountNote?: React.ReactNode;
 }
 
 function resolveDemoAvailability(
@@ -60,6 +62,7 @@ export function LoginScreen({
   registerHref = "/register",
   forgotPasswordHref = "/forgot-password",
   showRegisterLink = true,
+  accountNote,
 }: LoginScreenProps) {
   const { replace, refresh } = useRouter();
   const demoRole = getDemoRoleForApp(appId);
@@ -196,6 +199,7 @@ export function LoginScreen({
           registerHref={registerHref}
           forgotPasswordHref={forgotPasswordHref}
           showRegisterLink={showRegisterLink}
+          accountNote={accountNote}
           onEmailChange={setEmail}
           onPasswordChange={setPassword}
           onSubmit={handleFullLogin}

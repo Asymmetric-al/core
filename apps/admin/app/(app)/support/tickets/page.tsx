@@ -4,7 +4,7 @@ import {
   MetricGrid,
 } from "@asym/ui/components/primitives/metric-card";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
@@ -72,15 +72,15 @@ export default async function SupportTicketsPage({
           conversations.
         </p>
         <div className="flex flex-wrap gap-2">
-          <Link
-            href={supportHubRoutes.home}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Back to Support Hub
-          </Link>
-          <Link href={supportHubRoutes.newTicket} className={buttonVariants()}>
-            New ticket
-          </Link>
+          <ButtonLink
+            variant="outline"
+            render={
+              <Link href={supportHubRoutes.home}>Back to Support Hub</Link>
+            }
+          />
+          <ButtonLink
+            render={<Link href={supportHubRoutes.newTicket}>New ticket</Link>}
+          />
         </div>
 
         <form
@@ -100,7 +100,7 @@ export default async function SupportTicketsPage({
               type="search"
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:w-45 md:shrink-0">
             <Select
               items={[
                 { value: "", label: "All tracks" },
@@ -120,7 +120,7 @@ export default async function SupportTicketsPage({
               <SelectControlLabel className="sr-only">
                 Support track
               </SelectControlLabel>
-              <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3">
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -133,7 +133,7 @@ export default async function SupportTicketsPage({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:w-45 md:shrink-0">
             <Select
               items={[
                 { value: "", label: "All statuses" },
@@ -156,7 +156,7 @@ export default async function SupportTicketsPage({
               <SelectControlLabel className="sr-only">
                 Status
               </SelectControlLabel>
-              <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3">
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

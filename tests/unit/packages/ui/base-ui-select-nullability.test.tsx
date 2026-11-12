@@ -172,12 +172,12 @@ describe("required Select consumers", () => {
   });
 
   it.each([
-    { name: "Task Type", value: "to_do", label: "To-do", next: "Call" },
+    { name: "Task type", value: "to_do", label: "To-do", next: "Call" },
     { name: "Priority", value: "none", label: "None", next: "High" },
     {
       name: "Status",
       value: "not_started",
-      label: "Not Started",
+      label: "Not started",
       next: "Waiting",
     },
   ])(

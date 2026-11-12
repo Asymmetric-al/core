@@ -60,6 +60,12 @@ describe("packages/database parseJsonResponse", () => {
     ).rejects.toThrow("Request failed with status 502");
   });
 
+  it("preserves HTTP status for portal access revocation", async () => {
+    await expect(
+      parseJsonResponse(jsonResponse(403, { error: "Forbidden" })),
+    ).rejects.toMatchObject({ status: 403, message: "Forbidden" });
+  });
+
   it("throws when a success body is empty", async () => {
     await expect(
       parseJsonResponse(new Response(null, { status: 204 })),

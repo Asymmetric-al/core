@@ -20,15 +20,23 @@ afterAll(() => {
   process.env.SKIP_ENV_VALIDATION = previousSkipEnvValidation;
 });
 
-describe("posts read-only POST", () => {
-  it("returns the fixed demo response without running withOperation", async () => {
+// Missionaries can now publish their own updates (see posts/create.ts and
+// tests/unit/packages/api/posts/create-post.test.ts). Creation still needs a
+// signed-in missionary: a request without a session never reaches the
+// database.
+describe("posts POST", () => {
+  it("refuses a request without a signed-in missionary", async () => {
     const request = new NextRequest("http://localhost/api/posts", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: "Hello" }),
     });
 
     const response = await POST(request);
 
-    expect(response.status).toBe(403);
-    await expect(response.json()).resolves.toEqual({ error: "Read-only demo" });
+    expect([401, 403]).toContain(response.status);
+    await expect(response.json()).resolves.not.toEqual({
+      post: expect.anything(),
+    });
   });
 });

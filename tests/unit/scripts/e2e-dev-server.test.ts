@@ -1,4 +1,5 @@
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { once } from "node:events";
 import {
   existsSync,
   mkdtempSync,
@@ -244,29 +245,32 @@ describe("e2e-dev-server.sh", () => {
       });
     }, 20_000);
 
-    it("keeps pid and log files under RUNNER_TEMP and stops only that process group", () => {
+    it("keeps pid and log files under RUNNER_TEMP and stops only that process group", async () => {
       const source = readFileSync(SCRIPT, "utf8");
       expect(source).toContain('TMP_DIR="${RUNNER_TEMP:-/tmp}"');
       expect(source.match(/\/tmp\//g) ?? []).toEqual([]);
-      withRunnerTemp((dir) => {
-        const sleeper = spawnSync(
-          "bash",
-          ["-c", "setsid sleep 30 >/dev/null 2>&1 </dev/null & echo $!"],
-          { encoding: "utf8" },
-        );
-        const pid = Number(sleeper.stdout.trim());
+      const dir = mkdtempSync(path.join(tmpdir(), "e2e-dev-server-test-"));
+      const sleeper = spawn("sleep", ["30"], {
+        detached: true,
+        stdio: "ignore",
+      });
+      const exited = once(sleeper, "exit");
+      try {
+        await once(sleeper, "spawn");
+        const pid = sleeper.pid!;
         expect(alive(pid)).toBe(true);
         const pidfile = path.join(dir, "donor-dev.pid");
         writeFileSync(pidfile, String(pid));
-        try {
-          const result = runScript(["donor", "stop"], { RUNNER_TEMP: dir });
-          expect(result.status).toBe(0);
-          expect(existsSync(pidfile)).toBe(false);
-          expect(alive(pid)).toBe(false);
-        } finally {
-          if (alive(pid)) process.kill(pid, "SIGKILL");
-        }
-      });
+        const result = runScript(["donor", "stop"], { RUNNER_TEMP: dir });
+        expect(result.status).toBe(0);
+        expect(existsSync(pidfile)).toBe(false);
+        await exited;
+        expect(alive(pid)).toBe(false);
+      } finally {
+        sleeper.kill("SIGKILL");
+        await exited;
+        rmSync(dir, { recursive: true, force: true });
+      }
     }, 20_000);
   });
 

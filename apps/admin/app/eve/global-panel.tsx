@@ -9,6 +9,7 @@ import {
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   Sheet,
   SheetContent,
@@ -88,154 +89,161 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
               <Sparkles aria-hidden="true" />
             </Button>
           ) : (
-            <Button
-              className="fixed right-5 bottom-20 z-40 size-12 rounded-full shadow-lg"
-              size="icon"
-              aria-label="Open Eve assistant"
-              data-testid="eve-global-trigger"
-            >
-              <Sparkles aria-hidden="true" className="size-5" />
-            </Button>
+            <div className="fixed right-5 bottom-20 z-40">
+              <Button
+                variant="maia"
+                size="icon-touch"
+                aria-label="Open Eve assistant"
+                data-testid="eve-global-trigger"
+              >
+                <Sparkles aria-hidden="true" className="size-5" />
+              </Button>
+            </div>
           )
         }
       />
       <SheetContent
         aria-describedby="eve-global-description"
-        className="w-full gap-0 sm:max-w-md"
+        className="w-full sm:max-w-md"
       >
-        <SheetHeader className="border-b">
-          <SheetTitle className="flex items-center gap-2">
-            <Bot aria-hidden="true" className="size-5" />
-            Eve
-          </SheetTitle>
-          <SheetDescription id="eve-global-description">
-            Governed assistance for {pageContext.pageIdentity}. Eve receives
-            only this page category and your selected organization—not records,
-            payment details, table rows, or form values.
-          </SheetDescription>
-        </SheetHeader>
+        <div className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>
+              <span className="flex items-center gap-2">
+                <Bot aria-hidden="true" className="size-5" />
+                Eve
+              </span>
+            </SheetTitle>
+            <SheetDescription id="eve-global-description">
+              Governed assistance for {pageContext.pageIdentity}. Eve receives
+              only this page category and your selected organization—not
+              records, payment details, table rows, or form values.
+            </SheetDescription>
+          </SheetHeader>
+          <Separator />
 
-        <ScrollArea className="min-h-0 flex-1 px-4">
-          <div
-            className="flex min-h-full flex-col gap-3 py-4"
-            aria-live="polite"
-            aria-busy={busy}
-          >
-            {agent.data.messages.length === 0 ? (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyTitle>Ask about this page</EmptyTitle>
-                  <EmptyDescription>
-                    Ask for help understanding this screen or planning your next
-                    governed action. Eve cannot execute tools from this panel
-                    yet.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            ) : null}
-            {agent.data.messages.map((item) => {
-              const text = item.parts
-                .flatMap((part) => (part.type === "text" ? [part.text] : []))
-                .join("");
-              if (!text) {
-                return null;
-              }
+          <ScrollArea className="min-h-24 flex-1 px-4">
+            <div
+              className="flex min-h-full flex-col gap-3 py-4"
+              aria-live="polite"
+              aria-busy={busy}
+            >
+              {agent.data.messages.length === 0 ? (
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>Ask about this page</EmptyTitle>
+                    <EmptyDescription>
+                      Ask for help understanding this screen or planning your
+                      next governed action. Eve cannot execute tools from this
+                      panel yet.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              ) : null}
+              {agent.data.messages.map((item) => {
+                const text = item.parts
+                  .flatMap((part) => (part.type === "text" ? [part.text] : []))
+                  .join("");
+                if (!text) {
+                  return null;
+                }
 
-              return (
-                <article
-                  key={item.id}
-                  className={
-                    item.role === "user"
-                      ? "ml-8 rounded-lg bg-primary p-3 text-sm text-primary-foreground"
-                      : "mr-8 rounded-lg bg-muted p-3 text-sm text-foreground"
-                  }
-                >
-                  <span className="sr-only">
-                    {item.role === "user" ? "You" : "Eve"}:
-                  </span>
-                  <p className="whitespace-pre-wrap">{text}</p>
-                </article>
-              );
-            })}
-            {agent.status === "error" ? (
-              <p role="alert" className="text-sm text-destructive">
-                Eve could not complete that request. The runtime failed closed;
-                try again or contact an administrator.
-              </p>
-            ) : null}
-          </div>
-        </ScrollArea>
-
-        <form className="border-t p-4" onSubmit={handleSubmit}>
-          <label className="sr-only" htmlFor="eve-global-message">
-            Message Eve
-          </label>
-          <Textarea
-            id="eve-global-message"
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-            aria-describedby={`${countId} ${shortcutId}`}
-            onKeyDown={(event) => {
-              if (
-                event.nativeEvent.isComposing ||
-                busy ||
-                event.defaultPrevented
-              )
-                return;
-              if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
-                event.preventDefault();
-                event.currentTarget.form?.requestSubmit();
-              }
-            }}
-            maxLength={MAX_MESSAGE_LENGTH}
-            rows={3}
-            disabled={busy}
-            placeholder="Ask Eve about this page…"
-          />
-          <div className="mt-3 flex items-center justify-between gap-2">
-            <p id={countId} className="text-xs text-muted-foreground">
-              {message.length.toLocaleString()} /{" "}
-              {MAX_MESSAGE_LENGTH.toLocaleString()} characters
-            </p>
-            <span id={shortcutId} className="sr-only">
-              Press Ctrl or Command + Enter to send.
-            </span>
-            <div className="flex gap-2">
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={handleAgentReset}
-                      disabled={busy}
-                      aria-label="Start a new Eve session"
-                    >
-                      <RotateCcw aria-hidden="true" />
-                    </Button>
-                  }
-                />
-                <TooltipContent>Start a new Eve session</TooltipContent>
-              </Tooltip>
-              {busy ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAgentStop}
-                >
-                  <Square aria-hidden="true" className="size-4" />
-                  Detach
-                </Button>
-              ) : (
-                <Button type="submit" disabled={!message.trim()}>
-                  <Send aria-hidden="true" className="size-4" />
-                  Send
-                </Button>
-              )}
+                return (
+                  <article
+                    key={item.id}
+                    className={
+                      item.role === "user"
+                        ? "ml-8 rounded-lg bg-primary p-3 text-sm text-primary-foreground"
+                        : "mr-8 rounded-lg bg-muted p-3 text-sm text-foreground"
+                    }
+                  >
+                    <span className="sr-only">
+                      {item.role === "user" ? "You" : "Eve"}:
+                    </span>
+                    <p className="whitespace-pre-wrap">{text}</p>
+                  </article>
+                );
+              })}
+              {agent.status === "error" ? (
+                <p role="alert" className="text-sm text-destructive">
+                  Eve could not complete that request. The runtime failed
+                  closed; try again or contact an administrator.
+                </p>
+              ) : null}
             </div>
-          </div>
-        </form>
+          </ScrollArea>
+
+          <form className="border-t p-4" onSubmit={handleSubmit}>
+            <label className="sr-only" htmlFor="eve-global-message">
+              Message Eve
+            </label>
+            <Textarea
+              id="eve-global-message"
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              aria-describedby={`${countId} ${shortcutId}`}
+              onKeyDown={(event) => {
+                if (
+                  event.nativeEvent.isComposing ||
+                  busy ||
+                  event.defaultPrevented
+                )
+                  return;
+                if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                  event.preventDefault();
+                  event.currentTarget.form?.requestSubmit();
+                }
+              }}
+              maxLength={MAX_MESSAGE_LENGTH}
+              rows={3}
+              disabled={busy}
+              placeholder="Ask Eve about this page…"
+            />
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <p id={countId} className="text-xs text-muted-foreground">
+                {message.length.toLocaleString()} /{" "}
+                {MAX_MESSAGE_LENGTH.toLocaleString()} characters
+              </p>
+              <span id={shortcutId} className="sr-only">
+                Press Ctrl or Command + Enter to send.
+              </span>
+              <div className="flex gap-2">
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={handleAgentReset}
+                        disabled={busy}
+                        aria-label="Start a new Eve session"
+                      >
+                        <RotateCcw aria-hidden="true" />
+                      </Button>
+                    }
+                  />
+                  <TooltipContent>Start a new Eve session</TooltipContent>
+                </Tooltip>
+                {busy ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAgentStop}
+                  >
+                    <Square aria-hidden="true" className="size-4" />
+                    Detach
+                  </Button>
+                ) : (
+                  <Button type="submit" disabled={!message.trim()}>
+                    <Send aria-hidden="true" className="size-4" />
+                    Send
+                  </Button>
+                )}
+              </div>
+            </div>
+          </form>
+        </div>
       </SheetContent>
     </Sheet>
   );

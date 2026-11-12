@@ -127,7 +127,6 @@ export function ViewTabs({ value, onValueChange, baseFilter }: ViewTabsProps) {
                         <Badge
                           variant={isActive ? "default" : "secondary"}
                           aria-hidden
-                          className="min-w-6 tabular-nums"
                         >
                           {count}
                         </Badge>

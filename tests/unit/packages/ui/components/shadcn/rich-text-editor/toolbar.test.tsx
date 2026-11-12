@@ -163,6 +163,24 @@ describe("rich-text-editor/toolbar", () => {
     ).toHaveLength(1);
   });
 
+  it("wraps its tools onto more lines instead of hiding them off-screen", () => {
+    const { editor } = createEditorMock();
+    render(
+      <EditorToolbar
+        editor={editor as never}
+        tools={["bold", "italic", "link", "image", "undo", "redo"]}
+        onImageClick={() => {}}
+      />,
+    );
+    const toolbar = screen.getByRole("toolbar", { name: "Text formatting" });
+    const row = toolbar.querySelector("[data-toolbar-row]");
+    expect(row?.className).toContain("flex-wrap");
+    expect(row?.contains(screen.getByRole("button", { name: "Undo" }))).toBe(
+      true,
+    );
+    expect(toolbar.closest("[data-slot=scroll-area]")).toBeNull();
+  });
+
   it("exposes history commands as actions and blocks disabled activation", () => {
     const { editor, calls } = createEditorMock({
       canUndo: false,
@@ -174,6 +192,37 @@ describe("rich-text-editor/toolbar", () => {
     fireEvent.click(undo);
     expect(calls).not.toContain("undo");
   });
+  it("names each control plainly and announces its keyboard shortcut", () => {
+    const { editor } = createEditorMock();
+    render(
+      <EditorToolbar
+        editor={editor as never}
+        tools={["bold", "heading", "bulletList", "redo"]}
+      />,
+    );
+    // jsdom reports a non-Apple platform, so shortcuts use Control.
+    expect(
+      screen
+        .getByRole("button", { name: "Bold" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+B");
+    expect(
+      screen
+        .getByRole("button", { name: "Heading 1" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+Alt+1");
+    expect(
+      screen
+        .getByRole("button", { name: "Bullet list" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+Shift+8");
+    expect(
+      screen
+        .getByRole("button", { name: "Redo" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+Shift+Z");
+  });
+
   it("renders default tools and hides image without image handlers", () => {
     const { editor } = createEditorMock();
     render(<EditorToolbar editor={editor as never} />);

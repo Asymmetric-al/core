@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { parseJsonResponse } from "../http/parse-json-response";
+import { getQueryClient } from "../providers/query-client";
 
 export type MissionaryPortalTask = {
   id: string;
@@ -45,10 +46,14 @@ export type MissionaryPortalSnapshot = {
     socialLinks: Record<string, unknown>;
   };
   support: {
-    goalCents: number;
-    raisedCents: number;
-    recurringMonthlyCents: number;
-    percentFunded: number;
+    goalCents: number | null;
+    goalCurrency: string | null;
+    raisedCents: number | null;
+    recurringMonthlyCents: number | null;
+    recurringCurrency: string | null;
+    /** Partners with an active recurring gift, anonymous ones included. */
+    monthlyPartnerCount: number;
+    percentFunded: number | null;
     activeDonorCount: number;
     giftCount: number;
     lastGiftAt: string | null;
@@ -62,9 +67,9 @@ export type MissionaryPortalSnapshot = {
     avatarUrl: string | null;
     location: string | null;
     status: string;
-    totalGivenCents: number;
+    totalGivenCents: number | null;
     lastGiftAt: string | null;
-    lastGiftAmountCents: number;
+    lastGiftAmountCents: number | null;
     giftCount: number;
     frequency: string | null;
     tags: string[];
@@ -74,8 +79,7 @@ export type MissionaryPortalSnapshot = {
     id: string;
     donorId: string | null;
     amountCents: number;
-    amount: number;
-    currency: string;
+    currency: string | null;
     type: "Recurring" | "One-Time";
     date: string;
   }>;
@@ -84,6 +88,8 @@ export type MissionaryPortalSnapshot = {
     id: string;
     title: string;
     excerpt: string;
+    postType: string;
+    imageUrl: string | null;
     visibility: string;
     status: string;
     createdAt: string | null;
@@ -119,5 +125,40 @@ export function useMissionaryPortalSnapshot() {
   return useQuery({
     queryKey: MISSIONARY_PORTAL_QUERY_KEY,
     queryFn: fetchMissionaryPortalSnapshot,
+  });
+}
+
+/** Shared with the Updates page so a resolved request updates the count. */
+export const PENDING_FOLLOW_REQUESTS_QUERY_KEY = [
+  "missionary",
+  "follower-requests",
+  "pending",
+] as const;
+
+/** How many people are waiting for approval to follow the missionary. */
+export function usePendingFollowRequestCount({
+  enabled = true,
+}: { enabled?: boolean } = {}) {
+  return useQuery({
+    enabled,
+    queryKey: PENDING_FOLLOW_REQUESTS_QUERY_KEY,
+    queryFn: async () => {
+      const response = await fetch("/api/follower-requests?status=pending", {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+        method: "GET",
+      });
+      const payload = await parseJsonResponse<{ requests?: unknown[] }>(
+        response,
+      );
+      return payload.requests?.length ?? 0;
+    },
+  });
+}
+
+/** Call after accepting or declining a request so every count updates. */
+export function refreshPendingFollowRequestCount() {
+  return getQueryClient().invalidateQueries({
+    queryKey: PENDING_FOLLOW_REQUESTS_QUERY_KEY,
   });
 }

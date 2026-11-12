@@ -4,6 +4,8 @@ import { LoginScreen } from "@asym/ui/components/auth/LoginScreen";
 
 import type { Metadata } from "next";
 
+import { donorLoginCopy } from "@/lib/auth/login-copy";
+
 export const metadata: Metadata = {
   title: "Sign in",
   description: "Sign in to the donor portal.",
@@ -19,13 +21,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     searchParams: await searchParams,
   });
 
+  const copy = donorLoginCopy(nextPath);
+
   return (
     <LoginScreen
       appId="donor"
       nextPath={nextPath}
       demoOnly={serverEnv.DEMO_ONLY_LOGIN === true}
-      title="Sign In"
-      subtitle="Access the donor portal"
+      title={copy.title}
+      subtitle={copy.subtitle}
       registerHref="/register"
       forgotPasswordHref="/forgot-password"
     />

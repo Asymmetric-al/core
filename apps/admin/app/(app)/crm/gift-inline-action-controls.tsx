@@ -213,6 +213,7 @@ export function GiftInlineActionControls({
               {group.items.map(({ definition, entry }) => (
                 <DropdownMenuItem
                   key={entry.actionType}
+
                   // A blocked entry keeps the same server-computed reason and
                   // next step the detail surface shows (#270), so staff learn
                   // why an action is unavailable without leaving the row.

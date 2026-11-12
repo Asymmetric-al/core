@@ -38,7 +38,7 @@ function LoadingState() {
     <div
       role="status"
       aria-busy="true"
-      aria-label="Loading Ministry Updates"
+      aria-label="Loading updates"
       className="flex flex-col gap-4"
     >
       <span className="sr-only">Loading Ministry Updates…</span>

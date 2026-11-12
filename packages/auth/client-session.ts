@@ -38,11 +38,21 @@ export interface SignOutClientSessionOptions {
 }
 
 export type SignOutClientSessionResult =
-  | { ok: true; redirected: true }
+  | { ok: true; redirected: boolean }
   | { ok: false; message: string; redirected: false };
 
 let sharedBrowserClient: ClientSessionSupabase | null = null;
 let queryCacheUserId: string | null | undefined;
+const sessionCleanup = new Set<() => () => boolean>();
+
+export function registerClientSessionCleanup(
+  captureCleanup: () => () => boolean,
+) {
+  sessionCleanup.add(captureCleanup);
+  return () => {
+    sessionCleanup.delete(captureCleanup);
+  };
+}
 
 export function getClientSessionSupabase() {
   sharedBrowserClient ??= createBrowserClient();
@@ -138,9 +148,11 @@ export function subscribeToClientAuthState(
   let active = true;
   // Async profile loads can resolve after newer auth events; only publish the latest request.
   let authStateLoadVersion = 0;
+  let publishedUserId: string | null | undefined;
 
   function publishIfCurrent(nextVersion: number, state: ClientAuthState) {
     if (active && nextVersion === authStateLoadVersion) {
+      publishedUserId = state.user?.id ?? null;
       isolateQueryCacheForUser(state.user, logger);
       onState(state);
     }
@@ -158,6 +170,9 @@ export function subscribeToClientAuthState(
 
   function loadAndPublishForUser(user: User | null) {
     const nextVersion = ++authStateLoadVersion;
+    if (user && publishedUserId !== undefined && publishedUserId !== user.id) {
+      publishIfCurrent(nextVersion, { user, profile: null, loading: true });
+    }
 
     void createAuthStateForUser(supabase, user, includeProfile)
       .then((state) => publishIfCurrent(nextVersion, state))
@@ -203,6 +218,8 @@ function defaultRedirect(href: string) {
 export async function signOutClientSession(
   options: SignOutClientSessionOptions = {},
 ): Promise<SignOutClientSessionResult> {
+  const cleanups = [...sessionCleanup].map((capture) => capture());
+  const signingOutUserId = queryCacheUserId;
   const signOutOnServer = options.signOutOnServer ?? defaultSignOutOnServer;
   const logger = options.logger ?? console;
   const serverSignOut = await signOutOnServer().catch((error) => {
@@ -219,6 +236,13 @@ export async function signOutClientSession(
     return { ok: false, message, redirected: false };
   }
 
+  const cleanedOwners = cleanups.map((cleanup) => cleanup());
+  if (
+    signingOutUserId !== queryCacheUserId ||
+    (cleanedOwners.length > 0 && !cleanedOwners.some(Boolean))
+  ) {
+    return { ok: true, redirected: false };
+  }
   const createClient = options.createClient ?? getClientSessionSupabase;
 
   try {
@@ -230,6 +254,9 @@ export async function signOutClientSession(
     logger.warn("[auth] browser signout cleanup failed", error);
   }
 
+  if (queryCacheUserId != null && queryCacheUserId !== signingOutUserId) {
+    return { ok: true, redirected: false };
+  }
   queryCacheUserId = null;
   clearClientQueryCache(logger);
 

@@ -56,13 +56,13 @@ export function useStudioDirtyState(dirty: boolean) {
 /** Called by the editor owner with its actual fullscreen state and root. */
 export function useStudioFullscreen(
   fullscreen: boolean,
-  root: RefObject<HTMLElement | null>,
+  rootRef: RefObject<HTMLElement | null>,
 ) {
   const { setFullscreen } = useShellNavigation();
   useEffect(() => {
-    if (!fullscreen || !root.current) return;
+    if (!fullscreen || !rootRef.current) return;
     const previous = document.activeElement;
-    const editor = root.current;
+    const editor = rootRef.current;
     const previousTabIndex = editor.getAttribute("tabindex");
     editor.tabIndex = -1;
     setFullscreen(editor);
@@ -74,7 +74,7 @@ export function useStudioFullscreen(
       if (previous instanceof HTMLElement && previous.isConnected)
         previous.focus();
     };
-  }, [fullscreen, root, setFullscreen]);
+  }, [fullscreen, rootRef, setFullscreen]);
 }
 
 export function ShellNavigationProvider({ children }: { children: ReactNode }) {

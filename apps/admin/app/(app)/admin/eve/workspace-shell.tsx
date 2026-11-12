@@ -190,13 +190,11 @@ export function EveWorkspaceIndex({
   return (
     <Card>
       <CardHeader>
-        <CardTitle
-          aria-level={2}
-          role="heading"
-          className="flex items-center gap-2"
-        >
-          <PanelsTopLeft aria-hidden="true" className="size-5" />
-          Operations workspace
+        <CardTitle aria-level={2} role="heading">
+          <span className="flex items-center gap-2">
+            <PanelsTopLeft aria-hidden="true" className="size-5" />
+            Operations workspace
+          </span>
         </CardTitle>
         <CardDescription>
           Every Eve setting and record, without using chat. Each panel opens in
@@ -403,14 +401,11 @@ export function EveCapabilityConnectionsPanel() {
     <section aria-labelledby="eve-connections-title">
       <Card>
         <CardHeader>
-          <CardTitle
-            id="eve-connections-title"
-            aria-level={2}
-            role="heading"
-            className="flex items-center gap-2"
-          >
-            <Activity aria-hidden="true" className="size-5" />
-            Capability connections
+          <CardTitle id="eve-connections-title" aria-level={2} role="heading">
+            <span className="flex items-center gap-2">
+              <Activity aria-hidden="true" className="size-5" />
+              Capability connections
+            </span>
           </CardTitle>
           <CardDescription>
             Future integrations are labeled unavailable. This workspace never

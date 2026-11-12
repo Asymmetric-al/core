@@ -103,7 +103,7 @@ export function ConversationDetail({
           the first toolbar button. */}
       <SheetContent
         side="right"
-        showCloseButton={false}
+        showCloseButton={isLoading && !conversation}
         initialFocus={threadRef}
         className="flex w-full max-w-xl flex-col gap-0 overflow-hidden p-0 sm:max-w-xl"
       >

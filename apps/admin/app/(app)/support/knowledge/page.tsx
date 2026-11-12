@@ -1,5 +1,5 @@
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Empty,
   EmptyHeader,
@@ -22,12 +22,14 @@ export default function SupportKnowledgePage() {
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Link
-            className={buttonVariants({ variant: "outline" })}
-            href="/support/settings/canned-responses"
-          >
-            Manage canned responses
-          </Link>
+          <ButtonLink
+            variant="outline"
+            render={
+              <Link href="/support/settings/canned-responses">
+                Manage canned responses
+              </Link>
+            }
+          />
         </EmptyContent>
       </Empty>
     </PageShell>

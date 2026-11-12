@@ -104,23 +104,7 @@ describe("QuickGive width handoff", () => {
   });
 });
 
-describe("wallet and sibling strip exits", () => {
-  it("removes the ACH nudge from flow on dismiss", () => {
-    const source = readRepo(
-      "apps",
-      "donor",
-      "app",
-      "(dashboard)",
-      "donor-dashboard",
-      "wallet",
-      "page-client.tsx",
-    );
-    const banner = extractFunction(source, "ACHNudgeBanner");
-    const presence = openingTagBefore(banner, "{visible &&");
-    expect(presence).toContain("AnimatePresence");
-    expect(presence).toMatch(/mode=["']popLayout["']/);
-  });
-
+describe("sibling strip exits", () => {
   // Admin Feed is motion-free (like the rest of Mission Control): its
   // compose media strip mounts and unmounts at once, so there is no exit to
   // hold space.
@@ -143,13 +127,11 @@ describe("wallet and sibling strip exits", () => {
         "feed",
         "worker-feed-page-client.tsx",
       ] as const,
-      marker: "{selectedMedia.length > 0 &&",
     },
-  ])("uses safe presence for the $name", ({ parts, marker }) => {
+  ])("keeps the $name free of exit animation", ({ parts }) => {
     const source = readRepo(...parts);
-    const presence = openingTagBefore(source, marker);
-    expect(presence).toContain("AnimatePresence");
-    expect(hasSafePresenceMode(presence)).toBe(true);
+    expect(source).not.toMatch(/from ["']motion\/react["']/);
+    expect(source).not.toContain("AnimatePresence");
   });
 });
 

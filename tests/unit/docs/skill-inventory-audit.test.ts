@@ -544,13 +544,73 @@ function readLock() {
   };
 }
 
+// Pinned p3-stack pack (uzairansaruzi/p3-stack); tdd and teach are renamed
+// because Core already owns different skills with those names.
+const p3StackSkillNames = [
+  "architect",
+  "arena",
+  "automate-me",
+  "benchmark-checklist",
+  "blast-radius",
+  "bro",
+  "correct",
+  "create-verification-skill",
+  "figure-it-out",
+  "how",
+  "interrogate",
+  "maintain-verification-skill",
+  "make-bot-ui",
+  "no-comments",
+  "p3-help",
+  "p3-mode",
+  "p3-tdd",
+  "p3-teach",
+  "principle-attack-the-premise",
+  "principle-boundary-discipline",
+  "principle-build-the-lever",
+  "principle-encode-lessons-in-structure",
+  "principle-exhaust-the-design-space",
+  "principle-experience-first",
+  "principle-explain-the-number",
+  "principle-fix-root-causes",
+  "principle-foundational-thinking",
+  "principle-guard-the-context-window",
+  "principle-laziness-protocol",
+  "principle-make-operations-idempotent",
+  "principle-migrate-callers-then-delete-legacy-apis",
+  "principle-minimize-reader-load",
+  "principle-model-the-domain",
+  "principle-never-block-on-the-human",
+  "principle-outcome-oriented-execution",
+  "principle-prove-it-works",
+  "principle-redesign-from-first-principles",
+  "principle-separate-before-serializing-shared-state",
+  "principle-sequence-verifiable-units",
+  "principle-subtract-before-you-add",
+  "principle-test-behavior-not-implementation",
+  "principle-type-system-discipline",
+  "recall",
+  "reflect",
+  "setup-p3",
+  "show-me-your-work",
+  "swarm",
+  "technical-writing",
+  "typescript-best-practices",
+  "unslop",
+  "why",
+] as const;
+
+const expectedNames = [
+  ...baselineSkillNames,
+  "security-audit",
+  "council",
+  ...p3StackSkillNames,
+  // Anthropic pr-review-toolkit plugin command, adapted as a skill.
+  "review-pr",
+].sort();
+
 describe("reviewed installed skill inventory", () => {
   it("accounts for every installed skill without adding unrelated pack skills", () => {
-    const expectedNames = [
-      ...baselineSkillNames,
-      "security-audit",
-      "council",
-    ].sort();
     const { skills } = readLock();
 
     for (const runtimeRoot of runtimeRoots) {
@@ -711,14 +771,19 @@ describe("reviewed installed skill inventory", () => {
     ) as {
       schemaVersion: number;
       baselineCommit: string;
-      skills: Array<{ name: string; status: string; treeHash: string }>;
+      skills: Array<{
+        name: string;
+        status: string;
+        entrypointHash?: string;
+        treeHash: string;
+      }>;
     };
     expect(audit.schemaVersion).toBe(1);
     expect(audit.baselineCommit).toBe(
       "c4d36cb029121641b8882237632d0d6da434049e",
     );
     expect(audit.skills.map((skill) => skill.name).sort()).toEqual(
-      [...baselineSkillNames, "security-audit", "council"].sort(),
+      expectedNames,
     );
     expect(new Set(audit.skills.map((skill) => skill.name)).size).toBe(
       audit.skills.length,
@@ -730,12 +795,18 @@ describe("reviewed installed skill inventory", () => {
     for (const skill of audit.skills) {
       const root = ".agents/skills/" + skill.name;
       const hash = createHash("sha256");
+      let entrypointHash: string | undefined;
       for (const file of filesUnder(root)) {
+        const contents = readFileSync(path.join(repoRoot, root, file));
+        if (file === "SKILL.md") {
+          entrypointHash = createHash("sha256").update(contents).digest("hex");
+        }
         hash.update(file);
         hash.update("\0");
-        hash.update(readFileSync(path.join(repoRoot, root, file)));
+        hash.update(contents);
         hash.update("\0");
       }
+      expect(skill.entrypointHash, skill.name).toBe(entrypointHash);
       expect(skill.treeHash, skill.name).toBe(hash.digest("hex"));
     }
   });

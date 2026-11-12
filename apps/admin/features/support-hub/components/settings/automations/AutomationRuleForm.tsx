@@ -224,9 +224,11 @@ export function AutomationRuleForm({
             if (value !== null) setTrigger(value);
           }}
         >
-          <SelectTrigger aria-label="Trigger" className="h-9 max-w-sm">
-            <SelectValue />
-          </SelectTrigger>
+          <div className="max-w-sm">
+            <SelectTrigger aria-label="Trigger">
+              <SelectValue />
+            </SelectTrigger>
+          </div>
           <SelectContent>
             {SUPPORT_AUTOMATION_TRIGGERS.map((kind) => (
               <SelectItem key={kind} value={kind}>
@@ -245,7 +247,7 @@ export function AutomationRuleForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            size="xs"
             onClick={handleAddCondition}
           >
             <Plus className="size-3" />
@@ -290,7 +292,7 @@ export function AutomationRuleForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            size="xs"
             onClick={handleAddAction}
           >
             <Plus className="size-3" />

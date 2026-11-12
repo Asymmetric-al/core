@@ -1,5 +1,4 @@
 import type { CrmDonorDetailResponse, CrmGridRow } from "@asym/database/types";
-
 export type { CrmGridRow };
 
 export type ActivityType =

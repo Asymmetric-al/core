@@ -23,6 +23,9 @@ export function useSettingsEditor<T>() {
     hasChanges: false,
     isSaving: false,
   });
+  const updateGuard = React.useCallback((state: SettingsEditorGuard) => {
+    guard.current = state;
+  }, []);
 
   /**
    * Cancel, Escape, the close button and an outside click all land here.
@@ -43,6 +46,7 @@ export function useSettingsEditor<T>() {
     hasTarget: target !== null,
     record: target?.record ?? null,
     guard,
+    updateGuard,
     isConfirmingDiscard,
     openNew: () => {
       setTarget({ record: null });

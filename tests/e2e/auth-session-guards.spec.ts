@@ -36,10 +36,12 @@ test("session guard flow: login, persistence, /login redirect, sign out", async 
     .poll(() => new URL(page.url()).pathname, { timeout: 20000 })
     .toBe(expectedHomePath!);
 
-  // Mission Control keeps Sign out in the profile menu.
   const profileMenu = page.getByRole("button", { name: "Open profile menu" });
+  const accountMenu = page.getByTestId("account-menu").first();
   if (await profileMenu.isVisible().catch(() => false)) {
     await profileMenu.click();
+  } else if (await accountMenu.isVisible().catch(() => false)) {
+    await accountMenu.click();
   }
   const signOutButton = page.getByTestId("auth-signout").first();
   await expect(signOutButton).toBeVisible({ timeout: 10000 });

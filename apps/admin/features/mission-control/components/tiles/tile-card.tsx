@@ -3,7 +3,7 @@
 import { insideForRole, quickActionsForRole } from "@asym/config/tiles";
 import { useMC } from "@asym/lib/mission-control/context";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Item,
   ItemActions,
@@ -83,16 +83,19 @@ export function TileCard({ tile }: TileCardProps) {
             className="flex w-full flex-wrap gap-2 border-t pt-2"
           >
             {shortcuts.map((action) => (
-              <Link
+              <ButtonLink
                 key={action.href}
-                href={action.href}
-                className={buttonVariants({ variant: "ghost", size: "sm" })}
-              >
-                {action.icon && (
-                  <DynamicIcon name={action.icon} aria-hidden="true" />
-                )}
-                {action.label}
-              </Link>
+                variant="ghost"
+                size="sm"
+                render={
+                  <Link href={action.href}>
+                    {action.icon && (
+                      <DynamicIcon name={action.icon} aria-hidden="true" />
+                    )}
+                    {action.label}
+                  </Link>
+                }
+              />
             ))}
           </div>
         </ItemActions>

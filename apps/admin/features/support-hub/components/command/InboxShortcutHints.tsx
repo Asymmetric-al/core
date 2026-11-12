@@ -22,7 +22,7 @@ export function InboxShortcutHints() {
             className="flex items-center justify-between gap-2"
           >
             <span>{entry.label}</span>
-            <Kbd className="font-mono text-xs">{entry.chord}</Kbd>
+            <Kbd>{entry.chord}</Kbd>
           </li>
         ))}
       </ul>

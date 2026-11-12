@@ -13,7 +13,7 @@
  * migration lands) wins; else the donor-level default in `donors.giving_preferences`.
  */
 
-export const ANONYMOUS_DONOR_LABEL = "Anonymous donor";
+export const ANONYMOUS_DONOR_LABEL = "Anonymous partner";
 
 export type GivingPreferences = {
   defaultAnonymousToRecipient?: boolean | null;
@@ -70,7 +70,7 @@ export interface RedactableDonorRelationship {
 
 /**
  * Missionary donor relationship (§7.2): when anonymous, replace the identity
- * with "Anonymous donor" and null every identifier. Aggregate support stats
+ * with "Anonymous partner" and null every identifier. Aggregate support stats
  * (amount/date/frequency/count/status) are intentionally preserved.
  */
 export function redactDonorRelationshipForMissionary<

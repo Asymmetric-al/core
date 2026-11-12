@@ -73,13 +73,11 @@ export function EveRetentionPanel() {
   return (
     <Card id="eve-retention">
       <CardHeader>
-        <CardTitle
-          role="heading"
-          aria-level={2}
-          className="flex items-center gap-2"
-        >
-          <ArchiveRestore aria-hidden="true" className="size-5" />
-          Retention and replay artifacts
+        <CardTitle role="heading" aria-level={2}>
+          <span className="flex items-center gap-2">
+            <ArchiveRestore aria-hidden="true" className="size-5" />
+            Retention and replay artifacts
+          </span>
         </CardTitle>
         <CardDescription>
           Search saved, redacted details while private files stay in private

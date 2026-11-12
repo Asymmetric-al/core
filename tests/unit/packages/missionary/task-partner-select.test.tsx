@@ -127,7 +127,7 @@ describe("Task partner selection", () => {
     };
     render(<TaskDialog task={task} open onOpenChange={vi.fn()} />);
     const trigger = screen.getByRole("combobox", {
-      name: "Associated Partner",
+      name: "Partner",
     });
     expect(trigger.textContent).toContain("Alex Smith");
     act(() => emitChanges.get("second")?.(null));

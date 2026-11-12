@@ -5,7 +5,7 @@ import {
   AlertTitle,
   AlertDescription,
 } from "@asym/ui/components/shadcn/alert";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -44,12 +44,12 @@ function SupportTicketNotFoundPage({ id }: { id: string }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Link
-            href={supportHubRoutes.tickets}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Back to tickets
-          </Link>
+          <ButtonLink
+            variant="outline"
+            render={
+              <Link href={supportHubRoutes.tickets}>Back to tickets</Link>
+            }
+          />
         </CardContent>
       </Card>
     </PageShell>
@@ -88,7 +88,7 @@ function SupportTicketMetrics({
         ],
       ].map(([label, value]) => (
         <div className="rounded-2xl bg-muted p-3" key={label}>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
             {label}
           </p>
           <p className="mt-1 font-semibold">{value}</p>
@@ -106,7 +106,7 @@ function SupportTicketContactCard({
   ticket: SupportTicket;
 }) {
   return (
-    <Card className="rounded-3xl">
+    <Card>
       <CardHeader>
         <CardTitle>Contact context</CardTitle>
         <CardDescription>
@@ -163,12 +163,10 @@ export default async function SupportTicketDetailPage({
       title={ticket.subject}
       description={`${ticket.id} · ${queue?.label ?? ticket.queueId} · ${ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1).replaceAll("_", " ")}`}
       actions={
-        <Link
-          href={supportHubRoutes.tickets}
-          className={buttonVariants({ variant: "outline" })}
-        >
-          Back to tickets
-        </Link>
+        <ButtonLink
+          variant="outline"
+          render={<Link href={supportHubRoutes.tickets}>Back to tickets</Link>}
+        />
       }
     >
       <Alert variant="info" className="mb-4">
@@ -204,7 +202,7 @@ export default async function SupportTicketDetailPage({
           </CardContent>
         </Card>
 
-        <aside className="space-y-4">
+        <aside className="space-y-4 lg:w-90 lg:shrink-0">
           <SupportTicketContactCard contact={contact} ticket={ticket} />
         </aside>
       </div>

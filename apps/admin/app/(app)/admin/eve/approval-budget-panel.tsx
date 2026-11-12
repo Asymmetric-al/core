@@ -255,14 +255,11 @@ function ApprovalPolicySection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle
-          role="heading"
-          aria-level={2}
-          id="approval-budget-title"
-          className="flex items-center gap-2"
-        >
-          <ShieldCheck aria-hidden="true" className="size-5" />
-          Approval and budget policy
+        <CardTitle role="heading" aria-level={2} id="approval-budget-title">
+          <span className="flex items-center gap-2">
+            <ShieldCheck aria-hidden="true" className="size-5" />
+            Approval and budget policy
+          </span>
         </CardTitle>
         <CardDescription>
           Executable tracer for separate trust zones, stricter business-data
@@ -285,8 +282,8 @@ function ApprovalPolicySection({
             </AlertDescription>
           </Alert>
         ) : null}
-        <div className="grid gap-4 md:grid-cols-[1fr_18rem]">
-          <div>
+        <div className="flex flex-col gap-4 md:flex-row">
+          <div className="min-w-0 md:flex-1">
             <Select<EvePolicyActionId>
               items={ACTION_LABELS}
               value={actionId}
@@ -307,7 +304,7 @@ function ApprovalPolicySection({
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div className="md:w-72 md:shrink-0">
             <Label htmlFor="policy-target">Non-sensitive target key</Label>
             <Input
               id="policy-target"
@@ -421,13 +418,11 @@ function ApprovalBudgetSummary({
       </Card>
       <Card id="eve-budgets">
         <CardHeader>
-          <CardTitle
-            role="heading"
-            aria-level={3}
-            className="flex items-center gap-2"
-          >
-            <Gauge aria-hidden="true" className="size-5" />
-            Hard budgets
+          <CardTitle role="heading" aria-level={3}>
+            <span className="flex items-center gap-2">
+              <Gauge aria-hidden="true" className="size-5" />
+              Hard budgets
+            </span>
           </CardTitle>
           <CardDescription>
             Active overrides are additive, bounded, permissioned, expiring, and

@@ -109,19 +109,19 @@ export function SettingsEditorForm<TDraft>({
   onCancel,
   children,
 }: SettingsEditorFormProps<TDraft>) {
-  const guard = React.useContext(EditorGuardContext);
+  const guardRef = React.useContext(EditorGuardContext);
   const serialized = JSON.stringify(draft);
   const [initial] = React.useState(serialized);
   const hasChanges = serialized !== initial;
 
   React.useEffect(() => {
-    if (guard) guard.current = { hasChanges, isSaving };
-  }, [guard, hasChanges, isSaving]);
+    if (guardRef) guardRef.current = { hasChanges, isSaving };
+  }, [guardRef, hasChanges, isSaving]);
   React.useEffect(
     () => () => {
-      if (guard) guard.current = { hasChanges: false, isSaving: false };
+      if (guardRef) guardRef.current = { hasChanges: false, isSaving: false };
     },
-    [guard],
+    [guardRef],
   );
 
   return (

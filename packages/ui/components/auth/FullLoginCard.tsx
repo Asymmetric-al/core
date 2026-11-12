@@ -36,6 +36,8 @@ export interface FullLoginCardProps {
   forgotPasswordHref?: string | null;
   registerHref?: string;
   showRegisterLink?: boolean;
+  /** Shown in place of the register link when there is no self sign-up. */
+  accountNote?: React.ReactNode;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
@@ -60,6 +62,7 @@ export function FullLoginCard({
   forgotPasswordHref = "/forgot-password",
   registerHref = "/register",
   showRegisterLink = true,
+  accountNote,
   onEmailChange,
   onPasswordChange,
   onSubmit,
@@ -173,6 +176,10 @@ export function FullLoginCard({
             >
               Register
             </Link>
+          </p>
+        ) : accountNote ? (
+          <p className="text-center text-sm text-muted-foreground">
+            {accountNote}
           </p>
         ) : null}
       </AuthCardContent>

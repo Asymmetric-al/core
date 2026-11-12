@@ -224,7 +224,7 @@ export function StudioTopBar({
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <BreadcrumbPage>
-                      <span className="block max-w-80 truncate">
+                      <span className="block max-w-40 truncate sm:max-w-80">
                         {currentLabel}
                       </span>
                     </BreadcrumbPage>

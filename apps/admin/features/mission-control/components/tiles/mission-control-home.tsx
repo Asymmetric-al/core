@@ -415,7 +415,7 @@ function DashboardFiguresUnavailable() {
   const [hasRetried, setHasRetried] = useState(false);
   return (
     <Alert variant="warning">
-      <AlertTitle>Dashboard figures couldn't load</AlertTitle>
+      <AlertTitle>Dashboard figures couldn&apos;t load</AlertTitle>
       <AlertDescription>
         <p>
           Net giving, gift counts, the CRM total and net giving by month are

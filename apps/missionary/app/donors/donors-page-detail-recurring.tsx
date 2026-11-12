@@ -2,6 +2,11 @@
 
 import { motion } from "@asym/lib/motion";
 import {
+  moneyCurrency,
+  moneyProgress,
+  MONEY_UNAVAILABLE,
+} from "@asym/missionary/components/money-units";
+import {
   Empty,
   EmptyHeader,
   EmptyMedia,
@@ -47,7 +52,7 @@ export function DonorsPageDetailRecurring() {
       >
         <div>
           <h3 className="text-sm font-semibold text-foreground">
-            Recurring Donations
+            Recurring gifts
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
             Scheduled giving commitments for this partner
@@ -76,10 +81,12 @@ export function DonorsPageDetailRecurring() {
           className="flex flex-col gap-4"
         >
           {selectedDonor.recurring_donations.map((recurring, i) => {
-            const expected = Number(recurring.total_expected);
-            const paid = Number(recurring.total_paid);
-            const percent =
-              expected > 0 ? Math.min((paid / expected) * 100, 100) : 100;
+            const progress = moneyProgress(
+              recurring.total_paid,
+              recurring.currency,
+              recurring.total_expected,
+              recurring.currency,
+            );
 
             return (
               <motion.div
@@ -113,7 +120,7 @@ export function DonorsPageDetailRecurring() {
                     <div>
                       <div className="flex items-center gap-3 mb-1">
                         <h4 className="text-xl font-semibold text-foreground">
-                          {formatCurrency(Number(recurring.amount))}
+                          {formatCurrency(recurring.amount, recurring.currency)}
                         </h4>
                         <span className="text-sm font-medium text-muted-foreground">
                           / {recurring.frequency.toLowerCase()}
@@ -157,7 +164,7 @@ export function DonorsPageDetailRecurring() {
                       className="bg-card p-3 rounded-xl border border-primary/20 text-center lg:text-right"
                     >
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                        Next Payment
+                        Next gift
                       </p>
                       <p className="text-lg font-semibold text-foreground">
                         {format(
@@ -184,12 +191,18 @@ export function DonorsPageDetailRecurring() {
                     },
                     {
                       label: "Total Paid",
-                      value: formatCurrency(Number(recurring.total_paid)),
+                      value: formatCurrency(
+                        recurring.total_paid,
+                        recurring.currency,
+                      ),
                       color: "text-primary",
                     },
                     {
                       label: "Expected",
-                      value: formatCurrency(Number(recurring.total_expected)),
+                      value: formatCurrency(
+                        recurring.total_expected,
+                        recurring.currency,
+                      ),
                     },
                     {
                       label: "Completed",
@@ -225,15 +238,29 @@ export function DonorsPageDetailRecurring() {
                 </div>
 
                 <div className="mt-4">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                      Progress
-                    </span>
-                    <span className="text-xs font-semibold text-muted-foreground">
-                      {expected > 0 ? `${Math.round(percent)}%` : "Ongoing"}
-                    </span>
-                  </div>
-                  <Progress value={percent} />
+                  {progress ? (
+                    <>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                          Progress
+                        </span>
+                        <span className="text-xs font-semibold text-muted-foreground">
+                          {progress.percent}%
+                        </span>
+                      </div>
+                      <Progress
+                        value={progress.percent}
+                        aria-label="Recurring gift progress"
+                      />
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {moneyCurrency(recurring.currency) &&
+                      recurring.total_expected === 0
+                        ? "Ongoing recurring gift; no fixed total to compare."
+                        : MONEY_UNAVAILABLE}
+                    </p>
+                  )}
                 </div>
               </motion.div>
             );

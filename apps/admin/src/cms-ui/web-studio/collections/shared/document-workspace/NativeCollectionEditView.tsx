@@ -895,7 +895,10 @@ export function NativeCollectionEditView({
   }, [model.authenticatedPreviewURL, previewURL, setPreviewURL]);
 
   return (
-    <div data-web-studio-native-document="true">
+    <div
+      data-web-studio-native-document="true"
+      className="flex flex-1 flex-col"
+    >
       <StudioLayout
         sectionLabel={studioConfig.sectionLabel}
         currentLabel={model.heading}

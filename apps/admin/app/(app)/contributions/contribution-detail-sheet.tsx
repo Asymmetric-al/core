@@ -1468,7 +1468,6 @@ function ContributionActionsSection({
           <Button
             focusableWhenDisabled={approveActionPending}
             variant="outline"
-            size="sm"
             disabled={isActionPending}
             tabIndex={workflowActionTabIndex(
               isActionPending,
@@ -1487,7 +1486,6 @@ function ContributionActionsSection({
           <Button
             focusableWhenDisabled={stagedRetryActionPending}
             variant="outline"
-            size="sm"
             disabled={isActionPending}
             tabIndex={workflowActionTabIndex(
               isActionPending,
@@ -1504,7 +1502,6 @@ function ContributionActionsSection({
         {showRefundAction && (
           <Button
             variant="outline"
-            size="sm"
             disabled={!canRefund || isActionPending}
             tabIndex={isActionPending ? -1 : undefined}
             onClick={() => onRefund?.(contribution.id)}

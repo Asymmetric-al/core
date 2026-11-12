@@ -1,7 +1,7 @@
 "use client";
 
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
-import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import { PageHeader } from "@asym/ui/components/page-header";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Suspense } from "react";
 
@@ -15,12 +15,11 @@ const skeletonContent = <MissionaryTasksListBoneyardFixture />;
  */
 export default function BoneyardTasksCapturePage() {
   return (
-    <PageShell
-      title="Mission Tasks"
-      description="Manage follow-ups, calls, and partner communications."
-      badge="Personal Workflow"
-      actions={null}
-    >
+    <div className="flex flex-col gap-6 pb-20">
+      <PageHeader
+        title="Tasks"
+        description="Calls, emails and thank-yous that keep you close to your partners."
+      />
       {/*
        * Stream: the fixture rows render `TaskRow`, which pulls in `motion`
        * (non-deterministic ids) and date-fns relative-date helpers that read the
@@ -49,6 +48,6 @@ export default function BoneyardTasksCapturePage() {
           {skeletonContent}
         </BoneyardSkeleton>
       </Suspense>
-    </PageShell>
+    </div>
   );
 }

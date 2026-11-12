@@ -137,11 +137,18 @@ tests, is:
   - `packages/api/src/posts/reaction-route-utils.ts`
   - `packages/auth/context.ts`
   - `packages/auth/resolve-user-role.ts`
+  - `packages/ui/hooks/retained-draft.tsx`
 
 In `packages/auth/context.ts` and `packages/auth/resolve-user-role.ts` the hint
 selects the tenant whose `authz.memberships` are loaded; the membership, not the
-hint, carries the role. The other readers use it as a tenant-binding check. A
-new reader must be added to the pinned list and to this doc, with #2267.
+hint, carries the role. In `packages/ui/hooks/retained-draft.tsx`,
+`SessionRetainedDraftProvider` uses the profile's tenant hint together with the
+user ID and profile ID to scope in-memory drafts. An absent tenant leaves the
+store unowned, and an owner change remounts and clears it. This client-side
+memory boundary grants no permissions; route/API policies retain access
+authority. The remaining readers use the hint as a tenant-binding check. The
+retained-draft reader is included in the exact inventory tracked by #2267;
+future readers must be added to the pinned list and to this doc with #2267.
 
 ## Asym merge-candidate pairs: `donor_merge_candidates`
 

@@ -115,7 +115,7 @@ it.each(["Escape", "Cancel"] as const)(
     render(
       <DonorTasks donorId="donor-anna-fixture" donorName="Anna Fixture" />,
     );
-    const trigger = screen.getByRole("button", { name: "Add Task" });
+    const trigger = screen.getByRole("button", { name: "Add task" });
     expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
     expect(screen.queryByRole("dialog")).toBeNull();
     expectNoTaskWrites();
@@ -126,10 +126,10 @@ it.each(["Escape", "Cancel"] as const)(
       name: "Create Task",
     });
     expect(
-      within(dialog).getByRole("textbox", { name: "Task Title *" }),
+      within(dialog).getByRole("textbox", { name: "Title *" }),
     ).toBeTruthy();
     const partner = within(dialog).getByRole("combobox", {
-      name: "Associated Partner",
+      name: "Partner",
     });
     await waitFor(() => expect(partner.textContent).toContain("Anna Fixture"));
     expect(boundaries.donorRead.eq).toHaveBeenCalledWith(

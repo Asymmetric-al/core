@@ -157,7 +157,7 @@ describe("filterAndSortDonors", () => {
     const donors = [
       createDonor({
         id: "anonymous",
-        name: "Anonymous donor",
+        name: "Anonymous partner",
         email: "",
       }),
       createDonor({

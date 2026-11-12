@@ -3,7 +3,10 @@ import path from "node:path";
 
 // Reviewed upstream launcher contracts. Do not infer execution permission from
 // shebangs or grant it to every script. Ordinary source modes remain untouched.
-const reviewedExecutables = new Map([["impeccable", ["scripts/impeccable"]]]);
+const reviewedExecutables = new Map([
+  ["impeccable", ["scripts/impeccable"]],
+  ["show-me-your-work", ["scripts/log.sh"]],
+]);
 
 export async function assertReviewedSkillFileModes(skillName, skillRoot) {
   for (const relative of reviewedExecutables.get(skillName) ?? []) {

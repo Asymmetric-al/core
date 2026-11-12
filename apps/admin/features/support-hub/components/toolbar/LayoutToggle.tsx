@@ -38,6 +38,7 @@ export function LayoutToggle({ value, onValueChange }: LayoutToggleProps) {
       }}
       variant="outline"
       size="sm"
+
       aria-label="Inbox layout"
     >
       {OPTIONS.map((option) => {

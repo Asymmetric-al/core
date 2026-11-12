@@ -459,13 +459,11 @@ function EveRecentRunsCard({
   return (
     <Card id="eve-active-runs">
       <CardHeader>
-        <CardTitle
-          role="heading"
-          aria-level={2}
-          className="flex items-center gap-2"
-        >
-          <Bot aria-hidden="true" className="size-5" />
-          Recent governed runs
+        <CardTitle role="heading" aria-level={2}>
+          <span className="flex items-center gap-2">
+            <Bot aria-hidden="true" className="size-5" />
+            Recent governed runs
+          </span>
         </CardTitle>
         <CardDescription>
           What Eve tried to do recently and whether its safety rules allowed it.
@@ -515,13 +513,11 @@ function EveGovernedFailuresCard({
   return (
     <Card id="eve-failures">
       <CardHeader>
-        <CardTitle
-          aria-level={2}
-          role="heading"
-          className="flex items-center gap-2"
-        >
-          <CircleX aria-hidden="true" className="size-5" />
-          Governed failures
+        <CardTitle aria-level={2} role="heading">
+          <span className="flex items-center gap-2">
+            <CircleX aria-hidden="true" className="size-5" />
+            Governed failures
+          </span>
         </CardTitle>
         <CardDescription>
           Runs and recorded actions that failed, newest first. Only short
@@ -574,13 +570,11 @@ function EveAuditHistoryCard({
   return (
     <Card id="eve-audit">
       <CardHeader>
-        <CardTitle
-          role="heading"
-          aria-level={2}
-          className="flex items-center gap-2"
-        >
-          <History aria-hidden="true" className="size-5" />
-          Audit history
+        <CardTitle role="heading" aria-level={2}>
+          <span className="flex items-center gap-2">
+            <History aria-hidden="true" className="size-5" />
+            Audit history
+          </span>
         </CardTitle>
         <CardDescription>
           Every action Eve or an admin took, and why it was allowed or blocked.
@@ -639,25 +633,47 @@ function EveAuditHistoryCard({
                         {event.changeSummary}
                       </p>
                     </div>
-                    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs md:col-span-2">
-                      <dt className="text-muted-foreground">Target</dt>
-                      <dd>{event.target ?? "No external target"}</dd>
-                      <dt className="text-muted-foreground">Initiator</dt>
-                      <dd>
-                        {formatStatusLabel(event.initiatorType)}:{" "}
-                        {event.initiatorId}
-                      </dd>
-                      <dt className="text-muted-foreground">Policy</dt>
-                      <dd>
-                        {event.policyId} (
-                        {formatStatusLabel(event.policyStatus)})
-                      </dd>
-                      <dt className="text-muted-foreground">Model role</dt>
-                      <dd>{formatStatusLabel(event.modelRole)}</dd>
-                      <dt className="text-muted-foreground">
-                        Redaction version
-                      </dt>
-                      <dd>{event.redactionVersion}</dd>
+                    <dl className="grid gap-y-1 text-xs md:col-span-2">
+                      <div className="flex gap-3">
+                        <dt className="w-28 shrink-0 text-muted-foreground">
+                          Target
+                        </dt>
+                        <dd className="min-w-0 wrap-anywhere">
+                          {event.target ?? "No external target"}
+                        </dd>
+                      </div>
+                      <div className="flex gap-3">
+                        <dt className="w-28 shrink-0 text-muted-foreground">
+                          Initiator
+                        </dt>
+                        <dd className="min-w-0">
+                          {formatStatusLabel(event.initiatorType)}:{" "}
+                          {event.initiatorId}
+                        </dd>
+                      </div>
+                      <div className="flex gap-3">
+                        <dt className="w-28 shrink-0 text-muted-foreground">
+                          Policy
+                        </dt>
+                        <dd className="min-w-0">
+                          {event.policyId} (
+                          {formatStatusLabel(event.policyStatus)})
+                        </dd>
+                      </div>
+                      <div className="flex gap-3">
+                        <dt className="w-28 shrink-0 text-muted-foreground">
+                          Model role
+                        </dt>
+                        <dd className="min-w-0">
+                          {formatStatusLabel(event.modelRole)}
+                        </dd>
+                      </div>
+                      <div className="flex gap-3">
+                        <dt className="w-28 shrink-0 text-muted-foreground">
+                          Redaction version
+                        </dt>
+                        <dd className="min-w-0">{event.redactionVersion}</dd>
+                      </div>
                     </dl>
                     <div className="space-y-1 md:col-span-2">
                       <p className="font-medium text-foreground">
@@ -761,13 +777,11 @@ export function EveGovernanceView({
 
       <Card id="eve-emergency-controls">
         <CardHeader>
-          <CardTitle
-            role="heading"
-            aria-level={2}
-            className="flex items-center gap-2"
-          >
-            <ShieldAlert aria-hidden="true" className="size-5" />
-            Kill-switch controls
+          <CardTitle role="heading" aria-level={2}>
+            <span className="flex items-center gap-2">
+              <ShieldAlert aria-hidden="true" className="size-5" />
+              Kill-switch controls
+            </span>
           </CardTitle>
           <CardDescription>
             Each change is saved under your name in the audit history. Clearing

@@ -90,6 +90,14 @@ vi.mock("@asym/ui/components/shadcn/dropdown-menu", async () => {
     }: React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>) =>
       ReactModule.createElement("div", props, children),
     DropdownMenuSeparator: () => ReactModule.createElement("hr"),
+    DropdownMenuGroup: ({ children }: React.PropsWithChildren) =>
+      ReactModule.createElement("div", null, children),
+    DropdownMenuLabel: ({ children }: React.PropsWithChildren) =>
+      ReactModule.createElement("div", null, children),
+    DropdownMenuRadioGroup: ({ children }: React.PropsWithChildren) =>
+      ReactModule.createElement("div", null, children),
+    DropdownMenuRadioItem: ({ children }: React.PropsWithChildren) =>
+      ReactModule.createElement("div", null, children),
     DropdownMenuTrigger: ({
       render,
     }: {
@@ -109,13 +117,11 @@ afterEach(cleanup);
 const baseProps = {
   selectedMedia: [],
   lastSaved: null,
-  isUploading: false,
   isSaving: false,
   postPrivacy: "public" as const,
   postActionDisabled: false,
   setSelectedMedia: vi.fn(),
   setPostPrivacy: vi.fn(),
-  simulateUpload: vi.fn(async () => undefined),
 };
 
 it.each([
@@ -235,27 +241,11 @@ it("names the attached-media removal action and preserves the remaining order", 
   expect(update([first, second])).toEqual([second]);
 });
 
-it("names the media action while preserving upload and pending behavior", () => {
-  const simulateUpload = vi.fn();
-  const view = render(
-    <PostComposerActions
-      {...baseProps}
-      simulateUpload={simulateUpload}
-      handlePost={vi.fn()}
-    />,
-  );
-  fireEvent.click(screen.getByRole("button", { name: "Add media" }));
-  expect(simulateUpload).toHaveBeenCalledTimes(1);
-  view.rerender(
-    <PostComposerActions
-      {...baseProps}
-      isUploading
-      simulateUpload={simulateUpload}
-      handlePost={vi.fn()}
-    />,
-  );
-  const pending = screen.getByRole("button", { name: "Uploading media" });
-  expect(pending.getAttribute("aria-disabled")).toBe("true");
-  fireEvent.click(pending);
-  expect(simulateUpload).toHaveBeenCalledTimes(1);
+it("offers no stand-in media control that attaches stock images", () => {
+  // The composer's real image upload lives in the editor toolbar. The old
+  // "Add media" action attached a random stock photo and reported a
+  // successful upload, so it must not come back.
+  render(<PostComposerActions {...baseProps} handlePost={vi.fn()} />);
+  expect(screen.queryByRole("button", { name: "Add media" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Uploading media" })).toBeNull();
 });

@@ -299,7 +299,7 @@ export function ReportsPageView({
         ) : null}
 
         {showEmptyState ? (
-          <Empty className="rounded-2xl border border-dashed">
+          <Empty>
             <EmptyHeader>
               <EmptyTitle>No settled giving to report yet</EmptyTitle>
               <EmptyDescription>

@@ -122,7 +122,6 @@ export function AutomationDryRunPreview({
         }}
         disabled={rows.length === 0}
         aria-label="Conversation to test"
-        className="h-9"
         placeholder="Choose a conversation to test"
       />
 

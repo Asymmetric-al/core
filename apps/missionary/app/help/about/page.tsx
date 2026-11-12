@@ -3,106 +3,106 @@ import {
   getGitHubLicenseUrl,
   getGitHubSourceTreeUrl,
 } from "@asym/lib/build-info";
+import { PageHeader } from "@asym/ui/components/page-header";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { ExternalLink } from "lucide-react";
 
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "Build and licensing information for this deployment.",
+  description: "The software behind your dashboard and where to find it.",
 };
 
 export default function AboutPage() {
   const build = getBuildInfo();
   const sourceUrl = getGitHubSourceTreeUrl(build.ref);
   const licenseUrl = getGitHubLicenseUrl(build.ref);
+  const recorded = build.refSource === "env";
 
   return (
-    <div className="space-y-8 pb-20">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-          About asymmetric.al
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Build and licensing information for this deployment.
-        </p>
-      </div>
+    <div className="mx-auto flex max-w-6xl flex-col gap-6 pb-20">
+      <PageHeader
+        title="About this app"
+        description="The software behind your dashboard and where to find it."
+      />
 
       <Card className="max-w-2xl">
-        <CardHeader className="border-b">
-          <CardTitle className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            Deployment
+        <CardHeader>
+          <CardTitle>
+            <h2>This version</h2>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6 pt-6">
-          <dl className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-            <dt className="text-muted-foreground">Product</dt>
-            <dd className="font-medium sm:col-span-2">asymmetric.al</dd>
-
-            <dt className="text-muted-foreground">Version</dt>
-            <dd className="font-mono sm:col-span-2">{build.displayRef}</dd>
-
-            <dt className="text-muted-foreground">Build date</dt>
-            <dd className="font-mono sm:col-span-2">
-              {build.buildDate ?? "unknown"}
+        <CardContent>
+          <dl className="grid grid-cols-3 gap-x-6 gap-y-3 text-sm">
+            <dt className="text-muted-foreground">Software</dt>
+            <dd className="col-span-2 font-medium text-foreground">
+              asymmetric.al
             </dd>
+            <dt className="text-muted-foreground">Version</dt>
+            <dd className="col-span-2 font-medium text-foreground tabular-nums">
+              {recorded ? build.displayRef : "Development build"}
+            </dd>
+            {build.buildDate ? (
+              <>
+                <dt className="text-muted-foreground">Built</dt>
+                <dd className="col-span-2 font-medium text-foreground tabular-nums">
+                  {build.buildDate}
+                </dd>
+              </>
+            ) : null}
           </dl>
+        </CardContent>
+      </Card>
 
-          <div className="space-y-4">
-            <div>
-              <div className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">
-                Source for this deployment
-              </div>
-              <a
-                href={sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 block font-mono text-xs underline break-all"
-              >
-                {sourceUrl}
-              </a>
-              {build.refSource === "fallback" && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  This deployment did not expose a commit/tag; link falls back
-                  to `{build.ref}`.
-                </p>
-              )}
-            </div>
-
-            <div>
-              <div className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">
-                License
-              </div>
-              <p className="text-sm mt-1">
-                This software is licensed under the GNU Affero General Public
-                License v3.0 only (AGPL-3.0-only).
-              </p>
-              <a
-                href={licenseUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 block font-mono text-xs underline break-all"
-              >
-                {licenseUrl}
-              </a>
-            </div>
-
-            <div>
-              <div className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">
-                Warranty
-              </div>
-              <p className="text-sm mt-1">
-                This program comes with no warranty. We provide it as is,
-                without warranties or conditions of any kind, to the extent
-                permitted by law.
-              </p>
-            </div>
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle>
+            <h2>Open source</h2>
+          </CardTitle>
+          <CardDescription>
+            This app is free software under the GNU Affero General Public
+            License v3.0 (AGPL-3.0-only). Anyone can read, change and share its
+            source code.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              View the source code
+              <ExternalLink aria-hidden data-icon="inline-end" />
+            </a>
+            <a
+              href={licenseUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Read the license
+              <ExternalLink aria-hidden data-icon="inline-end" />
+            </a>
           </div>
+          {recorded ? null : (
+            <p className="text-sm text-muted-foreground">
+              This build didn’t record its exact version, so the source link
+              opens the latest code.
+            </p>
+          )}
+          <p className="text-sm text-muted-foreground">
+            It comes with no warranty, to the extent the law allows.
+          </p>
         </CardContent>
       </Card>
     </div>

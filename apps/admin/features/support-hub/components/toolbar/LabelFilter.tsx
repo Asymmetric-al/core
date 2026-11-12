@@ -99,13 +99,13 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
           <ComboboxEmpty>No labels.</ComboboxEmpty>
           <ComboboxList>
             {(label: SupportLabel) => (
-              <ComboboxItem key={label.id} value={label.slug} className="gap-2">
+              <ComboboxItem key={label.id} value={label.slug}>
                 <span className="flex size-4 items-center justify-center rounded border border-border in-data-selected:border-primary in-data-selected:bg-primary in-data-selected:text-primary-foreground">
                   <ComboboxItemIndicator>
                     <Check className="size-3" />
                   </ComboboxItemIndicator>
                 </span>
-                <span className="flex-1 text-xs text-foreground">
+                <span className="flex-1 wrap-anywhere text-xs text-foreground">
                   {label.name}
                 </span>
               </ComboboxItem>
@@ -116,7 +116,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-full justify-center text-xs font-medium"
+                className="w-full"
                 onClick={() => {
                   searchRef.current?.focus();
                   onValueChange([]);
@@ -135,7 +135,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
                 setOpen(false);
                 setIsManagerOpen(true);
               }}
-              className="h-8 w-full justify-center gap-1.5 text-xs font-medium text-muted-foreground"
+              className="w-full"
             >
               <Settings2 className="size-3.5" />
               Manage labels

@@ -53,9 +53,14 @@ export {
   mapToRecentUpdate,
   postAuthorName,
   postImages,
+  postCategory,
   postInitials,
+  postPlainText,
+  postReadTime,
   postTitle,
+  useDonorFeedPostPages,
   useDonorFeedPosts,
+  type DonorFeedPost,
   type DonorFeedPostsOptions,
 } from "./donor-feed-posts";
 export {
@@ -104,11 +109,19 @@ export {
 } from "./admin-locations";
 export { useMissionaryDonorRows } from "./missionary-donors";
 export {
+  knownDonorRecipient,
   useCreateDonorBillingPortalSession,
   useDonorPortalSnapshot,
+  useDonorWallet,
   useUpdateDonorPortal,
 } from "./donor-portal";
-export { useMissionaryPortalSnapshot } from "./missionary-portal";
+export type { DonorWallet, DonorWalletPaymentMethod } from "./donor-portal";
+export {
+  PENDING_FOLLOW_REQUESTS_QUERY_KEY,
+  refreshPendingFollowRequestCount,
+  useMissionaryPortalSnapshot,
+  usePendingFollowRequestCount,
+} from "./missionary-portal";
 
 export {
   EMPTY_SUPPORT_CONTACT_REF,
@@ -211,6 +224,8 @@ export type { DemoAvailability, DemoRole } from "./demo-account";
 export type { DonorHistoryTransaction } from "./donor-history";
 export type {
   DonorPortalDonation,
+  DonorPortalGiftFund,
+  DonorPortalGiftMissionary,
   DonorPortalPatch,
   DonorPortalRecurringGift,
   DonorPortalSnapshot,

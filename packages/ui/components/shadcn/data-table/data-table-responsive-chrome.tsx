@@ -533,10 +533,12 @@ function ResponsiveTableHeader<TData extends RowData>({
                   "h-11 px-4 text-xs font-semibold text-muted-foreground whitespace-nowrap",
                   stickyHeader && "sticky top-0 z-20 bg-muted/30",
                   meta?.headerClassName,
+                  // The header row's tint already paints beneath a column
+                  // pinned sideways; a second tint would make it darker.
                   isSticky === "left" &&
-                    "sticky left-0 z-30 bg-muted/30 shadow-[1px_0_0_0_var(--color-border)]",
+                    "sticky left-0 z-30 shadow-[1px_0_0_0_var(--color-border)]",
                   isSticky === "right" &&
-                    "sticky right-0 z-30 bg-muted/30 shadow-[-1px_0_0_0_var(--color-border)]",
+                    "sticky right-0 z-30 shadow-[-1px_0_0_0_var(--color-border)]",
                 )}
                 style={{
                   width:

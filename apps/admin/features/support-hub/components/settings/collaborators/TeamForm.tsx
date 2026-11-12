@@ -85,7 +85,6 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
             value={initials}
             onChange={(event) => setInitials(event.target.value.toUpperCase())}
             maxLength={4}
-            className="font-mono"
           />
         </div>
       </div>

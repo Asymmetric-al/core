@@ -264,7 +264,6 @@ describe("support hub UI structure", () => {
 
   it("does not nest Button inside Link on support routes", () => {
     for (const path of [
-      "apps/admin/app/(app)/support/page-client.tsx",
       "apps/admin/app/(app)/support/tickets/page.tsx",
       "apps/admin/app/(app)/support/tickets/[id]/page.tsx",
     ]) {
@@ -286,15 +285,6 @@ describe("support hub UI structure", () => {
     expect(table).toMatch(/supportHubRoutes\.ticket\(ticket\.id\)/);
   });
 
-  it("keeps the active thread tied to explicit ticket selection", () => {
-    const source = readRepoFile("apps/admin/app/(app)/support/page-client.tsx");
-
-    expect(source).toMatch(/selectedTicketId/);
-    expect(source).not.toMatch(
-      /visibleTickets\[0\]\s*\?\?\s*model\.tickets\[0\]/,
-    );
-  });
-
   it("labels ticket search instead of relying on its placeholder", () => {
     const source = readRepoFile(
       "apps/admin/app/(app)/support/tickets/page.tsx",
@@ -302,21 +292,6 @@ describe("support hub UI structure", () => {
 
     expect(source).toMatch(/htmlFor="support-ticket-search"/);
     // Select filter names are exercised through real controls in support-ticket-selects.test.tsx.
-  });
-
-  it("uses semantic token badge classes instead of raw palette chips", () => {
-    const source = readRepoFile("apps/admin/app/(app)/support/page-client.tsx");
-
-    expect(source).not.toMatch(/bg-(blue|emerald|purple|amber|red|zinc)-50/);
-    expect(source).not.toMatch(/text-(blue|emerald|purple|amber|red|zinc)-700/);
-  });
-
-  it("keeps support metrics compact and six across from tablet widths", () => {
-    const source = readRepoFile("apps/admin/app/(app)/support/page-client.tsx");
-
-    expect(source).toMatch(/grid-cols-2 md:grid-cols-6/);
-    expect(source).toMatch(/min-h-24/);
-    expect(source).toMatch(/text-2xl/);
   });
 
   it("uses three support tracks and no legacy care or timing-risk language in Support Hub UI", () => {
@@ -328,7 +303,6 @@ describe("support hub UI structure", () => {
       ].join("|"),
     );
     for (const path of [
-      "apps/admin/app/(app)/support/page-client.tsx",
       "apps/admin/app/(app)/support/tickets/page.tsx",
       "apps/admin/app/(app)/support/tickets/[id]/page.tsx",
       "apps/admin/app/(app)/support/tickets/new/new-ticket-form.tsx",
@@ -379,14 +353,5 @@ describe("support hub UI structure", () => {
       expect(source).not.toMatch(/supportHubDemoModel/);
       expect(source).toMatch(/loadSupport/);
     }
-  });
-
-  it("uses the server-generated support model clock instead of a client render-time clock", () => {
-    const source = readRepoFile("apps/admin/app/(app)/support/page-client.tsx");
-
-    expect(source).not.toMatch(
-      /useState\(\(\) => new Date\(\)\.toISOString\(\)\)/,
-    );
-    expect(source).toMatch(/const now = model\.generatedAt;/);
   });
 });

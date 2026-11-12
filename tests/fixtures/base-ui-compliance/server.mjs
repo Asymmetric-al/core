@@ -46,6 +46,26 @@ await build({
       resolveId(source, importer) {
         if (source === "virtual:base-ui-styles") return compiledCssPath;
         const workspaceFile = importer?.replaceAll("\\", "/");
+        if (
+          (source === "@tanstack/react-query" &&
+            workspaceFile?.endsWith(
+              "/web-studio/flows/MissionariesHubView.tsx",
+            )) ||
+          (source === "@asym/lib/mission-control/context" &&
+            workspaceFile?.endsWith("/admin/app/eve/global-panel.tsx")) ||
+          (source === "eve/react" &&
+            workspaceFile?.endsWith("/admin/app/eve/global-panel.tsx")) ||
+          (source === "next/navigation" &&
+            workspaceFile?.endsWith("/admin/app/eve/global-panel.tsx")) ||
+          (source === "@payloadcms/ui" &&
+            workspaceFile?.includes("/admin/src/cms-ui/web-studio/"))
+        )
+          return resolve(fixtureDirectory, "admin-shell-runtime-stub.tsx");
+        if (
+          source === "next/navigation" &&
+          workspaceFile?.endsWith("/admin/src/cms-ui/web-studio/routing.ts")
+        )
+          return resolve(fixtureDirectory, "admin-shell-runtime-stub.tsx");
         // The fixture consumes the same public adapter as the UI workspace.
         // Resolve from that owner without adding unused root dependencies.
         if (
@@ -62,6 +82,16 @@ await build({
         const usesAnalytics = workspaceFile?.endsWith(
           "/missionary/app/analytics/page-client.tsx",
         );
+        if (
+          source === "@asym/lib/hooks" &&
+          workspaceFile?.endsWith("/donor/components/donor-portal-header.tsx")
+        )
+          return resolve(fixtureDirectory, "donor-auth-stub.ts");
+        if (
+          source === "@asym/database/hooks" &&
+          workspaceFile?.endsWith("/donor/components/donor-portal-header.tsx")
+        )
+          return resolve(fixtureDirectory, "donor-portal-stub.ts");
         if (source === "@asym/lib/hooks" && usesAnalytics)
           return resolve(fixtureDirectory, "analytics-metrics-stub.ts");
         if (source === "next/dynamic" && usesAnalytics)
@@ -97,18 +127,18 @@ await build({
             { skipSelf: true },
           );
         const usesWorkspaceSession =
-          workspaceFile?.endsWith("/donor/components/DonorSubNav.tsx") ||
-          workspaceFile?.endsWith("/missionary/components/app-header.tsx");
+          workspaceFile?.endsWith(
+            "/donor/components/donor-portal-header.tsx",
+          ) || workspaceFile?.endsWith("/missionary/components/app-header.tsx");
         if (source === "@asym/auth/client-session" && usesWorkspaceSession)
           return resolve(fixtureDirectory, "workspace-session-stub.ts");
         if (
           source === "next/navigation" &&
-          (workspaceFile?.endsWith("/donor/components/DonorSubNav.tsx") ||
+          (workspaceFile?.endsWith(
+            "/donor/components/donor-portal-header.tsx",
+          ) ||
             usesMissionaryLayout ||
             workspaceFile?.endsWith("/missionary/components/app-sidebar.tsx") ||
-            workspaceFile?.endsWith(
-              "/missionary/components/dashboard-footer.tsx",
-            ) ||
             workspaceFile?.endsWith(
               "/missionary/components/navigation-search.tsx",
             ))
@@ -153,6 +183,31 @@ await build({
         ) {
           return resolve(fixtureDirectory, "support-loader-stub.ts");
         }
+        if (
+          workspaceFile?.match(
+            /\/(ConversationAssigneeMenu|ReportFilters|ReportScopeSelect)\.tsx$/,
+          ) &&
+          /\/(use-support-agents|use-support-mutations|use-support-inbox-settings|use-support-labels|current-agent|report-state)$/.test(
+            source,
+          )
+        ) {
+          return resolve(fixtureDirectory, "support-layout-stubs.ts");
+        }
+        if (
+          workspaceFile?.endsWith("/toolbar/LabelFilter.tsx") &&
+          (source === "../../hooks/use-support-labels" ||
+            source === "../labels/LabelManagerDialog")
+        ) {
+          return resolve(fixtureDirectory, "support-layout-stubs.ts");
+        }
+        if (
+          workspaceFile?.endsWith("/macros/RunMacroPopover.tsx") &&
+          (source === "../../hooks/use-support-macros" ||
+            source === "../../hooks/use-support-mutations" ||
+            source === "../../lib/current-agent")
+        ) {
+          return resolve(fixtureDirectory, "support-layout-stubs.ts");
+        }
         // This real form's mutation stub records the submitted
         // value for assertions without issuing a request to an application API.
         if (
@@ -187,6 +242,7 @@ await build({
         taskToolbar: resolve(fixtureDirectory, "task-toolbar.html"),
         faq: resolve(fixtureDirectory, "faq.html"),
         adminAvailability: resolve(fixtureDirectory, "admin-availability.html"),
+        adminShell: resolve(fixtureDirectory, "admin-shell.html"),
       },
       onwarn(warning, warn) {
         // Every imported component runs in this client-only fixture. The bundler can

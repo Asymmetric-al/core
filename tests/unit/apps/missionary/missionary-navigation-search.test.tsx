@@ -8,7 +8,15 @@ vi.mock("next/navigation", () => ({
   usePathname: () => navigation.pathname,
   useRouter: () => ({ push: navigation.push }),
 }));
-vi.mock("@asym/auth/client-session", () => ({ signOutClientSession: vi.fn() }));
+vi.mock("@asym/database/hooks", () => ({
+  useMissionaryPortalSnapshot: () => ({ data: undefined }),
+  usePendingFollowRequestCount: () => ({ data: undefined }),
+}));
+vi.mock("@asym/auth/client-session", () => ({
+  signOutClientSession: vi.fn(),
+  // The sidebar identity subscribes to client auth state; stay "loading".
+  subscribeToClientAuthState: () => () => {},
+}));
 
 import { MissionaryLayoutShell } from "../../../../apps/missionary/app/_providers/missionary-layout-shell";
 
@@ -65,13 +73,14 @@ it("mounts one missionary palette with the existing sidebar destinations", async
   });
   expect(view.getAllByRole("dialog")).toHaveLength(1);
   expect(view.getAllByRole("option").map((item) => item.textContent)).toEqual([
-    "Dashboard",
-    "Donors",
-    "Ministry Updates",
-    "Analytics",
+    "Home",
+    "Partners",
     "Tasks",
-    "Profile",
+    "Updates",
+    "Analytics",
+    "Giving page",
     "Settings",
+    "About this app",
   ]);
   expect(
     view.queryByRole("option", { name: /Sign out|Admin|Checkout/ }),
