@@ -6,8 +6,14 @@
  * checks that read the two documents and compare them with their sources of
  * truth (.github/workflows/ci-integration.yml and
  * scripts/verify/backup-restore-proof.mjs). Base: develop 61b38df4.
+ *
+ * Scope ("nothing else changes") is a property of the #2233 diff, not of
+ * every later revision of these documents. Acceptance verifies it once, at
+ * verdict time, with `git diff 61b38df4 <candidate>` on the two files. This
+ * suite therefore pins no historical digest: later reviewed edits (for example
+ * correcting the stale inventory `line` values) do not need to re-pin it, and
+ * every assertion below names the bullet, item or field it checks.
  */
-import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
@@ -33,9 +39,6 @@ const ECR_IMAGE = `public.ecr.aws/docker/library/postgres:17.11-alpine@${DIGEST}
 const ECR_UPSTREAM = "https://gallery.ecr.aws/docker/library/postgres";
 const HUB_IMAGE = `postgres:17.11-alpine@${DIGEST}`;
 const HUB_UPSTREAM = "https://hub.docker.com/_/postgres";
-
-const fingerprint = (s: string) =>
-  createHash("sha256").update(s).digest("hex").slice(0, 16);
 
 /* ------------------------------------------------------------------------ */
 /* Guide: "What Each Gate Covers"                                           */
@@ -95,22 +98,23 @@ describe("#2233 C2: the integration-gate bullet still matches the workflow", () 
   });
 });
 
-describe("#2233 C3: nothing else in the guide changes", () => {
-  /**
-   * The guide with only the integration-gate and e2e-smoke-gate bullets
-   * (everything from `- \`integration-gate\` covers:` up to
-   * `- \`e2e-gate\` covers:`) elided. Both markers must still exist.
+describe("#2233 C3: the gate section keeps its four gate bullets", () => {
+  /*
+   * Byte-level scope of the guide edit (only the integration-gate and
+   * e2e-smoke-gate bullets change) is checked at verdict time against base
+   * 61b38df4 with git diff, not pinned here.
    */
-  const surface = () => {
-    const a = guide.indexOf("- `integration-gate` covers:");
-    const b = guide.indexOf("- `e2e-gate` covers:");
-    if (a < 0 || b < a) return "<markers missing>";
-    return fingerprint(
-      `${guide.slice(0, a)}<owned by #2233>\n${guide.slice(b)}`,
-    );
-  };
-  it("headings, owners, ci-gate, e2e-gate, checklist and ownership text are byte-identical to base 61b38df4", () => {
-    expect(surface()).toBe("e0ef58fab3720fd8");
+  it("'What Each Gate Covers' lists ci-gate, integration-gate, e2e-smoke-gate, e2e-gate, in that order", () => {
+    const gates = gatesSection
+      .split("\n")
+      .map((l) => /^- `([^`]+)` covers:$/.exec(l.trimEnd())?.[1])
+      .filter((g): g is string => g !== undefined);
+    expect(gates, `top-level gate bullets under "${GATES_HEADING}"`).toEqual([
+      "ci-gate",
+      "integration-gate",
+      "e2e-smoke-gate",
+      "e2e-gate",
+    ]);
   });
 });
 
@@ -216,17 +220,38 @@ describe("#2233 C6: the restore transport smoke item keeps Docker Hub", () => {
   });
 });
 
-describe("#2233 C7: nothing else in the inventory changes", () => {
-  /** Whole inventory minus selector/upstream of the four CI postgres items. */
-  const surface = () => {
-    const inv = parseInventory();
-    for (const i of inv.items.filter(isCiPostgres)) {
-      delete i.selector;
-      delete i.upstream;
+describe("#2233 C7: the four CI postgres items stay consistent with their selector", () => {
+  /*
+   * Byte-level scope of the inventory edit (only selector and upstream of the
+   * four ci-integration.yml postgres items change) is checked at verdict time
+   * against base 61b38df4 with git diff, not pinned here. `line` is not
+   * pinned: correcting those pointers later is a legitimate reviewed edit.
+   */
+  const ciItems = () =>
+    parseInventory()
+      .items.filter(isCiPostgres)
+      .map((i) => ({ at: `${CII} item at line ${String(i.line)}`, i }));
+
+  it("each is still named `postgres`", () => {
+    for (const { at, i } of ciItems()) {
+      expect(i.name, `${at}: name`).toBe("postgres");
     }
-    return fingerprint(JSON.stringify(inv));
-  };
-  it("every other field and item (incl. version 17.11, line, verification) is identical to base 61b38df4", () => {
-    expect(surface()).toBe("137a17b425e477ec");
+  });
+  it("each `version` equals the tag version in its selector (17.11)", () => {
+    for (const { at, i } of ciItems()) {
+      const tag = /:(\d+\.\d+)-alpine@/.exec(String(i.selector))?.[1];
+      expect([i.version, tag], `${at}: [version, selector tag]`).toEqual([
+        "17.11",
+        "17.11",
+      ]);
+    }
+  });
+  it("each keeps a positive integer `line`", () => {
+    for (const { at, i } of ciItems()) {
+      expect(
+        Number.isInteger(i.line) && (i.line as number) > 0,
+        `${at}: line`,
+      ).toBe(true);
+    }
   });
 });
