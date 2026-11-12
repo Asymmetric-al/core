@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- App module regression test at its public boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App module regression test at its public boundary.
 import {
   formatReceiptFieldList,
   receiptOutcomeStatusLabel,

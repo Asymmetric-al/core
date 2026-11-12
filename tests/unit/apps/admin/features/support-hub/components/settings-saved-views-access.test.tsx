@@ -10,10 +10,10 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Round 12: the settings list is exercised at its public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: the settings list is exercised at its public UI boundary.
 import { SavedViewsList } from "../../../../../../../apps/admin/features/support-hub/components/settings/saved-views/SavedViewsList";
 
-// eslint-disable-next-line no-restricted-imports -- Round 12: fixtures use the app's public wire-format types.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: fixtures use the app's public wire-format types.
 import type { SupportSavedView } from "../../../../../../../apps/admin/features/support-hub/types";
 
 const hooks = vi.hoisted(() => ({

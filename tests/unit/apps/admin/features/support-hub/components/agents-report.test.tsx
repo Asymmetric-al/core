@@ -3,7 +3,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- App regression test at the agents report's public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App regression test at the agents report's public UI boundary.
 import { AgentsReport } from "../../../../../../../apps/admin/features/support-hub/components/reports/surfaces/AgentsReport";
 
 const series = {

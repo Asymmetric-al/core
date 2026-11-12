@@ -10,10 +10,10 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Round 12: the list and its editor are exercised together at the public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: the list and its editor are exercised together at the public UI boundary.
 import { CannedResponseList } from "../../../../../../../apps/admin/features/support-hub/components/settings/canned-responses/CannedResponseList";
 
-// eslint-disable-next-line no-restricted-imports -- Round 12: fixtures use the app's public wire-format types.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: fixtures use the app's public wire-format types.
 import type { SupportCannedResponse } from "../../../../../../../apps/admin/features/support-hub/types";
 
 const hooks = vi.hoisted(() => ({

@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-// eslint-disable-next-line no-restricted-imports -- Route regression at the public boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Route regression at the public boundary.
 import ContactsPage from "../../../../../../apps/admin/app/(app)/support/contacts/page";
-// eslint-disable-next-line no-restricted-imports -- Route redirect regression.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Route redirect regression.
 import ReportsRoot from "../../../../../../apps/admin/app/(app)/support/reports/page";
-// eslint-disable-next-line no-restricted-imports -- Canonical redirect regression.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Canonical redirect regression.
 import MacrosPage from "../../../../../../apps/admin/app/(app)/support/macros/page";
 const mocks = vi.hoisted(() => ({
   load: vi.fn(),

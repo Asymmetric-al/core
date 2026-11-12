@@ -199,7 +199,7 @@ export const dataGridFeatures = tableFeatures({
     text: sortFn_text,
     textCaseSensitive: sortFn_textCaseSensitive,
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO(tanstack-v9-invariant-generics) Preserve the invariant row type across the shared grid context.
   columnMeta: metaHelper<DataGridColumnMeta<any>>(),
 });
 
@@ -963,7 +963,7 @@ export interface DataGridProps<
 }
 
 const DataGridContext = createContext<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO(tanstack-v9-invariant-generics) Preserve the invariant row type across the shared grid context.
   DataGridContextProps<any> | undefined
 >(undefined);
 
@@ -974,7 +974,7 @@ const DataGridContext = createContext<
  * unifies with a concrete row type the way it did on v8.
  */
 function useDataGrid<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO(tanstack-v9-invariant-generics) Preserve the invariant row type across the shared grid context.
   TData extends object = any,
 >(): DataGridContextProps<TData> {
   const context = useContext(DataGridContext) as

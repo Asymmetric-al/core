@@ -3,10 +3,10 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Round 12: regression test at the inbox rule editor's public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: regression test at the inbox rule editor's public UI boundary.
 import { AutomationRuleForm } from "../../../../../../../apps/admin/features/support-hub/components/settings/automations/AutomationRuleForm";
 
-// eslint-disable-next-line no-restricted-imports -- Round 12: fixtures use the app's public wire-format types.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: fixtures use the app's public wire-format types.
 import type { SupportAutomationRule } from "../../../../../../../apps/admin/features/support-hub/types";
 
 const hooks = vi.hoisted(() => ({ save: vi.fn(), toastError: vi.fn() }));

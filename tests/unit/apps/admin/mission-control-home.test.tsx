@@ -13,9 +13,9 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Exercise the admin page at its public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Exercise the admin page at its public UI boundary.
 import { getIcon } from "../../../../apps/admin/features/mission-control/components/icon-map";
-// eslint-disable-next-line no-restricted-imports -- Exercise the admin page at its public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Exercise the admin page at its public UI boundary.
 import { MissionControlHome } from "../../../../apps/admin/features/mission-control/components/tiles/mission-control-home";
 
 import type { GivingTrend } from "@asym/api/reads/dashboard-stats";

@@ -9,10 +9,10 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- App regression test at the report table's public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App regression test at the report table's public UI boundary.
 import { ReportTable } from "../../../../../../../apps/admin/features/support-hub/components/reports/ReportTable";
 
-// eslint-disable-next-line no-restricted-imports -- App regression test at the module's public boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App regression test at the module's public boundary.
 import type { SupportReportSeries } from "../../../../../../../apps/admin/features/support-hub/types";
 
 const series: SupportReportSeries = {

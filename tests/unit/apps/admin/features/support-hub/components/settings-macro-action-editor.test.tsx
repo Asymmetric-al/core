@@ -3,12 +3,12 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Round 12: settings draft rows are part of the editor's public props.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: settings draft rows are part of the editor's public props.
 import { createDraftRows } from "../../../../../../../apps/admin/features/support-hub/components/settings/draft-rows";
-// eslint-disable-next-line no-restricted-imports -- Round 12: regression test at the macro action editor's public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: regression test at the macro action editor's public UI boundary.
 import { MacroActionEditor } from "../../../../../../../apps/admin/features/support-hub/components/settings/macros/MacroActionEditor";
 
-// eslint-disable-next-line no-restricted-imports -- Round 12: fixtures use the app's public wire-format types.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: fixtures use the app's public wire-format types.
 import type { SupportMacroAction } from "../../../../../../../apps/admin/features/support-hub/types";
 
 vi.mock(

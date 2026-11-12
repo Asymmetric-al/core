@@ -3,12 +3,12 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- App regression test at the report surface's public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App regression test at the report surface's public UI boundary.
 import { OverviewReport } from "../../../../../../../apps/admin/features/support-hub/components/reports/surfaces/OverviewReport";
-// eslint-disable-next-line no-restricted-imports -- App regression test for the shared duration format.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App regression test for the shared duration format.
 import { formatSupportDuration } from "../../../../../../../apps/admin/features/support-hub/lib/format-duration";
 
-// eslint-disable-next-line no-restricted-imports -- App regression test at the module's public boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App regression test at the module's public boundary.
 import type { SupportReportSeries } from "../../../../../../../apps/admin/features/support-hub/types";
 
 function series(

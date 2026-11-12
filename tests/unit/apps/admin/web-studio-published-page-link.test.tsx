@@ -11,12 +11,12 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Regression uses the editor's installed Query context at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Regression uses the editor's installed Query context at its app boundary.
 import {
   QueryClient,
   QueryClientProvider,
 } from "../../../../apps/admin/node_modules/@tanstack/react-query/build/modern/index.js";
-// eslint-disable-next-line no-restricted-imports -- The real app editor is the public boundary under test.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) The real app editor is the public boundary under test.
 import { NativeCollectionEditView } from "../../../../apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView";
 
 import type { ComponentProps, ReactNode } from "react";

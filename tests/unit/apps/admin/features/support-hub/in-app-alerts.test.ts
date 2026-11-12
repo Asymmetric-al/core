@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- App regression test at the module's public boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App regression test at the module's public boundary.
 import {
   DEFAULT_IN_APP_PREFERENCES,
   computeInAppAlerts,
 } from "../../../../../../apps/admin/features/support-hub/lib/in-app-alerts";
 
-// eslint-disable-next-line no-restricted-imports -- App regression test at the module's public boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App regression test at the module's public boundary.
 import type { SupportConversation } from "../../../../../../apps/admin/features/support-hub/types";
 
 const NOW = "2026-04-15T12:00:00.000Z";

@@ -1,18 +1,19 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-// eslint-disable-next-line no-restricted-imports -- Chart state regression.
+
+import type { ComponentProps } from "react";
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Chart state regression.
 import { ReportLineChart } from "../../../../../../../apps/admin/features/support-hub/components/reports/ReportLineChart";
-// eslint-disable-next-line no-restricted-imports -- Chart state regression.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Chart state regression.
 import { ReportBarChart } from "../../../../../../../apps/admin/features/support-hub/components/reports/ReportBarChart";
-import type { SupportReportSeries } from "../../../../../../../apps/admin/features/support-hub/types";
 const series = {
   slice: "volume",
   generatedAt: "2026-11-11T00:00:00.000Z",
   unit: "count",
   total: 0,
   buckets: [{ key: "day", label: "Day", value: 0, secondaryValue: null }],
-} satisfies SupportReportSeries;
+} satisfies ComponentProps<typeof ReportLineChart>["series"];
 afterEach(cleanup);
 it.each([ReportLineChart, ReportBarChart])(
   "does not call a zero-filled ready series activity in %s",

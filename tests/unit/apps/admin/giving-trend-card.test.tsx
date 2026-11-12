@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Exercise the shared Home and Reports chart at its public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Exercise the shared Home and Reports chart at its public UI boundary.
 import { GivingTrendCard } from "../../../../apps/admin/features/mission-control/components/giving-trend-card";
 
 import type {

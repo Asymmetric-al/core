@@ -19,7 +19,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Exercise the admin page at its public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Exercise the admin page at its public UI boundary.
 import { EveLaunchReadinessPanel } from "../../../../../apps/admin/app/(app)/admin/eve/launch-readiness-panel";
 import { getQueryClient } from "../../../../../packages/database/providers/query-client";
 import { QueryProvider } from "../../../../../packages/database/providers/query-provider";

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-// eslint-disable-next-line no-restricted-imports -- App public boundary regression.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App public boundary regression.
 import { RunMacroPopover } from "../../../../../../../apps/admin/features/support-hub/components/macros/RunMacroPopover";
 const source = vi.hoisted(() => ({
   data: [],

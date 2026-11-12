@@ -126,7 +126,7 @@ export function useRelationshipFilterOptions(
     });
     return () => controller.abort();
     // `key` stands for `relationships`; getEntityConfig is stable per config.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO(payload-relationship-config-stability) Relationship keys represent stable config selections.
   }, [key, apiURL]);
 
   return options;

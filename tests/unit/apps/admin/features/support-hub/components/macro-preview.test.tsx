@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-// eslint-disable-next-line no-restricted-imports -- App public boundary regression.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App public boundary regression.
 import { MacroPreviewLine } from "../../../../../../../apps/admin/features/support-hub/components/macros/MacroPreviewLine";
 vi.mock(
   "../../../../../../../apps/admin/features/support-hub/hooks/use-support-agents",

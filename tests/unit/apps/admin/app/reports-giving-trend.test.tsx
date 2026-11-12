@@ -10,9 +10,9 @@ vi.mock("../../../../../apps/admin/app/(app)/dashboard-stats-loader", () => ({
   loadDashboardStats: loadMock,
 }));
 
-// eslint-disable-next-line no-restricted-imports -- Exercise the Reports server section at its boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Exercise the Reports server section at its boundary.
 import { ReportsGivingTrend } from "../../../../../apps/admin/app/(app)/reports/giving-trend-section";
-// eslint-disable-next-line no-restricted-imports -- Exercise the Reports server section at its boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Exercise the Reports server section at its boundary.
 import { RefreshableGivingTrendCard } from "../../../../../apps/admin/app/(app)/reports/giving-trend-refresh";
 
 const trend = {

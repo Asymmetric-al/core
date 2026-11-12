@@ -1,15 +1,15 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-// eslint-disable-next-line no-restricted-imports -- Report surface regression.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Report surface regression.
 import { OverviewReport } from "../../../../../../../apps/admin/features/support-hub/components/reports/surfaces/OverviewReport";
-// eslint-disable-next-line no-restricted-imports -- Report surface regression.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Report surface regression.
 import { InboxReport } from "../../../../../../../apps/admin/features/support-hub/components/reports/surfaces/InboxReport";
-// eslint-disable-next-line no-restricted-imports -- Report surface regression.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Report surface regression.
 import { AgentsReport } from "../../../../../../../apps/admin/features/support-hub/components/reports/surfaces/AgentsReport";
-// eslint-disable-next-line no-restricted-imports -- Report surface regression.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Report surface regression.
 import { LabelsReport } from "../../../../../../../apps/admin/features/support-hub/components/reports/surfaces/LabelsReport";
-// eslint-disable-next-line no-restricted-imports -- Report surface regression.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Report surface regression.
 import { TeamsReport } from "../../../../../../../apps/admin/features/support-hub/components/reports/surfaces/TeamsReport";
 const state = vi.hoisted(() => ({
   isError: true,

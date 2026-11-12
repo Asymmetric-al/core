@@ -10,27 +10,27 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Round 12: settings lists are exercised at their public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: settings lists are exercised at their public UI boundary.
 import { AutomationRuleList } from "../../../../../../../apps/admin/features/support-hub/components/settings/automations/AutomationRuleList";
-// eslint-disable-next-line no-restricted-imports -- Round 12: settings lists are exercised at their public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: settings lists are exercised at their public UI boundary.
 import { BusinessHoursList } from "../../../../../../../apps/admin/features/support-hub/components/settings/business-hours/BusinessHoursList";
-// eslint-disable-next-line no-restricted-imports -- Round 12: settings lists are exercised at their public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: settings lists are exercised at their public UI boundary.
 import { CannedResponseList } from "../../../../../../../apps/admin/features/support-hub/components/settings/canned-responses/CannedResponseList";
-// eslint-disable-next-line no-restricted-imports -- Round 12: settings lists are exercised at their public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: settings lists are exercised at their public UI boundary.
 import { AgentsList } from "../../../../../../../apps/admin/features/support-hub/components/settings/collaborators/AgentsList";
-// eslint-disable-next-line no-restricted-imports -- Round 12: settings lists are exercised at their public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: settings lists are exercised at their public UI boundary.
 import { TeamList } from "../../../../../../../apps/admin/features/support-hub/components/settings/collaborators/TeamList";
-// eslint-disable-next-line no-restricted-imports -- Round 12: settings lists are exercised at their public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: settings lists are exercised at their public UI boundary.
 import { LabelsSettingsPanel } from "../../../../../../../apps/admin/features/support-hub/components/settings/labels/LabelsSettingsPanel";
-// eslint-disable-next-line no-restricted-imports -- Round 12: settings lists are exercised at their public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: settings lists are exercised at their public UI boundary.
 import { MacroList } from "../../../../../../../apps/admin/features/support-hub/components/settings/macros/MacroList";
-// eslint-disable-next-line no-restricted-imports -- Round 12: settings lists are exercised at their public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: settings lists are exercised at their public UI boundary.
 import { SavedViewsList } from "../../../../../../../apps/admin/features/support-hub/components/settings/saved-views/SavedViewsList";
-// eslint-disable-next-line no-restricted-imports -- Round 12: the shared settings load state is exercised directly.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: the shared settings load state is exercised directly.
 import { SettingsListState } from "../../../../../../../apps/admin/features/support-hub/components/settings/SettingsListState";
-// eslint-disable-next-line no-restricted-imports -- Round 12: settings lists are exercised at their public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: settings lists are exercised at their public UI boundary.
 import { SignatureList } from "../../../../../../../apps/admin/features/support-hub/components/settings/signatures/SignatureList";
-// eslint-disable-next-line no-restricted-imports -- Round 12: settings lists are exercised at their public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: settings lists are exercised at their public UI boundary.
 import { SlaPolicyList } from "../../../../../../../apps/admin/features/support-hub/components/settings/sla/SlaPolicyList";
 
 import type * as React from "react";

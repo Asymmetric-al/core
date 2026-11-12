@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { refresh } = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 
-// eslint-disable-next-line no-restricted-imports -- Exercise the Reports trend at its boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Exercise the Reports trend at its boundary.
 import { RefreshableGivingTrendCard } from "../../../../../apps/admin/app/(app)/reports/giving-trend-refresh";
 
 import type { GivingTrend } from "@asym/api/reads/dashboard-stats";

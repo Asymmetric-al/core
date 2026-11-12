@@ -9,7 +9,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Exercise the actual app-local exit controls at the session-action boundary.
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Exercise the actual app-local exit controls at the session-action boundary.
 import NoAccessPage from "../../../../../apps/admin/app/(auth)/no-access/page";
 
 import type {
