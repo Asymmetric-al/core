@@ -25,6 +25,41 @@ function readRepoFile(relativePath: string): string {
   return readFileSync(join(REPO_ROOT, relativePath), "utf8");
 }
 
+const NON_INSTRUCTION_DIRECTORIES = new Set([
+  "node_modules",
+  "vendor",
+  "dist",
+  "coverage",
+]);
+
+/**
+ * Every AGENTS.md that scopes repository rules to a directory. Hidden
+ * directories hold client mirrors and build output, and skill packages ship
+ * their own AGENTS.md files that are not repository rules.
+ */
+function findScopedAgentsFiles(relativeDir = ""): string[] {
+  const found: string[] = [];
+  for (const entry of readdirSync(join(REPO_ROOT, relativeDir), {
+    withFileTypes: true,
+  })) {
+    const relativePath = relativeDir
+      ? `${relativeDir}/${entry.name}`
+      : entry.name;
+    if (entry.isDirectory()) {
+      if (
+        entry.name.startsWith(".") ||
+        NON_INSTRUCTION_DIRECTORIES.has(entry.name) ||
+        relativePath === "docs/ai/skills"
+      )
+        continue;
+      found.push(...findScopedAgentsFiles(relativePath));
+    } else if (entry.name === "AGENTS.md") {
+      found.push(relativePath);
+    }
+  }
+  return found;
+}
+
 function parseApplyTo(source: string): string | undefined {
   const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!match) {
@@ -182,6 +217,41 @@ describe("agent instruction routing fixtures", () => {
     expect(readRepoFile("apps/admin/AGENTS.md")).toContain("Mission Control");
     expect(readRepoFile("apps/donor/AGENTS.md")).toContain("3000");
     expect(readRepoFile("apps/missionary/AGENTS.md")).toContain("4000");
+  });
+
+  it("imports every scoped AGENTS.md through a sibling CLAUDE.md", () => {
+    // Claude Code loads CLAUDE.md, not AGENTS.md. Without the sibling import a
+    // scoped instruction file is only read if the agent goes looking for it.
+    const scoped = findScopedAgentsFiles().sort();
+    // A scoped file missing from the list would skip every nested check here.
+    expect(scoped).toEqual(["AGENTS.md", ...NESTED_AGENTS_PATHS].sort());
+    for (const relativePath of scoped) {
+      const claudePath = relativePath.replace(/AGENTS\.md$/, "CLAUDE.md");
+      expect(readRepoFile(claudePath).replace(/\r\n/g, "\n"), claudePath).toBe(
+        "@AGENTS.md\n",
+      );
+    }
+  });
+
+  it("keeps compiled skill guides out of Cursor's always-applied rules", () => {
+    // Cursor applies an AGENTS.md found inside a skill directory to every
+    // session, and falls back to the next skill root when one is ignored. Each
+    // root that ships such a file therefore needs its own ignore pattern.
+    const ignored = readRepoFile(".cursorignore").split(/\r?\n/);
+    for (const root of [".cursor", ".claude", ".agents"]) {
+      const skillsRoot = join(REPO_ROOT, root, "skills");
+      const shipsSkillGuide = readdirSync(skillsRoot, {
+        withFileTypes: true,
+      }).some(
+        (entry) =>
+          entry.isDirectory() &&
+          statSync(join(skillsRoot, entry.name, "AGENTS.md"), {
+            throwIfNoEntry: false,
+          }) !== undefined,
+      );
+      if (shipsSkillGuide)
+        expect(ignored, root).toContain(`${root}/skills/*/AGENTS.md`);
+    }
   });
 
   it("routes UI, dashboard, form, registry, Base UI, and theme work through exact base-maia", () => {

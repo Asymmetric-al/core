@@ -64,7 +64,7 @@ Configuration and rules for AI coding assistants:
 - **`skills/`** - AI agent skills for specific technologies
 - **`audits/`** - UI and other audit artifacts
 - **`stack-registry.md`** - Technology stack registry
-- **`working-set.example.md`** - Template for local `working-set.md` scratch context
+- **`working-set.example.md`** - Template for ignored local scratch (`working-set.local.md`); the tracked `working-set.md` is a historical record
 - **`nia.md`** - Nia MCP usage, source-check workflow, and local sync hygiene
 
 **Root-level code quality audit:** [`CODE_QUALITY_AUDIT.md`](../CODE_QUALITY_AUDIT.md) — verified maintainability snapshot for `develop` (see also `docs/ai/audits/`).

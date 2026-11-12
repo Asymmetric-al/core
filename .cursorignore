@@ -2,3 +2,11 @@
 .nia-sync/
 .nia_sync_local/
 ~/.nia-sync/
+
+# AGENTS.md files bundled inside skills. Cursor applies one found in a skill directory
+# as an always-on workspace rule, and falls back to the next skill root when
+# one is ignored, so every root is listed. Each skill still loads through its
+# SKILL.md and individual rule files.
+.cursor/skills/*/AGENTS.md
+.claude/skills/*/AGENTS.md
+.agents/skills/*/AGENTS.md

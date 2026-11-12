@@ -12,6 +12,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 **Scope:** Missionary-facing UI in `apps/missionary`. Do not copy root `AGENTS.md`.
 
+- **Purpose:** The missionary workspace is the support-raising and communication home for missionaries, who are users inside a sending organization's tenant. It shows role-appropriate views of shared donor, gift and communication records and is not a parallel CRM, ledger or communication authority; staff-style operational depth stays in Mission Control. Intent: `openspec/specs/platform-surfaces/spec.md`.
+
 - Default port **4000**. Start: `bun run dev:missionary`.
 - Instant Navigation is on (`cacheComponents` + `partialPrefetching`). Follow `docs/ai/rules/frontend.md` § Instant Navigation. Stream request-time data; do not set `instant = false` without a comment.
 - Read nearest `node_modules/next/dist/docs/` before Next.js API work. Use Next.js MCP against a running dev server for live errors and routes.

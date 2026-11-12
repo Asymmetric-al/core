@@ -59,6 +59,7 @@ next-env.d.ts
 # agent use
 .reference/
 docs/ai/working-set.md
+docs/ai/working-set.local.md
 .nia-sync/
 .nia_sync_local/
 .env*

@@ -40,7 +40,7 @@
 
 Load the skill(s) below when the trigger matches. Canonical skill source is `docs/ai/skills/`; run `bun run skills:sync` to refresh mirrors under `.cursor/skills/`, `.agents/skills/`, and `.claude/skills/`. The singular `.agent/skills/` path is not a supported mirror and is rejected by `bun run skills:verify`.
 
-- **Repo entry / instruction map (default orientation for repo work):** `docs/ai/skills/repo-entry/SKILL.md`
+- **Instruction-system maintenance (AGENTS.md architecture, canonical skill ownership, `skills:sync`, `skills:verify`; not for ordinary application work):** `docs/ai/skills/repo-entry/SKILL.md`
 
 **Supabase and Supabase Auth:** For any work touching Supabase products (database, Auth, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations), load **`docs/ai/skills/supabase/SKILL.md`** first. For Next.js App Router auth integration specifically, also use **`docs/ai/skills/nextjs-supabase-auth/SKILL.md`**. For Postgres query/schema/RLS performance, use **`docs/ai/skills/supabase-postgres-best-practices/SKILL.md`**.
 

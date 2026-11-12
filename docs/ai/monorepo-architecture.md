@@ -21,6 +21,7 @@ The workspace contract is defined in `README.md` and enforced by `bun run verify
 |  |- database
 |  |- email
 |  |- env
+|  |- eve-runtime
 |  |- graphql
 |  |- lib
 |  |- missionary
@@ -102,6 +103,7 @@ Quick rules:
 - `packages/database` -> `@asym/database`
 - `packages/email` -> `@asym/email`
 - `packages/env` -> `@asym/env`
+- `packages/eve-runtime` -> `@asym/eve-runtime` (product Eve runtime; separate from the coding-agent skill library, see `packages/eve-runtime/AGENTS.md`)
 - `packages/graphql` -> `@asym/graphql`
 - `packages/lib` -> `@asym/lib`
 - `packages/missionary` -> `@asym/missionary`

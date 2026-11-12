@@ -40,7 +40,7 @@ Before judging the work, account for repo instructions:
 
 1. Read root `AGENTS.md`.
 2. Read the nearest nested `AGENTS.md` if the changed files are under a nested instruction area such as `supabase/` or `scripts/`.
-3. Use `docs/ai/working-set.md` and `docs/ai/stack-registry.md` when repo search, architecture tracing, or multi-file work is involved.
+3. Use `docs/ai/stack-registry.md`, plus local scratch in `docs/ai/working-set.local.md` if present, when repo search, architecture tracing, or multi-file work is involved.
 4. Use Nia MCP repo-scoped to `Asymmetric-al/core` when available for architecture, entry-point, data-flow, refactor, or integration questions.
 5. If Nia is unavailable, use `rg`, `git grep`, and direct file reads. Say that Nia was unavailable in the report.
 6. For Next.js work, read the relevant installed or committed Next docs before judging implementation details.

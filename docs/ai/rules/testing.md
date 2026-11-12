@@ -39,6 +39,53 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 - **Fast local gate:** `bun run check` runs `lint`, `typecheck`, and `test:unit` only. Use it for tight iteration loops.
 - **Pre-push mirror:** `bun run ci:preflight` runs `scripts/verify/ci-preflight.mjs`, which mirrors the blocking stages in `.github/workflows/ci.yml` (through `test:unit`). It does **not** run `verify:deployment-discipline`; use `bun run verify:deployment-discipline` or `bun run release:production` when branch-protection or Vercel release posture changes.
 
+## What a check proves
+
+Report the strongest tier you actually exercised, and name it. A green lower
+tier is not evidence for a higher one.
+
+| Tier                      | Proves                                                                                                         | Does not prove                                |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Structural                | Files, mirrors, formatting, spec structure and hash ledgers agree (`format:check`, `skills:verify`, OpenSpec). | Any runtime behavior.                         |
+| Unit or contract          | The logic at the tested seam, with the doubles that test declares.                                             | Wiring, providers, the database or a browser. |
+| Smoke or reachability     | A route loads, redirects or renders its shell.                                                                 | The journey behind it.                        |
+| Runtime behavior          | The changed behavior, observed in a running app or script.                                                     | Other surfaces that show the same record.     |
+| Real stack or provider    | Behavior against the named database, Stripe, Inngest or Supabase environment.                                  | Another environment, tenant or provider mode. |
+| Cross-application journey | One fact followed across every surface that shows it.                                                          | Journeys or surfaces that were not exercised. |
+
+Two examples of reading a green check correctly:
+
+- `tests/e2e/donate.spec.ts` stubs `GET /api/donate` and stops at the payment
+  step. It proves the public checkout form reaches payment. It does not prove
+  that a gift is recorded or appears in the donor portal, Mission Control or
+  the missionary workspace. Gift and refund continuity is covered by API-level
+  unit suites (`tests/unit/packages/api/**`), and donation fee replay by the
+  SQL check in `.github/workflows/ci-integration.yml`, not by a single browser
+  journey.
+- The default `@cms` smoke proves reachability and unauthenticated redirects.
+  `tests/e2e/cms-local-happy-path.spec.ts` (`bun run test:e2e:cms:local`) is
+  the spec that follows published content from admin to the donor app.
+
+When a change touches a fact that more than one surface shows (a gift, a
+refund, a published update), name the acceptance criteria or journey it belongs
+to and the surfaces you observed. An isolated local edit does not need all
+three apps.
+
+## Working in parallel checkouts
+
+Several agents may run in separate worktrees on one machine. Local Playwright
+reuses an already-running dev server unless `CI` is set, so a spec can pass
+against another checkout's server.
+
+- Set `PLAYWRIGHT_REUSE_EXISTING_SERVER=0` to force this checkout's own server,
+  or give it distinct ports with `PLAYWRIGHT_PORT` and `PLAYWRIGHT_ADMIN_PORT`.
+- Point at a specific running app with `PLAYWRIGHT_BASE_URL` and
+  `PLAYWRIGHT_ADMIN_BASE_URL`, and say which checkout served it.
+- Keep artifacts apart with `PLAYWRIGHT_REPORT_DIR`.
+- A new worktree has no `node_modules`. Run `bun install` before relying on
+  installed docs or pinned tools; until then `.next-docs/` is the Next.js
+  fallback.
+
 ## PR preview smoke label policy
 
 Apply the GitHub label `qa:smoke` to ready PRs targeting `develop` when they
