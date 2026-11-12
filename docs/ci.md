@@ -33,9 +33,12 @@ Current workflow semantics:
   `continue-on-error`; full E2E must pass. Production PRs keep hosted secrets
   and `e2e-gate`.
 - `test-e2e` remains informational on `develop` and is summarized by
-  `e2e-gate` on `production`. Its job-level `if:` skips it (and therefore
-  `e2e-gate`) in merge-queue (`merge_group`) runs; it still runs on the
-  `develop` push that follows the merge. Required checks `ci-gate`,
+  `e2e-gate` on `production`. Its job-level `if:` skips it in merge-queue
+  (`merge_group`) runs; it still runs on the `develop` push that follows the
+  merge. `e2e-gate` also skips in `merge_group` runs, but because its own
+  `if:` event and branch predicates (production PR or production push) are
+  false there, independently of `test-e2e`: with `always()`, a skipped
+  `test-e2e` alone would not skip it. Required checks `ci-gate`,
   `migrate`, `smoke`, and `e2e-smoke-gate` still run and report on
   merge-group commits; `e2e-smoke-gate` still needs `migrate`, `smoke`, and
   `test-e2e-smoke` to succeed (fails closed).

@@ -169,6 +169,13 @@ const CI_BASES = [
     bytes: 39584,
     sha256: "f4ceeac06f972bd83119bd92624b5ad3481f9db06de2853d5d20e1fdf152406f",
   },
+  {
+    // #2215: 4b131585's prefix with only the `test-e2e` bullet's e2e-gate
+    // merge_group skip cause reworded; ends before the EOF runner section.
+    ref: "#2215 e2e-gate merge_group wording",
+    bytes: 39806,
+    sha256: "af12ddc582cf7ac044d5c51d796cd5fbad45f3c3a33d08f969514e30c4e623c2",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {

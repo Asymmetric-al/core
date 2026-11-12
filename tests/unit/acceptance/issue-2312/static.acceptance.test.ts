@@ -34,11 +34,19 @@ const topLevel = () => sql().replace(DOLLAR, "$$$$");
 /** DO-block bodies (pre/post-asserts and the catalog-driven drop). */
 const doBodies = () => sql().match(DOLLAR) ?? [];
 const T5 = H.TABLES.join("|");
-/** Reviewed hosted-only R1 pointer amendment to #2250's CI-doc prefix. */
-const CI_BASE = {
-  bytes: 40204,
-  sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
-};
+/** Reviewed docs/ci.md prefixes, one entry per reviewed file. */
+const CI_BASES = [
+  // Reviewed hosted-only R1 pointer amendment to #2250's CI-doc prefix.
+  {
+    bytes: 40204,
+    sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
+  },
+  // #2215: only the `test-e2e` bullet's e2e-gate merge_group skip cause changes.
+  {
+    bytes: 40426,
+    sha256: "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
+  },
+];
 const STEP = "Verify tenant isolation (real stack)";
 const CII = ".github/workflows/ci-integration.yml";
 
@@ -292,10 +300,11 @@ describe("#2312 doc (criterion 7)", () => {
 describe("#2312 unchanged (criterion 8)", () => {
   it("8: docs/ci.md keeps develop's bytes as a prefix; nothing #2312 after it", () => {
     const bytes = readFileSync("docs/ci.md");
-    expect(sha256(bytes.subarray(0, CI_BASE.bytes)), "docs/ci.md prefix").toBe(
-      CI_BASE.sha256,
+    const base = CI_BASES.find(
+      (b) => sha256(bytes.subarray(0, b.bytes)) === b.sha256,
     );
-    expect(bytes.subarray(CI_BASE.bytes).toString("utf8")).not.toMatch(
+    expect(base, "docs/ci.md prefix").toBeDefined();
+    expect(bytes.subarray(base!.bytes).toString("utf8")).not.toMatch(
       /2312|tenant[- ]read[- ]floor|close_public_reads/i,
     );
   });
