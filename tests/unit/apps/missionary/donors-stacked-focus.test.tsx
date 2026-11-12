@@ -154,7 +154,8 @@ it("shows each partner's photo, giving and monthly status on phone rows", () => 
   );
   const monthly = rowFor("Focus Partner A");
   expect(monthly.textContent).toContain("Monthly");
-  expect(monthly.textContent).toContain("$204.00");
+  expect(monthly.textContent).toContain("Unavailable given");
+  expect(monthly.textContent).not.toContain("$204.00");
   expect(monthly.textContent).toContain("FO");
   expect(rowFor("Focus Partner B").textContent).not.toContain("Monthly");
 });
