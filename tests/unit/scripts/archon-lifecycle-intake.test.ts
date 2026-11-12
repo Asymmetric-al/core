@@ -104,6 +104,26 @@ describe("admissionGates", () => {
     },
   );
 
+  it("holds an issue while intake is closed or the GitHub issue is not open", () => {
+    expect(gates({ intakeOpen: false }).hold).toBe("conflict");
+    expect(gates({ issueOpen: false }).hold).toBe("conflict");
+  });
+
+  it("reports what could not be read as unavailable, never as clear", () => {
+    expect(gates({ ownersKnown: false }).owner).toBe("unavailable");
+    expect(gates({ resourcesKnown: false })).toMatchObject({
+      sharedArea: "unavailable",
+      resources: "unavailable",
+    });
+  });
+
+  it("uses the areas the observer found for the issue", () => {
+    expect(
+      gates({ areas: ["migrations"], reservations: { migrations: 30 } })
+        .sharedArea,
+    ).toBe("conflict");
+  });
+
   it("treats an open pull request from outside the factory as another owner", () => {
     expect(
       gates({ foreignPr: { html_url: "https://example.invalid/pull/9" } })

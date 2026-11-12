@@ -343,6 +343,13 @@ export class FixtureControl implements ControlRunner {
             approvedBy: by,
             approvedAt: stamp,
             note: flags.note ?? null,
+            // Like control.mjs: the map is replaced by what --end-states names.
+            endStates: Object.fromEntries(
+              String(flags["end-states"] ?? "")
+                .split(",")
+                .filter(Boolean)
+                .map((pair) => pair.split("=")),
+            ),
             priorities: (value?.priorities as Record<string, number>) ?? {},
             requests: [
               ...(value?.requests ?? []),

@@ -37,27 +37,49 @@ const knownAreas = (item) => [
   ...(item?.parked?.areas ?? []),
 ];
 
+// The four admission gates of one issue, as the selector observed it.
 // lease-control#8: any existing work item, finished or not, owns its issue;
 // admit never re-assigns it (the operator's retry or reopen does).
 // lease-control#7: an area this issue is known to touch and another issue
 // reserves keeps it out until released.
+// Closed intake, a GitHub issue that is not open and an operator hold or stop
+// are conflicts. What the observer could not read is "unavailable", never
+// "clear".
 export function admissionGates({
   issue,
   existing,
   foreignPr,
   capacity,
   reservations,
+  areas = knownAreas(existing),
+  intakeOpen = true,
+  issueOpen = true,
+  ownersKnown = true,
+  resourcesKnown = true,
 }) {
   return {
     hold:
-      existing?.control === "hold" || existing?.control === "stop"
+      !intakeOpen ||
+      !issueOpen ||
+      existing?.control === "hold" ||
+      existing?.control === "stop"
         ? "conflict"
         : "clear",
-    owner: existing || foreignPr ? "conflict" : "clear",
-    sharedArea: heldElsewhere(knownAreas(existing), reservations, issue).length
-      ? "conflict"
-      : "clear",
-    resources: capacity > 0 ? "clear" : "conflict",
+    owner: !ownersKnown
+      ? "unavailable"
+      : existing || foreignPr
+        ? "conflict"
+        : "clear",
+    sharedArea: !resourcesKnown
+      ? "unavailable"
+      : heldElsewhere(areas, reservations, issue).length
+        ? "conflict"
+        : "clear",
+    resources: !resourcesKnown
+      ? "unavailable"
+      : capacity > 0
+        ? "clear"
+        : "conflict",
   };
 }
 

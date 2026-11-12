@@ -35,15 +35,51 @@ the Console checks the browser origin.
 
 ## Services
 
-| Unit                           | Purpose                                                               |
-| ------------------------------ | --------------------------------------------------------------------- |
-| `core-archon.service`          | The engine (`127.0.0.1:39190`, trigger host `core-dev`)               |
-| `core-factory-intake.timer`    | Every 10 minutes: signed start of `core-select` (admission and sweep) |
-| `core-factory-backup.timer`    | Daily 03:30: coherent backup to `/srv/core-factory/backups`           |
-| `core-factory-console.service` | The Console (`127.0.0.1:39342`)                                       |
+| Unit                           | Purpose                                                         |
+| ------------------------------ | --------------------------------------------------------------- |
+| `core-archon.service`          | The engine (`127.0.0.1:39190`, trigger host `core-dev`)         |
+| `core-factory-intake.timer`    | Every 10 minutes: clear orphaned runs, then start `core-select` |
+| `core-factory-backup.timer`    | Daily 03:30: coherent backup to `/srv/core-factory/backups`     |
+| `core-factory-console.service` | The Console (`127.0.0.1:39342`)                                 |
 
 `systemctl status core-archon core-factory-console`; logs with
 `journalctl -u core-archon -n 200`.
+
+## How work is chosen
+
+The factory works only inside the scope the owner approves: an explicit list
+of issue numbers with an end state (`scope` in Controls). It never widens that
+list by itself, and the roadmap cannot add an issue to it.
+
+Every ten minutes the selector does three things:
+
+1. **Sweep.** It restarts admitted issues whose next round did not start and
+   settles rounds that ended without recording.
+2. **Eligibility (code, not a model).** An issue in scope is eligible when the
+   GitHub issue is open, it has no work item and no open pull request that
+   closes it, its dependencies could be read without ambiguity, every hard
+   prerequisite has a closing pull request merged on `develop`, no other
+   issue holds a shared area it needs, and a delivery lane is free.
+   Dependencies come from GitHub's blocked-by list, the issue text and
+   comments, and the governing documents the issue cites. Anything that
+   cannot be read or classified keeps that one issue out and is recorded with
+   its reason; the other issues carry on.
+3. **Ranking (Samson).** With one eligible issue it is admitted directly. With
+   several, Samson picks one from that list only, using operator priorities,
+   unfinished repairs, what unlocks other scope issues, the roadmap and
+   waiting time, with the issue number as tie-break. Trusted code checks his
+   answer against the eligible list and re-reads GitHub once more before the
+   assignment is written.
+
+Each decision is kept with its reasons and sources:
+`archon state get core/selection --project _folder/control`, or the Console's
+Overview. The full ledger of a pass (who was eligible, who was blocked and
+why) is `/srv/core-factory/runs/<selector run>/eligibility.json`.
+
+Up to `limits.admittedIssues` issues (2) are in flight. Each runs in its own
+delivery lane, so their rounds run side by side; heavy checks still run one at
+a time. Keep a scope to a few dozen issues: a pass reads every issue in it and
+stops observing after three minutes.
 
 ## Controls
 
@@ -245,19 +281,32 @@ readiness reasons, feedback dispositions) and in the work item's `blocker`.
   `CLAUDE_CONFIG_DIR=/home/admin/.claude /home/admin/.local/share/claude/versions/2.1.317`
   then `/login` (Team subscription, not an API key). Reverify the original
   binding; do not retry native-held work or rewrite its digest after login.
+- **GitHub API quota:** the factory's account has 5,000 REST calls an hour. When
+  it runs out, observations come back unavailable, nothing is admitted or
+  decided on stale evidence, and the next pass after the hourly reset carries
+  on. A selector pass uses about 15 calls per scope issue.
 - **GitHub sign-in:** the factory's own profile is
   `GH_CONFIG_DIR=/srv/core-factory/credentials/gh` (`gh auth status`). Roles
   never see it.
 
 ## Reboot and recovery
 
-After a VM or service restart, keep admission paused and inspect the actual
-engine/run metadata, immutable identity binding, native reports, cleanup
-evidence, work-item lease and reservations. An active service or a paused,
-failed, cancelled or apparently ownerless run is not reconciliation proof.
-Do not blindly call the engine resume endpoint: same-run identity and effects
-must be reconciled first, and the native-hold recovery operation is unavailable.
-Preserve unresolved work and request the missing implementation/qualification.
+An ordinary interruption heals by itself. The engine never declares a running
+run dead, so a run whose engine process died (service restart, VM reboot)
+would otherwise stay "running" and keep its lane or the admission slot. Before
+each admission pass the intake unit runs `.shared/orphans.mjs reap`, which
+abandons factory runs whose recorded engine process is provably gone. The
+sweep in the same pass settles the issue back to waiting on its route and
+starts the round again; unfinished code stays in the issue clone. This takes
+at most one timer interval (ten minutes). `journalctl -u
+core-factory-intake.service` shows what was cleared.
+
+That path covers ordinary rounds only. For a run with a native or cleanup
+hold, inspect the engine/run metadata, immutable identity binding, native
+reports, cleanup evidence, work-item lease and reservations before acting. Do
+not blindly call the engine resume endpoint: same-run identity and effects
+must be reconciled first, and the native-hold recovery operation is
+unavailable. Preserve unresolved work.
 
 Only an ordinary ended run without unresolved native/cleanup evidence can be
 settled by `issue <n> reconcile` or the intake sweep. The sweep can re-fire a

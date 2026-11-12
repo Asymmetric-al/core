@@ -29,6 +29,8 @@ Core is a Bun + Turborepo monorepo with three Next.js App Router applications:
 - `apps/donor` (`@asym/donor`) — donor experience
 - `apps/missionary` (`@asym/missionary-app`) — missionary experience
 
+A fourth app, `apps/factory-console`, is the private operator Console of the Core software factory (`scripts/archon-factory`). It runs only on the factory VM and is not a product app.
+
 Apps own surface-specific routes and UI. Shared behavior belongs in workspace packages such as `packages/api`, `packages/auth`, `packages/database`, `packages/env`, and `packages/ui`. Use `package.json`, `turbo.json`, and `docs/ai/monorepo-architecture.md` for the current workspace and command details; do not duplicate volatile package versions here.
 
 ## Authority and evidence
@@ -55,6 +57,7 @@ Open the closest file for the path being changed:
 | Admin app                           | `apps/admin/AGENTS.md`           |
 | Donor app                           | `apps/donor/AGENTS.md`           |
 | Missionary app                      | `apps/missionary/AGENTS.md`      |
+| Factory operator Console            | `apps/factory-console/AGENTS.md` |
 | Server APIs and mutations           | `packages/api/AGENTS.md`         |
 | Auth and sessions                   | `packages/auth/AGENTS.md`        |
 | Database types and browser data     | `packages/database/AGENTS.md`    |

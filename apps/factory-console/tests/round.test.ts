@@ -1,3 +1,6 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+
 import { describe, expect, it } from "vitest";
 
 import { RUN } from "./fixtures/factory-fixture";
@@ -90,6 +93,47 @@ describe("live work map derivation", () => {
     ]);
     expect(plannedSteps("initial").has("define")).toBe(true);
     expect(plannedSteps("repair").has("define")).toBe(false);
+  });
+
+  it("plans exactly the stages the pack's own table runs for each route", async () => {
+    const { roundStages } = (await import(
+      pathToFileURL(
+        path.resolve(
+          import.meta.dirname,
+          "../../../scripts/archon-factory/pack/deliver/scripts/claim-logic.mjs",
+        ),
+      ).href
+    )) as {
+      roundStages: (route: string) => Record<string, "yes" | "no">;
+    };
+    for (const route of [
+      "initial",
+      "repair",
+      "oracle",
+      "review",
+      "feedback",
+      "deliver",
+    ]) {
+      const stages = roundStages(route);
+      const planned = plannedSteps(route);
+      expect([route, planned.has("scope")]).toEqual([
+        route,
+        stages.do_scope === "yes",
+      ]);
+      expect([route, planned.has("define")]).toEqual([
+        route,
+        stages.do_define === "yes",
+      ]);
+      expect([route, planned.has("feedback")]).toEqual([
+        route,
+        stages.do_feedback === "yes",
+      ]);
+      // A review round opens the build gates but runs no Bezalel build.
+      expect([route, planned.has("build")]).toEqual([
+        route,
+        stages.do_build === "yes" && route !== "review",
+      ]);
+    }
   });
 
   it("treats a define that ran on a repair route as planned (context changed)", () => {

@@ -75,6 +75,9 @@ export function controlArgs(
   action: ControlAction,
   requestId: string,
   by: string,
+  // Per-issue end states the scope already records, carried through a scope
+  // write. control.mjs replaces the whole map, so leaving them out erases them.
+  keptEndStates: Readonly<Record<string, string>> = {},
 ): string[] {
   const identity = ["--request", requestId, "--by", argvText(by, 80)];
   const reason =
@@ -94,6 +97,15 @@ export function controlArgs(
       ];
     case "scope": {
       const note = action.note ? argvText(action.note, 600) : "";
+      const kept = Object.entries(keptEndStates)
+        .filter(
+          ([issue, state]) =>
+            action.issues.includes(Number(issue)) &&
+            (state === "PR_READY" || state === "MERGED"),
+        )
+        .sort(([left], [right]) => Number(left) - Number(right))
+        .map(([issue, state]) => `${issue}=${state}`)
+        .join(",");
       return [
         "scope",
         "--issues",
@@ -104,6 +116,7 @@ export function controlArgs(
         action.owner,
         ...identity,
         ...(note ? ["--note", note] : []),
+        ...(kept ? ["--end-states", kept] : []),
       ];
     }
     case "prioritize":
@@ -157,6 +170,28 @@ const UNKNOWN =
 
 function str(value: unknown, maximum = 600) {
   return typeof value === "string" ? scrub(value.slice(0, maximum)) : null;
+}
+
+// Pack refusal codes are lower-case words joined by hyphens. A refusal is
+// raised before anything is written, so it is reported as refused whether or
+// not the Console has its own sentence for it. "error" and system error codes
+// are failures whose effect is not known.
+const REFUSAL_CODE = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+
+function refusal(
+  base: Pick<Interpretation, "code" | "revision" | "runId">,
+  code: string | null,
+  json: Record<string, unknown>,
+): Interpretation | null {
+  if (!code || code === "error" || !REFUSAL_CODE.test(code)) return null;
+  return {
+    ...base,
+    code,
+    outcome: "refused",
+    message:
+      REFUSAL_MESSAGES[code] ??
+      `The factory refused this control and changed nothing (${str(json.message, 400) ?? code}).`,
+  };
 }
 
 const ENDED_RUNS = new Set(["completed", "cancelled"]);
@@ -241,13 +276,8 @@ function cancelInterpretation(
           message: `The engine reports the run as ${observed}.${tail}`,
         }
       : { ...base, outcome: "requested", message: accepted };
-  if (code && REFUSAL_MESSAGES[code])
-    return {
-      ...base,
-      code,
-      outcome: "refused",
-      message: REFUSAL_MESSAGES[code],
-    };
+  const refused = refusal(base, code, json);
+  if (refused) return refused;
   if (status === null)
     return {
       ...base,
@@ -348,13 +378,8 @@ export function interpret(
         outcome: "unknown",
         message: `The engine did not answer the start. ${UNKNOWN}`,
       };
-    if (code && REFUSAL_MESSAGES[code])
-      return {
-        ...base,
-        code,
-        outcome: "refused",
-        message: REFUSAL_MESSAGES[code],
-      };
+    const refused = refusal(base, code, json);
+    if (refused) return refused;
     if (outcome === "refused" || status !== null)
       return {
         ...base,
@@ -377,13 +402,8 @@ export function interpret(
       message:
         revision !== null ? `Recorded at revision ${revision}.` : "Recorded.",
     };
-  if (code && REFUSAL_MESSAGES[code])
-    return {
-      ...base,
-      code,
-      outcome: "refused",
-      message: REFUSAL_MESSAGES[code],
-    };
+  const refused = refusal(base, code, json);
+  if (refused) return refused;
   return {
     ...base,
     code,

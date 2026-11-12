@@ -796,9 +796,33 @@ export class Factory {
         "That scope owner is not configured for this Console",
         400,
       );
+    // A scope write replaces the per-issue end states. They limit what may
+    // merge, so the ones the scope already records are carried through, and
+    // the write is refused when they cannot be read.
+    let keptEndStates: Record<string, string> = {};
+    if (action.kind === "scope") {
+      const malformed: { name: string; reason: string }[] = [];
+      let current: z.infer<typeof scopeDocSchema> | null;
+      try {
+        current = parse(
+          scopeDocSchema,
+          await this.ready().reader.get("core/scope"),
+          malformed,
+        );
+      } catch {
+        malformed.push({ name: "core/scope", reason: "unavailable" });
+        current = null;
+      }
+      if (malformed.length)
+        throw new BackendError(
+          "The current scope could not be read, so the scope was not changed",
+          503,
+        );
+      keptEndStates = current?.endStates ?? {};
+    }
     const requestedAt = this.stamp();
     const run = await control.run(
-      controlArgs(action, requestId, this.deps.auth.owner),
+      controlArgs(action, requestId, this.deps.auth.owner, keptEndStates),
     );
     const interpretation = interpret(action.kind, run);
     let observed: ControlReceipt["observed"] = null;
@@ -875,7 +899,13 @@ export class Factory {
           summary:
             action.kind === "prioritize"
               ? `#${action.issue} priority ${doc.priorities[String(action.issue)] ?? "unset"}`
-              : `${doc.issues.length} issue(s) → ${doc.endState} for ${doc.owner}`,
+              : `${doc.issues.length} issue(s) → ${doc.endState} for ${doc.owner}${
+                  Object.keys(doc.endStates).length
+                    ? `; except ${Object.entries(doc.endStates)
+                        .map(([issue, state]) => `#${issue} ${state}`)
+                        .join(", ")}`
+                    : ""
+                }`,
           recorded: doc.requests.some((entry) => entry.id === requestId),
         };
       }

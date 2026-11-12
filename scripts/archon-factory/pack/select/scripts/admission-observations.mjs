@@ -5,11 +5,10 @@ import {
   RESERVATIONS,
   TERMINAL,
   factoryPermitsIntake,
-  heldElsewhere,
   issueDocument,
   validWorkItem,
 } from "../../.shared/workitem.mjs";
-import { scopeDigest } from "./intake-logic.mjs";
+import { admissionGates, scopeDigest } from "./intake-logic.mjs";
 
 const record = (value) =>
   value !== null && typeof value === "object" && !Array.isArray(value);
@@ -494,30 +493,19 @@ export async function observeAdmission({
   const approved = new Set(scope.issues);
   const pending = scope.issues.map((target) => ({ target, settled: false }));
   const neededIntegration = new Set();
-  const gates = ({ issue, target, existing, foreignPr, areas }) => ({
-    hold:
-      !factoryPermitsIntake(factoryDocument.value).ok ||
-      issue.state !== "open" ||
-      ["hold", "stop"].includes(existing?.control)
-        ? "conflict"
-        : "clear",
-    owner:
-      !items.has(target) || !openPulls
-        ? "unavailable"
-        : existing || foreignPr
-          ? "conflict"
-          : "clear",
-    sharedArea: !resourcesKnown
-      ? "unavailable"
-      : heldElsewhere(areas, reservations, target).length
-        ? "conflict"
-        : "clear",
-    resources: !resourcesKnown
-      ? "unavailable"
-      : capacity > 0
-        ? "clear"
-        : "conflict",
-  });
+  const gates = ({ issue, target, existing, foreignPr, areas }) =>
+    admissionGates({
+      issue: target,
+      existing,
+      foreignPr,
+      capacity,
+      reservations,
+      areas,
+      intakeOpen: factoryPermitsIntake(factoryDocument.value).ok,
+      issueOpen: issue.state === "open",
+      ownersKnown: items.has(target) && Boolean(openPulls),
+      resourcesKnown,
+    });
   for (let index = 0; index < pending.length; index += 1) {
     const { target, settled } = pending[index];
     const id = `#${target}`;

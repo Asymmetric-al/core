@@ -157,17 +157,11 @@ export function plannedSteps(route: string | null): Set<StepId> {
         ...BUILD_STEPS,
         "record",
       ]);
+    // Samson scopes only the initial round (the pack's roundStages table).
     case "repair":
-      return new Set(["claim", "scope", "build", ...BUILD_STEPS, "record"]);
+      return new Set(["claim", "build", ...BUILD_STEPS, "record"]);
     case "oracle":
-      return new Set([
-        "claim",
-        "scope",
-        "define",
-        "build",
-        ...BUILD_STEPS,
-        "record",
-      ]);
+      return new Set(["claim", "define", "build", ...BUILD_STEPS, "record"]);
     case "review":
       // The frozen candidate is reviewed again: freeze re-verifies it without
       // a new commit, then both reviews, assessment, final and publication.
