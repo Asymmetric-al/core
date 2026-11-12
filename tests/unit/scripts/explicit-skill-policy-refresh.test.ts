@@ -5,6 +5,7 @@ import {
   readFile,
   readdir,
   rm,
+  symlink,
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
@@ -182,6 +183,72 @@ describe("native policy derived from the final frontmatter", () => {
         NATIVE_EXPLICIT_POLICY,
     );
   });
+
+  it("ignores the key text inside another field's block scalar", async () => {
+    const upstream =
+      "interface:\n  short_description: |\n    allow_implicit_invocation: true\n";
+    const root = await skillTree(explicitOnly, upstream);
+
+    await ensureExplicitOnlyNativePolicy(root);
+
+    expect(await metadata(root)).toBe(upstream + "\n" + NATIVE_EXPLICIT_POLICY);
+  });
+
+  it("adds the key to an existing policy mapping with that mapping's indentation", async () => {
+    const root = await skillTree(
+      explicitOnly,
+      "policy:\n    other_setting: true\ninterface:\n  display_name: Fixture\n",
+    );
+
+    await ensureExplicitOnlyNativePolicy(root);
+
+    expect(await metadata(root)).toBe(
+      "policy:\n    allow_implicit_invocation: false\n    other_setting: true\ninterface:\n  display_name: Fixture\n",
+    );
+  });
+
+  it("rejects an inline policy mapping instead of writing a second policy key", async () => {
+    const upstream = "policy: { allow_implicit_invocation: true }\n";
+    const root = await skillTree(explicitOnly, upstream);
+
+    await expect(ensureExplicitOnlyNativePolicy(root)).rejects.toThrow(
+      /inline policy/i,
+    );
+    expect(await metadata(root)).toBe(upstream);
+  });
+
+  // A refreshed tree is upstream content. The GitHub refresh path copies
+  // links as links, so the policy write must never follow one out of the tree.
+  it.each(["agents/openai.yaml", "agents"])(
+    "refuses to write through a symlinked %s",
+    async (linked) => {
+      const root = await skillTree(explicitOnly);
+      const outside = await mkdtemp(
+        path.join(repo, ".tmp/explicit-policy-outside-"),
+      );
+      roots.push(outside);
+      const outsideFile = path.join(outside, "openai.yaml");
+      await writeFile(outsideFile, "owner: someone-else\n");
+      const isDirectoryLink = linked === "agents";
+      if (!isDirectoryLink) await mkdir(path.join(root, "agents"));
+      try {
+        await symlink(
+          isDirectoryLink ? outside : outsideFile,
+          path.join(root, linked),
+          isDirectoryLink ? "dir" : "file",
+        );
+      } catch (error) {
+        // Windows without Developer Mode cannot create links; Linux CI can.
+        if ((error as NodeJS.ErrnoException).code === "EPERM") return;
+        throw error;
+      }
+
+      await expect(ensureExplicitOnlyNativePolicy(root)).rejects.toThrow(
+        /must be a regular/i,
+      );
+      expect(await readFile(outsideFile, "utf8")).toBe("owner: someone-else\n");
+    },
+  );
 
   it("is idempotent and reports a tree without an entrypoint", async () => {
     const root = await skillTree(explicitOnly);

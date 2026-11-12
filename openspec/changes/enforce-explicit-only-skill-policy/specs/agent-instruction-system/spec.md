@@ -21,6 +21,13 @@ supported client. Each skill whose entrypoint sets
 - **THEN** the refresh restores the native false policy
 - **AND** it keeps any interface metadata that upstream does ship
 
+#### Scenario: Upstream ships a linked metadata path
+
+- **WHEN** a refreshed skill's `agents` directory or `agents/openai.yaml` is a
+  symbolic link
+- **THEN** the refresh fails before any policy write
+- **AND** no file outside the staged skill is read or changed
+
 #### Scenario: A model-invocable skill is refreshed
 
 - **WHEN** a managed skill that Core leaves model-invocable is refreshed

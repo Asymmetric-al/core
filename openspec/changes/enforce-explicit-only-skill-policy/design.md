@@ -14,8 +14,14 @@ decided separately.
   explicit-only, creating the file when needed. The managed adapter calls it,
   and so do both refresh paths in `scripts/refresh-upstream-skills.mjs` after
   their last frontmatter replacement, including the GitHub clone path that
-  never runs the adapter. Only an active key counts; a commented-out key is
-  not treated as a policy.
+  never runs the adapter.
+- **Safety of the write.** A refreshed tree is upstream content, and the
+  GitHub path copies links as links. The step refuses a linked or non-regular
+  `SKILL.md`, `agents` directory or `agents/openai.yaml` before it reads or
+  writes, so it cannot touch a file outside the staged skill. It edits only
+  the top-level `policy:` mapping, so the key text in a comment, a block
+  scalar or a nested mapping is ignored. It refuses an inline `policy:`
+  mapping rather than write a second key.
 - **Guard.** `tests/unit/docs/explicit-only-skill-policy.test.ts` checks both
   the canonical tree and the Codex runtime tree, so a refresh on any path that
   drops the policy fails with the fix in its message.
@@ -28,7 +34,10 @@ decided separately.
 - Unit: the catalog test fails on the 20 skills before the change and passes
   after. The refresh test covers missing metadata, existing interface
   metadata, idempotence, agreement with the committed files, and a
-  model-invocable skill that must stay without native policy.
+  model-invocable skill that must stay without native policy. The shared step
+  is also tested directly: an active `true` policy, a commented-out key, key
+  text inside a block scalar, an existing mapping with its own indentation, an
+  inline mapping, and linked metadata paths.
 - Structural: `bun run skills:verify`, the installed-payload audit test, and
   `bun run format:check`.
 - Runtime: `codex debug prompt-input` renders the exact model-visible prompt

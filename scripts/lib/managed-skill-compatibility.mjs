@@ -186,34 +186,82 @@ export async function applyManagedSkillCompatibility(skillName, targetRoot) {
 }
 
 /**
+ * Return `metadata` with `policy.allow_implicit_invocation: false`. Only the
+ * top-level `policy:` mapping and its direct children are read, so the same
+ * text inside a comment, a block scalar or a nested mapping is never mistaken
+ * for the policy. An inline mapping is refused: rewriting it could drop other
+ * keys, and appending a second `policy:` key would be invalid YAML.
+ */
+function withNativeExplicitPolicy(metadata) {
+  const lines = metadata.split("\n");
+  const start = lines.findIndex((line) => /^policy\s*:/u.test(line));
+  if (start < 0)
+    return (
+      (metadata.trim() ? metadata.trimEnd() + "\n\n" : "") +
+      "policy:\n  allow_implicit_invocation: false\n"
+    );
+  if (!/^policy\s*:\s*(?:#.*)?$/u.test(lines[start]))
+    throw new Error(
+      "Unsupported inline policy mapping in agents/openai.yaml; review it by hand",
+    );
+  // The mapping runs until the next top-level key. Blank lines and comments
+  // do not end it.
+  let end = start + 1;
+  while (end < lines.length && !/^[^\s#]/u.test(lines[end])) end += 1;
+  const children = lines.slice(start + 1, end);
+  const firstChild = children.find((line) => /^[ \t]+[^\s#]/u.test(line));
+  const indent = firstChild ? /^[ \t]+/u.exec(firstChild)[0] : "  ";
+  const policyLine = indent + "allow_implicit_invocation: false";
+  const existing = children.findIndex(
+    (line) =>
+      line.startsWith(indent + "allow_implicit_invocation") &&
+      /^allow_implicit_invocation\s*:/u.test(line.slice(indent.length)),
+  );
+  if (existing >= 0) children[existing] = policyLine;
+  else children.unshift(policyLine);
+  return [...lines.slice(0, start + 1), ...children, ...lines.slice(end)].join(
+    "\n",
+  );
+}
+
+/**
  * Set `policy.allow_implicit_invocation: false` in agents/openai.yaml, keeping
  * any other metadata upstream ships and creating the file when there is none.
- * Only an active key counts; a commented-out key is left alone.
+ *
+ * A refreshed tree is upstream content, and the GitHub refresh path copies
+ * links as links. Never read or write through one: the metadata path must be a
+ * regular file inside a real `agents` directory.
  */
 async function writeNativeExplicitPolicy(targetRoot) {
-  const metadataPath = path.join(targetRoot, "agents/openai.yaml");
-  let metadata = "";
-  try {
-    metadata = (await readFile(metadataPath, "utf8")).replaceAll("\r\n", "\n");
-  } catch (error) {
-    if (error.code !== "ENOENT") throw error;
+  const agentsDirectory = path.join(targetRoot, "agents");
+  const metadataPath = path.join(agentsDirectory, "openai.yaml");
+  let metadataExists = false;
+  for (const [entry, isDirectory] of [
+    [agentsDirectory, true],
+    [metadataPath, false],
+  ]) {
+    let stat;
+    try {
+      stat = await lstat(entry);
+    } catch (error) {
+      if (error.code === "ENOENT") continue;
+      throw error;
+    }
+    if (isDirectory ? !stat.isDirectory() : !stat.isFile())
+      throw new Error(
+        "Native policy path must be a regular " +
+          (isDirectory ? "directory" : "file") +
+          ": " +
+          entry,
+      );
+    if (!isDirectory) metadataExists = true;
   }
-  if (/^[ \t]*allow_implicit_invocation:/mu.test(metadata))
-    metadata = metadata.replace(
-      /^([ \t]*)allow_implicit_invocation:.*$/mu,
-      "$1allow_implicit_invocation: false",
-    );
-  else if (/^policy:\s*$/mu.test(metadata))
-    metadata = metadata.replace(
-      /^policy:\s*$/mu,
-      "policy:\n  allow_implicit_invocation: false",
-    );
-  else
-    metadata =
-      (metadata.trim() ? metadata.trimEnd() + "\n\n" : "") +
-      "policy:\n  allow_implicit_invocation: false\n";
-  await mkdir(path.dirname(metadataPath), { recursive: true });
-  await writeFile(metadataPath, metadata, "utf8");
+  const metadata = metadataExists
+    ? (await readFile(metadataPath, "utf8")).replaceAll("\r\n", "\n")
+    : "";
+  const updated = withNativeExplicitPolicy(metadata);
+  await mkdir(agentsDirectory, { recursive: true });
+  await writeFile(metadataPath, updated, "utf8");
 }
 
 /**
@@ -223,9 +271,14 @@ async function writeNativeExplicitPolicy(targetRoot) {
  * decision on every refresh path. Returns whether the skill is explicit-only.
  */
 export async function ensureExplicitOnlyNativePolicy(targetRoot) {
+  const entrypointPath = path.join(targetRoot, "SKILL.md");
   let entrypoint;
   try {
-    entrypoint = await readFile(path.join(targetRoot, "SKILL.md"), "utf8");
+    if (!(await lstat(entrypointPath)).isFile())
+      throw new Error(
+        "Skill entrypoint must be a regular file: " + entrypointPath,
+      );
+    entrypoint = await readFile(entrypointPath, "utf8");
   } catch (error) {
     if (error.code === "ENOENT") return false;
     throw error;
