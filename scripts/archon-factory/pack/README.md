@@ -38,26 +38,36 @@ bindings, and `core-factory.json` has no `bindings` key.
 a resource and a folder, whatever the resource's capacity, and every factory
 run executes in the control folder. Delivery therefore has one single-run
 resource per lane (`core-factory:delivery-<lane>`, source
-`core-factory-deliver-<lane>`), as many lanes as `limits.admittedIssues`. A
-round is sent to the lane of its issue among the live issues, in issue order
-(`deliveryLane` in `.shared/webhook.mjs`), so two admitted issues run side by
-side while one issue's rounds still follow each other. Heavy checks stay
-serialized by `limits.heavyCheckSlots`.
+`core-factory-deliver-<lane>`), as many lanes as `limits.admittedIssues`.
+Admission records on the work item the lowest lane no live issue holds
+(`lane`), and every round of that issue starts on it, so two admitted issues
+run side by side while one issue's rounds still follow each other. A work item
+admitted before lanes were recorded takes its place among the live issues, in
+issue order. Heavy checks stay serialized by `limits.heavyCheckSlots`.
 
 **Admission observation.** For every authorized issue the selector reads the
-issue, its comments, GitHub's blocked-by list and the governing documents it
-cites, and from those its direct prerequisites. A prerequisite whose closing
-pull request is merged on the target branch is settled and its own history is
-not read; an unmerged one blocks the issue. Nothing further back is walked. A
-governing file is fetched once per pass, and a pass stops observing after
-three minutes: whatever was not read is reported unavailable and blocks only
-the issues that need it.
+issue, its comments (not the factory's own), GitHub's blocked-by list and the
+governing documents it cites, and from those its prerequisites. Each sentence
+is classified by its own words, and a sentence that denies a dependency ("not
+blocked by #12", "no relation and no dependency") declares none. A
+prerequisite outside the scope decides one thing: a closing pull request
+merged on the target branch settles it, anything else blocks the issue that
+needs it. Its own text and history are not read. A governing file is fetched
+once per pass, every GitHub request has a deadline, and a pass stops observing
+after three minutes: whatever was not read is reported unavailable and blocks
+only the issues that need it.
 
 **Interrupted runs.** The engine never declares a running run dead by its age,
 so a run whose engine process died (restart, reboot) would keep its resource
-for good. Before each admission pass `.shared/orphans.mjs reap` abandons factory
-runs whose recorded engine process is provably gone; the sweep then settles
-the work item and starts its next round.
+for good. Before each admission pass `.shared/orphans.mjs reap` takes each
+factory run whose recorded engine process is provably gone, removes that run's
+check containers, and only then abandons it; the sweep settles the work item
+and starts its next round. A run whose containers cannot be confirmed gone is
+left for the next pass.
+
+**Blocked issues.** When an issue blocks, the next selector pass posts one
+comment on the GitHub issue with the reason and the next step, so the owner is
+notified where the work is.
 
 A round start's dispatch key is `${assignment}:r${round+1}:v${revision}`, where
 `revision` is the work item's state revision when the start is fired (admission's
@@ -197,7 +207,13 @@ the read/write roots recorded for that node in
 metadata. Commands run only through the `core-check` MCP tool, which executes in
 the qualified Docker executor (network none, read-only rootfs, UID 1000, one
 writable candidate bind, confirmed cleanup) against the calling role's own
-workspace. For the writers (Ezra, Bezalel) that workspace is the issue clone
+workspace. A read-only role's view has the candidate's dependencies mounted
+read-only, with a private scratch mount over the cache directories tools write
+there (`node_modules/.vite-temp`, `.vite`, `.cache`), so a test that starts its
+own child test process can run; nothing written there leaves the container.
+Read-only roles are told that the repository-wide gates are the pre-push
+gate's job and that a failure caused only by their container is not a failure
+of the candidate. For the writers (Ezra, Bezalel) that workspace is the issue clone
 with its `.git` and the mirror's objects mounted read-only, so a check cannot
 commit, move refs or plant Git config. Installs, hooked commits and the hooked
 pre-push use the same executor with registry network but no credentials.
@@ -270,9 +286,11 @@ Hold, stop and drain take effect at the next round boundary (`claim` and
 issue stays stopped until an operator reopens it.
 
 - `retry` (a BLOCKED issue under control `run`), `reopen` (PR_READY or stopped,
-  not held; clears a stop) and `release` re-bind the assignment to the installed
-  release's policy revision and record the change on the request. `retry` and
-  `reopen` also reset the round budgets.
+  not held; clears a stop) and `release` work only while the installed release
+  is the one the assignment is bound to; `retry` and `reopen` also reset the
+  round budgets. After a release change they refuse
+  (`policy-transition-required`) until `issue <n> adopt-policy` moves the
+  assignment, which also drops the reviews earned under the old release.
 - `reconcile` settles an item that a cancelled or unrecorded run left `active`:
   once the engine reports that run completed or cancelled (or its lease ended),
   the item waits again on the run's route. It is refused while the lease is

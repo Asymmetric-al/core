@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { hasUnconfirmedCleanup } from "../../.shared/cleanup-state.mjs";
+import { FACTORY_MARKER } from "../../.shared/readiness.mjs";
 import {
   RESERVATIONS,
   TERMINAL,
@@ -74,6 +75,23 @@ function dependencyKind(text) {
   };
 }
 
+// A statement that denies a dependency ("not blocked by #2268", "no relation
+// and no dependency", "has no open blockers") declares none. The denial is
+// taken out of its sentence, so a real prerequisite stated beside it
+// ("not blocked by #50 but requires #51") is still read.
+const DENIAL =
+  /\b(?:not|no|never|neither|nor|without|isn't|aren't|doesn't)\s+(?:\w+\s+){0,2}?(?:relation|related|dependenc(?:y|ies)|depend(?:s|ent)?(?:\s+on)?|blocked(?:\s+by)?|blockers?|prerequisites?|requires?|required)\b/gi;
+
+// One line as its sentences: a sentence is classified by its own words, so
+// "Depends on #50. It is related to #51." is one hard and one soft statement.
+// A heading stays whole, and common abbreviations do not end a sentence.
+function sentences(raw, heading) {
+  if (heading) return [raw];
+  return raw.split(
+    /(?<!\b(?:e\.g|i\.e|vs|cf|etc|approx)\.)(?<=[.!?])\s+(?=[A-Z(#])/,
+  );
+}
+
 function dependencyText(text, source, repo) {
   const edges = [];
   const problems = [];
@@ -82,101 +100,113 @@ function dependencyText(text, source, repo) {
   let depth = 0;
   const directive =
     /\b(?:(?:implementation|dispatch|qualification|release)\s+(?:prerequisites?|dependencies|gates?)|prerequisites?|dependencies|depends on|blocked by|requires|after|(?:non[- ]|not )?optional|informational|related)\b/i;
-  for (const raw of prose(text).split(/\r?\n|;\s*/)) {
-    const heading = /^(#{1,6})\s+(.+)$/.exec(raw.trim());
-    if (heading && heading[1].length <= depth) section = null;
-    const line = (heading?.[2] ?? raw).replace(/[*`]/g, "").trim();
-    if (!line) continue;
-    const match = directive.exec(line);
-    if (heading) {
-      section = match ? dependencyKind(line) : null;
-      sectionAdmissionKnown = /admission|non[- ]gating/i.test(line);
-      depth = heading[1].length;
-    }
-    const list = /^(?:[-+]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/.test(line);
-    if (!match && !(section && list)) continue;
-    const firstReference =
-      /https:\/\/github\.com|\b[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+#\d+|#\d+/.exec(
-        line,
-      );
-    const classification = firstReference
-      ? line.slice(0, firstReference.index)
-      : line;
-    const kind = match
-      ? dependencyKind(classification.slice(match.index))
-      : section;
-    const { local: targets, foreign } = references(
-      match ? line.slice(match.index) : line,
-      repo,
-    );
-    if (
-      foreign.length &&
-      !["optional", "informational"].includes(kind.kind) &&
-      kind.gatesAdmission !== false
-    )
-      problems.push({
-        source,
-        code: "unresolved-foreign-dependency",
-        targetIds: foreign,
-        text: line.slice(0, 300),
-      });
-    if (!targets.length && !foreign.length) {
-      const label = line.replace(/^[-+]\s+/, "");
-      // A directive word inside ordinary prose ("GitHub requires that
-      // context", "optional notes are related reading") declares nothing.
-      // Without a reference, only an item in a dependency section, a
-      // statement that opens with a hard directive ("Requires the producer")
-      // or a soft word used as a label ("After: the migration") is an
-      // unresolved declaration.
-      if (match && !heading && !(section && list)) {
-        const opens = match.index === line.length - label.length;
-        const soft =
-          /^(?:after|(?:non[- ]|not )?optional|informational|related)$/i.test(
-            match[0],
-          );
-        const labelled = /^\s*(?:\([^)]*\))?\s*:/.test(
-          line.slice(match.index + match[0].length),
-        );
-        if (!opens || (soft && !labelled)) continue;
+  const listItem = /^(?:[-+]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/;
+  for (const rawLine of prose(text).split(/\r?\n|;\s*/)) {
+    const lineHeading = /^(#{1,6})\s+(.+)$/.exec(rawLine.trim());
+    const lineIsList = listItem.test(rawLine.replace(/[*`]/g, "").trim());
+    for (const [index, raw] of sentences(rawLine, lineHeading).entries()) {
+      const heading = index === 0 ? lineHeading : null;
+      if (heading && heading[1].length <= depth) section = null;
+      const stated = (heading?.[2] ?? raw).replace(/[*`]/g, "").trim();
+      if (!stated) continue;
+      const line = heading ? stated : stated.replace(DENIAL, " ").trim();
+      const denied = line !== stated;
+      const match = directive.exec(line);
+      if (heading) {
+        section = match ? dependencyKind(line) : null;
+        sectionAdmissionKnown = /admission|non[- ]gating/i.test(line);
+        depth = heading[1].length;
       }
-      const declaration =
-        /^(?:(?:implementation|dispatch|qualification|release)\s+)?(?:prerequisites?|dependencies|gates?|optional|informational|related|depends on|blocked by|requires|after)(?:\s*\([^)]*\))?\s*:?\s*$/i.test(
-          label,
+      // Every sentence of a list item belongs to that item.
+      const list = lineIsList;
+      // A denial with nothing else stated declares nothing, in a list too.
+      if (denied && !match) continue;
+      if (!match && !(section && list)) continue;
+      const firstReference =
+        /https:\/\/github\.com|\b[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+#\d+|#\d+/.exec(
+          line,
         );
+      const classification = firstReference
+        ? line.slice(0, firstReference.index)
+        : line;
+      const kind = match
+        ? dependencyKind(classification.slice(match.index))
+        : section;
+      const { local: targets, foreign } = references(
+        match ? line.slice(match.index) : line,
+        repo,
+      );
       if (
-        !heading &&
-        !declaration &&
-        !/\bnone\b|no (?:hard )?(?:prerequisites?|dependencies)\b/i.test(label)
+        foreign.length &&
+        !["optional", "informational"].includes(kind.kind) &&
+        kind.gatesAdmission !== false
       )
         problems.push({
           source,
-          code: "unresolved-dependency",
+          code: "unresolved-foreign-dependency",
+          targetIds: foreign,
           text: line.slice(0, 300),
         });
-      if (!list && match && !heading) {
-        section = kind;
-        sectionAdmissionKnown = /admission|non[- ]gating/i.test(line);
+      if (!targets.length && !foreign.length) {
+        const label = line.replace(/^[-+]\s+/, "");
+        // A directive word inside ordinary prose ("GitHub requires that
+        // context", "optional notes are related reading") declares nothing.
+        // Without a reference, only an item in a dependency section, a
+        // statement that opens with a hard directive ("Requires the producer")
+        // or a soft word used as a label ("After: the migration") is an
+        // unresolved declaration.
+        if (match && !heading && !(section && list)) {
+          const opens = match.index === line.length - label.length;
+          const soft =
+            /^(?:after|(?:non[- ]|not )?optional|informational|related)$/i.test(
+              match[0],
+            );
+          const labelled = /^\s*(?:\([^)]*\))?\s*:/.test(
+            line.slice(match.index + match[0].length),
+          );
+          if (!opens || (soft && !labelled)) continue;
+        }
+        const declaration =
+          /^(?:(?:implementation|dispatch|qualification|release)\s+)?(?:prerequisites?|dependencies|gates?|optional|informational|related|depends on|blocked by|requires|after)(?:\s*\([^)]*\))?\s*:?\s*$/i.test(
+            label,
+          );
+        if (
+          !heading &&
+          !declaration &&
+          !/\bnone\b|no (?:hard )?(?:prerequisites?|dependencies)\b/i.test(
+            label,
+          )
+        )
+          problems.push({
+            source,
+            code: "unresolved-dependency",
+            text: line.slice(0, 300),
+          });
+        if (!list && match && !heading) {
+          section = kind;
+          sectionAdmissionKnown = /admission|non[- ]gating/i.test(line);
+        }
+        continue;
       }
-      continue;
+      if (firstReference && directive.test(line.slice(firstReference.index)))
+        problems.push({
+          source,
+          code: "ambiguous-dependency-classification",
+          text: line.slice(0, 300),
+        });
+      if (
+        (kind.kind === "qualification" || kind.kind === "release") &&
+        !/admission|non[- ]gating/i.test(line) &&
+        !(!match && sectionAdmissionKnown)
+      )
+        problems.push({
+          source,
+          code: "ambiguous-admission-gate",
+          text: line.slice(0, 300),
+        });
+      for (const target of targets)
+        edges.push({ ...kind, targetId: `#${target}`, source });
     }
-    if (firstReference && directive.test(line.slice(firstReference.index)))
-      problems.push({
-        source,
-        code: "ambiguous-dependency-classification",
-        text: line.slice(0, 300),
-      });
-    if (
-      (kind.kind === "qualification" || kind.kind === "release") &&
-      !/admission|non[- ]gating/i.test(line) &&
-      !(!match && sectionAdmissionKnown)
-    )
-      problems.push({
-        source,
-        code: "ambiguous-admission-gate",
-        text: line.slice(0, 300),
-      });
-    for (const target of targets)
-      edges.push({ ...kind, targetId: `#${target}`, source });
   }
   return { edges, problems };
 }
@@ -523,58 +553,61 @@ export async function observeAdmission({
         observations[id] = { status: "missing" };
         continue;
       }
-      // A prerequisite reached only because other work needs it merged is
-      // settled once its closing pull request is on the target branch. Its own
-      // history is then irrelevant and is not read.
-      if (settled) {
+      // A prerequisite outside the authorized scope decides one thing only:
+      // whether its closing pull request is merged on the target branch. A
+      // merged one is settled; an unmerged one blocks the issue that needs
+      // it. Its own text and history decide nothing and are not read.
+      if (!approved.has(target)) {
         const existing = items.get(target)?.value;
-        const proof = await integrated({ github, config, issue, existing });
+        const proof = settled
+          ? await integrated({ github, config, issue, existing })
+          : null;
         proofs.set(target, proof);
-        if (proof) {
-          const contextRevision = digest({
-            issue: target,
-            state: issue.state,
-            proof,
-          });
-          observations[id] = {
-            status: "found",
-            value: {
-              id,
-              contextRevision,
-              eligibleSinceMs: Date.parse(issue.created_at),
-              dependenciesReconciled: true,
-              dependencies: [],
-              evidence: ["integrated", "implemented"].map((condition) => ({
-                condition,
-                ...proof,
-                contextRevision,
-              })),
-              admission: gates({
-                issue,
-                target,
-                existing,
-                foreignPr: null,
-                areas: [],
-              }),
-            },
-          };
-          summaries.push({
+        const contextRevision = digest({
+          issue: target,
+          state: issue.state,
+          proof,
+        });
+        observations[id] = {
+          status: "found",
+          value: {
             id,
-            title: issue.title,
-            labels: [],
-            state: issue.state,
+            contextRevision,
+            eligibleSinceMs: Date.parse(issue.created_at),
+            dependenciesReconciled: true,
             dependencies: [],
-            dependencySources: [],
-            dependencyProblems: [],
-            governingSources: [],
-            foreignPr: null,
-            existing: existing?.status ?? null,
-            areas: [],
-            url: issue.html_url,
-            integrated: proof.source,
-          });
-          continue;
-        }
+            evidence: proof
+              ? ["integrated", "implemented"].map((condition) => ({
+                  condition,
+                  ...proof,
+                  contextRevision,
+                }))
+              : [],
+            admission: gates({
+              issue,
+              target,
+              existing,
+              foreignPr: null,
+              areas: [],
+            }),
+          },
+        };
+        summaries.push({
+          id,
+          title: issue.title,
+          labels: [],
+          state: issue.state,
+          dependencies: [],
+          dependencySources: [],
+          dependencyProblems: [],
+          governingSources: [],
+          foreignPr: null,
+          existing: existing?.status ?? null,
+          areas: [],
+          url: issue.html_url,
+          integrated: proof?.source ?? null,
+        });
+        continue;
       }
       const [native, comments] = await Promise.all([
         github.paginate(
@@ -586,11 +619,16 @@ export async function observeAdmission({
         throw new Error("Dependency sources unavailable");
       const originals = [
         { text: issue.body ?? "", source: issue.html_url },
-        ...comments.map((comment) => ({
-          text: comment.body ?? "",
-          source:
-            comment.html_url ?? `${issue.html_url}#issuecomment-${comment.id}`,
-        })),
+        // The factory's own comments say what it did, not what the issue
+        // depends on.
+        ...comments
+          .filter((comment) => !comment.body?.includes(FACTORY_MARKER))
+          .map((comment) => ({
+            text: comment.body ?? "",
+            source:
+              comment.html_url ??
+              `${issue.html_url}#issuecomment-${comment.id}`,
+          })),
       ];
       const governing = await governingTexts(github, config, originals, files);
       const reconciled = reconcileDependencies({
@@ -653,10 +691,6 @@ export async function observeAdmission({
       };
       summaries.push(summary);
       contexts.set(target, { issue, existing, summary });
-      // Only an authorized issue's direct prerequisites decide its admission:
-      // a merged prerequisite is settled, and an unmerged one blocks whatever
-      // lies behind it. Nothing further back is read.
-      if (!approved.has(target)) continue;
       for (const edge of reconciled.dependencies) {
         if (
           ["optional", "informational"].includes(edge.kind) ||

@@ -9,8 +9,11 @@ import {
   mkdirSync,
   openSync,
   readFileSync,
+  readdirSync,
   renameSync,
   rmSync,
+  rmdirSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
@@ -89,6 +92,24 @@ function readOwner(dir) {
   }
 }
 
+// A server that dies between creating a slot (or a reclaim lock) and
+// recording its owner leaves an empty directory nobody owns. No check can
+// have started without the owner record, and a live server writes it at once,
+// so an empty directory this old is a dead claim and is removed. rmdir only
+// removes an empty directory, so a record written meanwhile keeps it.
+const CLAIM_GRACE_MS = 60_000;
+function abandonedClaim(dir, ignore = []) {
+  try {
+    if (readdirSync(dir).some((name) => !ignore.includes(name))) return false;
+    if (Date.now() - statSync(dir).mtimeMs < CLAIM_GRACE_MS) return false;
+    for (const name of ignore) rmSync(posix.join(dir, name), { force: true });
+    rmdirSync(dir);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function claimSlot(dir, owner) {
   try {
     mkdirSync(dir);
@@ -105,11 +126,15 @@ async function reclaim(dir, reconcile) {
     mkdirSync(lock);
   } catch {
     // Another server is reclaiming this slot; a lock left by a dead one is stale.
-    const holder = Number(
-      readFileSync(posix.join(lock, "owner"), { encoding: "utf8", flag: "a+" }),
-    );
+    let text = "";
+    try {
+      text = readFileSync(posix.join(lock, "owner"), "utf8");
+    } catch {}
+    const holder = Number(text);
     if (Number.isSafeInteger(holder) && holder > 0 && !alive(holder))
       rmSync(lock, { recursive: true, force: true });
+    // A lock with no owner recorded, and old, was never owned.
+    else if (text === "") abandonedClaim(lock, ["owner"]);
     return false;
   }
   try {
@@ -160,6 +185,7 @@ export async function acquireSlot({
     for (let index = 0; index < slots; index += 1) {
       const dir = posix.join(locks, `check-slot-${index}`);
       if (claimSlot(dir, owner)) return dir;
+      if (abandonedClaim(dir) && claimSlot(dir, owner)) return dir;
       if ((await reclaim(dir, reconcile)) && claimSlot(dir, owner)) return dir;
     }
     if (signal?.aborted || now() >= deadline) return null;
@@ -317,6 +343,7 @@ export async function runCheck({
       workspaceDirectory: entry.check.workspaceDirectory,
       workspaceTarget: entry.check.workspaceTarget ?? "/candidate",
       mounts: entry.check.mounts ?? [],
+      ...(entry.check.scratch?.length ? { scratch: entry.check.scratch } : {}),
       network: "none",
       env: entry.check.env ?? {},
       tmpfsMb: entry.check.tmpfsMb ?? 1024,

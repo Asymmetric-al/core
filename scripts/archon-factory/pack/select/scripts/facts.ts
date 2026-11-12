@@ -19,6 +19,7 @@ import { writeRunContext } from "../../.shared/runctx.mjs";
 import { RESERVATIONS, factoryPermitsIntake } from "../../.shared/workitem.mjs";
 import { observeAdmission } from "./admission-observations.mjs";
 import {
+  announceBlocked,
   releaseStaleReservations,
   scopeDigest,
   sweepItems,
@@ -74,7 +75,32 @@ const sweep = await sweepItems({
   fire: ({ value, revision }: { value: any; revision: number }) =>
     fireRound({ config, value, revision }),
 });
-const swept = sweep.filter((entry) => entry.action !== "skip");
+const swept: any[] = sweep.filter((entry) => entry.action !== "skip");
+
+// Tell the owner on GitHub about issues the factory stopped on. This runs
+// whether or not intake is open, and nothing here can fail the pass.
+const stopped = new Map(
+  [...items]
+    .filter(([, entry]) => entry.value?.status === "BLOCKED")
+    .map(([issue, entry]) => [issue, entry.value]),
+);
+if (stopped.size)
+  try {
+    const notices = await announceBlocked({
+      github: createGitHub({
+        token: await githubToken({
+          gh: config.github.executable,
+          configDir: config.github.configDir,
+        }),
+        repo: config.repository.slug,
+      }),
+      items: stopped,
+      nowMs: now,
+    });
+    swept.push(
+      ...notices.map((notice: any) => ({ ...notice, action: "announce" })),
+    );
+  } catch {}
 
 const intake = factoryPermitsIntake(factory);
 if (!intake.ok)

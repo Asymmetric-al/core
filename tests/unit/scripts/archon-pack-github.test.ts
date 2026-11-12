@@ -845,3 +845,27 @@ describe("readiness writes and thread identity", () => {
     expect(query).toMatch(/comments\(first:\s*\d+\)/);
   });
 });
+
+describe("request deadline", () => {
+  it("abandons a request GitHub never answers, so one hung call cannot hold a pass", async () => {
+    const signals: (AbortSignal | undefined)[] = [];
+    const github = createGitHub({
+      token: "t",
+      repo: "acme/core",
+      retries: 0,
+      timeoutMs: 20,
+      wait: async () => {},
+      fetchImpl: ((_url: string, init: RequestInit) => {
+        signals.push(init.signal ?? undefined);
+        return new Promise((_resolve, reject) => {
+          init.signal?.addEventListener("abort", () =>
+            reject(init.signal?.reason ?? new Error("aborted")),
+          );
+        });
+      }) as typeof fetch,
+    });
+    await expect(github.pull(1)).rejects.toThrow(/unavailable/);
+    expect(signals[0]).toBeInstanceOf(AbortSignal);
+    expect(signals[0]?.aborted).toBe(true);
+  });
+});

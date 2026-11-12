@@ -438,18 +438,26 @@ export function providerCoverage({
       )
     )
       continue;
-    if (provider.appSlug) {
-      const runs = checkRuns.filter(
-        (run) => run.app?.slug === provider.appSlug && run.head_sha === head,
-      );
-      if (runs.length && runs.every((run) => run.status === "completed"))
-        continue;
-    }
+    // The provider's own check runs on this head: all finished and all
+    // successful is a review of this head. Finished any other way (skipped,
+    // neutral, cancelled, failed) means the provider did not review it.
+    const runs = provider.appSlug
+      ? checkRuns.filter(
+          (run) => run.app?.slug === provider.appSlug && run.head_sha === head,
+        )
+      : [];
+    const finished =
+      runs.length > 0 && runs.every((run) => run.status === "completed");
+    if (finished && runs.every((run) => run.conclusion === "success")) continue;
     if (
       provider.coverage === "once" &&
       reviews.some((review) => review.user?.login === provider.login)
     ) {
       earlier.push(provider.login);
+      continue;
+    }
+    if (finished) {
+      skipped.push(provider.login);
       continue;
     }
     const skip =

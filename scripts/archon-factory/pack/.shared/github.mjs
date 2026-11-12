@@ -40,6 +40,9 @@ export function createGitHub({
   fetchImpl = fetch,
   retries = 3,
   capMs = 120_000,
+  // No request may wait on GitHub for ever: an unanswered one is abandoned
+  // and handled like any other lost response.
+  timeoutMs = 30_000,
   now = () => Date.now(),
   wait = sleep,
 }) {
@@ -72,6 +75,7 @@ export function createGitHub({
             ? { ...headers, "content-type": "application/json" }
             : headers,
           body: body ? JSON.stringify(body) : undefined,
+          signal: AbortSignal.timeout(timeoutMs),
         });
       } catch (error) {
         if (write)

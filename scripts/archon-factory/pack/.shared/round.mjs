@@ -277,6 +277,26 @@ export function nodeModulesMounts(repo, target = "/candidate") {
   return mounts;
 }
 
+// The cache directories read-only checks may write: created here, by the
+// trusted side, inside the clone's dependency directories, and named as the
+// container paths the executor covers with a private scratch mount. The root
+// gets the caches tools keep there; a workspace gets Vite's temporary
+// directory only.
+export function scratchTargets(repo, target = "/candidate") {
+  const targets = [];
+  for (const mount of nodeModulesMounts(repo, target)) {
+    const names =
+      mount.target === posix.join(target, "node_modules")
+        ? [".vite-temp", ".vite", ".cache"]
+        : [".vite-temp"];
+    for (const name of names) {
+      mkdirSync(posix.join(mount.source, name), { recursive: true });
+      targets.push(posix.join(mount.target, name));
+    }
+  }
+  return targets;
+}
+
 // Run one trusted step inside the credential-free executor against the
 // issue clone (hooks, installs and preflight execute candidate code there).
 // The clone's Git metadata is restored first, so no step sees hooks or

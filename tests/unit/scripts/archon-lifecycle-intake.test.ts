@@ -8,6 +8,7 @@ import {
 import {
   admissionCheck,
   admissionGates,
+  announceBlocked,
   releaseStaleReservations,
   scopeDigest,
   sweepItems,
@@ -501,5 +502,129 @@ describe("releaseStaleReservations", () => {
       items: new Map([[12, { ...assign(12), status: "active" }]]),
     });
     expect(state.archon.put).not.toHaveBeenCalled();
+  });
+});
+
+describe("announceBlocked", () => {
+  const NOW = Date.parse("2026-11-12T17:00:00Z");
+  const blocked = (overrides: Record<string, unknown> = {}) => ({
+    issue: 12,
+    status: "BLOCKED",
+    round: 3,
+    blocker: {
+      code: "final-inconclusive",
+      detail:
+        "Checks under /srv/core-factory/views/abc/ezra failed; ask @alice",
+      recovery: null,
+      at: "2026-11-12T16:31:52.153Z",
+    },
+    ...overrides,
+  });
+  const client = (existing: { body: string }[] = []) => ({
+    issueComments: vi.fn(async () => existing),
+    comment: vi.fn(async () => ({})),
+  });
+
+  it("tells the owner once, on the issue, why the factory stopped and what to do", async () => {
+    const github = client();
+    const result = await announceBlocked({
+      github,
+      items: new Map([[12, blocked()]]),
+      nowMs: NOW,
+    });
+    expect(result).toEqual([{ issue: 12, announced: true }]);
+    const [issue, body] = github.comment.mock.calls[0] as unknown as [
+      number,
+      string,
+    ];
+    expect(issue).toBe(12);
+    expect(body).toContain("final-inconclusive");
+    expect(body).toContain("round 3");
+    expect(body).toContain("issue 12 retry");
+    expect(body).toContain("<!-- core-factory -->");
+    expect(body).toContain(
+      "<!-- core-factory:blocked 2026-11-12T16:31:52.153Z -->",
+    );
+    // No private path and no live mention leaves the factory.
+    expect(body).not.toContain("/srv/core-factory");
+    expect(body).not.toMatch(/(^|[^`])@alice/);
+  });
+
+  it("uses the recovery the blocker itself names", async () => {
+    const github = client();
+    await announceBlocked({
+      github,
+      items: new Map([
+        [
+          12,
+          blocked({
+            blocker: {
+              code: "base-conflict",
+              detail: "docs/a.md",
+              recovery: "Merge develop into the branch, then retry",
+              at: "2026-11-12T16:31:52.153Z",
+            },
+          }),
+        ],
+      ]),
+      nowMs: NOW,
+    });
+    expect(String(github.comment.mock.calls[0]?.[1])).toContain(
+      "Merge develop into the branch, then retry",
+    );
+  });
+
+  it("does not repeat itself for the same blocker", async () => {
+    const github = client([
+      {
+        body: "x <!-- core-factory:blocked 2026-11-12T16:31:52.153Z -->",
+      },
+    ]);
+    const result = await announceBlocked({
+      github,
+      items: new Map([[12, blocked()]]),
+      nowMs: NOW,
+    });
+    expect(github.comment).not.toHaveBeenCalled();
+    expect(result).toEqual([
+      { issue: 12, announced: false, reason: "already" },
+    ]);
+  });
+
+  it("says nothing about issues that are not blocked or blocked long ago", async () => {
+    const github = client();
+    const result = await announceBlocked({
+      github,
+      items: new Map<number, unknown>([
+        [12, blocked({ status: "PR_READY" })],
+        [
+          13,
+          blocked({
+            issue: 13,
+            blocker: { code: "x", at: "2026-11-10T00:00:00Z" },
+          }),
+        ],
+        [14, null],
+      ]),
+      nowMs: NOW,
+    });
+    expect(result).toEqual([]);
+    expect(github.issueComments).not.toHaveBeenCalled();
+  });
+
+  it("never fails the pass when GitHub does", async () => {
+    const github = {
+      issueComments: vi.fn(async () => {
+        throw new Error("rate limited");
+      }),
+      comment: vi.fn(),
+    };
+    expect(
+      await announceBlocked({
+        github,
+        items: new Map([[12, blocked()]]),
+        nowMs: NOW,
+      }),
+    ).toEqual([{ issue: 12, announced: false, reason: "github" }]);
   });
 });

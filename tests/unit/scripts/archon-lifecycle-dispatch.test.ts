@@ -10,6 +10,7 @@ import {
 import {
   createAssignment,
   deliveryKey,
+  freeLane,
   planClaim,
   planClaimRefusal,
   planControl,
@@ -379,6 +380,67 @@ describe("delivery lanes", () => {
     expect(String(fetchImpl.mock.calls[0]?.[0])).toBe(
       "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-2",
     );
+  });
+
+  it("keeps an issue on the lane recorded at admission, whatever else is live", async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ receiptId: "r-1" }));
+    const item = waitingAfterRound3();
+    const liveIssues = vi.fn(async () => [7, 9, 12]);
+    await fireRound({
+      config: { ...config, limits: { admittedIssues: 2 } },
+      value: { ...item.value, lane: 2 },
+      revision: item.revision,
+      fetchImpl,
+      secret: SECRET,
+      verifyIdentity: async () => ({}),
+      liveIssues,
+    });
+    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe(
+      "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-2",
+    );
+    expect(liveIssues).not.toHaveBeenCalled();
+  });
+
+  it("ignores a recorded lane the installation does not have", async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ receiptId: "r-1" }));
+    const item = waitingAfterRound3();
+    await fireRound({
+      config: { ...config, limits: { admittedIssues: 2 } },
+      value: { ...item.value, lane: 5 },
+      revision: item.revision,
+      fetchImpl,
+      secret: SECRET,
+      verifyIdentity: async () => ({}),
+      liveIssues: async () => [12],
+    });
+    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe(
+      "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-1",
+    );
+  });
+
+  it("gives a new issue the lowest lane no live issue holds", () => {
+    expect(freeLane([], 2)).toBe(1);
+    expect(freeLane([1], 2)).toBe(2);
+    expect(freeLane([2], 2)).toBe(1);
+    expect(freeLane([undefined, 2], 2)).toBe(1);
+    // Every lane taken: share the first rather than refuse.
+    expect(freeLane([1, 2], 2)).toBe(1);
+    expect(freeLane([1], 0)).toBe(1);
+  });
+
+  it("records the lane on the work item at admission", () => {
+    const value = createAssignment({
+      issue: 12,
+      assignmentId: "a12-0123456789ab",
+      owner: "conrad",
+      profileDigest: "a".repeat(64),
+      scopeRevision: "b".repeat(64),
+      policyRevision: "c".repeat(64),
+      endState: "PR_READY",
+      now: T1,
+      lane: 2,
+    });
+    expect(value.lane).toBe(2);
   });
 
   it("falls back to the first lane when the live issues cannot be read", async () => {

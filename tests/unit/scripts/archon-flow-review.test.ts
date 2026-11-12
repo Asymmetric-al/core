@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  ASSESSMENT_CHOICES,
   planAdjudication,
   planAssessment,
   sealDecision,
@@ -564,5 +565,23 @@ describe("acceptance corrections pending from a review round (I1, I2)", () => {
         pending: [CHANGE],
       }),
     ).toMatchObject({ kind: "repair" });
+  });
+});
+
+describe("Samson's assessment choices", () => {
+  it("keeps an optional finding from starting a repair round", () => {
+    expect(ASSESSMENT_CHOICES).toContain("not-material");
+    expect(ASSESSMENT_CHOICES).toMatch(
+      /optional, non-blocking or a follow-up[^.]*not-material/,
+    );
+    expect(ASSESSMENT_CHOICES).toContain(
+      "Never choose a repair only to obtain a new review",
+    );
+  });
+
+  it("still never lets Samson dismiss a P0 or P1 finding", () => {
+    expect(ASSESSMENT_CHOICES).toContain(
+      "P0/P1 findings are never dismissed by you",
+    );
   });
 });

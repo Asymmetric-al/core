@@ -8,7 +8,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { prepareCandidateView } from "../../.shared/candidate-view.mjs";
-import { READ_ONLY_CHECKS } from "../../.shared/views.mjs";
+import { READ_ONLY_CHECKS, TRUSTED_GATES } from "../../.shared/views.mjs";
 import { trustIssueRepo } from "../../.shared/git.mjs";
 import {
   hookEvidence,
@@ -21,6 +21,7 @@ import {
   ensureInstall,
   input,
   nodeModulesMounts,
+  scratchTargets,
   openRound,
   renderAssignment,
   runInIssueRepo,
@@ -265,6 +266,7 @@ for (const role of ["micaiah", "luke"]) {
   writeFileSync(posix.join(dir, "view.json"), JSON.stringify(view, null, 2));
 }
 const mounts = nodeModulesMounts(repo, "/candidate");
+const scratch = scratchTargets(repo, "/candidate");
 const context = round.context.read();
 for (const role of ["micaiah", "luke"])
   context.nodes[role] = {
@@ -275,6 +277,7 @@ for (const role of ["micaiah", "luke"])
       workspaceDirectory: views[role],
       workspaceTarget: "/candidate",
       mounts,
+      scratch,
     },
   };
 round.context.write(context);
@@ -319,6 +322,7 @@ const reviewer = (role: string, focus: string) => {
           `Your exact copy of the committed candidate is ${views[role]} (no Git metadata). Read it with absolute paths.`,
           "run_check executes there with dependencies freshly installed from the candidate's lockfile, mounted read-only; network is unavailable.",
           READ_ONLY_CHECKS,
+          TRUSTED_GATES,
           "Echo candidate_sha and acceptance_revision exactly as given above.",
         ].join("\n"),
       ],

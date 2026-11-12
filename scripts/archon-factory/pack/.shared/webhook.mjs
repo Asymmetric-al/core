@@ -42,10 +42,13 @@ export function signDelivery({ secret, deliveryId, timestamp, payload }) {
 
 // The engine starts one run at a time for runs that share a resource and a
 // folder, whatever the resource's capacity. Each delivery lane is therefore
-// its own single-run resource, and live issues are spread over the lanes in
-// issue order so that different issues' rounds can run side by side. One
-// issue's rounds never overlap: a round starts only after the previous one
-// recorded.
+// its own single-run resource, so different issues' rounds can run side by
+// side. An issue keeps the lane recorded on its work item at admission
+// (freeLane in workitem.mjs); one issue's rounds never overlap, because a round starts only
+// after the previous one recorded.
+
+// For a work item admitted before lanes were recorded: its place among the
+// live issues, in issue order.
 export function deliveryLane(liveIssues, issue, lanes) {
   const count = Number.isSafeInteger(lanes) && lanes > 0 ? lanes : 1;
   const live = [...new Set([...liveIssues, issue])].sort((a, b) => a - b);
@@ -150,12 +153,12 @@ export async function fireRound({
     expectedDigest: value.assignment.profileDigest,
   });
   const deliveryId = deliveryKey(value, revision);
+  const lanes = config.limits?.admittedIssues ?? 2;
   // Not knowing the other live issues only costs parallelism: lane 1 queues.
-  const lane = deliveryLane(
-    await liveIssues().catch(() => []),
-    value.issue,
-    config.limits?.admittedIssues ?? 2,
-  );
+  const lane =
+    Number.isSafeInteger(value.lane) && value.lane >= 1 && value.lane <= lanes
+      ? value.lane
+      : deliveryLane(await liveIssues().catch(() => []), value.issue, lanes);
   const fired = await fireWebhook({
     config,
     workflow: "deliver",

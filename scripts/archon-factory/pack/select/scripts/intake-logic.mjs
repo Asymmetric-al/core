@@ -4,6 +4,7 @@
 import { createHash } from "node:crypto";
 
 import { conditionalWrite } from "../../.shared/archon.mjs";
+import { FACTORY_MARKER } from "../../.shared/readiness.mjs";
 import { releaseInactiveReservations } from "../../.shared/reservations.mjs";
 import {
   Refusal,
@@ -133,6 +134,62 @@ export function admissionCheck({ factory, scope, recorded, issue, existing }) {
         ? "MERGED"
         : "PR_READY",
   };
+}
+
+// Tell the owner, on the issue itself, when the factory stops on it. One
+// comment per blocker: the blocker's time is the key, so a retry that blocks
+// again is announced again and nothing is repeated. Blockers older than a day
+// are left alone, and a GitHub failure never fails the pass.
+const DAY_MS = 86_400_000;
+const publicText = (text, size) =>
+  String(text ?? "")
+    .replace(/\/srv\/core-factory\/[^\s`'")]*/g, "(factory path)")
+    .replace(/(^|[^`\w])@([A-Za-z0-9][A-Za-z0-9-]*(?:\[bot\])?)/g, "$1`@$2`")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, size);
+
+export async function announceBlocked({
+  github,
+  items,
+  nowMs,
+  windowMs = DAY_MS,
+}) {
+  const results = [];
+  for (const [issue, value] of items) {
+    const blocker = value?.status === "BLOCKED" ? value.blocker : null;
+    const at = Date.parse(blocker?.at ?? "");
+    if (!blocker?.code || !Number.isFinite(at) || nowMs - at > windowMs)
+      continue;
+    const stamp = `<!-- core-factory:blocked ${blocker.at} -->`;
+    try {
+      const comments = await github.issueComments(issue);
+      if (comments.some((comment) => comment.body?.includes(stamp))) {
+        results.push({ issue, announced: false, reason: "already" });
+        continue;
+      }
+      const detail = publicText(blocker.detail, 500);
+      const next =
+        publicText(blocker.recovery, 400) ||
+        `Fix the cause, then run \`control.mjs issue ${issue} retry\` (operator runbook, Controls).`;
+      await github.comment(
+        issue,
+        [
+          "**The factory stopped on this issue and needs a person.**",
+          "",
+          `- Reason: \`${publicText(blocker.code, 80)}\` (round ${value.round ?? "?"})`,
+          ...(detail ? [`- Detail: ${detail}`] : []),
+          `- Next step: ${next}`,
+          "",
+          `${FACTORY_MARKER} ${stamp}`,
+        ].join("\n"),
+      );
+      results.push({ issue, announced: true });
+    } catch {
+      results.push({ issue, announced: false, reason: "github" });
+    }
+  }
+  return results;
 }
 
 async function releaseReservations(archon, issue) {

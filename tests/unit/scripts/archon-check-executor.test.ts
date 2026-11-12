@@ -618,6 +618,49 @@ it("quotes mount targets so a comma in a writer-created path cannot add mount op
   );
 });
 
+function scratchInput(target: string) {
+  const input = fixture();
+  const modules = path.join(input.workspaceRoot, "clone", "node_modules");
+  mkdirSync(path.join(modules, ".vite-temp"), { recursive: true });
+  mkdirSync(path.join(modules, "react"));
+  return {
+    ...input,
+    mounts: [
+      { source: modules, target: "/candidate/node_modules", readOnly: true },
+    ],
+    scratch: [target],
+  };
+}
+
+it("mounts a private scratch over a cache directory inside a read-only dependency mount", async () => {
+  const fake = dockerFake();
+  await executeCandidateCheck(
+    scratchInput("/candidate/node_modules/.vite-temp"),
+    { spawn: fake.spawn },
+  );
+  const create = fake.calls.find((call) => call.args[4] === "create")!;
+  const at = create.args.indexOf(
+    "/candidate/node_modules/.vite-temp:rw,exec,nosuid,nodev,size=256m,mode=1777",
+  );
+  expect(at).toBeGreaterThan(-1);
+  expect(create.args[at - 1]).toBe("--tmpfs");
+});
+
+it.each([
+  ["outside every read-only mount", "/candidate/src"],
+  ["the dependency mount itself", "/candidate/node_modules"],
+  ["a package directory, not a cache", "/candidate/node_modules/react"],
+  ["a path that leaves the mount", "/candidate/node_modules/../src"],
+  ["a nested cache path", "/candidate/node_modules/.vite-temp/deep"],
+  ["a cache directory that does not exist", "/candidate/node_modules/.cache"],
+])("refuses a scratch mount at %s", async (_name, target) => {
+  const fake = dockerFake();
+  await expect(
+    executeCandidateCheck(scratchInput(target), { spawn: fake.spawn }),
+  ).rejects.toThrow(/scratch/i);
+  expect(fake.calls).toHaveLength(0);
+});
+
 function listingFake(listings: string[][], { failList = false } = {}) {
   const calls: string[][] = [];
   const spawn = vi.fn((_executable: string, args: string[]) => {

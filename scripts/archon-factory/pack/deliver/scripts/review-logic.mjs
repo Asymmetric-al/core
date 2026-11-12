@@ -235,6 +235,21 @@ export function planAssessment({
   return { kind: "final", reason: "Remaining findings are not material" };
 }
 
+// Samson's choices for each sealed finding. A repair costs a full round
+// (build, hooked freeze, both reviews), so a finding its reviewer calls
+// optional does not start one, and a repair is never a way to ask for a
+// second review.
+export const ASSESSMENT_CHOICES = [
+  "For every finding id choose one action:",
+  "- repair-implementation: a real defect Bezalel must fix;",
+  "- repair-acceptance: the acceptance oracle is wrong or incomplete; Ezra must correct it;",
+  "- adjudicate: the claim is genuinely disputed or uncertain; Agabus decides from evidence;",
+  "- not-material: only for P2/P3 nits with a concrete reason. P0/P1 findings are never dismissed by you.",
+  "A P2/P3 finding its reviewer calls optional, non-blocking or a follow-up is not-material: give that as the reason.",
+  "An INCONCLUSIVE review means evidence about the candidate is missing; when a repair action is warranted, say what evidence the next round must obtain.",
+  "Never choose a repair only to obtain a new review. Without a warranted repair, an INCONCLUSIVE review stops this candidate before adjudication or final acceptance, and that is the correct outcome.",
+].join("\n");
+
 // Rulings are read only through the trusted assess-plan ledger; without it,
 // or with rulings on claims it does not hold, the round stops.
 export function planAdjudication({ agabus, plan, plannedFinal, reports }) {

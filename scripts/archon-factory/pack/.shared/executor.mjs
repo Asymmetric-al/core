@@ -43,6 +43,9 @@ export class CheckCleanupError extends Error {
   }
 }
 
+// The cache directories a scratch mount may cover, by exact name.
+export const SCRATCH_NAMES = new Set([".vite-temp", ".vite", ".cache"]);
+
 async function validate(input) {
   if (
     !path.isAbsolute(input.dockerExecutable ?? "") ||
@@ -134,6 +137,32 @@ async function validate(input) {
       throw new Error("Duplicate mount target");
     mounts.push({ source, target: mount.target, readOnly: mount.readOnly });
   }
+  // Scratch: a private, empty tmpfs over one cache directory that sits
+  // directly inside a read-only mount (node_modules/.vite-temp and the like).
+  // A tool the candidate's own tests start can then write its cache without
+  // the dependencies themselves becoming writable. The directory must already
+  // exist in the mount's source, created by the trusted side.
+  const scratch = [];
+  for (const target of input.scratch ?? []) {
+    const parent = mounts.find(
+      (mount) =>
+        mount.readOnly &&
+        typeof target === "string" &&
+        target.startsWith(mount.target + "/"),
+    );
+    const name = parent ? target.slice(parent.target.length + 1) : "";
+    if (
+      !parent ||
+      !targetOk(target) ||
+      !SCRATCH_NAMES.has(name) ||
+      scratch.includes(target)
+    )
+      throw new Error("Invalid scratch mount");
+    const stat = await lstat(path.join(parent.source, name)).catch(() => null);
+    if (!stat?.isDirectory() || stat.isSymbolicLink())
+      throw new Error("A scratch mount needs an existing cache directory");
+    scratch.push(target);
+  }
   if (input.attempt !== undefined && !attemptPattern.test(input.attempt))
     throw new Error("Invalid check attempt id");
   if (input.runId !== undefined && !runIdPattern.test(input.runId))
@@ -168,6 +197,7 @@ async function validate(input) {
     tmpfsMb,
     workspaceTarget,
     mounts,
+    scratch,
     env,
   };
 }
@@ -263,6 +293,7 @@ export async function executeCandidateCheck(input, { spawn = nodeSpawn } = {}) {
     tmpfsMb,
     workspaceTarget,
     mounts,
+    scratch,
     env,
   } = await validate(input);
   const attempt = input.attempt ?? randomUUID();
@@ -439,6 +470,10 @@ export async function executeCandidateCheck(input, { spawn = nodeSpawn } = {}) {
         ]),
         "--tmpfs",
         "/tmp:rw,exec,nosuid,nodev,size=" + tmpfsMb + "m,mode=1777",
+        ...scratch.flatMap((target) => [
+          "--tmpfs",
+          target + ":rw,exec,nosuid,nodev,size=256m,mode=1777",
+        ]),
         "--workdir",
         workspaceTarget,
         "--env",

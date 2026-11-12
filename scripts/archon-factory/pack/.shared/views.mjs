@@ -8,6 +8,7 @@ import { trustIssueRepo } from "./git.mjs";
 import {
   clipText as clipRound,
   nodeModulesMounts,
+  scratchTargets,
   renderAssignment as renderRound,
 } from "./round.mjs";
 
@@ -17,6 +18,13 @@ const posix = path.posix;
 // start (which writes a bundled config and a module cache there) fails.
 export const READ_ONLY_CHECKS =
   "Checks run in a disposable container where node_modules is read-only, so a tool that writes a cache there fails at startup. Run Vitest as: node node_modules/vitest/vitest.mjs run --configLoader runner --no-fsModuleCache <paths>";
+
+// What a read-only role is not expected to reproduce, and what a failure
+// caused by its own check container means. Without this, a role that could
+// not run a repository-wide gate in its container answered INCONCLUSIVE for a
+// candidate it had found no fault in.
+export const TRUSTED_GATES =
+  "The repository-wide gates (the full unit suite, typecheck, lint, format and build) are run by the factory's pre-push gate on this exact commit before anything is published, and a failure there sends the issue back for repair. Do not try to reproduce them in full, and do not answer INCONCLUSIVE because you could not. Verify the behaviour each criterion or claim is about, directly. A check that fails only because of this container (dependencies are read-only outside their cache directories, there is no Git metadata and no network) is not a failure of the candidate: name it under limitations and verify the behaviour another way. INCONCLUSIVE is for evidence about the candidate's own behaviour that you could not obtain at all.";
 
 // Told to Ezra when she defines acceptance, so a criterion about what may
 // change can be settled at final acceptance.
@@ -115,6 +123,7 @@ export async function prepareRoleView(
       workspaceDirectory: view.workspaceDirectory,
       workspaceTarget: "/candidate",
       mounts: nodeModulesMounts(round.where.repo, "/candidate"),
+      scratch: scratchTargets(round.where.repo, "/candidate"),
     },
   };
   round.context.write(context);
@@ -179,7 +188,7 @@ export function finalAcceptanceText(
         : []),
       [
         "How to work",
-        `Writers are paused. Verify every criterion against the committed candidate at ${view} using run_check. Echo candidate_sha and acceptance_revision exactly.\n${READ_ONLY_CHECKS}`,
+        `Writers are paused. Verify every criterion against the committed candidate at ${view} using run_check. Echo candidate_sha and acceptance_revision exactly.\n${READ_ONLY_CHECKS}\n${TRUSTED_GATES}`,
       ],
       ["Criterion owners", FINAL_OWNER_RULE],
     ],

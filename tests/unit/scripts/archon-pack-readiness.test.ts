@@ -1952,6 +1952,38 @@ describe("evaluateReadiness provider coverage by check run and first-head review
     ).toBe("MERGE");
   });
 
+  it.each(["skipped", "neutral", "cancelled", "failure"])(
+    "does not count a check run that ended %s as a review: a person confirms coverage",
+    (conclusion) => {
+      const result = decide((input) => {
+        input.reviewProviders = [byCheck];
+        input.checkRuns = [
+          ...(input.checkRuns ?? []),
+          appRun("coderabbitai", { conclusion } as Partial<CheckRun>),
+        ];
+      });
+      expect(result).toMatchObject({
+        verdict: "PR_READY",
+        humanReviewPending: true,
+      });
+      expect(result.reasons).toContain(
+        `Review provider ${CODERABBIT} skipped this head; a person must confirm review coverage`,
+      );
+    },
+  );
+
+  it("keeps an earlier-head review of a once-per-pull-request provider when its check on this head was skipped", () => {
+    const result = decide((input) => {
+      input.reviewProviders = [once];
+      input.reviews = [review(CURSOR, "COMMENTED", STALE_HEAD)];
+      input.checkRuns = [
+        ...(input.checkRuns ?? []),
+        appRun("cursor", { conclusion: "skipped" } as Partial<CheckRun>),
+      ];
+    });
+    expect(result.verdict).toBe("MERGE");
+  });
+
   it("waits while the provider's check run on this head is still running", () => {
     expect(
       decide((input) => {

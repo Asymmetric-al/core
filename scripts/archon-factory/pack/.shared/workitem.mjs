@@ -75,6 +75,15 @@ export function validWorkItem(value) {
   );
 }
 
+// The lane for a newly admitted issue: the lowest one no live issue holds.
+// With every lane held it shares the first, which only queues.
+export function freeLane(heldLanes, lanes) {
+  const count = Number.isSafeInteger(lanes) && lanes > 0 ? lanes : 1;
+  const held = new Set(heldLanes);
+  for (let lane = 1; lane <= count; lane += 1) if (!held.has(lane)) return lane;
+  return 1;
+}
+
 export function createAssignment({
   issue,
   assignmentId,
@@ -87,10 +96,13 @@ export function createAssignment({
   reason,
   by,
   now,
+  lane,
 }) {
   const value = {
     v: 1,
     issue,
+    // The delivery lane this issue's rounds run on (webhook.mjs).
+    ...(Number.isSafeInteger(lane) && lane > 0 ? { lane } : {}),
     assignment: {
       id: assignmentId,
       owner,

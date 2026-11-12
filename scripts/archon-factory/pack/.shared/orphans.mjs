@@ -7,7 +7,10 @@
 //
 // Abandoning is the engine's explicit statement that a run is dead. This does
 // it only for a factory run whose recorded executing process is provably gone.
-// The intake sweep then settles the work item and starts its next round.
+// The dead run's check containers are removed first: one of them may still be
+// writing the issue workspace the next round reuses, so a run whose containers
+// are not confirmed gone is left for the next pass. The intake sweep then
+// settles the work item and starts its next round.
 //
 //   orphans.mjs reap
 import { readFileSync } from "node:fs";
@@ -15,6 +18,7 @@ import os from "node:os";
 import { fileURLToPath } from "node:url";
 
 import { loadConfig } from "./config.mjs";
+import { removeLabeledContainers } from "./executor.mjs";
 
 const FACTORY_WORKFLOWS = new Set([
   "core-select",
@@ -67,6 +71,8 @@ export async function reapOrphans({
   fetchImpl = fetch,
   hosts = [os.hostname()],
   cmdline = processCommandLine,
+  dockerExecutable,
+  removeContainers = removeLabeledContainers,
 }) {
   const base = `http://127.0.0.1:${port}/api/workflows/runs`;
   let runs;
@@ -79,15 +85,27 @@ export async function reapOrphans({
   }
   const orphans = [];
   for (const run of findOrphans(runs, { hosts, cmdline })) {
-    let status = null;
+    let cleared = false;
     try {
-      status = (
-        await fetchImpl(`${base}/${run.id}/abandon`, { method: "POST" })
-      ).status;
+      cleared =
+        (
+          await removeContainers({
+            dockerExecutable,
+            labels: { "core.archon.run": run.id },
+          })
+        ).ok === true;
     } catch {}
+    let status = null;
+    if (cleared)
+      try {
+        status = (
+          await fetchImpl(`${base}/${run.id}/abandon`, { method: "POST" })
+        ).status;
+      } catch {}
     orphans.push({
       id: run.id,
       workflow: run.workflow_name,
+      containers: cleared ? "cleared" : "unconfirmed",
       abandoned: status === 200,
       status,
     });
@@ -103,6 +121,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const config = loadConfig();
     const result = await reapOrphans({
       port: config.archon.port,
+      dockerExecutable: config.executor.docker,
       hosts: [
         ...new Set(
           [os.hostname(), process.env.ARCHON_TRIGGER_HOST].filter(Boolean),

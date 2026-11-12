@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   FINAL_EVIDENCE,
   READ_ONLY_CHECKS,
+  TRUSTED_GATES,
   changeSection,
   finalAcceptanceText,
 } from "../../../scripts/archon-factory/pack/.shared/views.mjs";
@@ -362,6 +363,17 @@ describe("what a read-only role is told about the change and its checks", () => 
     expect(READ_ONLY_CHECKS).toBe(
       "Checks run in a disposable container where node_modules is read-only, so a tool that writes a cache there fails at startup. Run Vitest as: node node_modules/vitest/vitest.mjs run --configLoader runner --no-fsModuleCache <paths>",
     );
+  });
+
+  it("tells read-only roles which gates the factory runs itself and what an environment failure is", () => {
+    expect(final(["docs/a.md"])).toContain(TRUSTED_GATES);
+    // Repository-wide gates are the pre-push gate's job, on the same commit.
+    expect(TRUSTED_GATES).toContain("pre-push gate");
+    expect(TRUSTED_GATES).toContain("this exact commit");
+    // A failure caused by the check container is not the candidate's.
+    expect(TRUSTED_GATES).toContain("not a failure of the candidate");
+    // INCONCLUSIVE stays for evidence about the candidate itself.
+    expect(TRUSTED_GATES).toContain("INCONCLUSIVE");
   });
 
   it("tells Ezra, when she defines acceptance, what final acceptance will have", () => {

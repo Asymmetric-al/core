@@ -965,15 +965,35 @@ describe("fresh admission observation contract", () => {
     ).toEqual(["#14"]);
   });
 
-  it("walks the actual prerequisite graph and blocks hard cycles", async () => {
-    issues.set(12, issue(12, "Depends on #50"));
-    issues.set(50, issue(50, "Depends on #12"));
-    linkPull(12);
+  it("blocks a hard cycle between authorized issues", async () => {
+    issues.set(12, issue(12, "Depends on #14"));
+    issues.set(14, issue(14, "Depends on #12"));
     const result = evaluateEligibility((await observe()).input as any);
-    expect(result.eligible.map((item) => item.id)).toEqual(["#14"]);
+    expect(result.eligible).toEqual([]);
     expect(result.blocked[0]?.reasons).toContainEqual(
       expect.objectContaining({ code: "cyclic-dependency" }),
     );
+  });
+
+  it("blocks on an unmerged prerequisite outside the scope whatever its own text says", async () => {
+    issues.set(12, issue(12, "Depends on #50"));
+    issues.set(50, issue(50, "Depends on #12"));
+    const result = evaluateEligibility((await observe()).input as any);
+    expect(result.eligible.map((item) => item.id)).toEqual(["#14"]);
+    expect(result.blocked[0]?.reasons).toEqual([
+      { issueId: "#12", code: "unsatisfied-dependency", dependencyId: "#50" },
+    ]);
+  });
+
+  it("keeps a prerequisite blocked while its pull request is green but not merged", async () => {
+    issues.set(12, issue(12, "Depends on #50"));
+    issues.set(50, issue(50));
+    linkPull(
+      50,
+      mergedPull(50, { state: "open", merged: false, merged_at: null }),
+    );
+    const result = evaluateEligibility((await observe()).input as any);
+    expect(result.eligible.map((item) => item.id)).toEqual(["#14"]);
   });
 
   it("reads incorporated contract files and blocks when one is unavailable", async () => {
@@ -1050,19 +1070,28 @@ describe("bounded admission observation", () => {
     issues.set(50, issue(50, "Depends on #60", { state: "closed" }));
     issues.set(60, issue(60, "Depends on #61"));
     const fresh = await observe();
-    expect(fresh.input.items["#50"].value.dependencies).toEqual([
-      expect.objectContaining({ targetId: "#60" }),
-    ]);
+    expect(fresh.input.items["#50"].value.dependencies).toEqual([]);
     expect(fresh.input.items["#60"]).toBeUndefined();
     expect(state.github.issue).not.toHaveBeenCalledWith(60);
+    expect(state.github.issueComments).not.toHaveBeenCalledWith(50);
     const result = evaluateEligibility(fresh.input as any);
     expect(result.eligible.map((item) => item.id)).toEqual(["#14"]);
-    expect(result.blocked[0]?.reasons).toContainEqual(
-      expect.objectContaining({
-        code: "unsatisfied-dependency",
-        dependencyId: "#50",
-      }),
-    );
+    // The one reason is the real one; nothing unread is reported unavailable.
+    expect(result.blocked[0]?.reasons).toEqual([
+      { issueId: "#12", code: "unsatisfied-dependency", dependencyId: "#50" },
+    ]);
+  });
+
+  it("does not read the factory's own comments as dependency statements", async () => {
+    comments.set(12, [
+      {
+        id: 9,
+        body: "The factory stopped. Requires the owner. Blocked by #50.\n\n<!-- core-factory -->",
+      },
+    ]);
+    const fresh = await observe();
+    expect(fresh.input.items["#12"].value.dependencies).toEqual([]);
+    expect(fresh.input.items["#12"].value.dependenciesReconciled).toBe(true);
   });
 
   it("reads a governing file once however many issues cite it", async () => {

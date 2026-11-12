@@ -85,19 +85,44 @@ describe("orphaned factory runs", () => {
         status: url.includes("dead-2") ? 409 : 200,
       });
     });
-    const result = await reapOrphans({ port: 39190, fetchImpl, ...probes });
+    const removeContainers = vi.fn(async ({ labels }: any) => {
+      calls.push(`remove ${labels["core.archon.run"]}`);
+      return { ok: true, found: [], remaining: [], removed: [] };
+    });
+    const result = await reapOrphans({
+      port: 39190,
+      fetchImpl,
+      removeContainers,
+      dockerExecutable: "/usr/bin/docker",
+      ...probes,
+    });
+    // A dead run's check containers go first: one of them may still be
+    // writing the issue's workspace, which the next round reuses.
     expect(calls).toEqual([
       "GET /api/workflows/runs",
+      "remove dead-1",
       "POST /api/workflows/runs/dead-1/abandon",
+      "remove dead-2",
       "POST /api/workflows/runs/dead-2/abandon",
     ]);
+    expect(removeContainers).toHaveBeenCalledWith({
+      dockerExecutable: "/usr/bin/docker",
+      labels: { "core.archon.run": "dead-1" },
+    });
     expect(result).toEqual({
       ok: true,
       orphans: [
-        { id: "dead-1", workflow: "core-select", abandoned: true, status: 200 },
+        {
+          id: "dead-1",
+          workflow: "core-select",
+          containers: "cleared",
+          abandoned: true,
+          status: 200,
+        },
         {
           id: "dead-2",
           workflow: "core-deliver",
+          containers: "cleared",
           abandoned: false,
           status: 409,
         },
@@ -105,11 +130,59 @@ describe("orphaned factory runs", () => {
     });
   });
 
+  it.each([
+    ["some remain", async () => ({ ok: false, remaining: ["c1"] })],
+    [
+      "they cannot be listed",
+      async () => {
+        throw new Error("docker unavailable");
+      },
+    ],
+  ])(
+    "leaves a dead run in place while its containers are not confirmed gone (%s)",
+    async (_name, removeContainers) => {
+      const calls: string[] = [];
+      const fetchImpl = vi.fn(async (url: string, options?: RequestInit) => {
+        calls.push(`${options?.method ?? "GET"} ${new URL(url).pathname}`);
+        return new Response(
+          JSON.stringify({
+            runs: [run("dead-1", { workflow_name: "core-deliver" })],
+          }),
+        );
+      });
+      const result = await reapOrphans({
+        port: 39190,
+        fetchImpl,
+        removeContainers,
+        dockerExecutable: "/usr/bin/docker",
+        ...probes,
+      });
+      expect(calls).toEqual(["GET /api/workflows/runs"]);
+      expect(result.orphans).toEqual([
+        {
+          id: "dead-1",
+          workflow: "core-deliver",
+          containers: "unconfirmed",
+          abandoned: false,
+          status: null,
+        },
+      ]);
+    },
+  );
+
   it("changes nothing when the engine cannot list its runs", async () => {
     const fetchImpl = vi.fn(async () => {
       throw new Error("connection refused");
     });
-    expect(await reapOrphans({ port: 39190, fetchImpl, ...probes })).toEqual({
+    expect(
+      await reapOrphans({
+        port: 39190,
+        fetchImpl,
+        removeContainers: async () => ({ ok: true }),
+        dockerExecutable: "/usr/bin/docker",
+        ...probes,
+      }),
+    ).toEqual({
       ok: false,
       error: "connection refused",
       orphans: [],

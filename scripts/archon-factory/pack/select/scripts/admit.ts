@@ -18,7 +18,11 @@ import {
 import { policyRevision } from "../../.shared/round.mjs";
 import { validateSamsonSelection } from "../../.shared/selection.ts";
 import { checkFactoryStorage } from "../../.shared/storage-policy.mjs";
-import { createAssignment, issueDocument } from "../../.shared/workitem.mjs";
+import {
+  createAssignment,
+  freeLane,
+  issueDocument,
+} from "../../.shared/workitem.mjs";
 import { fireRound } from "../../.shared/webhook.mjs";
 import { observeAdmission } from "./admission-observations.mjs";
 import { admissionCheck } from "./intake-logic.mjs";
@@ -175,6 +179,10 @@ const value = createAssignment({
   reason: JSON.stringify(reason).slice(0, 1200),
   by: `selector:${runId}`,
   now: new Date().toISOString(),
+  lane: freeLane(
+    (fresh.active ?? []).map((entry: any) => entry.value?.lane),
+    config.limits?.admittedIssues ?? 2,
+  ),
 });
 let receipt;
 try {

@@ -480,14 +480,21 @@ existing file:
   provider; a skip marker it posts ends the wait but leaves a person to confirm
   review coverage.
   Two optional keys match how each bot really reports. `appSlug` (for example
-  `"coderabbitai"` or `"cursor"`) also accepts that GitHub App's check runs on
-  the current head as coverage once all of them have completed; CodeRabbit
-  reports a clean head this way, without a formal review. `"coverage":"once"`
-  is for a bot that reviews a pull request only when it opens (Cursor here): a
-  review of an earlier head covers it, and readiness says so in its reasons. A
-  bot that never reviewed still blocks the wait.
-- `limits.checkQueueMs` (default 600000) is how long a role's check waits for a
-  free heavy-check slot before it is reported as not run.
+  `"coderabbitai"` or `"cursor"`) also reads that GitHub App's check runs on
+  the current head: all finished and all successful is a review of that head
+  (CodeRabbit reports a clean head this way, without a formal review). Finished
+  any other way (skipped, neutral, cancelled, failed) means the bot did not
+  review it: the pull request can still become ready, but it is never merged
+  by the factory until a person confirms. `"coverage":"once"` is for a bot
+  that reviews a pull request only when it opens (Cursor here): a review of an
+  earlier head covers it, and readiness says so in its reasons. That is a
+  choice: with it, a head repaired after the first review can be merged
+  without that bot having seen it. A bot that never reviewed still blocks the
+  wait.
+- `limits.checkQueueMs` (default 600000; 1800000 on VM 100) is how long a
+  role's check waits for a free heavy-check slot before it is reported as not
+  run. With two lanes one issue's pre-push gate can hold the slot for several
+  minutes, so keep it well above that.
 - There is no `bindings` key; every start is a signed webhook.
 
 ## Disk-space guard

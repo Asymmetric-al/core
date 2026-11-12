@@ -13,7 +13,11 @@ import {
   writeWorkItem,
 } from "../../.shared/round.mjs";
 import { planCheckpoint } from "../../.shared/workitem.mjs";
-import { sealDecision, sealReview } from "./review-logic.mjs";
+import {
+  ASSESSMENT_CHOICES,
+  sealDecision,
+  sealReview,
+} from "./review-logic.mjs";
 
 const round = openRound();
 const candidate = input("candidate");
@@ -92,18 +96,7 @@ const assignment = renderAssignment({
       `Decision: ${reports.luke.decision}. ${reports.luke.reason}\nLimitations: ${reports.luke.limitations.join("; ") || "none"}`,
     ],
     ["Findings", JSON.stringify(findings, null, 2)],
-    [
-      "Your decision",
-      [
-        "For every finding id choose one action:",
-        "- repair-implementation: a real defect Bezalel must fix;",
-        "- repair-acceptance: the acceptance oracle is wrong or incomplete; Ezra must correct it;",
-        "- adjudicate: the claim is genuinely disputed or uncertain; Agabus decides from evidence;",
-        "- not-material: only for P2/P3 nits with a concrete reason. P0/P1 findings are never dismissed by you.",
-        "An INCONCLUSIVE review means required evidence is missing; say what evidence the next round must obtain (use repair actions).",
-        "Without a repair action, an INCONCLUSIVE review stops this candidate before adjudication or final acceptance.",
-      ].join("\n"),
-    ],
+    ["Your decision", ASSESSMENT_CHOICES],
   ],
   contract:
     "Return task_status, one disposition per finding id, and a short summary.",

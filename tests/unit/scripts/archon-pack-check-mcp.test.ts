@@ -7,6 +7,7 @@ import {
   realpathSync,
   rmSync,
   writeFileSync,
+  utimesSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -907,6 +908,49 @@ describe("runCheck check slots", () => {
       executed: 0,
       reconciled: 0,
     });
+  });
+
+  it("takes over an empty slot left by a server that died before recording its owner", async () => {
+    const { config, slot } = factory();
+    holdSlot(slot(0));
+    // Created two minutes ago and still empty: no live server leaves a slot
+    // ownerless for longer than the instant between creating it and writing
+    // the record, and no check can have started without that record.
+    const old = new Date(Date.now() - 120_000);
+    utimesSync(slot(0), old, old);
+    const execute = passing();
+
+    const result = await runCheck({
+      args: ARGS,
+      env: session(),
+      config,
+      execute,
+      reconcile: reconciled(true),
+      clock: fastClock(),
+    });
+
+    expect(execute.mock.calls.length).toBe(1);
+    expect(result.isError).toBeFalsy();
+  });
+
+  it("clears a reclaim lock left without an owner by a dead server", async () => {
+    const { config, slot } = factory();
+    holdSlot(slot(0), { pid: Number(DEAD_PID), attempt: ATTEMPT });
+    mkdirSync(`${slot(0)}.reclaim`);
+    const old = new Date(Date.now() - 120_000);
+    utimesSync(`${slot(0)}.reclaim`, old, old);
+    const execute = passing();
+
+    await runCheck({
+      args: ARGS,
+      env: session(),
+      config,
+      execute,
+      reconcile: reconciled(true),
+      clock: fastClock(),
+    });
+
+    expect(execute.mock.calls.length).toBe(1);
   });
 
   it.each([
