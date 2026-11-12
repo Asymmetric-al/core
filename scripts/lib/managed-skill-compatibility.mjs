@@ -1,4 +1,11 @@
-import { lstat, readdir, readFile, rename, writeFile } from "node:fs/promises";
+import {
+  lstat,
+  mkdir,
+  readdir,
+  readFile,
+  rename,
+  writeFile,
+} from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { applyTasteChartCompatibility } from "./taste-charts-adapter.mjs";
@@ -169,28 +176,39 @@ export async function applyManagedSkillCompatibility(skillName, targetRoot) {
     }
     await writeFile(file, content, "utf8");
   }
-  if (skill.explicitPolicy) {
+  // Codex ignores `disable-model-invocation` and allows implicit invocation
+  // unless agents/openai.yaml says otherwise, so Core's explicit-only
+  // frontmatter implies the native policy even when upstream ships no metadata.
+  const explicitOnly =
+    skill.explicitPolicy === true ||
+    /^disable-model-invocation:\s*true\s*$/mu.test(skill.frontmatter ?? "");
+  if (explicitOnly) {
     const metadataPath = path.join(targetRoot, "agents/openai.yaml");
+    let metadata = "";
     try {
-      let metadata = await readFile(metadataPath, "utf8");
-      if (/allow_implicit_invocation:/u.test(metadata))
-        metadata = metadata.replace(
-          /allow_implicit_invocation:\s*(?:true|false)/u,
-          "allow_implicit_invocation: false",
-        );
-      else if (/^policy:\s*$/mu.test(metadata))
-        metadata = metadata.replace(
-          /^policy:\s*$/mu,
-          "policy:\n  allow_implicit_invocation: false",
-        );
-      else
-        metadata =
-          metadata.trimEnd() +
-          "\n\npolicy:\n  allow_implicit_invocation: false\n";
-      await writeFile(metadataPath, metadata, "utf8");
+      metadata = (await readFile(metadataPath, "utf8")).replaceAll(
+        "\r\n",
+        "\n",
+      );
     } catch (error) {
       if (error.code !== "ENOENT") throw error;
     }
+    if (/allow_implicit_invocation:/u.test(metadata))
+      metadata = metadata.replace(
+        /allow_implicit_invocation:\s*(?:true|false)/u,
+        "allow_implicit_invocation: false",
+      );
+    else if (/^policy:\s*$/mu.test(metadata))
+      metadata = metadata.replace(
+        /^policy:\s*$/mu,
+        "policy:\n  allow_implicit_invocation: false",
+      );
+    else
+      metadata =
+        (metadata.trim() ? metadata.trimEnd() + "\n\n" : "") +
+        "policy:\n  allow_implicit_invocation: false\n";
+    await mkdir(path.dirname(metadataPath), { recursive: true });
+    await writeFile(metadataPath, metadata, "utf8");
   }
   if (skillName === "design-taste-frontend") {
     await applyTastePreviewCompatibility(targetRoot);

@@ -10,7 +10,7 @@ If the user passes a ticket reference, fetch it from the issue tracker and state
 
 Apply Core `tdd` at an established public seam. Ask only when material behavior or the seam is ambiguous.
 
-Run typechecking regularly, single test files regularly, and the full test suite once at the end.
+Run typechecking and single test files regularly. Before review, run the gate that fits the change as `docs/ai/rules/testing.md` describes: `bun run check` for a tight loop and `bun run ci:preflight` before a pull request.
 
 Once done, call the Skill tool with "code-review" to review the work.
 

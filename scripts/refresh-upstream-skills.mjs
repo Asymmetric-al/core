@@ -164,13 +164,19 @@ const upstreamSources = [
     sourceGroup: "nicobailon/grill-for-unknowns",
     skillName: "grill-for-unknowns",
     from: path.join(repoRoot, ".agents", "skills", "grill-for-unknowns"),
-    preserve: ["references/upstream.md"],
+    // Core marks this skill explicit-only; upstream ships no Codex metadata.
+    preserve: ["references/upstream.md", "agents/openai.yaml"],
   },
   {
     sourceGroup: "anthropics/skills",
     skillName: "frontend-design",
     from: path.join(repoRoot, ".agents", "skills", "frontend-design"),
-    preserve: ["references/upstream.md", "references/LICENSE.md"],
+    // Core marks this skill explicit-only; upstream ships no Codex metadata.
+    preserve: [
+      "references/upstream.md",
+      "references/LICENSE.md",
+      "agents/openai.yaml",
+    ],
   },
   {
     sourceGroup: "mattpocock/skills",
