@@ -11,6 +11,14 @@ import type {
   GivingTrendMonth,
 } from "@asym/api/reads/dashboard-stats";
 
+const chart = vi.hoisted(() => ({ render: vi.fn() }));
+vi.mock("next/dynamic", () => ({
+  default: () => (props: unknown) => {
+    chart.render(props);
+    return null;
+  },
+}));
+
 afterEach(cleanup);
 
 const MONTHS = [
@@ -76,6 +84,32 @@ describe("GivingTrendCard", () => {
       .querySelector("figcaption")!.textContent!;
     expect(summary).toContain("CA$6,500.50");
   });
+
+  it.each([
+    ["JPY", 10000, "¥10,000", 10000],
+    ["KWD", 1230, "KWD\u00a01.230", 1.23],
+  ])(
+    "preserves %s minor-unit precision in exact labels",
+    (currency, minorUnits, expected, majorUnits) => {
+      const values = trend({ currency, currencies: [currency] });
+      values.months = values.months.map((month) => ({
+        ...month,
+        netCents: minorUnits,
+      }));
+      render(<GivingTrendCard trend={values} />);
+      const summary = screen
+        .getByRole("figure", { name: "Net giving by month" })
+        .querySelector("figcaption")!.textContent!;
+      expect(summary).toContain(`February 2026: ${expected} from 2 gifts`);
+      expect(chart.render).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({ net: majorUnits, exact: expected }),
+          ]),
+        }),
+      );
+    },
+  );
 
   it("says when currencies are mixed instead of charting a sum", () => {
     const mixed = trend({ currency: null, currencies: ["CAD", "USD"] });

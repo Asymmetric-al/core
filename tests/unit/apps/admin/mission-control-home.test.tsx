@@ -358,6 +358,33 @@ describe("Mission Control overview", () => {
     expect(overview.textContent).not.toContain("$25.00");
   });
 
+  it.each([
+    ["JPY", 10000, "¥10,000"],
+    ["KWD", 1230, "KWD\u00a01.230"],
+  ])(
+    "preserves %s minor-unit precision in the monthly total",
+    (currency, minorUnits, expected) => {
+      render(
+        <MissionControlHome
+          stats={{
+            crmRecordCount: 1,
+            totalMissionaries: 1,
+            totalDonationsThisMonth: 1,
+            revenueThisMonthCents: minorUnits,
+            activeFundsCount: 1,
+            givingTrend: {
+              ...givingTrend(minorUnits),
+              currency,
+              currencies: [currency],
+            },
+          }}
+        />,
+      );
+      const overview = screen.getByRole("region", { name: "Tenant overview" });
+      expect(overview.textContent).toContain(expected);
+    },
+  );
+
   it("charts net giving by month right after the overview figures", () => {
     render(
       <MissionControlHome

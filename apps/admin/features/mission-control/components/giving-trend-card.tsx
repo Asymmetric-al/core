@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMoney, minorUnitExponent } from "@asym/api/money";
 import { ChartCard } from "@asym/ui/components/primitives/chart-wrappers";
 import {
   ChartContainer,
@@ -238,10 +239,8 @@ export function GivingTrendCard({
     );
   }
 
-  const exact = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: trend.currency,
-  });
+  const currency = trend.currency;
+  const minorUnitsPerMajor = 10 ** minorUnitExponent(currency);
   const compact = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: trend.currency,
@@ -255,8 +254,8 @@ export function GivingTrendCard({
     return {
       label: MONTH_SHORT.format(date),
       name,
-      net: cents / 100,
-      exact: exact.format(cents / 100),
+      net: cents / minorUnitsPerMajor,
+      exact: formatMoney(cents, currency, "en-US"),
       soFar: month.soFar,
     };
   });

@@ -3,6 +3,8 @@
 import { queryAllByRole, queryAllByText } from "@testing-library/dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { getNavItemsByRole } from "../../../packages/config/navigation";
+
 import type { Page } from "@playwright/test";
 
 const smoke = vi.hoisted(() => ({
@@ -31,6 +33,16 @@ vi.mock("@playwright/test", () => {
       toHaveTitle: async (expected: RegExp) => {
         expect((actual as { title(): string }).title()).toMatch(expected);
       },
+      toHaveCount: async (expected: number) => {
+        expect((actual as { count(): number }).count()).toBe(expected);
+      },
+      toHaveAttribute: async (name: string, expected: RegExp) => {
+        expect(
+          (
+            actual as { getAttribute(name: string): string | null }
+          ).getAttribute(name),
+        ).toMatch(expected);
+      },
       toBeGreaterThan: (expected: number) => {
         expect(actual).toBeGreaterThan(expected);
       },
@@ -56,16 +68,30 @@ vi.mock("../../e2e/development-smoke/helpers", () => ({
 
 import "../../e2e/development-smoke/donor.smoke.spec";
 import "../../e2e/development-smoke/missionary.smoke.spec";
+import "../../e2e/development-smoke/admin.profile-dropdown.spec";
 
-function fixturePage(surface: "donor" | "missionary", content: string) {
+function fixturePage(
+  surface: "donor" | "missionary" | "admin",
+  content: string,
+) {
   document.body.innerHTML = content;
   let pathname = surface === "donor" ? "/donor-dashboard" : "/";
-  let title = "Dashboard";
+  let title = surface === "admin" ? "Mission Control" : "Dashboard";
   const locator = (elements: Element[]) => ({
     count: () => elements.length,
     first: () => locator(elements.slice(0, 1)),
+    getAttribute: (name: string) => elements[0]?.getAttribute(name) ?? null,
+    click: async () => {
+      const element = elements[0];
+      if (!element) throw new Error("Cannot click a missing element");
+      if (element instanceof HTMLAnchorElement) {
+        await page.goto(element.getAttribute("href") ?? "/");
+      } else {
+        document.querySelector("[role=menu]")?.removeAttribute("hidden");
+      }
+    },
   });
-  return {
+  const page = {
     url: () => "https://preview.example" + pathname,
     title: () => title,
     getByRole: (role: Parameters<typeof queryAllByRole>[1], options: object) =>
@@ -73,15 +99,24 @@ function fixturePage(surface: "donor" | "missionary", content: string) {
     getByText: (text: RegExp) => locator(queryAllByText(document.body, text)),
     goto: async (target: string) => {
       pathname = target;
-      title = "Partners";
-      document.body.innerHTML = "<h1>Partners</h1>";
+      title =
+        surface === "admin" ? "Administration | Mission Control" : "Partners";
+      document.body.innerHTML =
+        surface === "admin"
+          ? "<h1>Administration</h1><h2>People and access</h2>"
+          : "<h1>Partners</h1>";
+    },
+    waitForURL: async (expected: RegExp) => {
+      expect(pathname).toMatch(expected);
     },
     waitForLoadState: async () => {},
   } as unknown as Page;
+  return page;
 }
 
-function flowFor(surface: "donor" | "missionary") {
-  const match = [...smoke.flows].find(([title]) => title.startsWith(surface));
+function flowFor(surface: "donor" | "missionary" | "admin") {
+  const prefix = surface === "admin" ? "profile dropdown" : surface;
+  const match = [...smoke.flows].find(([title]) => title.startsWith(prefix));
   if (!match) throw new Error("Missing " + surface + " smoke flow");
   return match[1];
 }
@@ -91,6 +126,29 @@ afterEach(() => {
 });
 
 describe("hosted smoke dashboard surface contracts", () => {
+  function adminPage(staffHref = "/admin/teams") {
+    const staffDirectory = getNavItemsByRole("admin")
+      .find((item) => item.id === "admin")
+      ?.items?.find((item) => item.id === "admin-teams");
+    expect(staffDirectory?.title).toBe("Staff directory");
+    return fixturePage(
+      "admin",
+      `<button>Open profile menu</button><div role="menu" hidden><a role="menuitem" href="/admin">Administration</a><a role="menuitem" href="${staffHref}">${staffDirectory?.title}</a><a role="menuitem" href="/help/about">About</a><button role="menuitem">Sign out</button></div>`,
+    );
+  }
+
+  it("accepts the Staff directory profile shortcut from current admin navigation", async () => {
+    const page = adminPage();
+    await flowFor("admin")({ page });
+    expect(page.url()).toBe("https://preview.example/admin");
+  });
+
+  it("rejects a Staff directory shortcut with the wrong destination", async () => {
+    await expect(
+      flowFor("admin")({ page: adminPage("/admin/wrong") }),
+    ).rejects.toThrow();
+  });
+
   it("accepts the donor greeting, giving summary and updates headings", async () => {
     const page = fixturePage(
       "donor",

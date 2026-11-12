@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMoney } from "@asym/api/money";
 import { navigation } from "@asym/config/navigation";
 import { useMC } from "@asym/lib/mission-control/context";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
@@ -40,15 +41,6 @@ import type { DashboardStats } from "@asym/api/reads/dashboard-stats";
 import type { Tile, Role } from "@asym/lib/mission-control/types";
 import type { ReactNode } from "react";
 
-function formatMoney(cents: number, currency: string): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(cents / 100);
-}
-
 type MissionControlHomeProps = {
   stats?: DashboardStats | null;
 };
@@ -87,6 +79,7 @@ function buildOverviewMetrics(stats: DashboardStats): OverviewMetric[] {
         : formatMoney(
             stats.revenueThisMonthCents,
             stats.givingTrend.currency ?? "USD",
+            "en-US",
           ),
       context: "Settled gifts since the 1st (UTC), after refunds",
       unavailableReason: currencyNotice ?? undefined,
