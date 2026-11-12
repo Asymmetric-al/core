@@ -3,8 +3,10 @@
 Status: **installed and operating on VM 100; acceptance partly verified**. The
 factory delivered both authorized issues on 12 November 2026 (#2233 merged,
 #2234 pull request ready); see
-[Live commissioning](#live-commissioning---12-november-2026) for the evidence
-and the checks that are still open. Governing authority is the owner's private
+[Live commissioning](#live-commissioning---12-november-2026) for that evidence
+and [Verification and council pass](#verification-and-council-pass---12-november-2026)
+for the wider test that followed, what it broke, what was repaired and what is
+still open. Governing authority is the owner's private
 installation plan supplied on 10 November 2026. That plan and its private
 appendix must never enter Git, and this record uses owner aliases and omits
 network addresses and credentials.
@@ -877,20 +879,149 @@ manifest hashes, passed the database integrity check, unpacked both archives
 and restored both issues' unpushed candidates exactly from their bundles. The
 drill directory was removed afterwards.
 
+### Open after the first run
+
+Superseded by the list at the end of the
+[verification and council pass](#verification-and-council-pass---12-november-2026).
+
+The owner merged PR #2649 by hand at 14:59; the table above is the state at
+11:30.
+
+## Verification and council pass - 12 November 2026
+
+All times UTC. This pass widened the scope to three more real issues, had
+three independent models analyse the whole factory before any further repair,
+repaired what they and the live system confirmed, and ran the real workflow
+again. After the commissioning run above, the owner merged PR #2649 (issue
+#2234) by hand at 14:59; the factory had reported it ready and did not merge
+it.
+
+### What was run
+
+| Time  | Event                                                                                                             |
+| ----- | ----------------------------------------------------------------------------------------------------------------- |
+| 13:22 | Scope approved: issues 2206, 2215 and 2228 added, all to a ready pull request                                     |
+| 13:23 | Selector timed out on three passes in a row; nothing admitted (defect 12)                                         |
+| 13:55 | Engine restart left a selector run "running"; later passes started nothing (defect 13)                            |
+| 14:11 | The intake pass cleared the orphan by itself after the fix                                                        |
+| 14:12 | GitHub API quota exhausted (old selector plus probes): admission refused on changed evidence, retried after reset |
+| 14:24 | Timer pass admitted #2206; Samson's reason: a correctness bug outranks a wording fix                              |
+| 14:34 | Timer pass admitted #2215; #2228 reported blocked (defect 14)                                                     |
+| 15:05 | Engine restarted on purpose while #2215 was mid-round                                                             |
+| 15:14 | Timer pass cleared the dead run, settled #2215 to waiting and started #2206's queued round, with no operator      |
+| 16:31 | #2206 blocked at round 3 with both reviews clear: final acceptance inconclusive (defect 15)                       |
+| 17:13 | Release `620140dd` installed from commit `230c5e3c6`                                                              |
+| 17:17 | Timer pass started #2206 and #2215 one second apart on lanes 1 and 2; both ran at once                            |
+| 17:27 | #2206 published as PR #2652: both reviews clear, final acceptance passed on all seven criteria                    |
+| 17:29 | Hold placed on #2215 mid-round; replaying the same request was a no-op                                            |
+| 17:55 | #2206 ready: the factory merged the newer `develop` into the branch, carried the reviews, waited for the checks   |
+| 17:56 | Hold on #2215 released; its unfinished work was intact                                                            |
+| 17:58 | Timer pass resumed #2215 and admitted #2228, which was no longer blocked                                          |
+| 18:02 | Intake paused as a recorded checkpoint                                                                            |
+
+PR #2652 at 18:00: head `f6a1457b`, mergeable, no conflict, required checks
+`ci-gate`, `e2e-smoke-gate`, `migrate` and `smoke` successful on that head,
+CodeRabbit's check successful on that head, no review thread, no required
+approval. Samson judged twelve pieces of bot feedback, each with a stated
+reason, and answered the one request (CodeRabbit asked for the deploy
+checklist) on the pull request. No bot raised a finding about the code. Cursor
+reviewed the first head only, which the readiness comment says.
+
+### Defects found, in order
+
+Each was reproduced or confirmed on the running system, repaired test-first
+and checked again on the VM. The numbering continues the list above.
+
+12. The selector walked the whole dependency history of every scope issue
+    (more than 600 GitHub calls) and hit its ten-minute limit. It now reads an
+    authorized issue and its direct prerequisites only; a pass over the same
+    scope takes about 20 seconds and 26 calls.
+13. A run whose engine process died stayed "running" and kept its resource,
+    so one interrupted selector stopped every later pass. The intake pass now
+    abandons factory runs whose recorded engine process is provably gone,
+    after removing that run's check containers.
+14. Selection blocked #2228 on issues its own specification says it does not
+    depend on ("not blocked by #2268", "no relation and no dependency"). A
+    denial now declares nothing, each sentence is classified by its own words,
+    and a prerequisite outside the scope is only asked whether its closing
+    pull request is merged.
+15. Reviewers and final acceptance check the candidate where `node_modules`
+    is read-only. A test that starts its own child test process failed there
+    for a reason that was not the candidate's, so those roles answered
+    inconclusive, and optional findings were turned into repair rounds to get
+    a new review. Read-only checks now have a private scratch mount over the
+    dependency cache directories, read-only roles are told which gates the
+    pre-push gate owns, and an optional finding no longer starts a round.
+16. A bot check that finished skipped (CodeRabbit on PR #2649) counted as a
+    review. Finished any way but successful now means the bot did not review:
+    the pull request can become ready, but it is not merged until a person
+    confirms.
+17. Two admitted issues ran one round at a time, because the engine
+    serializes runs that share a resource and a folder. Each issue now has its
+    own delivery lane, recorded at admission.
+18. GitHub requests had no deadline; one unanswered request could cost a pass.
+19. A crash while taking a check slot left a slot nobody could reclaim.
+20. Nobody was told when an issue blocked. The next pass now posts one comment
+    on the GitHub issue with the reason and the next step.
+
+Console (release 7): saving a scope erased the per-issue end states that limit
+what may merge; 38 pack refusal codes were shown as "effect unknown"; the work
+map showed a Scope step that repair rounds do not run. All three are fixed.
+
+### Independent analysis
+
+Three reviewers analysed the whole factory before the repairs for defects 14
+to 20, each alone, read-only, in its own checkout, without access to the VM:
+Claude Fable 5.2, GPT-6.1 Sol and Gemini 4 Carbon, each configured at high
+reasoning effort. Their scores for "ready to run unattended today" were 3, 5
+and 4.5 out of 10. Every repair above from 14 on answers a finding at least
+one of them made and the coordinator confirmed; defect 15's cause was found by
+the coordinator from the sealed reviews. One reviewer claim was rejected on
+evidence: the "duplicate run" at 15:48 was #2215's queued start honouring an
+operator stop.
+
+### Operator interventions in this pass
+
+- Scope approval; intake paused and resumed around four release changes;
+  installs and engine restarts for each.
+- `adopt-policy`, then `retry` or `reopen`, for #2206 and #2215 after the
+  release that carried the council repairs.
+- The check-queue wait raised to 30 minutes in the operator-owned
+  configuration (previous file kept).
+- One manual intake start at 14:11. Every other pass above was the timer's.
+- Deliberate tests: an engine restart at 15:05, a hold and release on #2215,
+  the final intake pause.
+
+No abandon by hand, hook bypass, forced merge, account switch, API fallback
+or fabricated check was used. The workflow is therefore **assisted**, not
+unattended, across this pass as a whole: the admission, delivery, review,
+publication, feedback and recovery steps listed in the table ran without an
+operator, but the factory needed repairs between them.
+
 ### Still open
 
-- **Off-host backup copy.** The latest backups exist only on the VM's disk.
-  The operator link is too slow for an ad hoc copy; a person needs to schedule
-  one.
-- **Durable storage fix.** The host SSD still runs through the USB bridge with
-  the driver workaround. A person should move it to an onboard SATA port or
-  move the VM disks to the NVMe drives.
-- **Independent review of the final integrated source** and its hosted CI run.
-- **Not exercised live:** typed native-fault holds and their recovery (no
-  trusted recovery operation exists), identity drift, unknown-effect
-  reconciliation after an interrupted publish or merge, Agabus incident
-  analysis, the Console's chat and bounded assessments, and two issues
-  running at the same time (delivery runs are serialized on one resource).
+- **Off-host backup copy** and the **USB disk bridge**: both need a person.
+- **Hold after a provider fault.** When a round fails on a provider error the
+  engine does not retry, the work item is held and no control releases it.
+  Ordinary usage limits are different: the engine pauses the run and resumes
+  it, which was proven on 10 November. The hold has never occurred live and
+  has no recovery command.
+- **Disputed bot feedback** stops for a person; Agabus is not consulted in the
+  feedback stage.
+- **Scope is approved by hand.** The factory orders and admits what is in the
+  scope; it does not choose issues from the backlog or the roadmap.
+- **A prerequisite closed without a merged pull request that closes it** is
+  never counted as done; the issue that names it stays blocked, with that
+  reason.
+- **`"coverage":"once"` for Cursor** lets a head repaired after Cursor's only
+  review be merged without Cursor seeing it. It is an operator choice.
+- **Console** reads owners and admission capacity from its own settings, not
+  the factory configuration; chat and bounded assessments were not exercised.
+- **Analysis runs** are started only by an operator, and an open attention
+  item is never closed.
+- **Finished workspaces** (about 3 GB each) are not pruned.
+- **Not exercised live:** identity drift, an interrupted publish or merge, and
+  the engine's handling of a real usage limit under two lanes.
 - **Analysis turn cap** is not enforced by the engine (see above).
 
-The governing acceptance matrix is therefore partly verified, not complete.
+The governing acceptance matrix is partly verified, not complete.

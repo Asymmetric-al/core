@@ -32,8 +32,8 @@
       `pack/.shared/roles/*.md` → generated commands (`build-pack.mjs --check`),
       hashes in `roles/manifest.json`; installed pack is the consumed source.
 - [x] Implement native assignment/reservation/lease/slot separation.
-      `workitem.mjs` + trigger resources. Two issues were admitted together on
-      12 November; their delivery runs are serialized on one resource.
+      `workitem.mjs` + trigger resources. One delivery lane per admitted issue
+      since 12 November; two issues ran side by side at 17:17 UTC.
 - [x] Qualify actual role views, peer isolation, policy and candidate boundaries.
       Live probes and the real rounds of #2233/#2234 (separate read-only views,
       guard log, executor without profile or network).
@@ -46,7 +46,8 @@
       #2233 merged through the protected branch rules after a review thread was
       repaired.
 - [ ] Prove controls, waits, unknown-effect reconciliation and bounded retries.
-      Controls (pause, stop, retry, reopen, adopt-policy) and a quota wait are
+      Controls (pause, stop, hold, release, retry, reopen, adopt-policy), a
+      quota wait and recovery of a round interrupted by an engine restart are
       proven live. Unknown-effect reconciliation and native-fault holds are not.
 - [x] Complete one then two actual authorized issue flows.
       #2233 MERGED, #2234 PR_READY.
@@ -82,8 +83,9 @@
 - [ ] Repair wave 1 (boundary, lifecycle, flow, readiness, ops, Console),
       test-first, independently verified; redeploy and requalify live.
       Repairs are installed and were requalified live on 12 November, together
-      with eleven further defects found on the live system. Independent review
-      of the final integrated source remains pending.
+      with twenty further defects found on the live system. Three independent
+      models analysed the whole factory on 12 November; their confirmed
+      findings were repaired and are recorded in the commissioning record.
 - [ ] Wave 2: typed native faults, identity drift, disk pressure, incident
       analysis triggers, remaining matrix gaps.
       Implemented with unit proof; only the disk-space guard is proven live.

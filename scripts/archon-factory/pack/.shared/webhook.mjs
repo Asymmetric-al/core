@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { createArchon } from "./archon.mjs";
 import { loadConfig } from "./config.mjs";
 import { verifyNativeIdentity } from "./identity.mjs";
-import { TERMINAL, deliveryKey } from "./workitem.mjs";
+import { TERMINAL, deliveryKey, freeLane } from "./workitem.mjs";
 
 export const SOURCES = {
   select: "core-factory-select",
@@ -47,12 +47,23 @@ export function signDelivery({ secret, deliveryId, timestamp, payload }) {
 // (freeLane in workitem.mjs); one issue's rounds never overlap, because a round starts only
 // after the previous one recorded.
 
-// For a work item admitted before lanes were recorded: its place among the
-// live issues, in issue order.
-export function deliveryLane(liveIssues, issue, lanes) {
+// The lane one round starts on, given the live work items. An issue keeps
+// the lane it recorded at admission. Two cases need a choice at start time: a
+// work item admitted before lanes were recorded, and two live issues that
+// record the same lane (a blocked issue retried after a newer one took its
+// lane), where the higher-numbered one moves. Both take the lowest lane no
+// other live issue records.
+export function deliveryLane(live, me, lanes) {
   const count = Number.isSafeInteger(lanes) && lanes > 0 ? lanes : 1;
-  const live = [...new Set([...liveIssues, issue])].sort((a, b) => a - b);
-  return (live.indexOf(issue) % count) + 1;
+  const usable = (lane) =>
+    Number.isSafeInteger(lane) && lane >= 1 && lane <= count;
+  const others = live.filter((item) => item.issue !== me.issue);
+  if (
+    usable(me.lane) &&
+    !others.some((item) => item.lane === me.lane && item.issue < me.issue)
+  )
+    return me.lane;
+  return freeLane(others.map((item) => item.lane).filter(usable), count);
 }
 
 async function listLiveIssues() {
@@ -64,7 +75,10 @@ async function listLiveIssues() {
         entry.value &&
         !TERMINAL.has(entry.value.status),
     )
-    .map((entry) => Number(entry.name.split("/")[2]));
+    .map((entry) => ({
+      issue: Number(entry.name.split("/")[2]),
+      lane: entry.value.lane,
+    }));
 }
 
 export async function fireWebhook({
@@ -153,12 +167,13 @@ export async function fireRound({
     expectedDigest: value.assignment.profileDigest,
   });
   const deliveryId = deliveryKey(value, revision);
-  const lanes = config.limits?.admittedIssues ?? 2;
-  // Not knowing the other live issues only costs parallelism: lane 1 queues.
-  const lane =
-    Number.isSafeInteger(value.lane) && value.lane >= 1 && value.lane <= lanes
-      ? value.lane
-      : deliveryLane(await liveIssues().catch(() => []), value.issue, lanes);
+  // Not knowing the other live issues only costs parallelism: the issue keeps
+  // its recorded lane, or queues on the first.
+  const lane = deliveryLane(
+    await liveIssues().catch(() => []),
+    { issue: value.issue, lane: value.lane },
+    config.limits?.admittedIssues ?? 2,
+  );
   const fired = await fireWebhook({
     config,
     workflow: "deliver",

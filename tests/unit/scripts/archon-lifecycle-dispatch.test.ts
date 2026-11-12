@@ -316,7 +316,7 @@ describe("fireRound", () => {
       secret: SECRET,
       now: () => Date.parse(T1),
       verifyIdentity,
-      liveIssues: async () => [12],
+      liveIssues: async () => [{ issue: 12 }],
     });
     expect(verifyIdentity).toHaveBeenCalledWith({
       config,
@@ -356,16 +356,43 @@ describe("delivery lanes", () => {
   };
   const SECRET = `whsec_${Buffer.alloc(32, 9).toString("base64")}`;
 
-  it("gives each live issue its own lane, in issue order", () => {
-    expect(deliveryLane([12, 30], 12, 2)).toBe(1);
-    expect(deliveryLane([12, 30], 30, 2)).toBe(2);
-    expect(deliveryLane([30], 12, 2)).toBe(1);
-    expect(deliveryLane([12, 30, 41], 41, 2)).toBe(1);
-    expect(deliveryLane([12, 30], 30, 1)).toBe(1);
-    expect(deliveryLane([], 12, 0)).toBe(1);
+  it("keeps the lane an issue recorded at admission", () => {
+    const live = [
+      { issue: 12, lane: 2 },
+      { issue: 30, lane: 1 },
+    ];
+    expect(deliveryLane(live, { issue: 12, lane: 2 }, 2)).toBe(2);
+    expect(deliveryLane(live, { issue: 30, lane: 1 }, 2)).toBe(1);
   });
 
-  it("starts a round on the lane of its issue among the live issues", async () => {
+  it("gives an issue admitted before lanes were recorded a lane no other live issue records", () => {
+    // #2215 was admitted without a lane; #2228 then recorded lane 1.
+    const live = [{ issue: 2215 }, { issue: 2228, lane: 1 }];
+    expect(deliveryLane(live, { issue: 2215 }, 2)).toBe(2);
+    expect(deliveryLane(live, { issue: 2228, lane: 1 }, 2)).toBe(1);
+    expect(deliveryLane([{ issue: 12 }], { issue: 12 }, 2)).toBe(1);
+  });
+
+  it("moves the higher-numbered issue when two live issues record the same lane", () => {
+    // A blocked issue kept lane 1, a new issue took it, then the blocked
+    // one was retried.
+    const live = [
+      { issue: 12, lane: 1 },
+      { issue: 30, lane: 1 },
+    ];
+    expect(deliveryLane(live, { issue: 12, lane: 1 }, 2)).toBe(1);
+    expect(deliveryLane(live, { issue: 30, lane: 1 }, 2)).toBe(2);
+  });
+
+  it("ignores a recorded lane the installation does not have, and has one lane at least", () => {
+    expect(deliveryLane([], { issue: 12, lane: 5 }, 2)).toBe(1);
+    expect(
+      deliveryLane([{ issue: 7, lane: 1 }], { issue: 12, lane: 9 }, 2),
+    ).toBe(2);
+    expect(deliveryLane([{ issue: 7, lane: 1 }], { issue: 12 }, 0)).toBe(1);
+  });
+
+  it("starts a round on the lane chosen from the live work items", async () => {
     const fetchImpl = vi.fn(async () => Response.json({ receiptId: "r-1" }));
     const item = waitingAfterRound3();
     await fireRound({
@@ -375,17 +402,16 @@ describe("delivery lanes", () => {
       fetchImpl,
       secret: SECRET,
       verifyIdentity: async () => ({}),
-      liveIssues: async () => [7, 12],
+      liveIssues: async () => [{ issue: 7, lane: 1 }, { issue: 12 }],
     });
     expect(String(fetchImpl.mock.calls[0]?.[0])).toBe(
       "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-2",
     );
   });
 
-  it("keeps an issue on the lane recorded at admission, whatever else is live", async () => {
+  it("keeps a recorded lane when the live work items cannot be read", async () => {
     const fetchImpl = vi.fn(async () => Response.json({ receiptId: "r-1" }));
     const item = waitingAfterRound3();
-    const liveIssues = vi.fn(async () => [7, 9, 12]);
     await fireRound({
       config: { ...config, limits: { admittedIssues: 2 } },
       value: { ...item.value, lane: 2 },
@@ -393,28 +419,12 @@ describe("delivery lanes", () => {
       fetchImpl,
       secret: SECRET,
       verifyIdentity: async () => ({}),
-      liveIssues,
+      liveIssues: async () => {
+        throw new Error("state store unavailable");
+      },
     });
     expect(String(fetchImpl.mock.calls[0]?.[0])).toBe(
       "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-2",
-    );
-    expect(liveIssues).not.toHaveBeenCalled();
-  });
-
-  it("ignores a recorded lane the installation does not have", async () => {
-    const fetchImpl = vi.fn(async () => Response.json({ receiptId: "r-1" }));
-    const item = waitingAfterRound3();
-    await fireRound({
-      config: { ...config, limits: { admittedIssues: 2 } },
-      value: { ...item.value, lane: 5 },
-      revision: item.revision,
-      fetchImpl,
-      secret: SECRET,
-      verifyIdentity: async () => ({}),
-      liveIssues: async () => [12],
-    });
-    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe(
-      "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-1",
     );
   });
 

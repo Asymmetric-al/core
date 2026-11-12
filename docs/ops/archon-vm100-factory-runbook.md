@@ -7,14 +7,17 @@ evidence and open checks: [commissioning record](archon-vm100-commissioning.md).
 The paths and commands below are operating guidance, not a fresh readback of
 the installed release or services.
 
-## Current state - 12 November 2026
+## Current state - 12 November 2026, 18:05 UTC
 
-The factory is installed and delivered both authorized issues (#2233 merged,
-#2234 pull request ready). The scope holds only those two issues, so nothing
-else is admitted until the owner approves a new scope. Before changing a
-release or admitting more work, read the open checks in the
-[commissioning record](archon-vm100-commissioning.md#still-open). The safety
-gates below supersede older unconditional retry/resume guidance.
+Intake is **paused** (`verification checkpoint`), so nothing new is admitted.
+The scope holds issues 2206, 2215, 2228, 2233 and 2234, all to a ready pull
+request (2233 was allowed to merge). #2233 is merged, #2234 and #2206 are
+ready (#2234's pull request was then merged by the owner), and #2215 and
+#2228 are admitted and still being worked on; they finish whether or not
+intake is open. To admit more work, approve a scope and run
+`factory resume-intake`. Before changing a release, read the open checks in
+the [commissioning record](archon-vm100-commissioning.md#still-open). The
+safety gates below supersede older unconditional retry/resume guidance.
 
 ## Access
 

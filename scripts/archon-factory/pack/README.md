@@ -41,9 +41,12 @@ resource per lane (`core-factory:delivery-<lane>`, source
 `core-factory-deliver-<lane>`), as many lanes as `limits.admittedIssues`.
 Admission records on the work item the lowest lane no live issue holds
 (`lane`), and every round of that issue starts on it, so two admitted issues
-run side by side while one issue's rounds still follow each other. A work item
-admitted before lanes were recorded takes its place among the live issues, in
-issue order. Heavy checks stay serialized by `limits.heavyCheckSlots`.
+run side by side while one issue's rounds still follow each other. Two cases
+are settled when a round starts: a work item admitted before lanes were
+recorded, and two live issues that record the same lane (a blocked issue
+retried after a newer one took its lane), where the higher-numbered one
+moves. Both take the lowest lane no other live issue records. Heavy checks
+stay serialized by `limits.heavyCheckSlots`.
 
 **Admission observation.** For every authorized issue the selector reads the
 issue, its comments (not the factory's own), GitHub's blocked-by list and the
