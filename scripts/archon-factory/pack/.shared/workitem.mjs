@@ -514,17 +514,15 @@ export function planFinish(
 // The route after a run that ended without recording its round follows the
 // progress that run checkpointed, as record does after a failed node. A
 // candidate it committed only needs its reviews; restarting the round would
-// give the implementer nothing to change. Acceptance it defined and never
-// committed is defined again: only the run that records acceptance tests may
-// commit them (freeze), so a round for the implementer alone would set them
-// aside. Anything else runs the round again.
+// give the implementer nothing to change. Acceptance it defined and did not
+// commit goes to the implementer: freeze commits the tests Ezra recorded,
+// whichever run recorded them. Anything earlier runs the round again.
 function interruptedRoute(value) {
   const { run } = value;
   if (POLLING.has(run.route) || run.route === "review") return run.route;
   if (!Object.hasOwn(run, "head")) return run.route;
   if ((value.head ?? null) !== run.head) return "review";
-  if (value.acceptance?.run === run.id)
-    return run.route === "initial" ? "initial" : "oracle";
+  if (value.acceptance?.run === run.id) return "repair";
   return run.route;
 }
 

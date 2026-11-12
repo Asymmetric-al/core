@@ -223,6 +223,19 @@ ${text}`);
     ]);
   });
 
+  it("reads a semicolon list of three, and only a bare list as a list", () => {
+    expect(edges(parse("Depends on #50; #51; #52."))).toEqual([
+      "implementation #50",
+      "implementation #51",
+      "implementation #52",
+    ]);
+    // "#51 is required" is a statement of its own, not part of the list of
+    // optional issues before it.
+    expect(edges(parse("Optional: #50; #51 is required."))).toEqual([
+      "optional #50",
+    ]);
+  });
+
   it("still starts a new statement after a semicolon", () => {
     expect(edges(parse("Depends on #50; related to #51."))).toEqual([
       "implementation #50",

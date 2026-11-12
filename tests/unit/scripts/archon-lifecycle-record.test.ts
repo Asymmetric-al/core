@@ -107,17 +107,11 @@ describe("the route after a failed node (I1)", () => {
     expect(decision).toMatchObject({ outcome: "continue", route: "repair" });
   });
 
-  // Only the run that recorded acceptance tests may commit them (freeze). A
-  // round that defined acceptance and froze nothing therefore runs the
-  // acceptance stage again; sent to Bezalel alone, its tests would be set
-  // aside and the issue blocked `candidate-integrity`.
-  it.each([
-    ["initial", "initial"],
-    ["oracle", "oracle"],
-    ["repair", "oracle"],
-  ])(
-    "runs the acceptance stage again when a %s round defined acceptance and failed before freeze",
-    (ran, next) => {
+  // Acceptance this run defined and did not commit also goes to Bezalel:
+  // freeze commits the tests Ezra recorded, whichever run recorded them.
+  it.each(["initial", "oracle", "repair"])(
+    "goes to repair when a %s round defined acceptance and failed before freeze",
+    (ran) => {
       const decision = decideRound({
         ledger: {
           ...claimed,
@@ -127,7 +121,7 @@ describe("the route after a failed node (I1)", () => {
         nodes: [failedNode("build")],
         item: item(ran, { acceptance: { run: "run-5" } }),
       });
-      expect(decision).toMatchObject({ outcome: "continue", route: next });
+      expect(decision).toMatchObject({ outcome: "continue", route: "repair" });
     },
   );
 

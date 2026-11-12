@@ -61,7 +61,8 @@ for a person. An issue named both as related and as a prerequisite is a
 prerequisite; any other pair of different statements about one issue is a
 conflict a person settles. Issues in a list are read whatever separates them
 (",", "and", "&", "/", ";"). Only the order "directive, then issue" is read
-("depends on #12"; not "#12 must merge first"), so prose is a heuristic and
+("depends on #12"; not "#12 must merge first"), and a semicolon list is a
+list only when it holds bare issues ("#12; #13"), so prose is a heuristic and
 GitHub's blocked-by relation is the reliable declaration. A prerequisite named
 by its pull request is settled when that pull request is merged on the target
 branch. A prerequisite outside the scope decides one thing: a closing pull request
@@ -78,9 +79,12 @@ factory run whose recorded engine process is provably gone, removes that run's
 check containers, and only then abandons it; the sweep settles the work item
 and starts its next round. That round follows what the interrupted one had
 recorded: a candidate it committed goes to review only; acceptance it defined
-and never committed is defined again (only the run that records acceptance
-tests may commit them); anything else runs the round again. The same rule
-decides the route after a failed node and after a stop. A run whose
+and did not commit goes to the implementer; anything earlier runs the round
+again. The same rule decides the route after a failed node and after a stop.
+Freeze commits the acceptance tests Ezra recorded that no commit holds yet,
+whichever run recorded them, and only with exactly the recorded content, so a
+round that ended before its first commit (an interruption, a failed step,
+rejected hooks) loses nothing. A run whose
 containers cannot be confirmed gone is left for the next pass.
 
 **Blocked issues.** When an issue blocks, the next selector pass posts one
@@ -125,7 +129,8 @@ Repairs travel in `brief.repair` as
 `deliver/scripts/repair-logic.mjs`). `record` routes acceptance items to
 `oracle`, otherwise implementation items to `repair`, otherwise a review-only
 repair to `review`. After a node failure, a round whose candidate was already
-frozen goes to `review` and one that already had acceptance goes to `repair`.
+frozen goes to `review` and one that already had acceptance goes to `repair`
+(Interrupted runs, above).
 An older `{kind, items}` repair maps `acceptance` and `context-change` to Ezra,
 `review-again` to a review-only repair and any other kind to Bezalel.
 
@@ -292,7 +297,7 @@ confirmed, 1 an error.
 ```
 node control.mjs status
 node control.mjs factory pause-intake|resume-intake|drain|stop|resume|hold-merge|release-merge --request <id> --by <who> [--reason <text>]
-node control.mjs issue <n> hold|release|stop|retry|reopen|reconcile --request <id> --by <who> [--reason <text>]
+node control.mjs issue <n> hold|release|stop|retry|reopen|reconcile|adopt-policy --request <id> --by <who> [--reason <text>]
 node control.mjs scope --issues 12,13 --end-state PR_READY [--end-states 12=MERGED] --owner conrad --request <id> --by <who> [--note <text>]
 node control.mjs prioritize <n> <0-100> --request <id> --by <who>
 node control.mjs allow-protected <n> <all|none|glob[,glob...]> --request <id> --by <who>

@@ -349,10 +349,11 @@ workspace) and then abandons the run. A run whose containers cannot be
 confirmed gone is left for the next pass. The sweep in the same pass settles
 the issue back to waiting and starts its next round, which follows what the
 interrupted round had recorded: a candidate it had committed goes to review
-only, acceptance it had defined but not committed is defined again, and anything else
-runs the round again. Unfinished code stays in the issue clone. A round that was waiting (the feedback
-cooldown) is not orphaned: the engine resumes it by itself. This takes
-at most one timer interval (ten minutes). `journalctl -u
+only, acceptance it had defined goes to the implementer (the next commit
+carries the tests the acceptance author recorded), and anything earlier runs
+the round again. Unfinished code stays in the issue clone. A round that was
+waiting (the feedback cooldown) is not orphaned: the engine resumes it by
+itself. This takes at most one timer interval (ten minutes). `journalctl -u
 core-factory-intake.service` shows what was cleared.
 
 That path covers ordinary rounds only. For a run with a native or cleanup
@@ -404,7 +405,10 @@ integrity-checked), `control-and-runs.tgz` (control folder and run evidence),
 `engine-runs.tgz` (the engine's round ledgers, frozen workflow sources and
 state, which a restored engine needs to continue paused rounds) and, per issue,
 a Git bundle of unpushed commits, a binary patch of uncommitted changes and a
-tarball of untracked files. Each part is captured on its own, so one failure
+tarball of untracked files (each only when there is something to hold, so a
+pushed, clean issue has none). Files a round set aside under
+`runs/<run>/strays/untracked` are not in the backup. Each part is captured on
+its own, so one failure
 does not stop the rest. `manifest.json` lists every file with its hash and
 carries `complete` and `failures[]`. A non-zero exit of
 `core-factory-backup.service` means a partial backup: read `failures` in its
@@ -491,6 +495,9 @@ manifest.
    ```sh
    find . -type f | LC_ALL=C sort | xargs sha256sum | sha256sum
    ```
+
+   Run both on Linux or WSL: Git Bash on Windows prints the per-file lines
+   differently, so its final line never matches.
 
 3. It verifies everything before changing anything: pinned binary hashes, the
    engine pieces, plugins (added into a temporary home and checked against
@@ -587,8 +594,9 @@ existing file:
 
 Admission, publication and merge each refuse when disk space or inodes are
 short, or when the service cannot write where it needs to. The thresholds are
-the operator's, in `storage` in `/srv/core-factory/control/core-factory.json`
-(the installer keeps them):
+the operator's, in `storage.reserves` in
+`/srv/core-factory/control/core-factory.json` (`storage` also needs
+`"version": 1`; the installer keeps the whole block):
 
 | Reserve     | Applies to                                             | VM 100 value              |
 | ----------- | ------------------------------------------------------ | ------------------------- |
@@ -669,6 +677,23 @@ echo b > /proc/sysrq-trigger` on the host (binaries on the dead root may fail
 4. Durable fix (needs a person, not urgent while the quirk holds): move the SSD
    to an onboard SATA port (ports 5-8 are empty) or move VM disks to the healthy
    WD SN850X NVMe drives.
+
+## When an issue blocks on its workspace
+
+These blocks mean the issue clone is not in the state the round expects.
+`retry` alone repeats them; look first, in `/srv/core-factory/issues/<n>/repo`
+and the round's evidence under `/srv/core-factory/runs/<run>/strays`.
+
+| Blocker               | What it means                                                                   | What to do                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `acceptance-strays`   | Files outside the issue's source and test paths were dirty before or after Ezra | Move the named files out of the clone (keep them if they matter), then `retry`                     |
+| `acceptance-tampered` | A test the acceptance author recorded no longer holds the recorded content      | Compare the file with the recorded hash in the work item; restore it or have acceptance redefined  |
+| `candidate-integrity` | The commit holds a path it may not, or lacks a recorded acceptance test         | Read the blocker detail; a missing test is in the round's `strays` evidence. Restore, then `retry` |
+| `dirty-workspace`     | The clone has uncommitted work on a different commit than the recorded one      | Inspect and preserve the work by hand; the factory never discards it                               |
+| `review-precondition` | The recorded candidate is not what the clone has checked out, or it is dirty    | Make the clone's HEAD the recorded head with a clean tree, then `retry`                            |
+
+If a blocker is not understood, stop the issue (`issue <n> stop`) and leave
+the clone as it is: nothing is lost while it is stopped.
 
 ## What always needs a person
 

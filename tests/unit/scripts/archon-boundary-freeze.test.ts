@@ -345,6 +345,19 @@ describe("freshTestDrift", () => {
       freshTestDrift({ repo, acceptance: acceptance(EARLIER), runId: RUN }),
     ).toEqual([]);
   });
+
+  it("applies to an earlier run's recorded test that no commit holds yet", () => {
+    const { repo } = repository();
+    writeFileSync(`${repo}/${TEST}`, "changed\n");
+    expect(
+      freshTestDrift({
+        repo,
+        acceptance: acceptance(EARLIER),
+        runId: RUN,
+        pending: new Set([TEST]),
+      }),
+    ).toEqual([`${TEST} changed after Ezra recorded it`]);
+  });
 });
 
 describe("stagingScope", () => {
@@ -373,6 +386,19 @@ describe("stagingScope", () => {
       unrecorded: [false, false],
       outside: [false, false],
     });
+  });
+
+  it("also stages a recorded test no commit holds yet, whichever run recorded it", () => {
+    const later = stagingScope({
+      brief: BRIEF,
+      acceptance: acceptance(EARLIER),
+      runId: RUN,
+      pending: new Set([TEST]),
+    });
+    expect([later(TEST), later("tests/x/other.test.ts")]).toEqual([
+      true,
+      false,
+    ]);
   });
 });
 
@@ -893,11 +919,12 @@ describe("freezeCandidate", () => {
       });
     });
 
-    // Why a round that defined acceptance and froze nothing must run the
-    // acceptance stage again (record-logic failureRoute, workitem
-    // interruptedRoute): a later run may not commit tests it did not record.
-    it("cannot commit acceptance tests an earlier run recorded and never committed", async () => {
-      const { base, repo, freeze } = setup();
+    // A round that defined acceptance can end before its first commit (an
+    // interruption, a failed step, rejected hooks). The tests Ezra recorded
+    // are then in the workspace and in no commit, and a later run commits
+    // them: what counts is the recorded content, not which run recorded it.
+    it("commits acceptance tests an earlier run recorded and never committed", async () => {
+      const { base, repo, run, freeze } = setup();
       const NEW = "tests/x/new.test.ts";
       const NEW_TEXT = "expect(total).toBe(101);\n";
       writeFileSync(`${repo}/${NEW}`, NEW_TEXT);
@@ -907,7 +934,7 @@ describe("freezeCandidate", () => {
         route: "repair",
         value: {
           base,
-          head: base,
+          head: null,
           brief: BRIEF,
           acceptance: acceptance(EARLIER, [
             [TEST, blob(TEST_TEXT)],
@@ -917,8 +944,60 @@ describe("freezeCandidate", () => {
         build: built(),
       });
 
-      expect(result.stop?.entry?.blocked?.code).toBe("candidate-integrity");
-      expect(existsSync(`${repo}/${NEW}`)).toBe(false);
+      expect(result.stop).toBeUndefined();
+      expect(run("rev-parse", `${result.candidate}:${NEW}`)).toBe(
+        blob(NEW_TEXT),
+      );
+      expect(
+        run("diff", "--name-only", base, result.candidate).split("\n").sort(),
+      ).toEqual(["packages/api/src/total.ts", NEW]);
+    });
+
+    it("refuses an uncommitted recorded test that no longer holds what Ezra recorded", async () => {
+      const { base, repo, freeze, count } = setup();
+      const NEW = "tests/x/new.test.ts";
+      writeFileSync(`${repo}/${NEW}`, "expect(total).toBeDefined();\n");
+      writeFileSync(`${repo}/packages/api/src/total.ts`, "x\n");
+
+      const result = await freeze({
+        route: "repair",
+        value: {
+          base,
+          head: null,
+          brief: BRIEF,
+          acceptance: acceptance(EARLIER, [
+            [TEST, blob(TEST_TEXT)],
+            [NEW, blob("expect(total).toBe(101);\n")],
+          ]),
+        },
+        build: built(),
+      });
+
+      expect(result.stop?.entry?.blocked?.code).toBe("acceptance-tampered");
+      expect(count()).toBe("1");
+    });
+
+    it("still sets aside a writer's change to a test the candidate's base already holds", async () => {
+      const { base, repo, run, freeze } = setup();
+      writeFileSync(`${repo}/${TEST}`, "expect(total).toBeDefined();\n");
+      writeFileSync(`${repo}/packages/api/src/total.ts`, "x\n");
+
+      const result = await freeze({
+        route: "repair",
+        value: {
+          base,
+          head: base,
+          brief: BRIEF,
+          acceptance: acceptance(EARLIER),
+        },
+        build: built(),
+      });
+
+      expect(result.stop).toBeUndefined();
+      expect(run("rev-parse", `${result.candidate}:${TEST}`)).toBe(
+        blob(TEST_TEXT),
+      );
+      expect(readFileSync(`${repo}/${TEST}`, "utf8")).toBe(TEST_TEXT);
     });
 
     it("freezes for review as usual when there are no requests", async () => {
@@ -1082,6 +1161,35 @@ describe("buildReport", () => {
 });
 
 describe("setAsideStrays", () => {
+  // A file that was staged and is in no commit (a rejected commit leaves its
+  // index behind) cannot be restored from HEAD: it is unstaged and kept as
+  // evidence like an untracked file.
+  it("sets aside a stray that is staged and in no commit", async () => {
+    const { repo, git, run } = repository();
+    const evidence = `${path.posix.dirname(repo)}/strays`;
+    writeFileSync(`${repo}/docs/new.md`, "new\n");
+    run("add", "docs/new.md");
+    writeFileSync(`${repo}/docs/new.md`, "new, edited after staging\n");
+
+    const strays = await setAsideStrays({
+      git,
+      repo,
+      inScope: () => false,
+      evidenceDir: evidence,
+      ledger: { write: () => {} },
+    });
+
+    expect({
+      strays: { tracked: strays.tracked, untracked: strays.untracked },
+      moved: readFileSync(`${evidence}/untracked/docs/new.md`, "utf8"),
+      status: run("status", "--porcelain"),
+    }).toEqual({
+      strays: { tracked: [], untracked: ["docs/new.md"] },
+      moved: "new, edited after staging\n",
+      status: "",
+    });
+  });
+
   it("keeps changes outside the staging scope as evidence and restores the tree, ignoring a configured external diff", async () => {
     const { repo, git, run } = repository();
     const evidence = `${path.posix.dirname(repo)}/strays`;

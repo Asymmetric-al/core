@@ -124,9 +124,12 @@ function dependencyText(text, source, repo) {
   const directive =
     /\b(?:(?:implementation|dispatch|qualification|release)\s+(?:prerequisites?|dependencies|gates?)|prerequisites?|dependencies|depends on|blocked by|requires|after|(?:non[- ]|not )?optional|informational|related)\b/i;
   const listItem = /^(?:[-+]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/;
-  // A semicolon starts a new statement, except inside a list of issues
-  // ("depends on #50; #51").
-  for (const rawLine of prose(text).split(/\r?\n|;(?!\s*#\d)\s*/)) {
+  // A semicolon starts a new statement, except inside a bare list of issues
+  // ("depends on #50; #51"). An issue followed by words ("#51 is required")
+  // is a statement of its own.
+  for (const rawLine of prose(text).split(
+    /\r?\n|;(?!\s*#\d+\s*(?:[.,;&/)]|and\b|or\b|\r?\n|$))\s*/,
+  )) {
     const lineHeading = /^(#{1,6})\s+(.+)$/.exec(rawLine.trim());
     const lineIsList = listItem.test(rawLine.replace(/[*`]/g, "").trim());
     for (const [index, raw] of sentences(rawLine, lineHeading).entries()) {

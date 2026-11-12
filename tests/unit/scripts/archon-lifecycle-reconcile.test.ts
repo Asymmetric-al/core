@@ -209,21 +209,19 @@ describe("planReconcile", () => {
       },
     );
 
-    // Only the run that recorded acceptance tests may commit them, so a
-    // round that defined acceptance and committed nothing defines it again.
-    it.each([
-      ["initial", "initial"],
-      ["oracle", "oracle"],
-      ["repair", "oracle"],
-    ])(
-      "runs the acceptance stage again when the %s round defined acceptance and committed nothing",
-      (route, expected) => {
+    // Acceptance that was defined and not yet committed goes to the
+    // implementer: freeze commits the tests Ezra recorded, whichever run
+    // recorded them. Defining again would scope again and lose the
+    // corrections Ezra was given.
+    it.each(["initial", "oracle", "repair"])(
+      "goes to the implementer when the %s round defined acceptance and committed nothing",
+      (route) => {
         const next = interrupted(
           route,
           { head: route === "initial" ? null : "a".repeat(40) },
           { acceptance: acceptance("run-3") },
         );
-        expect(next.route).toBe(expected);
+        expect(next.route).toBe("repair");
       },
     );
 

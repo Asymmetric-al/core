@@ -84,12 +84,34 @@ export function buildReport(build) {
   };
 }
 
-// Tests recorded by after-define in this run were written by Ezra this round
-// and are committed by this freeze for the first time.
-export function freshTests(acceptance, runId) {
-  return acceptance?.run === runId
-    ? new Set((acceptance.tests ?? []).map(([file]) => file))
-    : new Set();
+// The acceptance tests this freeze may commit: the ones after-define recorded
+// in this run, and the ones an earlier run recorded that no commit holds yet
+// (`pending`). What Ezra recorded is a file and its content hash; which run
+// recorded it does not matter for what may be committed.
+export function freshTests(acceptance, runId, pending = new Set()) {
+  return new Set([
+    ...(acceptance?.run === runId
+      ? (acceptance.tests ?? []).map(([file]) => file)
+      : []),
+    ...pending,
+  ]);
+}
+
+// Recorded acceptance tests the candidate's base does not hold as recorded.
+// A round that defined acceptance can end before its first commit (an
+// interruption, a failed step, rejected hooks); its tests are then in the
+// workspace and in no commit, and the next commit carries them.
+export async function pendingTests({ git, repo, acceptance, previousHead }) {
+  const pending = new Set();
+  for (const [file, blob] of acceptance?.tests ?? []) {
+    const found = await git.git(
+      ["rev-parse", "--verify", "--quiet", `${previousHead}:${file}`],
+      { cwd: repo },
+    );
+    if ((found.code === 0 ? found.stdout.trim() : "") !== blob)
+      pending.add(file);
+  }
+  return pending;
 }
 
 function matchers(globs) {
@@ -98,26 +120,29 @@ function matchers(globs) {
 }
 
 // What the factory may commit: assigned source paths, plus test paths only
-// for the files Ezra recorded this round.
-export function stagingScope({ brief, acceptance, runId }) {
+// for the files Ezra recorded this round or recorded earlier and not yet
+// committed.
+export function stagingScope({ brief, acceptance, runId, pending }) {
   const source = matchers(brief?.source_paths);
   const test = matchers(brief?.test_paths);
-  const fresh = freshTests(acceptance, runId);
+  const fresh = freshTests(acceptance, runId, pending);
   return (file) => source(file) || (test(file) && fresh.has(file));
 }
 
-// Before the commit: Ezra's tests from this round must still hold exactly
-// what she recorded; nothing a writer did since may change them.
+// Before the commit: the tests this freeze may commit must still hold exactly
+// what Ezra recorded; nothing a writer did since may change them.
 export function freshTestDrift({
   repo,
   acceptance,
   runId,
+  pending,
   lstat = lstatSync,
   readFile = readFileSync,
 }) {
-  if (acceptance?.run !== runId) return [];
+  const fresh = freshTests(acceptance, runId, pending);
   const drift = [];
-  for (const [file, blob] of acceptance.tests ?? []) {
+  for (const [file, blob] of acceptance?.tests ?? []) {
+    if (!fresh.has(file)) continue;
     const full = posix.join(repo, file);
     let stat;
     try {
@@ -145,7 +170,11 @@ export async function verifyCandidate({
   acceptance,
   runId,
 }) {
-  const fresh = freshTests(acceptance, runId);
+  const fresh = freshTests(
+    acceptance,
+    runId,
+    await pendingTests({ git, repo, acceptance, previousHead }),
+  );
   const source = matchers(brief?.source_paths);
   const test = matchers(brief?.test_paths);
   const violations = [];
@@ -223,11 +252,23 @@ export async function setAsideStrays({
   );
   if (!strays.length) return null;
   mkdirSync(evidenceDir, { recursive: true });
+  // A file that is staged and in no commit (a rejected commit leaves its
+  // index behind) cannot be restored from HEAD. It is unstaged and then kept
+  // like an untracked file.
+  const added = strays
+    .filter((entry) => entry.code.startsWith("A"))
+    .map((entry) => entry.path);
+  if (added.length)
+    await git.ok(
+      ["--literal-pathspecs", "restore", "--staged", "--", ...added],
+      { cwd: repo },
+    );
+  const fresh = new Set(added);
   const tracked = strays
-    .filter((entry) => entry.code !== "??")
+    .filter((entry) => entry.code !== "??" && !fresh.has(entry.path))
     .map((entry) => entry.path);
   const untracked = strays
-    .filter((entry) => entry.code === "??")
+    .filter((entry) => entry.code === "??" || fresh.has(entry.path))
     .map((entry) => entry.path);
   if (tracked.length) {
     writeFileSync(
@@ -367,7 +408,18 @@ export async function freezeCandidate({
       `HEAD moved from ${previousHead.slice(0, 12)} to ${head.slice(0, 12)}; files: ${moved.join(", ")}`,
     );
   }
-  const drift = freshTestDrift({ repo, acceptance: value.acceptance, runId });
+  const pending = await pendingTests({
+    git,
+    repo,
+    acceptance: value.acceptance,
+    previousHead,
+  });
+  const drift = freshTestDrift({
+    repo,
+    acceptance: value.acceptance,
+    runId,
+    pending,
+  });
   if (drift.length)
     return blocked(
       "Acceptance tests changed after Ezra recorded them",
@@ -379,6 +431,7 @@ export async function freezeCandidate({
     brief: value.brief,
     acceptance: value.acceptance,
     runId,
+    pending,
   });
   await setAsideStrays({ git, repo, inScope, evidenceDir, ledger });
   if (!finished) {

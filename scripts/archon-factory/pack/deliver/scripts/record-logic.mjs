@@ -300,11 +300,10 @@ function parkedDecision(parked) {
 }
 
 // I1: after a node failure, the next round's route follows the progress the
-// round made. A frozen (or committed) candidate only needs its reviews again.
-// Acceptance this run defined and did not commit is defined again: only the
-// run that records acceptance tests may commit them (freeze), so a round for
-// Bezalel alone would set them aside. Acceptance committed in an earlier
-// round goes to Bezalel; earlier failures rerun the round.
+// round made. A frozen (or committed) candidate only needs its reviews again;
+// defined acceptance goes to Bezalel, whose commit carries the tests Ezra
+// recorded even when no commit holds them yet (freeze); earlier failures
+// rerun the round.
 function failureRoute(ledger, item, ran) {
   if (POLLING.has(ran)) return ran;
   if (ledger.freeze?.review === true) return "review";
@@ -312,8 +311,6 @@ function failureRoute(ledger, item, ran) {
   if (isRecord(run) && Object.hasOwn(run, "head") && item.head !== run.head)
     return "review";
   if (ran === "review") return "review";
-  if (isRecord(run) && run.id && item.acceptance?.run === run.id)
-    return ran === "initial" ? "initial" : "oracle";
   if (ledger["after-define"]?.acceptance) return "repair";
   return ran;
 }
