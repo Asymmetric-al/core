@@ -90,7 +90,6 @@ export const POST = withOperation(
         priority: input.priority,
         due_date: input.due_date ?? null,
         sort_key: input.sort_key ?? Date.now() / 1000,
-        is_auto_generated: false,
         completed_at:
           input.status === "completed" ? new Date().toISOString() : null,
       })

@@ -85,7 +85,6 @@ export type MissionaryPortalTaskRow = {
   sort_key: number | null;
   due_date: string | null;
   completed_at: string | null;
-  is_auto_generated: boolean | null;
   created_at: string;
   updated_at: string;
   donor?: {
@@ -329,7 +328,8 @@ export function mapMissionaryTask(
     sort_key: row.sort_key ?? 0,
     due_date: row.due_date,
     completed_at: row.completed_at,
-    is_auto_generated: Boolean(row.is_auto_generated),
+    // missionary_tasks has no such column: nothing generates tasks yet.
+    is_auto_generated: false,
     created_at: row.created_at,
     updated_at: row.updated_at,
     // Redact the joined donor server-side (§7.2) when that donor is anonymous

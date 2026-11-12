@@ -97,7 +97,6 @@ const TASK_SELECT = `
   sort_key,
   due_date,
   completed_at,
-  is_auto_generated,
   created_at,
   updated_at,
   donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url, giving_preferences)
