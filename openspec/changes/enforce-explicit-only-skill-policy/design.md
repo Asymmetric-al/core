@@ -16,12 +16,17 @@ decided separately.
   their last frontmatter replacement, including the GitHub clone path that
   never runs the adapter.
 - **Safety of the write.** A refreshed tree is upstream content, and the
-  GitHub path copies links as links. The step refuses a linked or non-regular
-  `SKILL.md`, `agents` directory or `agents/openai.yaml` before it reads or
-  writes, so it cannot touch a file outside the staged skill. It edits only
-  the top-level `policy:` mapping, so the key text in a comment, a block
-  scalar or a nested mapping is ignored. It refuses an inline `policy:`
-  mapping rather than write a second key.
+  GitHub path copies links as links. That path now refuses an upstream skill
+  directory that is a link before it copies anything. The step itself refuses
+  a linked skill root and a linked or non-regular `SKILL.md`, `agents`
+  directory or `agents/openai.yaml` before it reads or writes, so it cannot
+  touch a file outside the staged skill.
+- **Shape of the edit.** The step edits only the top-level `policy:` mapping,
+  so the key text in a comment, a block scalar or a nested mapping is ignored.
+  It refuses an inline mapping, a quoted `policy` key and a repeated `policy`
+  mapping rather than write a second key and leave the result to the YAML
+  loader. A trailing comment on the frontmatter flag still counts as
+  explicit-only; a commented-out flag does not.
 - **Guard.** `tests/unit/docs/explicit-only-skill-policy.test.ts` checks both
   the canonical tree and the Codex runtime tree, so a refresh on any path that
   drops the policy fails with the fix in its message.
@@ -37,7 +42,13 @@ decided separately.
   model-invocable skill that must stay without native policy. The shared step
   is also tested directly: an active `true` policy, a commented-out key, key
   text inside a block scalar, an existing mapping with its own indentation, an
-  inline mapping, and linked metadata paths.
+  inline mapping, a quoted or repeated `policy` key, a flag with a trailing
+  comment, a commented-out flag, a linked skill root and linked metadata
+  paths.
+- End to end: a copy of the refresh script runs against a local stand-in for
+  the Cursor Team Kit repository. It writes the policy for a skill whose
+  upstream ships no Codex metadata, and it fails without publishing when the
+  upstream skill directory is a link. This test runs on Linux only.
 - Structural: `bun run skills:verify`, the installed-payload audit test, and
   `bun run format:check`.
 - Runtime: `codex debug prompt-input` renders the exact model-visible prompt

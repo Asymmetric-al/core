@@ -2650,6 +2650,12 @@ async function prepareGithubSkillRefresh({
       );
     return null;
   }
+  // `cp` copies a link as a link. A linked skill directory would make the
+  // staging path a link, and every later write would follow it out of the tree.
+  if (!(await lstat(upstreamSkillDir)).isDirectory())
+    throw new Error(
+      "Upstream skill source must be a real directory: " + upstreamSkillDir,
+    );
   if (group.source === "cloudflare/security-audit-skill")
     await assertSecurityAuditSource(upstreamSkillDir, cloneDir);
   await assertCanonicalDirectoryEntry(to);

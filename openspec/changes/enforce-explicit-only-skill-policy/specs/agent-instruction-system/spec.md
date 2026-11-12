@@ -28,6 +28,19 @@ supported client. Each skill whose entrypoint sets
 - **THEN** the refresh fails before any policy write
 - **AND** no file outside the staged skill is read or changed
 
+#### Scenario: Upstream ships a linked skill directory
+
+- **WHEN** the upstream skill directory itself is a symbolic link
+- **THEN** the refresh fails before it copies that skill
+- **AND** the canonical skill is left unchanged
+
+#### Scenario: Upstream metadata has an ambiguous policy key
+
+- **WHEN** upstream `agents/openai.yaml` has an inline, quoted or repeated
+  top-level `policy` key
+- **THEN** the refresh fails and leaves the metadata for manual review
+- **AND** it does not append a second policy mapping
+
 #### Scenario: A model-invocable skill is refreshed
 
 - **WHEN** a managed skill that Core leaves model-invocable is refreshed

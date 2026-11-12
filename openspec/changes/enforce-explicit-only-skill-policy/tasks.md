@@ -7,6 +7,9 @@
       create missing metadata, and call it from the managed adapter and both
       refresh paths.
 - [x] 1.4 Regenerate runtime mirrors and installed-payload hashes.
+- [x] 1.5 Refuse linked skill paths and ambiguous `policy` keys instead of
+      writing through or beside them, and cover the GitHub refresh path end
+      to end.
 
 ## 2. Imported skill wording
 

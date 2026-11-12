@@ -27,7 +27,8 @@ function explicitOnlySkills(root: string): string[] {
       const entrypoint = join(absoluteRoot, name, "SKILL.md");
       return (
         existsSync(entrypoint) &&
-        /^disable-model-invocation:\s*true\s*$/m.test(
+        // A trailing YAML comment still leaves the key active.
+        /^disable-model-invocation:\s*true(?:\s+#.*)?\s*$/m.test(
           frontmatter(readFileSync(entrypoint, "utf8")),
         )
       );

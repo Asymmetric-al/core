@@ -41,5 +41,5 @@ narrower route.
 
 Affected capability: `agent-instruction-system`. The change touches canonical
 skills and their mirrors, the managed refresh adapter and its config, the
-installed-payload audit and two unit tests. There is no product runtime
+installed-payload audit and three unit tests. There is no product runtime
 change. Rollback is a revert.

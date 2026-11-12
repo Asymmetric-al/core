@@ -250,6 +250,60 @@ describe("native policy derived from the final frontmatter", () => {
     },
   );
 
+  it("refuses a skill root that is itself a link", async () => {
+    const real = await skillTree(explicitOnly);
+    const linkedRoot = real + "-link";
+    roots.push(linkedRoot);
+    try {
+      await symlink(real, linkedRoot, "dir");
+    } catch (error) {
+      // Windows without Developer Mode cannot create links; Linux CI can.
+      if ((error as NodeJS.ErrnoException).code === "EPERM") return;
+      throw error;
+    }
+
+    await expect(ensureExplicitOnlyNativePolicy(linkedRoot)).rejects.toThrow(
+      /must be a real directory/i,
+    );
+    await expect(metadata(real)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  // A quoted or repeated key is still the policy to a YAML loader. Appending a
+  // second block would leave it to the loader which one wins.
+  it.each([
+    ["a single-quoted key", "'policy':\n  allow_implicit_invocation: true\n"],
+    ["a double-quoted key", '"policy":\n  allow_implicit_invocation: true\n'],
+    [
+      "two policy mappings",
+      "policy:\n  allow_implicit_invocation: true\npolicy:\n  other: 1\n",
+    ],
+  ])("rejects metadata with %s", async (_label, upstream) => {
+    const root = await skillTree(explicitOnly, upstream);
+
+    await expect(ensureExplicitOnlyNativePolicy(root)).rejects.toThrow(
+      /review it by hand/i,
+    );
+    expect(await metadata(root)).toBe(upstream);
+  });
+
+  it("treats a trailing comment on the frontmatter flag as explicit-only", async () => {
+    const root = await skillTree(
+      "name: fixture\ndescription: Fixture.\ndisable-model-invocation: true # explicit request only",
+    );
+
+    expect(await ensureExplicitOnlyNativePolicy(root)).toBe(true);
+    expect(await metadata(root)).toBe(NATIVE_EXPLICIT_POLICY);
+  });
+
+  it("does not treat a commented-out frontmatter flag as explicit-only", async () => {
+    const root = await skillTree(
+      "name: fixture\ndescription: Fixture.\n# disable-model-invocation: true",
+    );
+
+    expect(await ensureExplicitOnlyNativePolicy(root)).toBe(false);
+    await expect(metadata(root)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("is idempotent and reports a tree without an entrypoint", async () => {
     const root = await skillTree(explicitOnly);
     await ensureExplicitOnlyNativePolicy(root);

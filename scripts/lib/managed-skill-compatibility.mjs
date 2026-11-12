@@ -189,17 +189,32 @@ export async function applyManagedSkillCompatibility(skillName, targetRoot) {
  * Return `metadata` with `policy.allow_implicit_invocation: false`. Only the
  * top-level `policy:` mapping and its direct children are read, so the same
  * text inside a comment, a block scalar or a nested mapping is never mistaken
- * for the policy. An inline mapping is refused: rewriting it could drop other
- * keys, and appending a second `policy:` key would be invalid YAML.
+ * for the policy.
+ *
+ * This is a text edit, not a YAML parser, so it refuses every shape it cannot
+ * edit with certainty instead of guessing: a quoted `policy` key, more than
+ * one `policy` mapping, and an inline mapping. Appending a second `policy:`
+ * block in those cases would leave it to the loader which value wins.
  */
 function withNativeExplicitPolicy(metadata) {
   const lines = metadata.split("\n");
-  const start = lines.findIndex((line) => /^policy\s*:/u.test(line));
-  if (start < 0)
+  if (lines.some((line) => /^(['"])policy\1\s*:/u.test(line)))
+    throw new Error(
+      "Quoted top-level policy key in agents/openai.yaml; review it by hand",
+    );
+  const starts = lines.flatMap((line, index) =>
+    /^policy\s*:/u.test(line) ? [index] : [],
+  );
+  if (starts.length > 1)
+    throw new Error(
+      "More than one top-level policy mapping in agents/openai.yaml; review it by hand",
+    );
+  if (starts.length === 0)
     return (
       (metadata.trim() ? metadata.trimEnd() + "\n\n" : "") +
       "policy:\n  allow_implicit_invocation: false\n"
     );
+  const [start] = starts;
   if (!/^policy\s*:\s*(?:#.*)?$/u.test(lines[start]))
     throw new Error(
       "Unsupported inline policy mapping in agents/openai.yaml; review it by hand",
@@ -269,8 +284,13 @@ async function writeNativeExplicitPolicy(targetRoot) {
  * unless agents/openai.yaml says otherwise. Call this once a refresh has
  * settled the final SKILL.md, so the native policy follows Core's explicit-only
  * decision on every refresh path. Returns whether the skill is explicit-only.
+ *
+ * The root itself must be a real directory. Checking only the files inside it
+ * would follow a linked root to wherever it points.
  */
 export async function ensureExplicitOnlyNativePolicy(targetRoot) {
+  if (!(await lstat(targetRoot)).isDirectory())
+    throw new Error("Skill root must be a real directory: " + targetRoot);
   const entrypointPath = path.join(targetRoot, "SKILL.md");
   let entrypoint;
   try {
@@ -285,7 +305,8 @@ export async function ensureExplicitOnlyNativePolicy(targetRoot) {
   }
   const frontmatter =
     /^---\r?\n([\s\S]*?)\r?\n---/u.exec(entrypoint)?.[1] ?? "";
-  if (!/^disable-model-invocation:\s*true\s*$/mu.test(frontmatter))
+  // A trailing comment is still an active key; a commented-out line is not.
+  if (!/^disable-model-invocation:\s*true(?:\s+#.*)?\s*$/mu.test(frontmatter))
     return false;
   await writeNativeExplicitPolicy(targetRoot);
   return true;
