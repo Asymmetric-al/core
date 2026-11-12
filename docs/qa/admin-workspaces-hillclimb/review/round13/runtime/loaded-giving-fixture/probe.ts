@@ -92,7 +92,7 @@ if (
   stats.revenueThisMonthCents !== 25000 ||
   stats.givingTrend.currency !== "USD" ||
   stats.givingTrend.months.length !== 13 ||
-  transport.length !== 8 ||
+  transport.length !== 7 ||
   transport.some((entry) => entry.status !== 200)
 ) {
   throw new Error(

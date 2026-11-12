@@ -6,10 +6,10 @@ export const FIXTURE_SERVICE_KEY =
   "round13-local-synthetic-service-key-not-a-secret";
 export const FIXTURE_ID = "round13-loaded-giving-v1";
 
-const GIFT_SELECT = "id,amount,refund_amount,currency,created_at";
+const GIFT_SELECT =
+  "id,amount,refund_amount,currency,status,gift_date,created_at";
 const ADJUSTMENT_SELECT =
   "id,donation_id,adjustment_type,status,effective_values,reason,actor_profile_id,source_surface,created_at";
-const SETTLED_FILTER = "in.(completed,succeeded,success)";
 const OTHER_TENANT = "00000000-0000-0000-0000-000000000099";
 const MONTH_TOTALS = [
   125000, 142500, 137500, 168000, 155000, 181000, 174000, 192500, 210000,
@@ -36,6 +36,7 @@ function buildRows(asOf) {
       refund_amount: 0,
       currency: "USD",
       status: ["completed", "succeeded", "success"][giftIndex],
+      gift_date: null,
       created_at: new Date(
         Date.parse(monthStart(asOf, index - 12)) + giftIndex * 7 * 86400000,
       ).toISOString(),
@@ -49,6 +50,7 @@ function buildRows(asOf) {
       refund_amount: index === 0 ? 1000 : index === 3 ? 5000 : 0,
       currency: "USD",
       status: ["completed", "succeeded", "success", "completed"][index],
+      gift_date: null,
       created_at: monthStart(asOf, 0),
     })),
   );
@@ -120,6 +122,12 @@ function reject(status, message) {
   throw Object.assign(new Error(message), { status });
 }
 
+function inDashboardWindow(row, start) {
+  return row.gift_date == null
+    ? row.created_at >= start
+    : row.gift_date >= start.slice(0, 10);
+}
+
 function dashboardRows(request, url, tables, asOf) {
   const table = url.pathname.slice("/rest/v1/".length);
   if (!url.pathname.startsWith("/rest/v1/") || !Object.hasOwn(tables, table))
@@ -133,6 +141,7 @@ function dashboardRows(request, url, tables, asOf) {
   const select = (params.get("select") ?? "").replaceAll(" ", "");
   if (request.method === "HEAD") {
     if (
+      table === "donations" ||
       table === "contribution_adjustments" ||
       select !== "id" ||
       request.headers.prefer !== "count=exact"
@@ -162,23 +171,16 @@ function dashboardRows(request, url, tables, asOf) {
     rows = rows.filter((row) => row.is_active);
   }
   if (table === "donations") {
-    add("status", "created_at");
-    if (params.get("status") !== SETTLED_FILTER)
-      reject(400, "Only canonical settled statuses are supported.");
-    const start =
-      request.method === "HEAD" ? monthStart(asOf, 0) : monthStart(asOf, -12);
-    if (params.get("created_at") !== `gte.${start}`)
-      reject(400, "The fixture requires the declared UTC dashboard window.");
+    add("or");
+    const start = monthStart(asOf, -12);
     if (
-      request.method === "GET" &&
-      (select !== GIFT_SELECT || params.get("order") !== "id.asc")
+      params.get("or") !==
+      `(gift_date.gte.${start.slice(0, 10)},and(gift_date.is.null,created_at.gte.${start}))`
     )
-      reject(400, "Unsupported settled gift projection or order.");
-    rows = rows.filter(
-      (row) =>
-        ["completed", "succeeded", "success"].includes(row.status) &&
-        row.created_at >= start,
-    );
+      reject(400, "The fixture requires the declared UTC dashboard window.");
+    if (select !== GIFT_SELECT || params.get("order") !== "id.asc")
+      reject(400, "Unsupported gift candidate projection or order.");
+    rows = rows.filter((row) => inDashboardWindow(row, start));
   }
   if (table === "contribution_adjustments") {
     add("status", "donation_id");
@@ -197,8 +199,7 @@ function dashboardRows(request, url, tables, asOf) {
         .filter(
           (row) =>
             row.tenant_id === FIXTURE_TENANT_ID &&
-            row.created_at >= monthStart(asOf, -12) &&
-            ["completed", "succeeded", "success"].includes(row.status),
+            inDashboardWindow(row, monthStart(asOf, -12)),
         )
         .map((row) => row.id),
     );

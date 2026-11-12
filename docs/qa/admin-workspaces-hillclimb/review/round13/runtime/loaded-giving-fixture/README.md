@@ -15,18 +15,22 @@ requests, auth endpoints, JWT minting, database connections or mutation routes.
 The published synthetic key is an exact-match fixture marker, **not** a secret,
 JWT, real service-role credential or authentication provider.
 
-Only these unchanged dashboard requests are supported:
+Only these current dashboard requests are supported:
 
-| Method / table               | Required predicates / result                                                                                                                             |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| HEAD donors                  | Exact demo tenant, `select=id`, `Prefer: count=exact`; 48                                                                                                |
-| HEAD missionaries            | Same count contract; 12                                                                                                                                  |
-| HEAD funds                   | Same count contract plus `is_active=eq.true`; 4                                                                                                          |
-| HEAD donations               | Same count contract plus canonical settled statuses and current UTC month start; 4                                                                       |
-| GET donations                | Exact dashboard projection, tenant, settled statuses, 13-month UTC window, `id.asc`, explicit offset/limit; 40 rows                                      |
-| GET contribution_adjustments | Exact dashboard projection, tenant, `status=eq.applied`, up to 150 loaded donation IDs, stable time/ID order and offset/limit; one applicable correction |
+| Method / table               | Required predicates / result                                                                                                                                           |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HEAD donors                  | Exact demo tenant, `select=id`, `Prefer: count=exact`; 48                                                                                                              |
+| HEAD missionaries            | Same count contract; 12                                                                                                                                                |
+| HEAD funds                   | Same count contract plus `is_active=eq.true`; 4                                                                                                                        |
+| GET donations                | Exact dashboard projection, tenant, canonical `gift_date`/legacy `created_at` 13-month window, no raw-status prefilter, `id.asc`, explicit offset/limit; 43 candidates |
+| GET contribution_adjustments | Exact dashboard projection, tenant, `status=eq.applied`, up to 150 loaded donation IDs, stable time/ID order and offset/limit; one applicable correction               |
 
-Canonical settled statuses are `completed`, `succeeded`, `success`. Unknown
+The server read folds applied corrections before deciding effective settled
+membership (`completed`, `succeeded`, `success`) and derives the monthly gift
+count from those same rows; it no longer sends a donations HEAD count. All
+synthetic gifts have a null `gift_date`, exercising the legacy timestamp
+fallback. Correction IDs may reference any loaded candidate, including raw
+unsettled rows. Unknown
 tenants, unsupported projections/routes/preferences, repeated or unknown query
 parameters, conflicting Range headers, writes, nonlocal Host/Origin/forwarding
 and nonpublic schemas fail closed. No rejected request changes fixture data.
@@ -54,19 +58,21 @@ Remove-Item Env:CORE_QA_HTTP_PROOF
 ```
 
 The suite starts/closes its own ephemeral listeners only. It exercises raw HTTP,
-the installed Supabase SDK, the unchanged read, lifetime cleanup and a
+the installed Supabase SDK, the current read, lifetime cleanup and a
 child Bun `--no-env-file` probe with a sanitized process environment. The last
 probe uses the **unmocked** `getAdminClient` factory, guards fetch to this one
 loopback origin with redirects disabled, verifies each response marker and
 prints JSON. The opt-in proof writes a fresh `logs/http-proof-<runId>.json`
-without overwriting another run. It records eight HTTP requests (proof HEAD plus
-seven read requests), source hashes, fixture headers, returned stats and server
+without overwriting another run. It records seven HTTP requests (proof HEAD plus
+six read requests), source hashes, fixture headers, returned stats and server
 request records. No auth endpoint is requested and no credential is logged.
+Historical proof files describe their recorded source hashes; this contract
+update does not recertify those earlier captures.
 
 Scoped static checks:
 
 ```powershell
-node node_modules/@typescript/native/lib/tsc.js --noEmit --incremental false -p docs/qa/admin-workspaces-hillclimb/review/round13/runtime/loaded-giving-fixture/tsconfig.json
+bunx --no-install eslint tests/unit/scripts/dashboard-http-fixture.test.ts docs/qa/admin-workspaces-hillclimb/review/round13/runtime/loaded-giving-fixture/server.mjs docs/qa/admin-workspaces-hillclimb/review/round13/runtime/loaded-giving-fixture/probe.ts
 node --check docs/qa/admin-workspaces-hillclimb/review/round13/runtime/loaded-giving-fixture/server.mjs
 node --check docs/qa/admin-workspaces-hillclimb/review/round13/runtime/loaded-giving-fixture/run.mjs
 ```

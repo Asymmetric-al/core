@@ -25,7 +25,8 @@ vi.mock("@asym/database/supabase/admin", () => ({
 vi.mock("next/cache", () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
 
 const AS_OF = "2026-11-12T12:00:00.000Z";
-const GIFT_SELECT = "id,amount,refund_amount,currency,created_at";
+const GIFT_SELECT =
+  "id,amount,refund_amount,currency,status,gift_date,created_at";
 const CORRECTION_SELECT =
   "id,donation_id,adjustment_type,status,effective_values,reason,actor_profile_id,source_surface,created_at";
 const CORRECTED_GIFT_ID = "10000000-0000-4000-8000-000000000037";
@@ -58,8 +59,7 @@ function giftPath(offset = 0, limit = 1000): string {
     new URLSearchParams({
       select: GIFT_SELECT,
       tenant_id: `eq.${FIXTURE_TENANT_ID}`,
-      status: "in.(completed,succeeded,success)",
-      created_at: "gte.2025-11-01T00:00:00.000Z",
+      or: "(gift_date.gte.2025-11-01,and(gift_date.is.null,created_at.gte.2025-11-01T00:00:00.000Z))",
       order: "id.asc",
       offset: String(offset),
       limit: String(limit),
@@ -182,7 +182,7 @@ describe("round13 local dashboard HTTP fixture", () => {
       stats: { crmRecordCount: 48, revenueThisMonthCents: 25000 },
     });
     expect(probe.stats.givingTrend.months).toHaveLength(13);
-    expect(fixture.requests).toHaveLength(8);
+    expect(fixture.requests).toHaveLength(7);
     expect(fixture.requests.every((entry) => entry.status === 200)).toBe(true);
     expect(
       fixture.requests.every((entry) => entry.path?.startsWith("/rest/v1/")),
@@ -242,6 +242,8 @@ describe("round13 local dashboard HTTP fixture", () => {
         amount: 10000,
         refund_amount: 1000,
         currency: "USD",
+        status: "completed",
+        gift_date: null,
         created_at: "2026-11-01T00:00:00.000Z",
       },
       {
@@ -249,6 +251,8 @@ describe("round13 local dashboard HTTP fixture", () => {
         amount: 6000,
         refund_amount: 0,
         currency: "USD",
+        status: "succeeded",
+        gift_date: null,
         created_at: "2026-11-01T00:00:00.000Z",
       },
     ]);
@@ -278,6 +282,23 @@ describe("round13 local dashboard HTTP fixture", () => {
     ).toMatchObject([{ amount: 5000, refund_amount: 5000 }]);
   });
 
+  it("returns unsettled candidates so applied corrections can determine membership", async () => {
+    const fixture = await startDashboardHttpFixture({ asOf: AS_OF });
+    running.push(fixture);
+    const response = await fixtureRequest(fixture, giftPath(40, 3));
+
+    expect(response.status).toBe(200);
+    expect(
+      (await response.json()).map((row: { status: string }) => row.status),
+    ).toEqual(["pending", "failed", "canceled"]);
+    const corrections = await fixtureRequest(
+      fixture,
+      correctionPath(0, "10000000-0000-4000-8000-000000000041"),
+    );
+    expect(corrections.status).toBe(200);
+    expect(await corrections.json()).toEqual([]);
+  });
+
   it.each<[string, () => string, number]>([
     [
       "missing tenant",
@@ -299,8 +320,13 @@ describe("round13 local dashboard HTTP fixture", () => {
       400,
     ],
     [
-      "widened statuses",
-      () => giftPath().replace("success%29", "pending%29"),
+      "raw-status prefilter",
+      () => giftPath() + "&status=in.(completed,succeeded,success)",
+      400,
+    ],
+    [
+      "noncanonical date window",
+      () => giftPath().replaceAll("2025-11-01", "2025-10-01"),
       400,
     ],
     [
@@ -544,10 +570,10 @@ describe("round13 local dashboard HTTP fixture", () => {
       false,
       true,
     ]);
-    expect(fixture.requests).toHaveLength(7);
+    expect(fixture.requests).toHaveLength(6);
     expect(
       fixture.requests.filter((request) => request.method === "HEAD"),
-    ).toHaveLength(4);
+    ).toHaveLength(3);
     expect(fixture.requests.every((request) => request.status === 200)).toBe(
       true,
     );
