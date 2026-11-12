@@ -249,6 +249,31 @@ describe("summarizeRun", () => {
     ]);
   });
 
+  // PR #2659 review: a non-object result entry must not crash collectFailures.
+  it.each([null, "x", 1, []])(
+    "#2239 item 3: unexpected test result entry %j fails cleanly",
+    (entry) => {
+      const text = mutate(FAILED, (r) => {
+        r.suites[0].specs[0].tests[0].results = [entry];
+      });
+      expect(reportMessages(1, text)).toEqual([
+        "Invalid Playwright JSON report: suites[0].specs[0].tests[0].results[0]",
+      ]);
+    },
+  );
+
+  it("#2239 item 3: a non-object attachment entry does not crash", () => {
+    const text = mutate(FAILED, (r) => {
+      r.suites[0].specs[0].tests[0].results[1].attachments = [null];
+    });
+    const { summary, exit } = run(1, text);
+    expect([summary.ok, exit]).toEqual([false, 1]);
+    const hits = summary.failed.filter((f) => f.test === CASE);
+    expect(hits.map((f) => [f.message, f.tracePath])).toEqual([
+      ["last", undefined],
+    ]);
+  });
+
   it("O5b: one entry with the last failing attempt's trace; flaky is counted", () => {
     const { summary } = run(1, FAILED);
     expect(summary.failed.filter((f) => f.test === CASE)).toHaveLength(1);

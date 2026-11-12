@@ -54,7 +54,7 @@ const getErrorMessage = (result) => {
 
 const collectAttachments = (result) => {
   const attachments = Array.isArray(result?.attachments)
-    ? result.attachments
+    ? result.attachments.filter(isObject)
     : [];
   const trace = attachments.find(
     (attachment) =>
@@ -134,6 +134,9 @@ const findInvalidNested = (suites, at = "suites") => {
         const t = `${p}.tests[${k}]`;
         if (!isObject(test)) return t;
         if (badList(test, "results")) return `${t}.results`;
+        // Each attempt must be an object before collectFailures reads it.
+        const r = (test.results || []).findIndex((entry) => !isObject(entry));
+        if (r !== -1) return `${t}.results[${r}]`;
         // Aggregate status: "interrupted" etc. are per-attempt statuses only.
         if (!STATS.includes(test.status)) return `${t}.status`;
       }
