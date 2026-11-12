@@ -182,16 +182,12 @@ for (const reducedMotion of ["reduce", "no-preference"] as const) {
       await expect(
         footer.getByRole("link", { name: "Missionary Dashboard" }),
       ).toHaveCount(0);
-      const donorPortalLinks = footer.getByRole("link", {
-        name: "Donor Portal",
-      });
-      await expect(donorPortalLinks).toHaveCount(2);
-      for (const link of await donorPortalLinks.all())
-        await expect(link).toHaveAttribute("href", "/donor-dashboard");
+      await expect(
+        footer.getByRole("link", { name: "Donor Portal" }),
+      ).toHaveAttribute("href", "/donor-dashboard");
       await expect(footer.getByRole("heading", { level: 2 })).toHaveText([
         "Organization",
         "Giving",
-        "Platform",
       ]);
       await expect(
         footer.getByRole("heading", { name: "Connect", exact: true }),

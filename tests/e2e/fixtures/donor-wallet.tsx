@@ -49,12 +49,14 @@ client.setQueryData(["donor", "portal"], {
     {
       id: "pledge-1",
       amountCents: 3000,
+      currency: "USD",
       frequency: "monthly",
       designation: { name: "Nairobi Water Wells" },
     },
     {
       id: "pledge-2",
       amountCents: 12000,
+      currency: "USD",
       frequency: "quarterly",
       designation: {
         name: "The Okonkwo-Hernandez Family Literacy and Teacher Training Fund",

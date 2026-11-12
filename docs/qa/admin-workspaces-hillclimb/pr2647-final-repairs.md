@@ -63,6 +63,16 @@ failing before the corresponding repairs; no required gate or assertion was
 disabled to preserve a success claim. Historical revert-success evidence is
 superseded by the explicit withheld-action decision.
 
+## Concurrent branch integration
+
+The remote branch subsequently published `a17adb1bc` and `09066d388`. Their
+wallet/chart currency fixtures and current About-footer assertions are preserved.
+The overlapping recurring-gift fix is reconciled with both sets of regressions:
+integer BigInt annual math, invalid-schedule guards and honest unavailable
+feedback remain, with the remote currency/biweekly cases retained. All 20 page
+tests pass after this conflict resolution. No force push discards either line
+of work; final CI must validate the combined revision.
+
 ## Source integration versus deployment
 
 The autosave source fix serializes writes per post across composer mounts and
