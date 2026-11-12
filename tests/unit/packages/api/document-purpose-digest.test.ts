@@ -31,6 +31,13 @@ function compareCodePoints(left: string, right: string): number {
 
 const LOCALE_CHILD_ENV = "DOCUMENT_PURPOSE_DIGEST_LOCALE_REPORT";
 const localeReportPath = process.env[LOCALE_CHILD_ENV];
+// Acceptance harnesses that re-run this file as a child (for example the
+// #2068 mutation runs) mark it with ACC_<issue>_* variables. Those runs only
+// need the in-process assertions, so the nested locale matrix is skipped there.
+const ACCEPTANCE_HARNESS_ENV = /^ACC_\d+_/;
+const underHarness = Object.keys(process.env).some((key) =>
+  ACCEPTANCE_HARNESS_ENV.test(key),
+);
 
 describe("canonical serialization and the catalog digest", () => {
   it("serializes logically identical values identically regardless of key order", () => {
@@ -216,6 +223,7 @@ function runThisFileUnder(
       [
         path.join(REPO_ROOT, "node_modules/vitest/vitest.mjs"),
         "run",
+        "--no-fsModuleCache",
         "--config",
         path.join(REPO_ROOT, "vitest.config.mts"),
         THIS_FILE,
@@ -247,7 +255,7 @@ describe.skipIf(localeReportPath === undefined)("locale child report", () => {
   });
 });
 
-describe.skipIf(localeReportPath !== undefined)(
+describe.skipIf(localeReportPath !== undefined || underHarness)(
   "the catalog digest under several host locales",
   () => {
     it.each(LOCALE_MATRIX)(
