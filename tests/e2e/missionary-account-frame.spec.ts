@@ -48,7 +48,9 @@ async function enterDemoWorkspace(page: Page, next = "/") {
   await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
   await page.getByRole("button", { name: "Demo Access" }).click();
   await page.waitForURL((url) => `${url.pathname}${url.search}` === next);
-  await expect(page.getByTestId("account-menu")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Search missionary pages" }),
+  ).toBeVisible();
 }
 
 function watchHydrationErrors(page: Page) {
@@ -228,6 +230,7 @@ test("mobile workspace sign-out removes sidebar portals and shortcuts and demo s
   await expect(
     page.getByRole("dialog", { name: "Sidebar", exact: true }),
   ).toBeVisible();
+  await expect(page.getByTestId("account-menu")).toBeVisible();
   await capture(page, testInfo, "mobile-workspace-sidebar");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -237,6 +240,7 @@ test("mobile workspace sign-out removes sidebar portals and shortcuts and demo s
   ).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "Toggle Sidebar" }).click();
   await page.getByTestId("account-menu").click();
   await page.getByTestId("auth-signout").click();
   await expect(page).toHaveURL(/\/login$/);
