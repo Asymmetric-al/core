@@ -37,8 +37,10 @@ has no `main` branch; do not create or target one.
 - `integration-gate` covers:
   - `migrate` (DB migrations + seed verification)
   - `smoke` (app boot + health check)
-  - `e2e-smoke-gate` (summary gate for `test-e2e-smoke`)
+  - `e2e-smoke-gate` (summary gate for `migrate`, `smoke` and `test-e2e-smoke`)
 - `e2e-smoke-gate` covers:
+  - `migrate` (DB migrations + seed verification)
+  - `smoke` (app boot + health check)
   - `test-e2e-smoke` (`bun run test:e2e:smoke`)
 - `e2e-gate` covers:
   - bounded production-release Playwright coverage through
