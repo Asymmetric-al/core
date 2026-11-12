@@ -22,8 +22,10 @@
       `settingSources: ["project"]` from the trusted control folder.
 - [ ] Install one reviewed reproducible production pack/service environment.
       Installed by `installation/install.mjs` (pinned hashes, root-owned control
-      folder, signed server-owned starts); release `6f68e56b` runs on VM 100.
-      Independent review of the final source is still pending.
+      folder, signed server-owned starts). The installed release record names
+      the commit it was built from; the runbook's "Current state" names the
+      release running on VM 100. Three independent reviews are recorded in the
+      commissioning record (council pass, 12 November).
 
 ## 3. Deliver Complete Workflow
 
@@ -56,7 +58,7 @@
 
 - [x] Prove actual workflow operation in Archon's native Console.
 - [x] Implement full thin Maia Console using configured component workflows.
-      Release 6 serves the live engine on VM 100.
+      It serves the live engine on VM 100 (Console release 7 on 12 November).
 - [ ] Verify real chat/controls, histories, timers, evidence and availability.
       Histories and evidence render from the live engine. Controls were
       exercised live through the command, not the Console; chat is not verified.

@@ -918,6 +918,43 @@ it.
 | 17:56 | Hold on #2215 released; its unfinished work was intact                                                            |
 | 17:58 | Timer pass resumed #2215 and admitted #2228, which was no longer blocked                                          |
 | 18:02 | Intake paused as a recorded checkpoint                                                                            |
+| 18:07 | #2215 and #2228 stopped at their round boundary so a release could be installed                                   |
+| 18:14 | #2215 published as PR #2653 (the round already running finished first)                                            |
+| 18:25 | Release `345cc035` installed from commit `90381c331`; both issues moved to it and reopened                        |
+| 18:30 | Timer pass started both issues one second apart on lanes 1 and 2                                                  |
+| 18:41 | Engine restarted on purpose with #2215 waiting in its feedback cooldown and #2228 mid-review                      |
+| 18:50 | #2215's waiting round resumed by itself; the timer pass removed #2228's leftover check container, cleared its run |
+| 18:51 | #2215 ready (PR #2653): required checks passed on the current head                                                |
+| 18:53 | #2228 blocked `no-change`: the restarted round began again although its candidate was committed (defect 21)       |
+| 19:01 | The next pass posted the blocked notice on issue #2228 by itself                                                  |
+| 19:21 | Release `d44390a5` installed from commit `3387942ac`; #2228 moved to it and retried                               |
+| 19:24 | Scope approved with #2239 and #2208 added; intake resumed. No operator step after this until 20:43                |
+| 19:29 | #2228: review, one acceptance correction, review again; both reviews clear, final acceptance passed (8 criteria)  |
+| 19:33 | Timer pass admitted #2239 and kept #2208 out: its prerequisite #2068 has no merged pull request that closes it    |
+| 19:35 | #2228 published as PR #2657; #2239's first round started on lane 2 while #2228 continued on lane 1                |
+| 19:57 | #2228 ready (PR #2657)                                                                                            |
+| 20:01 | #2239 published as PR #2659: both reviews clear, final acceptance passed                                          |
+| 20:12 | #2239: Samson judged a CodeRabbit finding valid; a repair round fixed it with a test and was reviewed again       |
+| 20:42 | #2239 ready (PR #2659), 68 minutes after admission, with no operator request on the issue                         |
+| 20:43 | Intake paused as the final recorded checkpoint                                                                    |
+
+PR #2659 (issue #2239) at 20:44: head `850bbe4d`, mergeable, no conflict,
+required checks `ci-gate`, `e2e-smoke-gate`, `migrate` and `smoke` successful
+on that head, no open review thread, no required approval. The full `test-e2e`
+job, which is not a required check, was still running when the factory
+reported the pull request ready. CodeRabbit raised one finding on the first
+head (a report entry that is not an object made the verifier throw); Samson
+confirmed it in the workspace, Bezalel fixed it with a test, both reviewers
+looked at the new head, and the thread is resolved. CodeRabbit then skipped
+the new head (rate limit) and Cursor reviews a pull request once, so the
+readiness comment says a person must confirm review coverage. Two optional
+(P3) reviewer notes on the repaired head were assessed as not material and
+were not acted on.
+
+PR #2657 (issue #2228) at 20:44: head `ff47abaa`, mergeable, clean, all
+checks successful on that head, no review thread. CodeRabbit was rate-limited
+and reviewed nothing, which the readiness comment says. Cursor's five reviews
+of that head reported no finding.
 
 PR #2652 at 18:00: head `f6a1457b`, mergeable, no conflict, required checks
 `ci-gate`, `e2e-smoke-gate`, `migrate` and `smoke` successful on that head,
@@ -964,6 +1001,33 @@ and checked again on the VM. The numbering continues the list above.
 20. Nobody was told when an issue blocked. The next pass now posts one comment
     on the GitHub issue with the reason and the next step.
 
+21. A round interrupted after its candidate was committed was started again
+    on its own route. The implementer had nothing left to change and the issue
+    blocked `no-change` (#2228 at 18:53). The next round now follows what the
+    interrupted one recorded: a committed candidate goes to review only,
+    acceptance it defined goes to the implementer, anything earlier runs
+    again.
+22. The first denial rule (defect 14) dropped real prerequisites: "not ready
+    because blocked by #50" read as a denial. Only a negated dependency word
+    or issue reference is a denial now, and a denial takes the issues it names
+    with it ("requires #51, not #50").
+23. A range ("#2223 to #2225") named only its two ends. It now names every
+    issue in it; a range wider than 25 issues stops for a person. An issue
+    named both as related and as a prerequisite is a prerequisite, not a
+    conflict.
+24. The lane-clash rule added with defect 17 chose a lane from the other live
+    issues at each start, so one round could have been started on two lanes.
+    The lane is now read from the work item alone; two issues that record one
+    lane take turns.
+25. A blocked issue was announced only while its blocker was less than a day
+    old (now a week), and an update needed the first install's build
+    directories for the pinned engine binary and plugin (it now takes them
+    from the installed copies).
+
+Defects 21 to 25 were found by the 18:41 restart test and the second review
+round, repaired test-first in commit `3387942ac`, and are in release
+`d44390a5`, whose 103 installed pack files hash identically to that commit.
+
 Console (release 7): saving a scope erased the per-issue end states that limit
 what may merge; 38 pack refusal codes were shown as "effect unknown"; the work
 map showed a Scope step that repair rounds do not run. All three are fixed.
@@ -980,23 +1044,54 @@ the coordinator from the sealed reviews. One reviewer claim was rejected on
 evidence: the "duplicate run" at 15:48 was #2215's queued start honouring an
 operator stop.
 
+A second round reviewed the repaired factory at commit `90381c331` against the
+run records. Claude Fable 5.2 answered "changes still required" (5 out of 10
+for unattended use) and Gemini 4 Carbon "verified within the demonstrated
+scope" (6.5); GPT-6.1 Sol did not run (its provider reported a usage limit),
+so that round had two reviewers, not three. Their confirmed findings are
+defects 22 to 25, the incomplete intervention list below, and the missing
+unassisted run on one release, which the #2239 run above answers. The result
+of the review of this final state is in the description of pull request #2651.
+
 ### Operator interventions in this pass
 
-- Scope approval; intake paused and resumed around four release changes;
-  installs and engine restarts for each.
-- `adopt-policy`, then `retry` or `reopen`, for #2206 and #2215 after the
-  release that carried the council repairs.
-- The check-queue wait raised to 30 minutes in the operator-owned
-  configuration (previous file kept).
-- One manual intake start at 14:11. Every other pass above was the timer's.
-- Deliberate tests: an engine restart at 15:05, a hold and release on #2215,
-  the final intake pause.
+Every operator action from 13:22 to 20:43, by kind:
+
+- **Scope:** approved at 13:22 (2206, 2215, 2228 added) and at 19:24 (2239,
+  2208 added).
+- **Intake:** paused and resumed at 13:55 and at 14:11 (with one manual
+  intake start at 14:11, the only pass the timer did not start), paused
+  15:15, resumed 17:13, paused 18:02, resumed 19:24, paused 20:43.
+- **Releases:** five installs, each with an engine restart: 13:55, 14:11,
+  17:13 (`620140dd`), 18:25 (`345cc035`) and 19:21 (`d44390a5`).
+- **Moving issues to a new release:** `adopt-policy` then `retry` or `reopen`
+  for #2206 and #2215 at 17:13, for #2215 and #2228 at 18:26, and
+  `adopt-policy` then `retry` for #2228 at 19:21 and 19:22.
+- **Stops:** #2215 at 15:15, and #2215 and #2228 at 18:07, to settle them
+  before the 17:13 and 18:25 installs.
+- **Configuration:** the check-queue wait raised to 30 minutes in the
+  operator-owned configuration (previous file kept).
+- **Deliberate tests:** engine restarts at 15:05 and 18:41; a hold on #2215
+  at 17:30, released at 17:56.
 
 No abandon by hand, hook bypass, forced merge, account switch, API fallback
-or fabricated check was used. The workflow is therefore **assisted**, not
-unattended, across this pass as a whole: the admission, delivery, review,
-publication, feedback and recovery steps listed in the table ran without an
-operator, but the factory needed repairs between them.
+or fabricated check was used, and no pull request was merged in this pass.
+
+How each issue's delivery is classified:
+
+| Issue | Result          | Classification                                                                                                 |
+| ----- | --------------- | -------------------------------------------------------------------------------------------------------------- |
+| #2239 | Ready, PR #2659 | **Unattended** from admission to ready on one release. Operator: scope approval and resume before, pause after |
+| #2228 | Ready, PR #2657 | **Assisted**: falsely blocked until defect 14 was repaired; blocked by defect 21; one retry after that repair  |
+| #2206 | Ready, PR #2652 | **Assisted**: blocked by defect 15, retried after the repair; its last four rounds ran without an operator     |
+| #2215 | Ready, PR #2653 | **Assisted**: interrupted, held, stopped and reopened on purpose and across two release changes                |
+| #2208 | Not admitted    | Kept out by the selector with a recorded reason; the other issues carried on                                   |
+
+Automatic selection of the next issue, two issues side by side, recovery from
+an engine restart (a waiting round, and a round in review with a leftover
+container) and the blocked notice each ran with no operator. Recovery of a
+round interrupted after its candidate was committed (defect 21) is repaired
+and tested, and was not interrupted again on the running system.
 
 ### Still open
 
@@ -1012,7 +1107,20 @@ operator, but the factory needed repairs between them.
   scope; it does not choose issues from the backlog or the roadmap.
 - **A prerequisite closed without a merged pull request that closes it** is
   never counted as done; the issue that names it stays blocked, with that
-  reason.
+  reason. #2208 is such a case: #2068 was closed by hand, and the pull request
+  that delivered it does not say it closes it. Reword the issue or name the
+  closing pull request to release it.
+- **A ready pull request is not watched.** After `PR_READY` the factory does
+  not follow `develop`, later comments or checks; `issue <n> reopen` runs the
+  feedback stage again. "Ready" means the four required checks passed on the
+  current head: the full `test-e2e` job is not required and may still be
+  running. The pull-request description is not rewritten when the factory
+  later merges `develop` into the branch.
+- **Bot coverage needs a person when a bot is rate-limited.** CodeRabbit
+  skipped #2657 and the repaired head of #2659; the factory says so on the
+  pull request and never merges such a head by itself. A reviewer reported
+  that a CodeRabbit check carried forward from an earlier head may count as a
+  review of the new head; that was not reproduced.
 - **`"coverage":"once"` for Cursor** lets a head repaired after Cursor's only
   review be merged without Cursor seeing it. It is an operator choice.
 - **Console** reads owners and admission capacity from its own settings, not
@@ -1020,8 +1128,11 @@ operator, but the factory needed repairs between them.
 - **Analysis runs** are started only by an operator, and an open attention
   item is never closed.
 - **Finished workspaces** (about 3 GB each) are not pruned.
-- **Not exercised live:** identity drift, an interrupted publish or merge, and
-  the engine's handling of a real usage limit under two lanes.
+- **Not exercised live:** identity drift, an interrupted publish or merge, the
+  engine's handling of a real usage limit under two lanes, a failed required
+  check on a published head, and the repaired defect 21 path.
+- **This pass merged nothing.** The factory's own merge was proven once, on
+  #2233 in the commissioning run.
 - **Analysis turn cap** is not enforced by the engine (see above).
 
 The governing acceptance matrix is partly verified, not complete.
