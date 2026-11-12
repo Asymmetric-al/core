@@ -149,11 +149,14 @@ const publicText = (text, size) =>
     .trim()
     .slice(0, size);
 
+// The notice is looked for on the issue itself, so a blocker is checked on
+// every pass until it is a week old: long enough to outlast an outage of the
+// timer or of GitHub, short enough that old blockers cost no requests.
 export async function announceBlocked({
   github,
   items,
   nowMs,
-  windowMs = DAY_MS,
+  windowMs = 7 * DAY_MS,
 }) {
   const results = [];
   for (const [issue, value] of items) {

@@ -51,6 +51,7 @@ import {
   managedPolicyFiles,
   nativeClaudeLauncher,
   pinnedIdentity,
+  pinnedSource,
   pluginPaths,
   pluginProblem,
   policySwitch,
@@ -92,6 +93,7 @@ const HOME = `${ROOT}/archon`;
 const CONTROL = `${ROOT}/control`;
 const OPT = "/opt/core-archon-factory";
 const ARCHON = `/opt/archon/${ARCHON_VERSION}/archon`;
+const PLUGIN = `${OPT}/plugins/standard-webhooks.mjs`;
 const NODE = "/opt/node-v24.22.1-linux-x64/bin/node";
 const BUN_DIR = "/opt/bun-1.4.3";
 const CLAUDE = "/home/admin/.local/share/claude/versions/2.1.317";
@@ -154,9 +156,14 @@ if (run("/usr/bin/id", ["-u", "admin"]).trim() !== "1000")
 const stage = args.stage;
 if (!stage || !existsSync(posix.join(stage, "pack", "archon-plugin.json")))
   fail("--stage must contain pack/");
-const sourceArchon =
-  args.archon ??
-  "/home/admin/.local/share/core-archon-stage-20261110/bin/archon";
+const sourceArchon = pinnedSource({
+  given: args.archon,
+  candidates: [
+    "/home/admin/.local/share/core-archon-stage-20261110/bin/archon",
+    ARCHON,
+  ],
+  pin: PIN.archon,
+});
 if (fileSha(sourceArchon) !== PIN.archon)
   fail(`Archon binary does not match the pinned v${ARCHON_VERSION} checksum`);
 if (fileSha(CLAUDE) !== PIN.claude)
@@ -172,9 +179,14 @@ if (imageId !== PIN.checkImage)
   fail(
     `check image ${IMAGE_TAG} is ${imageId || "missing"}, not the qualified ${PIN.checkImage}`,
   );
-const pluginSource =
-  args.plugin ??
-  "/home/admin/core-factory-stage/archon-plugin-build/standard-webhooks.mjs";
+const pluginSource = pinnedSource({
+  given: args.plugin,
+  candidates: [
+    "/home/admin/core-factory-stage/archon-plugin-build/standard-webhooks.mjs",
+    PLUGIN,
+  ],
+  pin: PIN.webhooks,
+});
 if (fileSha(pluginSource) !== PIN.webhooks)
   fail("Standard Webhooks source plugin does not match its pinned build");
 if (!existsSync("/usr/bin/timeout"))
@@ -453,9 +465,9 @@ if (fileSha(claudeLauncher) !== launcherIdentity.sha256)
 
 mkdirSync(`${OPT}/plugins`, { recursive: true });
 own(`${OPT}/plugins`, ROOT_ID, ROOT_ID, 0o755);
-copyFileSync(pluginSource, `${OPT}/plugins/standard-webhooks.mjs`);
-own(`${OPT}/plugins/standard-webhooks.mjs`, ROOT_ID, ROOT_ID, 0o644);
-if (fileSha(`${OPT}/plugins/standard-webhooks.mjs`) !== PIN.webhooks)
+if (pluginSource !== PLUGIN) copyFileSync(pluginSource, PLUGIN);
+own(PLUGIN, ROOT_ID, ROOT_ID, 0o644);
+if (fileSha(PLUGIN) !== PIN.webhooks)
   fail(
     "the installed Standard Webhooks plugin does not match its pinned build",
   );
@@ -609,7 +621,7 @@ writeControl(
     {
       version: 1,
       sources: webhookSources({
-        plugin: `${OPT}/plugins/standard-webhooks.mjs`,
+        plugin: PLUGIN,
         hostId: HOST_ID,
         runAsUserId,
         control: CONTROL,

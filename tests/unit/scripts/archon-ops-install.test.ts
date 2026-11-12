@@ -25,6 +25,7 @@ import {
   retainedAssignments,
   managedPolicyFiles,
   pinnedIdentity,
+  pinnedSource,
   pluginPaths,
   pluginProblem,
   pluginReceiptProblem,
@@ -486,6 +487,33 @@ describe("installed pieces are hash-verified", () => {
     expect(
       pinnedIdentity({ actual: "a", pin: null, previous: undefined }),
     ).toMatchObject({ ok: true, source: "recorded" });
+  });
+
+  // The build directories of the first install are not kept. An update takes
+  // the engine binary and the webhook plugin from the installed copies, which
+  // are checked against the same pins.
+  it("finds a pinned file in the installed copy when the build copy is gone", () => {
+    const hashes: Record<string, string> = {
+      "/build/archon": "other",
+      "/opt/archon": "pinned",
+    };
+    const sha = (file: string) => {
+      if (!(file in hashes)) throw new Error(`ENOENT ${file}`);
+      return hashes[file];
+    };
+    const find = (candidates: string[], given?: string) =>
+      pinnedSource({ given, candidates, pin: "pinned", sha });
+    expect(find(["/build/archon", "/opt/archon"], "/elsewhere")).toBe(
+      "/elsewhere",
+    );
+    expect(find(["/build/archon", "/opt/archon"])).toBe("/opt/archon");
+    expect(find(["/gone", "/opt/archon"])).toBe("/opt/archon");
+    // Nothing matches: the first is returned and the installer's own pin
+    // check refuses it.
+    expect(find(["/build/archon", "/gone"])).toBe("/build/archon");
+    expect(installer).toMatch(/pinnedSource\(\{\s*given: args\.archon,/);
+    expect(installer).toMatch(/pinnedSource\(\{\s*given: args\.plugin,/);
+    expect(installer).toContain("if (pluginSource !== PLUGIN)");
   });
 
   it("is wired into install.mjs: every pin is used and ARCHON is re-hashed after copying", () => {

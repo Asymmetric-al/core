@@ -32,6 +32,9 @@ function prose(text) {
     .replace(/^\s*>.*$/gm, "");
 }
 
+const RANGE = /(?<![\w/#])#(\d+)\s*(?:to|through|thru|[-–—])\s*#(\d+)\b/g;
+const RANGE_LIMIT = 25;
+
 function references(text, repo) {
   const found = new Set();
   const foreign = new Set();
@@ -45,7 +48,16 @@ function references(text, repo) {
       foreign.add(`${repository}#${target}`);
     else found.add(target);
   }
-  return { local: [...found], foreign: [...foreign] };
+  // A range ("#2223 to #2225", "#2223–#2225") names every issue in it. One
+  // too wide to be a prerequisite list is reported, never guessed at.
+  const wide = [];
+  for (const match of text.matchAll(RANGE)) {
+    const [from, to] = [Number(match[1]), Number(match[2])];
+    if (!number(from) || !(from < to)) continue;
+    if (to - from > RANGE_LIMIT) wide.push(`#${from}-#${to}`);
+    else for (let inner = from + 1; inner < to; inner += 1) found.add(inner);
+  }
+  return { local: [...found], foreign: [...foreign], wide };
 }
 
 function dependencyKind(text) {
@@ -77,10 +89,21 @@ function dependencyKind(text) {
 
 // A statement that denies a dependency ("not blocked by #2268", "no relation
 // and no dependency", "has no open blockers") declares none. The denial is
-// taken out of its sentence, so a real prerequisite stated beside it
-// ("not blocked by #50 but requires #51") is still read.
-const DENIAL =
-  /\b(?:not|no|never|neither|nor|without|isn't|aren't|doesn't)\s+(?:\w+\s+){0,2}?(?:relation|related|dependenc(?:y|ies)|depend(?:s|ent)?(?:\s+on)?|blocked(?:\s+by)?|blockers?|prerequisites?|requires?|required)\b/gi;
+// taken out of its sentence together with the issues it names, so a real
+// prerequisite stated beside it ("not blocked by #50 but requires #51",
+// "requires #51, not #50") is still read and the denied issue is not. Only a
+// negated dependency word, or a negated issue reference, is a denial: the
+// negation must stand directly before it, or be separated from it by one of
+// a few qualifiers ("no longer", "no open"). A negation about something else
+// in the sentence ("not ready because blocked by #50", "has no UI but
+// requires #60") denies nothing.
+const REFERENCE = String.raw`(?:https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/(?:issues|pull)\/\d+|(?:[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)?#\d+)`;
+const REFERENCES = String.raw`(?:\s*(?:,|&|\/|and|or|nor|to|through|thru|[-–—])?\s*${REFERENCE})+`;
+const NEGATED = String.raw`\b(?:not|no|never|neither|nor|without|isn't|aren't|doesn't)\s+(?:(?:longer|currently|yet|actually|really|directly|open|hard|known|other|remaining|outstanding|further|new|any)\s+){0,2}(?:relation|related|dependenc(?:y|ies)|depend(?:s|ent)?(?:\s+on)?|blocked(?:\s+by)?|blockers?|prerequisites?|requires?|required)\b`;
+const DENIAL = new RegExp(
+  String.raw`${NEGATED}(?:\s+(?:on|by|to|with))?(?:${REFERENCES})?|\b(?:not|nor)\s+(?:(?:on|by)\s+)?${REFERENCES}`,
+  "gi",
+);
 
 // One line as its sentences: a sentence is classified by its own words, so
 // "Depends on #50. It is related to #51." is one hard and one soft statement.
@@ -132,10 +155,22 @@ function dependencyText(text, source, repo) {
       const kind = match
         ? dependencyKind(classification.slice(match.index))
         : section;
-      const { local: targets, foreign } = references(
-        match ? line.slice(match.index) : line,
-        repo,
-      );
+      const {
+        local: targets,
+        foreign,
+        wide,
+      } = references(match ? line.slice(match.index) : line, repo);
+      if (
+        wide.length &&
+        !["optional", "informational"].includes(kind.kind) &&
+        kind.gatesAdmission !== false
+      )
+        problems.push({
+          source,
+          code: "dependency-range-too-wide",
+          targetIds: wide,
+          text: line.slice(0, 300),
+        });
       if (
         foreign.length &&
         !["optional", "informational"].includes(kind.kind) &&
@@ -248,9 +283,15 @@ export function reconcileDependencies({ native, texts, repo }) {
       edge.requires,
       edge.gatesAdmission,
     ]);
+  // "Related to #50" beside "depends on #50" is no contradiction: the
+  // prerequisite stands and the mention is kept as a mention. Any other pair
+  // of different statements about one issue is a conflict a person settles.
+  const mention = (edge) => edge.kind === "informational";
   for (const { source, ...edge } of observed) {
     const previous = classified.get(edge.targetId);
-    if (previous && signature(previous.edge) !== signature(edge))
+    const differs = previous && signature(previous.edge) !== signature(edge);
+    const compatible = differs && mention(edge) !== mention(previous.edge);
+    if (differs && !compatible)
       problems.push({
         source,
         code: "conflicting-dependency",
@@ -263,7 +304,8 @@ export function reconcileDependencies({ native, texts, repo }) {
       )
     )
       dependencies.push(edge);
-    classified.set(edge.targetId, { edge, source });
+    if (!(compatible && mention(edge)))
+      classified.set(edge.targetId, { edge, source });
   }
   return {
     dependencies,

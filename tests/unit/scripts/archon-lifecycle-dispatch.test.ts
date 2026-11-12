@@ -356,75 +356,66 @@ describe("delivery lanes", () => {
   };
   const SECRET = `whsec_${Buffer.alloc(32, 9).toString("base64")}`;
 
+  // One round (one delivery id) must always start on one lane: the same id
+  // sent to two lanes would start two runs. The lane is therefore a function
+  // of the work item alone, never of what else happens to be live.
   it("keeps the lane an issue recorded at admission", () => {
-    const live = [
-      { issue: 12, lane: 2 },
-      { issue: 30, lane: 1 },
-    ];
-    expect(deliveryLane(live, { issue: 12, lane: 2 }, 2)).toBe(2);
-    expect(deliveryLane(live, { issue: 30, lane: 1 }, 2)).toBe(1);
+    expect(deliveryLane({ issue: 12, lane: 2 }, 2)).toBe(2);
+    expect(deliveryLane({ issue: 30, lane: 1 }, 2)).toBe(1);
   });
 
-  it("gives an issue admitted before lanes were recorded a lane no other live issue records", () => {
-    // #2215 was admitted without a lane; #2228 then recorded lane 1.
-    const live = [{ issue: 2215 }, { issue: 2228, lane: 1 }];
-    expect(deliveryLane(live, { issue: 2215 }, 2)).toBe(2);
-    expect(deliveryLane(live, { issue: 2228, lane: 1 }, 2)).toBe(1);
-    expect(deliveryLane([{ issue: 12 }], { issue: 12 }, 2)).toBe(1);
-  });
-
-  it("moves the higher-numbered issue when two live issues record the same lane", () => {
-    // A blocked issue kept lane 1, a new issue took it, then the blocked
-    // one was retried.
-    const live = [
-      { issue: 12, lane: 1 },
-      { issue: 30, lane: 1 },
-    ];
-    expect(deliveryLane(live, { issue: 12, lane: 1 }, 2)).toBe(1);
-    expect(deliveryLane(live, { issue: 30, lane: 1 }, 2)).toBe(2);
+  it("gives an issue admitted before lanes were recorded one fixed lane", () => {
+    expect(deliveryLane({ issue: 2206 }, 2)).toBe(1);
+    expect(deliveryLane({ issue: 2215 }, 2)).toBe(2);
+    expect(deliveryLane({ issue: 2215 }, 3)).toBe(2);
+    expect(deliveryLane({ issue: 2215 }, 1)).toBe(1);
   });
 
   it("ignores a recorded lane the installation does not have, and has one lane at least", () => {
-    expect(deliveryLane([], { issue: 12, lane: 5 }, 2)).toBe(1);
-    expect(
-      deliveryLane([{ issue: 7, lane: 1 }], { issue: 12, lane: 9 }, 2),
-    ).toBe(2);
-    expect(deliveryLane([{ issue: 7, lane: 1 }], { issue: 12 }, 0)).toBe(1);
+    expect(deliveryLane({ issue: 12, lane: 5 }, 2)).toBe(1);
+    expect(deliveryLane({ issue: 13, lane: 0 }, 2)).toBe(2);
+    expect(deliveryLane({ issue: 13 }, 0)).toBe(1);
   });
 
-  it("starts a round on the lane chosen from the live work items", async () => {
+  it("starts a round on the lane the work item records", async () => {
     const fetchImpl = vi.fn(async () => Response.json({ receiptId: "r-1" }));
     const item = waitingAfterRound3();
-    await fireRound({
+    const fire = (value: Record<string, unknown>) =>
+      fireRound({
+        config: { ...config, limits: { admittedIssues: 2 } },
+        value,
+        revision: item.revision,
+        fetchImpl,
+        secret: SECRET,
+        verifyIdentity: async () => ({}),
+      });
+    const first = await fire({ ...item.value, lane: 2 });
+    const again = await fire({ ...item.value, lane: 2 });
+    expect([first.lane, again.lane, first.deliveryId]).toEqual([
+      2,
+      2,
+      again.deliveryId,
+    ]);
+    expect(fetchImpl.mock.calls.map((call) => String(call[0]))).toEqual([
+      "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-2",
+      "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-2",
+    ]);
+  });
+
+  it("starts an issue without a recorded lane on its fixed lane", async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ receiptId: "r-1" }));
+    const item = waitingAfterRound3();
+    const fired = await fireRound({
       config: { ...config, limits: { admittedIssues: 2 } },
       value: item.value,
       revision: item.revision,
       fetchImpl,
       secret: SECRET,
       verifyIdentity: async () => ({}),
-      liveIssues: async () => [{ issue: 7, lane: 1 }, { issue: 12 }],
     });
+    expect(fired.lane).toBe((item.value.issue % 2) + 1);
     expect(String(fetchImpl.mock.calls[0]?.[0])).toBe(
-      "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-2",
-    );
-  });
-
-  it("keeps a recorded lane when the live work items cannot be read", async () => {
-    const fetchImpl = vi.fn(async () => Response.json({ receiptId: "r-1" }));
-    const item = waitingAfterRound3();
-    await fireRound({
-      config: { ...config, limits: { admittedIssues: 2 } },
-      value: { ...item.value, lane: 2 },
-      revision: item.revision,
-      fetchImpl,
-      secret: SECRET,
-      verifyIdentity: async () => ({}),
-      liveIssues: async () => {
-        throw new Error("state store unavailable");
-      },
-    });
-    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe(
-      "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-2",
+      `http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-${fired.lane}`,
     );
   });
 
@@ -451,25 +442,6 @@ describe("delivery lanes", () => {
       lane: 2,
     });
     expect(value.lane).toBe(2);
-  });
-
-  it("falls back to the first lane when the live issues cannot be read", async () => {
-    const fetchImpl = vi.fn(async () => Response.json({ receiptId: "r-1" }));
-    const item = waitingAfterRound3();
-    await fireRound({
-      config: { ...config, limits: { admittedIssues: 2 } },
-      value: item.value,
-      revision: item.revision,
-      fetchImpl,
-      secret: SECRET,
-      verifyIdentity: async () => ({}),
-      liveIssues: async () => {
-        throw new Error("state store unavailable");
-      },
-    });
-    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe(
-      "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-1",
-    );
   });
 
   it("installs one single-run delivery resource per lane", () => {

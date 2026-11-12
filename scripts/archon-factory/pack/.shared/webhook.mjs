@@ -10,10 +10,9 @@ import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { createArchon } from "./archon.mjs";
 import { loadConfig } from "./config.mjs";
 import { verifyNativeIdentity } from "./identity.mjs";
-import { TERMINAL, deliveryKey, freeLane } from "./workitem.mjs";
+import { deliveryKey } from "./workitem.mjs";
 
 export const SOURCES = {
   select: "core-factory-select",
@@ -44,41 +43,20 @@ export function signDelivery({ secret, deliveryId, timestamp, payload }) {
 // folder, whatever the resource's capacity. Each delivery lane is therefore
 // its own single-run resource, so different issues' rounds can run side by
 // side. An issue keeps the lane recorded on its work item at admission
-// (freeLane in workitem.mjs); one issue's rounds never overlap, because a round starts only
-// after the previous one recorded.
+// (freeLane in workitem.mjs); one issue's rounds never overlap, because a
+// round starts only after the previous one recorded.
 
-// The lane one round starts on, given the live work items. An issue keeps
-// the lane it recorded at admission. Two cases need a choice at start time: a
-// work item admitted before lanes were recorded, and two live issues that
-// record the same lane (a blocked issue retried after a newer one took its
-// lane), where the higher-numbered one moves. Both take the lowest lane no
-// other live issue records.
-export function deliveryLane(live, me, lanes) {
+// The lane one round starts on. It is a function of the work item alone, so
+// every start of one round (one delivery id) reaches the same lane: the same
+// id sent to two lanes would start two runs. A work item admitted before
+// lanes were recorded, or recording a lane this installation does not have,
+// takes one fixed lane by its issue number. Two live issues on one lane (a
+// blocked issue retried after a newer one took its lane) only take turns.
+export function deliveryLane(item, lanes) {
   const count = Number.isSafeInteger(lanes) && lanes > 0 ? lanes : 1;
-  const usable = (lane) =>
-    Number.isSafeInteger(lane) && lane >= 1 && lane <= count;
-  const others = live.filter((item) => item.issue !== me.issue);
-  if (
-    usable(me.lane) &&
-    !others.some((item) => item.lane === me.lane && item.issue < me.issue)
-  )
-    return me.lane;
-  return freeLane(others.map((item) => item.lane).filter(usable), count);
-}
-
-async function listLiveIssues() {
-  const listing = await createArchon().list("core/issues/", { values: true });
-  return (listing.documents ?? [])
-    .filter(
-      (entry) =>
-        /^core\/issues\/\d+$/.test(entry.name) &&
-        entry.value &&
-        !TERMINAL.has(entry.value.status),
-    )
-    .map((entry) => ({
-      issue: Number(entry.name.split("/")[2]),
-      lane: entry.value.lane,
-    }));
+  const { lane, issue } = item;
+  if (Number.isSafeInteger(lane) && lane >= 1 && lane <= count) return lane;
+  return (Math.abs(Math.trunc(Number(issue) || 0)) % count) + 1;
 }
 
 export async function fireWebhook({
@@ -158,7 +136,6 @@ export async function fireRound({
   value,
   revision,
   verifyIdentity = verifyNativeIdentity,
-  liveIssues = listLiveIssues,
   ...options
 }) {
   await verifyIdentity({
@@ -167,13 +144,7 @@ export async function fireRound({
     expectedDigest: value.assignment.profileDigest,
   });
   const deliveryId = deliveryKey(value, revision);
-  // Not knowing the other live issues only costs parallelism: the issue keeps
-  // its recorded lane, or queues on the first.
-  const lane = deliveryLane(
-    await liveIssues().catch(() => []),
-    { issue: value.issue, lane: value.lane },
-    config.limits?.admittedIssues ?? 2,
-  );
+  const lane = deliveryLane(value, config.limits?.admittedIssues ?? 2);
   const fired = await fireWebhook({
     config,
     workflow: "deliver",

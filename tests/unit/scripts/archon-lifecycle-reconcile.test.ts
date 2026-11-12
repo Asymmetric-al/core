@@ -170,6 +170,91 @@ describe("planReconcile", () => {
     });
   });
 
+  // 12 Nov 2026, issue 2228: the engine was restarted while the reviews of a
+  // committed candidate were running. Reconcile sent the next round back to
+  // the interrupted round's own route (initial); the implementer had nothing
+  // left to change and the issue blocked `no-change`.
+  describe("the next route follows the progress the interrupted round recorded", () => {
+    const interrupted = (
+      route: string,
+      before: Record<string, unknown>,
+      during: Record<string, unknown>,
+    ) => {
+      const stuck = abandoned(
+        route,
+        "run-3",
+        observed(
+          { ...assign(), status: "waiting", route, round: 2, ...before },
+          6,
+        ),
+      );
+      Object.assign(stuck.value, during);
+      return planReconcile(stuck, { now: T2, runStatus: ended() }).value;
+    };
+    const acceptance = (run: string) => ({ revision: "d".repeat(64), run });
+
+    it.each(["initial", "repair", "oracle"])(
+      "reviews the candidate a %s round committed before it was interrupted",
+      (route) => {
+        const next = interrupted(
+          route,
+          { head: route === "initial" ? null : "a".repeat(40) },
+          { head: "b".repeat(40), acceptance: acceptance("run-3") },
+        );
+        expect({ status: next.status, route: next.route }).toEqual({
+          status: "waiting",
+          route: "review",
+        });
+        expect(next.history.at(-1)).toMatchObject({ route, next: "review" });
+      },
+    );
+
+    it.each(["initial", "oracle"])(
+      "goes to the implementer when the %s round defined acceptance and committed nothing",
+      (route) => {
+        const next = interrupted(
+          route,
+          { head: route === "initial" ? null : "a".repeat(40) },
+          { acceptance: acceptance("run-3") },
+        );
+        expect(next.route).toBe("repair");
+      },
+    );
+
+    it("runs the acceptance stage again when the interrupted round had not defined it", () => {
+      expect(interrupted("initial", {}, {}).route).toBe("initial");
+      // Acceptance left by an earlier round says nothing about this one.
+      expect(
+        interrupted(
+          "oracle",
+          { head: "a".repeat(40), acceptance: acceptance("run-1") },
+          {},
+        ).route,
+      ).toBe("oracle");
+    });
+
+    it.each(["review", "feedback", "deliver"])(
+      "keeps the %s route whatever the round recorded",
+      (route) => {
+        const next = interrupted(
+          route,
+          { head: "a".repeat(40), acceptance: acceptance("run-1") },
+          { head: "b".repeat(40) },
+        );
+        expect(next.route).toBe(route);
+      },
+    );
+
+    it("keeps the run's route for an item claimed before the starting head was recorded", () => {
+      const stuck = abandoned("initial");
+      delete stuck.value.run.head;
+      stuck.value.head = "b".repeat(40);
+      expect(
+        planReconcile(stuck, { now: T2, runStatus: ended() }).value.route,
+      ).toBe("initial");
+    });
+  });
+
   it("lets the reconciled item be claimed again under a new round", () => {
     const plan = planReconcile(abandoned(), { now: T2, runStatus: ended() });
     const claim = planClaim(

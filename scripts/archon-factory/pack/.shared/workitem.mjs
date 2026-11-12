@@ -511,6 +511,20 @@ export function planFinish(
 // touches a live lease: a paused or failed run keeps its lease and can resume.
 // Evidence that the run ended is the engine's terminal status for that run,
 // or else the engine's own record that the run's lease ended.
+// The route after a run that ended without recording its round follows the
+// progress that run checkpointed, as record does after a failed node. A
+// candidate it committed only needs its reviews; restarting the round would
+// give the implementer nothing to change. Acceptance it defined goes straight
+// to the implementer. Anything earlier runs the round again.
+function interruptedRoute(value) {
+  const { run } = value;
+  if (POLLING.has(run.route) || run.route === "review") return run.route;
+  if (!Object.hasOwn(run, "head")) return run.route;
+  if ((value.head ?? null) !== run.head) return "review";
+  if (value.acceptance?.run === run.id) return "repair";
+  return run.route;
+}
+
 export function planReconcile(document, { now, runStatus, limits }) {
   const value = current(document);
   if (hasUnconfirmedCleanup(value)) throw new Refusal("cleanup-unconfirmed");
@@ -533,7 +547,7 @@ export function planReconcile(document, { now, runStatus, limits }) {
     runId: value.run.id,
     now,
     outcome: "reconciled",
-    route: value.run.route,
+    route: interruptedRoute(value),
     fingerprint: "unfinished-run",
     limits,
     summary: `Run ${value.run.id} ended (${ended}) without recording its round`,

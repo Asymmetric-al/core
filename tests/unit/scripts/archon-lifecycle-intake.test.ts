@@ -601,7 +601,7 @@ describe("announceBlocked", () => {
           13,
           blocked({
             issue: 13,
-            blocker: { code: "x", at: "2026-11-10T00:00:00Z" },
+            blocker: { code: "x", at: "2026-11-01T00:00:00Z" },
           }),
         ],
         [14, null],
@@ -610,6 +610,20 @@ describe("announceBlocked", () => {
     });
     expect(result).toEqual([]);
     expect(github.issueComments).not.toHaveBeenCalled();
+  });
+
+  // The timer or GitHub can be away for more than a day; the owner is still
+  // told when it is back.
+  it("still announces a blocker that is several days old", async () => {
+    const github = client();
+    const result = await announceBlocked({
+      github,
+      items: new Map([
+        [12, blocked({ blocker: { code: "x", at: "2026-11-08T00:00:00Z" } })],
+      ]),
+      nowMs: NOW,
+    });
+    expect(result).toEqual([{ issue: 12, announced: true }]);
   });
 
   it("never fails the pass when GitHub does", async () => {

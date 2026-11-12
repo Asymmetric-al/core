@@ -455,6 +455,22 @@ export function pluginProblem({ sha256, receipt }, plugin) {
   return problem ? `receipt: ${problem}` : "";
 }
 
+// Where a pinned file is taken from: the path the operator gave, otherwise
+// the first candidate whose bytes match the pin (the build copy of the first
+// install, then the installed copy an update still has). With no match the
+// first candidate is returned, and the caller's own pin check refuses it.
+export function pinnedSource({ given, candidates, pin, sha = fileSha }) {
+  if (given) return given;
+  const matches = (file) => {
+    try {
+      return sha(file) === pin;
+    } catch {
+      return false;
+    }
+  };
+  return candidates.find(matches) ?? candidates[0];
+}
+
 // A binary pinned by constant when known, otherwise by the hash the previous
 // release recorded (the first install records it).
 export function pinnedIdentity({ actual, pin, previous }) {

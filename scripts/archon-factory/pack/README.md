@@ -41,19 +41,25 @@ resource per lane (`core-factory:delivery-<lane>`, source
 `core-factory-deliver-<lane>`), as many lanes as `limits.admittedIssues`.
 Admission records on the work item the lowest lane no live issue holds
 (`lane`), and every round of that issue starts on it, so two admitted issues
-run side by side while one issue's rounds still follow each other. Two cases
-are settled when a round starts: a work item admitted before lanes were
-recorded, and two live issues that record the same lane (a blocked issue
-retried after a newer one took its lane), where the higher-numbered one
-moves. Both take the lowest lane no other live issue records. Heavy checks
-stay serialized by `limits.heavyCheckSlots`.
+run side by side while one issue's rounds still follow each other. The lane
+is read from the work item alone, so every start of one round reaches the
+same lane (the same start sent to two lanes would start two runs). A work
+item admitted before lanes were recorded takes one fixed lane by its issue
+number. Two live issues that record the same lane (a blocked issue retried
+after a newer one took its lane) take turns on it. Heavy checks stay
+serialized by `limits.heavyCheckSlots`.
 
 **Admission observation.** For every authorized issue the selector reads the
 issue, its comments (not the factory's own), GitHub's blocked-by list and the
 governing documents it cites, and from those its prerequisites. Each sentence
-is classified by its own words, and a sentence that denies a dependency ("not
-blocked by #12", "no relation and no dependency") declares none. A
-prerequisite outside the scope decides one thing: a closing pull request
+is classified by its own words. A denial ("not blocked by #12", "no relation
+and no dependency", "requires #14, not #12") declares none and takes the
+issues it names with it; only a negated dependency word or issue reference is
+a denial, so "not ready because blocked by #12" still blocks. A range ("#12
+to #15", "#12–#15") names every issue in it; one wider than 25 issues stops
+for a person. An issue named both as related and as a prerequisite is a
+prerequisite; any other pair of different statements about one issue is a
+conflict a person settles. A prerequisite outside the scope decides one thing: a closing pull request
 merged on the target branch settles it, anything else blocks the issue that
 needs it. Its own text and history are not read. A governing file is fetched
 once per pass, every GitHub request has a deadline, and a pass stops observing
@@ -65,12 +71,14 @@ so a run whose engine process died (restart, reboot) would keep its resource
 for good. Before each admission pass `.shared/orphans.mjs reap` takes each
 factory run whose recorded engine process is provably gone, removes that run's
 check containers, and only then abandons it; the sweep settles the work item
-and starts its next round. A run whose containers cannot be confirmed gone is
-left for the next pass.
+and starts its next round. That round follows what the interrupted one had
+recorded: a candidate it committed goes to review only, acceptance it defined
+goes to the implementer, anything earlier runs the round again. A run whose
+containers cannot be confirmed gone is left for the next pass.
 
 **Blocked issues.** When an issue blocks, the next selector pass posts one
 comment on the GitHub issue with the reason and the next step, so the owner is
-notified where the work is.
+notified where the work is. A blocker is announced until it is a week old.
 
 A round start's dispatch key is `${assignment}:r${round+1}:v${revision}`, where
 `revision` is the work item's state revision when the start is fired (admission's
@@ -296,7 +304,8 @@ issue stays stopped until an operator reopens it.
   assignment, which also drops the reviews earned under the old release.
 - `reconcile` settles an item that a cancelled or unrecorded run left `active`:
   once the engine reports that run completed or cancelled (or its lease ended),
-  the item waits again on the run's route. It is refused while the lease is
+  the item waits again, on the route its recorded progress calls for
+  (Interrupted runs, above). It is refused while the lease is
   live. On a pending or waiting item it only records the request, which moves
   the item's revision and so re-arms its dispatch key. The intake sweep
   reconciles ended runs by itself as well.

@@ -38,12 +38,12 @@ the Console checks the browser origin.
 
 ## Services
 
-| Unit                           | Purpose                                                         |
-| ------------------------------ | --------------------------------------------------------------- |
-| `core-archon.service`          | The engine (`127.0.0.1:39190`, trigger host `core-dev`)         |
-| `core-factory-intake.timer`    | Every 10 minutes: clear orphaned runs, then start `core-select` |
-| `core-factory-backup.timer`    | Daily 03:30: coherent backup to `/srv/core-factory/backups`     |
-| `core-factory-console.service` | The Console (`127.0.0.1:39342`)                                 |
+| Unit                           | Purpose                                                                |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| `core-archon.service`          | The engine (`127.0.0.1:39190`, trigger host `core-dev`)                |
+| `core-factory-intake.timer`    | Every 10 minutes: clear orphaned runs, then start `core-select`        |
+| `core-factory-backup.timer`    | Daily 03:30 VM time (20:30 UTC): backup to `/srv/core-factory/backups` |
+| `core-factory-console.service` | The Console (`127.0.0.1:39342`)                                        |
 
 `systemctl status core-archon core-factory-console`; logs with
 `journalctl -u core-archon -n 200`.
@@ -64,7 +64,9 @@ Every ten minutes the selector does three things:
    prerequisite has a closing pull request merged on `develop`, no other
    issue holds a shared area it needs, and a delivery lane is free.
    Dependencies come from GitHub's blocked-by list, the issue text and
-   comments, and the governing documents the issue cites. Anything that
+   comments, and the governing documents the issue cites. A range ("#12 to
+   #15") names every issue in it, and a denial ("not blocked by #12") names
+   none. An open or green pull request is not merged work. Anything that
    cannot be read or classified keeps that one issue out and is recorded with
    its reason; the other issues carry on.
 3. **Ranking (Samson).** With one eligible issue it is admitted directly. With
@@ -81,7 +83,8 @@ why) is `/srv/core-factory/runs/<selector run>/eligibility.json`.
 
 Up to `limits.admittedIssues` issues (2) are in flight. Each runs in its own
 delivery lane, so their rounds run side by side; heavy checks still run one at
-a time. Keep a scope to a few dozen issues: a pass reads every issue in it and
+a time. A blocked issue retried after a newer one took its lane shares that
+lane, and the two take turns. Keep a scope to a few dozen issues: a pass reads every issue in it and
 stops observing after three minutes.
 
 ## Controls
@@ -92,7 +95,13 @@ mutation needs a unique `--request` id of 8-128 letters, digits, `.`, `_`, `:`
 or `-`; repeating an id does not authorize a new effect:
 
 ```sh
-C=/srv/core-factory/control/.archon/workflows/core-factory/.shared/control.mjs
+# On the VM, as admin (ssh admin@core-dev). All five variables are needed:
+# without them a control refuses (for example `identity-archon-home-mismatch`).
+cd /srv/core-factory/control
+export CORE_FACTORY_CONFIG=/srv/core-factory/control/core-factory.json
+export ARCHON_HOME=/srv/core-factory/archon ARCHON_USER_ID=core-factory
+export HOME=/home/admin CLAUDE_CONFIG_DIR=/home/admin/.claude
+C=.archon/workflows/core-factory/.shared/control.mjs
 N=/opt/node-v24.22.1-linux-x64/bin/node
 $N $C status
 ```
@@ -114,6 +123,16 @@ $N $C status
 | Let one issue's scope reach protected paths       | `$N $C allow-protected <n> 'package.json,.github/**' ...` (`all` for every protected path, `none` to revoke)                        |
 | Change ranking                                    | `$N $C prioritize <n> <0-100> ...`                                                                                                  |
 | Cancel one run                                    | `$N $C cancel-run <runId> ...` (holds the issue first; release remains subject to all safety gates)                                 |
+| Ask Samson a question (the Console chat)          | `$N $C ask --conversation <id> --request <id> --question "text"`                                                                    |
+| Start an advisory analysis (never a gate)         | `$N $C analyze --scope factory --request <id>` (or `--scope issue:<n>`)                                                             |
+
+A ready pull request is not watched: once an issue is `PR_READY` the factory
+leaves it alone, so the pull request falls behind when `develop` moves and a
+later comment or failed check is not seen. `issue <n> reopen` runs its
+feedback stage again (the factory merges `develop` in, re-checks and answers).
+After a release change `reopen` is refused until the issue is moved to the new
+release: `issue <n> stop`, `issue <n> adopt-policy`, then `issue <n> reopen`
+(Updates, step 7), which also re-runs the reviews.
 
 Hold, stop and drain never abandon a run or delete work: they take effect at
 the next round boundary, and unfinished code stays in
@@ -121,9 +140,9 @@ the next round boundary, and unfinished code stays in
 delivery run unless the run's owner is verifiably gone; it can delete files.
 
 - `retry`, `reopen`, `release` and `adopt-policy` verify the owner's signed-in
-  account, so run them as `admin` with the owner's profile in the environment
-  (`HOME=/home/admin CLAUDE_CONFIG_DIR=/home/admin/.claude`); otherwise they
-  refuse `identity-profile-environment-mismatch`. The Console sets both.
+  account, so run them as `admin` with the environment above; otherwise they
+  refuse `identity-profile-environment-mismatch` or
+  `identity-archon-home-mismatch`. The Console sets it itself.
 - `retry`, `reopen` and `release` require evidence that the installed policy
   still matches the retained assignment. Missing policy evidence or a changed
   policy refuses the control before mutation; these controls never rebind an
@@ -132,8 +151,9 @@ delivery run unless the run's owner is verifiably gone; it can delete files.
   `reopen` reset round budgets, subject to those safety gates.
 - `reconcile` settles an ordinary active item only after matching engine
   completion/cancellation (or an ended lease for that same run), with no live
-  lease or unresolved native/cleanup hold. The item then waits on that run's
-  route. It is not identity/effects reconciliation. On an otherwise safe pending
+  lease or unresolved native/cleanup hold. The item then waits on the route
+  its recorded progress calls for (Reboot and recovery). It is not
+  identity/effects reconciliation. On an otherwise safe pending
   or waiting item it only records the request, re-arming the next round start.
 - `allow-protected` accepts only issues in the current scope and only the exact
   protected globs: `.github/**`, `.husky/**`, `scripts/git/**`,
@@ -298,9 +318,15 @@ An ordinary interruption heals by itself. The engine never declares a running
 run dead, so a run whose engine process died (service restart, VM reboot)
 would otherwise stay "running" and keep its lane or the admission slot. Before
 each admission pass the intake unit runs `.shared/orphans.mjs reap`, which
-abandons factory runs whose recorded engine process is provably gone. The
-sweep in the same pass settles the issue back to waiting on its route and
-starts the round again; unfinished code stays in the issue clone. This takes
+takes each factory run whose recorded engine process is provably gone,
+removes that run's check containers (one may still be writing the issue's
+workspace) and then abandons the run. A run whose containers cannot be
+confirmed gone is left for the next pass. The sweep in the same pass settles
+the issue back to waiting and starts its next round, which follows what the
+interrupted round had recorded: a candidate it had committed goes to review
+only, acceptance it had defined goes to the implementer, and anything earlier
+runs the round again. Unfinished code stays in the issue clone. A round that was waiting (the feedback
+cooldown) is not orphaned: the engine resumes it by itself. This takes
 at most one timer interval (ten minutes). `journalctl -u
 core-factory-intake.service` shows what was cleared.
 
@@ -402,13 +428,40 @@ manifest.
    native/cleanup holds, live or ambiguous leases, and unreconciled runs/routes
    also prevent a switch. Preserve their work and original bindings; back up
    before an eligible update.
-2. Run the installer from a reviewed commit:
-   `sudo node scripts/archon-factory/installation/install.mjs --stage <dir>`. It
+2. Stage exactly one reviewed, pushed commit and run the installer from that
+   stage, so the release record names the commit:
+
+   ```sh
+   # In a Linux or WSL checkout that has the commit (on Windows `git archive`
+   # rewrites line endings). Copy "$S" to the VM if it was made elsewhere.
+   S=/home/admin/factory-stage/<commit>          # an empty directory
+   git archive <commit> scripts/archon-factory | tar -x -C "$S"
+   git rev-parse <commit> > "$S/scripts/archon-factory/SOURCE_COMMIT"
+   # On the VM, as root:
+   cd "$S/scripts/archon-factory"
+   sudo /opt/node-v24.22.1-linux-x64/bin/node installation/install.mjs \
+     --stage "$S/scripts/archon-factory"
+   sudo systemctl daemon-reload && sudo systemctl restart core-archon.service
+   ```
+
+   The installer takes the pinned engine binary and webhook plugin from the
+   installed copies (`/opt/archon/0.14.0/archon`,
+   `/opt/core-archon-factory/plugins/standard-webhooks.mjs`) when the build
+   copies of the first install are gone; `--archon <file>` and
+   `--plugin <file>` name others. Either way the bytes must match the pins.
+
+   Without `SOURCE_COMMIT` the release is recorded with no source. The
+   installer records the commit you declare and does not check it against Git.
+   To prove it, compare the installed pack with the commit, file by file:
+   `find /srv/core-factory/control/.archon/workflows/core-factory -type f | sort | xargs sha256sum`
+   against the same listing of `scripts/archon-factory/pack` from
+   `git archive <commit>`. It
    needs network access to GitHub releases (the pinned launcher downloads the
    engine server and web UI and verifies them against its embedded checksums,
    and adds any missing provider or forge plugin the same way) and the check
    image `core-archon-checks:node24.22.1-bun1.4.3-jq` with the exact pinned
    image ID.
+
 3. It verifies everything before changing anything: pinned binary hashes, the
    engine pieces, plugins (added into a temporary home and checked against
    their pins and receipts), the settings inputs, the configuration to install
